@@ -138,9 +138,9 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
    void (*set_shader)(); // pointer to custom function (may be null) called when Mesh shaders need to be updated, when changing some display options during application runtime, meshes require to have their shaders updated, Meshes created by using Cache are processed automatically, however manually created meshes need to be processed manually, to do this - create a global function which calls 'Mesh.setShader()' on all manually created meshes and then in 'InitPre' function set 'D.set_shader' to point to that function
 
    // get
- C Vec2&        size           ()C {return _size          ;} // get Application           Screen     Size     (in screen coordinates, depends on selected resolution, aspect mode and scale
-   Flt          w              ()C {return _size.x        ;} // get Application           Screen     Width    (in screen coordinates, depends on selected resolution, aspect mode and scale, usually something near 1.3)
-   Flt          h              ()C {return _size.y        ;} // get Application           Screen     Height   (in screen coordinates, depends on selected resolution, aspect mode and scale, usually something near 1.0)
+ C Vec2&        size           ()C {return _rect.max      ;} // get Application           Screen     Size     (in screen coordinates, depends on selected resolution, aspect mode and scale
+   Flt          w              ()C {return _rect.max.x    ;} // get Application           Screen     Width    (in screen coordinates, depends on selected resolution, aspect mode and scale, usually something near 1.3)
+   Flt          h              ()C {return _rect.max.y    ;} // get Application           Screen     Height   (in screen coordinates, depends on selected resolution, aspect mode and scale, usually something near 1.0)
  C Vec2&        size2          ()C {return _size2         ;} // get Application           Screen     Size  *2 (in screen coordinates, depends on selected resolution, aspect mode and scale
    Flt          w2             ()C {return _size2.x       ;} // get Application           Screen     Width *2 (in screen coordinates, depends on selected resolution, aspect mode and scale, usually something near 2.6)
    Flt          h2             ()C {return _size2.y       ;} // get Application           Screen     Height*2 (in screen coordinates, depends on selected resolution, aspect mode and scale, usually something near 2.0)
@@ -189,7 +189,7 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
                                                                      Bool             exclusiveFull     ()C;                             // if actually in exclusive full-screen mode
                                                                      Bool             colorManaged      ()C {return _color_lut.is()   ;} // if need to perform any color transformations
 #endif
-                                                                     Rect             rect              ()C {return Rect(-w(), -h(), w(), h());} // get full screen rectangle
+                                                                   C Rect&            rect              ()C {return _rect             ;} // get     full screen rectangle Rect(-w(), -h(), w(), h())
    DisplayClass& exclusive        (Bool             exclusive   );   Bool             exclusive         ()C {return _exclusive        ;} // get/set if fullscreen mode should be exclusive (true/false                         , default=             true                             ), this affects only Windows DirectX fullscreen mode, exclusive offers better performance, non-exclusive offers faster Alt+Tab switching
    DisplayClass& colorSpace       (COLOR_SPACE      color_space );   COLOR_SPACE      colorSpace        ()C {return _color_space      ;} // get/set if App should be color managed         (COLOR_SPACE                        , default= COLOR_SPACE_NONE                             ), if enabled then Application will convert colors from specified color space into monitor color space, based on selected monitor color profile in the Operating System. If there's no monitor color profile selected in the Operating System, then this option will have no effect. Using COLOR_SPACE_NONE disables color management, while other modes enable it. Warning: enabling color management reduces performance.
    DisplayClass& density          (Flt              density     );   Flt              density           ()C;                             // get/set Rendering Pixel Density                (0..2                               , default=                1                             ), density affects the number of pixels used during rendering, density=2 makes the rendering use 2x bigger render targets (super sampling) but slower performance, density=0.5 makes the rendering use 2x smaller render targets making the result more blurry but with faster performance, the change is NOT instant, avoid calling real-time
@@ -572,12 +572,12 @@ private:
                      _view_fov, _view_from,
                      _fade_alpha, _fade_speed,
                      _smaa_threshold;
-   Vec2              _unscaled_size, _size, _size2, _pixel_size, _pixel_size_2, _pixel_size_inv,
+   Vec2              _unscaled_size, _size2, _pixel_size, _pixel_size_2, _pixel_size_inv,
                      _window_pixel_to_screen_mul, _window_pixel_to_screen_add, _window_pixel_to_screen_scale,
                      _shd_map_split;
    Vec               _amb_color_l, _ns_color_l, _env_color, _eye_adapt_weight;
    Vec2              _view_center, _view_fov_tan_gui, _view_fov_tan_full;
-   Rect              _view_rect, _view_eye_rect[2];
+   Rect              _rect, _view_rect, _view_eye_rect[2];
    Viewport          _view_main, _view_active;
    Str8              _device_name;
    ImagePtr          _color_palette[2], _env_map;

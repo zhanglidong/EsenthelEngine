@@ -883,7 +883,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _density=127;
   _samples=1;
   _scale=1;
-  _unscaled_size=_size=1; _size2=2; // init to 1 to avoid div by 0 at app startup which could cause crash on Web
+  _unscaled_size=1; _size2=2; _rect.set(-1, -1, 1, 1); // init to 1 to avoid div by 0 at app startup which could cause crash on Web
   _disp_aspect_ratio=_disp_aspect_ratio_want=0;
   _app_aspect_ratio=1;
   _pixel_aspect=1;
@@ -2547,8 +2547,8 @@ void DisplayClass::validateCoords(Int eye)
 /******************************************************************************/
 void DisplayClass::sizeChanged()
 {
-   D._size =D._unscaled_size/D._scale;
-   D._size2=D._size         *2;
+   D._rect.min=-D._rect.max=D._unscaled_size/D._scale;
+   D._size2=D.size()*2;
 
  C VecI2 &res=((VR.active() && D._allow_stereo) ? VR.guiRes() : D.res());
    D._pixel_size    .set( w2()/res.x,  h2()/res.y); D._pixel_size_2=D._pixel_size*0.5f;
