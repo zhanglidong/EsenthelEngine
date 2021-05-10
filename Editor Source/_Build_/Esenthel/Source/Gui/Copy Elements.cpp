@@ -380,9 +380,19 @@ void DrawCopyElms()
             if(include_dependencies()){includeDep(Proj.meshToObj(data->body_id)); includeDep(data->draw_group_id); FREPA(data->mtrl_ids)includeDep(data->mtrl_ids[i]);}
          }break;
 
+         case ELM_SKEL: if(ElmSkel *data=elm->skelData())
+         {
+            includeDep(data->mesh_id); // always include
+         }break;
+
          case ELM_PHYS: if(ElmPhys *data=elm->physData())
          {
             if(include_dependencies())includeDep(data->mtrl_id);
+         }break;
+
+         case ELM_ANIM: if(ElmAnim *data=elm->animData())
+         {
+            if(include_dependencies())includeDep(data->skel_id);
          }break;
 
          case ELM_MTRL: if(ElmMaterial *data=elm->mtrlData())
