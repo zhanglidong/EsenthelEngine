@@ -117,21 +117,23 @@ struct Rect // Rectangle Shape
    Str asText()C {return S+"Min: "+min+", Max: "+max;} // get text description
 
    // operations
-   Rect& extendX   (  Flt   e                ); // extend rectangle X's
-   Rect& extendY   (  Flt   e                ); // extend rectangle Y's
-   Rect& extend    (  Flt   e                ); // extend rectangle
-   Rect& extend    (C Vec2 &v                ); // extend rectangle
-   Rect& extend    (  Flt   x  , Flt y       ); // extend rectangle
-   Rect& includeX  (  Flt   x                ); // extend rectangle to include 'x'
-   Rect& includeY  (  Flt   y                ); // extend rectangle to include 'y'
-   Rect& includeX  (  Flt   min, Flt max     ); // extend rectangle to include min..max X range
-   Rect& includeY  (  Flt   min, Flt max     ); // extend rectangle to include min..max Y range
-   Rect& include   (C Vec2 &v                ); // extend rectangle to include vector
-   Rect& include   (C Rect &r                ); // extend rectangle to include rectangle
-   Rect& clampX    (  Flt   min, Flt max     ); // clamp  rectangle to intersect min..max X range
-   Rect& clampY    (  Flt   min, Flt max     ); // clamp  rectangle to intersect min..max Y range
-   Rect& moveX     (  Flt   dx               ); // move   rectangle X's by 'dx'
-   Rect& moveY     (  Flt   dy               ); // move   rectangle Y's by 'dy'
+   Rect& extendX   (  Flt   e                ); // extend   rectangle X's
+   Rect& extendY   (  Flt   e                ); // extend   rectangle Y's
+   Rect& extend    (  Flt   e                ); // extend   rectangle
+   Rect& extend    (C Vec2 &v                ); // extend   rectangle
+   Rect& extend    (  Flt   x  , Flt y       ); // extend   rectangle
+   Rect& includeX  (  Flt   x                ); // extend   rectangle to include 'x'
+   Rect& includeY  (  Flt   y                ); // extend   rectangle to include 'y'
+   Rect& includeX  (  Flt   min, Flt max     ); // extend   rectangle to include min..max X range
+   Rect& includeY  (  Flt   min, Flt max     ); // extend   rectangle to include min..max Y range
+   Rect& include   (C Vec2 &v                ); // extend   rectangle to include vector
+   Rect& include   (C Rect &r                ); // extend   rectangle to include rectangle
+   Rect& clampX    (  Flt   min, Flt max     ); // clamp    rectangle to intersect min..max X range
+   Rect& clampY    (  Flt   min, Flt max     ); // clamp    rectangle to intersect min..max Y range
+   Rect& moveX     (  Flt   dx               ); // move     rectangle X's by 'dx'
+   Rect& moveY     (  Flt   dy               ); // move     rectangle Y's by 'dy'
+   Rect& mulX      (  Flt   x                ); // multiply rectangle X's by 'x'
+   Rect& mulY      (  Flt   y                ); // multiply rectangle Y's by 'y'
    Rect& from      (C Vec2 &a, C Vec2 &b     ); // create from 2 points
    Bool  from      (C Vec2 *point, Int points); // set from an array of points, false on fail (if there are no points)
    Rect& swapX     (                         ); // swap 'min.x' with 'max.x'
@@ -253,21 +255,23 @@ struct RectD // Rectangle Shape (double precision)
    Str asText()C {return S+"Min: "+min+", Max: "+max;} // get text description
 
    // operations
-   RectD& extendX   (  Dbl    e            ); // extend rectangle X's
-   RectD& extendY   (  Dbl    e            ); // extend rectangle Y's
-   RectD& extend    (  Dbl    e            ); // extend rectangle
-   RectD& extend    (C VecD2 &v            ); // extend rectangle
-   RectD& extend    (  Dbl    x  , Dbl y   ); // extend rectangle
-   RectD& includeX  (  Dbl    x            ); // extend rectangle to include x
-   RectD& includeY  (  Dbl    y            ); // extend rectangle to include y
-   RectD& includeX  (  Dbl    min, Dbl max ); // extend rectangle to include min..max X range
-   RectD& includeY  (  Dbl    min, Dbl max ); // extend rectangle to include min..max Y range
-   RectD& include   (C VecD2 &v            ); // extend rectangle to include vector
-   RectD& include   (C RectD &r            ); // extend rectangle to include rectangle
-   RectD& clampX    (  Dbl    min, Dbl max ); // clamp  rectangle to intersect min..max X range
-   RectD& clampY    (  Dbl    min, Dbl max ); // clamp  rectangle to intersect min..max Y range
-   RectD& moveX     (  Dbl    dx           ); // move   rectangle X's by 'dx'
-   RectD& moveY     (  Dbl    dy           ); // move   rectangle Y's by 'dy'
+   RectD& extendX   (  Dbl    e            ); // extend   rectangle X's
+   RectD& extendY   (  Dbl    e            ); // extend   rectangle Y's
+   RectD& extend    (  Dbl    e            ); // extend   rectangle
+   RectD& extend    (C VecD2 &v            ); // extend   rectangle
+   RectD& extend    (  Dbl    x  , Dbl y   ); // extend   rectangle
+   RectD& includeX  (  Dbl    x            ); // extend   rectangle to include x
+   RectD& includeY  (  Dbl    y            ); // extend   rectangle to include y
+   RectD& includeX  (  Dbl    min, Dbl max ); // extend   rectangle to include min..max X range
+   RectD& includeY  (  Dbl    min, Dbl max ); // extend   rectangle to include min..max Y range
+   RectD& include   (C VecD2 &v            ); // extend   rectangle to include vector
+   RectD& include   (C RectD &r            ); // extend   rectangle to include rectangle
+   RectD& clampX    (  Dbl    min, Dbl max ); // clamp    rectangle to intersect min..max X range
+   RectD& clampY    (  Dbl    min, Dbl max ); // clamp    rectangle to intersect min..max Y range
+   RectD& moveX     (  Dbl    dx           ); // move     rectangle X's by 'dx'
+   RectD& moveY     (  Dbl    dy           ); // move     rectangle Y's by 'dy'
+   RectD& mulX      (  Dbl    x            ); // multiply rectangle X's by 'x'
+   RectD& mulY      (  Dbl    y            ); // multiply rectangle Y's by 'y'
    RectD& from      (C VecD2 &a, C VecD2 &b); // create from 2 points
    RectD& swapX     (                      ); // swap 'min.x' with 'max.x'
    RectD& swapY     (                      ); // swap 'min.y' with 'max.y'

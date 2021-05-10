@@ -53,14 +53,19 @@ Int SuggestionsPriority(C Str &s, C Str &t, Bool all_up_case) // 's'=suggestion,
          for(Int si=0; si<s.length(); si++) // find max number of continuous chars in 's' starting from 't1'
          {
             Int score, same_chars=SameChars(t1, s()+si, score);
-            if( score>best_score)
+            if(same_chars)
             {
-               best_score     =score;
-               best_same_chars=same_chars;
+               score*=(20+(si==ti)+(ti==0)*3); // boost score when at the same place, or starting
+               if(score>best_score)
+               {
+                  best_score     =score;
+                  best_same_chars=same_chars;
+               }
             }
          }
          total_score+=best_score;
          ti         +=best_same_chars;
+         if(best_same_chars==s.length() && s.length()==t.length() && Equal(s, t, true))total_score++; // if this is an exact match of entire strings, then boost priority
       }
    }
    return total_score;

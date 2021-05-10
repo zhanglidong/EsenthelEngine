@@ -170,9 +170,13 @@ RectI& RectI::include(C RectI &r)
 /******************************************************************************/
 Rect& Rect::moveX(Flt dx) {min.x+=dx; max.x+=dx; return T;}
 Rect& Rect::moveY(Flt dy) {min.y+=dy; max.y+=dy; return T;}
+Rect& Rect:: mulX(Flt x ) {min.x*= x; max.x*= x; return T;}
+Rect& Rect:: mulY(Flt y ) {min.y*= y; max.y*= y; return T;}
 
 RectD& RectD::moveX(Dbl dx) {min.x+=dx; max.x+=dx; return T;}
 RectD& RectD::moveY(Dbl dy) {min.y+=dy; max.y+=dy; return T;}
+RectD& RectD:: mulX(Dbl x ) {min.x*= x; max.x*= x; return T;}
+RectD& RectD:: mulY(Dbl y ) {min.y*= y; max.y*= y; return T;}
 /******************************************************************************/
 Rect& Rect::swapX() {Swap(min.x, max.x); return T;}
 Rect& Rect::swapY() {Swap(min.y, max.y); return T;}
