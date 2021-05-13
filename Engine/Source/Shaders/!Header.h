@@ -2096,7 +2096,8 @@ struct HSData
        B201:TEXCOORD5,
        B111:TEXCOORD6;
 
-#if 0 // Cubic normals
+#define NORMAL_CUBIC_INTERPOLATE 0 // if use cubic interpolation for vertex normals
+#if     NORMAL_CUBIC_INTERPOLATE
    Vec N110:NORMAL0,
        N011:NORMAL1,
        N101:NORMAL2;
@@ -2147,7 +2148,7 @@ HSData GetHSData(Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nrm2, Boo
       O.B111=E*0.5-V;
    }
 
-#if 0 // cubic normal interpolation
+#if NORMAL_CUBIC_INTERPOLATE
    Flt V12=2*Dot(B030-B003, N002+N020)/Dot(B030-B003, B030-B003); O.N110=Normalize(N002+N020-V12*(B030-B003));
    Flt V23=2*Dot(B300-B030, N020+N200)/Dot(B300-B030, B300-B030); O.N011=Normalize(N020+N200-V23*(B300-B030));
    Flt V31=2*Dot(B003-B300, N200+N002)/Dot(B003-B300, B003-B300); O.N101=Normalize(N200+N002-V31*(B003-B300));
@@ -2164,14 +2165,14 @@ void SetDSPosNrm(out Vec pos, out Vec nrm, Vec pos0, Vec pos1, Vec pos2, Vec nrm
        V=B.y, VV=V*V,
        W=B.z, WW=W*W;
 
-#if 0 // cubic normal interpolation
+#if NORMAL_CUBIC_INTERPOLATE
    nrm=Normalize(nrm0*WW
                 +nrm1*UU
                 +nrm2*VV
                 +hs_data.N110*(W*U)
                 +hs_data.N011*(U*V)
                 +hs_data.N101*(W*V));
-#else // linear normal interpolation
+#else // linear interpolation
    nrm=Normalize(nrm0*W + nrm1*U + nrm2*V);
 #endif
 
