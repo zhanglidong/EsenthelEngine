@@ -421,14 +421,14 @@ struct TriHull
       nrm=N0   *  WW
         + N1   *  UU
         + N2   *  VV
-        + N110 * (W * U)
-        + N011 * (U * V)
-        + N101 * (W * V);
+        + N110 * (W * U * 2)  // *2 makes sure that sum of all weights is 1 and that normals from tesselated triangles will match normals from tesselated quads (original version didn't have this)
+        + N011 * (U * V * 2)  // *2 makes sure that sum of all weights is 1 and that normals from tesselated triangles will match normals from tesselated quads (original version didn't have this)
+        + N101 * (W * V * 2); // *2 makes sure that sum of all weights is 1 and that normals from tesselated triangles will match normals from tesselated quads (original version didn't have this)
       nrm.normalize();
    }
-#else // optimized, where all B* are 3x bigger, except 'B111' which is 6x bigger
+#else // optimized, where all B* are 3x bigger, except 'B111' which is 6x bigger, and N*** are 2x bigger
    Vec B210_3, B120_3, B021_3, B012_3, B102_3, B201_3, B111_6,
-       N110, N011, N101;
+       N110_2, N011_2, N101_2;
 
    void set01()
    {
@@ -466,9 +466,9 @@ struct TriHull
 		    V=P0+P1+P2;
       B111_6=E*0.5f-V;
 
-		Flt V01=2 * Dot(P1-P0, N0+N1) / Dot(P1-P0, P1-P0); N110=N0 + N1 - V01*(P1-P0); N110.normalize();
-		Flt V12=2 * Dot(P2-P1, N1+N2) / Dot(P2-P1, P2-P1); N011=N1 + N2 - V12*(P2-P1); N011.normalize();
-		Flt V20=2 * Dot(P0-P2, N2+N0) / Dot(P0-P2, P0-P2); N101=N2 + N0 - V20*(P0-P2); N101.normalize();
+		Flt V01=2 * Dot(P1-P0, N0+N1) / Dot(P1-P0, P1-P0); N110_2=N0 + N1 - V01*(P1-P0); N110_2.setLength(2);
+		Flt V12=2 * Dot(P2-P1, N1+N2) / Dot(P2-P1, P2-P1); N011_2=N1 + N2 - V12*(P2-P1); N011_2.setLength(2);
+		Flt V20=2 * Dot(P0-P2, N2+N0) / Dot(P0-P2, P0-P2); N101_2=N2 + N0 - V20*(P0-P2); N101_2.setLength(2);
    }
    void set(Vec &pos, Vec &nrm, Flt U, Flt V)
    {
@@ -486,12 +486,12 @@ struct TriHull
         + B012_3 * (U * VV)
         + B111_6 * (W * U * V);
     
-      nrm=N0   *  WW
-        + N1   *  UU
-        + N2   *  VV
-        + N110 * (W * U)
-        + N011 * (U * V)
-        + N101 * (W * V);
+      nrm=N0     *  WW
+        + N1     *  UU
+        + N2     *  VV
+        + N110_2 * (W * U)
+        + N011_2 * (U * V)
+        + N101_2 * (W * V);
       nrm.normalize();
    }
 #endif
