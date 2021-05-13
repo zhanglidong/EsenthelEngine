@@ -2168,9 +2168,9 @@ void SetDSPosNrm(out Vec pos, out Vec nrm, Vec pos0, Vec pos1, Vec pos2, Vec nrm
    nrm=Normalize(nrm0*WW
                 +nrm1*UU
                 +nrm2*VV
-                +hs_data.N110*W*U
-                +hs_data.N011*U*V
-                +hs_data.N101*W*V);
+                +hs_data.N110*(W*U)
+                +hs_data.N011*(U*V)
+                +hs_data.N101*(W*V));
 #else // linear normal interpolation
    nrm=Normalize(nrm0*W + nrm1*U + nrm2*V);
 #endif
