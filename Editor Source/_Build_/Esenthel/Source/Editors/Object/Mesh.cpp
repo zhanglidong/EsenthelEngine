@@ -603,6 +603,7 @@ void ObjView::meshSubdivide()
 void ObjView::meshTesselate()
 {
    bool changed=false;
+   flt pos_eps=T.posEps();
    MeshLod &lod=getLod();
    mesh_undos.set("meshTess");
    if(mesh_parts.edit_selected())
@@ -615,7 +616,7 @@ void ObjView::meshTesselate()
          if(       part_vtxs.elms()) // if have any vtx to tesselate
          {
             MeshPart &part=lod.parts[p];
-            part.base.tesselate(part_vtxs);
+            part.base.tesselate(part_vtxs, pos_eps);
             part.setRender();
             changed=true;
          }
@@ -627,7 +628,7 @@ void ObjView::meshTesselate()
       MeshPart &part=lod.parts[i];
       MeshBase &base=part.base;
     //base.setVtxDup();
-      base.tesselate();
+      base.tesselate(pos_eps);
     //base.exclude(VTX_DUP);
       part.setRender();
       changed=true;
