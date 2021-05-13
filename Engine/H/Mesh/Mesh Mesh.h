@@ -137,8 +137,8 @@ struct Mesh : MeshLod // Mesh (array of Mesh LODs)
 
    Mesh& explodeVtxs(); // separate vertexes so that each edge/face has its own unique vertexes
 
-   Mesh& tesselate(); // smooth subdivide faces, preserving original vertexes
-   Mesh& subdivide(); // smooth subdivide faces,  smoothing original vertexes
+   Mesh& tesselate(Flt weld_pos_eps=EPS); // smooth subdivide faces, preserving original vertexes, 'weld_pos_eps'=epsilon used for final vertex position welding
+   Mesh& subdivide(                    ); // smooth subdivide faces,  smoothing original vertexes
 
    Int   boneFind (CChar8 *bone_name                                      )C; // find bone by its name and return its index, -1 on fail
    Mesh& boneRemap(C CMemPtr<Byte, 256> &old_to_new, Bool remap_names=true) ; // remap vertex bone/matrix indexes according to bone 'old_to_new' remap, 'remap_names'=if remap the bone names as well

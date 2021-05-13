@@ -127,8 +127,8 @@ struct MeshLod // Level of Detail, array of Mesh Part's
 
    MeshLod& explodeVtxs(); // separate vertexes so that each edge/face has its own unique vertexes
 
-   MeshLod& tesselate(); // smooth subdivide faces, preserving original vertexes
-   MeshLod& subdivide(); // smooth subdivide faces,  smoothing original vertexes
+   MeshLod& tesselate(Flt weld_pos_eps=EPS); // smooth subdivide faces, preserving original vertexes, 'weld_pos_eps'=epsilon used for final vertex position welding
+   MeshLod& subdivide(                    ); // smooth subdivide faces,  smoothing original vertexes
 
    MeshLod&    boneRemap(C CMemPtr<Byte, 256> &old_to_new); // remap vertex bone/matrix indexes according to bone 'old_to_new' remap
    void     setUsedBones(Bool (&bones)[256])C;

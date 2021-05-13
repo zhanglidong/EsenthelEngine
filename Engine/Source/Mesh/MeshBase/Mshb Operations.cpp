@@ -635,11 +635,11 @@ static Bool SameNrm(C MeshBase &mesh, Int face, Int v0, Int v1, C Vec &test_n0, 
    }
    return true;
 }
-MeshBase& MeshBase::tesselate()
+MeshBase& MeshBase::tesselate(Flt weld_pos_eps)
 {
    if(vtx.pos())
    {
-      setVtxDup().setAdjacencies(true);
+      setVtxDup(MESH_NONE, weld_pos_eps).setAdjacencies(true);
 
       // vtxs are created in following order [original_vtxs, tri edges, quad edges & centers]
       Int vtxs=T.vtxs (),
@@ -1106,17 +1106,17 @@ MeshBase& MeshBase::tesselate()
          vtxs+=5;
       }
 
-      temp.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small pos epsilon in case mesh is scaled down
+      temp.weldVtx(VTX_ALL, weld_pos_eps, EPS_COL_COS, -1);
       Swap(temp, T);
    }
    return T;
 }
-MeshBase& MeshBase::tesselate(C CMemPtr<Int > &vtx_sel) {Memt<Bool> vtx_is; CreateIs(vtx_is, vtx_sel, vtxs()); return tesselate(vtx_is);}
-MeshBase& MeshBase::tesselate(C CMemPtr<Bool> &vtx_sel)
+MeshBase& MeshBase::tesselate(C CMemPtr<Int > &vtx_sel, Flt weld_pos_eps) {Memt<Bool> vtx_is; CreateIs(vtx_is, vtx_sel, vtxs()); return tesselate(vtx_is, weld_pos_eps);}
+MeshBase& MeshBase::tesselate(C CMemPtr<Bool> &vtx_sel, Flt weld_pos_eps)
 {
    if(C Vec *vtx_pos=vtx.pos())
    {
-      setVtxDup().setAdjacencies(true);
+      setVtxDup(MESH_NONE, weld_pos_eps).setAdjacencies(true);
 
     C Vec   *vtx_nrm =vtx .nrm    ();
     C Int   *vtx_dup =vtx .dup    ();
@@ -1300,7 +1300,7 @@ MeshBase& MeshBase::tesselate(C CMemPtr<Bool> &vtx_sel)
       REPA( vtxs)vtxs[i].to(T, i);
       REPA( tris) tri.ind(i)= tris[i];
       REPA(quads)quad.ind(i)=quads[i];
-      weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small pos epsilon in case mesh is scaled down
+      weldVtx(VTX_ALL, weld_pos_eps, EPS_COL_COS, -1);
    }
    return T;
 }
