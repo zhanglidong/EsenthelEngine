@@ -573,10 +573,10 @@ struct QuadHull
           BV2=3 * V * V * (1-V),
           BV3=V * V * V;
 
-      pos=BV0*(BU0*P0 + BU1*B01 + BU2*B10 + BU3*P1)
+      pos=BV0*(BU0*P0  + BU1*B01 + BU2*B10 + BU3*P1 )
         + BV1*(BU0*B03 + BU1*B02 + BU2*B13 + BU3*B12)
         + BV2*(BU0*B30 + BU1*B31 + BU2*B20 + BU3*B21)
-        + BV3*(BU0*P3 + BU1*B32 + BU2*B23 + BU3*P2);
+        + BV3*(BU0*P3  + BU1*B32 + BU2*B23 + BU3*P2 );
     
       Flt NU0=(1-U) * (1-U),
           NU1=2 * U * (1-U),
@@ -585,9 +585,10 @@ struct QuadHull
           NV1=2 * V * (1-V),
           NV2=V * V;
 
-      nrm=NV0*(NU0*N0 + NU1*N01 + NU2*N1)
+      nrm=NV0*(NU0*N0  + NU1*N01   + NU2*N1 )
         + NV1*(NU0*N30 + NU1*N0123 + NU2*N12)
-        + NV2*(NU0*N3 + NU1*N23 + NU2*N2);
+        + NV2*(NU0*N3  + NU1*N23   + NU2*N2 );
+
       nrm.normalize();
    }
    inline void set(Vec &pos, Vec &nrm, C Vec2 &uv) {set(    pos,     nrm, uv.x, uv.y);}
