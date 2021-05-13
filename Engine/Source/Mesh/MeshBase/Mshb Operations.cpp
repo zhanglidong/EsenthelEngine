@@ -578,12 +578,12 @@ struct QuadHull
         + BV2*(BU0*B30 + BU1*B31 + BU2*B20 + BU3*B21)
         + BV3*(BU0*P3  + BU1*B32 + BU2*B23 + BU3*P2 );
     
-      Flt NU0=(1-U) * (1-U),
-          NU1=2 * U * (1-U),
-          NU2=U * U,
-          NV0=(1-V) * (1-V),
-          NV1=2 * V * (1-V),
-          NV2=V * V;
+      Flt NU0=Sqr(1-U),
+          NU2=Sqr(  U),
+          NU1=2*U*(1-U), // 1-NU0-NU2
+          NV0=Sqr(1-V),
+          NV2=Sqr(  V),
+          NV1=2*V*(1-V); // 1-NV0-NV2
 
       nrm=NV0*(NU0*N0  + NU1*N01   + NU2*N1 )
         + NV1*(NU0*N30 + NU1*N0123 + NU2*N12)
