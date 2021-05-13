@@ -352,10 +352,13 @@ MeshBase& MeshBase::explodeVtxs()
 static INLINE Flt Crease(C Vec &n) {Flt l=n.length2(); return l ? 1/Sqrt(l) : 0;} // this function will make the formula work as if 'n' is normalized and then final value scaled by original length, scale is performed to avoid cases where both normal vectors are similar and its cross product has very small length (direction could be incorrect due to precision issues)
 struct TriHull
 {
-   Vec P0, P1, P2,   B210, B120, B021, B012, B102, B201, B111,
-       N0, N1, N2,   N110, N011, N101;
+   Vec P0, P1, P2,
+       N0, N1, N2;
 
 #if 0 // unoptimized original version
+   Vec B210, B120, B021, B012, B102, B201, B111,
+       N110, N011, N101;
+
    void set01()
    {
 		B210=(2*P0 + P1 - Dot(P1-P0, N0)*N0)/3;
@@ -424,41 +427,44 @@ struct TriHull
       nrm.normalize();
    }
 #else // optimized, where all B* are 3x bigger, except 'B111' which is 6x bigger
+   Vec B210_3, B120_3, B021_3, B012_3, B102_3, B201_3, B111_6,
+       N110, N011, N101;
+
    void set01()
    {
-		B210=2*P0 + P1 - Dot(P1-P0, N0)*N0;
-		B120=2*P1 + P0 - Dot(P0-P1, N1)*N1;
+		B210_3=2*P0 + P1 - Dot(P1-P0, N0)*N0;
+		B120_3=2*P1 + P0 - Dot(P0-P1, N1)*N1;
    }
    void set12()
    {
-		B021=2*P1 + P2 - Dot(P2-P1, N1)*N1;
-		B012=2*P2 + P1 - Dot(P1-P2, N2)*N2;
+		B021_3=2*P1 + P2 - Dot(P2-P1, N1)*N1;
+		B012_3=2*P2 + P1 - Dot(P1-P2, N2)*N2;
    }
    void set20()
    {
-		B102=2*P2 + P0 - Dot(P0-P2, N2)*N2;
-		B201=2*P0 + P2 - Dot(P2-P0, N0)*N0;
+		B102_3=2*P2 + P0 - Dot(P0-P2, N2)*N2;
+		B201_3=2*P0 + P2 - Dot(P2-P0, N0)*N0;
    }
    void set01(C Vec &NA, C Vec &NB)
    {
-      Vec N=Cross(N0, NA); B210=P0*3+(Dot(P1-P0, N)*Crease(N))*N;
-          N=Cross(N1, NB); B120=P1*3+(Dot(P0-P1, N)*Crease(N))*N;
+      Vec N=Cross(N0, NA); B210_3=P0*3+(Dot(P1-P0, N)*Crease(N))*N;
+          N=Cross(N1, NB); B120_3=P1*3+(Dot(P0-P1, N)*Crease(N))*N;
    }
    void set12(C Vec &NA, C Vec &NB)
    {
-      Vec N=Cross(N1, NA); B021=P1*3+(Dot(P2-P1, N)*Crease(N))*N;
-          N=Cross(N2, NB); B012=P2*3+(Dot(P1-P2, N)*Crease(N))*N;
+      Vec N=Cross(N1, NA); B021_3=P1*3+(Dot(P2-P1, N)*Crease(N))*N;
+          N=Cross(N2, NB); B012_3=P2*3+(Dot(P1-P2, N)*Crease(N))*N;
    }
    void set20(C Vec &NA, C Vec &NB)
    {
-      Vec N=Cross(N2, NA); B102=P2*3+(Dot(P0-P2, N)*Crease(N))*N;
-          N=Cross(N0, NB); B201=P0*3+(Dot(P2-P0, N)*Crease(N))*N;
+      Vec N=Cross(N2, NA); B102_3=P2*3+(Dot(P0-P2, N)*Crease(N))*N;
+          N=Cross(N0, NB); B201_3=P0*3+(Dot(P2-P0, N)*Crease(N))*N;
    }
    void finalize()
    {
-		Vec E=B210+B120+B021+B012+B102+B201,
+		Vec E=B210_3+B120_3+B021_3+B012_3+B102_3+B201_3,
 		    V=P0+P1+P2;
-      B111=E*0.5f-V;
+      B111_6=E*0.5f-V;
 
 		Flt V01=2 * Dot(P1-P0, N0+N1) / Dot(P1-P0, P1-P0); N110=N0 + N1 - V01*(P1-P0); N110.normalize();
 		Flt V12=2 * Dot(P2-P1, N1+N2) / Dot(P2-P1, P2-P1); N011=N1 + N2 - V12*(P2-P1); N011.normalize();
@@ -469,16 +475,16 @@ struct TriHull
       Flt W=1-U-V,
           UU=Sqr(U), VV=Sqr(V), WW=Sqr(W);
 
-      pos=P0   * (WW * W)
-        + P1   * (UU * U)
-        + P2   * (VV * V)
-        + B210 * (WW * U)
-        + B120 * (W * UU)
-        + B201 * (WW * V)
-        + B021 * (UU * V)
-        + B102 * (W * VV)
-        + B012 * (U * VV)
-        + B111 * (W * U * V);
+      pos=P0     * (WW * W)
+        + P1     * (UU * U)
+        + P2     * (VV * V)
+        + B210_3 * (WW * U)
+        + B120_3 * (W * UU)
+        + B201_3 * (WW * V)
+        + B021_3 * (UU * V)
+        + B102_3 * (W * VV)
+        + B012_3 * (U * VV)
+        + B111_6 * (W * U * V);
     
       nrm=N0   *  WW
         + N1   *  UU
