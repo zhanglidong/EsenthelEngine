@@ -582,15 +582,25 @@ extern Memx<Notification> Notifications; // list of active notifications
 void HideNotifications();
 #endif
 /******************************************************************************/
-struct DataRange
+struct DataRangeRel
 {
    ULong start, size;
 
    ULong end()C {return start+size;}
 
-   void set(ULong start, ULong size) {T.start=start; T.size=size;}
+   void set   (ULong start, ULong size) {T.start=start; T.size=size     ;}
+   void setAbs(ULong start, ULong end ) {T.start=start; T.size=end-start;}
 };
-Int Compare(C DataRange &a, C DataRange &b);
+struct DataRangeAbs
+{
+   ULong start, end;
+
+   ULong size()C {return end-start;}
+
+   void set(ULong start, ULong end) {T.start=start; T.end=end;}
+};
+Int Compare(C DataRangeRel &a, C DataRangeRel &b);
+Int Compare(C DataRangeAbs &a, C DataRangeAbs &b);
 /******************************************************************************/
 enum LANG_TYPE : Byte
 {

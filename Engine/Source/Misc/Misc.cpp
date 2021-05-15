@@ -4190,7 +4190,8 @@ Bool ParseExe(C Str &name, MemPtr<ExeSection> sections)
 C ExeSection* FindSectionName   (C CMemPtr<ExeSection> &sections, CChar8 *name  ) {return sections.addr(FindSectionNameI  (sections, name  ));}
 C ExeSection* FindSectionOffset (C CMemPtr<ExeSection> &sections, CPtr    offset) {return sections.addr(FindSectionOffsetI(sections, offset));}
 /******************************************************************************/
-Int Compare(C DataRange &a, C DataRange &b) {return Compare(a.start, b.start);}
+Int Compare(C DataRangeRel &a, C DataRangeRel &b) {if(a.start<b.start)return -1; if(a.start>b.start)return +1; return Compare(a.size, b.size);}
+Int Compare(C DataRangeAbs &a, C DataRangeAbs &b) {if(a.start<b.start)return -1; if(a.start>b.start)return +1; return Compare(a.end , b.end );}
 /******************************************************************************/
 void InitMisc()
 {

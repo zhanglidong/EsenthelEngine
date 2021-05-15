@@ -272,19 +272,31 @@ Bool Pak::saveHeader(File &f)C
 {
    return saveHeaderPre(f) && saveHeaderData(f);
 }
-static void Add(MemPtr<DataRange> &ranges, ULong pos, ULong size)
+static void AddAbs(MemPtr<DataRangeAbs> &ranges, ULong start, ULong end)
 {
-   if(size>0)
+   if(end>start)
    {
       if(ranges.elms())
       {
-         auto &last=ranges.last(); if(last.end()==pos){last.size+=size; return;}
+         auto &last=ranges.last(); if(last.end==start){last.end=end; return;}
       }
-      ranges.New().set(pos, size);
+      ranges.New().set(start, end);
    }
 }
-static void Add(Memt<DataRange> &ranges, ULong pos, ULong size) {Add(MemPtr<DataRange>(ranges), pos, size);}
-PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr<DataRange> used_file_ranges)
+static void AddAbs(Memt<DataRangeAbs> &ranges, ULong start, ULong end)
+{
+   if(end>start)
+   {
+      if(ranges.elms())
+      {
+         auto &last=ranges.last(); if(last.end==start){last.end=end; return;}
+      }
+      ranges.New().set(start, end);
+   }
+}
+static inline void AddRel(Memt<DataRangeAbs> &ranges, ULong start, ULong size) {AddAbs(ranges, start, start+size);}
+
+PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr<DataRangeAbs> used_file_ranges)
 {
    if(expected_size)*expected_size=0;
    if(  actual_size)*  actual_size=0;
@@ -292,10 +304,10 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
 
    del();
 
-   Bool            fix_compressed=false;
-   PAK_LOAD        result=PAK_LOAD_INCOMPLETE_HEADER;
-   ULong           data_size=0;
-   Memt<DataRange> used_file_ranges_temp;
+   Bool               fix_compressed=false;
+   PAK_LOAD           result=PAK_LOAD_INCOMPLETE_HEADER;
+   ULong              data_size=0;
+   Memt<DataRangeAbs> used_file_ranges_temp;
 
   _data_offset       =f.posAbs   ();
   _file_cipher_offset=f.posCipher();
@@ -310,7 +322,7 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
       case 5:
       {
          ULong header_offset; f>>header_offset; // this is needed because of 'PakUpdateInPlace'
-         Add(used_file_ranges_temp, 0, f.pos());
+         AddAbs(used_file_ranges_temp, 0, f.pos());
          if(f.skip(header_offset))
          {
             Long header_data_pos=f.pos();
@@ -349,7 +361,7 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
                   }
 
                  _cipher_per_file=true;
-                  Add(used_file_ranges_temp, header_data_pos, f.pos()-header_data_pos);
+                  AddAbs(used_file_ranges_temp, header_data_pos, f.pos());
                   goto ok;
                }
             }
@@ -394,7 +406,7 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
               _cipher_per_file   =true;
               _data_offset       =f.posAbs   ();
               _file_cipher_offset=f.posCipher();
-               Add(used_file_ranges_temp, 0, f.pos());
+               AddAbs(used_file_ranges_temp, 0, f.pos());
                goto ok;
             }
          }
@@ -434,7 +446,7 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
               _data_offset       =f.posAbs   ();
               _file_cipher_offset=f.posCipher();
                fix_compressed=true;
-               Add(used_file_ranges_temp, 0, f.pos());
+               AddAbs(used_file_ranges_temp, 0, f.pos());
                goto ok;
             }
          }
@@ -474,7 +486,7 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
               _data_offset       =f.posAbs   ();
               _file_cipher_offset=f.posCipher();
                fix_compressed=true;
-               Add(used_file_ranges_temp, 0, f.pos());
+               AddAbs(used_file_ranges_temp, 0, f.pos());
                goto ok;
             }
          }
@@ -516,7 +528,7 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
               _data_offset       =f.posAbs   ();
               _file_cipher_offset=f.posCipher();
                fix_compressed=true;
-               Add(used_file_ranges_temp, 0, f.pos());
+               AddAbs(used_file_ranges_temp, 0, f.pos());
                goto ok;
             }
          }
@@ -558,7 +570,7 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
               _data_offset       =f.posAbs   ();
               _file_cipher_offset=f.posCipher();
                fix_compressed=true;
-               Add(used_file_ranges_temp, 0, f.pos());
+               AddAbs(used_file_ranges_temp, 0, f.pos());
                goto ok;
             }
          }
@@ -598,12 +610,12 @@ ok:
    if(  actual_size)*  actual_size= f.size();
    if(used_file_ranges) // do this here, instead of when loading data, because most likely this is not used, so we can avoid overhead by checking it just once outside the loop
    {
-      FREPA(_files){C PakFile &file=_files[i]; Add(used_file_ranges_temp, data_offset_local+file.data_offset, file.data_size_compressed);} // process in order
-      used_file_ranges_temp.sort(); FREPA(used_file_ranges_temp){C DataRange &dr=used_file_ranges_temp[i]; Add(used_file_ranges, dr.start, dr.size);} // process in order
+      FREPA(_files){C PakFile &file=_files[i]; AddRel(used_file_ranges_temp, data_offset_local+file.data_offset, file.data_size_compressed);} // process in order
+      used_file_ranges_temp.sort(); FREPA(used_file_ranges_temp){C DataRangeAbs &dr=used_file_ranges_temp[i]; AddAbs(used_file_ranges, dr.start, dr.end);} // process in order
    }
    return (data_size>f.size()) ? PAK_LOAD_INCOMPLETE_DATA : PAK_LOAD_OK;
 }
-PAK_LOAD Pak::loadMemEx(CPtr data, Int size, Cipher *cipher, Long *expected_size, Long *actual_size, MemPtr<DataRange> used_file_ranges)
+PAK_LOAD Pak::loadMemEx(CPtr data, Int size, Cipher *cipher, Long *expected_size, Long *actual_size, MemPtr<DataRangeAbs> used_file_ranges)
 {
    File f; f.readMem(data, size, cipher);
    PAK_LOAD result=loadHeader(f, expected_size, actual_size, used_file_ranges);
@@ -615,7 +627,7 @@ PAK_LOAD Pak::loadMemEx(CPtr data, Int size, Cipher *cipher, Long *expected_size
  //del(); no need to call because 'loadHeader' does that already
    return result;
 }
-PAK_LOAD Pak::loadEx(C Str &name, Cipher *cipher, Long pak_offset, Long *expected_size, Long *actual_size, MemPtr<DataRange> used_file_ranges)
+PAK_LOAD Pak::loadEx(C Str &name, Cipher *cipher, Long pak_offset, Long *expected_size, Long *actual_size, MemPtr<DataRangeAbs> used_file_ranges)
 {
    if(expected_size)*expected_size=0;
    if(  actual_size)*  actual_size=0;
@@ -1231,6 +1243,7 @@ struct PakCreator
    PakInPlace           *in_place;
    Str                  *error_message;
    Memc<PakFileEx>       files;
+   Memc<DataRangeRel>    holes;
    Pak                  &pak;
    Cipher               *src_cipher;
    COMPRESS_TYPE         compress;
@@ -1258,7 +1271,9 @@ struct PakCreator
       {
          if(in_place->used_file_ranges.elms())
          {
-            pak_file_size=in_place->used_file_ranges.last().end();
+            holes.setNum(in_place->used_file_ranges.elms()-1);
+            REPAO(holes).setAbs(in_place->used_file_ranges[i].end, in_place->used_file_ranges[i+1].start);
+            pak_file_size=in_place->used_file_ranges.last().end;
          }
          MAX(pak_file_size, SizeHeaderPre()); // make sure we have room for the pre-header
       }
@@ -1632,6 +1647,7 @@ struct PakCreator
                   Long header_data_pos=posForWrite(pak.sizeHeaderData());
                   if(!f_dest.pos(header_data_pos) || !pak.saveHeaderData(f_dest                 ) || !f_dest.flush()){if(error_message)*error_message=CantFlush(pak.pakFileName()); goto error;}
                   if(!f_dest.pos(              0) || !pak.saveHeaderPre (f_dest, header_data_pos) || !f_dest.flush()){if(error_message)*error_message=CantFlush(pak.pakFileName()); goto error;}
+                  f_dest.size(pak_file_size); // trim to used data only, this can ignore checking for errors, as Pak will work with or without this call
                }else
                if(header_changed) // if during file processing, the header was changed, then we need to resave it
                {
@@ -1874,6 +1890,7 @@ Bool PakUpdate(Pak &src_pak, C CMemPtr<PakFileData> &update_files, C Str &pak_na
 Bool PakUpdateInPlace(C CMemPtr<PakFileData> &update_files, C Str &pak_name, UInt flag, Cipher *cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress)
 {
    if(error_message)error_message->clear();
+   if(!update_files.elms())return true; // if nothing to update then succeed
 
    Pak                 src_pak;
    PakInPlace in_place(src_pak);
