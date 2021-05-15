@@ -1108,7 +1108,7 @@ struct PakCreator
       void sort()
       {
          files.sort(ComparePath);
-         REPA(files)if(i && EqualPath(files[i].name, files[i-1].name))files.remove(i, true); // remove files with same names (in case someone provides incorrect input)
+         REP(files.elms()-1)if(EqualPath(files[i].name, files[i+1].name))files.remove(i+1, true); // remove files with same names (in case someone provides incorrect input)
       }
    };
 
