@@ -591,7 +591,8 @@ struct DataRangeRel
    void set   (Long start, Long size) {T.start=start; T.size=size     ;}
    void setAbs(Long start, Long end ) {T.start=start; T.size=end-start;}
 
-   void moveStart(Long delta) {start+=delta; size-=delta;}
+   void moveStart  (Long delta) {start+=delta; size-=delta;}
+   void moveStartTo(Long pos  ) {size+=start-pos; start=pos;}
 };
 struct DataRangeAbs
 {

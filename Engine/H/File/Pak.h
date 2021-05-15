@@ -83,9 +83,9 @@ struct Pak // Set of Pak Files
 #if EE_PRIVATE
    Bool create(C CMemPtr<PakNode    > &files, C Str &pak_name  , UInt flag            , Cipher *dest_cipher                              , COMPRESS_TYPE compress              , Int compression_level                                    , Str *error_message     , PakProgress *progress, PakInPlace *in_place     );
    Bool create(C Mems<C PakFileData*> &files, C Str &pak_name  , UInt flag            , Cipher *dest_cipher                              , COMPRESS_TYPE compress              , Int compression_level                                    , Str *error_message     , PakProgress *progress, PakInPlace *in_place=null);
-   Bool saveHeaderPre (File &f, Long header_data_pos=LONG_MIN)C; // save Pak header     , false on fail
-   Bool saveHeaderData(File &f                               )C; // save Pak header data, false on fail
-   Int  sizeHeaderData()C;
+   Bool savePreHeader     (File &f, Long header_data_pos=LONG_MIN)C; // save Pak header     , false on fail
+   Bool saveHeaderData    (File &f                               )C; // save Pak header data, false on fail
+   Int      headerDataSize()C;
 #endif
 
    // io

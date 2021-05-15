@@ -216,22 +216,22 @@ Byte GetOldFlag(Byte flag)
         | (FlagTest(flag, 1<<4) ? PF_STD_LINK    : 0);
 }
 /******************************************************************************/
-Bool Pak::saveHeaderPre(File &f, Long header_data_pos)C
+Bool Pak::savePreHeader(File &f, Long header_data_pos)C
 {
-   // !! IF MAKING ANY CHANGE HERE THEN ADJUST 'SizeHeaderPre' !!
+   // !! IF MAKING ANY CHANGE HERE THEN ADJUST 'PreHeaderSize' !!
    f.putUInt (CC4_PAK); // CC4
    f.cmpUIntV(      5); // version
    Long offset; if(header_data_pos==LONG_MIN)offset=0;else{offset=header_data_pos-f.pos()-SIZE(Long); if(offset<0)return false;}
    f<<offset;
    return f.ok();
 }
-static Int SizeHeaderPre()
+static Int PreHeaderSize()
 {
    return SIZE(UInt)+CmpUIntVSize(5)+SIZE(Long);
 }
 Bool Pak::saveHeaderData(File &f)C
 {
-   // !! IF MAKING ANY CHANGE HERE, OR CHANGING TYPE OF 'files' THEN ADJUST 'sizeHeaderData' !!
+   // !! IF MAKING ANY CHANGE HERE, OR CHANGING TYPE OF 'files' THEN ADJUST 'headerDataSize' !!
    Memt<PakFile4> files; files.setNum(totalFiles());
    FREPA(files)
    {
@@ -255,14 +255,14 @@ Bool Pak::saveHeaderData(File &f)C
       Unaligned(dest.month               , src.modify_time_utc.month );
      _Unaligned(dest.year                , src.modify_time_utc.year  );
    }
-   // !! IF MAKING ANY CHANGE HERE, OR CHANGING TYPE OF 'files' THEN ADJUST 'sizeHeaderData' !!
+   // !! IF MAKING ANY CHANGE HERE, OR CHANGING TYPE OF 'files' THEN ADJUST 'headerDataSize' !!
    f.cmpUIntV(_root_files);
    if(_names.saveRaw(f))
    if( files.saveRaw(f))
       return f.ok();
    return false;
 }
-Int Pak::sizeHeaderData()C
+Int Pak::headerDataSize()C
 {
    return
       CmpUIntVSize(_root_files)
@@ -271,7 +271,7 @@ Int Pak::sizeHeaderData()C
 }
 Bool Pak::saveHeader(File &f)C
 {
-   return saveHeaderPre(f) && saveHeaderData(f);
+   return savePreHeader(f) && saveHeaderData(f);
 }
 static void AddAbs(MemPtr<DataRangeAbs> &ranges, ULong start, ULong end)
 {
@@ -1273,13 +1273,18 @@ struct PakCreator
       T.pak_file_size       =0;
       if(in_place)
       {
+         Int pre_header_size=PreHeaderSize();
          if(in_place->used_file_ranges.elms())
          {
             holes.setNum(in_place->used_file_ranges.elms()-1);
-            REPAO(holes).setAbs(in_place->used_file_ranges[i].end, in_place->used_file_ranges[i+1].start);
+             REPAO(holes).setAbs(in_place->used_file_ranges[i].end, in_place->used_file_ranges[i+1].start);
+            FREPA (holes)
+            {
+               auto &hole=holes[i]; if(hole.start<pre_header_size)hole.moveStartTo(pre_header_size);else break; // make sure we have room for pre-header, this is needed in case pre-header is now bigger than in the past
+            }
             pak_file_size=in_place->used_file_ranges.last().end;
          }
-         MAX(pak_file_size, SizeHeaderPre()); // make sure we have room for the pre-header
+         MAX(pak_file_size, pre_header_size); // make sure we have room for pre-header, this is needed in case loading 'src_pak' failed
       }
    }
 
@@ -1490,7 +1495,7 @@ struct PakCreator
          Int  files_to_process          =0;
          UInt max_data_size_compress    =0;
          Long thread_mem_usage          =0,
-              data_offset               =SizeHeaderPre()+pak.sizeHeaderData(), // !! THIS RELIES ON PAK MEMBERS: '_root_files', '_names', '_files', etc. !!
+              data_offset               =PreHeaderSize()+pak.headerDataSize(), // !! THIS RELIES ON PAK MEMBERS: '_root_files', '_names', '_files', etc. !!
               total_data_size_compressed=0, total_data_size_decompressed=0,
               decompressed_processed=0;
          FREPA(files)
@@ -1663,9 +1668,9 @@ struct PakCreator
                if(in_place)
                {
                   if(pak._cipher_per_file)f_dest.cipherOffset(f_dest_cipher_offset); // reset the cipher offset here so that saving file header will use it
-                  Long header_data_pos=posForWrite(pak.sizeHeaderData());
+                  Long header_data_pos=posForWrite(pak.headerDataSize());
                   if(!f_dest.pos(header_data_pos) || !pak.saveHeaderData(f_dest                 ) || !f_dest.flush()){if(error_message)*error_message=CantFlush(pak.pakFileName()); goto error;}
-                  if(!f_dest.pos(              0) || !pak.saveHeaderPre (f_dest, header_data_pos) || !f_dest.flush()){if(error_message)*error_message=CantFlush(pak.pakFileName()); goto error;}
+                  if(!f_dest.pos(              0) || !pak.savePreHeader (f_dest, header_data_pos) || !f_dest.flush()){if(error_message)*error_message=CantFlush(pak.pakFileName()); goto error;}
                       f_dest.size(pak_file_size); // trim to used data only, this can ignore checking for errors, as Pak will work with or without this call
                }else
                if(header_changed) // if during file processing, the header was changed, then we need to resave it
