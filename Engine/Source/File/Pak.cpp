@@ -1448,7 +1448,8 @@ struct PakCreator
       FREPA(holes)
       {
          DataRangeRel &hole=holes[i];
-         if(hole.size>=size && CompareSize(hole, *best_hole)<0)best_hole=&hole;
+         if(hole.size>=size // if hole is big enough to store data
+         && CompareSize(hole, *best_hole)<0)best_hole=&hole; // and smaller than best hole
       }
       if(best_hole!=&best_hole_t)
       {
