@@ -218,7 +218,7 @@ Byte GetOldFlag(Byte flag)
 /******************************************************************************/
 Bool Pak::saveHeaderPre(File &f, Long header_data_pos)C
 {
-   // !! IF MAKING ANY CHANGE HERE, OR CHANGING TYPE OF 'files' THEN ADJUST 'SizeHeaderPre' !!
+   // !! IF MAKING ANY CHANGE HERE THEN ADJUST 'SizeHeaderPre' !!
    f.putUInt (CC4_PAK); // CC4
    f.cmpUIntV(      5); // version
    Long offset; if(header_data_pos==LONG_MIN)offset=0;else{offset=header_data_pos-f.pos()-SIZE(Long); if(offset<0)return false;}
