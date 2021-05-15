@@ -1468,19 +1468,22 @@ struct PakCreator
 
             // !! must set all members because we could be operating on PakFile that's already created !!
             Int src_name_chars=src.name.length()+1;
-            dest.name                =Set(pak._names.data()+names_elms, src.name, src_name_chars); names_elms+=src_name_chars;
-            dest.flag                =src.flag                ;
-            dest.compression         =src.compression         ;
-            dest.parent              =src.parent              ; if(dest.parent<0)pak._root_files++;
-            dest.children_offset     =src.children_offset     ;
-            dest.children_num        =src.children_num        ;
-            dest.modify_time_utc     =src.modify_time_utc     ;
-            dest.data_xxHash64_32    =src.data_xxHash64_32    ;
-            dest.data_size           =src.data_size           ;
-            dest.data_size_compressed=src.data_size_compressed;
-            dest.data_offset         =    data_offset         ; data_offset           +=src.data_size_compressed;
-                                                          total_data_size_compressed  +=src.data_size_compressed;
-                                                          total_data_size_decompressed+=src.data_size;
+            dest.name                = Set(pak._names.data()+names_elms, src.name, src_name_chars); names_elms+=src_name_chars;
+            dest.flag                = src.flag                ;
+            dest.compression         = src.compression         ;
+            dest.parent              = src.parent              ; if(dest.parent<0)pak._root_files++;
+            dest.children_offset     = src.children_offset     ;
+            dest.children_num        = src.children_num        ;
+            dest.modify_time_utc     = src.modify_time_utc     ;
+            dest.data_xxHash64_32    = src.data_xxHash64_32    ;
+            dest.data_size           = src.data_size           ;
+            dest.data_size_compressed= src.data_size_compressed;
+            dest.data_offset         =(src.data_size ? data_offset : 0); 
+
+                  data_offset           +=src.data_size_compressed;
+            total_data_size_compressed  +=src.data_size_compressed;
+            total_data_size_decompressed+=src.data_size;
+
             Bool file_decompress=(                                    src.needDecompress()),
                  file_compress  =(compress                         && src.needCompress  ()),
                  file_hash      =(FlagTest(pak_flag, PAK_SET_HASH) && src.needHash      ());
