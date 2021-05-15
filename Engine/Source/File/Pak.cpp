@@ -308,7 +308,7 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
 
       case 5:
       {
-         ULong header_offset; f>>header_offset;
+         ULong header_offset; f>>header_offset; // this is needed because of 'PakUpdateInPlace'
          Add(used_file_ranges_temp, 0, f.pos());
          if(f.skip(header_offset))
          {
