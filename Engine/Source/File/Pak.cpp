@@ -323,7 +323,7 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
       case 5:
       {
          ULong header_offset; f>>header_offset; // this is needed because of 'PakUpdateInPlace'
-         AddAbs(used_file_ranges_temp, 0, f.pos());
+         AddAbs(used_file_ranges_temp, 0, f.pos()); // range for pre-header
          if(f.skip(header_offset))
          {
             Long header_data_pos=f.pos();
@@ -362,7 +362,7 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
                   }
 
                  _cipher_per_file=true;
-                  AddAbs(used_file_ranges_temp, header_data_pos, f.pos());
+                  AddAbs(used_file_ranges_temp, header_data_pos, f.pos()); // range for header data
                   goto ok;
                }
             }
