@@ -63,6 +63,10 @@ Bool Decompress(File &src, File &dest, Bool memory=false                        
 Bool   CompressRaw(File &src, File &dest, COMPRESS_TYPE type, Int compression_level=9, Bool multi_threaded=true                , DataCallback *callback=null); //   compress data from 'src' file into 'dest' file, 'src' should be already opened for reading, 'dest' should be already opened for writing, 'compression_level'=0..CompressionLevels(type) (0=fastest/worst, ..=slowest/best), compression occurs from the current position of 'src' to the end of the file, 'callback'=optional callback which will be called for every uncompressed data chunk (you can use it for example to calculate uncompressed data hash), false on fail
 Bool DecompressRaw(File &src, File &dest, COMPRESS_TYPE type, ULong compressed_size, ULong decompressed_size, Bool memory=false, DataCallback *callback=null); // decompress data from 'src' file into 'dest' file, 'src' should be already opened for reading, 'dest' should be already opened for writing if 'memory' is set to false, if 'memory' is set to true then decompression will be faster, however 'dest' will be first reinitialized with 'writeMemFixed' before decompressing, which means that decompression result will not be stored into original 'dest' target, but instead into a dynamically allocated memory, 'compressed_size'=size of compressed data in 'src', 'decompressed_size'=precise size of decompressed data, 'callback'=optional callback which will be called for every uncompressed data chunk (you can use it for example to calculate uncompressed data hash), false on fail
 
+// compress variable length
+Int CmpUIntVSize (UInt  u); // get number of bytes needed for storing 'u' using 'cmpUIntV'  algorithm
+Int CmpULongVSize(ULong u); // get number of bytes needed for storing 'u' using 'cmpULongV' algorithm
+
 #if EE_PRIVATE
 
 #define MIN_COMPRESSABLE_SIZE 3 // 3 is the minimum size that can actually get compressed (by COMPRESS_RLE)
@@ -75,7 +79,6 @@ Bool _OldDecompress      (File &src, File &dest, Bool memory=false, DataCallback
 
 const Int MaxCmpUIntVSize =5,
           MaxCmpULongVSize=9;
-      Int     CmpUIntVSize(UInt u); // get number of bytes needed for storing 'u' using 'cmpUIntV' algorithm
 #endif
 /******************************************************************************/
 struct ZipFile

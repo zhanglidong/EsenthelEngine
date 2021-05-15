@@ -216,12 +216,18 @@ Byte GetOldFlag(Byte flag)
         | (FlagTest(flag, 1<<4) ? PF_STD_LINK    : 0);
 }
 /******************************************************************************/
-Bool Pak::saveHeader(File &f)C
+Int Pak::sizeHeaderData()C
 {
-   Memt<PakFile4> filei; filei.setNum(totalFiles());
-   FREPA(filei)
+   return CmpUIntVSize(_root_files)
+      +_names.saveRawSize()
+      +CmpUIntVSize(totalFiles())+SIZE(PakFile4)*totalFiles();
+}
+Bool Pak::saveHeaderData(File &f)C
+{
+   Memt<PakFile4> files; files.setNum(totalFiles());
+   FREPA(files)
    {
-      PakFile4 &dest=filei[i];
+      PakFile4 &dest=files[i];
     C PakFile  &src =file (i);
 
      _Unaligned(dest.name_offset         , src.name-_names.data()    );
@@ -241,14 +247,18 @@ Bool Pak::saveHeader(File &f)C
       Unaligned(dest.month               , src.modify_time_utc.month );
      _Unaligned(dest.year                , src.modify_time_utc.year  );
    }
-
-   f.putUInt (CC4_PAK); // CC4
-   f.cmpUIntV(      4); // version
+   // !! IF MAKING ANY CHANGE HERE, OR CHANGING TYPE OF 'files' THEN ADJUST 'sizeHeaderData' !!
    f.cmpUIntV(_root_files);
    if(_names.saveRaw(f))
-   if( filei.saveRaw(f))
+   if( files.saveRaw(f))
       return f.ok();
    return false;
+}
+Bool Pak::saveHeader(File &f)C
+{
+   f.putUInt (CC4_PAK); // CC4
+   f.cmpUIntV(      4); // version
+   return saveHeaderData(f);
 }
 PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
 {
@@ -277,12 +287,12 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
          if(_names.loadRaw(f))
          {
             // files
-            Memt<PakFile4> filei; if(filei.loadRaw(f))
+            Memt<PakFile4> files; if(files.loadRaw(f))
             {
-              _files.setNum(filei.elms()); REPA(_files)
+              _files.setNum(files.elms()); REPA(_files)
                {
                   PakFile  &dest=_files[i];
-                C PakFile4 &src = filei[i];
+                C PakFile4 &src = files[i];
                             dest.name                  =_names.data()+Unaligned(src.name_offset);
                   Unaligned(dest.flag                  , src.flag                );
                   Unaligned(dest.compression           , src.compression         );
@@ -318,12 +328,12 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
          if(_names._loadRaw(f))
          {
             // files
-            Memt<PakFile3> filei; if(filei._loadRaw(f))
+            Memt<PakFile3> files; if(files._loadRaw(f))
             {
-              _files.setNum(filei.elms()); REPA(_files)
+              _files.setNum(files.elms()); REPA(_files)
                {
                   PakFile  &dest=_files[i];
-                C PakFile3 &src = filei[i];
+                C PakFile3 &src = files[i];
                             dest.name                =_names.data()+Unaligned(src.name_offset);
                   Unaligned(dest.flag                , GetOldFlag(src.flag)    );
                   Unaligned(dest.compression         , COMPRESS_NONE           );
@@ -355,12 +365,12 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
          if(_names._loadRaw(f))
          {
             // files
-            Memt<PakFile2> filei; if(filei._loadRaw(f))
+            Memt<PakFile2> files; if(files._loadRaw(f))
             {
-              _files.setNum(filei.elms()); REPA(_files)
+              _files.setNum(files.elms()); REPA(_files)
                {
                   PakFile  &dest=_files[i];
-                C PakFile2 &src = filei[i];
+                C PakFile2 &src = files[i];
                   dest.name                =_names.data()+src.name_offset         ;
                   dest.flag                =   GetOldFlag(src.flag               );
                   dest.compression         =                         COMPRESS_NONE;
@@ -386,20 +396,20 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
       case 1:
       {
          // main
-         Int files=0;
-         f>>_root_files>>files;
+         Int total_files=0;
+         f>>_root_files>>total_files;
 
          // names
          if(_names._loadRaw(f))
          {
             // files
-                                 _files.setNum(files);
-            Memt<PakFile1> filei; filei.setNum(files); if(f.getN(filei.data(), filei.elms()))
+                                 _files.setNum(total_files);
+            Memt<PakFile1> files; files.setNum(total_files); if(f.getN(files.data(), files.elms()))
             {
                REPA(_files)
                {
                   PakFile  &dest=_files[i];
-                  PakFile1 &src = filei[i];
+                  PakFile1 &src = files[i];
                   dest.name                =_names.data()+src.name_offset    ;
                   dest.flag                =   GetOldFlag(src.flag          );
                   dest.compression         =                    COMPRESS_NONE;
@@ -425,20 +435,20 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
       case 0:
       {
          // main
-         Int files=0;
-         f>>_root_files>>files; UInt dat_ofs=f.getUInt(); f.skip(4); // 4=data_size
+         Int total_files=0;
+         f>>_root_files>>total_files; UInt dat_ofs=f.getUInt(); f.skip(4); // 4=data_size
 
          // names
          if(_names._loadRaw(f))
          {
             // files
-                                 _files.setNum(files);
-            Memt<PakFile0> filei; filei.setNum(files); if(f.getN(filei.data(), filei.elms()))
+                                 _files.setNum(total_files);
+            Memt<PakFile0> files; files.setNum(total_files); if(f.getN(files.data(), files.elms()))
             {
                REPA(_files)
                {
                   PakFile  &dest=_files[i];
-                  PakFile0 &src = filei[i];
+                  PakFile0 &src = files[i];
                   dest.name                =_names.data()+src.name_offset    ;
                   dest.flag                =                                0;
                   dest.compression         =                    COMPRESS_NONE;

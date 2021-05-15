@@ -108,6 +108,17 @@ static void MemFinished(File &f, Ptr mem, Long wrote, Int cipher_offset)
 static Ptr  CompressAlloc(Ptr p, size_t size) {return Alloc(size);}
 static void CompressFree (Ptr p, Ptr    data) {       Free (data);}
 /******************************************************************************/
+Int CmpUIntVSize(UInt u)
+{
+   Int    i=1; for(; u>=128; u>>=7)i++;
+   return i; // minimize with 'MaxCmpUIntVSize' not needed here
+}
+Int CmpULongVSize(ULong u)
+{
+   Int    i=1; for(; u>=128; u>>=7)i++;
+   return Min(i, MaxCmpULongVSize); // minimize with 'MaxCmpULongVSize' because the last byte is stored as 8 bits, so we can use it fully instead of just 7 bits
+}
+/******************************************************************************/
 // ZLIB
 /******************************************************************************/
 #if SUPPORT_ZLIB
@@ -594,11 +605,6 @@ static Bool SNAPPYDecompress(File &src, File &dest, Long compressed_size, Long d
 // RLE
 /******************************************************************************/
 #if SUPPORT_RLE
-Int CmpUIntVSize(UInt u)
-{
-   Int    i=1; for(; u>=128; u>>=7)i++;
-   return i;
-}
 /******************************************************************************
 static void CmpUIntV(UInt u, Byte *data, UIntPtr &pos)
 {

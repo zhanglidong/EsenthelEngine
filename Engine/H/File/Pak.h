@@ -82,6 +82,8 @@ struct Pak // Set of Pak Files
    Bool create(C CMemPtr<PakFileData> &files, C Str &pak_name  , UInt flag=          0, Cipher *dest_cipher=null                         , COMPRESS_TYPE compress=COMPRESS_NONE, Int compression_level=9                                  , Str *error_message=null, PakProgress *progress=null); // create Pak, 'files'=list of file/directory data , 'pak_name'=Pak file name to save to, 'flag'=PAK_FLAG                                                                 , 'compression_level'=0..CompressionLevels(compress) (0=fastest/worst, ..=slowest/best), false on fail                                                                                                                                                                                                                                                                                                                        , 'error_message'=will contain a message what went wrong upon error, 'progress'=optional parameter allowing to control creation from secondary thread
 #if EE_PRIVATE
    Bool create(C Mems<C PakFileData*> &files, C Str &pak_name  , UInt flag            , Cipher *dest_cipher                              , COMPRESS_TYPE compress              , Int compression_level                                    , Str *error_message=null, PakProgress *progress=null);
+   Int  sizeHeaderData()C;
+   Bool saveHeaderData(File &f)C; // save Pak header data, false on fail
 #endif
 
    // io

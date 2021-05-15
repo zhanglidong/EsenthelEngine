@@ -122,6 +122,7 @@ T1(const_mem_addr TYPE) struct Mems // Simple Continuous Memory Based Container
    Bool loadRawData(File &f) ; // load raw memory of elements (                     elements raw memory), false on fail
 
 #if EE_PRIVATE
+   Int   saveRawSize()C; // get number of bytes needed for 'saveRaw'
    Bool _saveRaw(File &f)C; // save raw memory of elements (number of elements + elements raw memory), false on fail, deprecated - do not use
    Bool _loadRaw(File &f) ; // load raw memory of elements (number of elements + elements raw memory), false on fail, deprecated - do not use
    Bool _save   (File &f)C; // save elements with their own 'save' method, this method first saves number of current elements, and then for each element calls its 'save' method, false on fail, deprecated - do not use

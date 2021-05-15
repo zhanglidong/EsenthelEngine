@@ -431,6 +431,8 @@ T1(TYPE)  Bool  Mems<TYPE>::saveRaw(File &f)C {       f.cmpUIntV(elms()) ; saveR
 T1(TYPE)  Bool  Mems<TYPE>::loadRaw(File &f)  {setNum(f.decUIntV(      )); loadRawData(f);     if(f.ok())return true; clear(); return false;}
 
 #if EE_PRIVATE
+T1(TYPE)  Int   Mems<TYPE>::saveRawSize()C {return CmpUIntVSize(elms())+elmsMem();}
+
 T1(TYPE)  Bool  Mems<TYPE>::_saveRaw(File &f)C {       f.putInt(elms()) ; saveRawData(f); return f.ok();}
 T1(TYPE)  Bool  Mems<TYPE>::_loadRaw(File &f)  {setNum(f.getInt(      )); loadRawData(f);     if(f.ok())return true; clear(); return false;}
 T1(TYPE)  Bool  Mems<TYPE>::_save   (File &f)C {       f.putInt(elms()) ; FREPA(T)if(!T[i].save(f))return false; return f.ok();}
