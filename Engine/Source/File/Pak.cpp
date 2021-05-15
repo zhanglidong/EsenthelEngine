@@ -1452,6 +1452,10 @@ struct PakCreator
       }
       if(best_hole!=&best_hole_t)
       {
+         Long pos=best_hole->start;
+         if(size>=best_hole->size)holes.removeData(best_hole); // if size filled entire hole, remove it
+         else     best_hole->moveStart(size); // reduce hole size
+         return pos;
       }
       Long pos=pak_file_size;
       pak_file_size+=size;
@@ -1484,7 +1488,7 @@ struct PakCreator
          Int  files_to_process          =0;
          UInt max_data_size_compress    =0;
          Long thread_mem_usage          =0,
-              data_offset               =SizeHeaderPre()+pak.sizeHeaderData(), // !! THIS RELIES ON PAK MEMBERS, '_root_files', '_names', '_files', etc. !!
+              data_offset               =SizeHeaderPre()+pak.sizeHeaderData(), // !! THIS RELIES ON PAK MEMBERS: '_root_files', '_names', '_files', etc. !!
               total_data_size_compressed=0, total_data_size_decompressed=0,
               decompressed_processed=0;
          FREPA(files)

@@ -584,20 +584,22 @@ void HideNotifications();
 /******************************************************************************/
 struct DataRangeRel
 {
-   ULong start, size;
+   Long start, size;
 
-   ULong end()C {return start+size;}
+   Long end()C {return start+size;}
 
-   void set   (ULong start, ULong size) {T.start=start; T.size=size     ;}
-   void setAbs(ULong start, ULong end ) {T.start=start; T.size=end-start;}
+   void set   (Long start, Long size) {T.start=start; T.size=size     ;}
+   void setAbs(Long start, Long end ) {T.start=start; T.size=end-start;}
+
+   void moveStart(Long delta) {start+=delta; size-=delta;}
 };
 struct DataRangeAbs
 {
-   ULong start, end;
+   Long start, end;
 
-   ULong size()C {return end-start;}
+   Long size()C {return end-start;}
 
-   void set(ULong start, ULong end) {T.start=start; T.end=end;}
+   void set(Long start, Long end) {T.start=start; T.end=end;}
 };
 Int Compare    (C DataRangeRel &a, C DataRangeRel &b);
 Int Compare    (C DataRangeAbs &a, C DataRangeAbs &b);
