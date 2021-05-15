@@ -216,12 +216,6 @@ Byte GetOldFlag(Byte flag)
         | (FlagTest(flag, 1<<4) ? PF_STD_LINK    : 0);
 }
 /******************************************************************************/
-Int Pak::sizeHeaderData()C
-{
-   return CmpUIntVSize(_root_files)
-      +_names.saveRawSize()
-      +CmpUIntVSize(totalFiles())+SIZE(PakFile4)*totalFiles();
-}
 Bool Pak::saveHeaderData(File &f)C
 {
    Memt<PakFile4> files; files.setNum(totalFiles());
@@ -253,6 +247,13 @@ Bool Pak::saveHeaderData(File &f)C
    if( files.saveRaw(f))
       return f.ok();
    return false;
+}
+Int Pak::sizeHeaderData()C
+{
+   return
+      CmpUIntVSize(_root_files)
+     +_names.saveRawSize()
+     +CmpUIntVSize(totalFiles())+SIZE(PakFile4)*totalFiles();
 }
 Bool Pak::saveHeader(File &f)C
 {
