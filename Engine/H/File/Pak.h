@@ -109,7 +109,7 @@ private:
    CPtr          _data;
 #if EE_PRIVATE
    void     zero      ();
-   PAK_LOAD loadHeader(File &f, Long *expected_size=null, Long *actual_size=null); // load just the header, access to data will not be available by using this method
+   PAK_LOAD loadHeader(File &f, Long *expected_size=null, Long *actual_size=null, MemPtr<DataRange> used=null); // load just the header, access to data will not be available by using this method
 #endif
    NO_COPY_CONSTRUCTOR(Pak);
 };

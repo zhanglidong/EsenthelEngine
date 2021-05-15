@@ -261,16 +261,30 @@ Bool Pak::saveHeader(File &f)C
    f.cmpUIntV(      4); // version
    return saveHeaderData(f);
 }
-PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
+static void Add(MemPtr<DataRange> &used, ULong pos, ULong size)
+{
+   if(size>0)
+   {
+      if(used.elms())
+      {
+         auto &last=used.last(); if(last.end()==pos){last.size+=size; return;}
+      }
+      used.New().set(pos, size);
+   }
+}
+static void Add(Memt<DataRange> &used, ULong pos, ULong size) {Add(MemPtr<DataRange>(used), pos, size);}
+PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr<DataRange> used)
 {
    if(expected_size)*expected_size=0;
    if(  actual_size)*  actual_size=0;
+   used.clear();
 
    del();
 
    PAK_LOAD result=PAK_LOAD_INCOMPLETE_HEADER;
    ULong    data_size=0;
    Bool     fix_compressed=false;
+   Memt<DataRange> used_temp;
 
    UInt cc4=f.getUInt();
    if(  cc4==CC4_PAK
@@ -315,6 +329,7 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
                }
 
               _cipher_per_file=true;
+               Add(used_temp, 0, f.pos());
                goto ok;
             }
          }
@@ -352,6 +367,7 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
 
               _cipher_per_file=true;
                fix_compressed=true;
+               Add(used_temp, 0, f.pos());
                goto ok;
             }
          }
@@ -389,6 +405,7 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
 
               _cipher_per_file=false;
                fix_compressed=true;
+               Add(used_temp, 0, f.pos());
                goto ok;
             }
          }
@@ -428,6 +445,7 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
 
               _cipher_per_file=false;
                fix_compressed=true;
+               Add(used_temp, 0, f.pos());
                goto ok;
             }
          }
@@ -467,6 +485,7 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
 
               _cipher_per_file=false;
                fix_compressed=true;
+               Add(used_temp, 0, f.pos());
                goto ok;
             }
          }
@@ -484,19 +503,21 @@ ok:
 
    if(fix_compressed) // old versions stored compressed files with an extra header per file
    {
-      Long pos=f.pos(); FREPA(_files)
+      Long pos=f.pos();
+      auto data_offset_local=_data_offset-f._offset;
+      FREPA(_files)
       {
          PakFile &pf=_files[i]; if(pf.data_size!=pf.data_size_compressed)
          {
-            Long p=_data_offset+pf.data_offset;
+            Long pos=data_offset_local+pf.data_offset;
             COMPRESS_TYPE compress; ULong compressed_size, decompressed_size;
             if((f._cipher && _cipher_per_file) // this can't work
-            || !f.pos(p)
+            || !f.pos(pos)
             || !_OldDecompressHeader(f, compress, compressed_size, decompressed_size)){del(); return PAK_LOAD_UNSUPPORTED_VERSION;}
             pf.compression         =  compress       ;
             pf.data_size_compressed=  compressed_size;
             pf.data_size           =decompressed_size;
-            pf.data_offset        +=f.pos()-p;
+            pf.data_offset        +=f.pos()-pos;
          }
       }
       f.pos(pos);
@@ -504,6 +525,12 @@ ok:
 
    if(expected_size)*expected_size=data_size;
    if(  actual_size)*  actual_size= f.size();
+   if(used) // do this here, instead of when loading data, because most likely this is not used, so we can avoid overhead by checking it just once outside the loop
+   {
+      auto data_offset_local=_data_offset-f._offset;
+      FREPA(_files){C PakFile &file=_files[i]; Add(used_temp, data_offset_local+file.data_offset, file.data_size_compressed);} // process in order
+      used_temp.sort(); FREPA(used_temp){C DataRange &dr=used_temp[i]; Add(used, dr.start, dr.size);} // process in order
+   }
    return (data_size>f.size()) ? PAK_LOAD_INCOMPLETE_DATA : PAK_LOAD_OK;
 }
 PAK_LOAD Pak::loadMemEx(CPtr data, Int size, Cipher *cipher, Long *expected_size, Long *actual_size)

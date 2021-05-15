@@ -582,6 +582,18 @@ extern Memx<Notification> Notifications; // list of active notifications
 void HideNotifications();
 #endif
 /******************************************************************************/
+#if EE_PRIVATE
+struct DataRange
+{
+   ULong start, size;
+
+   ULong end()C {return start+size;}
+
+   void set(ULong start, ULong size) {T.start=start; T.size=size;}
+};
+Int Compare(C DataRange &a, C DataRange &b);
+#endif
+/******************************************************************************/
 enum LANG_TYPE : Byte
 {
 #ifndef _WINNT_
