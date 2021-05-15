@@ -216,6 +216,14 @@ Byte GetOldFlag(Byte flag)
         | (FlagTest(flag, 1<<4) ? PF_STD_LINK    : 0);
 }
 /******************************************************************************/
+Bool Pak::saveHeaderPre(File &f, Long header_data_pos)C
+{
+   f.putUInt (CC4_PAK); // CC4
+   f.cmpUIntV(      4); // version
+   //Long offset; if(header_data_pos==LONG_MIN)offset=0;else{offset=header_data_pos-f.pos()-SIZE(Long); if(offset<0)return false;}
+   //f<<offset;
+   return f.ok();
+}
 Bool Pak::saveHeaderData(File &f)C
 {
    Memt<PakFile4> files; files.setNum(totalFiles());
@@ -257,9 +265,7 @@ Int Pak::sizeHeaderData()C
 }
 Bool Pak::saveHeader(File &f)C
 {
-   f.putUInt (CC4_PAK); // CC4
-   f.cmpUIntV(      4); // version
-   return saveHeaderData(f);
+   return saveHeaderPre(f) && saveHeaderData(f);
 }
 static void Add(MemPtr<DataRange> &used, ULong pos, ULong size)
 {
@@ -281,10 +287,12 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
 
    del();
 
-   PAK_LOAD result=PAK_LOAD_INCOMPLETE_HEADER;
-   ULong    data_size=0;
-   Bool     fix_compressed=false;
+   Bool            fix_compressed=false;
+   PAK_LOAD        result=PAK_LOAD_INCOMPLETE_HEADER;
+   ULong           data_size=0;
    Memt<DataRange> used_temp;
+
+  _data_offset=f.posAbs();
 
    UInt cc4=f.getUInt();
    if(  cc4==CC4_PAK
@@ -292,6 +300,56 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
      )switch(f.decUIntV()) // version
    {
       default: result=PAK_LOAD_UNSUPPORTED_VERSION; break;
+
+      case 5:
+      {
+         ULong header_offset; f>>header_offset;
+         Add(used_temp, 0, f.pos());
+         if(f.skip(header_offset))
+         {
+            Long header_data_pos=f.pos();
+
+            // main
+            f.decUIntV(_root_files);
+
+            // names
+            if(_names.loadRaw(f))
+            {
+               // files
+               Memt<PakFile4> files; if(files.loadRaw(f))
+               {
+                 _files.setNum(files.elms()); REPA(_files)
+                  {
+                     PakFile  &dest=_files[i];
+                   C PakFile4 &src = files[i];
+                               dest.name                  =_names.data()+Unaligned(src.name_offset);
+                     Unaligned(dest.flag                  , src.flag                );
+                     Unaligned(dest.compression           , src.compression         );
+                     Unaligned(dest.parent                , src.parent              );
+                     Unaligned(dest.children_offset       , src.children_offset     );
+                     Unaligned(dest.children_num          , src.children_num        );
+                     Unaligned(dest.data_offset           , src.data_offset         );
+                     Unaligned(dest.data_size             , src.data_size           );
+                     Unaligned(dest.data_size_compressed  , src.data_size_compressed);
+                     Unaligned(dest.data_xxHash64_32      , src.data_xxHash64_32    );
+                     Unaligned(dest.modify_time_utc.second, src.second              );
+                     Unaligned(dest.modify_time_utc.minute, src.minute              );
+                     Unaligned(dest.modify_time_utc.hour  , src.hour                );
+                     Unaligned(dest.modify_time_utc.day   , src.day                 );
+                     Unaligned(dest.modify_time_utc.month , src.month               );
+                    _Unaligned(dest.modify_time_utc.year  , src.year                );
+
+                     MAX(data_size, dest.data_offset+dest.data_size_compressed);
+                  }
+
+                 _cipher_per_file   =true;
+               //_file_cipher_offset=; unused for _cipher_per_file=true
+                  Add(used_temp, header_data_pos, f.pos()-header_data_pos);
+                  goto ok;
+               }
+            }
+         }
+      }break;
 
       case 4:
       {
@@ -328,7 +386,9 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
                   MAX(data_size, dest.data_offset+dest.data_size_compressed);
                }
 
-              _cipher_per_file=true;
+              _cipher_per_file   =true;
+              _data_offset       =f.posAbs();
+              _file_cipher_offset=f._cipher_offset+f.pos(); // use existing cipher offset adjusted by current position where data starts ('pos' and not 'posAbs')
                Add(used_temp, 0, f.pos());
                goto ok;
             }
@@ -365,7 +425,9 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
                   MAX(data_size, dest.data_offset+dest.data_size_compressed);
                }
 
-              _cipher_per_file=true;
+              _cipher_per_file   =true;
+              _data_offset       =f.posAbs();
+              _file_cipher_offset=f._cipher_offset+f.pos(); // use existing cipher offset adjusted by current position where data starts ('pos' and not 'posAbs')
                fix_compressed=true;
                Add(used_temp, 0, f.pos());
                goto ok;
@@ -403,7 +465,9 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
                   MAX(data_size, dest.data_offset+dest.data_size_compressed);
                }
 
-              _cipher_per_file=false;
+              _cipher_per_file   =false;
+              _data_offset       =f.posAbs();
+              _file_cipher_offset=f._cipher_offset+f.pos(); // use existing cipher offset adjusted by current position where data starts ('pos' and not 'posAbs')
                fix_compressed=true;
                Add(used_temp, 0, f.pos());
                goto ok;
@@ -443,7 +507,9 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
                   MAX(data_size, dest.data_offset+dest.data_size_compressed);
                }
 
-              _cipher_per_file=false;
+              _cipher_per_file   =false;
+              _data_offset       =f.posAbs();
+              _file_cipher_offset=f._cipher_offset+f.pos(); // use existing cipher offset adjusted by current position where data starts ('pos' and not 'posAbs')
                fix_compressed=true;
                Add(used_temp, 0, f.pos());
                goto ok;
@@ -483,7 +549,9 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
                   MAX(data_size, dest.data_offset+dest.data_size_compressed);
                }
 
-              _cipher_per_file=false;
+              _cipher_per_file   =false;
+              _data_offset       =f.posAbs();
+              _file_cipher_offset=f._cipher_offset+f.pos(); // use existing cipher offset adjusted by current position where data starts ('pos' and not 'posAbs')
                fix_compressed=true;
                Add(used_temp, 0, f.pos());
                goto ok;
@@ -495,17 +563,15 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
    del(); return result;
 
 ok:
-  _file_type         =f._type;
-  _file_cipher_offset=f._cipher_offset+f.pos(); // use existing cipher offset adjusted by current position where data starts ('pos' and not 'posAbs')
-  _file_cipher       =f._cipher; if(!_file_cipher)_cipher_per_file=true; // if there's no cipher at all, then force '_cipher_per_file' because it speeds up '_cipher_offset' calculations in files, it's not going to be needed anyway
-  _data_offset       =f.posAbs();
-   data_size        +=f.pos   (); // this needs to be 'pos' and not 'posAbs'
+  _file_type  =f._type;
+  _file_cipher=f._cipher; if(!_file_cipher)_cipher_per_file=true; // if there's no cipher at all, then force '_cipher_per_file' because it speeds up '_cipher_offset' calculations in files, it's not going to be needed anyway
+
+   auto data_offset_local=_data_offset-f._offset;
+   data_size+=data_offset_local;
 
    if(fix_compressed) // old versions stored compressed files with an extra header per file
    {
-      Long pos=f.pos();
-      auto data_offset_local=_data_offset-f._offset;
-      FREPA(_files)
+      Long pos=f.pos(); FREPA(_files)
       {
          PakFile &pf=_files[i]; if(pf.data_size!=pf.data_size_compressed)
          {
@@ -527,7 +593,6 @@ ok:
    if(  actual_size)*  actual_size= f.size();
    if(used) // do this here, instead of when loading data, because most likely this is not used, so we can avoid overhead by checking it just once outside the loop
    {
-      auto data_offset_local=_data_offset-f._offset;
       FREPA(_files){C PakFile &file=_files[i]; Add(used_temp, data_offset_local+file.data_offset, file.data_size_compressed);} // process in order
       used_temp.sort(); FREPA(used_temp){C DataRange &dr=used_temp[i]; Add(used, dr.start, dr.size);} // process in order
    }

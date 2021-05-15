@@ -39,7 +39,7 @@ enum PAK_FLAG // Pak Creation Flags
    PAK_NO_FILE =1<<2, // don't create output Pak file, but only set Pak class members
    PAK_SET_HASH=1<<3, // calculate the hash member for each Pak file, if not enabled then the hash will be set to zero (hash calculation requires additional processing and slows down creation of paks)
 };
-enum PAK_LOAD // Pak Load result
+enum PAK_LOAD : Byte // Pak Load result
 {
    PAK_LOAD_NOT_FOUND          , // source file was not found
    PAK_LOAD_NOT_PAK            , // source is not a Pak
@@ -82,8 +82,9 @@ struct Pak // Set of Pak Files
    Bool create(C CMemPtr<PakFileData> &files, C Str &pak_name  , UInt flag=          0, Cipher *dest_cipher=null                         , COMPRESS_TYPE compress=COMPRESS_NONE, Int compression_level=9                                  , Str *error_message=null, PakProgress *progress=null); // create Pak, 'files'=list of file/directory data , 'pak_name'=Pak file name to save to, 'flag'=PAK_FLAG                                                                 , 'compression_level'=0..CompressionLevels(compress) (0=fastest/worst, ..=slowest/best), false on fail                                                                                                                                                                                                                                                                                                                        , 'error_message'=will contain a message what went wrong upon error, 'progress'=optional parameter allowing to control creation from secondary thread
 #if EE_PRIVATE
    Bool create(C Mems<C PakFileData*> &files, C Str &pak_name  , UInt flag            , Cipher *dest_cipher                              , COMPRESS_TYPE compress              , Int compression_level                                    , Str *error_message=null, PakProgress *progress=null);
+   Bool saveHeaderPre (File &f, Long header_data_pos=LONG_MIN)C; // save Pak header     , false on fail
+   Bool saveHeaderData(File &f                               )C; // save Pak header data, false on fail
    Int  sizeHeaderData()C;
-   Bool saveHeaderData(File &f)C; // save Pak header data, false on fail
 #endif
 
    // io
