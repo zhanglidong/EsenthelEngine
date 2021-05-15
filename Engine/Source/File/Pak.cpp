@@ -231,6 +231,7 @@ static Int SizeHeaderPre()
 }
 Bool Pak::saveHeaderData(File &f)C
 {
+   // !! IF MAKING ANY CHANGE HERE, OR CHANGING TYPE OF 'files' THEN ADJUST 'sizeHeaderData' !!
    Memt<PakFile4> files; files.setNum(totalFiles());
    FREPA(files)
    {
