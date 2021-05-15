@@ -1002,7 +1002,7 @@ struct PakCreator
       // !! clear values in 'set' instead of constructor !!
 
       Bool needHash      ()C {return data_xxHash64_32==0                      && data_size>                     0;} // we need hash only if it wasn't set yet, if hash is already set, then we don't need it
-      Bool needCompress  ()C {return    compress_mode==COMPRESS_ENABLE        && data_size>=MIN_COMPRESSABLE_SIZE;} // if file wants to be compressed or doesn't want to be
+      Bool needCompress  ()C {return    compress_mode==COMPRESS_ENABLE        && data_size>=MIN_COMPRESSABLE_SIZE;} // if file wants to be compressed and compressing may reduce its size
       Bool needDecompress()C {return    compress_mode!=COMPRESS_KEEP_ORIGINAL && compression                     ;} // if file wants to be decompressed (we don't keep original and it's compressed)
       Str  srcFullName   ()C {return data ? data->srcName() : data_name;} // don't return 'name' because that's only 1 element without the path, but for this method we need the full version for debug purposes
 
