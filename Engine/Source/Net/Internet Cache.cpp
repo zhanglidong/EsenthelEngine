@@ -45,7 +45,7 @@ void InternetCache::flush()
 
       Str name=_pak.pakFileName(); Cipher *cipher=_pak._file_cipher; // copy in case load/update will delete this
      _pak.load(name, cipher); // reload the pak in case it was modified by another app/instance, in which case the 'PakUpdate' would make the file corrupt with out-dated info
-      PakUpdate(_pak, SCAST(Memb<PakFileData>, _downloaded), name, cipher, _compress);
+      PakUpdate(_pak, SCAST(Memb<PakFileData>, _downloaded), name, 0, cipher, _compress);
      _downloaded.del();
    }
 }

@@ -55,8 +55,8 @@ struct Pak // Set of Pak Files
    Bool load     (              C Str &name          , const_mem_addr Cipher *cipher=null); // load Pak from file  , false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
    Bool loadMem  (const_mem_addr CPtr  data, Int size, const_mem_addr Cipher *cipher=null); // load Pak from memory, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), 'data' must point to a constant memory address (only pointer is stored through which the data can be later accessed)
 
-   PAK_LOAD loadEx   (C Str &name                       , const_mem_addr Cipher *cipher=null, Long pak_offset=0, Long *expected_size=null, Long *actual_size=null); // load Pak from file  , 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), 'pak_offset'=offset of PAK data inside the file                                                                     , 'expected_size'=expected size of the PAK file, 'actual_size'=actual size of the PAK file
-   PAK_LOAD loadMemEx(const_mem_addr CPtr data, Int size, const_mem_addr Cipher *cipher=null,                    Long *expected_size=null, Long *actual_size=null); // load Pak from memory, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), 'data' must point to a constant memory address (only pointer is stored through which the data can be later accessed), 'expected_size'=expected size of the PAK file, 'actual_size'=actual size of the PAK file
+   PAK_LOAD loadEx   (C Str &name                       , const_mem_addr Cipher *cipher=null, Long pak_offset=0, Long *expected_size=null, Long *actual_size=null, MemPtr<DataRange> used_file_ranges=null); // load Pak from file  , 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), 'pak_offset'=offset of PAK data inside the file                                                                     , 'expected_size'=expected size of the PAK file, 'actual_size'=actual size of the PAK file
+   PAK_LOAD loadMemEx(const_mem_addr CPtr data, Int size, const_mem_addr Cipher *cipher=null,                    Long *expected_size=null, Long *actual_size=null, MemPtr<DataRange> used_file_ranges=null); // load Pak from memory, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), 'data' must point to a constant memory address (only pointer is stored through which the data can be later accessed), 'expected_size'=expected size of the PAK file, 'actual_size'=actual size of the PAK file
 
    // get
    Int        rootFiles(     )C {return _root_files  ;} // get number of files in root directory, they are stored first in the 'files' array
@@ -81,7 +81,8 @@ struct Pak // Set of Pak Files
    Bool create(C CMemPtr<PakNode    > &files, C Str &pak_name  , UInt flag=          0, Cipher *dest_cipher=null                         , COMPRESS_TYPE compress=COMPRESS_NONE, Int compression_level=9                                  , Str *error_message=null, PakProgress *progress=null); // create Pak, 'files'=list of file/directory nodes, 'pak_name'=Pak file name to save to, 'flag'=PAK_FLAG                                                                 , 'compression_level'=0..CompressionLevels(compress) (0=fastest/worst, ..=slowest/best), false on fail                                                                                                                                                                                                                                                                                                                        , 'error_message'=will contain a message what went wrong upon error, 'progress'=optional parameter allowing to control creation from secondary thread
    Bool create(C CMemPtr<PakFileData> &files, C Str &pak_name  , UInt flag=          0, Cipher *dest_cipher=null                         , COMPRESS_TYPE compress=COMPRESS_NONE, Int compression_level=9                                  , Str *error_message=null, PakProgress *progress=null); // create Pak, 'files'=list of file/directory data , 'pak_name'=Pak file name to save to, 'flag'=PAK_FLAG                                                                 , 'compression_level'=0..CompressionLevels(compress) (0=fastest/worst, ..=slowest/best), false on fail                                                                                                                                                                                                                                                                                                                        , 'error_message'=will contain a message what went wrong upon error, 'progress'=optional parameter allowing to control creation from secondary thread
 #if EE_PRIVATE
-   Bool create(C Mems<C PakFileData*> &files, C Str &pak_name  , UInt flag            , Cipher *dest_cipher                              , COMPRESS_TYPE compress              , Int compression_level                                    , Str *error_message=null, PakProgress *progress=null);
+   Bool create(C CMemPtr<PakNode    > &files, C Str &pak_name  , UInt flag            , Cipher *dest_cipher                              , COMPRESS_TYPE compress              , Int compression_level                                    , Str *error_message     , PakProgress *progress, PakInPlace *in_place     );
+   Bool create(C Mems<C PakFileData*> &files, C Str &pak_name  , UInt flag            , Cipher *dest_cipher                              , COMPRESS_TYPE compress              , Int compression_level                                    , Str *error_message     , PakProgress *progress, PakInPlace *in_place=null);
    Bool saveHeaderPre (File &f, Long header_data_pos=LONG_MIN)C; // save Pak header     , false on fail
    Bool saveHeaderData(File &f                               )C; // save Pak header data, false on fail
    Int  sizeHeaderData()C;
@@ -110,7 +111,7 @@ private:
    CPtr          _data;
 #if EE_PRIVATE
    void     zero      ();
-   PAK_LOAD loadHeader(File &f, Long *expected_size=null, Long *actual_size=null, MemPtr<DataRange> used=null); // load just the header, access to data will not be available by using this method
+   PAK_LOAD loadHeader(File &f, Long *expected_size=null, Long *actual_size=null, MemPtr<DataRange> used_file_ranges=null); // load just the header, access to data will not be available by using this method
 #endif
    NO_COPY_CONSTRUCTOR(Pak);
 };
@@ -297,7 +298,8 @@ inline Bool PakCreate(C CMemPtr<PakNode    > &files, C Str &pak_name  , UInt fla
 inline Bool PakCreate(C CMemPtr<PakFileData> &files, C Str &pak_name  , UInt flag=          0, Cipher *dest_cipher=null                         , COMPRESS_TYPE compress=COMPRESS_NONE, Int compression_level=9                                  , Str *error_message=null, PakProgress *progress=null) {return Pak().create(files, pak_name, flag, dest_cipher            , compress, compression_level        , error_message, progress);}
 
 // Update Pak
-Bool PakUpdate(Pak &src_pak, C CMemPtr<PakFileData> &update_files, C Str &pak_name, Cipher *dest_cipher=null, COMPRESS_TYPE compress=COMPRESS_NONE, Int compression_level=9, Str *error_message=null, PakProgress *progress=null); // update 'src_pak' by adding 'update_files' and saving the new Pak into 'pak_name', 'compression_level'=0..CompressionLevels(compress) (0=fastest/worst, ..=slowest/best), 'compress'=compression algorithm for the 'update_files' (files from 'src_pak' will preserve their original compression)
+Bool PakUpdate       (Pak &src_pak, C CMemPtr<PakFileData> &update_files, C Str &pak_name, UInt flag=0, Cipher *dest_cipher=null, COMPRESS_TYPE compress=COMPRESS_NONE, Int compression_level=9, Str *error_message=null, PakProgress *progress=null); // update 'src_pak' by adding 'update_files' and saving the new Pak into 'pak_name'                                             , 'compression_level'=0..CompressionLevels(compress) (0=fastest/worst, ..=slowest/best), 'compress'=compression algorithm for the 'update_files' (files from 'src_pak'  will preserve their original compression)
+Bool PakUpdateInPlace(              C CMemPtr<PakFileData> &update_files, C Str &pak_name, UInt flag=0, Cipher *     cipher=null, COMPRESS_TYPE compress=COMPRESS_NONE, Int compression_level=9, Str *error_message=null, PakProgress *progress=null); // update 'pak_name' pak by adding 'update_files' in-place (while operating on existing pak file without creating any new files), 'compression_level'=0..CompressionLevels(compress) (0=fastest/worst, ..=slowest/best), 'compress'=compression algorithm for the 'update_files' (files from 'pak_name' will preserve their original compression)
 
 // Compare Pak
 Bool PakEqual(C CMemPtr<PakFileData> &files, C Pak &pak); // if 'files' are the same as the ones in 'pak' (this will verify if all files from 'files' are of the same size and modification time as those from 'pak', warning: folders may get ignored)
@@ -309,5 +311,10 @@ inline Int Elms(C PakSet &paks) {return paks.totalFiles();}
 #if EE_PRIVATE
 Bool Equal(C PakFile     *a  , C PakFile *b ); // test if both PakFile's are of the same version
 Bool Equal(C PakFileData *pfd, C PakFile *pf); // test if both PakFile's are of the same version
+
+struct PakInPlace
+{
+   Memb<DataRange> used_file_ranges;
+};
 #endif
 /******************************************************************************/
