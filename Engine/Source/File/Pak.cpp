@@ -1142,7 +1142,7 @@ struct PakCreator
       Bool set(C FileTemp &ft, Int parent_index, PakCreator &pc)
       {
          reset(); ready=false; compress_mode=COMPRESS_ENABLE; data=null;
-         T.parent=parent_index;
+         T.parent=parent_index; if(parent<0)pc.root_files++;
          switch(ft.type)
          {
             default: return pc.setError("Invalid FileTemp.type");
@@ -1222,6 +1222,7 @@ struct PakCreator
                }
             }break;
          }
+         pc.names_elms+=name.length()+1;
          return true;
       }
    };
@@ -1235,7 +1236,7 @@ struct PakCreator
    };
 
    Bool                  error_occurred, header_changed, data_size_changed;
-   Int                   file_being_processed;
+   Int                   root_files, names_elms, file_being_processed;
    UInt                  pak_flag;
    Long                  mem_available;
    Long                  pak_file_size; // used for in_place to append data at the end of the file
@@ -1258,6 +1259,8 @@ struct PakCreator
       if(pak_flag&PAK_NO_DATA)compress=COMPRESS_NONE; // if we're not saving data, then disable compression (because it's not needed, however we still may want to process files for calculating hash)
 
       T.error_occurred      =header_changed=data_size_changed=false;
+      T.root_files          =0;
+      T.names_elms          =0;
       T.file_being_processed=0;
       T.pak_flag            =pak_flag;
       T.src_cipher          =src_cipher;
@@ -1440,7 +1443,16 @@ struct PakCreator
 
    Long posForWrite(Long size) // get position for writing 'size' amount of data
    {
-      // FIXME find in holes, first perfect match, then at the end
+      // find smallest hole possible
+      DataRangeRel best_hole_t, *best_hole=&best_hole_t; best_hole_t.set(0, LONG_MAX);
+      FREPA(holes)
+      {
+         DataRangeRel &hole=holes[i];
+         if(hole.size>=size && CompareSize(hole, *best_hole)<0)best_hole=&hole;
+      }
+      if(best_hole!=&best_hole_t)
+      {
+      }
       Long pos=pak_file_size;
       pak_file_size+=size;
       return pos;
@@ -1457,14 +1469,13 @@ struct PakCreator
 
       {
          // create !! must set all members because we could be operating on Pak that's already created !!
-         Int  names_elms=0; REPA(files)names_elms+=files[i].name.length()+1;
          pak._names.setNum(names_elms  );
          pak._files.setNum(files.elms());
          pak._cipher_per_file   =true; // if changing then please remember that currently '_cipher_per_file' is set based on the Pak file format version
          pak._file_type         =FILE_STD_READ;
          pak._file_cipher_offset=0;
          pak._file_cipher       =cipher;
-         pak._root_files        =0;
+         pak._root_files        =root_files;
          pak._data_offset       =0;
          pak._data_decompressed.del();
          pak._data              =null;
@@ -1473,7 +1484,7 @@ struct PakCreator
          Int  files_to_process          =0;
          UInt max_data_size_compress    =0;
          Long thread_mem_usage          =0,
-              data_offset               =SizeHeaderPre()+pak.sizeHeaderData(),
+              data_offset               =SizeHeaderPre()+pak.sizeHeaderData(), // !! THIS RELIES ON PAK MEMBERS, '_root_files', '_names', '_files', etc. !!
               total_data_size_compressed=0, total_data_size_decompressed=0,
               decompressed_processed=0;
          FREPA(files)
@@ -1486,7 +1497,7 @@ struct PakCreator
             dest.name                = Set(pak._names.data()+names_elms, src.name, src_name_chars); names_elms+=src_name_chars;
             dest.flag                = src.flag                ;
             dest.compression         = src.compression         ;
-            dest.parent              = src.parent              ; if(dest.parent<0)pak._root_files++;
+            dest.parent              = src.parent              ;
             dest.children_offset     = src.children_offset     ;
             dest.children_num        = src.children_num        ;
             dest.modify_time_utc     = src.modify_time_utc     ;
@@ -1647,7 +1658,7 @@ struct PakCreator
                   Long header_data_pos=posForWrite(pak.sizeHeaderData());
                   if(!f_dest.pos(header_data_pos) || !pak.saveHeaderData(f_dest                 ) || !f_dest.flush()){if(error_message)*error_message=CantFlush(pak.pakFileName()); goto error;}
                   if(!f_dest.pos(              0) || !pak.saveHeaderPre (f_dest, header_data_pos) || !f_dest.flush()){if(error_message)*error_message=CantFlush(pak.pakFileName()); goto error;}
-                  f_dest.size(pak_file_size); // trim to used data only, this can ignore checking for errors, as Pak will work with or without this call
+                      f_dest.size(pak_file_size); // trim to used data only, this can ignore checking for errors, as Pak will work with or without this call
                }else
                if(header_changed) // if during file processing, the header was changed, then we need to resave it
                {

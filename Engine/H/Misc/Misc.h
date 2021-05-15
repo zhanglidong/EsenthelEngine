@@ -599,8 +599,9 @@ struct DataRangeAbs
 
    void set(ULong start, ULong end) {T.start=start; T.end=end;}
 };
-Int Compare(C DataRangeRel &a, C DataRangeRel &b);
-Int Compare(C DataRangeAbs &a, C DataRangeAbs &b);
+Int Compare    (C DataRangeRel &a, C DataRangeRel &b);
+Int Compare    (C DataRangeAbs &a, C DataRangeAbs &b);
+Int CompareSize(C DataRangeRel &a, C DataRangeRel &b);
 /******************************************************************************/
 enum LANG_TYPE : Byte
 {
