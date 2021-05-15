@@ -315,6 +315,9 @@ Bool Equal(C PakFileData *pfd, C PakFile *pf); // test if both PakFile's are of 
 struct PakInPlace
 {
    Memb<DataRange> used_file_ranges;
+   Pak            &src_pak;
+
+   PakInPlace(Pak &src_pak) : src_pak(src_pak) {}
 };
 #endif
 /******************************************************************************/
