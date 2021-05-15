@@ -1322,10 +1322,10 @@ struct PakCreator
          pak._data_decompressed.del();
          pak._data              =null;
 
-              names_elms              =0;
-         Int  files_to_process        =0;
-         UInt max_data_size_compress  =0;
-         Long thread_mem_usage        =0,
+              names_elms                =0;
+         Int  files_to_process          =0;
+         UInt max_data_size_compress    =0;
+         Long thread_mem_usage          =0,
               total_data_size_compressed=0, total_data_size_decompressed=0, decompressed_processed=0;
          FREPA(files)
          {
