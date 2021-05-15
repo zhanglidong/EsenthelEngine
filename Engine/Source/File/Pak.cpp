@@ -297,7 +297,8 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
    ULong           data_size=0;
    Memt<DataRange> used_file_ranges_temp;
 
-  _data_offset=f.posAbs();
+  _data_offset       =f.posAbs   ();
+  _file_cipher_offset=f.posCipher();
 
    UInt cc4=f.getUInt();
    if(  cc4==CC4_PAK
@@ -347,8 +348,7 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
                      MAX(data_size, dest.data_offset+dest.data_size_compressed);
                   }
 
-                 _cipher_per_file   =true;
-                 _file_cipher_offset=f._cipher_offset;
+                 _cipher_per_file=true;
                   Add(used_file_ranges_temp, header_data_pos, f.pos()-header_data_pos);
                   goto ok;
                }
@@ -392,8 +392,8 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
                }
 
               _cipher_per_file   =true;
-              _data_offset       =f.posAbs();
-              _file_cipher_offset=f._cipher_offset+f.pos(); // use existing cipher offset adjusted by current position where data starts ('pos' and not 'posAbs')
+              _data_offset       =f.posAbs   ();
+              _file_cipher_offset=f.posCipher();
                Add(used_file_ranges_temp, 0, f.pos());
                goto ok;
             }
@@ -431,8 +431,8 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
                }
 
               _cipher_per_file   =true;
-              _data_offset       =f.posAbs();
-              _file_cipher_offset=f._cipher_offset+f.pos(); // use existing cipher offset adjusted by current position where data starts ('pos' and not 'posAbs')
+              _data_offset       =f.posAbs   ();
+              _file_cipher_offset=f.posCipher();
                fix_compressed=true;
                Add(used_file_ranges_temp, 0, f.pos());
                goto ok;
@@ -471,8 +471,8 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
                }
 
               _cipher_per_file   =false;
-              _data_offset       =f.posAbs();
-              _file_cipher_offset=f._cipher_offset+f.pos(); // use existing cipher offset adjusted by current position where data starts ('pos' and not 'posAbs')
+              _data_offset       =f.posAbs   ();
+              _file_cipher_offset=f.posCipher();
                fix_compressed=true;
                Add(used_file_ranges_temp, 0, f.pos());
                goto ok;
@@ -513,8 +513,8 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
                }
 
               _cipher_per_file   =false;
-              _data_offset       =f.posAbs();
-              _file_cipher_offset=f._cipher_offset+f.pos(); // use existing cipher offset adjusted by current position where data starts ('pos' and not 'posAbs')
+              _data_offset       =f.posAbs   ();
+              _file_cipher_offset=f.posCipher();
                fix_compressed=true;
                Add(used_file_ranges_temp, 0, f.pos());
                goto ok;
@@ -555,8 +555,8 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
                }
 
               _cipher_per_file   =false;
-              _data_offset       =f.posAbs();
-              _file_cipher_offset=f._cipher_offset+f.pos(); // use existing cipher offset adjusted by current position where data starts ('pos' and not 'posAbs')
+              _data_offset       =f.posAbs   ();
+              _file_cipher_offset=f.posCipher();
                fix_compressed=true;
                Add(used_file_ranges_temp, 0, f.pos());
                goto ok;
@@ -1505,8 +1505,8 @@ struct PakCreator
          {
             if(!pak.pakFileName().is()){if(error_message)*error_message="Pak name was not specified"; goto error;}
             if(!(in_place ? f_dest.editTry(pak.pakFileName(), cipher) : f_dest.writeTry(pak.pakFileName(), cipher))){if(error_message)*error_message=CantWrite(pak.pakFileName()); goto error;}
-            pak._file_cipher_offset=f_dest._cipher_offset;
-            pak._data_offset       =f_dest.posAbs();
+            pak._data_offset       =f_dest.posAbs   ();
+            pak._file_cipher_offset=f_dest.posCipher();
             if(!in_place && !pak.saveHeader(f_dest)){if(error_message)*error_message=CantFlush(pak.pakFileName()); goto error;}
          }
          auto f_dest_cipher_offset=f_dest._cipher_offset;
