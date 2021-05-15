@@ -1485,7 +1485,7 @@ struct PakCreator
          pak._data_decompressed.del();
          pak._data              =null;
 
-              names_elms                =0;
+              names_elms                =0; if(DEBUG)root_files=0;
          Int  files_to_process          =0;
          UInt max_data_size_compress    =0;
          Long thread_mem_usage          =0,
@@ -1502,7 +1502,7 @@ struct PakCreator
             dest.name                = Set(pak._names.data()+names_elms, src.name, src_name_chars); names_elms+=src_name_chars;
             dest.flag                = src.flag                ;
             dest.compression         = src.compression         ;
-            dest.parent              = src.parent              ;
+            dest.parent              = src.parent              ; if(DEBUG && src.parent<0)root_files++;
             dest.children_offset     = src.children_offset     ;
             dest.children_num        = src.children_num        ;
             dest.modify_time_utc     = src.modify_time_utc     ;
@@ -1528,6 +1528,8 @@ struct PakCreator
             if(file_compress)MAX(max_data_size_compress, src.data_size);
             if(file_decompress || file_compress || file_hash)files_to_process++;
          }
+         DEBUG_ASSERT(names_elms==pak._names.elms(), "Pak names elms");
+         DEBUG_ASSERT(root_files==pak._root_files  , "Pak root files");
 
          if(progress && progress->wantStop(error_message))goto error;
 
