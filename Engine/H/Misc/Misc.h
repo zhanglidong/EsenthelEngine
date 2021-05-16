@@ -541,8 +541,8 @@ Str Merge(C Str &base, C Str &a, C Str &b, MemPtr<TextPatch> patches=null, Int t
 
 Int Difference(C Str &a, C Str &b); // get number of characters that need to be added/removed to make both strings equal
 /******************************************************************************/
-T2(BASE, EXTENDED)   void ASSERT_BASE_EXTENDED_EX(BASE&, EXTENDED&)   {BASE *t=(EXTENDED*)null; DYNAMIC_ASSERT(static_cast<BASE*>((EXTENDED*)256)==(BASE*)256, "Selected class is not the base class of extended one");} // "BASE *t=(EXTENDED*)null;" needed for "ASSERT_BASE_EXTENDED<EXTENDED, BASE>();"
-T2(BASE, EXTENDED)   void ASSERT_BASE_EXTENDED_EX(BASE*, EXTENDED*)   {BASE *t=(EXTENDED*)null; DYNAMIC_ASSERT(static_cast<BASE*>((EXTENDED*)256)==(BASE*)256, "Selected class is not the base class of extended one");} // "BASE *t=(EXTENDED*)null;" needed for "ASSERT_BASE_EXTENDED<EXTENDED, BASE>();"
+T2(BASE, EXTENDED)   void ASSERT_BASE_EXTENDED_EX(BASE&, EXTENDED&)   {static_assert(std::is_base_of<BASE, EXTENDED>::value, "Selected class is not the base class of extended one"); DYNAMIC_ASSERT(static_cast<BASE*>((EXTENDED*)256)==(BASE*)256, "Selected class is not the base class of extended one");}
+T2(BASE, EXTENDED)   void ASSERT_BASE_EXTENDED_EX(BASE*, EXTENDED*)   {static_assert(std::is_base_of<BASE, EXTENDED>::value, "Selected class is not the base class of extended one"); DYNAMIC_ASSERT(static_cast<BASE*>((EXTENDED*)256)==(BASE*)256, "Selected class is not the base class of extended one");}
 
 T2(BASE, EXTENDED)   void ASSERT_BASE_EXTENDED   (                )   {int i=0; ASSERT_BASE_EXTENDED_EX((BASE&)i, (EXTENDED&)i);} // asserts that 'BASE' class is the main base class of 'EXTENDED', this also works for pointers
 
