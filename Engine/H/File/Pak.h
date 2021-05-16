@@ -253,7 +253,7 @@ struct PakFileData // Pak File Data, used for creating or updating Pak's from cu
    UInt          xxHash64_32      ; // file hash, if you know it already then you can set it manually to save processing time, in other case you can leave it to 0, used only if "mode==REPLACE"
    DateTime      modify_time_utc  ; // file modification time (UTC time zone)
 
-   PakFileData() {type=FSTD_FILE; mode=REPLACE; compress_mode=COMPRESS_ENABLE; compressed=COMPRESS_NONE; decompressed_size=-1; xxHash64_32=0; modify_time_utc.zero();}
+   PakFileData() {type=FSTD_NONE; mode=REPLACE; compress_mode=COMPRESS_ENABLE; compressed=COMPRESS_NONE; decompressed_size=-1; xxHash64_32=0; modify_time_utc.zero();}
 };
 /******************************************************************************/
 struct PakNode // Pak File Node, used for creating Pak's from custom files
@@ -288,7 +288,7 @@ struct PakNode // Pak File Node, used for creating Pak's from custom files
    }
 #endif
 
-   PakNode() {type=FSTD_FILE; exists=true; compress_mode=COMPRESS_ENABLE; compressed=COMPRESS_NONE; decompressed_size=-1; xxHash64_32=0; modify_time_utc.zero();}
+   PakNode() {type=FSTD_NONE; exists=true; compress_mode=COMPRESS_ENABLE; compressed=COMPRESS_NONE; decompressed_size=-1; xxHash64_32=0; modify_time_utc.zero();}
 };
 /******************************************************************************/
 // MAIN
