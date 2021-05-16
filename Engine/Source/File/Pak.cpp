@@ -1240,7 +1240,8 @@ struct PakCreator
    Int                   root_files, names_elms, file_being_processed;
    UInt                  pak_flag;
    Long                  mem_available;
-   Long                  pak_file_size; // used for in_place to append data at the end of the file
+   Long                  write_pos; // used for in_place to append data at the end of the file
+   Long                  updated_size; // size after in_place update
    PakProgress          *progress;
    PakInPlace           *in_place;
    Str                  *error_message;
@@ -1270,7 +1271,7 @@ struct PakCreator
       T.error_message       =error_message; if(error_message)error_message->clear();
       T.progress            =progress     ; if(progress     )progress     ->progress=0;
       T.in_place            =in_place;
-      T.pak_file_size       =0;
+      T.write_pos           =T.updated_size=0;
       if(in_place)
       {
          Int pre_header_size=PreHeaderSize();
@@ -1282,9 +1283,9 @@ struct PakCreator
             {
                auto &hole=holes[i]; if(hole.start<pre_header_size)hole.moveStartTo(pre_header_size);else break; // make sure we have room for pre-header, this is needed in case pre-header is now bigger than in the past
             }
-            pak_file_size=in_place->used_file_ranges.last().end;
+            write_pos=in_place->used_file_ranges.last().end;
          }
-         MAX(pak_file_size, pre_header_size); // make sure we have room for pre-header, this is needed in case loading 'src_pak' failed
+         MAX(write_pos, pre_header_size); // make sure we have room for pre-header, this is needed in case loading 'src_pak' failed
       }
    }
 
@@ -1462,10 +1463,11 @@ struct PakCreator
          Long pos=best_hole->start;
          if(size>=best_hole->size)holes.removeData(best_hole); // if size filled entire hole, remove it
          else     best_hole->moveStart(size); // reduce hole size
+         MAX(updated_size, pos+size);
          return pos;
       }
-      Long pos=pak_file_size;
-      pak_file_size+=size;
+      Long pos=write_pos;
+      updated_size=(write_pos+=size); // no need for "MAX" because this will always be biggest
       return pos;
    }
 
@@ -1612,7 +1614,9 @@ struct PakCreator
 
                      if(src.kept(in_place)) // this file is kept from source pak without changes
                      {
-                        dest.data_offset=(src.data->pak->_data_offset+src.data->pak_file->data_offset)-pak._data_offset;
+                        Long data_offset=src.data->pak->_data_offset+src.data->pak_file->data_offset;
+                        dest.data_offset=data_offset-pak._data_offset;
+                        MAX(updated_size, data_offset+dest.data_size_compressed);
                      }else
                      {
                         // get source file
@@ -1670,8 +1674,8 @@ struct PakCreator
                   if(pak._cipher_per_file)f_dest.cipherOffset(f_dest_cipher_offset); // reset the cipher offset here so that saving file header will use it
                   Long header_data_pos=posForWrite(pak.headerDataSize());
                   if(!f_dest.pos(header_data_pos) || !pak.saveHeaderData(f_dest                 ) || !f_dest.flush()){if(error_message)*error_message=CantFlush(pak.pakFileName()); goto error;}
-                  if(!f_dest.pos(              0) || !pak.savePreHeader (f_dest, header_data_pos) || !f_dest.flush()){if(error_message)*error_message=CantFlush(pak.pakFileName()); goto error;}
-                      f_dest.size(pak_file_size); // trim to used data only, this can ignore checking for errors, as Pak will work with or without this call
+                  if(!f_dest.pos(              0) || !pak.savePreHeader (f_dest, header_data_pos) || !f_dest.flush()){if(error_message)*error_message=CantFlush(pak.pakFileName()); goto error;} // no need to adjust 'updated_size' for pre-header, as header data will always be after
+                      f_dest.size(updated_size); // trim to used data only, this can ignore checking for errors, as Pak will work with or without this call
                }else
                if(header_changed) // if during file processing, the header was changed, then we need to resave it
                {
@@ -1847,21 +1851,21 @@ static void ExcludeChildren(Pak &pak, C PakFile &pf, Memt<Bool> &is)
       ExcludeChildren(pak, pak.file(child_i), is); // exclude all  children of that child too
    }
 }
-static Bool _PakUpdate(Pak &src_pak, C CMemPtr<PakFileData> &update_files, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress, PakInPlace *in_place)
+static Bool _PakUpdate(Pak &src_pak, C CMemPtr<PakFileData> &changes, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress, PakInPlace *in_place)
 {
    if(error_message)error_message->clear();
 
    // set 'src_pak' files as 'PakFileData'
-   Memc<PakFileData> src_files; // this container will include all files from 'src_pak' that weren't excluded (weren't replaced by newer versions from 'update_files')
+   Memc<PakFileData> src_files; // this container will include all files from 'src_pak' that weren't excluded (weren't replaced by newer versions from 'changes')
    {
       Memt<Bool> is; is.setNum(src_pak.totalFiles()); SetMem(is.data(), true, is.elms()); // set 'is' array specifying which files from 'src_pak' should be placed in target file
-      REPA(update_files) // check all new elements (order is not important as we're comparing them to 'src_pak' files only)
+      REPA(changes) // check all new elements (order is not important as we're comparing them to 'src_pak' files only)
       {
-            C PakFileData &pfd=update_files[i]; // take new element
+            C PakFileData &pfd=changes[i]; // take new element
          if(C PakFile     *pf =src_pak.find(pfd.name, true)) // if there exists an original version (file in 'src_pak')
          {
             Int i=src_pak.files().index(pf); // take the index of file in 'src_pak'
-            is[i]=false; // exclude that file from 'src_pak' (instead of it, we'll use 'pfd' - the newer version from 'update_files')
+            is[i]=false; // exclude that file from 'src_pak' (instead of it, we'll use 'pfd' - the newer version from 'changes')
             if(pfd.mode!=PakFileData::REPLACE)ExcludeChildren(src_pak, *pf, is); // if the newer version removes old file then we need to exclude also all children of 'pf' in 'src_pak'
          }
       }
@@ -1885,9 +1889,9 @@ static Bool _PakUpdate(Pak &src_pak, C CMemPtr<PakFileData> &update_files, C Str
    }
 
    // move everything to one container, order is important
-   Mems<C PakFileData*> all_files; all_files.setNum(src_files.elms()+update_files.elms());
-   FREPA(   src_files)all_files[i                 ]=&   src_files[i]; // first the src    files
-   FREPA(update_files)all_files[i+src_files.elms()]=&update_files[i]; // now   the update files, in order in which they were given (in case there are multiple files of same full name)
+   Mems<C PakFileData*> all_files; all_files.setNum(src_files.elms()+changes.elms());
+   FREPA(src_files)all_files[i                 ]=&src_files[i]; // first the src    files
+   FREPA(  changes)all_files[i+src_files.elms()]=&  changes[i]; // now   the update files, in order in which they were given (in case there are multiple files of same full name)
 
    // create Pak basing on all files
    Pak  temp; temp.pakFileName(pak_name); // this will normalize and make full path, we need the full name to make the comparison
@@ -1907,23 +1911,22 @@ static Bool _PakUpdate(Pak &src_pak, C CMemPtr<PakFileData> &update_files, C Str
    } // no need to do anything because 'Pak.create' will delete the file on failure
    return false;
 }
-Bool PakUpdate(Pak &src_pak, C CMemPtr<PakFileData> &update_files, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress)
+Bool PakUpdate(Pak &src_pak, C CMemPtr<PakFileData> &changes, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress)
 {
-   return _PakUpdate(src_pak, update_files, pak_name, flag, dest_cipher, compress, compression_level, error_message, progress, null);
+   return _PakUpdate(src_pak, changes, pak_name, flag, dest_cipher, compress, compression_level, error_message, progress, null);
 }
-Bool PakUpdateInPlace(C CMemPtr<PakFileData> &update_files, C Str &pak_name, UInt flag, Cipher *cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress)
+Bool PakUpdateInPlace(C CMemPtr<PakFileData> &changes, C Str &pak_name, UInt flag, Cipher *cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress)
 {
    if(error_message)error_message->clear();
-   if(!update_files.elms())return true; // if nothing to update then succeed
+   if(!changes.elms())return true; // if nothing to update then succeed
 
    Pak                 src_pak;
    PakInPlace in_place(src_pak);
-   if(src_pak.loadEx(pak_name, cipher, 0, null, null, in_place.used_file_ranges)==PAK_LOAD_OK)
+   switch(src_pak.loadEx(pak_name, cipher, 0, null, null, in_place.used_file_ranges))
    {
-      return _PakUpdate(src_pak, update_files, pak_name, flag, cipher, compress, compression_level, error_message, progress, &in_place);
-   }else // if failed to load
-   {
-      return src_pak.create(update_files, pak_name, flag, cipher, compress, compression_level, error_message, progress); // create as new
+      case PAK_LOAD_OK       : return     _PakUpdate(src_pak, changes, pak_name, flag, cipher, compress, compression_level, error_message, progress, &in_place); // update in place
+      case PAK_LOAD_NOT_FOUND: return src_pak.create(         changes, pak_name, flag, cipher, compress, compression_level, error_message, progress           ); // create as new
+      default                : return false;
    }
 }
 /******************************************************************************/
