@@ -1226,7 +1226,7 @@ struct PakCreator
                                if(ft.node->decompressed_size<0)return pc.setError(S+"File \""+ft.name+"\" was marked as compressed, however its 'decompressed_size' is unspecified");
                         data_size=ft.node->decompressed_size;
                   }else data_size=      data_size_compressed;
-                  if(!data_size != !data_size_compressed)return pc.setError(S+"File \""+ft.name+"\" has invalid data size"); // both have to be zeros or not zeros
+                  if(  !data_size !=   !data_size_compressed)return pc.setError(S+"File \""+ft.name+"\" has invalid data size"); // both have to be zeros or not zeros
                size_ok:;
 
                   if(ft.node->decompressed_size>=0 && ft.node->decompressed_size!=data_size)return pc.setError(S+"File \""+ft.name+"\" has specified 'decompressed_size' but it doesn't match source data");
