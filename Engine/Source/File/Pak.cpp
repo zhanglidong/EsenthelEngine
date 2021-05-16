@@ -1951,9 +1951,24 @@ Bool PakReplaceInPlace(C CMemPtr<PakFileData> &new_files, C Str &pak_name, UInt 
       case PAK_LOAD_OK       :
       {
          if(!CheckInPlaceSettings(src_pak, cipher, error_message))return false;
-         if(PakEqual(new_files, src_pak))return true;
-         Mems<PakFileData> files;
-         // FIXME
+         if(PakEqual(new_files, src_pak))return true; // if nothing to update then succeed
+         Mems<PakFileData> files(new_files.elms()); REPA(files)
+         {
+            PakFileData &    file=    files[i];
+          C PakFileData &new_file=new_files[i];
+            file=new_file;
+            if(file.mode==PakFileData::REPLACE && file.data.type) // if want to store some data
+               if(C PakFile *src_file=src_pak.find(file.name, false))
+                  if(Equal(&file, src_file)) // if data is the same
+            { // reuse from src
+               file.compress_mode    =COMPRESS_KEEP_ORIGINAL; // keep source files in original compression (for example if a Sound file was requested to have no compression before, to speed up streaming playback, then let's keep it)
+               file.compressed       =src_file->compression;
+               file.decompressed_size=src_file->data_size;
+               file.xxHash64_32      =src_file->data_xxHash64_32;
+               file.modify_time_utc  =src_file->modify_time_utc;
+               file.data.set(*src_file, src_pak);
+            }
+         }
          return src_pak.create(files, pak_name, flag, cipher, compress, compression_level, error_message, progress, &in_place); // update in place
       }
    }
