@@ -1856,7 +1856,7 @@ static Bool _PakUpdate(Pak &src_pak, C CMemPtr<PakFileData> &changes, C Str &pak
    if(error_message)error_message->clear();
 
    // set 'src_pak' files as 'PakFileData'
-   Memc<PakFileData> src_files; // this container will include all files from 'src_pak' that weren't excluded (weren't replaced by newer versions from 'changes')
+   Mems<PakFileData> src_files; // this container will include all files from 'src_pak' that weren't excluded (weren't replaced by newer versions from 'changes')
    {
       Memt<Bool> is; is.setNum(src_pak.totalFiles()); SetMem(is.data(), true, is.elms()); // set 'is' array specifying which files from 'src_pak' should be placed in target file
       REPA(changes) // check all new elements (order is not important as we're comparing them to 'src_pak' files only)
@@ -1869,11 +1869,11 @@ static Bool _PakUpdate(Pak &src_pak, C CMemPtr<PakFileData> &changes, C Str &pak
             if(pfd.mode!=PakFileData::REPLACE)ExcludeChildren(src_pak, *pf, is); // if the newer version removes old file then we need to exclude also all children of 'pf' in 'src_pak'
          }
       }
-
-      FREPA(src_pak)if(is[i])
+      src_files.setNum(CountIs(is));
+      Int j=0; FREPA(src_pak)if(is[i])
       {
-       C PakFile     &pf =src_pak  .file(i);
-         PakFileData &pfd=src_files.New ( );
+       C PakFile     &pf =src_pak.file(i);
+         PakFileData &pfd=src_files[j++];
          pfd.mode             =(FlagTest(pf.flag, PF_REMOVED) ? PakFileData::MARK_REMOVED : PakFileData::REPLACE);
          pfd.type             =pf.type();
          pfd.compress_mode    =COMPRESS_KEEP_ORIGINAL; // keep source files in original compression (for example if a Sound file was requested to have no compression before, to speed up streaming playback, then let's keep it)
