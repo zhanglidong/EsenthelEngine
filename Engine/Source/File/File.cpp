@@ -1036,6 +1036,18 @@ UInt File::memUsage()C
    return mem;
 }
 /******************************************************************************/
+FSTD_TYPE File::stdType()C
+{
+   switch(_type)
+   {
+      default: return FSTD_NONE;
+
+      case FILE_STD_READ :
+      case FILE_STD_WRITE:
+         return FSTD_FILE;
+   }
+}
+/******************************************************************************/
 Bool File::flushDo()
 {
    DEBUG_ASSERT(_type==FILE_STD_WRITE && _buf_len, "File.flushDo");
