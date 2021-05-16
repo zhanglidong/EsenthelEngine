@@ -1584,13 +1584,11 @@ struct PakCreator
             {
                if(progress && progress->wantStop(error_message))goto error;
 
-               PakFileEx &src =     files[i];
-               PakFile   &dest=pak._files[i];
-
-               if(dest.data_size)
+               PakFile &dest=pak._files[i]; if(dest.data_size)
                {
                   // wait until file is processed
                   file_being_processed=i;
+                  PakFileEx &src=files[i];
                   if(threads.threads())
                   {
                      if(!src.ready){wakeUp(); do ready.wait();while(!src.ready);}
@@ -1839,7 +1837,7 @@ Bool Pak::create(C CMemPtr<PakFileData> &files, C Str &pak_name, UInt flag, Ciph
 Bool Pak::create(C CMemPtr<PakFileData> &files, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress, PakInPlace *in_place)
 {
    Mems<C PakFileData*> f; f.setNum(files.elms()); REPAO(f)=&files[i];
-   return create(f, pak_name, flag, dest_cipher, compress, compression_level, error_message, progress);
+   return create(f, pak_name, flag, dest_cipher, compress, compression_level, error_message, progress, in_place);
 }
 /******************************************************************************/
 // MAIN
@@ -1951,12 +1949,12 @@ Bool PakReplaceInPlace(C CMemPtr<PakFileData> &new_files, C Str &pak_name, UInt 
       case PAK_LOAD_OK       :
       {
          if(!CheckInPlaceSettings(src_pak, cipher, error_message))return false;
-         if(PakEqual(new_files, src_pak))return true; // if nothing to update then succeed
-         Mems<PakFileData> files(new_files.elms()); REPA(files)
+         Mems<PakFileData> files; files=new_files;
+         if(PakEqual(files, src_pak))return true; // if nothing to update then succeed
+         REPA(files)
          {
             PakFileData &    file=    files[i];
           C PakFileData &new_file=new_files[i];
-            file=new_file;
             if(file.mode==PakFileData::REPLACE && file.data.type) // if want to store some data
                if(C PakFile *src_file=src_pak.find(file.name, false))
                   if(Equal(&file, src_file)) // if data is the same
@@ -1969,9 +1967,14 @@ Bool PakReplaceInPlace(C CMemPtr<PakFileData> &new_files, C Str &pak_name, UInt 
                file.data.set(*src_file, src_pak);
             }
          }
-         return src_pak.create(files, pak_name, flag, cipher, compress, compression_level, error_message, progress, &in_place); // update in place
+         Pak temp; if(temp.create(files, pak_name, flag, cipher, compress, compression_level, error_message, progress, &in_place)) // update in place
+         {
+            Swap(temp, src_pak);
+            return true;
+         }
       }
    }
+   return false;
 }
 /******************************************************************************/
 Bool Equal(C PakFile *a, C PakFile *b)
@@ -2047,11 +2050,92 @@ Bool Equal(C PakFileData *pfd, C PakFile *pf)
    }
    return !pfd == !pf; // true only if both exist or both don't exist
 }
+Bool Equal(PakFileData *pfd, C PakFile *pf)
+{
+   if(pfd && (pfd->mode==PakFileData::REMOVE || pfd->mode==PakFileData::MARK_REMOVED))pfd=null; // treat as if doesn't exist
+   if(pf  && (pf ->flag&PF_REMOVED                                                  ))pf =null; // treat as if doesn't exist
+
+   if(pfd && pf) // both exist
+   {
+      if(pfd->type!=pf->type())return false; // different type
+
+      Long     &pfd_size=pfd->decompressed_size;
+      DateTime &pfd_time=pfd->modify_time_utc;
+      UInt     &pfd_hash=pfd->xxHash64_32;
+
+      // always override values from PAK_FILE to keep consistency with 'Pak.create'
+      if(pfd->data.type==DataSource::PAK_FILE)if(C PakFile *pf=pfd->data.pak_file) // from PAK_FILE we can always extract the size, even if it's compressed
+      {
+                      pfd_size=pf->data_size;
+                      pfd_time=pf->modify_time_utc;
+         if(!pfd_hash)pfd_hash=pf->data_xxHash64_32; // override only if user didn't calculate it (because it's possible that 'pfd_hash' is calculated but 'pf->data_xxHash64_32' left at 0)
+      }
+
+      if(pfd_size<0 && !pfd->compressed)switch(pfd->data.type) // if size is unknown and source is not compressed
+      {
+         case DataSource::NAME:
+         {
+            FileInfo fi; if(fi.get(pfd->data.name))
+            {
+               pfd_size=fi.size;
+               pfd_time=fi.modify_time_utc;
+            }
+         }break;
+
+         case DataSource::STD:
+         {
+            FileInfo fi; if(fi.getSystem(pfd->data.name))
+            {
+               pfd_size=fi.size;
+               pfd_time=fi.modify_time_utc;
+            }
+         }break;
+
+         default: pfd_size=pfd->data.size(); break;
+      }
+      if(pfd_size!=pf->data_size)return false; // different size
+
+      if(pfd_size) // check time and hash only if have data (to skip empty files)
+      {
+         if(pfd_hash && pf->data_xxHash64_32 && pfd_hash!=pf->data_xxHash64_32)return false; // both hashes known and different
+
+         if(!pfd_time.valid())switch(pfd->data.type) // if time is unknown
+         {
+            case DataSource::NAME: {FileInfo fi; if(fi.get      (pfd->data.name))pfd_time=fi.modify_time_utc;} break;
+            case DataSource::STD : {FileInfo fi; if(fi.getSystem(pfd->data.name))pfd_time=fi.modify_time_utc;} break;
+         }
+         if(Compare(pfd_time, pf->modify_time_utc, 1))return false; // different time (1 second tolerance due to Fat32)
+      }
+   }
+   return !pfd == !pf; // true only if both exist or both don't exist
+}
 /******************************************************************************/
+static Int ComparePF(  PakFileData*C &a,   PakFileData*C &b) {return ComparePath(a->name, b->name);}
 static Int ComparePF(C PakFileData*C &a, C PakFileData*C &b) {return ComparePath(a->name, b->name);}
+static Int ComparePF(  PakFileData*C &a, C Str           &b) {return ComparePath(a->name, b      );}
 static Int ComparePF(C PakFileData*C &a, C Str           &b) {return ComparePath(a->name, b      );}
 
-Bool PakEqual(C CMemPtr<PakFileData> &files, C Pak &pak)
+Bool PakEqual(MemPtr<PakFileData> files, C Pak &pak)
+{
+   Memt<PakFileData*> files_sorted; files_sorted.setNum(files.elms()); REPAO(files_sorted)=&files[i];
+   files_sorted.sort(ComparePF);
+   REPA(files)
+   {
+      PakFileData &pfd=files[i];
+      if(!Equal(&pfd, pak.find(pfd.name)))return false;
+   }
+   REPA(pak)
+   {
+    C PakFile &pf=pak.file(i);
+      if(!FlagTest(pf.flag, PF_STD_DIR)) // skip folders because they're not required to be in the 'PakFileData' list
+      {
+         PakFileData **files_pfd=files_sorted.binaryFind(pak.fullName(pf), ComparePF);
+         if(!Equal(files_pfd ? *files_pfd : null, &pf))return false;
+      }
+   }
+   return true;
+}
+Bool CPakEqual(C CMemPtr<PakFileData> &files, C Pak &pak)
 {
    Memt<C PakFileData*> files_sorted; files_sorted.setNum(files.elms()); REPAO(files_sorted)=&files[i];
    files_sorted.sort(ComparePF);
@@ -2071,14 +2155,8 @@ Bool PakEqual(C CMemPtr<PakFileData> &files, C Pak &pak)
    }
    return true;
 }
-Bool PakEqual(C CMemPtr<PakFileData> &files, C Str &name, Cipher *cipher)
-{
-   if(name.is())
-   {
-      Pak pak; if(pak.load(name, cipher))return PakEqual(files, pak);
-   }
-   return false;
-}
+Bool  PakEqual(   MemPtr<PakFileData>  files, C Str &pak_name, Cipher *pak_cipher) {if(pak_name.is()){Pak pak; if(pak.load(pak_name, pak_cipher))return  PakEqual(files, pak);} return false;}
+Bool CPakEqual(C CMemPtr<PakFileData> &files, C Str &pak_name, Cipher *pak_cipher) {if(pak_name.is()){Pak pak; if(pak.load(pak_name, pak_cipher))return CPakEqual(files, pak);} return false;}
 /******************************************************************************/
 }
 /******************************************************************************/

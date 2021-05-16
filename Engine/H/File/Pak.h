@@ -304,8 +304,10 @@ Bool PakUpdateInPlace (              C CMemPtr<PakFileData> &changes  , C Str &p
 Bool PakReplaceInPlace(              C CMemPtr<PakFileData> &new_files, C Str &pak_name, UInt flag=0, Cipher *     cipher=null, COMPRESS_TYPE compress=COMPRESS_NONE, Int compression_level=9, Str *error_message=null, PakProgress *progress=null); // replace 'pak_name' Pak with        'new_files' in-place directly within the 'pak_name' file without creating any additional files                              , 'compression_level'=0..CompressionLevels(compress) (0=fastest/worst, ..=slowest/best), 'compress'=compression algorithm for the 'changes' (files from 'pak_name' will preserve their original compression), this operates on existing Pak, adjusting it without creating new files, for example updating 1GB Pak with 1MB file will perform 1MB+ operations, it   will perform as few     Disk operations as possible, however created Pak will not be fully optimized, and may contain some useless data, if update failed for some reason then original Pak will remain unmodified                                        , this function replaces  original files with 'new_files'
 
 // Compare Pak
-Bool PakEqual(C CMemPtr<PakFileData> &files, C Pak &pak); // if 'files' are the same as the ones in 'pak' (this will verify if all files from 'files' are of the same size and modification time as those from 'pak', warning: folders may get ignored)
-Bool PakEqual(C CMemPtr<PakFileData> &files, C Str &pak_name, Cipher *pak_cipher=null);
+Bool  PakEqual(   MemPtr<PakFileData>  files, C Pak &pak                              ); // if 'files' are the same as the ones in 'pak'          (this will verify if all files from 'files' are of the same size, modification time and hash (if available) as those from 'pak'         , Warning: folders may get ignored)
+Bool CPakEqual(C CMemPtr<PakFileData> &files, C Pak &pak                              ); // if 'files' are the same as the ones in 'pak'          (this will verify if all files from 'files' are of the same size, modification time and hash (if available) as those from 'pak'         , Warning: folders may get ignored)
+Bool  PakEqual(   MemPtr<PakFileData>  files, C Str &pak_name, Cipher *pak_cipher=null); // if 'files' are the same as the ones in 'pak_name' Pak (this will verify if all files from 'files' are of the same size, modification time and hash (if available) as those from 'pak_name' Pak, Warning: folders may get ignored)
+Bool CPakEqual(C CMemPtr<PakFileData> &files, C Str &pak_name, Cipher *pak_cipher=null); // if 'files' are the same as the ones in 'pak_name' Pak (this will verify if all files from 'files' are of the same size, modification time and hash (if available) as those from 'pak_name' Pak, Warning: folders may get ignored)
 
 inline Int Elms(C Pak    &pak ) {return pak .totalFiles();}
 inline Int Elms(C PakSet &paks) {return paks.totalFiles();}
@@ -313,6 +315,7 @@ inline Int Elms(C PakSet &paks) {return paks.totalFiles();}
 #if EE_PRIVATE
 Bool Equal(C PakFile     *a  , C PakFile *b ); // test if both PakFile's are of the same version
 Bool Equal(C PakFileData *pfd, C PakFile *pf); // test if both PakFile's are of the same version
+Bool Equal(  PakFileData *pfd, C PakFile *pf); // test if both PakFile's are of the same version
 
 struct PakInPlace
 {
