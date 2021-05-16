@@ -40,11 +40,22 @@ Edit::BUILD_MODE     PublishBuildMode=Edit::BUILD_BUILD;
 PublishResult       PublishRes;
 WindowIO            PublishEsProjIO;
 /******************************************************************************/
+bool PublishDataNeedOptimized() {return PublishBuildMode==Edit::BUILD_PUBLISH;}
 bool PublishDataNeeded(Edit::EXE_TYPE exe, Edit::BUILD_MODE mode) {return exe==Edit::EXE_UWP || exe==Edit::EXE_APK || exe==Edit::EXE_IOS || exe==Edit::EXE_NS;}
 bool PublishDataReady() // if desired project data is already availalble
 {
-   return !PublishProjectDataPath.is() // if we don't want to create project data pak (no file)
-        || FileInfoSystem(PublishProjectDataPath).modify_time_utc>CodeEdit.appEmbedSettingsTime() && PakEqual(PublishFiles, PublishProjectDataPath, Publish.cipher());
+   if(!PublishProjectDataPath.is())return true; // if we don't want to create project data pak (no file)
+   if(FileInfoSystem(PublishProjectDataPath).modify_time_utc>CodeEdit.appEmbedSettingsTime()) // if Pak settings were not modified since last Pak generation
+   {
+      bool need_optimized=PublishDataNeedOptimized(); // test if optimized 
+      Memt<DataRangeAbs> used_file_ranges;
+      Pak pak; if(pak.loadEx(PublishProjectDataPath, Publish.cipher(), 0, null, null, need_optimized ? &used_file_ranges : null)==PAK_LOAD_OK)
+      {
+         if(need_optimized && used_file_ranges.elms()!=1)return false; // needs to be optimized
+         return PakEqual(PublishFiles, pak);
+      }
+   }
+   return false;
 }
 /******************************************************************************/
 void PublishDo()
@@ -281,8 +292,12 @@ bool PublishFunc(Thread &thread)
    PublishStage=PUBLISH_PUBLISH; Publish.progress.progress=0;
    if(PublishDataAsPak)
    {
-      if(PublishDataReady())PublishOk=true;
-      else                  PublishOk=PakCreate(PublishFiles, PublishProjectDataPath, PAK_SET_HASH, Publish.cipher(), PublishEsProj ? EsenthelProjectCompression : Proj.compress_type, PublishEsProj ? EsenthelProjectCompressionLevel : Proj.compress_level, &PublishErrorMessage, &Publish.progress);
+      if(PublishDataReady())PublishOk=true;else
+      {
+         PublishOk=false;
+         if(!PublishDataNeedOptimized())PublishOk=PakReplaceInPlace(PublishFiles, PublishProjectDataPath, PAK_SET_HASH, Publish.cipher(), PublishEsProj ? EsenthelProjectCompression : Proj.compress_type, PublishEsProj ? EsenthelProjectCompressionLevel : Proj.compress_level, &PublishErrorMessage, &Publish.progress);
+         if(!PublishOk                 )PublishOk=PakCreate        (PublishFiles, PublishProjectDataPath, PAK_SET_HASH, Publish.cipher(), PublishEsProj ? EsenthelProjectCompression : Proj.compress_type, PublishEsProj ? EsenthelProjectCompressionLevel : Proj.compress_level, &PublishErrorMessage, &Publish.progress); // if 'PakReplaceInPlace' failed or need optimized then recreate
+      }
    }else
    {
       Memc<Str> dest_paths;

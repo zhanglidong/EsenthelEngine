@@ -260,14 +260,12 @@ class ImporterClass
          {
             case ELM_OBJ:
             {
-               MemPtr<XAnimation> anims; if(mode!=CLOTH && mode!=ADD && !ignore_anims)anims.point(T.anims);
-               MemPtr<XMaterial > mtrls; if(mode!=ANIM                               )mtrls.point(T.mtrls);
-               if(EE.Import(file, (mode!=ANIM) ? &mesh : null, &skel, anims, mtrls, part_mtrl_index, &xskel, all_nodes_as_bones))
+               if(EE.Import(file, (mode!=ANIM) ? &mesh : null, &skel, (mode!=CLOTH && mode!=ADD && !ignore_anims) ? &anims : null, (mode!=ANIM) ? &mtrls : null, part_mtrl_index, &xskel, all_nodes_as_bones))
                {
                   FixMesh(mesh);
                   mesh.keepOnly(EditMeshFlagAnd); // call after 'FixMesh' which may need/generate some of removed data
                   REPAO(anims).anim.linear(anims[i].fps>=LinearAnimFpsLimit).clip(0, anims[i].anim.length()); // set linear mode and remove any keyframes outside of anim range
-                  Str path=GetPath(file); FREPAO(T.mtrls).process(path);
+                  Str path=GetPath(file); FREPAO(mtrls).process(path);
                   return true;
                }
             }break;

@@ -18,6 +18,7 @@ extern Edit::EXE_TYPE       PublishExeType  ;
 extern Edit::BUILD_MODE     PublishBuildMode;
 extern WindowIO            PublishEsProjIO;
 /******************************************************************************/
+bool PublishDataNeedOptimized();
 bool PublishDataNeeded(Edit::EXE_TYPE exe, Edit::BUILD_MODE mode);
 bool PublishDataReady();
 void PublishDo();
