@@ -216,6 +216,7 @@ Byte GetOldFlag(Byte flag)
         | (FlagTest(flag, 1<<4) ? PF_STD_LINK    : 0);
 }
 /******************************************************************************/
+static Bool CipherPerFile() {return true;} // '_cipher_per_file' value in latest Pak file format version
 Bool Pak::savePreHeader(File &f, Long header_data_pos)C
 {
    // !! IF MAKING ANY CHANGE HERE THEN ADJUST 'PreHeaderSize' !!
@@ -1484,7 +1485,7 @@ struct PakCreator
          // create !! must set all members because we could be operating on Pak that's already created !!
          pak._names.setNum(names_elms  );
          pak._files.setNum(files.elms());
-         pak._cipher_per_file   =true; // if changing then please remember that currently '_cipher_per_file' is set based on the Pak file format version
+         pak._cipher_per_file   =CipherPerFile(); // if changing then please remember that currently '_cipher_per_file' is set based on the Pak file format version
          pak._file_type         =FILE_STD_READ;
          pak._file_cipher_offset=0;
          pak._file_cipher       =cipher;
@@ -1855,6 +1856,11 @@ static Bool _PakUpdate(Pak &src_pak, C CMemPtr<PakFileData> &changes, C Str &pak
 {
    if(error_message)error_message->clear();
    // !! Here don't try to skip update if 'changes' are empty, because even if 'src_pak' file name is the same as 'pak_name' we may still want to recreate it, to optimize it (if it's unoptimized, has holes), or to just update to latest Pak file format !!
+   if(in_place)
+   {
+      if(src_pak._file_cipher    !=dest_cipher                                             ){if(error_message)*error_message="Can't update Pak in-place because Ciphers don't match"        ; return false;}
+      if(src_pak._cipher_per_file!=CipherPerFile() && (src_pak._file_cipher || dest_cipher)){if(error_message)*error_message="Can't update Pak in-place because CipherPerFile doesn't match"; return false;}
+   }
 
    // set 'src_pak' files as 'PakFileData'
    Mems<PakFileData> src_files; // this container will include all files from 'src_pak' that weren't excluded (weren't replaced by newer versions from 'changes')
