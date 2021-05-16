@@ -1177,7 +1177,7 @@ struct PakCreator
                      {
                         FileInfo fi; if(!fi.get(data->name))return pc.setErrorAccess(data->name);
                         type                (fi.type          ); // this is optional
-                        data_size_compressed=fi.size           ; // this is required
+                        data_size_compressed=fi.size           ; // this is required, alternatively this could be set from 'ft.node->decompressed_size', then if unavailable could be set from 'fi.size', however since we always call 'fi.get' then we can just set it always
                         modify_time_utc     =fi.modify_time_utc; // alternatively this could be performed if(!modify_time_utc.valid())
                      }break;
 
@@ -1185,7 +1185,7 @@ struct PakCreator
                      {
                         FileInfo fi; if(!fi.getSystem(data->name))return pc.setErrorAccess(data->name);
                         type                (fi.type          ); // this is optional
-                        data_size_compressed=fi.size           ; // this is required
+                        data_size_compressed=fi.size           ; // this is required, alternatively this could be set from 'ft.node->decompressed_size', then if unavailable could be set from 'fi.size', however since we always call 'fi.getSystem' then we can just set it always
                         modify_time_utc     =fi.modify_time_utc; // alternatively this could be performed if(!modify_time_utc.valid())
                      }break;
 
