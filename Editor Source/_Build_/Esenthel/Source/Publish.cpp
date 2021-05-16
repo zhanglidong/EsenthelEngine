@@ -41,7 +41,7 @@ PublishResult       PublishRes;
 WindowIO            PublishEsProjIO;
 /******************************************************************************/
 bool PublishDataNeedOptimized() {return PublishBuildMode==Edit::BUILD_PUBLISH;}
-bool PublishDataNeeded(Edit::EXE_TYPE exe, Edit::BUILD_MODE mode) {return exe==Edit::EXE_UWP || exe==Edit::EXE_APK || exe==Edit::EXE_IOS || exe==Edit::EXE_NS;}
+bool PublishDataNeeded(Edit::EXE_TYPE exe) {return exe==Edit::EXE_UWP || exe==Edit::EXE_APK || exe==Edit::EXE_IOS || exe==Edit::EXE_NS;}
 bool PublishDataReady() // if desired project data is already availalble
 {
    if(!PublishProjectDataPath.is())return true; // if we don't want to create project data pak (no file)
@@ -917,7 +917,7 @@ void PublishSuccess()
    {
       CodeEdit.CodeEditorInterface::openIDE();
    }else
-   if(PublishDataNeeded(PublishExeType, PublishBuildMode) && !PublishNoCompile) // we've published data, now we need to compile the code
+   if(PublishDataNeeded(PublishExeType) && !PublishNoCompile) // we've published data, now we need to compile the code
    {
       CodeEdit.codeDo(PublishBuildMode);
    }else

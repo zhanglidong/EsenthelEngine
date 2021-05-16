@@ -19,7 +19,7 @@ extern Edit::BUILD_MODE     PublishBuildMode;
 extern WindowIO            PublishEsProjIO;
 /******************************************************************************/
 bool PublishDataNeedOptimized();
-bool PublishDataNeeded(Edit::EXE_TYPE exe, Edit::BUILD_MODE mode);
+bool PublishDataNeeded(Edit::EXE_TYPE exe);
 bool PublishDataReady();
 void PublishDo();
 void PublishEsProjAs(C Str &path, ptr user);

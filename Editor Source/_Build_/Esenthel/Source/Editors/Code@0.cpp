@@ -418,7 +418,7 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
    }
    void CodeView::buildDo(Edit::BUILD_MODE mode)
    {
-      if(PublishDataNeeded(configEXE(), mode))StartPublish(S, configEXE(), mode);else 
+      if(PublishDataNeeded(configEXE()))StartPublish(S, configEXE(), mode);else 
       {
          Proj.flush(); // flush in case we want to play with latest data
          codeDo(mode);
@@ -431,7 +431,7 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
    void CodeView::rebuild() {clean(); rebuildSymbols(); build();}
    void CodeView::openIDE()
    {
-      if(PublishDataNeeded(configEXE(), Edit::BUILD_PUBLISH))StartPublish(S, configEXE(), Edit::BUILD_PUBLISH, true, S, true);else // we need to create project data pak first
+      if(PublishDataNeeded(configEXE()))StartPublish(S, configEXE(), Edit::BUILD_IDE, true, S, true);else // we need to create project data pak first
       {
          Proj.flush(); // flush in case we want to play with latest data
          super::openIDE();
@@ -457,7 +457,7 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
             case Edit::EXPORT_VS2019:
                exe=Edit::EXE_UWP; break;
          }
-         if(exe>=0 && PublishDataNeeded(exe, Edit::BUILD_PUBLISH))StartPublish(S, exe, Edit::BUILD_PUBLISH, true);
+         if(exe>=0 && PublishDataNeeded(exe))StartPublish(S, exe, Edit::BUILD_PUBLISH, true);
       }
       makeAuto(false); // restore after exporting
       return ok;
@@ -466,7 +466,7 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
 {
       if(Proj.id==project_id && StateActive==&StateProject)
       {
-         if(PublishDataNeeded(exe_type, build_mode)) // if data was already published then package is ready
+         if(PublishDataNeeded(exe_type)) // if data was already published then package is ready
          {
             PublishSuccess(exe_name, S+"File name: "+GetBase(exe_name)+"\nFile size: "+FileSize(FSize(exe_name)));
          }else // proceed to data publishing
