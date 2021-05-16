@@ -1835,7 +1835,8 @@ Bool Pak::create(C Mems<C PakFileData*> &files, C Str &pak_name, UInt flag, Ciph
    // create according to created nodes
    return create(nodes, pak_name, flag, dest_cipher, compress, compression_level, error_message, progress, in_place);
 }
-Bool Pak::create(C CMemPtr<PakFileData> &files, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress)
+Bool Pak::create(C CMemPtr<PakFileData> &files, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress) {return create(files, pak_name, flag, dest_cipher, compress, compression_level, error_message, progress, null);}
+Bool Pak::create(C CMemPtr<PakFileData> &files, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress, PakInPlace *in_place)
 {
    Mems<C PakFileData*> f; f.setNum(files.elms()); REPAO(f)=&files[i];
    return create(f, pak_name, flag, dest_cipher, compress, compression_level, error_message, progress);
@@ -1852,15 +1853,16 @@ static void ExcludeChildren(Pak &pak, C PakFile &pf, Memt<Bool> &is)
       ExcludeChildren(pak, pak.file(child_i), is); // exclude all  children of that child too
    }
 }
+static Bool CheckInPlaceSettings(C Pak &src_pak, Cipher *dest_cipher, Str *error_message)
+{
+   if(src_pak._file_cipher    !=dest_cipher                                             ){if(error_message)*error_message="Can't update Pak in-place because Ciphers don't match"        ; return false;}
+   if(src_pak._cipher_per_file!=CipherPerFile() && (src_pak._file_cipher || dest_cipher)){if(error_message)*error_message="Can't update Pak in-place because CipherPerFile doesn't match"; return false;}
+   return true;
+}
 static Bool _PakUpdate(Pak &src_pak, C CMemPtr<PakFileData> &changes, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress, PakInPlace *in_place)
 {
    if(error_message)error_message->clear();
    // !! Here don't try to skip update if 'changes' are empty, because even if 'src_pak' file name is the same as 'pak_name' we may still want to recreate it, to optimize it (if it's unoptimized, has holes), or to just update to latest Pak file format !!
-   if(in_place)
-   {
-      if(src_pak._file_cipher    !=dest_cipher                                             ){if(error_message)*error_message="Can't update Pak in-place because Ciphers don't match"        ; return false;}
-      if(src_pak._cipher_per_file!=CipherPerFile() && (src_pak._file_cipher || dest_cipher)){if(error_message)*error_message="Can't update Pak in-place because CipherPerFile doesn't match"; return false;}
-   }
 
    // set 'src_pak' files as 'PakFileData'
    Mems<PakFileData> src_files; // this container will include all files from 'src_pak' that weren't excluded (weren't replaced by newer versions from 'changes')
@@ -1931,9 +1933,29 @@ Bool PakUpdateInPlace(C CMemPtr<PakFileData> &changes, C Str &pak_name, UInt fla
    PakInPlace in_place(src_pak);
    switch(src_pak.loadEx(pak_name, cipher, 0, null, null, in_place.used_file_ranges))
    {
-      case PAK_LOAD_OK       : return     _PakUpdate(src_pak, changes, pak_name, flag, cipher, compress, compression_level, error_message, progress, &in_place); // update in place
-      case PAK_LOAD_NOT_FOUND: return src_pak.create(         changes, pak_name, flag, cipher, compress, compression_level, error_message, progress           ); // create as new
-      default                : return false;
+      default                : if(error_message)*error_message="Failed to load Pak"; return false;
+      case PAK_LOAD_NOT_FOUND:                                                                        return src_pak.create(         changes, pak_name, flag, cipher, compress, compression_level, error_message, progress           ); // create as new
+      case PAK_LOAD_OK       : if(!CheckInPlaceSettings(src_pak, cipher, error_message))return false; return     _PakUpdate(src_pak, changes, pak_name, flag, cipher, compress, compression_level, error_message, progress, &in_place); // update in place
+   }
+}
+Bool PakReplaceInPlace(C CMemPtr<PakFileData> &new_files, C Str &pak_name, UInt flag, Cipher *cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress)
+{
+   if(error_message)error_message->clear();
+
+   Pak                 src_pak;
+   PakInPlace in_place(src_pak);
+   switch(src_pak.loadEx(pak_name, cipher, 0, null, null, in_place.used_file_ranges))
+   {
+      default                : if(error_message)*error_message="Failed to load Pak"; return false;
+      case PAK_LOAD_NOT_FOUND: return src_pak.create(new_files, pak_name, flag, cipher, compress, compression_level, error_message, progress); // create as new
+      case PAK_LOAD_OK       :
+      {
+         if(!CheckInPlaceSettings(src_pak, cipher, error_message))return false;
+         if(PakEqual(new_files, src_pak))return true;
+         Mems<PakFileData> files;
+         // FIXME
+         return src_pak.create(files, pak_name, flag, cipher, compress, compression_level, error_message, progress, &in_place); // update in place
+      }
    }
 }
 /******************************************************************************/
