@@ -196,8 +196,8 @@ struct DataSource
    enum TYPE : Byte
    {
       NONE    , // data is empty
-      NAME    , // data comes from a file named 'name' which can be accessed using standard IO functions, such as 'File.read*'    and 'FileInfo'
-      STD     , // data comes from a file named 'name' which can be accessed using standard IO functions, such as 'File.readStd*' and 'FileInfoSystem'
+      NAME    , // data comes from a file named 'name' which can be accessed using standard IO functions, such as 'File.read'    and 'FileInfo'
+      STD     , // data comes from a file named 'name' which can be accessed using standard IO functions, such as 'File.readStd' and 'FileInfoSystem'
       FILE    , // data comes from a pointer to 'File' object, which should be already opened for reading
       PAK_FILE, // data comes from a pointer to 'PakFile' and 'Pak' objects
       MEM     , // data comes from specified memory address and its size
@@ -216,13 +216,14 @@ struct DataSource
    DataSource& set   (C PakFile &pak_file, C Pak &pak ) {type=PAK_FILE; T.pak_file=&pak_file; T.pak        =&pak; return T;} // set PAK_FILE type
    DataSource& set   (     CPtr    memory,  Long  size) {type=MEM     ; T.  memory=   memory; T.memory_size=size; return T;} // set MEM      type
 
-   File* open          (File &temp)C;
+   File*     open          (File &temp)C;
 #if EE_PRIVATE
-   File* openRaw       (File &temp)C;
+   File*     openRaw       (File &temp)C;
 #endif
-   Long  size          (          )C;
-   Long  sizeCompressed(          )C;
-   Str   srcName       (          )C;
+   Long      size          (          )C;
+   Long      sizeCompressed(          )C;
+   Str       srcName       (          )C;
+   FSTD_TYPE fstdType      (          )C;
 
    DataSource() {set();}
 };

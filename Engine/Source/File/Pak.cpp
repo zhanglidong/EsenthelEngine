@@ -83,6 +83,18 @@ Str DataSource::srcName()C
    }
    return S;
 }
+FSTD_TYPE DataSource::fstdType()C
+{
+   switch(type)
+   {
+      default      : return FSTD_NONE;
+      case FILE    : return     file ?     file->stdType() : FSTD_NONE;
+      case PAK_FILE: return pak_file ? pak_file->   type() : FSTD_NONE;
+      case NAME    : return FileInfo      (name).type;
+      case STD     : return FileInfoSystem(name).type;
+    //case MEM     : return FSTD_NONE;
+   }
+}
 /******************************************************************************/
 Bool PakProgress::wantStop(Str *error_message)C
 {
