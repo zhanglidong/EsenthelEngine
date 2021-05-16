@@ -254,8 +254,8 @@ bool StartPublish(C Str &exe_name, Edit::EXE_TYPE exe_type, Edit::BUILD_MODE bui
       SetPublishFiles(PublishFiles, PublishGenerate, PublishConvert, PublishFileData); // detect files for packing
       if(!PublishGenerate.elms() && !PublishConvert.elms()) // if there are no elements to generate and convert
          if(PublishDataAsPak) // if we're creating a pak
-            if(PublishDataReady()) // if already available
-               {PublishSuccess(); return true;} // or if pak is similar to what we want then exit already
+            if(PublishDataReady()) // if data already available
+               {PublishSuccess(); return true;} // exit already
    }
 
    StatePublish.set(StateFadeTime);
@@ -888,7 +888,7 @@ bool InitPublish()
    Proj.pause(); // this will also flush all unsaved data which is crucial for publishing
    PublishAreasLeft=Proj.worldAreasToRebuild();
    UpdateProgress.create(Rect_C(0, -0.05f, 1, 0.045f));
-   Gui+=PublishSkipOptimize    .create(Rect_C(0, -0.20f, 0.45f, 0.08f), "Skip for now").focusable(false); PublishSkipOptimize.mode=BUTTON_TOGGLE;
+   Gui+=PublishSkipOptimize.create(Rect_C(0, -0.20f, 0.45f, 0.08f), "Skip for now").focusable(false); PublishSkipOptimize.mode=BUTTON_TOGGLE;
    return true;
 }
 void ShutPublish()
