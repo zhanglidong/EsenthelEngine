@@ -1183,53 +1183,81 @@ struct PakCreator
                   compress_mode   = ft.node->compress_mode;
                   data            =&ft.node->data; // here we leave 'data_name' as empty, because that's for STD
                   data_xxHash64_32= ft.node->xxHash64_32;
+
+                  // operate on temporaries in case member is unsigned, but here we need to have ability to store -1
+                  Long data_size           =ft.node->decompressed_size,
+                       data_size_compressed=-1;
+
+                  if(!compression)
+                  { // if one size is known and other isn't, then copy
+                     if(data_size           >=0 && data_size_compressed<0)data_size_compressed=data_size           ;else
+                     if(data_size_compressed>=0 && data_size           <0)data_size           =data_size_compressed;
+                  }
+
+                  // get values in case user didn't specify them
+                  Bool get_type=!ft.node->type,
+                       get_size=(data_size_compressed<0),
+                       get_time=!modify_time_utc.valid();
                   switch(data->type)
                   {
                      case DataSource::NAME: if(data->name.is()) // ignore empty names to avoid errors in 'FileInfo.get' (treat them as empty data)
+                        if(get_type || get_size || get_time)
                      {
                         FileInfo fi; if(!fi.get(data->name))return pc.setErrorAccess(data->name);
-                        type                (fi.type          ); // this is optional
-                        data_size_compressed=fi.size           ; // this is required, alternatively this could be set from 'ft.node->decompressed_size', then if unavailable could be set from 'fi.size', however since we always call 'fi.get' then we can just set it always
-                        modify_time_utc     =fi.modify_time_utc; // alternatively this could be performed if(!modify_time_utc.valid())
+                        if(data_size_compressed>=0 && data_size_compressed!=fi.size)return pc.setError(S+"File \""+ft.name+"\" has invalid data size");
+                        if(get_type)type                (fi.type          );
+                        if(get_size)data_size_compressed=fi.size           ;
+                        if(get_time)modify_time_utc     =fi.modify_time_utc;
                      }break;
 
                      case DataSource::STD: if(data->name.is()) // ignore empty names to avoid errors in 'FileInfo.getSystem' (treat them as empty data)
+                        if(get_type || get_size || get_time)
                      {
                         FileInfo fi; if(!fi.getSystem(data->name))return pc.setErrorAccess(data->name);
-                        type                (fi.type          ); // this is optional
-                        data_size_compressed=fi.size           ; // this is required, alternatively this could be set from 'ft.node->decompressed_size', then if unavailable could be set from 'fi.size', however since we always call 'fi.getSystem' then we can just set it always
-                        modify_time_utc     =fi.modify_time_utc; // alternatively this could be performed if(!modify_time_utc.valid())
+                        if(data_size_compressed>=0 && data_size_compressed!=fi.size)return pc.setError(S+"File \""+ft.name+"\" has invalid data size");
+                        if(get_type)type                (fi.type          );
+                        if(get_size)data_size_compressed=fi.size           ;
+                        if(get_time)modify_time_utc     =fi.modify_time_utc;
                      }break;
 
                      case DataSource::PAK_FILE: if(C PakFile *pf=data->pak_file)
-                     {
-                        // override values in case user didn't specify them
-                                             FlagCopy(flag       ,pf->flag, PF_STD_DIR|PF_STD_LINK); // this is optional
-                                             compression         =pf->compression                  ; // this is required
-                                             data_size           =pf->data_size                    ; // this is required
-                                             data_size_compressed=pf->data_size_compressed         ; // this is required
-                                             modify_time_utc     =pf->modify_time_utc              ; // alternatively this could be performed if(!modify_time_utc.valid())
-                        if(!data_xxHash64_32)data_xxHash64_32    =pf->data_xxHash64_32             ; // override only if user didn't calculate it (because it's possible that 'data_xxHash64_32' is calculated but 'pf->data_xxHash64_32' left at 0)
-                        goto size_ok; // we have to skip checking size, because if the user didn't provide 'decompressed_size', but the file is compressed then error will be returned
+                     { // here don't do any size checks, size check will be done later below (because if user didn't specify correct 'compression' then there could be mismatch between data_size/data_size_compressed)
+                        if(get_type            )FlagCopy(flag       ,pf->flag, PF_STD_DIR|PF_STD_LINK);
+                                                compression         =pf->compression                  ; // always override
+                                                data_size           =pf->data_size                    ; // always override
+                                                data_size_compressed=pf->data_size_compressed         ; // always override
+                        if(get_time            )modify_time_utc     =pf->modify_time_utc              ;
+                        if(pf->data_xxHash64_32)data_xxHash64_32    =pf->data_xxHash64_32             ; // override only if available, in case "ft.node->xxHash64_32" is calculated, but "pf->data_xxHash64_32" isn't
                      }break;
 
                      default:
                      {
-                        Long size_compressed=data->sizeCompressed();
-                        if(  size_compressed<0)return pc.setErrorAccess(srcFullName());
-                        data_size_compressed=size_compressed;
+                        if(get_size)
+                        {
+                              data_size_compressed=data->sizeCompressed();
+                           if(data_size_compressed<0)return pc.setErrorAccess(srcFullName());
+                        }
                      }break;
                   }
 
-                  if(compression)
-                  {
-                               if(ft.node->decompressed_size<0)return pc.setError(S+"File \""+ft.name+"\" was marked as compressed, however its 'decompressed_size' is unspecified");
-                        data_size=ft.node->decompressed_size;
-                  }else data_size=      data_size_compressed;
-                  if(  !data_size !=   !data_size_compressed)return pc.setError(S+"File \""+ft.name+"\" has invalid data size"); // both have to be zeros or not zeros
-               size_ok:;
+                  if(!compression)
+                  { // if one size is known and other isn't, then copy
+                     if(data_size           >=0 && data_size_compressed<0)data_size_compressed=data_size           ;else
+                     if(data_size_compressed>=0 && data_size           <0)data_size           =data_size_compressed;
 
-                  if(ft.node->decompressed_size>=0 && ft.node->decompressed_size!=data_size)return pc.setError(S+"File \""+ft.name+"\" has specified 'decompressed_size' but it doesn't match source data");
+                     if(data_size!=data_size_compressed)return pc.setError(S+"File \""+ft.name+"\" has invalid data size"); // no compression needs same values
+                  }
+
+                  if(data_size           <0)return pc.setError(S+"File \""+ft.name+"\" has unknown uncompressed data size");
+                  if(data_size_compressed<0)return pc.setError(S+"File \""+ft.name+"\" has unknown compressed data size");
+
+                  if(!data_size != !data_size_compressed)return pc.setError(S+"File \""+ft.name+"\" has invalid data size"); // both have to be zeros or not zeros
+
+                  if(ft.node->decompressed_size>=0 && ft.node->decompressed_size!=data_size       )return pc.setError(S+"File \""+ft.name+"\" has specified 'decompressed_size' but it doesn't match source data");
+                  if(ft.node->xxHash64_32          && ft.node->xxHash64_32      !=data_xxHash64_32)return pc.setError(S+"File \""+ft.name+"\" has specified 'xxHash64_32' but it doesn't match source data");
+
+                  T.data_size           =data_size           ;
+                  T.data_size_compressed=data_size_compressed;
                }else
                {
                   flag|=PF_REMOVED;
@@ -1962,7 +1990,8 @@ Bool PakReplaceInPlace(C CMemPtr<PakFileData> &new_files, C Str &pak_name, UInt 
       {
          if(!CheckInPlaceSettings(src_pak, cipher, error_message))return false;
          Mems<PakFileData> files; files=new_files;
-         if(PakEqual(files, src_pak))return true; // if nothing to update then succeed
+
+         Bool changed=false;
          REPA(files)
          {
             PakFileData &    file=    files[i];
@@ -1971,14 +2000,25 @@ Bool PakReplaceInPlace(C CMemPtr<PakFileData> &new_files, C Str &pak_name, UInt 
                if(C PakFile *src_file=src_pak.find(file.name, false))
                   if(Equal(&file, src_file)) // if data is the same
             { // reuse from src
-               file.compress_mode    =COMPRESS_KEEP_ORIGINAL; // keep source files in original compression (for example if a Sound file was requested to have no compression before, to speed up streaming playback, then let's keep it)
-               file.compressed       =src_file->compression;
-               file.decompressed_size=src_file->data_size;
-               file.xxHash64_32      =src_file->data_xxHash64_32;
-               file.modify_time_utc  =src_file->modify_time_utc;
-               file.data.set(*src_file, src_pak);
+                                              file.compress_mode    =COMPRESS_KEEP_ORIGINAL; // keep source files in original compression (for example if a Sound file was requested to have no compression before, to speed up streaming playback, then let's keep it)
+                                              file.compressed       =src_file->compression;
+                                              file.decompressed_size=src_file->data_size;
+               if(!    file.      xxHash64_32)file.xxHash64_32      =src_file->data_xxHash64_32;else // only if not specified
+               if(!src_file->data_xxHash64_32)changed                =true; // if user specified hash that wasn't available in the source, then it means we have to write it
+                                              file.modify_time_utc  =src_file->modify_time_utc;
+                                              file.data.set(*src_file, src_pak);
             }
          }
+
+         // check if we have anything to update
+         if(!changed) // we can potentially skip only if we're sure nothing was changed
+         {
+            if(flag&PAK_SET_HASH) // if want hash
+               REPA(files){PakFileData &file=files[i]; if(!file.xxHash64_32 && file.mode==PakFileData::REPLACE && file.data.type)goto skip_equal_check;} // at least one file doesn't have hash
+            if(PakEqual(files, src_pak))return true; // if nothing to update then succeed
+         skip_equal_check:;
+         }
+
          Pak temp; if(temp.create(files, pak_name, flag, cipher, compress, compression_level, error_message, progress, &in_place)) // update in place
          {
             Swap(temp, src_pak);
