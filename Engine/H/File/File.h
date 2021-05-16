@@ -13,14 +13,6 @@ enum FILE_TYPE : Byte // File Type
    FILE_MEMB     , // Memb  , always readable+writable
 };
 #endif
-enum FILE_PATH : Byte // File Path Type
-{
-   FILE_CUR , // relative to 'CurDir'
-   FILE_DATA, // relative to 'DataPath'
-#if EE_PRIVATE
-   FILE_ANDROID_ASSET, // Android Asset, can be accessed by memory ('_aasset' is "AAsset*") or by stdio ('_handle' is a system handle)
-#endif
-};
 struct File
 {
    // manage

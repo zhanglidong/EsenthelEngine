@@ -163,6 +163,14 @@ enum FILE_OVERWRITE_MODE
    FILE_OVERWRITE_ALWAYS   , // always overwrite
    FILE_OVERWRITE_DIFFERENT, //        overwrite only if size or modification time (with 1 second tolerance) is different
 };
+enum FILE_PATH : Byte // File Path Type
+{
+   FILE_CUR , // relative to 'CurDir'
+   FILE_DATA, // relative to 'DataPath'
+#if EE_PRIVATE
+   FILE_ANDROID_ASSET, // Android Asset, can be accessed by memory ('_aasset' is "AAsset*") or by stdio ('_handle' is a system handle)
+#endif
+};
 /******************************************************************************/
 C Str& DataPath(           ); // get additional search path, used for opening files
   void DataPath(C Str &path); // set additional search path, used for opening files, given 'path' will have automatically added '/' character at the end if not present, and will be converted from relative to global (for example DataPath("../data") will set a complete path like "d:/game/data/" ending with '/' character - this is only an example)

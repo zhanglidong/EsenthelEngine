@@ -2010,28 +2010,32 @@ Bool Equal(C PakFileData *pfd, C PakFile *pf)
 
    if(pfd && pf) // both exist
    {
-      if(pfd->type!=pf->type())return false; // different type
+      FSTD_TYPE pfd_type=pfd->type;
+      Long      pfd_size=pfd->decompressed_size;
+      DateTime  pfd_time=pfd->modify_time_utc;
+      UInt      pfd_hash=pfd->xxHash64_32;
 
-      Long     pfd_size=pfd->decompressed_size;
-      DateTime pfd_time=pfd->modify_time_utc;
-      UInt     pfd_hash=pfd->xxHash64_32;
+      Bool get_time=!pfd_time.valid();
 
-      // always override values from PAK_FILE to keep consistency with 'Pak.create'
       if(pfd->data.type==DataSource::PAK_FILE)if(C PakFile *pf=pfd->data.pak_file) // from PAK_FILE we can always extract the size, even if it's compressed
       {
-                      pfd_size=pf->data_size;
-                      pfd_time=pf->modify_time_utc;
-         if(!pfd_hash)pfd_hash=pf->data_xxHash64_32; // override only if user didn't calculate it (because it's possible that 'pfd_hash' is calculated but 'pf->data_xxHash64_32' left at 0)
+         if(!pfd_type  )                 pfd_type=pf->type();
+         if( pfd_size<0)                 pfd_size=pf->data_size;
+         if( get_time  ){get_time=false; pfd_time=pf->modify_time_utc;}
+         if(!pfd_hash  )                 pfd_hash=pf->data_xxHash64_32; // override only if user didn't calculate it (because it's possible that 'pfd_hash' is calculated but 'pf->data_xxHash64_32' left at 0)
       }
 
-      if(pfd_size<0 && !pfd->compressed)switch(pfd->data.type) // if size is unknown and source is not compressed
+      Bool get_size=(pfd_size<0 && !pfd->compressed); // if size is unknown and source is not compressed
+
+      if(!pfd_type || get_size)switch(pfd->data.type)
       {
          case DataSource::NAME:
          {
             FileInfo fi; if(fi.get(pfd->data.name))
             {
-               pfd_size=fi.size;
-               pfd_time=fi.modify_time_utc;
+               if(!pfd_type)                 pfd_type=fi.type;
+               if( get_size){get_size=false; pfd_size=fi.size           ;}
+               if( get_time){get_time=false; pfd_time=fi.modify_time_utc;}
             }
          }break;
 
@@ -2039,23 +2043,30 @@ Bool Equal(C PakFileData *pfd, C PakFile *pf)
          {
             FileInfo fi; if(fi.getSystem(pfd->data.name))
             {
-               pfd_size=fi.size;
-               pfd_time=fi.modify_time_utc;
+               if(!pfd_type)                 pfd_type=fi.type;
+               if( get_size){get_size=false; pfd_size=fi.size           ;}
+               if( get_time){get_time=false; pfd_time=fi.modify_time_utc;}
             }
          }break;
 
-         default: pfd_size=pfd->data.size(); break;
+         default:
+         {
+            if(!pfd_type)                 pfd_type=pfd->data.fstdType();
+            if( get_size){get_size=false; pfd_size=pfd->data.    size();}
+         }break;
       }
-      if(pfd_size!=pf->data_size)return false; // different size
+
+      if(pfd_type && pfd_type!=pf->type()   )return false; // if known and different, can ignore FSTD_NONE
+      if(            pfd_size!=pf->data_size)return false; // different size
 
       if(pfd_size) // check time and hash only if have data (to skip empty files)
       {
          if(pfd_hash && pf->data_xxHash64_32 && pfd_hash!=pf->data_xxHash64_32)return false; // both hashes known and different
 
-         if(!pfd_time.valid())switch(pfd->data.type) // if time is unknown
+         if(get_time)switch(pfd->data.type) // if time is unknown
          {
-            case DataSource::NAME: {FileInfo fi; if(fi.get      (pfd->data.name))pfd_time=fi.modify_time_utc;} break;
-            case DataSource::STD : {FileInfo fi; if(fi.getSystem(pfd->data.name))pfd_time=fi.modify_time_utc;} break;
+            case DataSource::NAME: {FileInfo fi; if(fi.get      (pfd->data.name)){get_time=false; pfd_time=fi.modify_time_utc;}} break;
+            case DataSource::STD : {FileInfo fi; if(fi.getSystem(pfd->data.name)){get_time=false; pfd_time=fi.modify_time_utc;}} break;
          }
          if(Compare(pfd_time, pf->modify_time_utc, 1))return false; // different time (1 second tolerance due to Fat32)
       }
@@ -2069,28 +2080,32 @@ Bool Equal(PakFileData *pfd, C PakFile *pf)
 
    if(pfd && pf) // both exist
    {
-      if(pfd->type!=pf->type())return false; // different type
+      FSTD_TYPE &pfd_type=pfd->type;
+      Long      &pfd_size=pfd->decompressed_size;
+      DateTime  &pfd_time=pfd->modify_time_utc;
+      UInt      &pfd_hash=pfd->xxHash64_32;
 
-      Long     &pfd_size=pfd->decompressed_size;
-      DateTime &pfd_time=pfd->modify_time_utc;
-      UInt     &pfd_hash=pfd->xxHash64_32;
+      Bool get_time=!pfd_time.valid();
 
-      // always override values from PAK_FILE to keep consistency with 'Pak.create'
       if(pfd->data.type==DataSource::PAK_FILE)if(C PakFile *pf=pfd->data.pak_file) // from PAK_FILE we can always extract the size, even if it's compressed
       {
-                      pfd_size=pf->data_size;
-                      pfd_time=pf->modify_time_utc;
-         if(!pfd_hash)pfd_hash=pf->data_xxHash64_32; // override only if user didn't calculate it (because it's possible that 'pfd_hash' is calculated but 'pf->data_xxHash64_32' left at 0)
+         if(!pfd_type  )                 pfd_type=pf->type();
+         if( pfd_size<0)                 pfd_size=pf->data_size;
+         if( get_time  ){get_time=false; pfd_time=pf->modify_time_utc;}
+         if(!pfd_hash  )                 pfd_hash=pf->data_xxHash64_32; // override only if user didn't calculate it (because it's possible that 'pfd_hash' is calculated but 'pf->data_xxHash64_32' left at 0)
       }
 
-      if(pfd_size<0 && !pfd->compressed)switch(pfd->data.type) // if size is unknown and source is not compressed
+      Bool get_size=(pfd_size<0 && !pfd->compressed); // if size is unknown and source is not compressed
+
+      if(!pfd_type || get_size)switch(pfd->data.type)
       {
          case DataSource::NAME:
          {
             FileInfo fi; if(fi.get(pfd->data.name))
             {
-               pfd_size=fi.size;
-               pfd_time=fi.modify_time_utc;
+               if(!pfd_type)                 pfd_type=fi.type;
+               if( get_size){get_size=false; pfd_size=fi.size           ;}
+               if( get_time){get_time=false; pfd_time=fi.modify_time_utc;}
             }
          }break;
 
@@ -2098,23 +2113,30 @@ Bool Equal(PakFileData *pfd, C PakFile *pf)
          {
             FileInfo fi; if(fi.getSystem(pfd->data.name))
             {
-               pfd_size=fi.size;
-               pfd_time=fi.modify_time_utc;
+               if(!pfd_type)                 pfd_type=fi.type;
+               if( get_size){get_size=false; pfd_size=fi.size           ;}
+               if( get_time){get_time=false; pfd_time=fi.modify_time_utc;}
             }
          }break;
 
-         default: pfd_size=pfd->data.size(); break;
+         default:
+         {
+            if(!pfd_type)                 pfd_type=pfd->data.fstdType();
+            if( get_size){get_size=false; pfd_size=pfd->data.    size();}
+         }break;
       }
-      if(pfd_size!=pf->data_size)return false; // different size
+
+      if(pfd_type && pfd_type!=pf->type()   )return false; // if known and different, can ignore FSTD_NONE
+      if(            pfd_size!=pf->data_size)return false; // different size
 
       if(pfd_size) // check time and hash only if have data (to skip empty files)
       {
          if(pfd_hash && pf->data_xxHash64_32 && pfd_hash!=pf->data_xxHash64_32)return false; // both hashes known and different
 
-         if(!pfd_time.valid())switch(pfd->data.type) // if time is unknown
+         if(get_time)switch(pfd->data.type) // if time is unknown
          {
-            case DataSource::NAME: {FileInfo fi; if(fi.get      (pfd->data.name))pfd_time=fi.modify_time_utc;} break;
-            case DataSource::STD : {FileInfo fi; if(fi.getSystem(pfd->data.name))pfd_time=fi.modify_time_utc;} break;
+            case DataSource::NAME: {FileInfo fi; if(fi.get      (pfd->data.name)){get_time=false; pfd_time=fi.modify_time_utc;}} break;
+            case DataSource::STD : {FileInfo fi; if(fi.getSystem(pfd->data.name)){get_time=false; pfd_time=fi.modify_time_utc;}} break;
          }
          if(Compare(pfd_time, pf->modify_time_utc, 1))return false; // different time (1 second tolerance due to Fat32)
       }

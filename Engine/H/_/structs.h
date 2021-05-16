@@ -201,6 +201,7 @@ struct Str8;
 struct Str;
 struct BStr;
 struct File;
+struct FileText;
 struct PakFile;
 struct Pak;
 struct PakSet;
