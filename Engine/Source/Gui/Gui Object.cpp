@@ -670,10 +670,14 @@ Bool GuiObjNearest::test(C Rect &rect)C
 {
    return rect.valid() && MaxDist(rect, plane)>min_dist;
 }
-static Vec2 Delta(C Vec2 &delta, C Rect &start_rect, C Rect &test_rect)
+static Vec2 Delta(C Vec2 &delta, C GuiObjNearest &gon, C Rect &test_rect)
 {
-   return Vec2(CoverX(start_rect, test_rect) ? 0 : delta.x,  // if start and test rectangle intersect, then use delta as 0 (this is for things like Property where fields are stored as vertical list, but some are narrow (checkbox) and some wide (combobox))
-               CoverY(start_rect, test_rect) ? 0 : delta.y);
+ C Rect &start_rect=gon.rect;
+ C Vec2 &move      =gon.plane.normal;
+   // handle special cases for rectangles in line (this is for things like elements placed on a grid, and Property where fields are stored as vertical list, but some are narrow (checkbox) and some wide (combobox))
+   if(move.x && CoverY(start_rect, test_rect))return Vec2(DeltaX(start_rect, test_rect), 0); // if moving horizontally and rectangles intersect in Y coordinates then return shortest delta between the rectangles
+   if(move.y && CoverX(start_rect, test_rect))return Vec2(0, DeltaY(start_rect, test_rect)); // if moving   vertically and rectangles intersect in X coordinates then return shortest delta between the rectangles
+   return delta;
 }
 Bool GuiObjNearest::Obj::recalcDo(GuiObjNearest &gon)
 {
@@ -681,7 +685,7 @@ Bool GuiObjNearest::Obj::recalcDo(GuiObjNearest &gon)
    Flt  dist_plane=Dot(delta, gon.plane.normal);
    if(  dist_plane>gon.min_dist)
    {
-      Vec2 rect_delta     =Delta(delta, gon.rect, rect);
+      Vec2 rect_delta     =Delta(delta, gon, rect);
       Flt  rect_dist_plane=Dot(rect_delta, gon.plane.normal),
            rect_dist2     =    rect_delta.length2();
       if(  rect_dist_plane>0 || rect_dist2==0)
@@ -703,7 +707,7 @@ void GuiObjNearest::add(C Rect &rect, Flt area, GuiObj &obj)
       Flt  dist_plane=Dot(delta, T.plane.normal);
       if(  dist_plane>T.min_dist)
       {
-         Vec2 rect_delta     =Delta(delta, T.rect, rect);
+         Vec2 rect_delta     =Delta(delta, T, rect);
          Flt  rect_dist_plane=Dot(rect_delta, T.plane.normal),
               rect_dist2     =    rect_delta.length2();
          if(  rect_dist_plane>0 || rect_dist2==0)

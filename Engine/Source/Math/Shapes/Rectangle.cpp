@@ -762,6 +762,18 @@ Vec2 Delta(C Rect &a, C Rect &b)
                       delta.y=0;                   // 0
    return delta;
 }
+Flt DeltaX(C Rect &a, C Rect &b)
+{
+   return (b.min.x>a.max.x) ? b.min.x-a.max.x : // +
+          (b.max.x<a.min.x) ? b.max.x-a.min.x : // -
+                              0;                // 0
+}
+Flt DeltaY(C Rect &a, C Rect &b)
+{
+   return (b.min.y>a.max.y) ? b.min.y-a.max.y : // +
+          (b.max.y<a.min.y) ? b.max.y-a.min.y : // -
+                              0;                // 0
+}
 /******************************************************************************/
 Rect Fit(Flt src_aspect, C Rect &dest_rect, FIT_MODE fit)
 {

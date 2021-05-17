@@ -477,6 +477,10 @@ Bool Cover(C Rect &a, C Rect &b); // if rectangles cover each other (at least pa
 
 // delta
 Vec2 Delta(C Rect &a, C Rect &b); // get delta from 'a' to 'b' rectangle (shortest vector that connects the rectangles)
+#if EE_PRIVATE
+Flt DeltaX(C Rect &a, C Rect &b); // get delta.x from 'a' to 'b' rectangle (shortest vector that connects the rectangles)
+Flt DeltaY(C Rect &a, C Rect &b); // get delta.y from 'a' to 'b' rectangle (shortest vector that connects the rectangles)
+#endif
 
 // fit
 Rect Fit(Flt src_aspect, C Rect &dest_rect, FIT_MODE fit=FIT_FULL); // get a rectangle that will fit in the 'dest_rect' while preserving the 'src_aspect' source aspect ratio using the 'fit' mode
