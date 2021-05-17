@@ -2038,8 +2038,8 @@ Bool Equal(C PakFile *a, C PakFile *b)
    {
       return  a->type()   ==b->type()    // same type
          &&   a->data_size==b->data_size // same size
-         && ((a->data_size                                              ) ? !Compare(a->modify_time_utc , b->modify_time_utc, 1) : true)  // if they have data                                      then their modification time must match (1 second tolerance due to Fat32)
-         && ((a->data_size && a->data_xxHash64_32 && b->data_xxHash64_32) ?          a->data_xxHash64_32==b->data_xxHash64_32    : true); // if they have data and both have information about hash then it                      must match
+         && ((a->data_size                                              ) ? !CompareFile(a->modify_time_utc , b->modify_time_utc) : true)  // if they have data                                      then their modification time must match
+         && ((a->data_size && a->data_xxHash64_32 && b->data_xxHash64_32) ?              a->data_xxHash64_32==b->data_xxHash64_32 : true); // if they have data and both have information about hash then it                      must match
    }
    return !a && !b; // true only if both don't exist (one exists and other doesn't -> they're different)
 }
@@ -2108,7 +2108,7 @@ Bool Equal(C PakFileData *pfd, C PakFile *pf)
             case DataSource::NAME: {FileInfo fi; if(fi.get      (pfd->data.name)){get_time=false; pfd_time=fi.modify_time_utc;}} break;
             case DataSource::STD : {FileInfo fi; if(fi.getSystem(pfd->data.name)){get_time=false; pfd_time=fi.modify_time_utc;}} break;
          }
-         if(Compare(pfd_time, pf->modify_time_utc, 1))return false; // different time (1 second tolerance due to Fat32)
+         if(CompareFile(pfd_time, pf->modify_time_utc))return false; // different time
       }
    }
    return !pfd == !pf; // true only if both exist or both don't exist
@@ -2178,7 +2178,7 @@ Bool Equal(PakFileData *pfd, C PakFile *pf)
             case DataSource::NAME: {FileInfo fi; if(fi.get      (pfd->data.name)){get_time=false; pfd_time=fi.modify_time_utc;}} break;
             case DataSource::STD : {FileInfo fi; if(fi.getSystem(pfd->data.name)){get_time=false; pfd_time=fi.modify_time_utc;}} break;
          }
-         if(Compare(pfd_time, pf->modify_time_utc, 1))return false; // different time (1 second tolerance due to Fat32)
+         if(CompareFile(pfd_time, pf->modify_time_utc))return false; // different time
       }
    }
    return !pfd == !pf; // true only if both exist or both don't exist

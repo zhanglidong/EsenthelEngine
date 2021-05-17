@@ -1031,7 +1031,7 @@ static Bool CreateEngineEmbedPak(C Str &src, C Str &dest, Bool use_cipher, Bool 
 
 
    Cipher *cipher=(use_cipher ? CE.cei().appEmbedCipher() : null);
-   if(FileInfoSystem(dest).modify_time_utc>CE.cei().appEmbedSettingsTime() && PakEqual(files, dest, cipher))return true; // check if we have newer settings (for example compression) in that case regenerate the PAK
+   if(CompareFile(FileInfoSystem(dest).modify_time_utc, CE.cei().appEmbedSettingsTime())>0 && PakEqual(files, dest, cipher))return true; // if existing Pak time is newer than settings (compression/encryption) and Pak is what we want, then use it
    if(changed)*changed=true;
    if(!PakCreate(files, dest, 0, cipher, CE.cei().appEmbedCompress(), CE.cei().appEmbedCompressLevel()))return Error("Can't create Embedded Engine Pak");
    return true;
@@ -1047,7 +1047,7 @@ static Bool CreateAppPak(C Str &name, Bool &exists, Bool *changed=null)
    {
       exists=true;
       Cipher *cipher=CE.cei().appEmbedCipher();
-      if(FileInfoSystem(name).modify_time_utc>CE.cei().appEmbedSettingsTime() && PakEqual(files, name, cipher))ok=true; // check if we have newer settings (for example compression) in that case regenerate the PAK
+      if(CompareFile(FileInfoSystem(name).modify_time_utc, CE.cei().appEmbedSettingsTime())>0 && PakEqual(files, name, cipher))ok=true; // if existing Pak time is newer than settings (compression/encryption) and Pak is what we want, then use it
       else {if(changed)*changed=true; ok=PakCreate(files, name, 0, cipher, CE.cei().appEmbedCompress(), CE.cei().appEmbedCompressLevel());}
    }else
    {
@@ -1274,34 +1274,34 @@ Bool CodeEditor::generateVSProj(Int version)
       const Bool splash_from_icon=true;
       Image empty;
 
-      rel="Assets/Icon.ico"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1)){resource_changed=true; convert.New().set(build_path+rel, icon, icon_time).ICO().clamp(256, 256).square();} // Windows can't handle non-square icons properly (it stretches them)
+      rel="Assets/Icon.ico"; if(CompareFile(FileInfoSystem(build_path+rel).modify_time_utc, icon_time)){resource_changed=true; convert.New().set(build_path+rel, icon, icon_time).ICO().clamp(256, 256).square();} // Windows can't handle non-square icons properly (it stretches them)
 
       if(build_exe_type==EXE_UWP) // creating icons/images is slow, so do only when necessary
       {
          // list images starting from the smallest
-         rel="Assets/Square44x44Logo.targetsize-48_altform-unplated.png"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize( 48,  48); // this is used for Windows Taskbar       , for 1920x1080 screen, taskbar icon is around 32x32, no need to provide bigger size
-         rel="Assets/Square44x44Logo.scale-200.png"                     ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize( 88,  88); // this is used for Windows Phone App List, for 1280x720  screen,         icon is  80x80
-         rel="Assets/Square150x150Logo.scale-200.png"                   ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(300, 300); // this is used for Windows Phone Start   , for 1280x720  screen,         icon is 228x228
+         rel="Assets/Square44x44Logo.targetsize-48_altform-unplated.png"; if(CompareFile(FileInfoSystem(build_path+rel).modify_time_utc, icon_time))convert.New().set(build_path+rel, icon, icon_time).resize( 48,  48); // this is used for Windows Taskbar       , for 1920x1080 screen, taskbar icon is around 32x32, no need to provide bigger size
+         rel="Assets/Square44x44Logo.scale-200.png"                     ; if(CompareFile(FileInfoSystem(build_path+rel).modify_time_utc, icon_time))convert.New().set(build_path+rel, icon, icon_time).resize( 88,  88); // this is used for Windows Phone App List, for 1280x720  screen,         icon is  80x80
+         rel="Assets/Square150x150Logo.scale-200.png"                   ; if(CompareFile(FileInfoSystem(build_path+rel).modify_time_utc, icon_time))convert.New().set(build_path+rel, icon, icon_time).resize(300, 300); // this is used for Windows Phone Start   , for 1280x720  screen,         icon is 228x228
 
-         rel="Assets/Logo.png"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(50, 50);
+         rel="Assets/Logo.png"; if(CompareFile(FileInfoSystem(build_path+rel).modify_time_utc, icon_time))convert.New().set(build_path+rel, icon, icon_time).resize(50, 50);
 
          rel="Assets/SplashScreen.png";
          if(splash_from_icon)
          {
-            if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(128, 128).crop(620, 300);
+            if(CompareFile(FileInfoSystem(build_path+rel).modify_time_utc, icon_time))convert.New().set(build_path+rel, icon, icon_time).resize(128, 128).crop(620, 300);
          }else
          if(landscape.is() || portrait.is())
          {
-            dt=(landscape.is() ? landscape_time : portrait_time); if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, dt, 1))convert.New().set(build_path+rel, landscape.is() ? landscape : portrait, dt).resizeFill(620, 300);
+            dt=(landscape.is() ? landscape_time : portrait_time); if(CompareFile(FileInfoSystem(build_path+rel).modify_time_utc, dt))convert.New().set(build_path+rel, landscape.is() ? landscape : portrait, dt).resizeFill(620, 300);
          }else // use empty
          {
-            dt.zero(); dt.day=1; dt.month=1; dt.year=2000; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, dt, 1)){empty.createSoftTry(620, 300, 1, IMAGE_R8G8B8A8_SRGB); empty.zero(); convert.New().set(build_path+rel, empty, dt);}
+            dt.zero(); dt.day=1; dt.month=1; dt.year=2000; if(CompareFile(FileInfoSystem(build_path+rel).modify_time_utc, dt)){empty.createSoftTry(620, 300, 1, IMAGE_R8G8B8A8_SRGB); empty.zero(); convert.New().set(build_path+rel, empty, dt);}
          }
       }
 
       if(build_exe_type==EXE_NS) // creating icons/images is slow, so do only when necessary
       {
-         rel="Assets/Nintendo Switch/Icon.bmp"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(1024, 1024).removeAlpha().BMP(); // NS accepts only 1024x1024 RGB (no alpha) BMP
+         rel="Assets/Nintendo Switch/Icon.bmp"; if(CompareFile(FileInfoSystem(build_path+rel).modify_time_utc, icon_time))convert.New().set(build_path+rel, icon, icon_time).resize(1024, 1024).removeAlpha().BMP(); // NS accepts only 1024x1024 RGB (no alpha) BMP
       }
 
       convert.reverseOrder(); // start working from the biggest ones because they take the most time, yes this is correct
@@ -1803,7 +1803,7 @@ Bool CodeEditor::generateXcodeProj()
       Image portrait ; DateTime  portrait_time;
       Image landscape; DateTime landscape_time;
       Memc<ImageConvert> convert;
-      CChar8 *rel="Assets/Icon.icns"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).ICNS().clamp(256, 256);
+      CChar8 *rel="Assets/Icon.icns"; if(CompareFile(FileInfoSystem(build_path+rel).modify_time_utc, icon_time))convert.New().set(build_path+rel, icon, icon_time).ICNS().clamp(256, 256);
       if(build_exe_type==EXE_IOS) // creating iOS icons/images is slow, so do this only when necessary
       {
          GetImages(portrait, portrait_time, landscape, landscape_time);
@@ -1836,7 +1836,7 @@ Bool CodeEditor::generateXcodeProj()
             {
                auto size=sizes[i];
                Str  name=S+size.x+'x'+size.y+".png", full=build_path+"Assets/Images.xcassets/AppIcon.appiconset/"+name;
-               if(Compare(FileInfoSystem(full).modify_time_utc, icon_time, 1))convert.New().set(full, icon, icon_time).resize(size.x, size.y);
+               if(CompareFile(FileInfoSystem(full).modify_time_utc, icon_time))convert.New().set(full, icon, icon_time).resize(size.x, size.y);
             }
          }
 
@@ -1871,7 +1871,7 @@ Bool CodeEditor::generateXcodeProj()
                Str  name=S+size.x+'x'+size.y+".png", full=build_path+"Assets/Images.xcassets/LaunchImage.launchimage/"+name;
              C DateTime &image_time=((size.x>size.y) ? landscape_time : portrait_time);
              C Image    &image     =((size.x>size.y) ? landscape      : portrait     );
-               if(Compare(FileInfoSystem(full).modify_time_utc, image_time, 1))convert.New().set(full, image, image_time).resizeFill(size.x, size.y);
+               if(CompareFile(FileInfoSystem(full).modify_time_utc, image_time))convert.New().set(full, image, image_time).resizeFill(size.x, size.y);
             }
          }
       }
@@ -2428,19 +2428,19 @@ Bool CodeEditor::generateAndroidProj()
       CChar8 *rel;
 
       // list images starting from the smallest
-      rel="Android/res/drawable-ldpi/icon.png"  ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize( 36,  36);
-      rel="Android/res/drawable-mdpi/icon.png"  ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize( 48,  48);
-      rel="Android/res/drawable-hdpi/icon.png"  ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize( 72,  72);
-      rel="Android/res/drawable-xhdpi/icon.png" ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize( 96,  96);
-      rel="Android/res/drawable-xxhdpi/icon.png"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(144, 144);
+      rel="Android/res/drawable-ldpi/icon.png"  ; if(CompareFile(FileInfoSystem(build_path+rel).modify_time_utc, icon_time))convert.New().set(build_path+rel, icon, icon_time).resize( 36,  36);
+      rel="Android/res/drawable-mdpi/icon.png"  ; if(CompareFile(FileInfoSystem(build_path+rel).modify_time_utc, icon_time))convert.New().set(build_path+rel, icon, icon_time).resize( 48,  48);
+      rel="Android/res/drawable-hdpi/icon.png"  ; if(CompareFile(FileInfoSystem(build_path+rel).modify_time_utc, icon_time))convert.New().set(build_path+rel, icon, icon_time).resize( 72,  72);
+      rel="Android/res/drawable-xhdpi/icon.png" ; if(CompareFile(FileInfoSystem(build_path+rel).modify_time_utc, icon_time))convert.New().set(build_path+rel, icon, icon_time).resize( 96,  96);
+      rel="Android/res/drawable-xxhdpi/icon.png"; if(CompareFile(FileInfoSystem(build_path+rel).modify_time_utc, icon_time))convert.New().set(build_path+rel, icon, icon_time).resize(144, 144);
 
       // https://developer.android.com/guide/practices/ui_guidelines/icon_design_status_bar.html
       GetNotificationIcon(notification_icon, notification_icon_time, icon, icon_time);
-      rel="Android/res/drawable-ldpi/notification.png"  ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, notification_icon_time, 1))convert.New().set(build_path+rel, notification_icon, notification_icon_time).resize(18, 18);
-      rel="Android/res/drawable-mdpi/notification.png"  ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, notification_icon_time, 1))convert.New().set(build_path+rel, notification_icon, notification_icon_time).resize(24, 24);
-      rel="Android/res/drawable-hdpi/notification.png"  ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, notification_icon_time, 1))convert.New().set(build_path+rel, notification_icon, notification_icon_time).resize(36, 36);
-      rel="Android/res/drawable-xhdpi/notification.png" ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, notification_icon_time, 1))convert.New().set(build_path+rel, notification_icon, notification_icon_time).resize(48, 48);
-      rel="Android/res/drawable-xxhdpi/notification.png"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, notification_icon_time, 1))convert.New().set(build_path+rel, notification_icon, notification_icon_time).resize(72, 72);
+      rel="Android/res/drawable-ldpi/notification.png"  ; if(CompareFile(FileInfoSystem(build_path+rel).modify_time_utc, notification_icon_time))convert.New().set(build_path+rel, notification_icon, notification_icon_time).resize(18, 18);
+      rel="Android/res/drawable-mdpi/notification.png"  ; if(CompareFile(FileInfoSystem(build_path+rel).modify_time_utc, notification_icon_time))convert.New().set(build_path+rel, notification_icon, notification_icon_time).resize(24, 24);
+      rel="Android/res/drawable-hdpi/notification.png"  ; if(CompareFile(FileInfoSystem(build_path+rel).modify_time_utc, notification_icon_time))convert.New().set(build_path+rel, notification_icon, notification_icon_time).resize(36, 36);
+      rel="Android/res/drawable-xhdpi/notification.png" ; if(CompareFile(FileInfoSystem(build_path+rel).modify_time_utc, notification_icon_time))convert.New().set(build_path+rel, notification_icon, notification_icon_time).resize(48, 48);
+      rel="Android/res/drawable-xxhdpi/notification.png"; if(CompareFile(FileInfoSystem(build_path+rel).modify_time_utc, notification_icon_time))convert.New().set(build_path+rel, notification_icon, notification_icon_time).resize(72, 72);
 
       convert.reverseOrder(); // start working from the biggest ones because they take the most time, yes this is correct
       MultiThreadedCall(convert, ImageConvert::Func);
@@ -2767,7 +2767,7 @@ Bool CodeEditor::generateLinuxMakeProj()
    {
       File f; f.writeMem();
       BuildEmbed &be=build_embed.New().set(CC4('I', 'C', 'O', 'N'), build_path+"Assets/Icon.webp");
-      if(Compare(FileInfoSystem(be.path).modify_time_utc, icon_time, 1)){icon.ExportWEBP(f.reset()); if(!OverwriteOnChangeLoud(f, be.path))return false; FTimeUTC(be.path, icon_time);}
+      if(CompareFile(FileInfoSystem(be.path).modify_time_utc, icon_time)){icon.ExportWEBP(f.reset()); if(!OverwriteOnChangeLoud(f, be.path))return false; FTimeUTC(be.path, icon_time);}
    }
    if(cei().appEmbedEngineData())
    {

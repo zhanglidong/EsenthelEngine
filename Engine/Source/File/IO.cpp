@@ -190,7 +190,7 @@ Bool operator==(C FileInfo &f0, C FileInfo &f1)
       case FSTD_DIR  : return true;
 
       case FSTD_LINK:
-      case FSTD_FILE: return f0.size==f1.size && !Compare(f0.modify_time_utc, f1.modify_time_utc, 1);
+      case FSTD_FILE: return f0.size==f1.size && !CompareFile(f0.modify_time_utc, f1.modify_time_utc);
    }
    return false;
 }

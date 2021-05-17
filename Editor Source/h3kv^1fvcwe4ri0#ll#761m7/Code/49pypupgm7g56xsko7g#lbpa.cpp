@@ -277,7 +277,7 @@ bool PublishDataNeeded(Edit.EXE_TYPE exe) {return exe==Edit.EXE_UWP || exe==Edit
 bool PublishDataReady() // if desired project data is already availalble
 {
    if(!PublishProjectDataPath.is())return true; // if we don't want to create project data pak (no file)
-   if(FileInfoSystem(PublishProjectDataPath).modify_time_utc>CodeEdit.appEmbedSettingsTime()) // if Pak settings were not modified since last Pak generation
+   if(CompareFile(FileInfoSystem(PublishProjectDataPath).modify_time_utc, CodeEdit.appEmbedSettingsTime())>0) // if existing Pak time is newer than settings (compression/encryption)
    {
       bool need_optimized=PublishDataNeedOptimized(); // test if optimized 
       Memt<DataRangeAbs> used_file_ranges;
@@ -683,7 +683,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                             dest_name=mini_map_formats_path+ver.images[i];
                   pfd.data.set(dest_name); // adjust pak file path
                   FileInfo src_fi(src_name);
-                  if(Compare(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc, 1)) // if different (compare just modify time, because sizes will always be different due to different formats)
+                  if(CompareFile(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc)) // if different (compare just modify time, because sizes will always be different due to different formats)
                      convert.New().set(src_name, dest_name, src_fi.modify_time_utc, dest_type, true, true); // create new conversion
                }
             }
@@ -721,7 +721,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                   dest_name=Proj.formatPath(elm.id, FormatSuffixSimple());
                pfd.data.set(dest_name); // adjust pak file path
                FileInfo src_fi(src_name);
-               if(Compare(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc, 1)) // if different (compare just modify time, because sizes will always be different due to different formats)
+               if(CompareFile(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc)) // if different (compare just modify time, because sizes will always be different due to different formats)
                {
                   MaterialPtr mtrl=src_name; // use 'MaterialPtr' to access it from cache if available
                   Material    temp=*mtrl;
@@ -744,7 +744,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                FileInfo  src_base  (Proj.texPath       (data.base_0_tex.valid() ? data.base_0_tex : data.base_1_tex.valid() ? data.base_1_tex : data.base_2_tex)); // get modify time of first available original texture
                Str      dest_base_0=Proj.texDynamicPath(     base_0_tex); // get path where merged texture will be stored
                if((flags&Texture.REGENERATE) // if material was changed
-               || Compare(src_base.modify_time_utc, FileInfoSystem(dest_base_0).modify_time_utc, 1)) // or texture times are different (compare just modify time, because sizes will always be different due to different formats)
+               || CompareFile(src_base.modify_time_utc, FileInfoSystem(dest_base_0).modify_time_utc)) // or texture times are different (compare just modify time, because sizes will always be different due to different formats)
                {
                   flags|=Texture.REGENERATE; // make sure this is enabled
                   generate.New().set(src_name, dest_base_0, src_base.modify_time_utc);
@@ -792,7 +792,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                dest_name=Proj.formatPath(elm.id, FormatSuffix(dest_type));
             pfd.data.set(dest_name); // adjust pak file path
             FileInfo src_fi(src_name);
-            if(Compare(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc, 1)) // if different (compare just modify time, because sizes will always be different due to different formats)
+            if(CompareFile(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc)) // if different (compare just modify time, because sizes will always be different due to different formats)
                convert.New().set(Proj.editPath(elm.id), dest_name, src_fi.modify_time_utc, *data, dest_type); // create new conversion (set src from edit path to get better quality)
          }
 
@@ -806,7 +806,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                dest_name=Proj.formatPath(elm.id, FormatSuffix(dest_type));
             pfd.data.set(dest_name); // adjust pak file path
             FileInfo src_fi(src_name);
-            if(Compare(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc, 1)) // if different (compare just modify time, because sizes will always be different due to different formats)
+            if(CompareFile(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc)) // if different (compare just modify time, because sizes will always be different due to different formats)
                convert.New().set(Proj.gamePath(elm.id), dest_name, src_fi.modify_time_utc, *data, dest_type); // create new conversion (set src from game path because icons have only game version)
          }
 
@@ -821,7 +821,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                dest_name=Proj.formatPath(elm.id, FormatSuffix(dest_type));
             pfd.data.set(dest_name); // adjust pak file path
             FileInfo src_fi(src_name);
-            if(Compare(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc, 1)) // if different (compare just modify time, because sizes will always be different due to different formats)
+            if(CompareFile(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc)) // if different (compare just modify time, because sizes will always be different due to different formats)
                convert.New().set(Proj.gamePath(elm.id), dest_name, src_fi.modify_time_utc, *data, dest_type); // create new conversion (set src from game path because image atlases have only game version)
          }
 
@@ -835,7 +835,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                dest_name=Proj.formatPath(elm.id, FormatSuffix(dest_type));
             pfd.data.set(dest_name); // adjust pak file path
             FileInfo src_fi(src_name);
-            if(Compare(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc, 1)) // if different (compare just modify time, because sizes will always be different due to different formats)
+            if(CompareFile(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc)) // if different (compare just modify time, because sizes will always be different due to different formats)
                convert.New().set(Proj.gamePath(elm.id), dest_name, src_fi.modify_time_utc, *data, dest_type); // create new conversion (set src from game path because fonts have only game version)
          }
 
@@ -849,7 +849,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                dest_name=Proj.formatPath(elm.id, FormatSuffix(dest_type));
             pfd.data.set(dest_name); // adjust pak file path
             FileInfo src_fi(src_name);
-            if(Compare(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc, 1)) // if different (compare just modify time, because sizes will always be different due to different formats)
+            if(CompareFile(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc)) // if different (compare just modify time, because sizes will always be different due to different formats)
                convert.New().set(Proj.gamePath(elm.id), dest_name, src_fi.modify_time_utc, *data, dest_type); // create new conversion (set src from game path because image atlases have only game version)
          }
       }
@@ -901,7 +901,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                FileInfo src_fi(src_name);
                if(tex.regenerate() // if texture is going to be regenerated in this process, then always allow converting it
              //|| !src_fi.type // if source was not found (this can happen for dynamically generated textures), then always allow, this is not needed because we always set 'regenerate' in this case
-               || Compare(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc, 1)) // if different (compare just modify time, because sizes will always be different due to different formats)
+               || CompareFile(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc)) // if different (compare just modify time, because sizes will always be different due to different formats)
                   convert.New().set(src_name, dest_name, src_fi.modify_time_utc, change_type, tex.channels<4, false, tex.downsize, max_size); // create new conversion
             }
          }

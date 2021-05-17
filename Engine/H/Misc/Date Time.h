@@ -63,14 +63,15 @@ struct DateTimeMs : DateTime // DateTime uncluding milliseconds
 };
 /******************************************************************************/
 // compare
-       Int  Compare   (C DateTime &d0, C DateTime &d1             ); // compare
-       Int  Compare   (C DateTime &d0, C DateTime &d1, Int epsilon); // compare using 'epsilon' for seconds tolerance
-inline Bool operator==(C DateTime &d0, C DateTime &d1             ) {return Compare(d0, d1)==0;} // if equal
-inline Bool operator!=(C DateTime &d0, C DateTime &d1             ) {return Compare(d0, d1)!=0;} // if not equal
-inline Bool operator>=(C DateTime &d0, C DateTime &d1             ) {return Compare(d0, d1)>=0;} // if greater or equal
-inline Bool operator<=(C DateTime &d0, C DateTime &d1             ) {return Compare(d0, d1)<=0;} // if smaller or equal
-inline Bool operator> (C DateTime &d0, C DateTime &d1             ) {return Compare(d0, d1)> 0;} // if greater
-inline Bool operator< (C DateTime &d0, C DateTime &d1             ) {return Compare(d0, d1)< 0;} // if smaller
+       Int  Compare    (C DateTime &d0, C DateTime &d1             ); // compare
+       Int  Compare    (C DateTime &d0, C DateTime &d1, Int epsilon); // compare using 'epsilon' for seconds tolerance
+inline Int  CompareFile(C DateTime &d0, C DateTime &d1             ) {return Compare(d0, d1, 1);} // compare file date time, +1 second tolerance needed due to FAT FileSystem
+inline Bool operator== (C DateTime &d0, C DateTime &d1             ) {return Compare(d0, d1)==0;} // if equal
+inline Bool operator!= (C DateTime &d0, C DateTime &d1             ) {return Compare(d0, d1)!=0;} // if not equal
+inline Bool operator>= (C DateTime &d0, C DateTime &d1             ) {return Compare(d0, d1)>=0;} // if greater or equal
+inline Bool operator<= (C DateTime &d0, C DateTime &d1             ) {return Compare(d0, d1)<=0;} // if smaller or equal
+inline Bool operator>  (C DateTime &d0, C DateTime &d1             ) {return Compare(d0, d1)> 0;} // if greater
+inline Bool operator<  (C DateTime &d0, C DateTime &d1             ) {return Compare(d0, d1)< 0;} // if smaller
 
 Long operator+(C DateTime &d0, C DateTime &d1); // return sum             of DateTime seconds
 Long operator-(C DateTime &d0, C DateTime &d1); // return difference between DateTime seconds
