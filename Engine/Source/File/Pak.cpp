@@ -286,7 +286,7 @@ Bool Pak::saveHeader(File &f)C
 {
    return savePreHeader(f) && saveHeaderData(f);
 }
-static void AddAbs(MemPtr<DataRangeAbs> &ranges, ULong start, ULong end)
+static void AddAbs(MemPtr<DataRangeAbs> &ranges, Long start, Long end)
 {
    if(end>start)
    {
@@ -297,7 +297,7 @@ static void AddAbs(MemPtr<DataRangeAbs> &ranges, ULong start, ULong end)
       ranges.New().set(start, end);
    }
 }
-static void AddAbs(Memt<DataRangeAbs> &ranges, ULong start, ULong end)
+static void AddAbs(Memt<DataRangeAbs> &ranges, Long start, Long end)
 {
    if(end>start)
    {
@@ -308,8 +308,29 @@ static void AddAbs(Memt<DataRangeAbs> &ranges, ULong start, ULong end)
       ranges.New().set(start, end);
    }
 }
-static inline void AddRel(Memt<DataRangeAbs> &ranges, ULong start, ULong size) {AddAbs(ranges, start, start+size);}
+static inline void AddRel(Memt<DataRangeAbs> &ranges, Long start, Long size) {AddAbs(ranges, start, start+size);}
 
+static Bool FixCompressed(Pak &pak, File &f) // old versions stored compressed files with an extra header per file
+{
+   auto data_offset_local=pak._data_offset-f._offset;
+   Long pos=f.pos(); FREPA(pak._files)
+   {
+      PakFile &pf=pak._files[i]; if(pf.data_size!=pf.data_size_compressed)
+      {
+         Long pos=data_offset_local+pf.data_offset;
+         COMPRESS_TYPE compress; ULong compressed_size, decompressed_size;
+         if((f._cipher && pak._cipher_per_file) // this can't work
+         || !f.pos(pos)
+         || !_OldDecompressHeader(f, compress, compressed_size, decompressed_size)){pak.del(); return false;}
+         pf.compression         =  compress       ;
+         pf.data_size_compressed=  compressed_size;
+         pf.data_size           =decompressed_size;
+         pf.data_offset        +=f.pos()-pos;
+      }
+   }
+   f.pos(pos);
+   return true;
+}
 PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr<DataRangeAbs> used_file_ranges)
 {
    if(expected_size)*expected_size=0;
@@ -318,7 +339,6 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
 
    del();
 
-   Bool               fix_compressed=false;
    PAK_LOAD           result=PAK_LOAD_INCOMPLETE_HEADER;
    ULong              data_size=0;
    Memt<DataRangeAbs> used_file_ranges_temp;
@@ -459,8 +479,8 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
               _cipher_per_file   =true;
               _data_offset       =f.posAbs   ();
               _file_cipher_offset=f.posCipher();
-               fix_compressed=true;
                AddAbs(used_file_ranges_temp, 0, f.pos());
+               if(!FixCompressed(T, f))return PAK_LOAD_UNSUPPORTED_VERSION;
                goto ok;
             }
          }
@@ -499,8 +519,8 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
               _cipher_per_file   =false;
               _data_offset       =f.posAbs   ();
               _file_cipher_offset=f.posCipher();
-               fix_compressed=true;
                AddAbs(used_file_ranges_temp, 0, f.pos());
+               if(!FixCompressed(T, f))return PAK_LOAD_UNSUPPORTED_VERSION;
                goto ok;
             }
          }
@@ -541,8 +561,8 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
               _cipher_per_file   =false;
               _data_offset       =f.posAbs   ();
               _file_cipher_offset=f.posCipher();
-               fix_compressed=true;
                AddAbs(used_file_ranges_temp, 0, f.pos());
+               if(!FixCompressed(T, f))return PAK_LOAD_UNSUPPORTED_VERSION;
                goto ok;
             }
          }
@@ -583,8 +603,8 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr
               _cipher_per_file   =false;
               _data_offset       =f.posAbs   ();
               _file_cipher_offset=f.posCipher();
-               fix_compressed=true;
                AddAbs(used_file_ranges_temp, 0, f.pos());
+               if(!FixCompressed(T, f))return PAK_LOAD_UNSUPPORTED_VERSION;
                goto ok;
             }
          }
@@ -599,26 +619,6 @@ ok:
 
    auto data_offset_local=_data_offset-f._offset;
    data_size+=data_offset_local;
-
-   if(fix_compressed) // old versions stored compressed files with an extra header per file
-   {
-      Long pos=f.pos(); FREPA(_files)
-      {
-         PakFile &pf=_files[i]; if(pf.data_size!=pf.data_size_compressed)
-         {
-            Long pos=data_offset_local+pf.data_offset;
-            COMPRESS_TYPE compress; ULong compressed_size, decompressed_size;
-            if((f._cipher && _cipher_per_file) // this can't work
-            || !f.pos(pos)
-            || !_OldDecompressHeader(f, compress, compressed_size, decompressed_size)){del(); return PAK_LOAD_UNSUPPORTED_VERSION;}
-            pf.compression         =  compress       ;
-            pf.data_size_compressed=  compressed_size;
-            pf.data_size           =decompressed_size;
-            pf.data_offset        +=f.pos()-pos;
-         }
-      }
-      f.pos(pos);
-   }
 
    if(expected_size)*expected_size=data_size;
    if(  actual_size)*  actual_size= f.size();
