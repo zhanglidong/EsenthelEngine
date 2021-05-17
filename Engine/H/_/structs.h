@@ -56,6 +56,8 @@ struct BoxI;
 struct OBox;
 struct Extent;
 struct Circle;
+struct CircleM;
+struct CircleD;
 struct Ball;
 struct BallM;
 struct BallD;

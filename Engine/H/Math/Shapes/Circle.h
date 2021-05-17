@@ -38,9 +38,11 @@ struct Circle // Circle Shape
 
    void drawPie(C Color &color, Flt r_start, Flt angle_start=0, Flt angle_range=PI2, Bool fill=true, Int resolution=-1)C; // draw pie, 'r_start'=radius at which start drawing (0..'r'), 'angle_start'=angle at which start drawing (0..PI2), 'angle_range'=angle range (0..PI2)
 
-   Circle() {}
-   Circle(Flt r, C Vec2 &pos=Vec2Zero) {set(r, pos );}
-   Circle(Flt r, Flt x, Flt y        ) {set(r, x, y);}
+              Circle() {}
+              Circle(Flt r, C Vec2 &pos=Vec2Zero) {set(r, pos );}
+              Circle(Flt r, Flt x, Flt y        ) {set(r, x, y);}
+   CONVERSION Circle(C CircleM &c);
+   CONVERSION Circle(C CircleD &c);
 };
 /******************************************************************************/
 struct CircleM // Circle Shape (mixed precision)
@@ -68,9 +70,14 @@ struct CircleM // Circle Shape (mixed precision)
    // operations
    CircleM& extend(Flt e) {r+=e; return T;} // extend
 
-   CircleM() {}
-   CircleM(Flt r, C VecD2 &pos=VecD2Zero) {set(r, pos );}
-   CircleM(Flt r, Dbl x, Dbl y          ) {set(r, x, y);}
+   // draw
+   void draw(C Color &color, Bool fill=true, Int resolution=-1)C;
+
+              CircleM() {}
+              CircleM(Flt r, C VecD2 &pos=VecD2Zero) {set(r, pos );}
+              CircleM(Flt r, Dbl x, Dbl y          ) {set(r, x, y);}
+   CONVERSION CircleM(C Circle  &c);
+   CONVERSION CircleM(C CircleD &c);
 };
 /******************************************************************************/
 struct CircleD // Circle Shape (double precision)
@@ -98,11 +105,20 @@ struct CircleD // Circle Shape (double precision)
    // operations
    CircleD& extend(Dbl e) {r+=e; return T;} // extend
 
-   CircleD() {}
-   CircleD(Dbl r, C VecD2 &pos=VecD2Zero) {set(r, pos );}
-   CircleD(Dbl r, Dbl x, Dbl y          ) {set(r, x, y);}
+              CircleD() {}
+              CircleD(Dbl r, C VecD2 &pos=VecD2Zero) {set(r, pos );}
+              CircleD(Dbl r, Dbl x, Dbl y          ) {set(r, x, y);}
+   CONVERSION CircleD(C Circle  &c);
+   CONVERSION CircleD(C CircleM &c);
 };
 /******************************************************************************/
+inline Circle ::Circle (C CircleM &c) {set(c.r, c.pos);}
+inline Circle ::Circle (C CircleD &c) {set(c.r, c.pos);}
+inline CircleM::CircleM(C Circle  &c) {set(c.r, c.pos);}
+inline CircleM::CircleM(C CircleD &c) {set(c.r, c.pos);}
+inline CircleD::CircleD(C Circle  &c) {set(c.r, c.pos);}
+inline CircleD::CircleD(C CircleM &c) {set(c.r, c.pos);}
+
 // distance
 Flt Dist(C Vec2   &point, C Circle &circle); // distance between point     and a circle
 Flt Dist(C VecI2  &point, C Circle &circle); // distance between point     and a circle

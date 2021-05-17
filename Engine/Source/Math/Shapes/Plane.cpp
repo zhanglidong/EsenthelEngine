@@ -366,16 +366,17 @@ static void Test()
    }
 }
 /******************************************************************************/
-#define EPS_NRM_DOT 0.999995f // current value was needed in tests, don't increase !! using EPS_COS 0.9999995f was insufficient, this needs to be lower because it depends on a lot of calculations, so error is higher
 Vec2 SlideMovement(C Circle &object, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, Int edges, C VecI2 *edge_ind, C Vec2 *edge_nrm, Int circles, C Circle *circle)
 {
 #define DBL_PREC 1
 #if     DBL_PREC
    typedef Dbl   Real;
    typedef VecD2 VecR2;
+   #define EPS_NRM_DOT EPS_COS
 #else
    typedef Flt  Real;
    typedef Vec2 VecR2;
+   #define EPS_NRM_DOT 0.999995f // current value was needed in tests, don't increase !! using EPS_COS 0.9999995f was insufficient, this needs to be lower because it depends on a lot of calculations, so error is higher
 #endif
 
    if(Real move_len=move.length2())
@@ -489,10 +490,10 @@ Vec2 SlideMovement(C Circle &object, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, In
          }
          REPD(c, circles)
          {
-          C Circle &circ=circle[c];
-            Real    r   =circ.r+object_r;
-          C VecR2  &pos =circ.pos;
-            VecR2   pos_rel;
+          C auto  &circ=circle[c];
+            Real   r   =circ.r+object_r;
+          C VecR2 &pos =circ.pos;
+            VecR2  pos_rel;
             pos_rel.x=Dot(pos, move_r)-object_rel.x; // check X first because this will eliminate more circles
             if(Abs(pos_rel.x)<r) // consider only circles along the movement line
             {

@@ -503,10 +503,21 @@ struct VecD2 // Vector 2D (double precision)
    friend VecD2 operator* (Dbl r, C VecD2 &v) {return VecD2(r*v.x, r*v.y);}
    friend VecD2 operator/ (Dbl r, C VecD2 &v) {return VecD2(r/v.x, r/v.y);}
 
-   friend VecD2 operator+ (C VecD2 &a, C VecD2    &b) {return VecD2(a.x+b.x, a.y+b.y);}
-   friend VecD2 operator- (C VecD2 &a, C VecD2    &b) {return VecD2(a.x-b.x, a.y-b.y);}
-   friend VecD2 operator* (C VecD2 &a, C VecD2    &b) {return VecD2(a.x*b.x, a.y*b.y);}
-   friend VecD2 operator/ (C VecD2 &a, C VecD2    &b) {return VecD2(a.x/b.x, a.y/b.y);}
+   friend VecD2 operator+ (C Vec2 &a, C VecD2 &b) {return VecD2(a.x+b.x, a.y+b.y);}
+   friend VecD2 operator- (C Vec2 &a, C VecD2 &b) {return VecD2(a.x-b.x, a.y-b.y);}
+   friend VecD2 operator* (C Vec2 &a, C VecD2 &b) {return VecD2(a.x*b.x, a.y*b.y);}
+   friend VecD2 operator/ (C Vec2 &a, C VecD2 &b) {return VecD2(a.x/b.x, a.y/b.y);}
+
+   friend VecD2 operator+ (C VecD2 &a, C Vec2 &b) {return VecD2(a.x+b.x, a.y+b.y);}
+   friend VecD2 operator- (C VecD2 &a, C Vec2 &b) {return VecD2(a.x-b.x, a.y-b.y);}
+   friend VecD2 operator* (C VecD2 &a, C Vec2 &b) {return VecD2(a.x*b.x, a.y*b.y);}
+   friend VecD2 operator/ (C VecD2 &a, C Vec2 &b) {return VecD2(a.x/b.x, a.y/b.y);}
+
+   friend VecD2 operator+ (C VecD2 &a, C VecD2 &b) {return VecD2(a.x+b.x, a.y+b.y);}
+   friend VecD2 operator- (C VecD2 &a, C VecD2 &b) {return VecD2(a.x-b.x, a.y-b.y);}
+   friend VecD2 operator* (C VecD2 &a, C VecD2 &b) {return VecD2(a.x*b.x, a.y*b.y);}
+   friend VecD2 operator/ (C VecD2 &a, C VecD2 &b) {return VecD2(a.x/b.x, a.y/b.y);}
+
    friend VecD2 operator* (C VecD2 &v, C MatrixD3 &m) {return VecD2(v)*=m;}
    friend VecD2 operator* (C VecD2 &v, C MatrixD  &m) {return VecD2(v)*=m;}
    friend VecD2 operator/ (C VecD2 &v, C MatrixD3 &m) {return VecD2(v)/=m;}
@@ -1128,6 +1139,16 @@ struct VecD4 // Vector 4D (double precision)
    friend VecD4 operator- (Dbl r, C VecD4 &v) {return VecD4(r-v.x, r-v.y, r-v.z, r-v.w);}
    friend VecD4 operator* (Dbl r, C VecD4 &v) {return VecD4(r*v.x, r*v.y, r*v.z, r*v.w);}
    friend VecD4 operator/ (Dbl r, C VecD4 &v) {return VecD4(r/v.x, r/v.y, r/v.z, r/v.w);}
+
+   friend VecD4 operator+ (C Vec4 &a, C VecD4 &b) {return VecD4(a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w);}
+   friend VecD4 operator- (C Vec4 &a, C VecD4 &b) {return VecD4(a.x-b.x, a.y-b.y, a.z-b.z, a.w-b.w);}
+   friend VecD4 operator* (C Vec4 &a, C VecD4 &b) {return VecD4(a.x*b.x, a.y*b.y, a.z*b.z, a.w*b.w);}
+   friend VecD4 operator/ (C Vec4 &a, C VecD4 &b) {return VecD4(a.x/b.x, a.y/b.y, a.z/b.z, a.w/b.w);}
+
+   friend VecD4 operator+ (C VecD4 &a, C Vec4 &b) {return VecD4(a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w);}
+   friend VecD4 operator- (C VecD4 &a, C Vec4 &b) {return VecD4(a.x-b.x, a.y-b.y, a.z-b.z, a.w-b.w);}
+   friend VecD4 operator* (C VecD4 &a, C Vec4 &b) {return VecD4(a.x*b.x, a.y*b.y, a.z*b.z, a.w*b.w);}
+   friend VecD4 operator/ (C VecD4 &a, C Vec4 &b) {return VecD4(a.x/b.x, a.y/b.y, a.z/b.z, a.w/b.w);}
 
    friend VecD4 operator+ (C VecD4 &a, C VecD4 &b) {return VecD4(a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w);}
    friend VecD4 operator- (C VecD4 &a, C VecD4 &b) {return VecD4(a.x-b.x, a.y-b.y, a.z-b.z, a.w-b.w);}

@@ -17,6 +17,23 @@ void Circle::draw(C Color &color, Bool fill, Int resolution)C
    }
    VI.end();
 }
+void CircleM::draw(C Color &color, Bool fill, Int resolution)C
+{
+   Vec2 pos=T.pos;
+
+   if(resolution<0)resolution=96;else if(resolution<3)resolution=3;
+   Vec2 prev(pos.x+r, pos.y);
+
+   VI.color(color);
+   REP(resolution)
+   {
+      Flt c, s; CosSin(c, s, (PI2*i)/resolution); Vec2 next(pos.x+c*r, pos.y+s*r);
+      if(fill)VI.tri (pos , next, prev);
+      else    VI.line(prev, next);
+      prev=next;
+   }
+   VI.end();
+}
 void Circle::drawPie(C Color &color, Flt r_start, Flt angle_start, Flt angle_range, Bool fill, Int resolution)C
 {
    if(Abs(angle_range)>=PI2 && !fill) // draw inner and outer lines only
