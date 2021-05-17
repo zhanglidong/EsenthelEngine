@@ -373,6 +373,7 @@ Vec2 SlideMovement(C Circle &object, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, In
    {
       move_len=SqrtFast(move_len);
       Int  step=0;
+      Flt  object_r_eps=object.r-EPS; // this will ignore vertexes that are barely touching object along the movement line
       Vec2 cur_pos=object.pos;
       Vec2 move_n=move/move_len;
       Vec2 hit_nrm_prev;
@@ -434,7 +435,7 @@ Vec2 SlideMovement(C Circle &object, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, In
           C Vec2 &pos=vtx_pos[v];
             Vec2  pos_rel;
             pos_rel.x=Dot(pos, move_r)-object_rel.x; // check X first because this will eliminate more vertexes
-            if(Abs(pos_rel.x)<object.r) // consider only vertexes along the movement line
+            if(Abs(pos_rel.x)<object_r_eps) // consider only vertexes along the movement line
             {
                pos_rel.y=Dot(pos, move_n); // check Y
                if(pos_rel.y>object_rel.y) // test only > and not >= because if it's =0 then it means cur_pos and vtx_pos are the same and movement would always be stuck no matter what direction
