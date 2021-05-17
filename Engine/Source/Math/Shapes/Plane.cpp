@@ -366,7 +366,7 @@ static void Test()
    }
 }
 /******************************************************************************/
-#define EPS_NRM_DOT 0.999999f // using EPS_COS 0.9999995f was insufficient
+#define EPS_NRM_DOT 0.999995f // current value was needed in tests, don't increase !! using EPS_COS 0.9999995f was insufficient, this needs to be lower because it depends on a lot of calculations so error is higher
 Vec2 SlideMovement(C Circle &object, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, Int edges, C VecI2 *edge_ind, C Vec2 *edge_nrm, Int circles, C Circle *circle)
 {
    if(Flt move_len=move.length2())
