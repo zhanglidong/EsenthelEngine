@@ -368,7 +368,7 @@ static void Test()
 /******************************************************************************/
 VecD2 SlideMovement(C CircleM &object, C VecD2 &move, Int vtxs, C Vec2 *vtx_pos, Int edges, C VecI2 *edge_ind, C Vec2 *edge_nrm, Int circles, C CircleM *circle)
 {
-#define DBL_PREC 1
+#define DBL_PREC 1 // double precision needed because there are problems in Flt (object moves along the edge, then is getting blocked by that edge vertex with Dot(nrm, hit_nrm_prev)=0.999758601 which is too big)
 #if     DBL_PREC
    typedef Dbl   Real;
    typedef VecD2 VecR2;
