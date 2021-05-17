@@ -366,7 +366,7 @@ static void Test()
    }
 }
 /******************************************************************************/
-Vec2 SlideMovement(C Circle &object, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, Int edges, C VecI2 *edge_ind, C Vec2 *edge_nrm, Int circles, C Circle *circle)
+VecD2 SlideMovement(C CircleM &object, C VecD2 &move, Int vtxs, C Vec2 *vtx_pos, Int edges, C VecI2 *edge_ind, C Vec2 *edge_nrm, Int circles, C CircleM *circle)
 {
 #define DBL_PREC 1
 #if     DBL_PREC
