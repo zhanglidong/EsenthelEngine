@@ -61,11 +61,15 @@ struct CircleM // Circle Shape (mixed precision)
    Str asText()C {return S+"Radius: "+r+", Pos: "+pos;} // get text description
 
    // transform
-   CircleM& operator+=(C VecD2 &v) {pos+=v; return T;}
-   CircleM& operator-=(C VecD2 &v) {pos-=v; return T;}
+   CircleM& operator+=(C VecD2 &v) {      pos+=v; return T;}
+   CircleM& operator-=(C VecD2 &v) {      pos-=v; return T;}
+   CircleM& operator*=(  Dbl    f) {r*=f; pos*=f; return T;}
+   CircleM& operator/=(  Dbl    f) {r/=f; pos/=f; return T;}
 
    friend CircleM operator+ (C CircleM &circle, C VecD2 &v) {return CircleM(circle)+=v;}
    friend CircleM operator- (C CircleM &circle, C VecD2 &v) {return CircleM(circle)-=v;}
+   friend CircleM operator* (C CircleM &circle,   Dbl    f) {return CircleM(circle)*=f;}
+   friend CircleM operator/ (C CircleM &circle,   Dbl    f) {return CircleM(circle)/=f;}
 
    // operations
    CircleM& extend(Flt e) {r+=e; return T;} // extend
@@ -96,11 +100,15 @@ struct CircleD // Circle Shape (double precision)
    Str asText()C {return S+"Radius: "+r+", Pos: "+pos;} // get text description
 
    // transform
-   CircleD& operator+=(C VecD2 &v) {pos+=v; return T;}
-   CircleD& operator-=(C VecD2 &v) {pos-=v; return T;}
+   CircleD& operator+=(C VecD2 &v) {      pos+=v; return T;}
+   CircleD& operator-=(C VecD2 &v) {      pos-=v; return T;}
+   CircleD& operator*=(  Dbl    f) {r*=f; pos*=f; return T;}
+   CircleD& operator/=(  Dbl    f) {r/=f; pos/=f; return T;}
 
    friend CircleD operator+ (C CircleD &circle, C VecD2 &v) {return CircleD(circle)+=v;}
    friend CircleD operator- (C CircleD &circle, C VecD2 &v) {return CircleD(circle)-=v;}
+   friend CircleD operator* (C CircleD &circle,   Dbl    f) {return CircleD(circle)*=f;}
+   friend CircleD operator/ (C CircleD &circle,   Dbl    f) {return CircleD(circle)/=f;}
 
    // operations
    CircleD& extend(Dbl e) {r+=e; return T;} // extend
