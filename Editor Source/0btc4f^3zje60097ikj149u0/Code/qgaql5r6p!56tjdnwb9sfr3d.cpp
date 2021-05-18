@@ -583,7 +583,7 @@ REPAO(installer).disabled( disabled);
       pak_dest    .del  (); server_pak_loaded_ok=false;
 
       App.stayAwake(AWAKE_OFF);
-      WindowSetNormal();
+      App.stateNormal();
    }
    void updateDo()
    {
@@ -862,8 +862,7 @@ REPAO(installer).disabled( disabled);
          {
             if(ftp_files_to_upload<=0) // finished
             {
-               WindowSetNormal();
-               WindowFlash();
+               App.stateNormal().flash();
                locker_ftp.off();
                stopFTP(); REPAO(ftp).finished();
                tupdate.visible(true);
@@ -876,7 +875,7 @@ REPAO(installer).disabled( disabled);
             if(ftp_size_to_upload)
             {
                dbl uploaded=ftp_size_uploaded; REPA(ftp)uploaded+=ftp[i].uploaded();
-               WindowSetProgress(uploaded/ftp_size_to_upload);
+               App.stateProgress(uploaded/ftp_size_to_upload);
             }
          }
       }
@@ -957,7 +956,7 @@ bool Update()
    if(Ms.b(0))
    {
       GUI_OBJ_TYPE type=(Gui.ms() ? Gui.ms().type() : GO_NONE);
-      if(type!=GO_BUTTON && type!=GO_TEXTLINE && type!=GO_CHECKBOX)WindowMove(Ms.pixelDelta().x, Ms.pixelDelta().y);
+      if(type!=GO_BUTTON && type!=GO_TEXTLINE && type!=GO_CHECKBOX)App.window().move(Ms.pixelDelta().x, Ms.pixelDelta().y);
    }
 
    UP .update();
