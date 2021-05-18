@@ -70,11 +70,11 @@ class PanelEditor : PropWin
    static void ParamsShadowOffset (EditPanel &e, C Str &t) {e.shadow_offset =TextFlt (t); e. shadow_offset_time.getUTC();}
    static void ParamsShadowCenter (EditPanel &e, C Str &t) {e.center_shadow =TextBool(t); e. center_shadow_time.getUTC();}
 
+   static void ParamsSideMode          (EditPanel &e, C Str &t) {e.         side_mode   =(Panel.SIDE_MODE)TextInt(t); e.           side_mode_time.getUTC();}
    static void ParamsCenterScale       (EditPanel &e, C Str &t) {e.       center_scale  =TextFlt (t); e.        center_scale_time.getUTC();}
    static void ParamsBarSize           (EditPanel &e, C Str &t) {e.          bar_size   =TextFlt (t); e.            bar_size_time.getUTC();}
    static void ParamsBorderSize        (EditPanel &e, C Str &t) {e.       border_size   =TextFlt (t); e.         border_size_time.getUTC();}
    static void ParamsSideMinScale      (EditPanel &e, C Str &t) {e.     side_min_scale  =TextFlt (t); e.      side_min_scale_time.getUTC();}
-   static void ParamsSideStretch       (EditPanel &e, C Str &t) {e.         side_stretch=TextBool(t); e.        side_stretch_time.getUTC();}
    static void ParamsTopSize           (EditPanel &e, C Str &t) {e.          top_size   =TextFlt (t); e.            top_size_time.getUTC();}
    static void ParamsTopOffset         (EditPanel &e, C Str &t) {e.          top_offset =TextFlt (t); e.          top_offset_time.getUTC();}
    static void ParamsBottomSize        (EditPanel &e, C Str &t) {e.       bottom_size   =TextFlt (t); e.         bottom_size_time.getUTC();}
@@ -156,6 +156,14 @@ class PanelEditor : PropWin
    static void Redo  (PanelEditor &editor) {editor.undos.redo();}
    static void Locate(PanelEditor &editor) {Proj.elmLocate(editor.elm_id);}
 
+   static cchar8 *SideMode[]=
+   {
+      "Default", // 0
+      "Stretch", // 1
+      "Wrap"   , // 2
+   };
+   ASSERT(Panel.SM_DEFAULT==0 && Panel.SM_STRETCH==1 && Panel.SM_WRAP==2 && Panel.SM_NUM==3);
+
    void create()
    {
       add("Shadow Opacity"           , MemberDesc(MEMBER(EditPanel, shadow_opacity)).setTextToDataFunc(ParamsShadowOpacity));
@@ -179,7 +187,7 @@ class PanelEditor : PropWin
       add();
       add("Side Color"          , MemberDesc(MEMBER(EditPanel,           side_color)).setTextToDataFunc(ParamsSideColor         )).setColor().desc("Affects Top Image, Bottom Image, Left/Right Image, Top Corner Image and Bottom Corner Image");
       add("Side Min Scale"      , MemberDesc(MEMBER(EditPanel,       side_min_scale)).setTextToDataFunc(ParamsSideMinScale      )).range(0, 1).mouseEditSpeed(0.1).desc("If the side images (Top, Bottom) are bigger than the rectangle then they can be scaled down.\nThis value specifies the minimum allowed scale:\n0=allow full shrink\n1=no scale");
-      add("Side Stretch"        , MemberDesc(MEMBER(EditPanel,         side_stretch)).setTextToDataFunc(ParamsSideStretch       )).desc("If stretch side images (Top, Bottom, Left/Right) to fit the whole rectangle");
+      add("Side Mode"           , MemberDesc(MEMBER(EditPanel,            side_mode)).setTextToDataFunc(ParamsSideMode          )).setEnum(SideMode, Elms(SideMode)).desc("Mode for drawing side images (Top, Bottom, Left/Right)");
       add("Top Image"           , MemberDesc(DATA_STR                               ).setFunc          (ParamsTopImage         , ParamsTopImage         )).elmType(ELM_IMAGE);
       add("Top Size"            , MemberDesc(MEMBER(EditPanel,           top_size  )).setTextToDataFunc(ParamsTopSize           )).mouseEditSpeed(0.05);
       add("Top Offset"          , MemberDesc(MEMBER(EditPanel,           top_offset)).setTextToDataFunc(ParamsTopOffset         )).mouseEditSpeed(0.05);

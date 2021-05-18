@@ -1,10 +1,17 @@
 /******************************************************************************/
 struct Panel
 {
+   enum SIDE_MODE : Byte
+   {
+      SM_DEFAULT, // images are drawn as single images
+      SM_STRETCH, // images are stretched to cover entire rectangle sides
+      SM_WRAP   , // images are stretched to cover entire rectangle sides but drawn with uniform texture coordinates with wrap mode
+      SM_NUM    , // number of modes
+   };
    Bool         center_stretch  , // if stretch center image  to fit the whole rectangle, default=false, this is affects 'center_image'
-                  side_stretch  , // if stretch side   images to fit the whole rectangle, default=false, this is affects 'top_image', 'bottom_image', 'left_right_image', 'top_corner_image' and 'bottom_corner_image'
                 center_shadow   ; // if include a shadow underneath the center          , default=false, if shadows are enabled then normally they will be drawn around the center image, however if 'center_shadow' is enabled, then shadows will be also drawn underneath the center
    Byte         shadow_opacity  ; // shadow        opacity, 0..255, default=170
+   SIDE_MODE      side_mode     ; // side          mode   , default=SM_DEFAULT , this is affects 'top_image', 'bottom_image', 'left_right_image', 'top_corner_image' and 'bottom_corner_image'
    Color        center_color    , // center        color  , default=WHITE      , this is affects 'center_image' and 'panel_image'
                    bar_color    , // bar           color  , default=TRANSPARENT, this is affects 'bar_image'
                 border_color    , // border        color  , default=WHITE      , this is affects 'border_image'

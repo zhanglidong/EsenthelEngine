@@ -4,7 +4,7 @@ class EditPanel : Panel
 {
    UID       center_image, bar_image, border_image, top_image, bottom_image, left_right_image, top_corner_image, bottom_corner_image, 
              panel_image;
-   TimeStamp center_stretch_time, side_stretch_time, center_shadow_time,
+   TimeStamp center_stretch_time, center_shadow_time, side_mode_time,
              center_color_time, bar_color_time, border_color_time, side_color_time, blur_color_time,
              shadow_opacity_time, shadow_radius_time, shadow_offset_time,
              center_scale_time, bar_size_time, border_size_time, side_min_scale_time, top_size_time, bottom_size_time, left_right_size_time, top_corner_size_time, bottom_corner_size_time,

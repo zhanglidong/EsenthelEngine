@@ -5,6 +5,13 @@ PanelEditor PanelEdit;
 /******************************************************************************/
 
 /******************************************************************************/
+   cchar8 *PanelEditor::SideMode[]=
+   {
+      "Default", // 0
+      "Stretch", // 1
+      "Wrap"   , // 2
+   };
+/******************************************************************************/
       void PanelEditor::Change::create(ptr user)
 {
          data=PanelEdit.edit;
@@ -46,11 +53,11 @@ PanelEditor PanelEdit;
    void PanelEditor::ParamsShadowRadius(EditPanel &e, C Str &t) {e.shadow_radius =TextFlt (t); e. shadow_radius_time.getUTC();}
    void PanelEditor::ParamsShadowOffset(EditPanel &e, C Str &t) {e.shadow_offset =TextFlt (t); e. shadow_offset_time.getUTC();}
    void PanelEditor::ParamsShadowCenter(EditPanel &e, C Str &t) {e.center_shadow =TextBool(t); e. center_shadow_time.getUTC();}
+   void PanelEditor::ParamsSideMode(EditPanel &e, C Str &t) {e.         side_mode   =(Panel::SIDE_MODE)TextInt(t); e.           side_mode_time.getUTC();}
    void PanelEditor::ParamsCenterScale(EditPanel &e, C Str &t) {e.       center_scale  =TextFlt (t); e.        center_scale_time.getUTC();}
    void PanelEditor::ParamsBarSize(EditPanel &e, C Str &t) {e.          bar_size   =TextFlt (t); e.            bar_size_time.getUTC();}
    void PanelEditor::ParamsBorderSize(EditPanel &e, C Str &t) {e.       border_size   =TextFlt (t); e.         border_size_time.getUTC();}
    void PanelEditor::ParamsSideMinScale(EditPanel &e, C Str &t) {e.     side_min_scale  =TextFlt (t); e.      side_min_scale_time.getUTC();}
-   void PanelEditor::ParamsSideStretch(EditPanel &e, C Str &t) {e.         side_stretch=TextBool(t); e.        side_stretch_time.getUTC();}
    void PanelEditor::ParamsTopSize(EditPanel &e, C Str &t) {e.          top_size   =TextFlt (t); e.            top_size_time.getUTC();}
    void PanelEditor::ParamsTopOffset(EditPanel &e, C Str &t) {e.          top_offset =TextFlt (t); e.          top_offset_time.getUTC();}
    void PanelEditor::ParamsBottomSize(EditPanel &e, C Str &t) {e.       bottom_size   =TextFlt (t); e.         bottom_size_time.getUTC();}
@@ -150,7 +157,7 @@ PanelEditor PanelEdit;
       add();
       add("Side Color"          , MemberDesc(MEMBER(EditPanel,           side_color)).setTextToDataFunc(ParamsSideColor         )).setColor().desc("Affects Top Image, Bottom Image, Left/Right Image, Top Corner Image and Bottom Corner Image");
       add("Side Min Scale"      , MemberDesc(MEMBER(EditPanel,       side_min_scale)).setTextToDataFunc(ParamsSideMinScale      )).range(0, 1).mouseEditSpeed(0.1f).desc("If the side images (Top, Bottom) are bigger than the rectangle then they can be scaled down.\nThis value specifies the minimum allowed scale:\n0=allow full shrink\n1=no scale");
-      add("Side Stretch"        , MemberDesc(MEMBER(EditPanel,         side_stretch)).setTextToDataFunc(ParamsSideStretch       )).desc("If stretch side images (Top, Bottom, Left/Right) to fit the whole rectangle");
+      add("Side Mode"           , MemberDesc(MEMBER(EditPanel,            side_mode)).setTextToDataFunc(ParamsSideMode          )).setEnum(SideMode, Elms(SideMode)).desc("Mode for drawing side images (Top, Bottom, Left/Right)");
       add("Top Image"           , MemberDesc(DATA_STR                               ).setFunc          (ParamsTopImage         , ParamsTopImage         )).elmType(ELM_IMAGE);
       add("Top Size"            , MemberDesc(MEMBER(EditPanel,           top_size  )).setTextToDataFunc(ParamsTopSize           )).mouseEditSpeed(0.05f);
       add("Top Offset"          , MemberDesc(MEMBER(EditPanel,           top_offset)).setTextToDataFunc(ParamsTopOffset         )).mouseEditSpeed(0.05f);

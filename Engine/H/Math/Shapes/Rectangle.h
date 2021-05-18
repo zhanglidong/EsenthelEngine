@@ -112,7 +112,8 @@ struct Rect // Rectangle Shape
    Bool valid    (            )C {return       validX() && validY()      ;} // if is  valid
    Bool vertical (            )C {return             h()>w()             ;} // if rectangle is vertical (height greater than width)
    Flt  area     (            )C {return             w()*h()             ;} // get surface area
-   Flt  aspect   (            )C {return             w()/h()             ;} // get aspect  ratio
+   Flt     aspect(            )C {return             w()/h()             ;} // get          aspect ratio
+   Flt  invAspect(            )C {return             h()/w()             ;} // get inversed aspect ratio
 
    Str asText()C {return S+"Min: "+min+", Max: "+max;} // get text description
 
@@ -250,7 +251,8 @@ struct RectD // Rectangle Shape (double precision)
    Bool  valid    (            )C {return       validX() && validY()      ;} // if is  valid
    Bool  vertical (            )C {return             h()>w()             ;} // if rectangle is vertical (height greater than width)
    Dbl   area     (            )C {return             w()*h()             ;} // get surface area
-   Dbl   aspect   (            )C {return             w()/h()             ;} // get aspect  ratio
+   Dbl     aspect (            )C {return             w()/h()             ;} // get          aspect ratio
+   Dbl  invAspect (            )C {return             h()/w()             ;} // get inversed aspect ratio
 
    Str asText()C {return S+"Min: "+min+", Max: "+max;} // get text description
 
@@ -360,7 +362,8 @@ struct RectI // Rectangle Shape (integer)
    Bool  validY  (            )C {return       min.y    <= max.y      ;} // if has valid Y's
    Bool  valid   (            )C {return       validX() && validY()   ;} // if is  valid
    Int   area    (            )C {return            w() *h()          ;} // get surface area
-   Flt   aspect  (            )C {return        Flt(w())/h()          ;} // get aspect  ratio
+   Flt     aspect(            )C {return        Flt(w())/h()          ;} // get          aspect ratio
+   Flt  invAspect(            )C {return        Flt(h())/w()          ;} // get inversed aspect ratio
 
    Bool includesX(  Int    x)C {return       x>=min.x && x<=max.x      ;} // if rectangle includes 'x'
    Bool includesY(  Int    y)C {return       y>=min.y && y<=max.y      ;} // if rectangle includes 'y'

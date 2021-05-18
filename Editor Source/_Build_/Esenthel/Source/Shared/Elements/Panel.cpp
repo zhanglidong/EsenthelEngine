@@ -5,7 +5,7 @@
 /******************************************************************************/
    bool EditPanel::newer(C EditPanel &src)C
    {
-      return center_stretch_time>src.center_stretch_time || side_stretch_time>src.side_stretch_time || center_shadow_time>src.center_shadow_time
+      return center_stretch_time>src.center_stretch_time || center_shadow_time>src.center_shadow_time || side_mode_time>src.side_mode_time
           || center_color_time>src.center_color_time || bar_color_time>src.bar_color_time || border_color_time>src.border_color_time || side_color_time>src.side_color_time || blur_color_time>src.blur_color_time
           || shadow_opacity_time>src.shadow_opacity_time || shadow_radius_time>src.shadow_radius_time || shadow_offset_time>src.shadow_offset_time
           || center_scale_time>src.center_scale_time || bar_size_time>src.bar_size_time || border_size_time>src.border_size_time || side_min_scale_time>src.side_min_scale_time || top_size_time>src.top_size_time || bottom_size_time>src.bottom_size_time || left_right_size_time>src.left_right_size_time || top_corner_size_time>src.top_corner_size_time || bottom_corner_size_time>src.bottom_corner_size_time
@@ -15,7 +15,7 @@
    }
    bool EditPanel::equal(C EditPanel &src)C
    {
-      return center_stretch_time==src.center_stretch_time && side_stretch_time==src.side_stretch_time && center_shadow_time==src.center_shadow_time
+      return center_stretch_time==src.center_stretch_time && center_shadow_time==src.center_shadow_time && side_mode_time==src.side_mode_time
           && center_color_time==src.center_color_time && bar_color_time==src.bar_color_time && border_color_time==src.border_color_time && side_color_time==src.side_color_time && blur_color_time==src.blur_color_time
           && shadow_opacity_time==src.shadow_opacity_time && shadow_radius_time==src.shadow_radius_time && shadow_offset_time==src.shadow_offset_time
           && center_scale_time==src.center_scale_time && bar_size_time==src.bar_size_time && border_size_time==src.border_size_time && side_min_scale_time==src.side_min_scale_time && top_size_time==src.top_size_time && bottom_size_time==src.bottom_size_time && left_right_size_time==src.left_right_size_time && top_corner_size_time==src.top_corner_size_time && bottom_corner_size_time==src.bottom_corner_size_time
@@ -25,7 +25,7 @@
    }
    void EditPanel::newData()
    {
-      center_stretch_time++; side_stretch_time++; center_shadow_time++;
+      center_stretch_time++; center_shadow_time++; side_mode_time++;
       center_color_time++; bar_color_time++; border_color_time++; side_color_time++; blur_color_time++;
       shadow_opacity_time++; shadow_radius_time++; shadow_offset_time++;
       center_scale_time++; bar_size_time++; border_size_time++; side_min_scale_time++; top_size_time++; bottom_size_time++; left_right_size_time++; top_corner_size_time++; bottom_corner_size_time++;
@@ -42,8 +42,9 @@
    {
       bool changed=false;
       changed|=Sync(center_stretch_time, src.center_stretch_time, center_stretch, src.center_stretch);
-      changed|=Sync(  side_stretch_time, src.  side_stretch_time,   side_stretch, src.  side_stretch);
       changed|=Sync( center_shadow_time, src. center_shadow_time,  center_shadow, src. center_shadow);
+
+      changed|=Sync(side_mode_time, src.side_mode_time, side_mode, src.side_mode);
 
       changed|=Sync(center_color_time, src.center_color_time, center_color, src.center_color);
       changed|=Sync(   bar_color_time, src.   bar_color_time,    bar_color, src.   bar_color);
@@ -87,8 +88,9 @@
    {
       bool changed=false;
       changed|=Undo(center_stretch_time, src.center_stretch_time, center_stretch, src.center_stretch);
-      changed|=Undo(  side_stretch_time, src.  side_stretch_time,   side_stretch, src.  side_stretch);
       changed|=Undo( center_shadow_time, src. center_shadow_time,  center_shadow, src. center_shadow);
+
+      changed|=Undo(side_mode_time, src.side_mode_time, side_mode, src.side_mode);
 
       changed|=Undo(center_color_time, src.center_color_time, center_color, src.center_color);
       changed|=Undo(   bar_color_time, src.   bar_color_time,    bar_color, src.   bar_color);
@@ -135,7 +137,7 @@
       super::center_image=super::bar_image=super::border_image=super::top_image=super::bottom_image=super::left_right_image=super::top_corner_image=super::bottom_corner_image=null; super::panel_image=null;
           T.center_image=center_image; T.bar_image=bar_image; T.border_image=border_image; T.top_image=top_image; T.bottom_image=bottom_image; T.left_right_image=left_right_image; T.top_corner_image=top_corner_image; T.bottom_corner_image=bottom_corner_image; T.panel_image=panel_image;
 
-      center_stretch_time=side_stretch_time=center_shadow_time
+      center_stretch_time=center_shadow_time=side_mode_time
          =center_color_time=bar_color_time=border_color_time=side_color_time=blur_color_time
          =shadow_opacity_time=shadow_radius_time=shadow_offset_time
          =center_scale_time=bar_size_time=border_size_time=side_min_scale_time=top_size_time=bottom_size_time=left_right_size_time=top_corner_size_time=bottom_corner_size_time
@@ -163,7 +165,7 @@
       super::save(f);
       f<<center_image<<bar_image<<border_image<<top_image<<bottom_image<<left_right_image<<top_corner_image<<bottom_corner_image
        <<panel_image
-       <<center_stretch_time<<side_stretch_time<<center_shadow_time
+       <<center_stretch_time<<center_shadow_time<<side_mode_time
        <<center_color_time<<bar_color_time<<border_color_time<<side_color_time<<blur_color_time
        <<shadow_opacity_time<<shadow_radius_time<<shadow_offset_time
        <<center_scale_time<<bar_size_time<<border_size_time<<side_min_scale_time<<top_size_time<<bottom_size_time<<left_right_size_time<<top_corner_size_time<<bottom_corner_size_time
@@ -182,7 +184,7 @@
             if(!super::load(f))break;
             f>>center_image>>bar_image>>border_image>>top_image>>bottom_image>>left_right_image>>top_corner_image>>bottom_corner_image
              >>panel_image
-             >>center_stretch_time>>side_stretch_time>>center_shadow_time
+             >>center_stretch_time>>center_shadow_time>>side_mode_time
              >>center_color_time>>bar_color_time>>border_color_time>>side_color_time>>blur_color_time
              >>shadow_opacity_time>>shadow_radius_time>>shadow_offset_time
              >>center_scale_time>>bar_size_time>>border_size_time>>side_min_scale_time>>top_size_time>>bottom_size_time>>left_right_size_time>>top_corner_size_time>>bottom_corner_size_time

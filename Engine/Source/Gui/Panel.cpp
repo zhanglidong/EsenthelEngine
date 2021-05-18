@@ -22,7 +22,7 @@ DEFINE_CACHE(Panel, Panels, PanelPtr, "Panel");
 void Panel::getRectTop(C Rect &rect, Rect &top, Bool mirror)C
 {
    Flt w;
-   if(side_stretch)w=rect.w();else
+   if(side_mode)w=rect.w();else
    {
       w=top_size*top_image->aspect();
       if(side_min_scale<1)
@@ -40,7 +40,7 @@ void Panel::getRectTop(C Rect &rect, Rect &top, Bool mirror)C
 void Panel::getRectBottom(C Rect &rect, Rect &bottom, Bool mirror)C
 {
    Flt w;
-   if(side_stretch)w=rect.w();else
+   if(side_mode)w=rect.w();else
    {
       w=bottom_size*bottom_image->aspect();
       if(side_min_scale<1)
@@ -64,7 +64,7 @@ void Panel::getRectLeftRight(C Rect &rect, Rect &left, Rect &right, Bool mirror)
        r =rect.max.x+left_right_offset.x,
        yb,
        yt;
-   if(side_stretch)
+   if(side_mode)
    {
       yb=rect.min.y;
       yt=rect.max.y;
@@ -220,29 +220,47 @@ void Panel::drawBorder(C Color &color, C Rect &rect)C
    if(border_size )r           . drawBorder(color, border_size);else
                    r           . draw      (color, false);
 }
-static void Draw(C Panel &panel, C ImagePtr &image, C Color &color, C Rect &elm_rect, C Rect &panel_rect)
+static void DrawTopBottom(C Panel &panel, C ImagePtr &image, C Color &color, C Rect &elm_rect, C Rect &panel_rect)
 {
- // 'elm_rect' is always at the center X of 'panel_rect', so we can check if only one side (right) is outside 'panel_rect', because other side (left) will be the same
- //if(elm_rect.max.x>panel_rect.max.x) can't do this if 'side_fade_ext' can be <0
+   switch(panel.side_mode)
    {
-      Flt opaque_r=panel_rect.max.x+side_fade_ext; if(elm_rect.max.x>opaque_r
-                                                   || elm_rect.min.x>opaque_r) // this is needed when using negative sizes which cause 'elm_rect' to be flipped
+      default:
       {
-         Flt trans_r=panel_rect.max.x+side_max_ext,
-             trans_l=panel_rect.min.x-side_max_ext,
-            opaque_l=panel_rect.min.x-side_fade_ext;
-         image->drawFadeLR(color, elm_rect, trans_l, opaque_l, opaque_r, trans_r);
-         return;
-      }
+       // 'elm_rect' is always at the center X of 'panel_rect', so we can check if only one side (right) is outside 'panel_rect', because other side (left) will be the same
+       //if(elm_rect.max.x>panel_rect.max.x) can't do this if 'side_fade_ext' can be <0
+         {
+            Flt opaque_r=panel_rect.max.x+side_fade_ext; if(elm_rect.max.x>opaque_r
+                                                         || elm_rect.min.x>opaque_r) // this is needed when using negative sizes which cause 'elm_rect' to be flipped
+            {
+               Flt trans_r=panel_rect.max.x+side_max_ext,
+                   trans_l=panel_rect.min.x-side_max_ext,
+                  opaque_l=panel_rect.min.x-side_fade_ext;
+               image->drawFadeLR(color, elm_rect, trans_l, opaque_l, opaque_r, trans_r);
+               return;
+            }
+         }
+         image->draw(color, TRANSPARENT, elm_rect);
+      }break;
+
+      case Panel::SM_STRETCH: VI.clampAniso(); image->draw    (color, TRANSPARENT, elm_rect); break;
+      case Panel::SM_WRAP   : VI.wrap      (); image->drawPart(color, TRANSPARENT, elm_rect, Rect(0, 0, image->invAspect()*elm_rect.aspect(), 1)); break;
    }
-   image->draw(color, TRANSPARENT, elm_rect);
+}
+static void DrawLeftRight(C Panel &panel, C ImagePtr &image, C Color &color, C Rect &elm_rect/*, C Rect &panel_rect*/)
+{
+   switch(panel.side_mode)
+   {
+      default               :                  image->draw    (color, TRANSPARENT, elm_rect); break;
+      case Panel::SM_STRETCH: VI.clampAniso(); image->draw    (color, TRANSPARENT, elm_rect); break;
+      case Panel::SM_WRAP   : VI.wrap      (); image->drawPart(color, TRANSPARENT, elm_rect, Rect(0, 0, 1, image->invAspect()*elm_rect.invAspect())); break;
+   }
 }
 void Panel::drawSide(C Color &color, C Rect &rect)C
 {
-   if(          top_image){Rect top        ; getRectTop         (rect, top        ); Draw(T,    top_image, color, top   , rect);}
-   if(       bottom_image){Rect bottom     ; getRectBottom      (rect, bottom     ); Draw(T, bottom_image, color, bottom, rect);}
-   if(   left_right_image){Rect left, right; getRectLeftRight   (rect, left, right);    left_right_image->draw(color, TRANSPARENT, left  );
-                                                                                        left_right_image->draw(color, TRANSPARENT, right );}
+   if(          top_image){Rect top        ; getRectTop         (rect, top        ); DrawTopBottom(T,        top_image, color, top   , rect);}
+   if(       bottom_image){Rect bottom     ; getRectBottom      (rect, bottom     ); DrawTopBottom(T,     bottom_image, color, bottom, rect);}
+   if(   left_right_image){Rect left, right; getRectLeftRight   (rect, left, right); DrawLeftRight(T, left_right_image, color, left        );
+                                                                                     DrawLeftRight(T, left_right_image, color, right       );}
    if(   top_corner_image){Rect left, right; getRectTopCorner   (rect, left, right);    top_corner_image->draw(color, TRANSPARENT, left  );
                                                                                         top_corner_image->draw(color, TRANSPARENT, right );}
    if(bottom_corner_image){Rect left, right; getRectBottomCorner(rect, left, right); bottom_corner_image->draw(color, TRANSPARENT, left  );
@@ -369,8 +387,9 @@ void Panel::drawLines(C Color &line_color, C Rect &rect)C
 #pragma pack(push, 1)
 struct PanelDesc
 {
-   Bool  center_stretch, side_stretch, center_shadow;
+   Bool  center_stretch, center_shadow;
    Byte  shadow_opacity;
+   Panel::SIDE_MODE side_mode;
    Color center_color, bar_color, border_color, side_color, blur_color;
    Flt   shadow_radius, shadow_offset,
          center_scale, bar_size, border_size, side_min_scale, top_size, bottom_size, left_right_size, top_corner_size, bottom_corner_size,
@@ -414,9 +433,9 @@ Bool Panel::save(File &f, CChar *path)C
    PanelDesc desc;
 
    Unaligned(desc.       center_stretch  ,        center_stretch  );
-   Unaligned(desc.         side_stretch  ,          side_stretch  );
    Unaligned(desc.       center_shadow   ,        center_shadow   );
    Unaligned(desc.       shadow_opacity  ,        shadow_opacity  );
+   Unaligned(desc.         side_mode     ,          side_mode     );
    Unaligned(desc.       center_color    ,        center_color    );
    Unaligned(desc.          bar_color    ,           bar_color    );
    Unaligned(desc.       border_color    ,        border_color    );
@@ -459,9 +478,9 @@ Bool Panel::load(File &f, CChar *path)
          PanelDesc desc; if(f.getFast(desc))
          {
             Unaligned(       center_stretch  , desc.       center_stretch  );
-            Unaligned(         side_stretch  , desc.         side_stretch  );
             Unaligned(       center_shadow   , desc.       center_shadow   );
             Unaligned(       shadow_opacity  , desc.       shadow_opacity  );
+            Unaligned(         side_mode     , desc.         side_mode     );
             Unaligned(       center_color    , desc.       center_color    );
             Unaligned(          bar_color    , desc.          bar_color    );
             Unaligned(       border_color    , desc.       border_color    );
@@ -536,7 +555,7 @@ Bool Panel::load(File &f, CChar *path)
         top_corner_image.require(f.getAssetID(), path);
      bottom_corner_image.require(f.getAssetID(), path);
              panel_image.require(f.getAssetID(), path);
-              side_stretch=false; 
+              side_mode=SM_DEFAULT;
 
             if(f.ok())return true;
          }
@@ -576,7 +595,7 @@ Bool Panel::load(File &f, CChar *path)
         top_corner_image.require(f.getAssetID(), path);
      bottom_corner_image.require(f.getAssetID(), path);
              panel_image.require(f.getAssetID(), path);
-              side_stretch=false; bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); side_min_scale=1; if(desc.side_stretch && top_image){bar_color=side_color; bar_size=top_size; Swap(bar_image, top_image);}
+              side_mode=SM_DEFAULT; bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); side_min_scale=1; if(desc.side_stretch && top_image){bar_color=side_color; bar_size=top_size; Swap(bar_image, top_image);}
 
             if(f.ok())return true;
          }
@@ -616,7 +635,7 @@ Bool Panel::load(File &f, CChar *path)
         top_corner_image.require(f._getAsset(), path);
      bottom_corner_image.require(f._getAsset(), path);
              panel_image.require(f._getAsset(), path);
-              side_stretch=false; bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); side_min_scale=1; if(desc.side_stretch && top_image){bar_color=side_color; bar_size=top_size; Swap(bar_image, top_image);}
+              side_mode=SM_DEFAULT; bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); side_min_scale=1; if(desc.side_stretch && top_image){bar_color=side_color; bar_size=top_size; Swap(bar_image, top_image);}
 
             if(f.ok())return true;
          }
@@ -667,7 +686,7 @@ Bool Panel::load(File &f, CChar *path)
             bottom_corner_offset.set(top_corner_offset.x, -top_corner_offset.y);
              panel_image        .clear();
             center_shadow=!Equal(shadow_offset, 0);
-              side_stretch=false; bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); side_min_scale=1;
+              side_mode=SM_DEFAULT; bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); side_min_scale=1;
 
             if(f.ok())return true;
          }
@@ -704,7 +723,7 @@ Bool Panel::load(File &f, CChar *path)
              panel_image        .clear();
             bottom_image.clear(); left_right_image.clear(); bottom_size=left_right_size=DEFAULT_SIZE; left_right_offset=bottom_offset=0;
             center_shadow=!Equal(shadow_offset, 0);
-              side_stretch=false; bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); side_min_scale=1;
+              side_mode=SM_DEFAULT; bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); side_min_scale=1;
 
             if(f.ok())return true;
          }
@@ -741,7 +760,7 @@ Bool Panel::load(File &f, CChar *path)
              panel_image        .clear();
             bottom_image.clear(); left_right_image.clear(); bottom_size=left_right_size=DEFAULT_SIZE; left_right_offset=bottom_offset=0;
             center_shadow=!Equal(shadow_offset, 0);
-              side_stretch=false; bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); side_min_scale=1;
+              side_mode=SM_DEFAULT; bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); side_min_scale=1;
 
             if(f.ok())return true;
          }
@@ -786,7 +805,7 @@ Bool Panel::load(File &f, CChar *path)
              panel_image        .clear();
             bottom_image.clear(); left_right_image.clear(); bottom_size=left_right_size=DEFAULT_SIZE; left_right_offset=bottom_offset=0;
             center_shadow=!Equal(shadow_offset, 0);
-              side_stretch=false; bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); side_min_scale=1;
+              side_mode=SM_DEFAULT; bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); side_min_scale=1;
 
             if(f.ok())return true;
          }
@@ -831,7 +850,7 @@ Bool Panel::load(File &f, CChar *path)
              panel_image        .clear();
             bottom_image.clear(); left_right_image.clear(); bottom_size=left_right_size=DEFAULT_SIZE; left_right_offset=bottom_offset=0;
             center_shadow=!Equal(shadow_offset, 0);
-              side_stretch=false; bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); side_min_scale=1;
+              side_mode=SM_DEFAULT; bar_color=TRANSPARENT; bar_size=0; bar_image.clear(); side_min_scale=1;
 
             if(f.ok())return true;
          }
