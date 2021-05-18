@@ -243,7 +243,7 @@ static void DrawTopBottom(C Panel &panel, C ImagePtr &image, C Color &color, C R
       }break;
 
       case Panel::SM_STRETCH: VI.clampAniso(); image->draw    (color, TRANSPARENT, elm_rect); break;
-      case Panel::SM_WRAP   : VI.wrap      (); image->drawPart(color, TRANSPARENT, elm_rect, Rect(0, 0, image->invAspect()*elm_rect.aspect(), 1)); break;
+      case Panel::SM_WRAP   : VI.wrapX     (); image->drawPart(color, TRANSPARENT, elm_rect, Rect(0, 0, image->invAspect()*elm_rect.aspect(), 1)); break;
    }
 }
 static void DrawLeftRight(C Panel &panel, C ImagePtr &image, C Color &color, C Rect &elm_rect/*, C Rect &panel_rect*/)
@@ -252,7 +252,7 @@ static void DrawLeftRight(C Panel &panel, C ImagePtr &image, C Color &color, C R
    {
       default               :                  image->draw    (color, TRANSPARENT, elm_rect); break;
       case Panel::SM_STRETCH: VI.clampAniso(); image->draw    (color, TRANSPARENT, elm_rect); break;
-      case Panel::SM_WRAP   : VI.wrap      (); image->drawPart(color, TRANSPARENT, elm_rect, Rect(0, 0, 1, image->invAspect()*elm_rect.invAspect())); break;
+      case Panel::SM_WRAP   : VI.wrapY     (); image->drawPart(color, TRANSPARENT, elm_rect, Rect(0, 0, 1, image->aspect()*elm_rect.invAspect())); break;
    }
 }
 void Panel::drawSide(C Color &color, C Rect &rect)C
