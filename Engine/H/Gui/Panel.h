@@ -1,8 +1,9 @@
 /******************************************************************************/
 struct Panel
 {
-   Bool         center_stretch  , // if stretch center image  to fit the whole rectangle, default=false
-                center_shadow   ; // if include a shadow underneath the center          , default=false, if shadows are enabled then normally they will be drawn around the center image, however if 'center_shadow' is enabled, then shadows will be also draw underneath the center
+   Bool         center_stretch  , // if stretch center image  to fit the whole rectangle, default=false, this is affects 'center_image'
+                  side_stretch  , // if stretch side   images to fit the whole rectangle, default=false, this is affects 'top_image', 'bottom_image', 'left_right_image', 'top_corner_image' and 'bottom_corner_image'
+                center_shadow   ; // if include a shadow underneath the center          , default=false, if shadows are enabled then normally they will be drawn around the center image, however if 'center_shadow' is enabled, then shadows will be also drawn underneath the center
    Byte         shadow_opacity  ; // shadow        opacity, 0..255, default=170
    Color        center_color    , // center        color  , default=WHITE      , this is affects 'center_image' and 'panel_image'
                    bar_color    , // bar           color  , default=TRANSPARENT, this is affects 'bar_image'

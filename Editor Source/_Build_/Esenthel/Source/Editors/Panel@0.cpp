@@ -46,20 +46,21 @@ PanelEditor PanelEdit;
    void PanelEditor::ParamsShadowRadius(EditPanel &e, C Str &t) {e.shadow_radius =TextFlt (t); e. shadow_radius_time.getUTC();}
    void PanelEditor::ParamsShadowOffset(EditPanel &e, C Str &t) {e.shadow_offset =TextFlt (t); e. shadow_offset_time.getUTC();}
    void PanelEditor::ParamsShadowCenter(EditPanel &e, C Str &t) {e.center_shadow =TextBool(t); e. center_shadow_time.getUTC();}
-   void PanelEditor::ParamsCenterScale(EditPanel &e, C Str &t) {e.       center_scale =TextFlt (t); e.        center_scale_time.getUTC();}
-   void PanelEditor::ParamsBarSize(EditPanel &e, C Str &t) {e.          bar_size  =TextFlt (t); e.            bar_size_time.getUTC();}
-   void PanelEditor::ParamsBorderSize(EditPanel &e, C Str &t) {e.       border_size  =TextFlt (t); e.         border_size_time.getUTC();}
-   void PanelEditor::ParamsSideMinScale(EditPanel &e, C Str &t) {e.     side_min_scale =TextFlt (t); e.      side_min_scale_time.getUTC();}
-   void PanelEditor::ParamsTopSize(EditPanel &e, C Str &t) {e.          top_size  =TextFlt (t); e.            top_size_time.getUTC();}
-   void PanelEditor::ParamsTopOffset(EditPanel &e, C Str &t) {e.          top_offset=TextFlt (t); e.          top_offset_time.getUTC();}
-   void PanelEditor::ParamsBottomSize(EditPanel &e, C Str &t) {e.       bottom_size  =TextFlt (t); e.         bottom_size_time.getUTC();}
-   void PanelEditor::ParamsBottomOffset(EditPanel &e, C Str &t) {e.       bottom_offset=TextFlt (t); e.       bottom_offset_time.getUTC();}
-   void PanelEditor::ParamsLeftRightSize(EditPanel &e, C Str &t) {e.   left_right_size  =TextFlt (t); e.     left_right_size_time.getUTC();}
-   void PanelEditor::ParamsLeftRightOffset(EditPanel &e, C Str &t) {e.   left_right_offset=TextVec2(t); e.   left_right_offset_time.getUTC();}
-   void PanelEditor::ParamsTopCornerSize(EditPanel &e, C Str &t) {e.   top_corner_size  =TextFlt (t); e.     top_corner_size_time.getUTC();}
-   void PanelEditor::ParamsTopCornerOffset(EditPanel &e, C Str &t) {e.   top_corner_offset=TextVec2(t); e.   top_corner_offset_time.getUTC();}
-   void PanelEditor::ParamsBottomCornerSize(EditPanel &e, C Str &t) {e.bottom_corner_size  =TextFlt (t); e.  bottom_corner_size_time.getUTC();}
-   void PanelEditor::ParamsBottomCornerOffset(EditPanel &e, C Str &t) {e.bottom_corner_offset=TextVec2(t); e.bottom_corner_offset_time.getUTC();}
+   void PanelEditor::ParamsCenterScale(EditPanel &e, C Str &t) {e.       center_scale  =TextFlt (t); e.        center_scale_time.getUTC();}
+   void PanelEditor::ParamsBarSize(EditPanel &e, C Str &t) {e.          bar_size   =TextFlt (t); e.            bar_size_time.getUTC();}
+   void PanelEditor::ParamsBorderSize(EditPanel &e, C Str &t) {e.       border_size   =TextFlt (t); e.         border_size_time.getUTC();}
+   void PanelEditor::ParamsSideMinScale(EditPanel &e, C Str &t) {e.     side_min_scale  =TextFlt (t); e.      side_min_scale_time.getUTC();}
+   void PanelEditor::ParamsSideStretch(EditPanel &e, C Str &t) {e.         side_stretch=TextBool(t); e.        side_stretch_time.getUTC();}
+   void PanelEditor::ParamsTopSize(EditPanel &e, C Str &t) {e.          top_size   =TextFlt (t); e.            top_size_time.getUTC();}
+   void PanelEditor::ParamsTopOffset(EditPanel &e, C Str &t) {e.          top_offset =TextFlt (t); e.          top_offset_time.getUTC();}
+   void PanelEditor::ParamsBottomSize(EditPanel &e, C Str &t) {e.       bottom_size   =TextFlt (t); e.         bottom_size_time.getUTC();}
+   void PanelEditor::ParamsBottomOffset(EditPanel &e, C Str &t) {e.       bottom_offset =TextFlt (t); e.       bottom_offset_time.getUTC();}
+   void PanelEditor::ParamsLeftRightSize(EditPanel &e, C Str &t) {e.   left_right_size   =TextFlt (t); e.     left_right_size_time.getUTC();}
+   void PanelEditor::ParamsLeftRightOffset(EditPanel &e, C Str &t) {e.   left_right_offset =TextVec2(t); e.   left_right_offset_time.getUTC();}
+   void PanelEditor::ParamsTopCornerSize(EditPanel &e, C Str &t) {e.   top_corner_size   =TextFlt (t); e.     top_corner_size_time.getUTC();}
+   void PanelEditor::ParamsTopCornerOffset(EditPanel &e, C Str &t) {e.   top_corner_offset =TextVec2(t); e.   top_corner_offset_time.getUTC();}
+   void PanelEditor::ParamsBottomCornerSize(EditPanel &e, C Str &t) {e.bottom_corner_size   =TextFlt (t); e.  bottom_corner_size_time.getUTC();}
+   void PanelEditor::ParamsBottomCornerOffset(EditPanel &e, C Str &t) {e.bottom_corner_offset =TextVec2(t); e.bottom_corner_offset_time.getUTC();}
    Str PanelEditor::ParamsCenterImage(C EditPanel &e) {return Proj.elmFullName(e.       center_image);}
    Str PanelEditor::ParamsBarImage(C EditPanel &e) {return Proj.elmFullName(e.          bar_image);}
    Str PanelEditor::ParamsBorderImage(C EditPanel &e) {return Proj.elmFullName(e.       border_image);}
@@ -149,6 +150,7 @@ PanelEditor PanelEdit;
       add();
       add("Side Color"          , MemberDesc(MEMBER(EditPanel,           side_color)).setTextToDataFunc(ParamsSideColor         )).setColor().desc("Affects Top Image, Bottom Image, Left/Right Image, Top Corner Image and Bottom Corner Image");
       add("Side Min Scale"      , MemberDesc(MEMBER(EditPanel,       side_min_scale)).setTextToDataFunc(ParamsSideMinScale      )).range(0, 1).mouseEditSpeed(0.1f).desc("If the side images (Top, Bottom) are bigger than the rectangle then they can be scaled down.\nThis value specifies the minimum allowed scale:\n0=allow full shrink\n1=no scale");
+      add("Side Stretch"        , MemberDesc(MEMBER(EditPanel,         side_stretch)).setTextToDataFunc(ParamsSideStretch       )).desc("If stretch side images (Top, Bottom, Left/Right) to fit the whole rectangle");
       add("Top Image"           , MemberDesc(DATA_STR                               ).setFunc          (ParamsTopImage         , ParamsTopImage         )).elmType(ELM_IMAGE);
       add("Top Size"            , MemberDesc(MEMBER(EditPanel,           top_size  )).setTextToDataFunc(ParamsTopSize           )).mouseEditSpeed(0.05f);
       add("Top Offset"          , MemberDesc(MEMBER(EditPanel,           top_offset)).setTextToDataFunc(ParamsTopOffset         )).mouseEditSpeed(0.05f);

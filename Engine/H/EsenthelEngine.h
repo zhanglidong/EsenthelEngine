@@ -1,7 +1,7 @@
 /******************************************************************************/
 #pragma once // include the header only once
 /******************************************************************************/
-#define ENGINE_BUILD 68 // this is an integer value specifying the build iteration of Esenthel Engine, this gets incremented with each new release
+#define ENGINE_BUILD 70 // this is an integer value specifying the build iteration of Esenthel Engine, this gets incremented with each new release
 /******************************************************************************
 
    Following defines are available, they are always set to 0 (disabled) or 1 (enabled)

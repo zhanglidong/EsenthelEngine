@@ -54,6 +54,7 @@ public:
    static void ParamsBarSize           (EditPanel &e, C Str &t);
    static void ParamsBorderSize        (EditPanel &e, C Str &t);
    static void ParamsSideMinScale      (EditPanel &e, C Str &t);
+   static void ParamsSideStretch       (EditPanel &e, C Str &t);
    static void ParamsTopSize           (EditPanel &e, C Str &t);
    static void ParamsTopOffset         (EditPanel &e, C Str &t);
    static void ParamsBottomSize        (EditPanel &e, C Str &t);
