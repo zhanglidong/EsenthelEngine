@@ -617,7 +617,8 @@ Bool Particles::save(File &f, Bool include_particles, CChar *path)C
    if(is())
    {
       f<<reborn<<motion_affects_alpha<<_palette<<_palette_index<<inside_shape<<glow<<color<<smooth_fade<<_src_type
-       <<radius<<radius_random<<radius_growth<<offset_range<<offset_speed<<life<<life_random<<glue<<damping<<ang_vel<<vel_random<<vel_constant<<accel<<matrix
+       <<radius<<radius_random<<radius_growth<<offset_range<<offset_speed<<life<<life_random
+       <<glue<<damping<<ang_vel<<vel_random<<vel_constant<<accel<<matrix
        <<emitter_life_max<<emitter_life<<_fade<<fade_in<<fade_out
        <<radius_scale_base<<radius_scale_time<<image_x_frames<<image_y_frames<<image_speed<<hard_depth_offset;
       f.putBool(include_particles); if(include_particles){if(!p.saveRaw(f))return false;}else f.cmpUIntV(p.elms()); // particles
@@ -634,7 +635,8 @@ Bool Particles::load(File &f, CChar *path)
       case 1:
       {
          f>>reborn>>motion_affects_alpha>>_palette>>_palette_index>>inside_shape>>glow>>color>>smooth_fade>>_src_type
-          >>radius>>radius_random>>radius_growth>>offset_range>>offset_speed>>life>>life_random>>glue>>damping>>ang_vel>>vel_random>>vel_constant>>accel>>matrix
+          >>radius>>radius_random>>radius_growth>>offset_range>>offset_speed>>life>>life_random
+          >>glue>>damping>>ang_vel>>vel_random>>vel_constant>>accel>>matrix
           >>emitter_life_max>>emitter_life>>_fade>>fade_in>>fade_out
           >>radius_scale_base>>radius_scale_time>>image_x_frames>>image_y_frames>>image_speed>>hard_depth_offset;
          if(f.getBool()){if(!p.loadRaw(f))goto error;}else p.setNumZero(f.decUIntV()); // particles

@@ -126,6 +126,11 @@ inline Bool FovPerspective(FOV_MODE mode) {return mode< FOV_ORTHO_Y             
 inline Bool FovOrthogonal (FOV_MODE mode) {return mode>=FOV_ORTHO_Y               ;} // if fov mode is orthogonal
 inline Bool FovHorizontal (FOV_MODE mode) {return mode==FOV_X || mode==FOV_ORTHO_X;} // if fov mode is horizontal
 #endif
+struct ViewSettings
+{
+   FOV_MODE fov_mode;
+   Flt      from, range, fov;
+};
 /******************************************************************************/
 struct DisplayClass : DisplayState, DisplayDraw // Display Control
 {
@@ -176,6 +181,7 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
    void          gammaSet         (                             );
    Bool          densityFast      (Byte             density     );
    void          densityUpdate    (                             );
+   void          densityFast1     (                             ) {densityFast(127);}
    void          setColorLUT      (                             );
                                                                      Bool             densityUsed       ()C {return _density!=127     ;} // get if Density is != 1.0
                                                                      Bool             densityUpsample   ()C {return _density> 127     ;} // get if Density is >  1.0
@@ -462,11 +468,9 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
 #if !EE_PRIVATE
 private:
 #endif
-   struct ViewportSettings
+   struct ViewportSettings : ViewSettings
    {
-      FOV_MODE fov_mode;
-      Flt      from, range, fov;
-      Rect     rect;
+      Rect rect;
 
       void get() ; // get viewport settings from current display settings "T=D"
       void set()C; // set viewport settings as   current display settings "D=T"

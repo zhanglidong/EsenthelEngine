@@ -338,7 +338,6 @@ Half SetAlphaFromDepthAndColMS_PS(NOPERSP Vec2 inTex:TEXCOORD, NOPERSP PIXEL, UI
    return Max(Max(TexLod(Img, inTex).rgb), DEPTH_FOREGROUND(TexDepthMSRaw(pixel.xy, index))); // treat luminance as opacity
 }
 
-
 VecH4 CombineAlpha_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
    VecH4 col;

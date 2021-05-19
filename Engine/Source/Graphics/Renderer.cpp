@@ -99,6 +99,7 @@ RendererClass::RendererClass() : material_color_l(null), highlight(null)
 #if 0 // there's only one 'RendererClass' global 'Renderer' and it doesn't need clearing members to zero
    stage=RS_DEFAULT;
    combine=false;
+   alpha=false;
    wire=false;
    indoor=false;
    clear_color.zero();
@@ -304,7 +305,7 @@ INLINE Shader* GetBloom  (Bool dither, Bool gamma, Bool alpha                   
 void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
 {
    // process bloom in sRGB gamma, because it will provide sharper results
-   // '_alpha' from 'combine' can't be used/modified because Bloom works by ADDING blurred results on top of existing background, NOT BLENDING (which is used for applying renderer results onto existing background when combining), we could potentially use a secondary RT to store bloom and add it on top of render, however that uses more memory, slower, and problematic with Motion Blur and DoF
+   // '_alpha' RT from 'processAlpha' can't be used/modified because Bloom works by ADDING blurred results on top of existing background, NOT BLENDING (which is used for applying renderer results onto existing background when combining), we could potentially use a secondary RT to store bloom and add it on top of render, however that uses more memory, slower, and problematic with Motion Blur and DoF
    Bool gamma=LINEAR_GAMMA, swap=(gamma && src.canSwapSRV() && dest.canSwapRTV()); if(swap){gamma=false; src.swapSRV(); dest.swapRTV();}
 
    const Int     shift=(D.bloomHalf() ? 1 : 2);
@@ -352,7 +353,7 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
    if(swap){src.swapSRV(); dest.swapRTV();} // restore
 }
 // !! Assumes that 'ImgClamp' was already set !!
-Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
+Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool alpha, Bool combine)
 {
    const Bool camera_object=(D.motionMode()==MOTION_CAMERA_OBJECT); // set what mode we want to use (remember that '_vel' gets cleared below and it can also be requested for TAA instead of motion blur)
 
@@ -452,20 +453,20 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool combine)
 
    (MOTION_BLUR_PREDICTIVE ? Sh.Img[1] : Sh.ImgXY[0])->set(helper);
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
-   Mtn.getBlur(Round(fxH()*(7.0f/1080)), D.dither() /*&& src.highPrecision()*/ && !dest.highPrecision(), combine)->draw(src); // here blurring may generate high precision values, use 7 samples on a 1080 resolution
+   Mtn.getBlur(Round(fxH()*(7.0f/1080)), D.dither() /*&& src.highPrecision()*/ && !dest.highPrecision(), alpha)->draw(src); // here blurring may generate high precision values, use 7 samples on a 1080 resolution
 
    return false;
 }
 INLINE Shader* GetDofDS(Bool clamp , Bool realistic, Bool alpha, Bool half_res) {Shader* &s=Dof.DofDS[clamp ][realistic][alpha][half_res]; if(SLOW_SHADER_LOAD && !s)s=Dof.getDS(clamp , realistic, alpha, half_res); return s;}
 INLINE Shader* GetDof  (Bool dither, Bool realistic, Bool alpha               ) {Shader* &s=Dof.Dof  [dither][realistic][alpha]          ; if(SLOW_SHADER_LOAD && !s)s=Dof.get  (dither, realistic, alpha          ); return s;}
 // !! Assumes that 'ImgClamp' was already set !!
-void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool combine)
+void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool alpha, Bool combine)
 { // Depth of Field shader does not require stereoscopic processing because it just reads the depth buffer
    const Int   shift=1; // half_res
    ImageRTDesc rt_desc(fxW()>>shift, fxH()>>shift, src.highPrecision() ? IMAGERT_SRGBA_H : IMAGERT_SRGBA); // here Alpha is used to store amount of Blur, use high precision if source is to don't lose smooth gradients when having full blur (especially visible on sky), IMAGERT_SRGBA_H vs IMAGERT_SRGBA has no significant difference on GeForce 1050Ti
    ImageRTPtr  rt0(rt_desc),
                rt1(rt_desc), blur_smooth[2];
-   if(combine)
+   if(alpha)
    {
       rt_desc.type(IMAGERT_ONE_S);
       blur_smooth[0].get(rt_desc);
@@ -475,21 +476,21 @@ void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool combine)
    Bool half_res=(Flt(src.h())/rt0->h() <= 2.5f); // half_res=scale 2, ..3.., quarter=scale 4, 2.5 was the biggest scale that didn't cause jittering when using half down-sampling
    Dof.load();
    D.alpha(ALPHA_NONE);
- C DepthOfField::Pixel &pixel=Dof.pixel(combine, Round(fxH()*(5.0f/1080))); // use 5 pixel range blur on a 1080 resolution
+ C DepthOfField::Pixel &pixel=Dof.pixel(alpha, Round(fxH()*(5.0f/1080))); // use 5 pixel range blur on a 1080 resolution
 
    Flt range_inv=1.0f/Max(D.dofRange(), EPS);
    Dof.DofParams->setConditional(Vec4(D.dofIntensity(), D.dofFocus(), range_inv, -D.dofFocus()*range_inv));
 
    set(rt0, blur_smooth[0], null, null, null, false); Rect ext_rect, *rect=null; if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(pixelToScreenSize(pixel.pixels+1));} // when not rendering entire viewport, then extend the rectangle because of blurs checking neighbors, add +1 because of texture filtering, we can ignore stereoscopic there because that's always disabled for not full viewports, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize' and call after setting RT
-   Sh.imgSize( src); GetDofDS(!D._view_main.full, D.dofFocusMode(), combine, half_res)->draw(src, rect);
+   Sh.imgSize( src); GetDofDS(!D._view_main.full, D.dofFocusMode(), alpha, half_res)->draw(src, rect);
  //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
-                   set(rt1, blur_smooth[1], null, null, null, false); Sh.ImgX[0]->set(blur_smooth[0]); pixel.BlurX[combine]->draw(rt0, rect);
-   rt0->discard(); set(rt0, blur_smooth[0], null, null, null, false); Sh.ImgX[0]->set(blur_smooth[1]); pixel.BlurY[combine]->draw(rt1, rect);
+                   set(rt1, blur_smooth[1], null, null, null, false); Sh.ImgX[0]->set(blur_smooth[0]); pixel.BlurX[alpha]->draw(rt0, rect);
+   rt0->discard(); set(rt0, blur_smooth[0], null, null, null, false); Sh.ImgX[0]->set(blur_smooth[1]); pixel.BlurY[alpha]->draw(rt1, rect);
 
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
    Sh.Img [1]->set(          rt0 );
    Sh.ImgX[0]->set(blur_smooth[0]);
-   GetDof(D.dither() && (src.highPrecision() || rt0->highPrecision()) && !dest.highPrecision(), D.dofFocusMode(), combine)->draw(src);
+   GetDof(D.dither() && (src.highPrecision() || rt0->highPrecision()) && !dest.highPrecision(), D.dofFocusMode(), alpha)->draw(src);
 }
 INLINE Shader* GetSetAlphaFromDepth        () {Shader* &s=Sh.SetAlphaFromDepth        ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("SetAlphaFromDepth"        ); return s;}
 INLINE Shader* GetSetAlphaFromDepthMS      () {Shader* &s=Sh.SetAlphaFromDepthMS      ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("SetAlphaFromDepthMS"      ); return s;}
@@ -752,6 +753,7 @@ Bool RendererClass::reflection()
       // remember current settings and disable fancy effects
       Camera           cam            =ActiveCam            ;
       Bool             combine        =T. combine           ;                     T. combine        =false             ;
+      Bool             alpha          =T. alpha             ;                     T. alpha          =false             ;
       Bool             get_target     =T._get_target        ;                     T._get_target     =true              ;
       Bool             stereo         =T._stereo            ;                     T._stereo         =false             ; // don't reset FOV because we want to render the reflection with the same exact FOV settings as only one eye, because this reflection will be reused for both eyes
       Int              eye_num        =T._eye_num           ;                     T._eye_num        =1                 ;
@@ -791,6 +793,7 @@ Bool RendererClass::reflection()
 
       // restore effects (before viewport and camera, because stereoscopic affects viewport fov)
       T. combine        =combine        ;
+      T. alpha          =alpha          ;
       T._get_target     =get_target     ;
       T._stereo         =stereo         ;
       T._eye_num        =eye_num        ;
@@ -870,8 +873,9 @@ Bool RendererClass::wantDof     ()C {return D.dofWant();}
 Bool RendererClass:: hasDof     ()C {return wantDof() && canReadDepth() && !fastCombine();}
 Bool RendererClass:: hasAO      ()C {return D.aoWant() && canReadDepth() && !fastCombine();}
 
-Bool RendererClass::fastCombine      ()C {return combine      && _col==_final;}
-Bool RendererClass::slowCombine      ()C {return combine      && !fastCombine() && canReadDepth();}
+Bool RendererClass::fastCombine      ()C {return combine && _col==_final;}
+Bool RendererClass::slowCombine      ()C {return combine && !fastCombine() && canReadDepth();}
+Bool RendererClass::processAlpha     ()C {return (alpha && (_get_target || target) && canReadDepth()) || slowCombine();}
 Bool RendererClass::hasVolLight      ()C {return D.volLight() && canReadDepth();}
 Bool RendererClass::anyDeferred      ()C {return type()==RT_DEFERRED || Water.reflectionRenderer()==RT_DEFERRED;}
 Bool RendererClass::anyForward       ()C {return type()==RT_FORWARD  || Water.reflectionRenderer()==RT_FORWARD ;}
@@ -960,7 +964,9 @@ void RendererClass::tAACheck() // needs to be called after RT and viewport were 
 void RendererClass::prepare()
 {
    Byte  samples=(mirror() ? 1 : D.samples()); // disable multi-sampling for reflection
-   VecI2 rt_size; if(VR.active() && D._allow_stereo) // following conditions affect this: _stereo, _allow_stereo, mirror()
+   VecI2 rt_size;
+   if(VR.active() && D._allow_stereo // following conditions affect this: _stereo, _allow_stereo, mirror()
+   || target)
    { /* We want this case when:
          -rendering to VR    'GuiTexture'
          -rendering to VR 'RenderTexture'
@@ -1218,8 +1224,8 @@ void RendererClass::resolveDepth()
       D.alpha(ALPHA_NONE);
 
       // set multi-sampled '_ds' MSAA
-      if(_cur_type==RT_DEFERRED                       // for     deferred set it always (needed for lighting)
-      || Fog.draw || Sky.isActual() || slowCombine()) // for non-deferred it will be used only for fog, sky and slowCombine
+      if(_cur_type==RT_DEFERRED                        // for     deferred set it always (needed for lighting)
+      || Fog.draw || Sky.isActual() || processAlpha()) // for non-deferred it will be used only for fog, sky and alpha
       {
          D.stencil(STENCIL_MSAA_SET, STENCIL_REF_MSAA);
          set(null, _ds, true);
@@ -1234,8 +1240,8 @@ void RendererClass::resolveDepth()
       D.depthFunc(FUNC_DEFAULT); D.depthUnlock(    );
 
       // set 1-sampled '_ds_1s' MSAA
-      if(_cur_type==RT_DEFERRED               // for     deferred set it always (needed for lighting)
-      || slowCombine() || ms_samples_color.a) // for non-deferred it will be used only for slow combine and visualizing multi-samples
+      if(_cur_type==RT_DEFERRED                // for     deferred set it always (needed for lighting)
+      || processAlpha() || ms_samples_color.a) // for non-deferred it will be used only for alpha and visualizing multi-samples
       {
          D.stencilRef(STENCIL_REF_MSAA);
        //if(_nrm){Sh.ImgMS[0]->set(_nrm); Sh.DetectMSNrm->draw();}else 'DetectMSNrm' generates too many MS pixels, making rendering slower, so don't use
@@ -1382,7 +1388,7 @@ void RendererClass::setAlphaFromDepthAndCol()
 INLINE Shader* GetApplyLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade, Bool glow, Bool reflect) {Shader* &s=Sh.ApplyLight[multi_sample][ao][cel_shade][night_shade][glow][reflect]; if(SLOW_SHADER_LOAD && !s)s=Sh.getApplyLight(multi_sample, ao, cel_shade, night_shade, glow, reflect); return s;}
 void RendererClass::light()
 {
-   if(slowCombine() && D.independentBlendAvailable())setAlphaFromDepth(); // setup alpha before applying lights instead of after, because after we end up with '_col' already bound, so doing this before will reduce RT changes
+   if(processAlpha() && D.independentBlendAvailable())setAlphaFromDepth(); // setup alpha before applying lights instead of after, because after we end up with '_col' already bound, so doing this before will reduce RT changes
    if(_cur_type==RT_DEFERRED) // on other renderers light is applied when rendering solid
    {
       /*
@@ -1565,7 +1571,7 @@ void RendererClass::tAA()
       resolveMultiSample(); // process MSAA but not 'downSample' (Super-Sampling) because quality will suffer
 
       ImageRTDesc  rt_desc(_col->w(), _col->h(), IMAGERT_ONE);
-      Bool         alpha=slowCombine(), dual=(!alpha && D.tAADualHistory()); // dual incompatible with alpha #TAADualAlpha
+      Bool         alpha=processAlpha(), dual=(!alpha && D.tAADualHistory()); // dual incompatible with alpha #TAADualAlpha
       IMAGERT_TYPE weight_type=(alpha ? IMAGERT_TWO : IMAGERT_ONE), // alpha ? (X=alpha, Y=weight) : (X=weight); !! store alpha in X so it can be used for '_alpha' RT !!
                       col_type=GetImageRTType(D.glowAllow(), D.litColRTPrecision()); // #RTOutput
       if(!_ctx->taa_new_weight) // doesn't have new RT's yet
@@ -1973,20 +1979,21 @@ void RendererClass::refract() // !! assumes that 'finalizeGlow' was called !!
 }
 void RendererClass::postProcess()
 {
-   Bool eye_adapt= hasEyeAdapt(),
-        bloom    =(hasBloom   () || _has_glow),
-        motion   = hasMotion  (),
-        dof      = hasDof     (),
-        combine  = slowCombine(), // shader combine
+   Bool eye_adapt= hasEyeAdapt (),
+        bloom    =(hasBloom    () || _has_glow),
+        motion   = hasMotion   (),
+        dof      = hasDof      (),
+        alpha    = processAlpha(), // this is always enabled for 'slowCombine'
+        combine  = slowCombine (),
         upscale  =(_final->w()>_col->w() || _final->h()>_col->h()), // we're going to upscale at the end
         alpha_set=fastCombine(); // if alpha channel is set properly in the RT, skip this if we're doing 'fastCombine' because we're rendering to existing RT which has its Alpha already set
    ImageRTDesc rt_desc(_col->w(), _col->h(), IMAGERT_SRGBA); MIN(rt_desc.size.x, _final->w()); MIN(rt_desc.size.y, _final->h()); // don't do post-process at higher res than needed
    ImageRTPtr  dest;
 
-   if(eye_adapt || bloom || combine || motion || dof || _get_target)resolveMultiSample(); // we need to resolve the MS Image so it's smooth for the effects
-   if(combine && !_alpha)setAlphaFromDepthAndCol(); // create '_alpha' if not yet available
+   if(eye_adapt || bloom || alpha || motion || dof || _get_target)resolveMultiSample(); // we need to resolve the MS Image so it's smooth for the effects
+   if(alpha && !_alpha)setAlphaFromDepthAndCol(); // create '_alpha' if not yet available
 
-   Int fxs=((upscale || _get_target) ? -1 : eye_adapt+(bloom|combine)+motion+dof); // this counter specifies how many effects are still left in the queue, and if we can render directly to '_final', when up sampling then don't render to '_final', 'bloom' already handles merging alpha for 'combine'
+   Int fxs=((upscale || _get_target) ? -1 : eye_adapt+(bloom|alpha)+motion+dof); // this counter specifies how many effects are still left in the queue, and if we can render directly to '_final', when up sampling then don't render to '_final', 'bloom' already handles merging alpha for 'alpha'
    if(!D._view_main.full)Sh.ImgClamp->setConditional(ImgClamp(rt_desc.size)); // set 'ImgClamp' that may be needed for Bloom, DoF, MotionBlur, this is the viewport rect within texture, so reading will be clamped to what was rendered inside the viewport
 
    IMAGE_PRECISION rt_prec=D.litColRTPrecision();
@@ -2002,21 +2009,21 @@ void RendererClass::postProcess()
       T.adaptEye(*_col, *dest); Swap(_col, dest); // Eye Adaptation keeps Alpha
    }
 
-   rt_desc.type(GetImageRTType(combine, rt_prec)); // we need alpha channel after bloom only if we use combining
+   rt_desc.type(GetImageRTType(alpha, rt_prec)); // we need alpha channel after bloom only if we use alpha
 
    if(bloom) // bloom needs to be done before motion/dof especially because of per-pixel glow
    {
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
       T.bloom(*_col, *dest, combine); alpha_set=true; Swap(_col, dest); // Bloom sets Alpha
    }else
-   if(combine) // merge '_col' with '_alpha' (only if no bloom, because bloom already merged)
+   if(alpha) // merge '_col' with '_alpha' (only if no bloom, because bloom already merged)
    {
       // TODO: when using multi-sampling and 'D.particlesSoft' then there can be outlines around objects touching particles, this is because Particle soft shader uses TexDepthPoint
       Sh.Img [0]->set(_col  );
       Sh.ImgX[0]->set(_alpha);
       if(!--fxs)
       { // directly into '_final'
-         set(_final, null, true); D.alpha(ALPHA_MERGE);
+         set(_final, null, true); D.alpha(combine ? ALPHA_MERGE : ALPHA_NONE);
          GetCombineAlpha()->draw();
         _col=_final;
       }else
@@ -2038,13 +2045,13 @@ void RendererClass::postProcess()
    if(motion) // tests have shown that it's better to do Motion Blur before Depth of Field
    {
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
-      if(T.motionBlur(*_col, *dest, combine))return; alpha_set=true; Swap(_col, dest); // Motion Blur sets Alpha
+      if(T.motionBlur(*_col, *dest, alpha, combine))return; alpha_set=true; Swap(_col, dest); // Motion Blur sets Alpha
    }else _vel.clear(); // velocity could've been used for TAA, but after this stage we no longer need it
 
    if(dof) // after Motion Blur
    {
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
-      T.dof(*_col, *dest, combine); alpha_set=true; Swap(_col, dest); // DoF sets Alpha
+      T.dof(*_col, *dest, alpha, combine); alpha_set=true; Swap(_col, dest); // DoF sets Alpha
    }
    if(ms_samples_color.a && D.multiSample())
    {
@@ -2081,7 +2088,7 @@ void RendererClass::postProcess()
                case FILTER_CUBIC_FAST_SMOOTH:
                case FILTER_CUBIC_FAST_SHARP :
                   pixels=2+1; // 2 for filtering + 1 for borders
-                  Sh.imgSize(*_col); shader=(combine ? Sh.DrawTexCubicFastF : Sh.DrawTexCubicFastFRGB)[dither]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
+                  Sh.imgSize(*_col); shader=(alpha ? Sh.DrawTexCubicFastF : Sh.DrawTexCubicFastFRGB)[dither]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
                break;
 
                case FILTER_BEST            :
@@ -2090,12 +2097,12 @@ void RendererClass::postProcess()
                case FILTER_CUBIC_PLUS      :
                case FILTER_CUBIC_PLUS_SHARP:
                   pixels=3+1; // 3 for filtering + 1 for borders
-                  Sh.imgSize(*_col); Sh.loadCubicShaders(); shader=(combine ? Sh.DrawTexCubicF : Sh.DrawTexCubicFRGB)[dither]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
+                  Sh.imgSize(*_col); Sh.loadCubicShaders(); shader=(alpha ? Sh.DrawTexCubicF : Sh.DrawTexCubicFRGB)[dither]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
                break;
             }
             if(!shader)
             {
-               if(combine                                                          )shader=Sh.Draw  ;else
+               if(alpha                                                            )shader=Sh.Draw  ;else
                if(dither && (_col->highPrecision() || _col->size()!=_final->size()))shader=Sh.Dither;else // allow dithering only if the source has high precision, or if we're resizing (because that generates high precision too)
                                                                   {Sh.Step->set(1); shader=Sh.DrawA ;}    // use 'DrawA' to set Alpha Channel
             }
@@ -2117,6 +2124,114 @@ void RendererClass::postProcess()
          Sh.clear(Vec4(0, 0, 0, 1)); // force full alpha so back buffer effects can work ok
       }
    }
+}
+/******************************************************************************/
+void SetFov(Vec2 &fov, FOV_MODE fov_mode, Flt aspect)
+{
+   if(FovPerspective(fov_mode))
+   {
+      switch(fov_mode)
+      {
+         case FOV_X:
+            Clamp(fov.x, EPS, PI-EPS);
+            fov.y=2*Atan(Tan(fov.x*0.5f)/aspect);
+         break;
+
+         case FOV_Y:
+            Clamp(fov.y, EPS, PI-EPS);
+            fov.x=2*Atan(Tan(fov.y*0.5f)*aspect);
+         break;
+
+         case FOV_XY:
+            Clamp(fov.x, EPS, PI-EPS);
+            Clamp(fov.y, EPS, PI-EPS);
+         break;
+      }
+   }else
+   {
+      switch(fov_mode)
+      {
+       /*case FOV_ORTHO:
+            fov.x=fov.x;
+            fov.y=fov.y;
+         break;*/
+
+         case FOV_ORTHO_X:
+          //fov.x=fov.x;
+            fov.y=fov.x/aspect;
+         break;
+
+         case FOV_ORTHO_Y:
+          //fov.y=fov.y;
+            fov.x=fov.y*aspect;
+         break;
+      }
+   }
+}
+void RenderIcon(void (&render)(), C ViewSettings *view, ImageRT &image, C VecI2 &image_size, Int super_sample)
+{
+   if(image_size.x>0 && image_size.y>0)
+   {
+      Int shift=((super_sample<=1) ? 0 : Log2Ceil(UInt(super_sample)));
+      if(image.create(image_size, IMAGE_R8G8B8A8_SRGB))
+      {
+         ImageRT temp;
+      again:
+         if(shift)
+            if(!temp.create(VecI2(Min(image_size.x<<shift, D.maxTexSize()),
+                                  Min(image_size.y<<shift, D.maxTexSize())), IMAGE_R8G8B8A8_SRGB)){shift--; goto again;}
+         Vec2 fov_xy=(view ? view->fov : D.viewFov()); SetFov(fov_xy, view ? view->fov_mode : D.viewFovMode(), image.aspect());
+
+         SyncLocker lock(D._lock);
+
+         Byte       density=D.densityByte   (); D.densityFast1();
+         MOTION_MODE motion=D.motionMode    (); D.motionMode(MOTION_NONE);
+         Bool     allow_taa=Renderer.allow_taa; Renderer.allow_taa=false;
+
+         DisplayClass::ViewportSettings cur_view; cur_view.get();
+       //Bool                           view_force_square=D._view_square_pixel; not needed because FOV_XY is used
+
+       //D.viewForceSquarePixel(true);
+         D.view(D.rect(), view ? view->from : D.viewFrom(), view ? view->range : D.viewRange(), fov_xy, FOV_XY);
+
+         Renderer.target=(shift ? &temp : &image);
+         Renderer.alpha =true;
+         Renderer(render);
+         Renderer.alpha =false;
+         Renderer.target=null;
+
+         D.motionMode(motion).densityFast(density);
+         Renderer.allow_taa=allow_taa;
+
+         if(shift)
+         {
+            ImageRT *rt[Elms(Renderer._cur)], *ds;
+            REPAO(rt)=Renderer._cur[i];
+                  ds =Renderer._cur_ds;
+
+            ImageRT *cur=&temp, temp1;
+            if(shift>1)
+            {
+               ImageRT *next=&temp1;
+               for(;;)
+               {
+                  if(!next->create(cur->size()/2, cur->type()))break;
+                  cur->copyHw(*next, false);
+                  Swap(cur, next);
+                  if(--shift<=1)break;
+               }
+            }
+            cur->copyHw(image, false);
+
+            Renderer.set(rt[0], rt[1], rt[2], rt[3], ds, false); // don't restore viewport, because we reset viewport later below
+         }
+
+       //D.viewForceSquarePixel(view_force_square);
+         cur_view.set();
+         return;
+      }
+   }
+   image.del();
 }
 /******************************************************************************/
 }

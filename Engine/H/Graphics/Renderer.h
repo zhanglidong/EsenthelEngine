@@ -73,6 +73,7 @@ struct RendererClass // handles rendering
 {
    RENDER_STAGE stage               ; // display desired rendering stage, default=RS_DEFAULT
    Bool         combine             , // if enabled this will blend the final rendered image onto the previous background instead of fully overwriting it, default=false
+                alpha               , // if enabled then when using 'Renderer.target' or 'Renderer.get', result will have alpha channel set based on opacity instead of 1, default=false
                 wire                , // if use wireframe during rendering (not available under OpenGL ES), default=false
                 indoor              , // if current rendering is in-door (has a lot of overlapping occluders), this affects how non-directional lights are rendered, this is only a performance hint (it does not affect rendering result, but only affects performance), default=false
                 allow_taa           ; // if allow Temporary Anti-Aliasing, default=true
@@ -108,11 +109,12 @@ struct RendererClass // handles rendering
    Bool wantTAA       ()C;   Bool hasTAA       ()C;
                              Bool hasAO        ()C;
 
-   Bool fastCombine()C;
-   Bool slowCombine()C;
-   Bool hasVolLight()C;
-   Bool anyDeferred()C;
-   Bool anyForward ()C;
+   Bool fastCombine ()C;
+   Bool slowCombine ()C;
+   Bool processAlpha()C;
+   Bool hasVolLight ()C;
+   Bool anyDeferred ()C;
+   Bool anyForward  ()C;
 #endif
 
    // get / set
@@ -179,8 +181,8 @@ struct RendererClass // handles rendering
    void   resolveDepth1();
    void adaptEye       (ImageRT &src, ImageRT &dest);
    void bloom          (ImageRT &src, ImageRT &dest, Bool combine);
-   Bool motionBlur     (ImageRT &src, ImageRT &dest, Bool combine);
-   void dof            (ImageRT &src, ImageRT &dest, Bool combine);
+   Bool motionBlur     (ImageRT &src, ImageRT &dest, Bool alpha, Bool combine);
+   void dof            (ImageRT &src, ImageRT &dest, Bool alpha, Bool combine);
 
    void setAlphaFromDepth      ();
    void setAlphaFromDepthAndCol();
@@ -351,6 +353,8 @@ void SetStencilMode (  Bool     terrain_only=false             ); // set stencil
 void SetBehindBias  (  Flt      distance                       ); // set bias tolerance for behind effect in meters , this can be called before rendering       meshes in RM_BEHIND              mode
 void SetBlendAlpha  (ALPHA_MODE alpha       =ALPHA_BLEND_FACTOR); // set custom alpha blending of rendered meshes   , this can be called before rendering       meshes in RM_BLEND               mode
 void SetEarlyZ      (  Bool     on          =false             ); // set early Z of rendered meshes                 , this can be called before rendering       meshes in RM_PREPARE             mode, default=false
+
+void RenderIcon(void (&render)(), C ViewSettings *view, ImageRT &image, C VecI2 &image_size, Int super_sample=1); // create icon by performing rendering into 'image', 'render'=rendering function, 'view'=view settings (optional, if null then current 'D.view' settings will be used), 'image'=image render target, 'image_size'=image size in pixels, 'super_sample'=super sampling to be used for rendering (1=disabled, 2=2x, 4=4x, ..), this function ignores 'D.density', 'D.motionMode', 'D.tAA'. This function can be called at any time (in State Update or Draw).
 /******************************************************************************
    Use following functions for setting Shader Parameter Changes for specific instances of meshes
    Call in following order: 1. link, 2. draw, 3. unlink, like this:

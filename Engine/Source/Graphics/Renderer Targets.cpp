@@ -28,7 +28,7 @@ namespace EE{
 
    '_gui' is set to '_main', unless stereoscopic rendering is enabled then it's set to VR RT
 
-   If using Renderer.combine (Renderer.slowCombine && D.independentBlendAvailable) #RTOutput.Blend then after all non-blended meshes are drawn:
+   If using Renderer.combine or Renderer.alpha (Renderer.processAlpha && D.independentBlendAvailable) #RTOutput.Blend then after all non-blended meshes are drawn:
      -'_alpha' RT is created and set as RT2
      -ALPHA_MODE states such as ALPHA_BLEND_DEC ALPHA_BLEND_FACTOR are set to Increase RT2
      -all alpha-blended effects output alpha into RT2:
@@ -42,8 +42,8 @@ namespace EE{
          -'_ds_1s' is set to down-sampled copy of '_ds'
          -both '_ds' and '_ds_1s' have STENCIL_REF_MSAA set
       In Non-Deferred Renderer:
-         -if "slowCombine || ms_samples_color.a"       then '_ds_1s' has STENCIL_REF_MSAA set
-         -if "Fog.draw || Sky.isActual || slowCombine" then '_ds'    has STENCIL_REF_MSAA set
+         -if "processAlpha || ms_samples_color.a"       then '_ds_1s' has STENCIL_REF_MSAA set
+         -if "Fog.draw || Sky.isActual || processAlpha" then '_ds'    has STENCIL_REF_MSAA set
 
    In OpenGL (except iOS):
       '_main' and '_main_ds' don't have '_rb' and '_txtr' set, because they're provided by the system and not created by the engine.
