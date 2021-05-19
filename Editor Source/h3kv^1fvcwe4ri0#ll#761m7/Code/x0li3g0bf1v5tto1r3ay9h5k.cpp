@@ -279,7 +279,7 @@ class IconEditor : PropWin
    {
       MOTION_MODE      motion       =D.motionMode     (); D. motionMode    (MOTION_NONE);
       AMBIENT_MODE     ambient      =D.ambientMode    (); D.ambientMode    (AMBIENT_ULTRA);
-      BUMP_MODE        bump         =D.bumpMode       (); if(final && bump<BUMP_PARALLAX)D.bumpMode(BUMP_PARALLAX);
+      BUMP_MODE        bump         =D.bumpMode       (); if(final && bump<BUMP_RELIEF)D.bumpMode(BUMP_RELIEF);
       EDGE_SOFTEN_MODE edge         =D.edgeSoften     (); D.edgeSoften     (EDGE_SOFTEN_SMAA);
       SHADOW_MODE      shadow       =D.shadowMode     (); D.shadowMode     (SHADOW_MAP);
       Vec              ambient_col_l=D.ambientColorL  (); D.ambientColorS  (settings.ambient_col);
