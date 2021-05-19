@@ -444,7 +444,7 @@ IconEditor IconEdit;
    ElmIcon* IconEditor::data()C {return elm ? elm->iconData() : null;}
    void IconEditor::PreChanged(C Property &prop) {IconEdit.undos.set(&prop);}
    void    IconEditor::Changed(C Property &prop) {IconEdit.setChanged();}
-   void IconEditor::Object(  IconEditor &ie, C Str &text) {if(ElmIcon *data=ie.data()){data->obj_id=Proj.findElmID(text, ELM_OBJ); data->obj_time.getUTC();}}
+   void IconEditor::Object(  IconEditor &ie, C Str &text) {if(ElmIcon *data=ie.data()){data->obj_id=Proj.findElmID(text, ELM_OBJ); data->obj_time.getUTC(); ie.meshVariationChanged();}}
    Str  IconEditor::Object(C IconEditor &ie             ) {if(ElmIcon *data=ie.data())return Proj.elmFullName(data->obj_id); return S;}
    void IconEditor::Variation(  IconEditor &ie, C Str &text) {if(ElmIcon *data=ie.data())if(ie.var){data->variation_id=(InRange(ie.var->combobox(), ie.mesh_variations) ? ie.mesh_variations[ie.var->combobox()].id : ElmIcon::InheritVariation); data->variation_time.getUTC();}}
    Str  IconEditor::Variation(C IconEditor &ie             ) {if(ElmIcon *data=ie.data())REPA(ie.mesh_variations)if(data->variation_id==ie.mesh_variations[i].id)return i; return S;}

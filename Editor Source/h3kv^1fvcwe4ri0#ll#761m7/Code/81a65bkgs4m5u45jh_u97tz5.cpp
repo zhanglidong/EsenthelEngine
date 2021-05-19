@@ -964,8 +964,17 @@ class ProjectEx : ProjectHierarchy
 
             case ELM_ENUM: {if(ElmData *data=elm.Data())data.newData(); makeGameVer(elm); Server.setElmFull(elm.id);} break;
 
+            case ELM_ICON:
+            {
+               if(ElmIcon *data=elm.iconData())
+               {
+                  data.newData();
+                  if(parent && parent.type==ELM_OBJ)data.obj_id=parent.id;
+               }
+               Image image; image.save(gamePath(elm)); savedGame(elm); Server.setElmFull(elm.id); // save empty game image (edit can be left empty because it will be set to default)
+            }break;
+
             case ELM_GUI        : {if(ElmGui        *data=elm.       guiData())data.newData(); GuiObjs       go; go   .save(gamePath(elm)); savedGame(elm); Server.setElmFull(elm.id);} break; // currently gui doesn't have edit version
-            case ELM_ICON       : {if(ElmIcon       *data=elm.      iconData())data.newData(); Image      image; image.save(gamePath(elm)); savedGame(elm); Server.setElmFull(elm.id);} break; // save empty game image (edit can be left empty because it will be set to default)
             case ELM_IMAGE_ATLAS: {if(ElmImageAtlas *data=elm.imageAtlasData())data.newData(); ImageAtlas atlas; atlas.save(gamePath(elm)); savedGame(elm); Server.setElmFull(elm.id);} break; // save empty game atlas
 
             case ELM_SOUND: {if(ElmData *data=elm.Data())data.newData(); File f; f.writeTry(gamePath(elm)); f.del(); savedGame(elm); Server.setElmFull(elm.id);} break;
