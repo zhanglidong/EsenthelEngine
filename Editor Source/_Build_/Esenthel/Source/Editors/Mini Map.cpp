@@ -183,7 +183,7 @@ void DrawMiniMap()
          bool             bloom_half =D.    bloomHalf(); D.bloomHalf    (true            );
          EDGE_SOFTEN_MODE edge       =D.   edgeSoften(); D.edgeSoften   (EDGE_SOFTEN_SMAA);
          DOF_MODE         dof        =D.      dofMode(); D.    dofMode  (DOF_NONE        );
-         flt              lod_fac    =D.    lodFactor(); D.  lodFactor  (0               );
+         flt              lod_factor =D.    lodFactor(); D.  lodFactor  (0               );
          byte             shd_soft   =D.   shadowSoft(); D.shadowSoft   (1);
          byte             shd_num    =D. shadowMapNum(); D.shadowMapNum (6);
          bool             shd_jitter =D. shadowJitter(); D.shadowJitter (false);
@@ -228,14 +228,14 @@ void DrawMiniMap()
 
          if(!final)D.pixelToScreen(RectI(viewport.centerI()).extend(res/2)).draw(RED, false);
 
-         D.  lodFactor  (lod_fac);
-         D.    dofMode  (dof    );
-         D. motionMode  (motion );
-         D.ambientMode  (ambient).ambientRes(ambient_res);
+         D.  lodFactor  (lod_factor);
+         D.    dofMode  (dof       );
+         D. motionMode  (motion    );
+         D.ambientMode  (ambient   ).ambientRes(ambient_res);
          D.bloomHalf    (bloom_half);
-         D.shadowSoft   (shd_soft).shadowMapNum(shd_num).shadowJitter(shd_jitter).shadow_step=shd_step;
-         D.edgeSoften   (edge   );
-         D.eyeAdaptation(eye_adapt);
+         D.shadowSoft   (shd_soft  ).shadowMapNum(shd_num).shadowJitter(shd_jitter).shadow_step=shd_step;
+         D.edgeSoften   (edge      );
+         D.eyeAdaptation(eye_adapt );
          D.viewForceSquarePixel(false).viewFrom(view_from).viewRange(view_range).viewFov(view_fov);
          Water.draw      =ocean;
 

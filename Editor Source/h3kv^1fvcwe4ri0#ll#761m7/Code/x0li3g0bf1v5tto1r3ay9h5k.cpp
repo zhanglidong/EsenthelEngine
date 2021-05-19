@@ -286,7 +286,7 @@ class IconEditor : PropWin
       flt              ambient_contr=D.ambientContrast(); D.ambientContrast(settings.ambient_occl);
       flt              ambient_range=D.ambientRange   (); D.ambientRange   (settings.ambient_range);
       int              ambient_res  =D.ambientRes     (); D.ambientRes     (1);
-      flt              lod_fac      =D.lodFactor      (); D.lodFactor      (0);
+      flt              lod_factor   =D.lodFactor      (); D.lodFactor      (0);
       DOF_MODE         dof          =D.dofMode        (); D.dofMode        (DOF_NONE);
       bool             bloom_max    =D.bloomMaximum   ();
       bool             bloom_half   =D.bloomHalf      (), shadow_jitter=D.shadowJitter();
@@ -442,14 +442,14 @@ class IconEditor : PropWin
 
       D.viewForceSquarePixel(false).viewFrom(view_from).viewRange(view_range).viewFov(view_fov);
       D.   bloomBlurs(bloom_blurs).bloomHalf(bloom_half).bloomMaximum(bloom_max);
-      D.   shadowMode(shadow ).shadowSoft(shadow_soft).shadowJitter(shadow_jitter).shadowMapNum(shd_map_num);
-      D.    lodFactor(lod_fac);
-      D.      dofMode(dof    );
-      D.   edgeSoften(edge   );
-      D.     bumpMode(bump   );
-      D.  ambientMode(ambient).ambientColorL(ambient_col_l).ambientContrast(ambient_contr).ambientRange(ambient_range).ambientRes(ambient_res);
-      D.   motionMode(motion );
-      D.eyeAdaptation(eye_adapt);
+      D.   shadowMode(shadow    ).shadowSoft(shadow_soft).shadowJitter(shadow_jitter).shadowMapNum(shd_map_num);
+      D.    lodFactor(lod_factor);
+      D.      dofMode(dof       );
+      D.   edgeSoften(edge      );
+      D.     bumpMode(bump      );
+      D.  ambientMode(ambient   ).ambientColorL(ambient_col_l).ambientContrast(ambient_contr).ambientRange(ambient_range).ambientRes(ambient_res);
+      D.   motionMode(motion    );
+      D.eyeAdaptation(eye_adapt );
       AstrosDraw      =astros;
       Water.draw      =ocean;
    }

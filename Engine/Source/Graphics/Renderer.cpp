@@ -2185,6 +2185,8 @@ void RenderIcon(void (&render)(), C ViewSettings *view, ImageRT &image, C VecI2 
 
          auto    density=D.densityByte   (); D.densityFast1();
          auto max_lights=D.maxLights     (); D.maxLights(0);
+         auto  eye_adapt=D.eyeAdaptation (); D.eyeAdaptation(false);
+         auto lod_factor=D.lodFactor     (); D.lodFactor(0);
          auto     motion=D.motionMode    (); D.motionMode(MOTION_NONE);
          auto  allow_taa=Renderer.allow_taa; Renderer.allow_taa=false;
 
@@ -2201,7 +2203,7 @@ void RenderIcon(void (&render)(), C ViewSettings *view, ImageRT &image, C VecI2 
          Renderer.alpha =false;
          Renderer.target=null;
 
-         D.motionMode(motion).maxLights(max_lights).densityFast(density);
+         D.motionMode(motion).maxLights(max_lights).eyeAdaptation(eye_adapt).lodFactor(lod_factor).densityFast(density);
          Renderer.allow_taa=allow_taa;
 
          if(shift)
