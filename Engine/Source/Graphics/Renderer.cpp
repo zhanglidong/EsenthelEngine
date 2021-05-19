@@ -2180,18 +2180,19 @@ void RenderIcon(void (&render)(), C ViewSettings *view, ImageRT &image, C VecI2 
          if(shift)
             if(!temp.create(VecI2(Min(image_size.x<<shift, D.maxTexSize()),
                                   Min(image_size.y<<shift, D.maxTexSize())), IMAGE_R8G8B8A8_SRGB)){shift--; goto again;}
-         Vec2 fov_xy=(view ? view->fov : D.viewFov()); SetFov(fov_xy, view ? view->fov_mode : D.viewFovMode(), image.aspect());
 
          SyncLocker lock(D._lock);
 
-         Byte       density=D.densityByte   (); D.densityFast1();
-         MOTION_MODE motion=D.motionMode    (); D.motionMode(MOTION_NONE);
-         Bool     allow_taa=Renderer.allow_taa; Renderer.allow_taa=false;
+         auto    density=D.densityByte   (); D.densityFast1();
+         auto max_lights=D.maxLights     (); D.maxLights(0);
+         auto     motion=D.motionMode    (); D.motionMode(MOTION_NONE);
+         auto  allow_taa=Renderer.allow_taa; Renderer.allow_taa=false;
 
          DisplayClass::ViewportSettings cur_view; cur_view.get();
        //Bool                           view_force_square=D._view_square_pixel; not needed because FOV_XY is used
 
        //D.viewForceSquarePixel(true);
+         Vec2 fov_xy=(view ? view->fov : D.viewFov()); SetFov(fov_xy, view ? view->fov_mode : D.viewFovMode(), image.aspect());
          D.view(D.rect(), view ? view->from : D.viewFrom(), view ? view->range : D.viewRange(), fov_xy, FOV_XY);
 
          Renderer.target=(shift ? &temp : &image);
@@ -2200,7 +2201,7 @@ void RenderIcon(void (&render)(), C ViewSettings *view, ImageRT &image, C VecI2 
          Renderer.alpha =false;
          Renderer.target=null;
 
-         D.motionMode(motion).densityFast(density);
+         D.motionMode(motion).maxLights(max_lights).densityFast(density);
          Renderer.allow_taa=allow_taa;
 
          if(shift)
