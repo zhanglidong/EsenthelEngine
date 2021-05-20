@@ -45,7 +45,7 @@ void _Map::del  () {_memx.del  (); _elms=0; Free(_order);}
 void _MapTS::clear() {SyncUnlocker unlocker(D._lock); SyncLocker locker(_lock); super::clear();}
 void _MapTS::del  () {SyncUnlocker unlocker(D._lock); SyncLocker locker(_lock); super::del  ();}
 
-Byte _Map::mode(Byte mode) {Byte old_mode=T._mode; T._mode=mode; return old_mode;}
+Byte _Map::mode(Byte mode) {auto old_mode=T._mode; T._mode=mode; return old_mode;}
 
 CPtr _Map::key       (Int i)C {return elmKey (*_order[i]);}
  Ptr _Map::operator[](Int i)  {return elmData(*_order[i]);}

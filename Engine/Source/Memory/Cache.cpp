@@ -56,7 +56,7 @@ _Cache::_Cache(CChar8 *name, Int block_elms, Bool (*load)(Ptr data, C Str &file)
 }
 void _Cache::clear        (                                                            ) {SyncUnlocker unlocker(D._lock); SyncLocker locker(_lock); _elms=0; _memx.clear(); _delay_remove.clear();} // here can't Free '_order' because it assumes that its size is '_memx.maxElms()'
 void _Cache::del          (                                                            ) {SyncUnlocker unlocker(D._lock); SyncLocker locker(_lock); _elms=0; _memx.del  (); _delay_remove.del  (); Free(_order);}
-Byte _Cache::mode         (Byte mode                                                   ) {Byte old_mode=T._mode; T._mode=mode; return old_mode;}
+Byte _Cache::mode         (Byte mode                                                   ) {auto old_mode=T._mode; T._mode=mode; return old_mode;}
 void _Cache::caseSensitive(Bool sensitive                                              ) {T._case_sensitive=sensitive;}
 void _Cache::setLoadUser  (Bool (*load_user)(Ptr data, C Str &file, Ptr user), Ptr user) {T._user=user; T._load=null; T._load_user=load_user;}
 void _Cache::delayRemove  (Flt  time                                                   )
