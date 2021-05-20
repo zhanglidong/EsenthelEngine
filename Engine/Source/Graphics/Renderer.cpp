@@ -2237,6 +2237,13 @@ void RenderIcon(void (&render)(), C ViewSettings *view, ImageRT &image, C VecI2 
    }
    image.del();
 }
+void RenderIcon(void (&render)(), C ViewSettings *view, Image &image, C VecI2 &image_size, Int super_sample)
+{
+   ImageRT temp; Image &temp_image=temp;
+   Swap(image, temp_image); // Swap to try to reuse existing 'image' if it was already created #SwapImageRT
+   RenderIcon(render, view, temp, image_size, super_sample);
+   Swap(image, temp_image);
+}
 /******************************************************************************/
 }
 /******************************************************************************/
