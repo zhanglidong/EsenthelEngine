@@ -320,7 +320,7 @@ Bool ImageRT::create(C VecI2 &size, IMAGE_TYPE type, IMAGE_MODE mode, Byte sampl
    )
    if(createViews())
    {
-   #if DX11
+   #if 0 && DX11
       {SyncLocker locker(D._lock); clearHw();} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
    #endif
       Time.skipUpdate();
