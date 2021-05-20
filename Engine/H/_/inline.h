@@ -1786,11 +1786,11 @@ T1(TYPE)  void  Cache<TYPE>::update() {return super::update();}
 
 T1(TYPE)  void  Cache<TYPE>::setLoadUser(Ptr user) {super::setLoadUser(ClassFunc<TYPE>::LoadUser, user);}
 
-T1(TYPE) T1(EXTENDED)  Cache<TYPE>&  Cache<TYPE>::replaceClass() {ASSERT_BASE_EXTENDED<TYPE, EXTENDED>(); lock(); del(); /*_data_offset=OFFSET(typename Cache<EXTENDED>::Elm, data);*/ _desc_offset=OFFSET(typename Cache<EXTENDED>::Elm, desc); _memx.replaceClass<typename Cache<EXTENDED>::Elm>(); unlock(); return T;}
+T1(TYPE) T1(EXTENDED)  Cache<TYPE>&  Cache<TYPE>::replaceClass() {ASSERT_BASE_EXTENDED<TYPE, EXTENDED>(); lock(); del(); /*_data_offset=OFFSET(typename Cache<EXTENDED>::Elm, data);*/ _desc_offset=OFFSET(typename Cache<EXTENDED>::Elm, desc); _memx.replaceClass<typename Cache<EXTENDED>::Elm>(); _load=ClassFunc<EXTENDED>::Load; unlock(); return T;}
 
 T1(TYPE)  Cache<TYPE>&  Cache<TYPE>::operator=(C Cache<TYPE> &src) {if(this!=&src){lock(); src.lock(); lockedFrom(src); FREPA(T)lockedData(i)=src.lockedData(i); src.unlock(); unlock();} return T;}
 
-T1(TYPE)  Cache<TYPE>::Cache(CChar8 *name, Int block_elms) : _Cache(name, block_elms, ClassFunc<TYPE>::Load) {replaceClass<TYPE>();}
+T1(TYPE)  Cache<TYPE>::Cache(CChar8 *name, Int block_elms) : _Cache(name, block_elms) {replaceClass<TYPE>();}
 
          inline Int Elms(C _Cache       &cache) {return cache.elms();}
 T1(TYPE) inline Int Elms(C  Cache<TYPE> &cache) {return cache.elms();}

@@ -96,7 +96,7 @@ mutable Byte         _d_lock;
  C Desc& lockedDesc(Int i)C;
    CPtr  lockedData(Int i)C;
 
-   explicit _Cache(CChar8 *name, Int block_elms, Bool (*load)(Ptr data, C Str &file));
+   explicit _Cache(CChar8 *name, Int block_elms);
 
    NO_COPY_CONSTRUCTOR(_Cache);
 

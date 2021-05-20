@@ -39,7 +39,7 @@ static Flt      DelayRemoveWaited;
 C _Cache::Desc& _Cache::lockedDesc(Int i)C {return elmDesc(*_order[i]);}
    CPtr         _Cache::lockedData(Int i)C {return elmData(*_order[i]);}
 
-_Cache::_Cache(CChar8 *name, Int block_elms, Bool (*load)(Ptr data, C Str &file)) : _memx(block_elms)
+_Cache::_Cache(CChar8 *name, Int block_elms) : _memx(block_elms)
 {
   _d_lock=0;
   _case_sensitive=false;
@@ -49,7 +49,7 @@ _Cache::_Cache(CChar8 *name, Int block_elms, Bool (*load)(Ptr data, C Str &file)
   _debug_name=name;
   _order=null;
   _user =null;
-  _load =load;
+  _load =null;
   _load_user=null;
   _can_be_removed=null;
   _delay_remove_counter=0; _delay_remove_time=0; _delay_remove_check=0;
