@@ -17,7 +17,7 @@ static Flt      DelayRemoveWaited;
       -inside 'Draw' during drawing we load an image (D._lock.on, Images._lock) -> deadlock
    Instead of it, during drawing it will be: D._lock.on, D._lock.off, Images.lock and unlocks...
 
-   We have to do this even if we're not going to perform and 'D' operations:
+   We have to do this even if we're not going to perform any 'D' operations:
       -background loading thread calls                                 (Images._lock, D._lock.on)
       -during 'Draw' drawing (where D is already locked) we use 'find' (D._lock.on, Images._lock) -> deadlock
 
