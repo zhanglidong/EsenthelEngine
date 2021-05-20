@@ -1185,7 +1185,7 @@ ALIGN_ASSERT(Shader11, ds);
 ALIGN_ASSERT(Shader11, ps);
 /*Shader11::~Shader11()
 {
-   /* no need to release 'vs,hs,ds,ps', shaders since they're just copies from 'Shader*11'
+   /* can't release 'vs,hs,ds,ps' shaders since they're just copies from 'Shader*11'
    if(D.created())
    {
     //SyncLocker locker(D._lock); lock not needed for DX11 'Release'
