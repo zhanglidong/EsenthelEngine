@@ -552,6 +552,7 @@ void RendererClass::cleanup1()
 }
 RendererClass& RendererClass::operator()(void (&render)())
 {
+   DEBUG_ASSERT(App.mainThread(), "Rendering can't be performed on a secondary thread"); // on GL VAOs are limited only to the main thread, so they can't be used at all on other threads. And on all GPU_APIs Cache/Map use SyncUnlocker which may unlock D._lock while still in Rendering, and at that time State Update/Draw may lock D._lock and perform operations on GPU Device and Renderer itself, or even just change some display settings, especially D.view*, or others. To solve this, SyncUnlocker would have to be not used (not sure if possible), or another SyncLock D._draw_lock introduced, and used in most places where D._lock is used (have to search for "D._lock" and "_lock" in "Display.cpp")
 #if DEBUG
    if(Kb.b(KB_NP0))stage=RS_DEPTH;else
    if(Kb.b(KB_NP1))stage=RS_COLOR;else
