@@ -180,12 +180,15 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
    void          setSync          (                             );
    void          gammaSet         (                             );
    Bool          densityFast      (Byte             density     );
-   void          densityUpdate    (                             );
    void          densityFast1     (                             ) {densityFast(127);}
+   void          densityUpdate    (                             );
+   Bool          ambientResFast   (Byte             scale       );
+   void          ambientResFast1  (                             ) {ambientResFast(255);}
    void          setColorLUT      (                             );
                                                                      Bool             densityUsed       ()C {return _density!=127     ;} // get if Density is != 1.0
                                                                      Bool             densityUpsample   ()C {return _density> 127     ;} // get if Density is >  1.0
-                                                                     Byte             densityByte       ()C {return _density          ;} // get    Density Byte
+                                                                     Byte             densityFast       ()C {return _density          ;} // get    Density
+                                                                     Byte             ambientResFast    ()C {return _amb_res          ;} // get    Ambient Resolution
                                                                      Bool             multiSample       ()C {return _samples>1        ;} // get if Multi Sampling is used
                                                                      void             aspectRatioEx     (Bool force=true, Bool quiet=false);
                                                            constexpr Bool             signedNrmRT       ()C {return false             ;} // if Normal     Render Target  is  signed #SIGNED_NRM_RT

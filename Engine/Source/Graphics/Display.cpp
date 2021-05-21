@@ -2585,7 +2585,7 @@ DisplayClass& DisplayClass::scale(Flt scale)
 void DisplayClass::densityUpdate()
 {
 again:
-  _render_res=ByteScale2Res(res(), densityByte());
+  _render_res=ByteScale2Res(res(), densityFast());
    if(_render_res.max()>maxTexSize() && maxTexSize()>0 && densityUpsample()) // if calculated size exceeds possible max texture size, then we need to clamp the density, don't try to go below 1.0 density
    {
       Flt  max_density_f=Flt(maxTexSize())/res().max();
@@ -2596,7 +2596,7 @@ again:
 }
 Bool DisplayClass::densityFast(Byte density)
 {
-   if(density!=densityByte())
+   if(density!=densityFast())
    {
       T._density=density;
       densityUpdate();
@@ -2604,15 +2604,10 @@ Bool DisplayClass::densityFast(Byte density)
    }
    return false;
 }
-Flt           DisplayClass::density(           )C {return ByteScale2ToFlt(densityByte());}
-DisplayClass& DisplayClass::density(Flt density)
-{
-   Byte b=FltToByteScale2(density);
-   if(densityFast(b))Renderer.rtClean();
-   return T;
-}
-DisplayClass& DisplayClass::densityFilter(FILTER_TYPE filter) {_density_filter=filter; return T;}
-DisplayClass& DisplayClass::samples(Byte samples)
+Flt           DisplayClass::density      (                  )C {return ByteScale2ToFlt(densityFast());}
+DisplayClass& DisplayClass::density      (Flt        density)  {if(densityFast(FltToByteScale2(density)))Renderer.rtClean(); return T;}
+DisplayClass& DisplayClass::densityFilter(FILTER_TYPE filter)  {_density_filter=filter; return T;}
+DisplayClass& DisplayClass::samples      (Byte       samples)
 {
    samples=DisplaySamples(samples);
    if(T._samples!=samples){T._samples=samples; Renderer.rtClean();}
@@ -3081,7 +3076,6 @@ Bool DisplayClass::aoWant()C
       &&  ambientContrast()> EPS_COL8
       && (aoAll() || (ambientColorD()+nightShadeColorD()).max()>EPS_COL8_NATIVE); // no need to calculate AO if it's too small
 }
-Flt DisplayClass::ambientRes   ()C {return ByteScaleToFlt(_amb_res);}
 Flt DisplayClass::ambientPowerS()C {return LinearToSRGB(ambientPowerL());}
 Vec DisplayClass::ambientColorS()C {return LinearToSRGB(ambientColorL());}
 
@@ -3099,11 +3093,28 @@ void DisplayClass::ambientSetRange()C
    Sh.AmbientRangeInvSqr->set(Sqr(1.0f/D.ambientRange()) );
 }
 
-DisplayClass& DisplayClass::ambientRes     (  Flt          scale     ) {Byte res=FltToByteScale( scale  );    if(res!=_amb_res){_amb_res =res ; Renderer.rtClean();} return T;}
-DisplayClass& DisplayClass::ambientMode    (  AMBIENT_MODE mode      ) {Clamp(mode, AMBIENT_FLAT, AMBIENT_MODE(AMBIENT_NUM-1)); _amb_mode=mode;                      return T;}
-DisplayClass& DisplayClass::ambientSoft    (  Byte         soft      ) {MIN  (soft,                       AMBIENT_SOFT_NUM-1 ); _amb_soft=soft;                      return T;}
-DisplayClass& DisplayClass::ambientJitter  (  Bool         jitter    ) {_amb_jitter=jitter;                                                                          return T;}
-DisplayClass& DisplayClass::ambientNormal  (  Bool         normal    ) {_amb_normal=normal;                                                                          return T;}
+
+Flt  DisplayClass::ambientRes    (          )C {return ByteScaleToFlt(ambientResFast());}
+Bool DisplayClass::ambientResFast(Byte scale)
+{
+   if(scale!=ambientResFast())
+   {
+      T._amb_res=scale;
+      return true;
+   }
+   return false;
+}
+DisplayClass& DisplayClass::ambientRes(Flt scale)
+{
+   Byte res=FltToByteScale(scale);
+   if(ambientResFast(res))Renderer.rtClean();
+   return T;
+}
+
+DisplayClass& DisplayClass::ambientMode    (  AMBIENT_MODE mode      ) {Clamp(mode, AMBIENT_FLAT, AMBIENT_MODE(AMBIENT_NUM-1)); _amb_mode=mode; return T;}
+DisplayClass& DisplayClass::ambientSoft    (  Byte         soft      ) {MIN  (soft,                       AMBIENT_SOFT_NUM-1 ); _amb_soft=soft; return T;}
+DisplayClass& DisplayClass::ambientJitter  (  Bool         jitter    ) {_amb_jitter=jitter;                                                     return T;}
+DisplayClass& DisplayClass::ambientNormal  (  Bool         normal    ) {_amb_normal=normal;                                                     return T;}
 DisplayClass& DisplayClass::ambientPowerS  (  Flt          srgb_power) {return ambientPowerL(SRGBToLinear(srgb_power));}
 DisplayClass& DisplayClass::ambientColorS  (C Vec         &srgb_color) {return ambientColorL(SRGBToLinear(srgb_color));}
 DisplayClass& DisplayClass::ambientPowerL  (  Flt           lin_power) {MAX(lin_power, 0);                                                    if(_amb_color_l !=lin_power){_amb_color_l =lin_power; ambientSet();} return T;}

@@ -752,27 +752,27 @@ Bool RendererClass::reflection()
    if(_mirror_want)
    {
       // remember current settings and disable fancy effects
-      Camera           cam            =ActiveCam            ;
-      Bool             combine        =T. combine           ;                     T. combine        =false             ;
-      Bool             alpha          =T. alpha             ;                     T. alpha          =false             ;
-      Bool             get_target     =T._get_target        ;                     T._get_target     =true              ;
-      Bool             stereo         =T._stereo            ;                     T._stereo         =false             ; // don't reset FOV because we want to render the reflection with the same exact FOV settings as only one eye, because this reflection will be reused for both eyes
-      Int              eye_num        =T._eye_num           ;                     T._eye_num        =1                 ;
-      RENDER_TYPE      render_type    =T._cur_type          ;                     T._cur_type       =Water.reflectionRenderer();
-      Bool             hp_col_rt      =D.highPrecColRT    ();                     D._hp_col_rt      =false             ;
-      Bool             hp_nrm_rt      =D.highPrecNrmRT    ();                     D._hp_nrm_rt      =false             ;
-      Bool             hp_lum_rt      =D.highPrecLumRT    ();                     D._hp_lum_rt      =false             ;
-      IMAGE_PRECISION  lit_col_rt_prec=D.litColRTPrecision();                     D._lit_col_rt_prec=IMAGE_PRECISION_8 ;
-      Bool             eye_adapt      =D.eyeAdaptation    ();                     D.eyeAdaptation   (false            );
-      Bool             vol_light      =D.volLight         ();                     D.volLight        (false            ); // if it will be enabled, then calling 'volumetric' is required and clearing '_vol_is'
-      AMBIENT_MODE     amb_mode       =D.ambientMode      ();                     D.ambientMode     (AMBIENT_FLAT     );
-      MOTION_MODE      mtn_mode       =D.motionMode       ();                     D.motionMode      (MOTION_NONE      );
-      SHADOW_MODE      shd_mode       =D.shadowMode       (); if(!_mirror_shadows)D.shadowMode      (SHADOW_NONE      );
-      Byte             shd_soft       =D.shadowSoft       ();                     D.shadowSoft      (0                );
-      Bool             shd_jitter     =D.shadowJitter     ();                     D.shadowJitter    (false            );
-      EDGE_SOFTEN_MODE edge_soft      =D.edgeSoften       ();                     D._edge_soften    =EDGE_SOFTEN_NONE  ;
-      Bool             tesselation    =D.tesselationAllow ();                     D.tesselationAllow(false            );
-      Byte             density        =D.densityByte      ();                     D.densityFast     (Mid(((D.densityByte()+1)>>_mirror_resolution)-1, 0, 255));
+      auto cam            =ActiveCam            ;
+      auto combine        =T. combine           ;                     T. combine        =false             ;
+      auto alpha          =T. alpha             ;                     T. alpha          =false             ;
+      auto get_target     =T._get_target        ;                     T._get_target     =true              ;
+      auto stereo         =T._stereo            ;                     T._stereo         =false             ; // don't reset FOV because we want to render the reflection with the same exact FOV settings as only one eye, because this reflection will be reused for both eyes
+      auto eye_num        =T._eye_num           ;                     T._eye_num        =1                 ;
+      auto render_type    =T._cur_type          ;                     T._cur_type       =Water.reflectionRenderer();
+      auto hp_col_rt      =D.highPrecColRT    ();                     D._hp_col_rt      =false             ;
+      auto hp_nrm_rt      =D.highPrecNrmRT    ();                     D._hp_nrm_rt      =false             ;
+      auto hp_lum_rt      =D.highPrecLumRT    ();                     D._hp_lum_rt      =false             ;
+      auto lit_col_rt_prec=D.litColRTPrecision();                     D._lit_col_rt_prec=IMAGE_PRECISION_8 ;
+      auto eye_adapt      =D.eyeAdaptation    ();                     D.eyeAdaptation   (false            );
+      auto vol_light      =D.volLight         ();                     D.volLight        (false            ); // if it will be enabled, then calling 'volumetric' is required and clearing '_vol_is'
+      auto amb_mode       =D.ambientMode      ();                     D.ambientMode     (AMBIENT_FLAT     );
+      auto mtn_mode       =D.motionMode       ();                     D.motionMode      (MOTION_NONE      );
+      auto shd_mode       =D.shadowMode       (); if(!_mirror_shadows)D.shadowMode      (SHADOW_NONE      );
+      auto shd_soft       =D.shadowSoft       ();                     D.shadowSoft      (0                );
+      auto shd_jitter     =D.shadowJitter     ();                     D.shadowJitter    (false            );
+      auto edge_soft      =D.edgeSoften       ();                     D._edge_soften    =EDGE_SOFTEN_NONE  ;
+      auto tesselation    =D.tesselationAllow ();                     D.tesselationAllow(false            );
+      auto density        =D.densityFast      ();                     D.densityFast     (Mid(((D.densityFast()+1)>>_mirror_resolution)-1, 0, 255));
 
       // set new settings
      _mirror=true;                                                           // set before viewport and camera
@@ -976,7 +976,7 @@ void RendererClass::prepare()
       rt_size=_final->size();
       if(D.densityUsed())
       {
-         Int mul=D.densityByte()+1;
+         Int mul=D.densityFast()+1;
          rt_size.set(Mid((rt_size.x*mul+64)/128, 1, D.maxTexSize()),
                      Mid((rt_size.y*mul+64)/128, 1, D.maxTexSize()));
       }
@@ -2184,7 +2184,8 @@ void RenderIcon(void (&render)(), C ViewSettings *view, ImageRT &image, C VecI2 
 
          SyncLocker lock(D._lock);
 
-         auto    density=D.densityByte   (); D.densityFast1();
+         auto    density=D.densityFast   (); D.densityFast1();
+         auto    amb_res=D.ambientResFast(); D.ambientResFast1();
          auto max_lights=D.maxLights     (); D.maxLights(0);
          auto  eye_adapt=D.eyeAdaptation (); D.eyeAdaptation(false);
          auto lod_factor=D.lodFactor     (); D.lodFactor(0);
@@ -2204,7 +2205,7 @@ void RenderIcon(void (&render)(), C ViewSettings *view, ImageRT &image, C VecI2 
          Renderer.alpha =false;
          Renderer.target=null;
 
-         D.motionMode(motion).maxLights(max_lights).eyeAdaptation(eye_adapt).lodFactor(lod_factor).densityFast(density);
+         D.motionMode(motion).maxLights(max_lights).eyeAdaptation(eye_adapt).lodFactor(lod_factor); D.densityFast(density); D.ambientResFast(amb_res);
          Renderer.allow_taa=allow_taa;
 
          if(shift)
