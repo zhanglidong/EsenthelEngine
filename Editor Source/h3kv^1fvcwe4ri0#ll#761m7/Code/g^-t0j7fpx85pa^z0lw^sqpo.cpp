@@ -169,6 +169,8 @@ class Project
    Str  texFormatPath (C UID &tex_id, cchar8 *format, int downsize)C {return tex_id.valid() ? temp_tex_path +EncodeFileName(tex_id)+format+ImageDownSizeSuffix(downsize) : S;}
    Str     formatPath (C UID &elm_id, cchar8 *suffix              )C {return elm_id.valid() ?     temp_path +EncodeFileName(elm_id)+suffix                               : S;}
 
+   Str gameAreaPath(C UID &world_id                  )C {return game_path+EncodeFileName(world_id)+"\\Area";}
+   Str editAreaPath(C UID &world_id                  )C {return edit_path+EncodeFileName(world_id)+"\\Area";}
    Str gameAreaPath(C UID &world_id, C VecI2 &area_xy)C {return game_path+EncodeFileName(world_id)+"\\Area\\"+area_xy;}
    Str editAreaPath(C UID &world_id, C VecI2 &area_xy)C {return edit_path+EncodeFileName(world_id)+"\\Area\\"+area_xy;}
 
@@ -816,15 +818,17 @@ class Project
          }
       }
    }
-   bool eraseElms(C MemPtr<UID> &elm_ids)
+   bool eraseElms(C MemPtr<UID> &elm_ids, bool full)
    {
-      if(elm_ids.elms())
+      FREPA(elm_ids)eraseElm(elm_ids[i]); // process removal of all elements
+      FREPA(elm_ids)elms.removeData(findElm(elm_ids[i]), true); // remove from container
+      if(full) // this doesn't need to return true because those files are not present in project data
       {
-         FREPA(elm_ids)eraseElm(elm_ids[i]); // process removal of all elements
-         FREPA(elm_ids)elms.removeData(findElm(elm_ids[i]), true); // remove from container
-         return true;
+         for(FileFind ff(edit_path); ff(); ){UID id; if(!id.fromFileName(        ff.name          ) || !findElm(id          ))                   FRecycle(ff.pathName());}
+         for(FileFind ff(game_path); ff(); ){UID id; if(!id.fromFileName(        ff.name          ) || !findElm(id          ))if(ff.name!="Tex" )FRecycle(ff.pathName());}
+         for(FileFind ff(code_path); ff(); ){UID id; if(!id.fromFileName(SkipEnd(ff.name, CodeExt)) || !findElm(id, ELM_CODE))if(ff.name!="Base")FRecycle(ff.pathName());}
       }
-      return false;
+      return elm_ids.elms()!=0;
    }
    void eraseTexFormats(C UID &tex_id)
    {
@@ -843,13 +847,18 @@ class Project
       }
       return false;
    }
-   bool eraseTexs()
+   bool eraseTexs(bool full)
    {
       bool erased=false;
 
       // erase regular textures
       Memt<UID> used; getTextures(used);
       REPA(texs)if(!used.binaryHas(texs[i]))erased|=eraseTex(texs[i]); // go from the end because of removal
+
+      if(full) // this doesn't need to return true because those files are not present in project data
+      {
+         for(FileFind ff(tex_path); ff(); ){UID id; if(!id.fromFileName(ff.name) || !texs.binaryHas(id))FRecycle(ff.pathName());}
+      }
 
       // erase dynamic textures
       used.clear();
@@ -884,11 +893,15 @@ class Project
          }
       }
    }
-   bool eraseWorldObjs()
+   static VecI2 TextVecI2Check(cchar *name)
+   {
+      VecI2 v=TextVecI2(name); return (Equal(name, S8+v.x+','+v.y) || Equal(name, S8+v.x+", "+v.y)) ? v : VecI2(INT_MAX, INT_MAX); // if name doesn't match, then return invalid VecI2
+   }
+   bool eraseWorlds(bool full)
    {
       bool        erased=false;
       CacheLock   lock(world_vers);
-      Memc<VecI2> areas;
+      Memc<VecI2> update_areas;
       REPA(world_vers) // iterate all worlds
       {
          WorldVer &world_ver=world_vers.lockedData(i);
@@ -899,15 +912,24 @@ class Project
             if(obj_ver.removed()) // if object is removed
             {
                world_ver.setChanged();
-               areas.binaryInclude(obj_ver.area_xy); // mark for processing
+               update_areas.binaryInclude(obj_ver.area_xy); // mark for processing
                world_ver.obj.remove(i); // we're completely erasing so remove from obj database too !! after this call don't operate on 'obj_ver' as it was just removed !!
             }
          }
-         if(areas.elms())
+         if(update_areas.elms())
          {
             erased=true;
-            REPA(areas)eraseWorldAreaObjs(world_ver.world_id, areas[i]);
-            areas.clear();
+            REPA(update_areas)eraseWorldAreaObjs(world_ver.world_id, update_areas[i]);
+            update_areas.clear();
+         }
+         if(full) // this doesn't need to return true because those files are not present in project data
+         {
+            { // areas
+               MapLock ml(world_ver.areas);
+               for(FileFind ff(editAreaPath(world_ver.world_id)); ff(); ){VecI2 area_xy=TextVecI2Check(ff.name); if(!world_ver.areas.find(area_xy))FRecycle(ff.pathName());}
+               for(FileFind ff(gameAreaPath(world_ver.world_id)); ff(); ){VecI2 area_xy=TextVecI2Check(ff.name); if(!world_ver.areas.find(area_xy))FRecycle(ff.pathName());}
+            }
+            // TODO: check Lake, River, Waypoint folders, and unrecognized files inside world folders
          }
       }
       return erased;
@@ -2906,13 +2928,14 @@ class ProjectHierarchy : Project
       return name;
    }
 
-   virtual void eraseRemoved()
+   virtual void eraseRemoved(bool full)
    {
       removeOrphanedElms();
       bool erased=false; Memc<UID> remove; floodRemoved(remove, root);
-      erased|=eraseElms     (remove);
-      erased|=eraseTexs     ();
-      erased|=eraseWorldObjs();
+      erased|=eraseElms  (remove, full);
+      erased|=eraseTexs  (full);
+      erased|=eraseWorlds(full);
+    //if(full)eraseMiniMaps(full); TODO:
       if(erased)save(); // save immediately after erase, just in case
    }
 }

@@ -3081,13 +3081,13 @@ class ProjectEx : ProjectHierarchy
       }
       super.eraseWorldAreaObjs(world_id, area_xy);
    }
-   virtual void eraseRemoved()override
+   virtual void eraseRemoved(bool full)override
    {
       Builder .stop(); // stop the builder in case it processes removed elements
       Importer.stop();
       pauseServer();
 
-      super.eraseRemoved();
+      super.eraseRemoved(full);
 
       setList();
       Importer.investigate(root); // call after setting list because may rely on hierarchy

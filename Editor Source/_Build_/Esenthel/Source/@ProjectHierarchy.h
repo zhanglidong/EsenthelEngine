@@ -22,7 +22,7 @@ class ProjectHierarchy : Project
            Str elmFullName(C UID &elm_id, int max_elms=-1)C;         
    virtual Str elmFullName(C Elm *elm   , int max_elms=-1)C override;
 
-   virtual void eraseRemoved();
+   virtual void eraseRemoved(bool full);
 };
 /******************************************************************************/
 /******************************************************************************/

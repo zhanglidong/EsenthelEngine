@@ -3018,13 +3018,13 @@ void DrawProject()
       }
       super::eraseWorldAreaObjs(world_id, area_xy);
    }
-   void ProjectEx::eraseRemoved()
+   void ProjectEx::eraseRemoved(bool full)
 {
       Builder .stop(); // stop the builder in case it processes removed elements
       Importer.stop();
       pauseServer();
 
-      super::eraseRemoved();
+      super::eraseRemoved(full);
 
       setList();
       Importer.investigate(root); // call after setting list because may rely on hierarchy

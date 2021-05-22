@@ -300,18 +300,20 @@ class RemoveUserWin : ClosableWindow
 class EraseRemovedElms : ClosableWindow
 {
    Text   text;
-   Button ok;
+   Button ok, full;
    UID    proj_id;
 
-   static void OK(EraseRemovedElms &ere)
+   static void OK  (EraseRemovedElms &ere) {ere.remove(false);}
+   static void Full(EraseRemovedElms &ere) {ere.remove(true );}
+   void remove(bool full)
    {
       if(Server.clients.elms())Gui.msgBox(S, "Can't Erase Removed Elements while there are Clients connected, as they will immediately reupload removed elements.");else
-      if(ProjectHierarchy *proj=FindProject(ere.proj_id))
+      if(ProjectHierarchy *proj=FindProject(proj_id))
       {
          proj.setHierarchy(); // needed for 'eraseRemoved'
-         proj.eraseRemoved();
+         proj.eraseRemoved(full);
       }
-      ere.hide();
+      hide();
    }
 
    void activate(Project &proj)
@@ -324,7 +326,8 @@ class EraseRemovedElms : ClosableWindow
    {
       Gui+=super.create(Rect_C(0, 0, 1.10, 0.60), "Erase Removed Elements").level(EditUser.level()+1).hide(); button[2].show();
       T+=text.create(Rect_C(clientWidth()/2, -0.22, clientWidth()-0.09, 0.0), "Are you sure you wish to erase all removed elements from the project?\nWarning: This operation cannot be undone!\n\nThis will remove files only on the server - when clients connect, they will reupload the elements.\nMake sure to erase removed elements on all clients while being disconnected from the server."); text.auto_line=AUTO_LINE_SPACE_SPLIT;
-      T+=ok  .create(Rect_C(clientWidth()/2, -0.47, 0.3, 0.06), "OK").func(OK, T);
+      T+=ok  .create(Rect_C(clientWidth()*1/3, -0.47, 0.25, 0.06), "OK"  ).func(OK  , T);
+      T+=full.create(Rect_C(clientWidth()*2/3, -0.47, 0.25, 0.06), "Full").func(Full, T).desc("This is slower but it may remove more useless files");
    }
 }
 /******************************************************************************/

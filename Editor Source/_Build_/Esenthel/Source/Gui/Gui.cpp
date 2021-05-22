@@ -949,7 +949,8 @@ set_optimize      .create(Rect_L(0.98f, -0.328f, 0.25f, 0.0475f), "Set Optimize"
          OK(T);
       }
    }
-   void EraseRemovedElms::OK(EraseRemovedElms &ere) {ere.hide(); Proj.eraseRemoved();}
+   void EraseRemovedElms::OK(EraseRemovedElms &ere) {ere.hide(); Proj.eraseRemoved(false);}
+   void EraseRemovedElms::Full(EraseRemovedElms &ere) {ere.hide(); Proj.eraseRemoved(true );}
       void EraseRemovedElms::Elm::create(C ::Elm &src)
       {
          name=Proj.elmFullName(&src);
@@ -959,8 +960,9 @@ set_optimize      .create(Rect_L(0.98f, -0.328f, 0.25f, 0.0475f), "Set Optimize"
    {
       Gui+=super ::create(Rect_C(0, 0, 1.44f, 1.5f), "Erase Removed Elements").hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
       T  +=text  .create(Rect_C(clientWidth()/2  , -0.15f, clientWidth()-0.05f, 0.1f), "Are you sure you wish to erase all removed elements from the project?\nWarning: This operation cannot be undone!\n\nThis will remove files only from the local computer - when connected to server it will redownload the elements."); text.auto_line=AUTO_LINE_SPACE_SPLIT;
-      T  +=ok    .create(Rect_C(clientWidth()*1/3, -0.34f, 0.29f, 0.07f), "OK"    ).func(OK         ,               T ).focusable(false);
-      T  +=cancel.create(Rect_C(clientWidth()*2/3, -0.34f, 0.29f, 0.07f), "Cancel").func(HideProjAct, SCAST(GuiObj, T)).focusable(false);
+      T  +=ok    .create(Rect_C(clientWidth()*1/4, -0.34f, 0.27f, 0.07f), "OK"    ).func(OK         ,               T ).focusable(false);
+      T  +=full  .create(Rect_C(clientWidth()*2/4, -0.34f, 0.27f, 0.07f), "Full"  ).func(Full       ,               T ).focusable(false).desc("This is slower but it may remove more useless files");
+      T  +=cancel.create(Rect_C(clientWidth()*3/4, -0.34f, 0.27f, 0.07f), "Cancel").func(HideProjAct, SCAST(GuiObj, T)).focusable(false);
       T  +=region.create(Rect  (0, -clientHeight(), clientWidth(), ok.rect().min.y-0.01f).extend(-0.03f));
       ListColumn lc[]=
       {

@@ -67,6 +67,8 @@ class Project
    Str  texFormatPath (C UID &tex_id, cchar8*format, int downsize)C;
    Str     formatPath (C UID &elm_id, cchar8*suffix              )C;
 
+   Str gameAreaPath(C UID &world_id                  )C;
+   Str editAreaPath(C UID &world_id                  )C;
    Str gameAreaPath(C UID &world_id, C VecI2 &area_xy)C;
    Str editAreaPath(C UID &world_id, C VecI2 &area_xy)C;
 
@@ -180,12 +182,13 @@ class Project
    void makeGameVer(Elm &elm, File *file=null);
    void removeOrphanedElms();
    virtual void eraseElm(C UID &elm_id);
-   bool eraseElms(C MemPtr<UID> &elm_ids);
+   bool eraseElms(C MemPtr<UID> &elm_ids, bool full);
    void eraseTexFormats(C UID &tex_id);
    virtual bool eraseTex(C UID &_tex_id);
-   bool eraseTexs();
+   bool eraseTexs(bool full);
    virtual void eraseWorldAreaObjs(C UID &world_id, C VecI2 &area_xy);
-   bool eraseWorldObjs();
+   static VecI2 TextVecI2Check(cchar *name);
+   bool eraseWorlds(bool full);
 
    void quickUpdateVersion(int ver); // this is called inside 'load', it occurs when opening projects and loading from EsenthelProject file, we can't modify files here !!
    void updateVersion(int ver, bool this_project=true, C MemPtr<UID> &elm_ids=null); // if 'elm_ids' is null, then all elements are processed, this is called inside 'open' or after copying elements to project

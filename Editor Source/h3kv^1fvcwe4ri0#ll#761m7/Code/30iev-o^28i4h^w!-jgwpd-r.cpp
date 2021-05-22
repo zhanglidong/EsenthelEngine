@@ -840,7 +840,8 @@ MulSoundVolumeClass MulSoundVolume;
 /******************************************************************************/
 class EraseRemovedElms : ClosableWindow
 {
-   static void OK(EraseRemovedElms &ere) {ere.hide(); Proj.eraseRemoved();}
+   static void OK  (EraseRemovedElms &ere) {ere.hide(); Proj.eraseRemoved(false);}
+   static void Full(EraseRemovedElms &ere) {ere.hide(); Proj.eraseRemoved(true );}
 
    class Elm
    {
@@ -855,7 +856,7 @@ class EraseRemovedElms : ClosableWindow
    }
 
    TextNoTest text;
-   Button     ok, cancel;
+   Button     ok, full, cancel;
    Region     region;
    Memc<Elm>  data;
    List<Elm>  list;
@@ -864,8 +865,9 @@ class EraseRemovedElms : ClosableWindow
    {
       Gui+=super .create(Rect_C(0, 0, 1.44, 1.5), "Erase Removed Elements").hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
       T  +=text  .create(Rect_C(clientWidth()/2  , -0.15, clientWidth()-0.05, 0.1), "Are you sure you wish to erase all removed elements from the project?\nWarning: This operation cannot be undone!\n\nThis will remove files only from the local computer - when connected to server it will redownload the elements."); text.auto_line=AUTO_LINE_SPACE_SPLIT;
-      T  +=ok    .create(Rect_C(clientWidth()*1/3, -0.34, 0.29, 0.07), "OK"    ).func(OK         ,               T ).focusable(false);
-      T  +=cancel.create(Rect_C(clientWidth()*2/3, -0.34, 0.29, 0.07), "Cancel").func(HideProjAct, SCAST(GuiObj, T)).focusable(false);
+      T  +=ok    .create(Rect_C(clientWidth()*1/4, -0.34, 0.27, 0.07), "OK"    ).func(OK         ,               T ).focusable(false);
+      T  +=full  .create(Rect_C(clientWidth()*2/4, -0.34, 0.27, 0.07), "Full"  ).func(Full       ,               T ).focusable(false).desc("This is slower but it may remove more useless files");
+      T  +=cancel.create(Rect_C(clientWidth()*3/4, -0.34, 0.27, 0.07), "Cancel").func(HideProjAct, SCAST(GuiObj, T)).focusable(false);
       T  +=region.create(Rect  (0, -clientHeight(), clientWidth(), ok.rect().min.y-0.01).extend(-0.03));
       ListColumn lc[]=
       {

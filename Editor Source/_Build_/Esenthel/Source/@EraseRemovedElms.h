@@ -2,7 +2,8 @@
 /******************************************************************************/
 class EraseRemovedElms : ClosableWindow
 {
-   static void OK(EraseRemovedElms &ere);
+   static void OK  (EraseRemovedElms &ere);
+   static void Full(EraseRemovedElms &ere);
 
    class Elm
    {
@@ -16,7 +17,7 @@ public:
    };
 
    TextNoTest text;
-   Button     ok, cancel;
+   Button     ok, full, cancel;
    Region     region;
    Memc<Elm>  data;
    List<Elm>  list;

@@ -512,7 +512,7 @@ public:
    virtual void eraseElm(C UID &elm_id)override;
    virtual bool eraseTex(C UID &tex_id)override;
    virtual void eraseWorldAreaObjs(C UID &world_id, C VecI2 &area_xy)override;
-   virtual void eraseRemoved()override;
+   virtual void eraseRemoved(bool full)override;
 
    void setElmParent(Memc<Edit::IDParam<UID>> &elms, bool adjust_elms=false, bool as_undo=false); // 'adjust_elms'=if this is performed because of undo, and in that case we need to remember current parents, so we can undo this change later
    void drag(Memc<UID> &elms, GuiObj *focus_obj, C Vec2 &screen_pos);
