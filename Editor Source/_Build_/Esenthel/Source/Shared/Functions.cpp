@@ -2310,40 +2310,41 @@ force_src_resize:
       FileParams &file=files[i];
       APPLY_MODE  mode=APPLY_SET; if(C TextParam *p=file.findParam("mode"))
       {
-         if(p->value=="blend"                                              )mode=APPLY_BLEND;else
-         if(p->value=="blendPremultiplied" || p->value=="premultipliedBlend")mode=APPLY_BLEND_PREMUL;else
-         if(p->value=="mul"                                                )mode=APPLY_MUL;else
-         if(p->value=="mulRGB"                                             )mode=APPLY_MUL_RGB;else
-         if(p->value=="mulRGBS"                                            )mode=APPLY_MUL_RGB_SAT;else
-         if(p->value=="mulRGBLin"                                          )mode=APPLY_MUL_RGB_LIN;else
-         if(p->value=="mulA"                                               )mode=APPLY_MUL_A;else
-         if(p->value=="mulLum"                                             )mode=APPLY_MUL_LUM;else
-         if(p->value=="mulSat"                                             )mode=APPLY_MUL_SAT;else
-         if(p->value=="mulSatPhoto"                                        )mode=APPLY_MUL_SAT_PHOTO;else
-         if(p->value=="div"                                                )mode=APPLY_DIV;else
-         if(p->value=="add"                                                )mode=APPLY_ADD;else
-         if(p->value=="addRGB"                                             )mode=APPLY_ADD_RGB;else
-         if(p->value=="addLum"                                             )mode=APPLY_ADD_LUM;else
-         if(p->value=="addSat"                                             )mode=APPLY_ADD_SAT;else
-         if(p->value=="addHue"                                             )mode=APPLY_ADD_HUE;else
-         if(p->value=="addHuePhoto"                                        )mode=APPLY_ADD_HUE_PHOTO;else
-         if(p->value=="setHue"                                             )mode=APPLY_SET_HUE;else
-         if(p->value=="setHuePhoto"                                        )mode=APPLY_SET_HUE_PHOTO;else
-         if(p->value=="sub"                                                )mode=APPLY_SUB;else
-         if(p->value=="subRGB"                                             )mode=APPLY_SUB_RGB;else
-         if(p->value=="gamma"                                              )mode=APPLY_GAMMA;else
-         if(p->value=="brightness"                                         )mode=APPLY_BRIGHTNESS;else
-         if(p->value=="brightnessLum"                                      )mode=APPLY_BRIGHTNESS_LUM;else
-         if(p->value=="avg" || p->value=="average"                          )mode=APPLY_AVG;else
-         if(p->value=="min"                                                )mode=APPLY_MIN;else
-         if(p->value=="max"                                                )mode=APPLY_MAX;else
-         if(p->value=="maxA" || p->value=="maxAlpha"                        )mode=APPLY_MAX_A;else
-         if(p->value=="maskMul"                                            )mode=APPLY_MASK_MUL;else
-         if(p->value=="maskAdd"                                            )mode=APPLY_MASK_ADD;else
-         if(p->value=="metal"                                              )mode=APPLY_METAL;else
-         if(p->value=="scale"                                              )mode=APPLY_SCALE;else
-         if(p->value=="fire"                                               )mode=APPLY_FIRE;else
-         if(p->value=="skip" || p->value=="ignore"                          )mode=APPLY_SKIP;
+         if(p->value=="blend"                                                                  )mode=APPLY_BLEND;else
+         if(p->value=="merge" || p->value=="blendPremultiplied" || p->value=="premultipliedBlend")mode=APPLY_MERGE;else
+         if(p->value=="mul"                                                                    )mode=APPLY_MUL;else
+         if(p->value=="mulRGB"                                                                 )mode=APPLY_MUL_RGB;else
+         if(p->value=="mulRGBS"                                                                )mode=APPLY_MUL_RGB_SAT;else
+         if(p->value=="mulRGBLin"                                                              )mode=APPLY_MUL_RGB_LIN;else
+         if(p->value=="mulA"                                                                   )mode=APPLY_MUL_A;else
+         if(p->value=="mulLum"                                                                 )mode=APPLY_MUL_LUM;else
+         if(p->value=="mulSat"                                                                 )mode=APPLY_MUL_SAT;else
+         if(p->value=="mulSatPhoto"                                                            )mode=APPLY_MUL_SAT_PHOTO;else
+         if(p->value=="div"                                                                    )mode=APPLY_DIV;else
+         if(p->value=="divRGB"                                                                 )mode=APPLY_DIV_RGB;else
+         if(p->value=="add"                                                                    )mode=APPLY_ADD;else
+         if(p->value=="addRGB"                                                                 )mode=APPLY_ADD_RGB;else
+         if(p->value=="addLum"                                                                 )mode=APPLY_ADD_LUM;else
+         if(p->value=="addSat"                                                                 )mode=APPLY_ADD_SAT;else
+         if(p->value=="addHue"                                                                 )mode=APPLY_ADD_HUE;else
+         if(p->value=="addHuePhoto"                                                            )mode=APPLY_ADD_HUE_PHOTO;else
+         if(p->value=="setHue"                                                                 )mode=APPLY_SET_HUE;else
+         if(p->value=="setHuePhoto"                                                            )mode=APPLY_SET_HUE_PHOTO;else
+         if(p->value=="sub"                                                                    )mode=APPLY_SUB;else
+         if(p->value=="subRGB"                                                                 )mode=APPLY_SUB_RGB;else
+         if(p->value=="gamma"                                                                  )mode=APPLY_GAMMA;else
+         if(p->value=="brightness"                                                             )mode=APPLY_BRIGHTNESS;else
+         if(p->value=="brightnessLum"                                                          )mode=APPLY_BRIGHTNESS_LUM;else
+         if(p->value=="avg" || p->value=="average"                                              )mode=APPLY_AVG;else
+         if(p->value=="min"                                                                    )mode=APPLY_MIN;else
+         if(p->value=="max"                                                                    )mode=APPLY_MAX;else
+         if(p->value=="maxA" || p->value=="maxAlpha"                                            )mode=APPLY_MAX_A;else
+         if(p->value=="maskMul"                                                                )mode=APPLY_MASK_MUL;else
+         if(p->value=="maskAdd"                                                                )mode=APPLY_MASK_ADD;else
+         if(p->value=="metal"                                                                  )mode=APPLY_METAL;else
+         if(p->value=="scale"                                                                  )mode=APPLY_SCALE;else
+         if(p->value=="fire"                                                                   )mode=APPLY_FIRE;else
+         if(p->value=="skip" || p->value=="ignore"                                              )mode=APPLY_SKIP;
       }
       if(mode!=APPLY_SKIP)
       {
@@ -2413,7 +2414,7 @@ force_src_resize:
                         {
                            default                  : c =l; break; // APPLY_SET
                            case APPLY_BLEND         : c =             Blend(base, l); break;
-                           case APPLY_BLEND_PREMUL  : c =PremultipliedBlend(base, l); break;
+                           case APPLY_MERGE         : c =PremultipliedBlend(base, l); break;
                            case APPLY_MUL           : c=base*l; break;
                            case APPLY_MUL_RGB       : c.set(base.xyz*l.xyz, base.w); break;
                            case APPLY_MUL_RGB_LIN   : c.set(LinearToSRGB(SRGBToLinear(base.xyz)*l.xyz), base.w); break; // this treats 'l' as already linear
@@ -2422,6 +2423,7 @@ force_src_resize:
                            case APPLY_MUL_SAT       : c.xyz=RgbToHsb(base.xyz); c.y*=l.xyz.max(); c.set(HsbToRgb(c.xyz), base.w); break;
                            case APPLY_ADD_SAT       : c.xyz=RgbToHsb(base.xyz); c.y+=l.xyz.max(); c.set(HsbToRgb(c.xyz), base.w); break;
                            case APPLY_DIV           : c=base/l; break;
+                           case APPLY_DIV_RGB       : c.set(base.xyz/l.xyz, base.w); break;
                            case APPLY_ADD           : c=base+l; break;
                            case APPLY_ADD_RGB       : c.set(base.xyz+l.xyz, base.w); break;
                            case APPLY_ADD_LUM       : {flt old_lum=base.xyz.max(), new_lum=old_lum+l.xyz.max(); if(old_lum>0)c.xyz=base.xyz*(new_lum/old_lum);else c.xyz=new_lum; c.w=base.w;} break;
