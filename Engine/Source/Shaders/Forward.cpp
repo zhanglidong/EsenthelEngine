@@ -329,9 +329,9 @@ VecH4 PS
       }
       VecH4 tex_ext=Tex(Ext, I.tex);
       col   *=tex_col.rgb;
-      smooth =Material.smooth *tex_ext.x;
-      reflect=Material.reflect*tex_ext.y;
-      glow   =Material.glow   *tex_ext.w;
+      smooth =tex_ext.x*Material.smooth ;
+      reflect=tex_ext.y*Material.reflect;
+      glow   =tex_ext.w*Material.glow   ;
       if(DETAIL){col*=det.z; smooth*=det.w;}
    }
    #endif

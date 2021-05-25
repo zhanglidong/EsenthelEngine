@@ -65,16 +65,19 @@ out VecH4   outNrm   :TARGET1 ,
 out VecH4   outExt   :TARGET2
 ):TARGET // #RTOutput
 {
-   Half  smooth =Material.smooth ,
-         reflect=Material.reflect;
-   VecH4 col    =Tex(Col, inTex.xy);
-#if LAYOUT==2 // #MaterialTextureLayout
-   VecH2 ext    =Tex(Ext, inTex.xy).xy;
-   smooth *=ext.x;
-   reflect*=ext.y;
-#endif
+   VecH4 col=Tex(Col, inTex.xy);
    col  *=Material.color;
    col.a*=Sat(inTex.z)*OverlayAlpha();
+
+   Half smooth, reflect;
+#if LAYOUT==2 // #MaterialTextureLayout
+   VecH2 ext=Tex(Ext, inTex.xy).xy;
+   smooth =ext.x*Material.smooth ;
+   reflect=ext.y*Material.reflect;
+#else
+   smooth =Material.smooth;
+   reflect=Material.reflect;
+#endif
 
    VecH nrm;
 #if NORMALS
@@ -82,7 +85,6 @@ out VecH4   outExt   :TARGET2
     //if(DETAIL)nrm.xy+=det.xy;
                 nrm.z  =CalcZ(nrm.xy);
                 nrm    =Normalize(Transform(nrm, inMatrix));
-
 #else
    nrm=Normalize(inNrm);
 #endif

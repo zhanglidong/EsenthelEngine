@@ -1934,7 +1934,8 @@ Vec ReflectDir(Vec eye_dir, Vec nrm) // High Precision needed for high resolutio
 }
 VecH ReflectTex(Vec reflect_dir, Half smooth)
 {
-   return TexCubeLodI(Env, reflect_dir, (1-smooth)*EnvMipMaps).rgb;
+   Half roughness=1-smooth;
+   return TexCubeLodI(Env, reflect_dir, roughness*EnvMipMaps).rgb;
 }
 VecH PBR(VecH unlit_col, VecH lit_col, Vec nrm, Half smooth, Half reflectivity, Vec eye_dir, VecH spec)
 {

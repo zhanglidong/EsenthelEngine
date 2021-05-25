@@ -47,7 +47,7 @@ namespace EE{
 /******************************************************************************/
 #define CC4_MTRL CC4('M','T','R','L')
 
-#define BUMP_DEFAULT_TEX 0 // 0..255, normally this should be 128, but 0 will allow to use BC5 (for Mtrl.base_2 tex if there's no Glow) and always set Material.bump=0 when bump is not used #MaterialTextureLayout
+#define BUMP_DEFAULT_TEX 0 // 0..255, normally this should be 128, but 0 will allow to use BC1/BC5 (for Mtrl.base_2 tex if there's no Glow) and always set Material.bump=0 when bump is not used #MaterialTextureLayout
 #define BUMP_DEFAULT_PAR 0.03f
 
 // #MaterialTextureLayout
