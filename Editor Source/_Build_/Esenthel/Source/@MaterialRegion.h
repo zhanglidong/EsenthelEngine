@@ -9,7 +9,7 @@ class MaterialRegion : Region
       TEX_BUMP      ,
       TEX_NORMAL    ,
       TEX_SMOOTH    ,
-      TEX_REFLECT   ,
+      TEX_METAL     ,
       TEX_GLOW      ,
       TEX_DET_COLOR ,
       TEX_DET_BUMP  ,
@@ -151,30 +151,34 @@ public:
    static Str  FNY     (C MaterialRegion &mr          );
    static void FNY     (  MaterialRegion &mr, C Str &t);
 
-   static Str  Smooth (C MaterialRegion &mr          );
-   static void Smooth (  MaterialRegion &mr, C Str &t);
-   static Str  Reflect(C MaterialRegion &mr          );
-   static void Reflect(  MaterialRegion &mr, C Str &t);
-   static Str  Glow   (C MaterialRegion &mr          );
-   static void Glow   (  MaterialRegion &mr, C Str &t);
+   static Str  Smooth    (C MaterialRegion &mr          );
+   static void Smooth    (  MaterialRegion &mr, C Str &t);
+   static Str  ReflectMin(C MaterialRegion &mr          );
+   static void ReflectMin(  MaterialRegion &mr, C Str &t);
+   static Str  ReflectMax(C MaterialRegion &mr          );
+   static void ReflectMax(  MaterialRegion &mr, C Str &t);
+   static Str  Glow      (C MaterialRegion &mr          );
+   static void Glow      (  MaterialRegion &mr, C Str &t);
 
    static Str  DetScale(C MaterialRegion &mr          );
    static void DetScale(  MaterialRegion &mr, C Str &t);
    static Str  DetPower(C MaterialRegion &mr          );
    static void DetPower(  MaterialRegion &mr, C Str &t);
 
-   static Str  Cull    (C MaterialRegion &mr          );
-   static void Cull    (  MaterialRegion &mr, C Str &t);
- //static Str  SSS     (C MaterialRegion &mr          ) {return mr.edit.sss;}
- //static void SSS     (  MaterialRegion &mr, C Str &t) {mr.edit.sss=TextFlt(t); mr.edit.sss_time.getUTC();}
-   static Str  AmbR    (C MaterialRegion &mr          );
-   static void AmbR    (  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  AmbG    (C MaterialRegion &mr          );
-   static void AmbG    (  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  AmbB    (C MaterialRegion &mr          );
-   static void AmbB    (  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  TexScale(C MaterialRegion &mr          );
-   static void TexScale(  MaterialRegion &mr, C Str &t);
+   static Str  Cull(C MaterialRegion &mr          );
+   static void Cull(  MaterialRegion &mr, C Str &t);
+ //static Str  SSS (C MaterialRegion &mr          ) {return mr.edit.sss;}
+ //static void SSS (  MaterialRegion &mr, C Str &t) {       mr.edit.sss=TextFlt(t); mr.edit.sss_time.getUTC();}
+
+   static Str  AmbR(C MaterialRegion &mr          );
+   static void AmbR(  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  AmbG(C MaterialRegion &mr          );
+   static void AmbG(  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  AmbB(C MaterialRegion &mr          );
+   static void AmbB(  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
+
+   static Str  UVScale(C MaterialRegion &mr          );
+   static void UVScale(  MaterialRegion &mr, C Str &t);
 
    static void Undo  (MaterialRegion &editor);
    static void Redo  (MaterialRegion &editor);
@@ -303,11 +307,11 @@ public:
    void   setRGB         (C Vec                   &srgb              );
    void   setNormal      (flt                    normal              );
    void   setSmooth      (flt                    smooth              );
-   void   setReflect     (flt                   reflect              );
+   void   setReflect     (flt reflect_min, flt reflect_max           );
    void resetAlpha       (                                           );
    void cull             (bool                      on               );
    void flipNrmY         (bool                      on               ); // 'rebuildBase' already calls 'setChanged' and 'toGui'
- //void maxTexSize       (Edit.MAX_TEX_SIZE         mts              ) {if(edit.max_tex_size       !=mts    ){        undos.set("mts"       ); edit.max_tex_size       =mts    ; edit.       max_tex_size_time.getUTC(); setChanged(); toGui();}}
+ //void maxTexSize       (Edit.MAX_TEX_SIZE         mts              ) {if(edit.max_tex_size       !=mts                                 ){        undos.set("mts"       ); edit.max_tex_size       =mts                              ; edit.       max_tex_size_time.getUTC(); setChanged(); toGui();}}
    void downsizeTexMobile(byte                      ds               );  
    void texQuality       (Edit::Material::TEX_QUALITY q, bool undo=true); // 'rebuildBase' already calls 'setChanged' and 'toGui'
 

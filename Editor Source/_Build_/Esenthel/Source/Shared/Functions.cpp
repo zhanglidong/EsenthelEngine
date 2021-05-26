@@ -434,7 +434,7 @@ void LoadTexture(C Project &proj, C UID &tex_id, Image &image)
    ImagePtr src=proj.texPath(tex_id);
    if(src)src->copyTry(image, -1, -1, -1, ImageTypeUncompressed(src->type()), IMAGE_SOFT, 1);else image.del(); // always copy, because: src texture will always be compressed, also soft doesn't require locking
 }
-void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow)
+void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *metal, Image *glow)
 { // #MaterialTextureLayout
    uint tex=0;
    if(base_0.valid() && (color || alpha))
@@ -466,30 +466,30 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &b
          normal->colorF(x, y, n);
       }
    }
-   if(base_2.valid() && (smooth || reflect || bump || glow))
+   if(base_2.valid() && (smooth || metal || bump || glow))
    {
       Image b2; LoadTexture(proj, base_2, b2);
-      if(smooth )smooth ->createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
-      if(reflect)reflect->createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
-      if(bump   )bump   ->createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
-      if(glow   )glow   ->createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
+      if(smooth)smooth->createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
+      if(metal )metal ->createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
+      if(bump  )bump  ->createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
+      if(glow  )glow  ->createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
       REPD(y, b2.h())
       REPD(x, b2.w())
       {
          Color c=b2.color(x, y);
-         if(smooth ){smooth ->pixel(x, y, c.r); if(c.r<254                           )tex|=BT_SMOOTH ;}
-         if(reflect){reflect->pixel(x, y, c.g); if(c.g<254                           )tex|=BT_REFLECT;}
-         if(bump   ){bump   ->pixel(x, y, c.b); if(c.b>1 && Abs(c.b-128)>1 && c.b<254)tex|=BT_BUMP   ;} // BUMP_DEFAULT_TEX can be either 0, 128 or 255
-         if(glow   ){glow   ->pixel(x, y, c.a); if(c.a<254                           )tex|=BT_GLOW   ;}
+         if(smooth){smooth->pixel(x, y, c.r); if(c.g<254                           )tex|=BT_SMOOTH;}
+         if(metal ){metal ->pixel(x, y, c.g); if(c.r>1 &&                   c.r<254)tex|=BT_METAL ;} // METAL_DEFAULT_TEX can be either 0,     or 255
+         if(bump  ){bump  ->pixel(x, y, c.b); if(c.b>1 && Abs(c.b-128)>1 && c.b<254)tex|=BT_BUMP  ;} //  BUMP_DEFAULT_TEX can be either 0, 128 or 255
+         if(glow  ){glow  ->pixel(x, y, c.a); if(c.a<254                           )tex|=BT_GLOW  ;}
       }
    }
-   if(color   && !(tex&BT_COLOR  ))color  ->del();
-   if(alpha   && !(tex&BT_ALPHA  ))alpha  ->del();
-   if(bump    && !(tex&BT_BUMP   ))bump   ->del();
-   if(normal  && !(tex&BT_NORMAL ))normal ->del();
-   if(smooth  && !(tex&BT_SMOOTH ))smooth ->del();
-   if(reflect && !(tex&BT_REFLECT))reflect->del();
-   if(glow    && !(tex&BT_GLOW   ))glow   ->del();
+   if(color  && !(tex&BT_COLOR ))color ->del();
+   if(alpha  && !(tex&BT_ALPHA ))alpha ->del();
+   if(bump   && !(tex&BT_BUMP  ))bump  ->del();
+   if(normal && !(tex&BT_NORMAL))normal->del();
+   if(smooth && !(tex&BT_SMOOTH))smooth->del();
+   if(metal  && !(tex&BT_METAL ))metal ->del();
+   if(glow   && !(tex&BT_GLOW  ))glow  ->del();
 }
 void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow)
 { // #WaterMaterialTextureLayout
@@ -532,80 +532,13 @@ void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C U
          if(bump){if(Abs(c)>1.5f/127)tex|=BT_BUMP; bump->pixelF(x, y, c*0.5f+0.5f);}
       }
    }
-   if(color   && !(tex&BT_COLOR  ))color  ->del();
-   if(alpha   && !(tex&BT_ALPHA  ))alpha  ->del();
-   if(bump    && !(tex&BT_BUMP   ))bump   ->del();
-   if(normal  && !(tex&BT_NORMAL ))normal ->del();
-   if(smooth  && !(tex&BT_SMOOTH ))smooth ->del();
-   if(reflect && !(tex&BT_REFLECT))reflect->del();
-   if(glow    && !(tex&BT_GLOW   ))glow   ->del();
-}
-void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, MATERIAL_TECHNIQUE tech)
-{
-   uint tex=0;
-   if(base_0.valid() && base_1.valid()) // both textures specified
-   {
-      if(color || bump)
-      {
-         Image b0; LoadTexture(proj, base_0, b0);
-         if(color)color->createSoftTry(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
-         if(bump )bump ->createSoftTry(b0.w(), b0.h(), 1, IMAGE_L8);
-         REPD(y, b0.h())
-         REPD(x, b0.w())
-         {
-            Color c=b0.color(x, y);
-            if(color){color->color(x, y, c  ); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
-            if(bump ){bump ->pixel(x, y, c.a); if(Abs(c.a-128)>1     && c.a<254)tex|=BT_BUMP ;} // old BUMP_DEFAULT_TEX was either 128 or 255
-         }
-      }
-      if(alpha || normal || smooth || reflect || glow)
-      {
-         bool tex_alpha=(tech!=MTECH_DEFAULT); // old mtrl textures had Base1 W channel as either Alpha or Glow
-         Image b1; LoadTexture(proj, base_1, b1);
-                       if(normal )normal ->createSoftTry(b1.w(), b1.h(), 1, IMAGE_R8G8B8);
-                       if(smooth )smooth ->createSoftTry(b1.w(), b1.h(), 1, IMAGE_L8);
-                       if(reflect)reflect->createSoftTry(b1.w(), b1.h(), 1, IMAGE_L8);
-         if(tex_alpha){if(alpha  )alpha  ->createSoftTry(b1.w(), b1.h(), 1, IMAGE_L8);}
-         else         {if(glow   )glow   ->createSoftTry(b1.w(), b1.h(), 1, IMAGE_L8);}
-         REPD(y, b1.h())
-         REPD(x, b1.w())
-         {
-            Color c=b1.color(x, y);
-            if(tex_alpha){if(alpha  ){alpha  ->pixel(x, y, c.a); if(c.a<254)tex|=BT_ALPHA  ;}}
-            else         {if(glow   ){glow   ->pixel(x, y, c.a); if(c.a<254)tex|=BT_GLOW   ;}}
-                          if(smooth ){smooth ->pixel(x, y, c.b); if(c.b<254)tex|=BT_SMOOTH ;}
-                          if(reflect){reflect->pixel(x, y, c.b); if(c.b<254)tex|=BT_REFLECT;}
-                          if(normal )
-            {
-               Vec n; n.xy.set((c.r-128)/127.0f, (c.g-128)/127.0f); n.z=CalcZ(n.xy);
-               normal->color(x, y, Color(c.r, c.g, Mid(Round(n.z*127+128), 0, 255))); if(Abs(c.r-128)>1 || Abs(c.g-128)>1)tex|=BT_NORMAL;
-            }
-         }
-      }
-   }else
-   if(base_0.valid()) // only one texture specified
-   {
-      if(color || alpha)
-      {
-         Image b0; LoadTexture(proj, base_0, b0);
-         if(color)color->createSoftTry(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
-         if(alpha)alpha->createSoftTry(b0.w(), b0.h(), 1, IMAGE_L8);
-         REPD(y, b0.h())
-         REPD(x, b0.w())
-         {
-            Color c=b0.color(x, y);
-            if(color){color->color(x, y, c  ); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
-            if(alpha){alpha->pixel(x, y, c.a); if(c.a<254                      )tex|=BT_ALPHA;}
-         }
-      }
-   }
-   if(color   && !(tex&BT_COLOR  ))color  ->del();
-   if(alpha   && !(tex&BT_ALPHA  ))alpha  ->del();
-   if(bump    && !(tex&BT_BUMP   ))bump   ->del();
-   if(normal  && !(tex&BT_NORMAL ))normal ->del();
-   if(smooth  && !(tex&BT_SMOOTH ))smooth ->del();
-   if(reflect && !(tex&BT_REFLECT))reflect->del();
-   if(glow    && !(tex&BT_GLOW   ))glow   ->del();
+   if(color   && !(tex&BT_COLOR ))color  ->del();
+   if(alpha   && !(tex&BT_ALPHA ))alpha  ->del();
+   if(bump    && !(tex&BT_BUMP  ))bump   ->del();
+   if(normal  && !(tex&BT_NORMAL))normal ->del();
+   if(smooth  && !(tex&BT_SMOOTH))smooth ->del();
+   if(reflect && !(tex&BT_METAL ))reflect->del();
+   if(glow    && !(tex&BT_GLOW  ))glow   ->del();
 }
 void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *color, Image *bump, Image *normal, Image *smooth)
 {
@@ -785,13 +718,14 @@ void AdjustMaterialParams(EditMaterial &edit, Material &game, uint old_base_tex,
 {
    TimeStamp time; time.getUTC();
    game._adjustParams(old_base_tex, new_base_tex);
-   SyncByValue     (edit.   tech_time, time, edit.tech     , game.technique);
-   SyncByValueEqual(edit.  color_time, time, edit.color_s.w, game.color_l.w); // alpha
-   SyncByValueEqual(edit.   bump_time, time, edit.bump     , game.bump     );
-   SyncByValueEqual(edit. normal_time, time, edit.normal   , game.normal   );
-   SyncByValueEqual(edit. smooth_time, time, edit.smooth   , game.smooth   );
-   SyncByValueEqual(edit.reflect_time, time, edit.reflect  , game.reflect  );
-   SyncByValueEqual(edit.   glow_time, time, edit.glow     , game.glow     );
+   SyncByValue     (edit.   tech_time, time, edit.tech       , game.technique   );
+   SyncByValueEqual(edit.  color_time, time, edit.color_s.w  , game.color_l.w   ); // alpha
+   SyncByValueEqual(edit.   bump_time, time, edit.bump       , game.bump        );
+   SyncByValueEqual(edit. normal_time, time, edit.normal     , game.normal      );
+   SyncByValueEqual(edit. smooth_time, time, edit.smooth     , game.smooth      );
+   SyncByValueEqual(edit.reflect_time, time, edit.reflect_min, game.reflect   ());
+   SyncByValueEqual(edit.reflect_time, time, edit.reflect_max, game.reflectMax());
+   SyncByValueEqual(edit.   glow_time, time, edit.glow       , game.glow        );
 
    bool new_light_map=edit.hasLightMap(); if(old_light_map!=new_light_map)
    {
@@ -876,6 +810,7 @@ bool NonMonoTransform   (C TextParam &p   ) // if can change a mono image to non
        || p.name=="iLerpRGB" && values>2
        || p.name=="mulRGB" && TextVecEx(p.value).anyDifferent()
        || p.name=="addRGB" && TextVecEx(p.value).anyDifferent()
+       || p.name=="setRGB" && TextVecEx(p.value).anyDifferent()
        || p.name=="mulAddRGB" && values>2
        || p.name=="addMulRGB" && values>2
        || p.name=="mulRGBS" && TextVecEx(p.value).anyDifferent()
@@ -904,7 +839,7 @@ bool NonMonoTransform   (C TextParam &p   ) // if can change a mono image to non
 bool HighPrecTransform(C Str &name)
 {
    return ResizeTransform(name)
-       || name=="mulRGB" || name=="addRGB" || name=="mulAddRGB" || name=="addMulRGB" || name=="mulA"
+       || name=="mulRGB" || name=="addRGB" || name=="setRGB" || name=="mulAddRGB" || name=="addMulRGB" || name=="mulA"
        || name=="mulRGBS" || name=="mulRGBH" || name=="mulRGBHS"
        || name=="normalize"
        || name=="scale" || name=="scaleXY"
@@ -922,13 +857,15 @@ bool HighPrecTransform(C Str &name)
        || name=="addSat" || name=="addSatPhoto" || name=="mulSat" || name=="mulSatPhoto" || name=="mulAddSat" || name=="mulAddSatPhoto" || name=="avgSat" || name=="avgSatPhoto" || name=="medSat" || name=="medSatPhoto" || name=="contrastSat" || name=="contrastSatPhoto" || name=="medContrastSat" || name=="contrastSatAlphaWeight" || name=="contrastSatPhotoAlphaWeight"
        || name=="addHueSat" || name=="setHueSat" || name=="setHueSatPhoto"
        || name=="mulSatH" || name=="mulSatHS" || name=="mulSatHPhoto" || name=="mulSatHSPhoto"
-       || name=="metalToReflect";
+     //|| name=="metalToReflect"
+       ;
 }
 bool SizeDependentTransform(C TextParam &p)
 {
    return p.name=="blur" // range depends on size
        || p.name=="sharpen" // range depends on size
        || p.name=="bump" || p.name=="bumpClamp" // range depends on size
+       || p.name=="size"   // coordinates/size depend on size
        || p.name=="crop"   // coordinates/size depend on size
        || p.name=="trim"   // coordinates/size depend on size
        || p.name=="extend" // coordinates/size depend on size
@@ -963,7 +900,7 @@ Str BumpFromColTransform(C Str &color_map, int blur) // 'blur'<0 = empty (defaul
       if(i && (file.name.is() || file.nodes.elms()))break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
       REPA(file.params) // go from end
       {
-         TextParam &p=file.params[i]; if(p.name!="crop" && p.name!="trim" && p.name!="extend" && p.name!="resizeNoStretch" && p.name!="swapXY" && p.name!="mirrorXY" && p.name!="mirrorX" && p.name!="mirrorY" && p.name!="flipXY" && p.name!="flipX" && p.name!="flipY")file.params.remove(i, true); // allow only these transforms
+         TextParam &p=file.params[i]; if(p.name!="size" && p.name!="crop" && p.name!="trim" && p.name!="extend" && p.name!="resizeNoStretch" && p.name!="swapXY" && p.name!="mirrorXY" && p.name!="mirrorX" && p.name!="mirrorY" && p.name!="flipXY" && p.name!="flipX" && p.name!="flipY")file.params.remove(i, true); // allow only these transforms
       }
       if(!file.is())files.remove(i, true); // if nothing left then remove it
    }
@@ -1248,7 +1185,16 @@ Vec2 ILerpToMad(flt from, flt to) {return Vec2(1/(to-from), from/(from-to));}
 flt   FloatSelf(flt x) {return x;}
 flt   PowMax   (flt x, flt y) {return (x<=0) ? 0 : Pow(x, y);}
 
-void TransformImage(Image &image, TextParam param, bool clamp)
+void Crop(Image &image, int x, int y, int w, int h, C Color &background, bool hp)
+{
+   Vec4 clear_color=background;
+   if(image.is())image.crop(image, x, y, w, h, &clear_color);else
+   if(image.createSoftTry(w, h, 1, hp ? IMAGE_F32_4_SRGB : IMAGE_R8G8B8A8_SRGB))
+      REPD(y, h)
+      REPD(x, w)image.colorF(x, y, clear_color);
+}
+
+void TransformImage(Image &image, TextParam param, bool clamp, C Color &background)
 {
    BoxI box(0, image.size3());
    {
@@ -1264,10 +1210,15 @@ void TransformImage(Image &image, TextParam param, bool clamp)
 
    if(HighPrecTransform(param.name))AdjustImage(image, false, false, true); // if transform might generate high precision values then make sure we can store them
 
+   if(param.name=="size")
+   {
+      VecI2 v=TextVecI2Ex(param.value);
+      Crop(image, 0, 0, v.x, v.y, background);
+   }else
    if(param.name=="crop")
    {
       VecI4 v=TextVecI4(param.value);
-      image.crop(image, v.x, v.y, v.z, v.w);
+      Crop(image, v.x, v.y, v.z, v.w, background);
    }else
    if(param.name=="trim")
    {
@@ -1279,7 +1230,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          case  4: v=        TextVecI4(param.value); break;
          default: v=0; break;
       }
-      image.crop(image, v.x, v.y, image.w()-v.x-v.z, image.h()-v.y-v.w);
+      Crop(image, v.x, v.y, image.w()-v.x-v.z, image.h()-v.y-v.w, background);
    }else
    if(param.name=="extend")
    {
@@ -1291,7 +1242,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          case  4: v=        TextVecI4(param.value); break;
          default: v=0; break;
       }
-      image.crop(image, -v.x, -v.y, image.w()+v.x+v.z, image.h()+v.y+v.w);
+      Crop(image, -v.x, -v.y, image.w()+v.x+v.z, image.h()+v.y+v.w, background);
    }else
    if(ResizeTransformAny(param.name))
    {
@@ -1476,6 +1427,12 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       Vec4 add(TextVecEx(param.value), 0);
       if(add.xyz.anyDifferent())AdjustImage(image, true, false, false);
       image.mulAdd(1, add, &box);
+   }else
+   if(param.name=="setRGB")
+   {
+      Vec4 add(TextVecEx(param.value), 0);
+      if(add.xyz.anyDifferent())AdjustImage(image, true, false, false);
+      image.mulAdd(Vec4(0, 0, 0, 1), add, &box);
    }else
    if(param.name=="mulAddRGB")
    {
@@ -2126,19 +2083,19 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          image.color3DF(x, y, z, c);
       }
    }else
-   if(param.name=="metalToReflect")
+   /*if(param.name=="metalToReflect")
    {
       for(int z=box.min.z; z<box.max.z; z++)
       for(int y=box.min.y; y<box.max.y; y++)
       for(int x=box.min.x; x<box.max.x; x++)
       {
          Vec4 c=image.color3DF(x, y, z);
-         c.x=Lerp(0.04f, 1, c.x);
-         c.y=Lerp(0.04f, 1, c.y);
-         c.z=Lerp(0.04f, 1, c.z);
+         c.x=Lerp(0.04, 1, c.x);
+         c.y=Lerp(0.04, 1, c.y);
+         c.z=Lerp(0.04, 1, c.z);
          image.color3DF(x, y, z, c);
       }
-   }else
+   }else*/
    if(param.name=="channel") // Warning: this loses sRGB for 1..2 channels, because there are no IMAGE_R8_SRGB, IMAGE_R8G8_SRGB, IMAGE_F32_SRGB, IMAGE_F32_2_SRGB
    {
       int channels=param.value.length();
@@ -2244,11 +2201,11 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       image.transparentToNeighbor(true, param.value.is() ? param.asFlt() : 1);
    }
 }
-void TransformImage(Image &image, C MemPtr<TextParam> &params, bool clamp)
+void TransformImage(Image &image, C MemPtr<TextParam> &params, bool clamp, C Color &background)
 {
-   FREPA(params)TransformImage(image, params[i], clamp); // process in order
+   FREPA(params)TransformImage(image, params[i], clamp, background); // process in order
 }
-bool LoadImage(C Project *proj, Image &image, TextParam *image_resize, C FileParams &fp, bool srgb, bool clamp, C Image *color, C TextParam *color_resize, C Image *smooth, C TextParam *smooth_resize, C Image *bump, C TextParam *bump_resize) // !! this ignores 'fp.nodes' !!
+bool LoadImage(C Project *proj, Image &image, TextParam *image_resize, C FileParams &fp, bool srgb, bool clamp, C Color &background, C Image *color, C TextParam *color_resize, C Image *smooth, C TextParam *smooth_resize, C Image *bump, C TextParam *bump_resize) // !! this ignores 'fp.nodes' !!
 {
    if(image_resize)image_resize->del();
    if(!fp.name.is()){image.del(); return true;}
@@ -2256,9 +2213,9 @@ bool LoadImage(C Project *proj, Image &image, TextParam *image_resize, C FilePar
    bool lum_to_alpha=false;
 
    // check for special images
-   if(name=="|color|" ){if(color ){color ->copyTry(image); if( color_resize){if(image_resize)*image_resize=* color_resize;else TransformImage(image, * color_resize, clamp);} goto imported;}}else // if have info about resize for source image, then if can store it in 'image_resize' then store and if not then resize now
-   if(name=="|smooth|"){if(smooth){smooth->copyTry(image); if(smooth_resize){if(image_resize)*image_resize=*smooth_resize;else TransformImage(image, *smooth_resize, clamp);} goto imported;}}else // if have info about resize for source image, then if can store it in 'image_resize' then store and if not then resize now
-   if(name=="|bump|"  ){if(bump  ){bump  ->copyTry(image); if(  bump_resize){if(image_resize)*image_resize=*  bump_resize;else TransformImage(image, *  bump_resize, clamp);} goto imported;}}else // if have info about resize for source image, then if can store it in 'image_resize' then store and if not then resize now
+   if(name=="|color|" ){if(color ){color ->copyTry(image); if( color_resize){if(image_resize)*image_resize=* color_resize;else TransformImage(image, * color_resize, clamp, background);} goto imported;}}else // if have info about resize for source image, then if can store it in 'image_resize' then store and if not then resize now
+   if(name=="|smooth|"){if(smooth){smooth->copyTry(image); if(smooth_resize){if(image_resize)*image_resize=*smooth_resize;else TransformImage(image, *smooth_resize, clamp, background);} goto imported;}}else // if have info about resize for source image, then if can store it in 'image_resize' then store and if not then resize now
+   if(name=="|bump|"  ){if(bump  ){bump  ->copyTry(image); if(  bump_resize){if(image_resize)*image_resize=*  bump_resize;else TransformImage(image, *  bump_resize, clamp, background);} goto imported;}}else // if have info about resize for source image, then if can store it in 'image_resize' then store and if not then resize now
    {
       if(proj) // check for element ID
       {
@@ -2274,7 +2231,7 @@ bool LoadImage(C Project *proj, Image &image, TextParam *image_resize, C FilePar
       imported:
          image.copyTry(image, -1, -1, -1, srgb ? ImageTypeIncludeSRGB(image.type()) : ImageTypeExcludeSRGB(image.type())); // set desired sRGB
          if(lum_to_alpha)image.alphaFromBrightness().divRgbByAlpha();
-         TransformImage(image, ConstCast(fp.params), clamp);
+         TransformImage(image, ConstCast(fp.params), clamp, background);
          return true;
       }
    }
@@ -2352,30 +2309,23 @@ force_src_resize:
          if(file.nodes.elms())
          {
                layer_ok=LoadImages(proj, layer, layer_resize_ptr, FileParams::Encode(file.nodes), srgb, clamp, background, color, color_resize, smooth, smooth_resize, bump, bump_resize);
-            if(layer_ok)TransformImage(layer, file.params, clamp);
+            if(layer_ok)TransformImage(layer, file.params, clamp, background);
          }else
          {
-            layer_ok=LoadImage(proj, layer, layer_resize_ptr, file, srgb, clamp, color, color_resize, smooth, smooth_resize, bump, bump_resize);
+            layer_ok=LoadImage(proj, layer, layer_resize_ptr, file, srgb, clamp, background, color, color_resize, smooth, smooth_resize, bump, bump_resize);
          }
          if(layer_ok)
          {
             if(layer_resize.name.is() && !image_resize_final.name.is())Swap(layer_resize, image_resize_final); // if have info about source resize and final resize was not specified, then use source resize as final
             VecI2 pos  =0; {C TextParam *p=file.findParam("position"); if(!p)p=file.findParam("pos"  ); if(p)pos=p->asVecI2();}
             flt   alpha=1; {C TextParam *p=file.findParam("opacity" ); if(!p)p=file.findParam("alpha"); if(p)alpha=p->asFlt();}
-            bool alpha_1=Equal(alpha, 1),
+            bool  alpha_1=Equal(alpha, 1),
               simple_set=(mode==APPLY_SET && alpha_1);
-            if(!has_data && pos.allZero() && simple_set)Swap(layer, image);else // if this is the first image, then just swap it as main
+            if(!has_data && pos.allZero() && simple_set && layer.is())Swap(layer, image);else // if this is the first image, then just swap it as main
             {
                VecI2 size=layer.size()+pos;
                if(size.x>image.w() || size.y>image.h()) // make room for 'layer', do this even if 'layer' doesn't exist, because we may have 'pos' specified
-               {
-                  VecI2 old_size=image.size();
-                  if(image.is())image.crop(image, 0, 0, Max(image.w(), size.x), Max(image.h(), size.y));
-                  else         {image.createSoftTry(size.x, size.y, 1, (hp || layer.highPrecision()) ? IMAGE_F32_4_SRGB : IMAGE_R8G8B8A8_SRGB); image.clear();}
-                  if(background!=TRANSPARENT) // skip TRANSPARENT because in both cases above (crop and create+clear) TRANSPARENT is already set
-                     REPD(y, image.h())
-                     REPD(x, image.w())if(x>=old_size.x || y>=old_size.y)image.color(x, y, background);
-               }
+                  Crop(image, 0, 0, Max(image.w(), size.x), Max(image.h(), size.y), background, hp || layer.highPrecision());
                if(layer.is())
                {
                   // put 'layer' onto image
@@ -2595,7 +2545,7 @@ force_src_resize:
                      }
                   }
                }else
-               if(!(file.name.is() || file.nodes.elms()))TransformImage(image, file.params, clamp); // if this 'layer' is empty and no file name was specified, then apply params to the entire 'image', so we can process entire atlas
+               if(!(file.name.is() || file.nodes.elms()))TransformImage(image, file.params, clamp, background); // if this 'layer' is empty and no file name was specified, then apply params to the entire 'image', so we can process entire atlas
             }
             has_data=true;
          }else ok=false;
@@ -2603,7 +2553,7 @@ force_src_resize:
    }
 
    // store information about image size, if can't store then just resize it
-   if(image_resize)*image_resize=image_resize_final;else TransformImage(image, image_resize_final, clamp);
+   if(image_resize)*image_resize=image_resize_final;else TransformImage(image, image_resize_final, clamp, background);
 
    return ok;
 }
@@ -2717,6 +2667,12 @@ Str TextVecEx(C Vec &v, int precision)
 {
    return (Equal(v.x, v.y) && Equal(v.x, v.z)) ? TextReal(v.x, precision) : v.asText(precision);
 }
+Str TextVecVecEx(C Vec &a, C Vec &b, int precision)
+{
+   return (Equal(a.x, a.y) && Equal(a.x, a.z)
+        && Equal(b.x, b.y) && Equal(b.x, b.z)) ? TextReal(a.x, precision)+", "+TextReal(b.x, precision)
+                                               : a.asText(     precision)+", "+b.asText(     precision);
+}
 /******************************************************************************/
 Str RelativePath  (C Str &path) {return SkipStartPath(path, GetPath(App.exe()));}
 Str EditToGamePath(  Str  path)
@@ -2819,6 +2775,14 @@ void SetTransform(MemPtr<FileParams> files, C Str &name, C Str &value) // this i
       p->setValue(value);
    }
 }
+void AddTransform(MemPtr<FileParams> files, C Str &name, C Str &value) // this ignores partial(non full size) transforms 
+{
+   if(files.elms()) // set only if we have something (to ignore setting for completely empty)
+   {
+      if(files.elms()>1 && (files.last().name.is() || files.last().nodes.elms()))files.New(); // if we have more than one image, then we need to make sure that we add the parameter not to one of the images, but as last file that has no name specified to set transform for everything
+      files.last().params.New().set(name, value);
+   }
+}
 void SetResizeTransform(MemPtr<FileParams> files, C Str &name, C Str &value) // this ignores partial(non full size) transforms 
 {
    if(files.elms()) // set only if we have something (to ignore setting for completely empty)
@@ -2842,10 +2806,16 @@ void SetResizeTransform(MemPtr<FileParams> files, C Str &name, C Str &value) // 
       p->setValue(value);
    }
 }
-void SetTransform(Str &file, C Str &name, C Str &value)
+void SetTransform(Str &file, C Str &name, C Str &value) // this tries first to adjust existing transform
 {
    Mems<FileParams> files=FileParams::Decode(file);
    SetTransform(files, name, value);
+   file=FileParams::Encode(files);
+}
+void AddTransform(Str &file, C Str &name, C Str &value)
+{
+   Mems<FileParams> files=FileParams::Decode(file);
+   AddTransform(files, name, value);
    file=FileParams::Encode(files);
 }
 /******************************************************************************/

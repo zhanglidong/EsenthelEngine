@@ -86,7 +86,9 @@ public:
    void setErrors(Mesh &mesh, C Memc<UID> &mtrl_ids, C UID &mesh_id);
    static bool Create(int &occurence, C UID &id, ptr user);        
    void convertMeshes(C UID &atlas_id);
-   static bool AddMap(bool &forced, Str &dest, C Str &src, bool force, C Mtrl &mtrl, bool normal=false, C Vec &mul=1);
+   static bool AddMap(bool &forced, Str &dest, C Str &src, bool force, C Mtrl &mtrl, uint tex_type,
+                    C Vec &src_mul=1, C Vec &src_add=0, // transformation of the source map
+                      flt dest_mul=1,   flt dest_add=0); // transformation of the dest   map
    void checkSide(Str &dest, bool filled);
    void convertPerform();
    void convertDo();

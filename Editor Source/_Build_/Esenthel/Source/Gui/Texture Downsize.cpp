@@ -203,13 +203,13 @@ TextureDownsize TexDownsize;
             {
                // check if all texture source files are present
                Str invalid;
-               if(Proj.invalidTexSrc(original.  color_map, &invalid)
-               || Proj.invalidTexSrc(original.  alpha_map, &invalid)
-               || Proj.invalidTexSrc(original.   bump_map, &invalid)
-               || Proj.invalidTexSrc(original. normal_map, &invalid)
-               || Proj.invalidTexSrc(original. smooth_map, &invalid)
-               || Proj.invalidTexSrc(original.reflect_map, &invalid)
-               || Proj.invalidTexSrc(original.   glow_map, &invalid)
+               if(Proj.invalidTexSrc(original. color_map, &invalid)
+               || Proj.invalidTexSrc(original. alpha_map, &invalid)
+               || Proj.invalidTexSrc(original.  bump_map, &invalid)
+               || Proj.invalidTexSrc(original.normal_map, &invalid)
+               || Proj.invalidTexSrc(original.smooth_map, &invalid)
+               || Proj.invalidTexSrc(original. metal_map, &invalid)
+               || Proj.invalidTexSrc(original.  glow_map, &invalid)
                ){Gui.msgBox(S, S+"Can't find:\n"+invalid.replace(' ', Nbsp)); return;}
 
                EditMaterial downsized=original;
@@ -231,13 +231,13 @@ TextureDownsize TexDownsize;
                if(base1_size!=base2_size)downsized.separateNormalMap(time); // normal can be from bump
 
                // resize images, #MaterialTextureLayout
-               Proj.forceImageSize(downsized.  color_map, base0_size, relative, downsized.  color_map_time, time);
-               Proj.forceImageSize(downsized.  alpha_map, base0_size, relative, downsized.  alpha_map_time, time);
-               Proj.forceImageSize(downsized.   bump_map, base2_size, relative, downsized.   bump_map_time, time);
-               Proj.forceImageSize(downsized. normal_map, base1_size, relative, downsized. normal_map_time, time);
-               Proj.forceImageSize(downsized. smooth_map, base2_size, relative, downsized. smooth_map_time, time);
-               Proj.forceImageSize(downsized.reflect_map, base2_size, relative, downsized.reflect_map_time, time);
-               Proj.forceImageSize(downsized.   glow_map, base2_size, relative, downsized.   glow_map_time, time);
+               Proj.forceImageSize(downsized. color_map, base0_size, relative, downsized. color_map_time, time);
+               Proj.forceImageSize(downsized. alpha_map, base0_size, relative, downsized. alpha_map_time, time);
+               Proj.forceImageSize(downsized.  bump_map, base2_size, relative, downsized.  bump_map_time, time);
+               Proj.forceImageSize(downsized.normal_map, base1_size, relative, downsized.normal_map_time, time);
+               Proj.forceImageSize(downsized.smooth_map, base2_size, relative, downsized.smooth_map_time, time);
+               Proj.forceImageSize(downsized. metal_map, base2_size, relative, downsized. metal_map_time, time);
+               Proj.forceImageSize(downsized.  glow_map, base2_size, relative, downsized.  glow_map_time, time);
                downsized.cleanupMaps();
 
                if(Proj.mtrlSync(mtrl_id, downsized, true, false))
@@ -260,13 +260,13 @@ TextureDownsize TexDownsize;
                         || changed_base1 && mtrl_data->base_1_tex==original.base_1_tex  // first check if we're changing this texture, then compare if it's the same
                         || changed_base2 && mtrl_data->base_2_tex==original.base_2_tex) // first check if we're changing this texture, then compare if it's the same
                            if(Proj.mtrlGet(elm.id, test))
-                              if(AdjustTexSrc(test.  color_map, test.  color_map_time, original.  color_map, downsized.  color_map, time) // !! use '|' and not '||' because we need to process all !!
-                              |  AdjustTexSrc(test.  alpha_map, test.  alpha_map_time, original.  alpha_map, downsized.  alpha_map, time)
-                              |  AdjustTexSrc(test.   bump_map, test.   bump_map_time, original.   bump_map, downsized.   bump_map, time)
-                              |  AdjustTexSrc(test. normal_map, test. normal_map_time, original. normal_map, downsized. normal_map, time)
-                              |  AdjustTexSrc(test. smooth_map, test. smooth_map_time, original. smooth_map, downsized. smooth_map, time)
-                              |  AdjustTexSrc(test.reflect_map, test.reflect_map_time, original.reflect_map, downsized.reflect_map, time)
-                              |  AdjustTexSrc(test.   glow_map, test.   glow_map_time, original.   glow_map, downsized.   glow_map, time))
+                              if(AdjustTexSrc(test. color_map, test. color_map_time, original. color_map, downsized. color_map, time) // !! use '|' and not '||' because we need to process all !!
+                              |  AdjustTexSrc(test. alpha_map, test. alpha_map_time, original. alpha_map, downsized. alpha_map, time)
+                              |  AdjustTexSrc(test.  bump_map, test.  bump_map_time, original.  bump_map, downsized.  bump_map, time)
+                              |  AdjustTexSrc(test.normal_map, test.normal_map_time, original.normal_map, downsized.normal_map, time)
+                              |  AdjustTexSrc(test.smooth_map, test.smooth_map_time, original.smooth_map, downsized.smooth_map, time)
+                              |  AdjustTexSrc(test. metal_map, test. metal_map_time, original. metal_map, downsized. metal_map, time)
+                              |  AdjustTexSrc(test.  glow_map, test.  glow_map_time, original.  glow_map, downsized.  glow_map, time))
                      {
                         if(changed_base0 && test.base_0_tex==original.base_0_tex)test.base_0_tex=downsized.base_0_tex;
                         if(changed_base1 && test.base_1_tex==original.base_1_tex)test.base_1_tex=downsized.base_1_tex;
@@ -396,9 +396,9 @@ TextureDownsize TexDownsize;
 
       prop_ts.reset(); prop_ts.align.set(1, 0); prop_ts.size=0.053f;
       props.New().create("Global", MemberDesc(DATA_INT).setFunc(Global, Global)).desc("How much to Downsize all Material Base Textures.");
-      props.New().create("Color" , MemberDesc(DATA_INT).setFunc(Base0 , Base0 )).desc("How much to Downsize Material Base0 Texture, such as Color, Alpha."               ); // #MaterialTextureLayout
-      props.New().create("Normal", MemberDesc(DATA_INT).setFunc(Base1 , Base1 )).desc("How much to Downsize Material Base1 Texture, such as Normal."                     ); // #MaterialTextureLayout
-      props.New().create("Extra" , MemberDesc(DATA_INT).setFunc(Base2 , Base2 )).desc("How much to Downsize Material Base2 Texture, such as Smooth, Reflect, Bump, Glow."); // #MaterialTextureLayout
+      props.New().create("Color" , MemberDesc(DATA_INT).setFunc(Base0 , Base0 )).desc("How much to Downsize Material Base0 Texture, such as Color, Alpha."             ); // #MaterialTextureLayout
+      props.New().create("Normal", MemberDesc(DATA_INT).setFunc(Base1 , Base1 )).desc("How much to Downsize Material Base1 Texture, such as Normal."                   ); // #MaterialTextureLayout
+      props.New().create("Extra" , MemberDesc(DATA_INT).setFunc(Base2 , Base2 )).desc("How much to Downsize Material Base2 Texture, such as Smooth, Metal, Bump, Glow."); // #MaterialTextureLayout
       Rect r=AddProperties(props, region, Vec2(padd, -0.005f), prop_h, 0.18f, &prop_ts); REPAO(props).autoData(this).range(-1, 10).mouseEditSpeed(1).changed(SetTextures);
 
       Node<MenuElm> menu; Viewport4Region &v4=T;

@@ -8,10 +8,10 @@
 class LakeBase
 {
    bool            removed;
-   flt             depth, tex_scale;
+   flt             depth, uv_scale;
    UID             material;
    Memc<Memc<Vec>> polys;
-   TimeStamp       removed_time, depth_time, tex_scale_time, material_time, polys_time;
+   TimeStamp       removed_time, depth_time, uv_scale_time, material_time, polys_time;
 
    // get
    bool equal(C LakeBase &src)C;

@@ -244,7 +244,7 @@ public:
    static void MtrlSetBumpTexCur       (ProjectEx &proj);
    static void MtrlSetNormalTexCur     (ProjectEx &proj);
    static void MtrlSetSmoothTexCur     (ProjectEx &proj);
-   static void MtrlSetReflectTexCur    (ProjectEx &proj);
+   static void MtrlSetMetalTexCur      (ProjectEx &proj);
    static void MtrlSetGlowTexCur       (ProjectEx &proj);
 
    static void MtrlMulTexCol           (ProjectEx &proj);
@@ -373,13 +373,13 @@ public:
    bool mtrlSetBump(C MemPtr<UID> &elm_ids, flt bump, bool mul=false);
    bool mtrlSetNormal(C MemPtr<UID> &elm_ids, flt normal, bool mul=false);
    bool mtrlSetSmooth(C MemPtr<UID> &elm_ids, flt smooth, bool mul=false);
-   bool mtrlSetReflect(C MemPtr<UID> &elm_ids, flt reflect, bool mul=false);
+   bool mtrlSetReflect(C MemPtr<UID> &elm_ids, flt reflect_min, flt reflect_max);
    bool mtrlSetGlow(C MemPtr<UID> &elm_ids, flt glow, bool mul=false);
    bool mtrlSetTexColor(C MemPtr<UID> &elm_ids, C Str &color_map);
    bool mtrlSetTexBump(C MemPtr<UID> &elm_ids, C Str &bump_map);
    bool mtrlSetTexNormal(C MemPtr<UID> &elm_ids, C Str &normal_map);
    bool mtrlSetTexSmooth(C MemPtr<UID> &elm_ids, C Str &smooth_map);
-   bool mtrlSetTexReflect(C MemPtr<UID> &elm_ids, C Str &reflect_map);
+   bool mtrlSetTexMetal(C MemPtr<UID> &elm_ids, C Str &metal_map);
    bool mtrlSetTexGlow(C MemPtr<UID> &elm_ids, C Str &glow_map);
    void mtrlCull(C MemPtr<UID> &elm_ids, bool on);
    void mtrlFlipNrmY(C MemPtr<UID> &elm_ids, bool on);

@@ -543,9 +543,9 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       downsize_tex_mobile=src.downsize_tex_mobile;
       tex_quality        =src.tex_quality;
 
-      usesTexAlpha(src.usesTexAlpha());
-      usesTexBump (src.usesTexBump ());
-      usesTexGlow (src.usesTexGlow ());
+      usesTexAlpha(src.usesTexColAlpha());
+      usesTexBump (src.usesTexBump    ());
+      usesTexGlow (src.usesTexGlow    ());
    }
    uint ElmMaterial::undo(C ElmMaterial &src) // don't undo 'downsize_tex_mobile', 'flag' because they should be set only in 'from'
    {
@@ -681,9 +681,9 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
 
       tex_quality=src.tex_quality;
 
-      usesTexAlpha(src.usesTexAlpha());
-      usesTexBump (src.usesTexBump ());
-      usesTexGlow (src.usesTexGlow ());
+      usesTexAlpha(src.usesTexColAlpha());
+      usesTexBump (src.usesTexBump    ());
+      usesTexGlow (src.usesTexGlow    ());
    }
    uint ElmWaterMtrl::undo(C ElmWaterMtrl &src) {return super::undo(src);}
    uint ElmWaterMtrl::sync(C ElmWaterMtrl &src) {return super::sync(src);}

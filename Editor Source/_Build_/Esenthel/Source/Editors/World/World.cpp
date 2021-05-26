@@ -52,7 +52,7 @@ WorldView WorldEdit;
    }
    void WorldView::undoVis() {SetUndo(undos, undo, redo);}
      WorldView::Waypoint::~Waypoint() {WaypointList.removed(T);}
-   WorldView::WorldView() : show_menu_objs(null), grid_plane_level(0), visible_radius(4), show_world_center(true), show_objs(true), show_obj_box(false), show_obj_phys(false), show_world_path(false), cur_collides_with_hm(true), cur_collides_with_obj(true), obj_center_points(false), obj_matrix_points(false), obj_random_angle(false), hm_align(true), hm_align_nrm(false), grid_align(false), grid_align_round(false), grid_align_size_xz(1), grid_align_size_y(1), visible_area(0, 0, 0, 0), visible_area_1(0, 0, 0, 0), valid_area(0, 0, 0, 0), changed_settings(false), grass_range2(0), validate_refs_time(FLT_MAX), hm_mtrl_highlight(-256), hm_sel_size(0), hm_ao(true), hm_use_shader(false), hm_shader(null), update_count(0), update_time(0), obj_axis(-1), obj_edit_angle(0), obj_edit_speed(0), obj_edit_vec(0), waypoint_edit_speed(0), waypoint_subdivide(1), waypoints(Compare), sel_waypoint(null), lit_waypoint(null), sel_waypoint_point(UIDZero), lit_waypoint_point(UIDZero), last_waypoint_flush_time(0), water_edit_speed(0), water_mtrl_highlight(-256), water_mtrl_p(null), water_tex_scale(null), water_smooth(null), lakes(Compare), rivers(Compare), sel_lake(null), lit_lake(null), sel_river(null), lit_river(null), sel_lake_poly(-1), sel_lake_point(-1), lit_lake_poly(-1), lit_lake_point(-1), sel_river_point(-1), lit_river_point(-1), last_water_flush_time(0)
+   WorldView::WorldView() : show_menu_objs(null), grid_plane_level(0), visible_radius(4), show_world_center(true), show_objs(true), show_obj_box(false), show_obj_phys(false), show_world_path(false), cur_collides_with_hm(true), cur_collides_with_obj(true), obj_center_points(false), obj_matrix_points(false), obj_random_angle(false), hm_align(true), hm_align_nrm(false), grid_align(false), grid_align_round(false), grid_align_size_xz(1), grid_align_size_y(1), visible_area(0, 0, 0, 0), visible_area_1(0, 0, 0, 0), valid_area(0, 0, 0, 0), changed_settings(false), grass_range2(0), validate_refs_time(FLT_MAX), hm_mtrl_highlight(-256), hm_sel_size(0), hm_ao(true), hm_use_shader(false), hm_shader(null), update_count(0), update_time(0), obj_axis(-1), obj_edit_angle(0), obj_edit_speed(0), obj_edit_vec(0), waypoint_edit_speed(0), waypoint_subdivide(1), waypoints(Compare), sel_waypoint(null), lit_waypoint(null), sel_waypoint_point(UIDZero), lit_waypoint_point(UIDZero), last_waypoint_flush_time(0), water_edit_speed(0), water_mtrl_highlight(-256), water_mtrl_p(null), water_uv_scale(null), water_smooth(null), lakes(Compare), rivers(Compare), sel_lake(null), lit_lake(null), sel_river(null), lit_river(null), sel_lake_poly(-1), sel_lake_point(-1), lit_lake_poly(-1), lit_lake_point(-1), sel_river_point(-1), lit_river_point(-1), last_water_flush_time(0)
    {
       REPAO(show_obj_access)=true; waypoints.replaceClass<Waypoint>();
       
@@ -608,10 +608,10 @@ WorldView WorldEdit;
       mode.tab(WATER)+=water_mtrl_text.create(water_op.tab(WAO_LAKE_NUM-1).rect().right()+Vec2(0.05f, 0), "Material", &ts);
       mode.tab(WATER)+=water_mtrl_img .create(Rect_L(water_mtrl_text.rect().right()+Vec2(0.12f, 0), 0.055f, 0.055f)).desc("Material used when creating new water elements\nDrag and drop a material here"); water_mtrl_img.alpha_mode=ALPHA_NONE;
       mode.tab(WATER)+=water_props_region.create().skin(&TransparentSkin, false); water_props_region.kb_lit=false;
-      water_mtrl_p   =&water_props.New().create("Material" , MemberDesc(DATA_STR ).setFunc(WaterMaterial, WaterMaterial)).desc("Drag and drop water material here"); water_mtrl_p->textline.disabled(true);
-                       water_props.New().create("Depth"    , MemberDesc(DATA_REAL).setFunc(WaterDepth   , WaterDepth   )).min(0).mouseEditSpeed(1.5f);
-      water_tex_scale=&water_props.New().create("Tex Scale", MemberDesc(DATA_VEC2).setFunc(WaterTexScale, WaterTexScale));
-      water_smooth   =&water_props.New().create("Smooth"   , MemberDesc(DATA_INT ).setFunc(WaterSmooth  , WaterSmooth  )).range(0, 4).mouseEditSpeed(2);
+      water_mtrl_p  =&water_props.New().create("Material", MemberDesc(DATA_STR ).setFunc(WaterMaterial, WaterMaterial)).desc("Drag and drop water material here"); water_mtrl_p->textline.disabled(true);
+                      water_props.New().create("Depth"   , MemberDesc(DATA_REAL).setFunc(WaterDepth   , WaterDepth   )).min(0).mouseEditSpeed(1.5f);
+      water_uv_scale=&water_props.New().create("UV Scale", MemberDesc(DATA_VEC2).setFunc(WaterUVScale , WaterUVScale ));
+      water_smooth  =&water_props.New().create("Smooth"  , MemberDesc(DATA_INT ).setFunc(WaterSmooth  , WaterSmooth  )).range(0, 4).mouseEditSpeed(2);
       Rect r=AddProperties(water_props, water_props_region, Vec2(0.01f, -0.01f), h, 0.30f, &ts); REPAO(water_props).autoData(this).changed(WaterChanged, WaterPreChanged);
       water_props_region.rect(Rect_LU(water_op.rect().ru()+Vec2(0.01f, 0), r.size()+0.01f*2));
       setWaterVis();
@@ -737,8 +737,8 @@ WorldView WorldEdit;
    {
       bool vis=(/*(water_op()==WAO_NEW_POINT || water_op()==WAO_NEW_WATER) &&*/ !sel_lake && !sel_river); water_mode.visible(vis); water_mtrl_text.visible(vis); water_mtrl_img.visible(vis);
       water_props_region.visible(sel_lake || sel_river);
-      if(water_tex_scale)water_tex_scale->visible(sel_river!=null);
-      if(water_smooth   )water_smooth   ->visible(sel_river!=null);
+      if(water_uv_scale)water_uv_scale->visible(sel_river!=null);
+      if(water_smooth  )water_smooth  ->visible(sel_river!=null);
    }
    void WorldView::reloadEnv()
    {

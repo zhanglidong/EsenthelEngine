@@ -35,11 +35,11 @@ extern const bool          MiscOnTop,
                     ImportRemovedElms, 
                     RenameAnimBonesOnSkelChange;
 extern const MESH_FLAG     MeshJoinAllTestVtxFlag;
-extern const Edit::Material::TEX_QUALITY MinMtrlTexQualityBase0    , // minimum texture compression quality for Material Base0  Texture (RGBA              ) #MaterialTextureLayout, set to LOW    because can be maximized based on 'ElmMaterial.tex_quality/EditMaterial.tex_quality'
-                                MinMtrlTexQualityBase1   , // minimum texture compression quality for Material Base1  Texture (NxNy              ) #MaterialTextureLayout, set to HIGH   because normals need this (without this, they get very blocky due to low quality)
-                                MinMtrlTexQualityBase2 , // minimum texture compression quality for Material Base2  Texture (SmoothReflBumpGlow) #MaterialTextureLayout, set to MEDIUM because can't be changed otherwise
-                                MinMtrlTexQualityDetail  , // minimum texture compression quality for Material Detail Texture (NxNyColSmooth     ) #MaterialTextureLayout, set to HIGH   because normals need this (without this, they get very blocky due to low quality)
-                                MinMtrlTexQualityMacro    , // minimum texture compression quality for Material Macro  Texture (RGB               ) #MaterialTextureLayout, set to LOW    because can be maximized based on 'ElmMaterial.tex_quality/EditMaterial.tex_quality'
+extern const Edit::Material::TEX_QUALITY MinMtrlTexQualityBase0    , // minimum texture compression quality for Material Base0  Texture (RGBA               ) #MaterialTextureLayout, set to LOW    because can be maximized based on 'ElmMaterial.tex_quality/EditMaterial.tex_quality'
+                                MinMtrlTexQualityBase1   , // minimum texture compression quality for Material Base1  Texture (NxNy               ) #MaterialTextureLayout, set to HIGH   because normals need this (without this, they get very blocky due to low quality)
+                                MinMtrlTexQualityBase2 , // minimum texture compression quality for Material Base2  Texture (MetalSmoothBumpGlow) #MaterialTextureLayout, set to MEDIUM because can't be changed otherwise
+                                MinMtrlTexQualityDetail  , // minimum texture compression quality for Material Detail Texture (NxNyColSmooth      ) #MaterialTextureLayout, set to HIGH   because normals need this (without this, they get very blocky due to low quality)
+                                MinMtrlTexQualityMacro    , // minimum texture compression quality for Material Macro  Texture (RGB                ) #MaterialTextureLayout, set to LOW    because can be maximized based on 'ElmMaterial.tex_quality/EditMaterial.tex_quality'
                                 MinMtrlTexQualityLight ;
 extern const COMPRESS_TYPE ServerNetworkCompression     , ClientNetworkCompression     , EsenthelProjectCompression     ;
 extern const cchar8       *      AppName,

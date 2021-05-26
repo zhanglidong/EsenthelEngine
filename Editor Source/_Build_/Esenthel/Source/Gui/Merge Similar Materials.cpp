@@ -184,9 +184,9 @@ void DrawIDReplace()
          col_s=m.color_s;
          bump=m.bump;
          smooth=m.smooth;
-         reflect=m.reflect;
+         reflect=m.reflect_min;
          glow=m.glow;
-         uv_scale=m.tex_scale;
+         uv_scale=m.uv_scale;
          return T;
       }
    int MergeSimilarMaterials::CompareMtrl(C Mtrl &a, C Mtrl &b) {return ComparePathNumber(Proj.elmFullName(b.elm_id), Proj.elmFullName(a.elm_id));}

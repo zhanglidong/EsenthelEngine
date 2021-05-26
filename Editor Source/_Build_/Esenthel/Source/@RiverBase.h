@@ -16,11 +16,11 @@ public:
    bool        removed;
    byte        smooth;
    flt         depth;
-   Vec2        tex_scale;
+   Vec2        uv_scale;
    UID         material;
    Memc<Vtx  > vtxs;
    Memc<VecI2> edges;
-   TimeStamp   removed_time, smooth_time, depth_time, tex_scale_time, material_time, vtx_edge_time;
+   TimeStamp   removed_time, smooth_time, depth_time, uv_scale_time, material_time, vtx_edge_time;
 
    // get
    bool equal(C RiverBase &src)C;
@@ -31,9 +31,9 @@ public:
    uint memUsage()C;
 
    // operations
-   void setSmooth  (byte    smooth   );
-   void setDepth   (flt     depth    );
-   void setTexScale(C Vec2 &tex_scale);
+   void setSmooth (byte    smooth  );
+   void setDepth  (flt     depth   );
+   void setUVScale(C Vec2 &uv_scale);
 
    bool sync(C RiverBase &src);
    bool undo(C RiverBase &src);

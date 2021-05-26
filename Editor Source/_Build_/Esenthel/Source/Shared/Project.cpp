@@ -1113,19 +1113,19 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
                {
                   if(ver<=46)
                   {
-                     edit.  color_map  .replace('|', '\n');
-                     edit.  alpha_map  .replace('|', '\n');
-                     edit.   bump_map  .replace('|', '\n');
-                     edit. normal_map  .replace('|', '\n');
-                     edit. smooth_map  .replace('|', '\n');
-                     edit.reflect_map  .replace('|', '\n');
-                     edit.   glow_map  .replace('|', '\n');
+                     edit. color_map   .replace('|', '\n');
+                     edit. alpha_map   .replace('|', '\n');
+                     edit.  bump_map   .replace('|', '\n');
+                     edit.normal_map   .replace('|', '\n');
+                     edit.smooth_map   .replace('|', '\n');
+                     edit. metal_map   .replace('|', '\n');
+                     edit.  glow_map   .replace('|', '\n');
                      edit.detail_color .replace('|', '\n');
                      edit.detail_bump  .replace('|', '\n');
                      edit.detail_normal.replace('|', '\n');
                      edit.detail_smooth.replace('|', '\n');
-                     edit.  macro_map  .replace('|', '\n');
-                     edit.  light_map  .replace('|', '\n');
+                     edit. macro_map   .replace('|', '\n');
+                     edit. light_map   .replace('|', '\n');
                      Save(edit, editPath(elm->id));
                      mtrl_data->from(edit);
                   }

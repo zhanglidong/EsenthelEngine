@@ -3,7 +3,7 @@
 /******************************************************************************/
 
 /******************************************************************************/
-   EditWaterMtrl::EditWaterMtrl() : density(0.3f), density_add(0.45f), scale_color(1.0f/200), scale_normal(1.0f/10), scale_bump(1.0f/100), refract(0.10f), refract_reflection(0.06f), refract_underwater(0.01f), wave_scale(0.25f), color_underwater0(0.26f, 0.35f, 0.42f), color_underwater1(0.10f, 0.20f, 0.30f) {smooth=1; reflect=0.02f;}
+   EditWaterMtrl::EditWaterMtrl() : density(0.3f), density_add(0.45f), scale_color(1.0f/200), scale_normal(1.0f/10), scale_bump(1.0f/100), refract(0.10f), refract_reflection(0.06f), refract_underwater(0.01f), wave_scale(0.25f), color_underwater0(0.26f, 0.35f, 0.42f), color_underwater1(0.10f, 0.20f, 0.30f) {smooth=1; reflect_min=0.02f;}
    bool EditWaterMtrl::usesTexBump()C {return wave_scale>EPSL && hasBumpMap();}
    bool EditWaterMtrl::equal(C EditWaterMtrl &src)C
    {
@@ -38,7 +38,7 @@
       super::create(Material(), time); // call super to setup times for all values
       color_s               =Vec4(src.colorS(), 1); color_time=time;
       smooth                =src.smooth ; smooth_time=time;
-      reflect               =src.reflect; reflect_time=time;
+      reflect_min           =src.reflect; reflect_time=time;
       normal                =src.normal ; normal_time=time;
       wave_scale            =src.wave_scale; wave_scale_time=time;
       scale_color           =src.scale_color; scale_color_time=time;
@@ -59,7 +59,7 @@
    {
       dest.colorS(color_s.xyz);
       dest.smooth                =smooth            ;
-      dest.reflect               =reflect           ;
+      dest.reflect               =reflect_min       ;
       dest.normal                =normal            ;
       dest.wave_scale            =wave_scale        ;
       dest.scale_color           =scale_color       ;

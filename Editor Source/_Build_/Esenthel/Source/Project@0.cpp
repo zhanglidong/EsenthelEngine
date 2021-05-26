@@ -408,24 +408,24 @@ void DrawProject()
    void ProjectEx::MtrlSetRGB1(ProjectEx &proj) {                proj.mtrlSetRGB         (proj.menu_list_sel, 1);}
    void ProjectEx::MtrlSetRGB(ProjectEx &proj) {                SetMtrlColor.display    (proj.menu_list_sel);}
    void ProjectEx::MtrlMulRGB(ProjectEx &proj) {                SetMtrlColor.display    (proj.menu_list_sel, true);}
-   void ProjectEx::MtrlSetRGBCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetRGB         (proj.menu_list_sel, MtrlEdit.edit.color_s.xyz);else Gui.msgBox(S, "There's no Material opened");}
-   void ProjectEx::MtrlSetBumpCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetBump        (proj.menu_list_sel, MtrlEdit.edit.bump       );else Gui.msgBox(S, "There's no Material opened");}
-   void ProjectEx::MtrlSetNormalCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetNormal      (proj.menu_list_sel, MtrlEdit.edit.normal     );else Gui.msgBox(S, "There's no Material opened");}
-   void ProjectEx::MtrlSetSmoothCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetSmooth      (proj.menu_list_sel, MtrlEdit.edit.smooth     );else Gui.msgBox(S, "There's no Material opened");}
-   void ProjectEx::MtrlSetReflectCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetReflect     (proj.menu_list_sel, MtrlEdit.edit.reflect    );else Gui.msgBox(S, "There's no Material opened");}
-   void ProjectEx::MtrlSetGlowCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetGlow        (proj.menu_list_sel, MtrlEdit.edit.glow       );else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetRGBCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetRGB         (proj.menu_list_sel, MtrlEdit.edit.color_s.xyz                           );else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetBumpCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetBump        (proj.menu_list_sel, MtrlEdit.edit.bump                                  );else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetNormalCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetNormal      (proj.menu_list_sel, MtrlEdit.edit.normal                                );else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetSmoothCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetSmooth      (proj.menu_list_sel, MtrlEdit.edit.smooth                                );else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetReflectCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetReflect     (proj.menu_list_sel, MtrlEdit.edit.reflect_min, MtrlEdit.edit.reflect_max);else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetGlowCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetGlow        (proj.menu_list_sel, MtrlEdit.edit.glow                                  );else Gui.msgBox(S, "There's no Material opened");}
    void ProjectEx::MtrlResetAlpha(ProjectEx &proj) {                proj.mtrlResetAlpha     (proj.menu_list_sel);}
    void ProjectEx::MtrlCullOn(ProjectEx &proj) {                proj.mtrlCull           (proj.menu_list_sel, true );}
    void ProjectEx::MtrlCullOff(ProjectEx &proj) {                proj.mtrlCull           (proj.menu_list_sel, false);}
    void ProjectEx::MtrlFlipNrmYOn(ProjectEx &proj) {                proj.mtrlFlipNrmY       (proj.menu_list_sel, true );}
    void ProjectEx::MtrlFlipNrmYOff(ProjectEx &proj) {                proj.mtrlFlipNrmY       (proj.menu_list_sel, false);}
    void ProjectEx::MtrlReloadBaseTex(ProjectEx &proj) {                proj.mtrlReloadTextures (proj.menu_list_sel, true, false, false, false);}
-   void ProjectEx::MtrlSetColorTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexColor    (proj.menu_list_sel, MtrlEdit.edit.  color_map);else Gui.msgBox(S, "There's no Material opened");}
-   void ProjectEx::MtrlSetBumpTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexBump     (proj.menu_list_sel, MtrlEdit.edit.   bump_map);else Gui.msgBox(S, "There's no Material opened");}
-   void ProjectEx::MtrlSetNormalTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexNormal   (proj.menu_list_sel, MtrlEdit.edit. normal_map);else Gui.msgBox(S, "There's no Material opened");}
-   void ProjectEx::MtrlSetSmoothTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexSmooth   (proj.menu_list_sel, MtrlEdit.edit. smooth_map);else Gui.msgBox(S, "There's no Material opened");}
-   void ProjectEx::MtrlSetReflectTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexReflect  (proj.menu_list_sel, MtrlEdit.edit.reflect_map);else Gui.msgBox(S, "There's no Material opened");}
-   void ProjectEx::MtrlSetGlowTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexGlow     (proj.menu_list_sel, MtrlEdit.edit.   glow_map);else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetColorTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexColor    (proj.menu_list_sel, MtrlEdit.edit. color_map);else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetBumpTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexBump     (proj.menu_list_sel, MtrlEdit.edit.  bump_map);else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetNormalTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexNormal   (proj.menu_list_sel, MtrlEdit.edit.normal_map);else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetSmoothTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexSmooth   (proj.menu_list_sel, MtrlEdit.edit.smooth_map);else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetMetalTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexMetal    (proj.menu_list_sel, MtrlEdit.edit. metal_map);else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetGlowTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexGlow     (proj.menu_list_sel, MtrlEdit.edit.  glow_map);else Gui.msgBox(S, "There's no Material opened");}
    void ProjectEx::MtrlMulTexCol(ProjectEx &proj) {                proj.mtrlMulTexCol      (proj.menu_list_sel);}
    void ProjectEx::MtrlMulTexNormal(ProjectEx &proj) {                proj.mtrlMulTexNormal   (proj.menu_list_sel);}
    void ProjectEx::MtrlMulTexSmooth(ProjectEx &proj) {                proj.mtrlMulTexSmooth   (proj.menu_list_sel);}
@@ -1554,16 +1554,15 @@ void DrawProject()
       }
       return ok;
    }
-   bool ProjectEx::mtrlSetReflect(C MemPtr<UID> &elm_ids, flt reflect, bool mul)
+   bool ProjectEx::mtrlSetReflect(C MemPtr<UID> &elm_ids, flt reflect_min, flt reflect_max)
    {
       bool ok=true;
-      if(!mul || reflect!=1)
       REPA(elm_ids)
       {
          EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
-         if(mul || edit.reflect!=reflect)
+         if(edit.reflect_min!=reflect_min || edit.reflect_max!=reflect_max)
          {
-            if(mul)edit.reflect*=reflect;else edit.reflect=reflect; edit.reflect_time.now();
+            edit.reflect_min=reflect_min; edit.reflect_max=reflect_max; edit.reflect_time.now();
             ok&=mtrlSync(elm_ids[i], edit, false, false, "setReflect");
          }
       }
@@ -1640,16 +1639,16 @@ void DrawProject()
       }
       return ok;
    }
-   bool ProjectEx::mtrlSetTexReflect(C MemPtr<UID> &elm_ids, C Str &reflect_map)
+   bool ProjectEx::mtrlSetTexMetal(C MemPtr<UID> &elm_ids, C Str &metal_map)
    {
       bool ok=true;
       REPA(elm_ids)
       {
          EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
-         if(!Equal(edit.reflect_map, reflect_map, true))
+         if(!Equal(edit.metal_map, metal_map, true))
          {
-            edit.reflect_map=reflect_map; edit.reflect_map_time.now();
-            ok&=mtrlSync(elm_ids[i], edit, true, true, "setTexReflect");
+            edit.metal_map=metal_map; edit.metal_map_time.now();
+            ok&=mtrlSync(elm_ids[i], edit, true, true, "setTexMetal");
          }
       }
       return ok;
@@ -1729,12 +1728,12 @@ void DrawProject()
             {
                EditMaterial test;
                if(mtrlGet(elms[i].id, test)) // do extra checks if maps are the same
-               if(edit.  color_map.is() && EqualPath(edit.  color_map, test.  color_map)
-               || edit. smooth_map.is() && EqualPath(edit. smooth_map, test. smooth_map)
-               || edit.reflect_map.is() && EqualPath(edit.reflect_map, test.reflect_map)
-               || edit.   bump_map.is() && EqualPath(edit.   bump_map, test.   bump_map)
-               || edit. normal_map.is() && EqualPath(edit. normal_map, test. normal_map)
-               || edit.   glow_map.is() && EqualPath(edit.   glow_map, test.   glow_map))
+               if(edit. color_map.is() && EqualPath(edit. color_map, test. color_map)
+               || edit.smooth_map.is() && EqualPath(edit.smooth_map, test.smooth_map)
+               || edit. metal_map.is() && EqualPath(edit. metal_map, test. metal_map)
+               || edit.  bump_map.is() && EqualPath(edit.  bump_map, test.  bump_map)
+               || edit.normal_map.is() && EqualPath(edit.normal_map, test.normal_map)
+               || edit.  glow_map.is() && EqualPath(edit.  glow_map, test.  glow_map))
                   mtrls.binaryInclude(elms[i].id); // process this material too
             }
          }
@@ -4086,12 +4085,12 @@ void DrawProject()
                   m.New().create("Set Reflect Value to Edited Material", MtrlSetReflectCur, T);
                   m.New().create("Set Glow Value to Edited Material"   , MtrlSetGlowCur   , T);
                   m++;
-                  m.New().create("Set Color Texture to Edited Material"  , MtrlSetColorTexCur  , T);
-                  m.New().create("Set Bump Texture to Edited Material"   , MtrlSetBumpTexCur   , T);
-                  m.New().create("Set Normal Texture to Edited Material" , MtrlSetNormalTexCur , T);
-                  m.New().create("Set Smooth Texture to Edited Material" , MtrlSetSmoothTexCur , T);
-                  m.New().create("Set Reflect Texture to Edited Material", MtrlSetReflectTexCur, T);
-                  m.New().create("Set Glow Texture to Edited Material"   , MtrlSetGlowTexCur   , T);
+                  m.New().create("Set Color Texture to Edited Material"  , MtrlSetColorTexCur , T);
+                  m.New().create("Set Bump Texture to Edited Material"   , MtrlSetBumpTexCur  , T);
+                  m.New().create("Set Normal Texture to Edited Material" , MtrlSetNormalTexCur, T);
+                  m.New().create("Set Smooth Texture to Edited Material" , MtrlSetSmoothTexCur, T);
+                  m.New().create("Set Metal Texture to Edited Material"  , MtrlSetMetalTexCur , T);
+                  m.New().create("Set Glow Texture to Edited Material"   , MtrlSetGlowTexCur  , T);
                   m++;
                   m.New().create("Multiply Color Texture by Color Value"  , MtrlMulTexCol   , T);
                   m.New().create("Multiply Normal Texture by Normal Value", MtrlMulTexNormal, T);

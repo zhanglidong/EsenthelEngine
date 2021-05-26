@@ -471,10 +471,13 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                   temp.base_2=null;
                   // adjust extra Base2 parameters
                   {
-                     flt  avg_smooth=0.5f, avg_reflect=0.5f;
-                     Vec4 avg; if(mtrl->base_2 && mtrl->base_2->stats(null, null, &avg)){avg_smooth=avg.x; avg_reflect=avg.y;} // #MaterialTextureLayout
-                     temp.smooth *=avg_smooth ;
-                     temp.reflect*=avg_reflect;
+                     Vec4 avg; if(mtrl->base_2 && mtrl->base_2->stats(null, null, &avg))
+                     {
+                        flt avg_smooth=avg.y, avg_metal=avg.x; // #MaterialTextureLayout
+                        temp.smooth *=avg_smooth;
+                      //temp.reflect*=avg_reflect;
+                        temp.reflect(avg_metal*temp.reflect_mul+temp.reflect_add);
+                     }
                   }
                   if(data->usesTexGlow())temp.glow=0; // disable glow if there was a glow map, because now it's removed
                   File f; temp.save(f.writeMem(), Proj.game_path); f.pos(0); SafeOverwrite(f, dest_name, &src_fi.modify_time_utc);
