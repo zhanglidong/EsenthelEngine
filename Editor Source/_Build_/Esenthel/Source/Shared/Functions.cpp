@@ -477,8 +477,8 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &b
       REPD(x, b2.w())
       {
          Color c=b2.color(x, y);
-         if(smooth){smooth->pixel(x, y, c.r); if(c.g<254                           )tex|=BT_SMOOTH;}
-         if(metal ){metal ->pixel(x, y, c.g); if(c.r>1 &&                   c.r<254)tex|=BT_METAL ;} // METAL_DEFAULT_TEX can be either 0,     or 255
+         if(smooth){smooth->pixel(x, y, c.g); if(c.g<254                           )tex|=BT_SMOOTH;}
+         if(metal ){metal ->pixel(x, y, c.r); if(c.r>1 &&                   c.r<254)tex|=BT_METAL ;} // METAL_DEFAULT_TEX can be either 0,     or 255
          if(bump  ){bump  ->pixel(x, y, c.b); if(c.b>1 && Abs(c.b-128)>1 && c.b<254)tex|=BT_BUMP  ;} //  BUMP_DEFAULT_TEX can be either 0, 128 or 255
          if(glow  ){glow  ->pixel(x, y, c.a); if(c.a<254                           )tex|=BT_GLOW  ;}
       }
