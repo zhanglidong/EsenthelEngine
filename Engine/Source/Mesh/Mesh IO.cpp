@@ -26,7 +26,7 @@ XMaterial::XMaterial()
    sss          =0;
    det_power    =0.3f;
    det_scale    =4;
-   tex_scale    =1.0f;
+    uv_scale    =1.0f;
 }
 void XMaterial::del()
 {
@@ -39,14 +39,14 @@ void XMaterial::createFrom(C Material &src)
    color    =src.colorS();
    ambient  =src.ambient;
    smooth   =src.smooth;
-   reflect  =src.reflect;
+   reflect  =src.reflect();
    glow     =src.glow;
    normal   =src.normal;
    bump     =src.bump;
  //sss      =src.sss;
    det_power=src.det_power;
    det_scale=src.det_scale;
-   tex_scale=src.tex_scale;
+    uv_scale=src. uv_scale;
 
           color_map=src.    base_0.name();
          normal_map=src.    base_1.name();
@@ -60,14 +60,14 @@ void XMaterial::copyParamsTo(Material &mtrl)C
    mtrl.colorS   (color);
    mtrl.ambient  =ambient;
    mtrl.smooth   =smooth;
-   mtrl.reflect  =reflect;
+   mtrl.reflect  (reflect);
    mtrl.glow     =glow;
    mtrl.normal   =normal;
    mtrl.bump     =bump;
  //mtrl.sss      =sss;
    mtrl.det_power=det_power;
    mtrl.det_scale=det_scale;
-   mtrl.tex_scale=tex_scale;
+   mtrl. uv_scale= uv_scale;
    mtrl.validate();
 }
 static void FixPath(Str &name, Str &path)
@@ -96,7 +96,7 @@ void XMaterial::fixPath(Str path)
    FixPath(         bump_map, path);
    FixPath(       normal_map, path);
    FixPath(       smooth_map, path);
-   FixPath(      reflect_map, path);
+   FixPath(        metal_map, path);
    FixPath( detail_color_map, path);
    FixPath(  detail_bump_map, path);
    FixPath(detail_normal_map, path);
@@ -105,8 +105,8 @@ void XMaterial::fixPath(Str path)
 Bool XMaterial::save(File &f)C
 {
    f.cmpUIntV(0); // version
-   f<<cull<<flip_normal_y<<technique<<color<<ambient<<smooth<<reflect<<glow<<normal<<bump<<sss<<det_power<<det_scale<<tex_scale
-    <<color_map<<alpha_map<<bump_map<<glow_map<<light_map<<normal_map<<smooth_map<<reflect_map<<detail_color_map<<detail_bump_map<<detail_normal_map<<detail_smooth_map
+   f<<cull<<flip_normal_y<<technique<<color<<ambient<<smooth<<reflect<<glow<<normal<<bump<<sss<<det_power<<det_scale<<uv_scale
+    <<color_map<<alpha_map<<bump_map<<glow_map<<light_map<<normal_map<<smooth_map<<metal_map<<detail_color_map<<detail_bump_map<<detail_normal_map<<detail_smooth_map
     <<name;
    return f.ok();
 }
@@ -116,8 +116,8 @@ Bool XMaterial::load(File &f)
    {
       case 0:
       {
-         f>>cull>>flip_normal_y>>technique>>color>>ambient>>smooth>>reflect>>glow>>normal>>bump>>sss>>det_power>>det_scale>>tex_scale
-          >>color_map>>alpha_map>>bump_map>>glow_map>>light_map>>normal_map>>smooth_map>>reflect_map>>detail_color_map>>detail_bump_map>>detail_normal_map>>detail_smooth_map
+         f>>cull>>flip_normal_y>>technique>>color>>ambient>>smooth>>reflect>>glow>>normal>>bump>>sss>>det_power>>det_scale>>uv_scale
+          >>color_map>>alpha_map>>bump_map>>glow_map>>light_map>>normal_map>>smooth_map>>metal_map>>detail_color_map>>detail_bump_map>>detail_normal_map>>detail_smooth_map
           >>name;
          if(f.ok())return true;
       }break;

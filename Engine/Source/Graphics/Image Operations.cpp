@@ -351,11 +351,11 @@ Image& Image::dither(IMAGE_TYPE type)
    return T;
 }
 /******************************************************************************/
-void Image::crop(Image &dest, Int x, Int y, Int w, Int h)C
+void Image::crop(Image &dest, Int x, Int y, Int w, Int h, C Vec4 *clear_color)C
 {
-   crop3D(dest, x, y, 0, w, h, d());
+   crop3D(dest, x, y, 0, w, h, d(), clear_color);
 }
-void Image::crop3D(Image &dest, Int x, Int y, Int z, Int w, Int h, Int d)C
+void Image::crop3D(Image &dest, Int x, Int y, Int z, Int w, Int h, Int d, C Vec4 *clear_color)C
 {
    if(!is() || w<=0 || h<=0 || d<=0){dest.del(); return;}
    if(&dest==this && x==0 && y==0 && z==0 && w==T.w() && h==T.h() && d==T.d())return; // no change needed
@@ -372,20 +372,20 @@ void Image::crop3D(Image &dest, Int x, Int y, Int z, Int w, Int h, Int d)C
       {
          if(src->bytePP()<=4)
          {
-            REPD(sz, d)
-            REPD(sy, h)
-            REPD(sx, w)temp.pixel3D(sx, sy, sz, src->pixel3D(x+sx, y+sy, z+sz));
+            REPD(dz, d){Int sz=z+dz; Bool vz=InRange(sz, src->d());
+            REPD(dy, h){Int sy=y+dy; Bool vy=InRange(sy, src->h());
+            REPD(dx, w){Int sx=x+dx; Bool vx=InRange(sx, src->w()); if(vx && vy && vz)temp.pixel3D(dx, dy, dz, src->pixel3D(sx, sy, sz));else if(clear_color)temp.color3DF(dx, dy, dz, *clear_color);}}}
          }else
          if(src->typeChannels()<=1)
          {
-            REPD(sz, d)
-            REPD(sy, h)
-            REPD(sx, w)temp.pixel3DF(sx, sy, sz, src->pixel3DF(x+sx, y+sy, z+sz));
+            REPD(dz, d){Int sz=z+dz; Bool vz=InRange(sz, src->d());
+            REPD(dy, h){Int sy=y+dy; Bool vy=InRange(sy, src->h());
+            REPD(dx, w){Int sx=x+dx; Bool vx=InRange(sx, src->w()); if(vx && vy && vz)temp.pixel3DF(dx, dy, dz, src->pixel3DF(sx, sy, sz));else if(clear_color)temp.color3DF(dx, dy, dz, *clear_color);}}}
          }else
          {
-            REPD(sz, d)
-            REPD(sy, h)
-            REPD(sx, w)temp.color3DF(sx, sy, sz, src->color3DF(x+sx, y+sy, z+sz));
+            REPD(dz, d){Int sz=z+dz; Bool vz=InRange(sz, src->d());
+            REPD(dy, h){Int sy=y+dy; Bool vy=InRange(sy, src->h());
+            REPD(dx, w){Int sx=x+dx; Bool vx=InRange(sx, src->w()); if(vx && vy && vz)temp.color3DF(dx, dy, dz, src->color3DF(sx, sy, sz));else if(clear_color)temp.color3DF(dx, dy, dz, *clear_color);}}}
          }
 
          temp.unlock().updateMipMaps();

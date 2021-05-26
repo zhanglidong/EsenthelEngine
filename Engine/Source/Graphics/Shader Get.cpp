@@ -79,7 +79,7 @@ static Int BumpMode(C Material &material, MESH_FLAG mesh_flag)
 }
 static Bool Detail     (C Material &material) {return  material.detail_map && material.det_power>EPS_COL8;}
 static Bool Macro      (C Material &material) {return  material. macro_map;}
-static Bool Reflect    (C Material &material) {return  material.reflect+material.smooth>EPS_COL8;}
+static Bool Reflect    (C Material &material) {return (material.base_2 ? material.reflect_mul : 0)+material.reflect_add+material.smooth>EPS_COL8;} // #MaterialTextureLayout reflect_mul is multiplied with metal texture which is stored in base_2
 static Int  AmbientMode(C Material &material) {return (material.ambient.max()>EPS_COL8_NATIVE) ? material.light_map ? 2 : 1 : 0;}
 
 static MESH_FLAG FlagHeightmap(MESH_FLAG mesh_flag, Bool heightmap)

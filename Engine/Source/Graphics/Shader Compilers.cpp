@@ -3,9 +3,9 @@
 namespace EE{
 /******************************************************************************/
 #if WINDOWS
-   #define COMPILE_DX 0
-   #define COMPILE_DX_AMD 0 // #ShaderAMD
-   #define COMPILE_GL 0
+   #define COMPILE_DX       0
+   #define COMPILE_DX_AMD   0 // #ShaderAMD
+   #define COMPILE_GL       0
    #define COMPILE_GL_SPIRV 0
 #endif
 

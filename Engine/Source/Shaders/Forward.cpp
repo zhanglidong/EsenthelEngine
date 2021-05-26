@@ -85,7 +85,7 @@ void VS
 
 #if SET_TEX
    O.tex=vtx.tex(HEIGHTMAP);
-   if(HEIGHTMAP && MATERIALS==1)O.tex*=Material.tex_scale;
+   if(HEIGHTMAP && MATERIALS==1)O.tex*=Material.uv_scale;
 #endif
 
 #if MATERIALS>1
@@ -297,7 +297,7 @@ VecH4 PS
    #if LAYOUT==0
    {
       smooth =Material.smooth;
-      reflect=Material.reflect;
+      reflect=Material.reflect_add;
       glow   =Material.glow;
       if(DETAIL){col*=det.z; smooth*=det.w;}
    }
@@ -313,7 +313,7 @@ VecH4 PS
       }
       col   *=tex_col.rgb;
       smooth =Material.smooth;
-      reflect=Material.reflect;
+      reflect=Material.reflect_add;
       glow   =Material.glow;
       if(DETAIL){col*=det.z; smooth*=det.w;}
    }
@@ -329,9 +329,9 @@ VecH4 PS
       }
       VecH4 tex_ext=Tex(Ext, I.tex);
       col   *=tex_col.rgb;
-      smooth =tex_ext.x*Material.smooth ;
-      reflect=tex_ext.y*Material.reflect;
-      glow   =tex_ext.w*Material.glow   ;
+      smooth =tex_ext.SMOOTH_CHANNEL*Material.smooth;
+      reflect=tex_ext. METAL_CHANNEL*Material.reflect_mul+Material.reflect_add;
+      glow   =tex_ext.  GLOW_CHANNEL*Material.glow;
       if(DETAIL){col*=det.z; smooth*=det.w;}
    }
    #endif
@@ -353,10 +353,10 @@ VecH4 PS
 #else // MATERIALS>1
    // assuming that in multi materials LAYOUT!=0
    Vec2 tex0, tex1, tex2, tex3;
-                   tex0=I.tex*MultiMaterial0.tex_scale;
-                   tex1=I.tex*MultiMaterial1.tex_scale;
-   if(MATERIALS>=3)tex2=I.tex*MultiMaterial2.tex_scale;
-   if(MATERIALS>=4)tex3=I.tex*MultiMaterial3.tex_scale;
+                   tex0=I.tex*MultiMaterial0.uv_scale;
+                   tex1=I.tex*MultiMaterial1.uv_scale;
+   if(MATERIALS>=3)tex2=I.tex*MultiMaterial2.uv_scale;
+   if(MATERIALS>=4)tex3=I.tex*MultiMaterial3.uv_scale;
 
    // #MaterialTextureLayout
 
@@ -373,8 +373,8 @@ VecH4 PS
    // macro texture
    //Half mac_blend; if(MACRO)mac_blend=LerpRS(MacroFrom, MacroTo, Length(I.pos))*MacroMax;
 
-   // Smooth, Reflect, Bump, Glow !! DO THIS FIRST because it may modify 'I.material' which affects everything !!
-   VecH srg; // smooth_reflect_glow
+   // Reflect, Smooth, Bump, Glow !! DO THIS FIRST because it may modify 'I.material' which affects everything !!
+   VecH rsg; // reflect_smooth_glow
    if(LAYOUT==2)
    {
       VecH4 ext0, ext1, ext2, ext3;
@@ -389,20 +389,20 @@ VecH4 PS
          if(MATERIALS>=3){I.material.z=MultiMaterialWeight(I.material.z, ext2.BUMP_CHANNEL); if(MATERIALS==3)I.material.xyz /=I.material.x+I.material.y+I.material.z;}
          if(MATERIALS>=4){I.material.w=MultiMaterialWeight(I.material.w, ext3.BUMP_CHANNEL); if(MATERIALS==4)I.material.xyzw/=I.material.x+I.material.y+I.material.z+I.material.w;}
       }
-                      {VecH srg0=ext0.xyw*MultiMaterial0.srg_mul+MultiMaterial0.srg_add; if(DETAIL)srg0.x*=det0.w; srg =srg0*I.material.x;}
-                      {VecH srg1=ext1.xyw*MultiMaterial1.srg_mul+MultiMaterial1.srg_add; if(DETAIL)srg1.x*=det1.w; srg+=srg1*I.material.y;}
-      if(MATERIALS>=3){VecH srg2=ext2.xyw*MultiMaterial2.srg_mul+MultiMaterial2.srg_add; if(DETAIL)srg2.x*=det2.w; srg+=srg2*I.material.z;}
-      if(MATERIALS>=4){VecH srg3=ext3.xyw*MultiMaterial3.srg_mul+MultiMaterial3.srg_add; if(DETAIL)srg3.x*=det3.w; srg+=srg3*I.material.w;}
+                      {VecH rsg0=ext0.xyw*MultiMaterial0.rsg_mul+MultiMaterial0.rsg_add; if(DETAIL)rsg0.y*=det0.w; rsg =rsg0*I.material.x;}
+                      {VecH rsg1=ext1.xyw*MultiMaterial1.rsg_mul+MultiMaterial1.rsg_add; if(DETAIL)rsg1.y*=det1.w; rsg+=rsg1*I.material.y;}
+      if(MATERIALS>=3){VecH rsg2=ext2.xyw*MultiMaterial2.rsg_mul+MultiMaterial2.rsg_add; if(DETAIL)rsg2.y*=det2.w; rsg+=rsg2*I.material.z;}
+      if(MATERIALS>=4){VecH rsg3=ext3.xyw*MultiMaterial3.rsg_mul+MultiMaterial3.rsg_add; if(DETAIL)rsg3.y*=det3.w; rsg+=rsg3*I.material.w;}
    }else
    {
-                      {VecH srg0=MultiMaterial0.srg_add; if(DETAIL)srg0.x*=det0.w; srg =srg0*I.material.x;}
-                      {VecH srg1=MultiMaterial1.srg_add; if(DETAIL)srg1.x*=det1.w; srg+=srg1*I.material.y;}
-      if(MATERIALS>=3){VecH srg2=MultiMaterial2.srg_add; if(DETAIL)srg2.x*=det2.w; srg+=srg2*I.material.z;}
-      if(MATERIALS>=4){VecH srg3=MultiMaterial3.srg_add; if(DETAIL)srg3.x*=det3.w; srg+=srg3*I.material.w;}
+                      {VecH rsg0=MultiMaterial0.rsg_add; if(DETAIL)rsg0.y*=det0.w; rsg =rsg0*I.material.x;}
+                      {VecH rsg1=MultiMaterial1.rsg_add; if(DETAIL)rsg1.y*=det1.w; rsg+=rsg1*I.material.y;}
+      if(MATERIALS>=3){VecH rsg2=MultiMaterial2.rsg_add; if(DETAIL)rsg2.y*=det2.w; rsg+=rsg2*I.material.z;}
+      if(MATERIALS>=4){VecH rsg3=MultiMaterial3.rsg_add; if(DETAIL)rsg3.y*=det3.w; rsg+=rsg3*I.material.w;}
    }
-   smooth =srg.x;
-   reflect=srg.y;
-   glow   =srg.z;
+   smooth =rsg.y;
+   reflect=rsg.x;
+   glow   =rsg.z;
 
    // Color + Detail + Macro !! do this second after modifying 'I.material' !! here Alpha is ignored for multi-materials
    VecH rgb;

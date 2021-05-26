@@ -469,24 +469,24 @@ struct FBX
             // textures
          #if 1
             Str tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sDiffuseFactor     ); if(tex.is())xm->  color_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sDiffuse           ); if(tex.is())xm->  color_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sTransparencyFactor); if(tex.is())xm->  alpha_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sTransparentColor  ); if(tex.is())xm->  alpha_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sShininess         ); if(tex.is())xm-> smooth_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sSpecularFactor    ); if(tex.is())xm-> smooth_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sSpecular          ); if(tex.is())xm-> smooth_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sAmbientFactor     ); if(tex.is())xm->  light_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sAmbient           ); if(tex.is())xm->  light_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sReflectionFactor  ); if(tex.is())xm->reflect_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sReflection        ); if(tex.is())xm->reflect_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sDisplacementFactor); if(tex.is())xm->   bump_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sDisplacementColor ); if(tex.is())xm->   bump_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sBumpFactor        ); if(tex.is())xm-> normal_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sBump              ); if(tex.is())xm-> normal_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sNormalMap         ); if(tex.is())xm-> normal_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sEmissive          ); if(tex.is())xm->   glow_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sEmissiveFactor    ); if(tex.is())xm->   glow_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sDiffuseFactor     ); if(tex.is())xm-> color_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sDiffuse           ); if(tex.is())xm-> color_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sTransparencyFactor); if(tex.is())xm-> alpha_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sTransparentColor  ); if(tex.is())xm-> alpha_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sShininess         ); if(tex.is())xm->smooth_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sSpecularFactor    ); if(tex.is())xm->smooth_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sSpecular          ); if(tex.is())xm->smooth_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sAmbientFactor     ); if(tex.is())xm-> light_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sAmbient           ); if(tex.is())xm-> light_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sReflectionFactor  ); if(tex.is())xm-> metal_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sReflection        ); if(tex.is())xm-> metal_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sDisplacementFactor); if(tex.is())xm->  bump_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sDisplacementColor ); if(tex.is())xm->  bump_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sBumpFactor        ); if(tex.is())xm->normal_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sBump              ); if(tex.is())xm->normal_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sNormalMap         ); if(tex.is())xm->normal_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sEmissive          ); if(tex.is())xm->  glow_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sEmissiveFactor    ); if(tex.is())xm->  glow_map=tex;
          #else
             Int TextureIndex;
             FOR_EACH_TEXTURE(TextureIndex)

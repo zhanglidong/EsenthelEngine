@@ -213,10 +213,10 @@ struct Material
    Byte               downsize_tex_mobile; // how much to downsize textures for Mobile platforms, 0=full size, 1=half size, 2=quarter size, ..
    Vec4               color_s; // sRGB Gamma
    Vec                ambient;
-   Flt                smooth, reflect, glow, normal, bump, tex_scale;
+   Flt                smooth, reflect_min, reflect_max, glow, normal, bump, uv_scale;
    Mems<FileParams>   color_map, alpha_map,
                       bump_map, normal_map,
-                      smooth_map, reflect_map,
+                      smooth_map, metal_map,
                       glow_map,
                       detail_color, detail_bump, detail_normal, detail_smooth,
                       macro_map,

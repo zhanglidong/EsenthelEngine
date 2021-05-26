@@ -401,13 +401,13 @@ struct MaterialClass // this is used when a MeshPart has only one material
    VecH4 color; // !! color must be listed first because ShaderParam handle for setting 'Material.color' is set from the entire Material object pointer !!
    VecH  ambient;
    Half  smooth,
-         reflect,
+         reflect_mul, reflect_add,
          glow,
          normal,
          bump,
          det_power;
    Flt   det_scale,
-         tex_scale;
+          uv_scale;
 };
 BUFFER_I(Material, SBI_MATERIAL)
    MaterialClass Material;
@@ -416,9 +416,9 @@ BUFFER_END
 struct MultiMaterialClass // this is used when a MeshPart has multiple materials
 {
    VecH4 color;
-   VecH  srg_mul, srg_add;
+   VecH  rsg_mul, rsg_add;
    Half  normal, bump, det_mul, det_add, det_inv, macro;
-   Flt   tex_scale, det_scale;
+   Flt   uv_scale, det_scale;
 };
 BUFFER(MultiMaterial0) MultiMaterialClass MultiMaterial0; BUFFER_END
 BUFFER(MultiMaterial1) MultiMaterialClass MultiMaterial1; BUFFER_END
@@ -438,12 +438,13 @@ Image     Ext, Ext1, Ext2, Ext3,
           Mac, Mac1, Mac2, Mac3,
           Lum;
 
-#define    BUMP_IMAGE   Ext
-#define  SMOOTH_CHANNEL x
-#define REFLECT_CHANNEL y
-#define    BUMP_CHANNEL z
-#define    GLOW_CHANNEL w
-#define   ALPHA_CHANNEL w
+// #MaterialTextureLayout
+#define   BUMP_IMAGE   Ext
+#define SMOOTH_CHANNEL y
+#define  METAL_CHANNEL x
+#define   BUMP_CHANNEL z
+#define   GLOW_CHANNEL w
+#define  ALPHA_CHANNEL w
 
 Image     Img, Img1, Img2, Img3, Img4, Img5;
 ImageH    ImgX, ImgX1, ImgX2, ImgX3;
@@ -1718,7 +1719,7 @@ Unity:
    half OneMinusReflectivityMetallic(half metallic) {lerp(dielectricSpec, 1, metallic);} with 'dielectricSpec' defined as 0.04
 To achieve compatibility with a lot of assets for those engines, Esenthel uses a similar formula, however tweaked to preserve original diffuse color and minimize reflectivity at low reflectivity values:
    for reflectivities<=0.04 to make 'Diffuse' return 1 and 'ReflectCol' return 'reflectivity'
-   for reflectivities> 0.04 there's a minor difference due to the fact that 'ReflectToInvMetal' is slightly modified however the difference is negligible (full compatibility would require a secondary 'Lerp'), to workaround this, import metal textures with "?metalToReflect" param
+   for reflectivities> 0.04 there's a minor difference due to the fact that 'ReflectToInvMetal' is slightly modified however the difference is negligible (full compatibility would require a secondary 'Lerp')
 */
 Half ReflectToInvMetal(Half reflectivity) // this returns "1-metal" to make 'Diffuse' calculation faster
 {

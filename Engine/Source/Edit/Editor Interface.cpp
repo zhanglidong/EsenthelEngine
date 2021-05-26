@@ -4,7 +4,7 @@ namespace EE{
 static Int Compare(C Edit::Elm &elm, C UID &id) {return Compare(elm.id, id);}
 namespace Edit{
 /******************************************************************************/
-#define EI_VER 44 // this needs to be increased every time a new command is added, existing one is changed, or some of engine class file formats get updated
+#define EI_VER 45 // this needs to be increased every time a new command is added, existing one is changed, or some of engine class file formats get updated
 #define EI_STR "Esenthel Editor Network Interface"
 #define CLIENT_WAIT_TIME         (   60*1000) //    60 seconds
 #define CLIENT_WAIT_TIME_LONG    (15*60*1000) // 15*60 seconds, some operations may take a long time to complete (reloading material textures with resizing, getting world objects, ..)
@@ -133,14 +133,15 @@ Material& Material::reset()
    color_s=1;
    ambient=0;
    smooth=0;
-   reflect=0;
+   reflect_min=MATERIAL_REFLECT;
+   reflect_max=1;
    glow=0;
    normal=0;
    bump=0;
-   tex_scale=1;
-    color_map.clear();   alpha_map.clear();
-     bump_map.clear();  normal_map.clear();
-   smooth_map.clear(); reflect_map.clear();
+   uv_scale=1;
+    color_map.clear();  alpha_map.clear();
+     bump_map.clear(); normal_map.clear();
+   smooth_map.clear();  metal_map.clear();
      glow_map.clear();
    detail_color .clear();
    detail_bump  .clear();
@@ -153,10 +154,10 @@ Material& Material::reset()
 Bool Material::save(File &f)C
 {
    f.cmpUIntV(0);
-   f<<technique<<tex_quality<<cull<<flip_normal_y<<downsize_tex_mobile<<color_s<<ambient<<smooth<<reflect<<glow<<normal<<bump<<tex_scale
-    <<Encode( color_map)<<Encode(  alpha_map)
-    <<Encode(  bump_map)<<Encode( normal_map)
-    <<Encode(smooth_map)<<Encode(reflect_map)
+   f<<technique<<tex_quality<<cull<<flip_normal_y<<downsize_tex_mobile<<color_s<<ambient<<smooth<<reflect_min<<reflect_max<<glow<<normal<<bump<<uv_scale
+    <<Encode( color_map)<<Encode( alpha_map)
+    <<Encode(  bump_map)<<Encode(normal_map)
+    <<Encode(smooth_map)<<Encode( metal_map)
     <<Encode(  glow_map)
     <<Encode(detail_color )
     <<Encode(detail_bump  )
@@ -172,10 +173,10 @@ Bool Material::load(File &f)
    {
       case 0:
       {
-         f>>technique>>tex_quality>>cull>>flip_normal_y>>downsize_tex_mobile>>color_s>>ambient>>smooth>>reflect>>glow>>normal>>bump>>tex_scale;
-         Decode(f,  color_map); Decode(f,   alpha_map);
-         Decode(f,   bump_map); Decode(f,  normal_map);
-         Decode(f, smooth_map); Decode(f, reflect_map);
+         f>>technique>>tex_quality>>cull>>flip_normal_y>>downsize_tex_mobile>>color_s>>ambient>>smooth>>reflect_min>>reflect_max>>glow>>normal>>bump>>uv_scale;
+         Decode(f,  color_map); Decode(f,  alpha_map);
+         Decode(f,   bump_map); Decode(f, normal_map);
+         Decode(f, smooth_map); Decode(f,  metal_map);
          Decode(f,   glow_map);
          Decode(f, detail_color );
          Decode(f, detail_bump  );

@@ -5,10 +5,14 @@ namespace EE{
 
    base_0: RGB, Alpha
    base_1: NrmX, NrmY
-   base_2: Smooth, Reflect, Bump, Glow
+   base_2: Metal, Smooth, Bump, Glow
    detail: NrmX, NrmY, Col, Smooth
 
    When changing the above to a different order, then look for "#MaterialTextureLayout" text in Engine/Editor to update the codes.
+
+   In a lot of cases only Smooth is used without Metal, and if Smooth was stored in Red/X channel, then we could use BC4 texture with Metal in Green/Y channel as 0.
+      However when Smooth and Metal are used together, then they need 2 channels, and to reduce texture sizes, BC1 RGB is used (with only 4-bits per pixel), instead of BC5 RG (8-bits).
+      BC1 offers better quality for Green channel (6 bits) compared to Red (5 bits), and Smooth needs more precision, because Metal in most cases is 0.0 or 1.0, so it's better to put Smooth in Green and Metal to Red.
 
    https://seblagarde.wordpress.com/2011/08/17/feeding-a-physical-based-lighting-mode/
 
@@ -57,10 +61,10 @@ namespace EE{
 #define    NRMX_CHANNEL 0
 #define    NRMY_CHANNEL 1
 // base_2
-#define  SMOOTH_CHANNEL 0
-#define REFLECT_CHANNEL 1
-#define    BUMP_CHANNEL 2
-#define    GLOW_CHANNEL 3
+#define SMOOTH_CHANNEL 1
+#define  METAL_CHANNEL 0
+#define   BUMP_CHANNEL 2
+#define   GLOW_CHANNEL 3
 /******************************************************************************/
 static Int Compare(C UniqueMultiMaterialKey &a, C UniqueMultiMaterialKey &b)
 {
@@ -79,21 +83,24 @@ const Material        *MaterialLast,
 MaterialPtr            MaterialNull;
 ThreadSafeMap<UniqueMultiMaterialKey, UniqueMultiMaterialData> UniqueMultiMaterialMap(Compare);
 /******************************************************************************/
-Vec4 MaterialParams::colorS(               )C {return        LinearToSRGB(color_l) ;}
-void MaterialParams::colorS(C Vec4 &color_s)  {return colorL(SRGBToLinear(color_s));}
+Vec4 MaterialParams::colorS    (                )C {return        LinearToSRGB(color_l) ;}
+void MaterialParams::colorS    (C Vec4 &color_s )  {return colorL(SRGBToLinear(color_s));}
+void MaterialParams::reflect   (  Flt   reflect )  {reflect_add=reflect; reflect_mul= 1-reflect     ;}
+void MaterialParams::reflect   (Flt min, Flt max)  {reflect_add=    min; reflect_mul=(1-min    )*max;}
+Flt  MaterialParams::reflectMax(                )C {Flt div=(1-reflect_add); return Equal(div, 0) ? 1 : reflect_mul/div;}
 /******************************************************************************/
 Material::Material()
 {
    color_l.set(1, 1, 1, 1);
    ambient.set(0, 0, 0);
    smooth   =0;
-   reflect  =MATERIAL_REFLECT;
+   reflect  (MATERIAL_REFLECT);
    glow     =0;
    normal   =0;
    bump     =0;
    det_power=0.3f;
    det_scale=4;
-   tex_scale=1.0f;
+    uv_scale=1.0f;
 
    cull     =true;
    technique=MTECH_DEFAULT;
@@ -274,7 +281,7 @@ Material& Material::validate() // #MaterialTextureLayout
    // set multi
    {
      _multi.color    =colorD();
-     _multi.tex_scale=tex_scale;
+     _multi. uv_scale= uv_scale;
      _multi.det_scale=det_scale;
 
       // normal map
@@ -289,22 +296,22 @@ Material& Material::validate() // #MaterialTextureLayout
       // base2
       if(base_2)
       {
-        _multi.srg_mul.x=smooth;
-        _multi.srg_add.x=0;
+        _multi.rsg_mul.x=reflect_mul;
+        _multi.rsg_add.x=reflect_add;
 
-        _multi.srg_mul.y=reflect;
-        _multi.srg_add.y=0;
+        _multi.rsg_mul.y=smooth;
+        _multi.rsg_add.y=0;
 
-        _multi.srg_mul.z=glow;
-        _multi.srg_add.z=0;
+        _multi.rsg_mul.z=glow;
+        _multi.rsg_add.z=0;
 
         _multi.bump=bump;
       }else
       {
-        _multi.srg_mul=0;
-        _multi.srg_add.x=smooth;
-        _multi.srg_add.y=reflect;
-        _multi.srg_add.z=glow;
+        _multi.rsg_mul=0;
+        _multi.rsg_add.x=reflect_add;
+        _multi.rsg_add.y=smooth;
+        _multi.rsg_add.z=glow;
 
         _multi.bump=0;
       }
@@ -519,9 +526,9 @@ void Material::_adjustParams(UInt old_base_tex, UInt new_base_tex)
       if(!(new_base_tex&BT_SMOOTH))smooth=0;else
       if(smooth<=EPS_COL8         )smooth=1;
 
-   if(changed&BT_REFLECT)
-      if(!(new_base_tex&BT_REFLECT)        )reflect=MATERIAL_REFLECT;else
-      if(reflect<=MATERIAL_REFLECT+EPS_COL8)reflect=1;
+ /*if(changed&BT_METAL)
+      if(!(new_base_tex&BT_METAL)          )reflect=MATERIAL_REFLECT;else
+      if(reflect<=MATERIAL_REFLECT+EPS_COL8)reflect=1;*/
 
    if(changed&BT_GLOW)
       if(!(new_base_tex&BT_GLOW))glow=0;else
@@ -544,7 +551,7 @@ void Material::_adjustParams(UInt old_base_tex, UInt new_base_tex)
 /******************************************************************************/
 Bool Material::saveData(File &f, CChar *path)C
 {
-   f.putMulti(Byte(10), cull, technique)<<SCAST(C MaterialParams, T); // version
+   f.putMulti(Byte(11), cull, technique)<<SCAST(C MaterialParams, T); // version
 
    // textures
    f.putStr(    base_0.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
@@ -558,10 +565,10 @@ Bool Material::saveData(File &f, CChar *path)C
 }
 Bool Material::loadData(File &f, CChar *path)
 {
-   MaterialParams &mp=T; Char temp[MAX_LONG_PATH]; Flt sss;
+   MaterialParams &mp=T; Char temp[MAX_LONG_PATH]; Flt sss, reflect;
    switch(f.decUIntV())
    {
-      case 10:
+      case 11:
       {
          f.getMulti(cull, technique)>>mp;
          f.getStr(temp);     base_0.require(temp, path);
@@ -572,9 +579,20 @@ Bool Material::loadData(File &f, CChar *path)
          f.getStr(temp);  light_map.require(temp, path);
       }break;
 
+      case 10:
+      {
+         f.getMulti(cull, technique)>>color_l>>ambient>>smooth>>reflect>>glow>>normal>>bump>>det_power>>det_scale>>uv_scale;
+         f.getStr(temp);     base_0.require(temp, path);
+         f.getStr(temp);     base_1.require(temp, path);
+         f.getStr(temp);     base_2.require(temp, path); if(Is(temp))T.reflect(0, reflect);else T.reflect(reflect, 1);
+         f.getStr(temp); detail_map.require(temp, path);
+         f.getStr(temp);  macro_map.require(temp, path);
+         f.getStr(temp);  light_map.require(temp, path);
+      }break;
+
       case 9:
       {
-         f.getMulti(cull, technique)>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>reflect; colorS(color_l);
+         f.getMulti(cull, technique)>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect; colorS(color_l);
          f.getStr(temp);     base_0.require(temp, path);
          f.getStr(temp);     base_1.require(temp, path);
                              base_2=null;
@@ -584,11 +602,12 @@ Bool Material::loadData(File &f, CChar *path)
          f.getStr(temp);  light_map.require(temp, path);
          f.getStr(temp);
          f.getStr(temp);
+         T.reflect(MATERIAL_REFLECT);
       }break;
 
       case 8:
       {
-         f.getMulti(cull, technique)>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>reflect; colorS(color_l);
+         f.getMulti(cull, technique)>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect; colorS(color_l);
          f._getStr1(temp);     base_0.require(temp, path);
          f._getStr1(temp);     base_1.require(temp, path);
                                base_2=null;
@@ -598,11 +617,12 @@ Bool Material::loadData(File &f, CChar *path)
          f._getStr1(temp);  light_map.require(temp, path);
          f._getStr1(temp);
          f._getStr1(temp);
+         T.reflect(MATERIAL_REFLECT);
       }break;
 
       case 7:
       {
-         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
+         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
          f._getStr(temp);     base_0.require(temp, path);
          f._getStr(temp);     base_1.require(temp, path);
                               base_2=null;
@@ -612,11 +632,12 @@ Bool Material::loadData(File &f, CChar *path)
          f._getStr(temp);  light_map.require(temp, path);
          f._getStr(temp);
          f._getStr(temp);
+         T.reflect(MATERIAL_REFLECT);
       }break;
 
       case 6:
       {
-         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
+         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
          f._getStr(temp);     base_0.require(temp, path);
          f._getStr(temp);     base_1.require(temp, path);
                               base_2=null;
@@ -625,11 +646,12 @@ Bool Material::loadData(File &f, CChar *path)
          f._getStr(temp); if(!Is(temp))reflect=MATERIAL_REFLECT;
          f._getStr(temp);  light_map.require(temp, path);
          f._getStr8();
+         T.reflect(MATERIAL_REFLECT);
       }break;
 
       case 5:
       {
-         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
+         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
          f._getStr(temp);     base_0.require(temp, path);
          f._getStr(temp);     base_1.require(temp, path);
                               base_2=null;
@@ -638,11 +660,12 @@ Bool Material::loadData(File &f, CChar *path)
          f._getStr(temp);  light_map.require(temp, path);
                            macro_map=null;
          f._getStr8();
+         T.reflect(MATERIAL_REFLECT);
       }break;
 
       case 4:
       {
-         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
+         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
          f._getStr(temp);     base_0.require(temp, path);
          f._getStr(temp);     base_1.require(temp, path);
                               base_2=null;
@@ -650,11 +673,12 @@ Bool Material::loadData(File &f, CChar *path)
          f._getStr(temp); if(!Is(temp))reflect=MATERIAL_REFLECT;
          f._getStr(temp);  light_map.require(temp, path);
                            macro_map=null;
+         T.reflect(MATERIAL_REFLECT);
       }break;
 
       case 3:
       {
-         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull>>technique; tex_scale=1; colorS(color_l);
+         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull>>technique; uv_scale=1; colorS(color_l);
              base_0.require(f._getStr8(), path);
              base_1.require(f._getStr8(), path);
              base_2=null;
@@ -662,12 +686,13 @@ Bool Material::loadData(File &f, CChar *path)
                   Str8 temp=f._getStr8(); if(!Is(temp))reflect=MATERIAL_REFLECT;
           light_map.require(f._getStr8(), path);
           macro_map=null;
+         T.reflect(MATERIAL_REFLECT);
       }break;
 
       case 2:
       {
          f.skip(1);
-         f>>color_l>>smooth>>sss>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull>>technique; ambient=0; tex_scale=1; colorS(color_l);
+         f>>color_l>>smooth>>sss>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull>>technique; ambient=0; uv_scale=1; colorS(color_l);
          if(technique==MTECH_FUR){det_power=color_l.w; color_l.w=1;}
              base_0.require(f._getStr8(), path);
              base_1.require(f._getStr8(), path);
@@ -676,12 +701,13 @@ Bool Material::loadData(File &f, CChar *path)
                   Str8 temp=f._getStr8(); if(!Is(temp))reflect=MATERIAL_REFLECT;
           light_map=null;
           macro_map=null;
+         T.reflect(MATERIAL_REFLECT);
       }break;
 
       case 1:
       {
          f.skip(1);
-         f>>color_l>>smooth>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull>>technique; sss=0; ambient=0; tex_scale=1; colorS(color_l);
+         f>>color_l>>smooth>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull>>technique; sss=0; ambient=0; uv_scale=1; colorS(color_l);
          if(technique==MTECH_FUR){det_power=color_l.w; color_l.w=1;}
              base_0.require(f._getStr8(), path);
              base_1.require(f._getStr8(), path);
@@ -690,12 +716,13 @@ Bool Material::loadData(File &f, CChar *path)
                   Str8 temp=f._getStr8(); if(!Is(temp))reflect=MATERIAL_REFLECT;
           light_map=null;
           macro_map=null;
+         T.reflect(MATERIAL_REFLECT);
       }break;
 
       case 0:
       {
          f.skip(1);
-         f>>color_l>>smooth>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull; sss=0; ambient=0; tex_scale=1; colorS(color_l);
+         f>>color_l>>smooth>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull; sss=0; ambient=0; uv_scale=1; colorS(color_l);
          switch(f.getByte())
          {
             default: technique=MTECH_DEFAULT   ; break;
@@ -712,6 +739,7 @@ Bool Material::loadData(File &f, CChar *path)
          f>>temp; if(!Is(temp))reflect=MATERIAL_REFLECT;
                    light_map=null;
                    macro_map=null;
+         T.reflect(MATERIAL_REFLECT);
       }break;
 
       default: goto error;
@@ -754,19 +782,19 @@ static Int ImgH(C ImageSource &src, C Image *img) {return (!img->is()) ? 0 : (sr
 
 static FILTER_TYPE Filter(Int filter) {return InRange(filter, FILTER_NUM) ? FILTER_TYPE(filter) : FILTER_BEST;}
 
-UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &reflect, C ImageSource &glow, Bool resize_to_pow2, Bool flip_normal_y)
+UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &metal, C ImageSource &glow, Bool resize_to_pow2, Bool flip_normal_y)
 {
    // #MaterialTextureLayout
    UInt  ret=0;
    Image dest_0, dest_1, dest_2;
    {
-      Image   color_temp; C Image *  color_src=&  color.image; if(  color_src->compressed())if(  color_src->copyTry(  color_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))  color_src=&  color_temp;else goto error;
-      Image   alpha_temp; C Image *  alpha_src=&  alpha.image; if(  alpha_src->compressed())if(  alpha_src->copyTry(  alpha_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))  alpha_src=&  alpha_temp;else goto error;
-      Image    bump_temp; C Image *   bump_src=&   bump.image; if(   bump_src->compressed())if(   bump_src->copyTry(   bump_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))   bump_src=&   bump_temp;else goto error;
-      Image  normal_temp; C Image * normal_src=& normal.image; if( normal_src->compressed())if( normal_src->copyTry( normal_temp, -1, -1, -1, IMAGE_R8G8         , IMAGE_SOFT, 1)) normal_src=& normal_temp;else goto error;
-      Image  smooth_temp; C Image * smooth_src=& smooth.image; if( smooth_src->compressed())if( smooth_src->copyTry( smooth_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1)) smooth_src=& smooth_temp;else goto error;
-      Image reflect_temp; C Image *reflect_src=&reflect.image; if(reflect_src->compressed())if(reflect_src->copyTry(reflect_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))reflect_src=&reflect_temp;else goto error;
-      Image    glow_temp; C Image *   glow_src=&   glow.image; if(   glow_src->compressed())if(   glow_src->copyTry(   glow_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))   glow_src=&   glow_temp;else goto error;
+      Image  color_temp; C Image * color_src=& color.image; if( color_src->compressed())if( color_src->copyTry( color_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1)) color_src=& color_temp;else goto error;
+      Image  alpha_temp; C Image * alpha_src=& alpha.image; if( alpha_src->compressed())if( alpha_src->copyTry( alpha_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1)) alpha_src=& alpha_temp;else goto error;
+      Image   bump_temp; C Image *  bump_src=&  bump.image; if(  bump_src->compressed())if(  bump_src->copyTry(  bump_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))  bump_src=&  bump_temp;else goto error;
+      Image normal_temp; C Image *normal_src=&normal.image; if(normal_src->compressed())if(normal_src->copyTry(normal_temp, -1, -1, -1, IMAGE_R8G8         , IMAGE_SOFT, 1))normal_src=&normal_temp;else goto error;
+      Image smooth_temp; C Image *smooth_src=&smooth.image; if(smooth_src->compressed())if(smooth_src->copyTry(smooth_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))smooth_src=&smooth_temp;else goto error;
+      Image  metal_temp; C Image * metal_src=& metal.image; if( metal_src->compressed())if( metal_src->copyTry( metal_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1)) metal_src=& metal_temp;else goto error;
+      Image   glow_temp; C Image *  glow_src=&  glow.image; if(  glow_src->compressed())if(  glow_src->copyTry(  glow_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))  glow_src=&  glow_temp;else goto error;
 
       // set alpha
       Bool alpha_from_col=false;
@@ -810,16 +838,16 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
                                                                                         (alpha.size.y>0) ? alpha.size.y : (alpha_from_col && color.size.y>0) ? color.size.y : alpha_src->h());
 
       // set what textures do we have (set this before 'normal' is generated from 'bump')
-      if(  color_src->is())ret|=BT_COLOR  ;
-      if(  alpha_src->is())ret|=BT_ALPHA  ;
-      if(   bump_src->is())ret|=BT_BUMP   ;
-      if( normal_src->is())ret|=BT_NORMAL ;
-      if( smooth_src->is())ret|=BT_SMOOTH ;
-      if(reflect_src->is())ret|=BT_REFLECT;
-      if(   glow_src->is())ret|=BT_GLOW   ;
+      if( color_src->is())ret|=BT_COLOR ;
+      if( alpha_src->is())ret|=BT_ALPHA ;
+      if(  bump_src->is())ret|=BT_BUMP  ;
+      if(normal_src->is())ret|=BT_NORMAL;
+      if(smooth_src->is())ret|=BT_SMOOTH;
+      if( metal_src->is())ret|=BT_METAL ;
+      if(  glow_src->is())ret|=BT_GLOW  ;
 
       // base_0 RGBA
-      if(ret&(BT_COLOR|BT_ALPHA|BT_SMOOTH|BT_REFLECT|BT_BUMP|BT_GLOW)) // if want any for Base0 or Base2, because shaders support base_2 only if base_0 is also present, so if we want base_2 then also need base_0
+      if(ret&(BT_COLOR|BT_ALPHA|BT_SMOOTH|BT_METAL|BT_BUMP|BT_GLOW)) // if want any for Base0 or Base2, because shaders support base_2 only if base_0 is also present, so if we want base_2 then also need base_0
       {
          Int w=Max(1, ImgW(color, color_src), alpha_size.x), // Max 1 in case all images are empty, but we still need it because of Base2
              h=Max(1, ImgH(color, color_src), alpha_size.y); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
@@ -874,19 +902,19 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
       }
 
       // base_2 SRBG
-      if(ret&(BT_SMOOTH|BT_REFLECT|BT_BUMP|BT_GLOW))
+      if(ret&(BT_SMOOTH|BT_METAL|BT_BUMP|BT_GLOW))
       {
-         Int w=Max(ImgW(smooth, smooth_src), ImgW(reflect, reflect_src), ImgW(bump, bump_src), ImgW(glow, glow_src)),
-             h=Max(ImgH(smooth, smooth_src), ImgH(reflect, reflect_src), ImgH(bump, bump_src), ImgH(glow, glow_src)); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+         Int w=Max(ImgW(smooth, smooth_src), ImgW(metal, metal_src), ImgW(bump, bump_src), ImgW(glow, glow_src)),
+             h=Max(ImgH(smooth, smooth_src), ImgH(metal, metal_src), ImgH(bump, bump_src), ImgH(glow, glow_src)); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
 
-         if( smooth_src->is() && ( smooth_src->w()!=w ||  smooth_src->h()!=h))if( smooth_src->copyTry( smooth_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter( smooth.filter), ( smooth.clamp?IC_CLAMP:IC_WRAP))) smooth_src=& smooth_temp;else goto error;
-         if(reflect_src->is() && (reflect_src->w()!=w || reflect_src->h()!=h))if(reflect_src->copyTry(reflect_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(reflect.filter), (reflect.clamp?IC_CLAMP:IC_WRAP)))reflect_src=&reflect_temp;else goto error;
-         if(   bump_src->is() && (   bump_src->w()!=w ||    bump_src->h()!=h))if(   bump_src->copyTry(   bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(   bump.filter), (   bump.clamp?IC_CLAMP:IC_WRAP)))   bump_src=&   bump_temp;else goto error;
-         if(   glow_src->is() && (   glow_src->w()!=w ||    glow_src->h()!=h))if(   glow_src->copyTry(   glow_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(   glow.filter), (   glow.clamp?IC_CLAMP:IC_WRAP)))   glow_src=&   glow_temp;else goto error;
+         if(smooth_src->is() && (smooth_src->w()!=w || smooth_src->h()!=h))if(smooth_src->copyTry(smooth_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(smooth.filter), (smooth.clamp?IC_CLAMP:IC_WRAP)))smooth_src=&smooth_temp;else goto error;
+         if( metal_src->is() && ( metal_src->w()!=w ||  metal_src->h()!=h))if( metal_src->copyTry( metal_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter( metal.filter), ( metal.clamp?IC_CLAMP:IC_WRAP))) metal_src=& metal_temp;else goto error;
+         if(  bump_src->is() && (  bump_src->w()!=w ||   bump_src->h()!=h))if(  bump_src->copyTry(  bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(  bump.filter), (  bump.clamp?IC_CLAMP:IC_WRAP)))  bump_src=&  bump_temp;else goto error;
+         if(  glow_src->is() && (  glow_src->w()!=w ||   glow_src->h()!=h))if(  glow_src->copyTry(  glow_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(  glow.filter), (  glow.clamp?IC_CLAMP:IC_WRAP)))  glow_src=&  glow_temp;else goto error;
 
          if(!smooth_src->is() || smooth_src->lockRead())
          {
-            if(!reflect_src->is() || reflect_src->lockRead())
+            if(!metal_src->is() || metal_src->lockRead())
             {
                if(!bump_src->is() || bump_src->lockRead())
                {
@@ -897,9 +925,9 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
                      REPD(x, dest_2.w())
                      {
                         Color c;
-                        c.c[ SMOOTH_CHANNEL]=( smooth_src->is() ?  smooth_src->color(x, y).lum() : 255);
-                        c.c[REFLECT_CHANNEL]=(reflect_src->is() ? reflect_src->color(x, y).lum() : 255);
-                        c.c[   BUMP_CHANNEL]=(   bump_src->is() ?    bump_src->color(x, y).lum() : BUMP_DEFAULT_TEX);
+                        c.c[SMOOTH_CHANNEL]=(smooth_src->is() ? smooth_src->color(x, y).lum() : 255);
+                        c.c[ METAL_CHANNEL]=( metal_src->is() ?  metal_src->color(x, y).lum() : 0);
+                        c.c[  BUMP_CHANNEL]=(  bump_src->is() ?   bump_src->color(x, y).lum() : BUMP_DEFAULT_TEX);
                         if(glow_src->is()){Color glow=glow_src->color(x, y); c.c[GLOW_CHANNEL]=DivRound(glow.lum()*glow.a, 255);}else c.c[GLOW_CHANNEL]=255;
                         dest_2.color(x, y, c);
                      }
@@ -907,7 +935,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
                   }
                   bump_src->unlock();
                }
-               reflect_src->unlock();
+               metal_src->unlock();
             }
             smooth_src->unlock();
          }
@@ -991,28 +1019,28 @@ error:
    Swap(dest, detail);
 }
 /******************************************************************************/
-UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &reflect, C ImageSource &glow, Bool resize_to_pow2, Bool flip_normal_y)
+UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &metal, C ImageSource &glow, Bool resize_to_pow2, Bool flip_normal_y)
 {
    // #WaterMaterialTextureLayout
    UInt  ret=0;
    Image dest_0, dest_1, dest_2;
    {
-      Image   color_temp; C Image *  color_src=&  color.image; if(  color_src->compressed())if(  color_src->copyTry(  color_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))  color_src=&  color_temp;else goto error;
-    //Image   alpha_temp; C Image *  alpha_src=&  alpha.image; if(  alpha_src->compressed())if(  alpha_src->copyTry(  alpha_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))  alpha_src=&  alpha_temp;else goto error;
-      Image    bump_temp; C Image *   bump_src=&   bump.image; if(   bump_src->compressed())if(   bump_src->copyTry(   bump_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))   bump_src=&   bump_temp;else goto error;
-      Image  normal_temp; C Image * normal_src=& normal.image; if( normal_src->compressed())if( normal_src->copyTry( normal_temp, -1, -1, -1, IMAGE_R8G8         , IMAGE_SOFT, 1)) normal_src=& normal_temp;else goto error;
-    //Image  smooth_temp; C Image * smooth_src=& smooth.image; if( smooth_src->compressed())if( smooth_src->copyTry( smooth_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1)) smooth_src=& smooth_temp;else goto error;
-    //Image reflect_temp; C Image *reflect_src=&reflect.image; if(reflect_src->compressed())if(reflect_src->copyTry(reflect_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))reflect_src=&reflect_temp;else goto error;
-    //Image    glow_temp; C Image *   glow_src=&   glow.image; if(   glow_src->compressed())if(   glow_src->copyTry(   glow_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))   glow_src=&   glow_temp;else goto error;
+      Image  color_temp; C Image * color_src=& color.image; if( color_src->compressed())if( color_src->copyTry( color_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1)) color_src=& color_temp;else goto error;
+    //Image  alpha_temp; C Image * alpha_src=& alpha.image; if( alpha_src->compressed())if( alpha_src->copyTry( alpha_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1)) alpha_src=& alpha_temp;else goto error;
+      Image   bump_temp; C Image *  bump_src=&  bump.image; if(  bump_src->compressed())if(  bump_src->copyTry(  bump_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))  bump_src=&  bump_temp;else goto error;
+      Image normal_temp; C Image *normal_src=&normal.image; if(normal_src->compressed())if(normal_src->copyTry(normal_temp, -1, -1, -1, IMAGE_R8G8         , IMAGE_SOFT, 1))normal_src=&normal_temp;else goto error;
+    //Image smooth_temp; C Image *smooth_src=&smooth.image; if(smooth_src->compressed())if(smooth_src->copyTry(smooth_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))smooth_src=&smooth_temp;else goto error;
+    //Image  metal_temp; C Image * metal_src=& metal.image; if( metal_src->compressed())if( metal_src->copyTry( metal_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1)) metal_src=& metal_temp;else goto error;
+    //Image   glow_temp; C Image *  glow_src=&  glow.image; if(  glow_src->compressed())if(  glow_src->copyTry(  glow_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))  glow_src=&  glow_temp;else goto error;
 
       // set what textures do we have (set this before 'normal' is generated from 'bump')
-      if(  color_src->is())ret|=BT_COLOR  ;
-    //if(  alpha_src->is())ret|=BT_ALPHA  ;
-      if(   bump_src->is())ret|=BT_BUMP   ;
-      if( normal_src->is())ret|=BT_NORMAL ;
-    //if( smooth_src->is())ret|=BT_SMOOTH ;
-    //if(reflect_src->is())ret|=BT_REFLECT;
-    //if(   glow_src->is())ret|=BT_GLOW   ;
+      if( color_src->is())ret|=BT_COLOR ;
+    //if( alpha_src->is())ret|=BT_ALPHA ;
+      if(  bump_src->is())ret|=BT_BUMP  ;
+      if(normal_src->is())ret|=BT_NORMAL;
+    //if(smooth_src->is())ret|=BT_SMOOTH;
+    //if( metal_src->is())ret|=BT_METAL ;
+    //if(  glow_src->is())ret|=BT_GLOW  ;
 
       // base_0
       {

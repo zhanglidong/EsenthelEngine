@@ -81,7 +81,7 @@ void VS
 
 #if SET_TEX
    O.tex=vtx.tex(HEIGHTMAP);
-   if(HEIGHTMAP)O.tex*=Material.tex_scale;
+   if(HEIGHTMAP)O.tex*=Material.uv_scale;
 #endif
 
              O.col =Material.color;
@@ -244,23 +244,23 @@ void PS
 , out Half  outAlpha:TARGET2 // #RTOutput.Blend
 ) // #RTOutput
 {
-   Half smooth, reflectivity;
+   Half smooth, reflect;
 
    // #MaterialTextureLayout
 #if   LAYOUT==0
-   smooth      =Material.smooth;
-   reflectivity=Material.reflect;
+   smooth =Material.smooth;
+   reflect=Material.reflect_add;
 #elif LAYOUT==1
    VecH4 tex_col=Tex(Col, I.tex); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
    if(ALPHA)I.col*=tex_col;else I.col.rgb*=tex_col.rgb;
-   smooth      =Material.smooth;
-   reflectivity=Material.reflect;
+   smooth =Material.smooth;
+   reflect=Material.reflect_add;
 #elif LAYOUT==2
    VecH4 tex_col=Tex(Col, I.tex); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
    VecH4 tex_ext=Tex(Ext, I.tex);
    if(ALPHA)I.col*=tex_col;else I.col.rgb*=tex_col.rgb;
-   smooth      =tex_ext.x*Material.smooth;
-   reflectivity=tex_ext.y*Material.reflect;
+   smooth =tex_ext.SMOOTH_CHANNEL*Material.smooth;
+   reflect=tex_ext. METAL_CHANNEL*Material.reflect_mul+Material.reflect_add;
 #endif
 
    // normal
@@ -289,8 +289,8 @@ void PS
 
    Bool translucent=(FX==FX_GRASS_3D || FX==FX_LEAF_3D || FX==FX_LEAFS_3D);
 
-   Half inv_metal  =ReflectToInvMetal(reflectivity);
-   VecH reflect_col=ReflectCol       (reflectivity, I.col.rgb, inv_metal); // calc 'reflect_col' from unlit color
+   Half inv_metal  =ReflectToInvMetal(reflect);
+   VecH reflect_col=ReflectCol       (reflect, I.col.rgb, inv_metal); // calc 'reflect_col' from unlit color
 
    // lighting
    VecH ambient;
@@ -351,8 +351,8 @@ void PS
             lp.set(nrm, light_dir, eye_dir);
 
             VecH            lum_rgb=LightDir.color.rgb*lum;
-            total_lum     +=lum_rgb*lp.diffuse (smooth                                                        ); // diffuse
-            total_specular+=lum_rgb*lp.specular(smooth, reflectivity, reflect_col, false, LightDir.radius_frac); // specular
+            total_lum     +=lum_rgb*lp.diffuse (smooth                                                   ); // diffuse
+            total_specular+=lum_rgb*lp.specular(smooth, reflect, reflect_col, false, LightDir.radius_frac); // specular
          }
       }
    }
@@ -366,7 +366,7 @@ void PS
    #else
       Vec reflect_dir=ReflectDir(eye_dir, nrm);
    #endif
-      I.col.rgb+=ReflectTex(reflect_dir, smooth)*EnvColor*ReflectEnv(smooth, reflectivity, reflect_col, -Dot(nrm, eye_dir), false);
+      I.col.rgb+=ReflectTex(reflect_dir, smooth)*EnvColor*ReflectEnv(smooth, reflect, reflect_col, -Dot(nrm, eye_dir), false);
    }
    #endif
 

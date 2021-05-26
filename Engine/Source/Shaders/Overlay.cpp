@@ -72,11 +72,11 @@ out VecH4   outExt   :TARGET2
    Half smooth, reflect;
 #if LAYOUT==2 // #MaterialTextureLayout
    VecH2 ext=Tex(Ext, inTex.xy).xy;
-   smooth =ext.x*Material.smooth ;
-   reflect=ext.y*Material.reflect;
+   smooth =ext.SMOOTH_CHANNEL*Material.smooth;
+   reflect=ext. METAL_CHANNEL*Material.reflect_mul+Material.reflect_add;
 #else
    smooth =Material.smooth;
-   reflect=Material.reflect;
+   reflect=Material.reflect_add;
 #endif
 
    VecH nrm;
