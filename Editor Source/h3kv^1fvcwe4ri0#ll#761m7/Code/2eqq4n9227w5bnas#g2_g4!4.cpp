@@ -6,8 +6,8 @@ void WaterMaterial(  WorldView &world, C Str &t) {}
 Str  WaterMaterial(C WorldView &world          ) {return Proj.elmFullName(world.sel_lake ? world.sel_lake.material : world.sel_river ? world.sel_river.material : UIDZero);}
 void WaterDepth   (  WorldView &world, C Str &t) {if(world.sel_lake)world.sel_lake.setDepth(TextFlt(t)); if(world.sel_river)world.sel_river.setDepth(TextFlt(t));}
 Str  WaterDepth   (C WorldView &world          ) {return world.sel_lake ? world.sel_lake.depth : world.sel_river ? world.sel_river.depth : 1;}
-void WaterTexScale(  WorldView &world, C Str &t) {if(world.sel_river)world.sel_river.setTexScale(Contains(t, ',') ? TextVec2(t) : Vec2(TextFlt(t)));}
-Str  WaterTexScale(C WorldView &world          ) {return world.sel_lake ? world.sel_lake.tex_scale : world.sel_river ? world.sel_river.tex_scale : 1;}
+void WaterUVScale (  WorldView &world, C Str &t) {if(world.sel_river)world.sel_river.setUVScale(Contains(t, ',') ? TextVec2(t) : Vec2(TextFlt(t)));}
+Str  WaterUVScale (C WorldView &world          ) {return world.sel_lake ? world.sel_lake.uv_scale : world.sel_river ? world.sel_river.uv_scale : 1;}
 void WaterSmooth  (  WorldView &world, C Str &t) {if(world.sel_river)world.sel_river.setSmooth(TextInt(t));}
 Str  WaterSmooth  (C WorldView &world          ) {return world.sel_river ? world.sel_river.smooth : 0;}
 /******************************************************************************/

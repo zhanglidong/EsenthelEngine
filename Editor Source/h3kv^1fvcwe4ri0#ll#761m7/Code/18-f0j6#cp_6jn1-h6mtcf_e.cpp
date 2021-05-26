@@ -67,8 +67,8 @@ class WaterMtrlRegion : MaterialRegion
    static void Col      (  WaterMtrlRegion &mr, C Str &t) {mr.edit.color_s.xyz=TextVec(t); mr.edit.color_time.getUTC();}
    static Str  Smooth   (C WaterMtrlRegion &mr          ) {return mr.edit.smooth;}
    static void Smooth   (  WaterMtrlRegion &mr, C Str &t) {mr.edit.smooth=TextFlt(t); mr.edit.smooth_time.getUTC();}
-   static Str  Reflect  (C WaterMtrlRegion &mr          ) {return mr.edit.reflect;}
-   static void Reflect  (  WaterMtrlRegion &mr, C Str &t) {mr.edit.reflect=TextFlt(t); mr.edit.reflect_time.getUTC();}
+   static Str  Reflect  (C WaterMtrlRegion &mr          ) {return mr.edit.reflect_min;}
+   static void Reflect  (  WaterMtrlRegion &mr, C Str &t) {mr.edit.reflect_min=TextFlt(t); mr.edit.reflect_time.getUTC();}
    static Str  NrmScale (C WaterMtrlRegion &mr          ) {return mr.edit.normal;}
    static void NrmScale (  WaterMtrlRegion &mr, C Str &t) {mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC();}
    static Str  FNY      (C WaterMtrlRegion &mr          ) {return mr.edit.flip_normal_y;}
@@ -211,13 +211,13 @@ class WaterMtrlRegion : MaterialRegion
       VecI2 sizes[3]={size, size, size};
 
       if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
-         if(Proj.forceImageSize(edit.  color_map, 0, relative, edit.  color_map_time, time) // !! use '|' because all need to be processed !!
-         |  Proj.forceImageSize(edit.  alpha_map, 0, relative, edit.  alpha_map_time, time)
-         |  Proj.forceImageSize(edit.   bump_map, 0, relative, edit.   bump_map_time, time)
-         |  Proj.forceImageSize(edit. normal_map, 0, relative, edit. normal_map_time, time)
-         |  Proj.forceImageSize(edit. smooth_map, 0, relative, edit. smooth_map_time, time)
-         |  Proj.forceImageSize(edit.reflect_map, 0, relative, edit.reflect_map_time, time)
-         |  Proj.forceImageSize(edit.   glow_map, 0, relative, edit.   glow_map_time, time))
+         if(Proj.forceImageSize(edit. color_map, 0, relative, edit. color_map_time, time) // !! use '|' because all need to be processed !!
+         |  Proj.forceImageSize(edit. alpha_map, 0, relative, edit. alpha_map_time, time)
+         |  Proj.forceImageSize(edit.  bump_map, 0, relative, edit.  bump_map_time, time)
+         |  Proj.forceImageSize(edit.normal_map, 0, relative, edit.normal_map_time, time)
+         |  Proj.forceImageSize(edit.smooth_map, 0, relative, edit.smooth_map_time, time)
+         |  Proj.forceImageSize(edit. metal_map, 0, relative, edit. metal_map_time, time)
+         |  Proj.forceImageSize(edit.  glow_map, 0, relative, edit.  glow_map_time, time))
       {
          MtrlImages mi; mi.fromMaterial(edit, Proj); mi.waterBaseTextureSizes(&sizes[0], &sizes[1], &sizes[2]); // calculate actual sizes
          REPA(sizes)
@@ -231,13 +231,13 @@ class WaterMtrlRegion : MaterialRegion
       }
 
       // #WaterMaterialTextureLayout
-      if(Proj.forceImageSize(edit.  color_map,                                 sizes[0], relative, edit.  color_map_time, time) // !! use '|' because all need to be processed !!
-    //|  Proj.forceImageSize(edit.  alpha_map, edit.hasBase2Tex() ? sizes[2] : sizes[0], relative, edit.  alpha_map_time, time)
-      |  Proj.forceImageSize(edit.   bump_map,                                 sizes[2], relative, edit.   bump_map_time, time)
-      |  Proj.forceImageSize(edit. normal_map,                                 sizes[1], relative, edit. normal_map_time, time)
-    //|  Proj.forceImageSize(edit. smooth_map,                                 sizes[2], relative, edit. smooth_map_time, time)
-    //|  Proj.forceImageSize(edit.reflect_map,                                 sizes[2], relative, edit.reflect_map_time, time)
-    //|  Proj.forceImageSize(edit.   glow_map,                                 sizes[0], relative, edit.   glow_map_time, time)
+      if(Proj.forceImageSize(edit. color_map,                                 sizes[0], relative, edit. color_map_time, time) // !! use '|' because all need to be processed !!
+    //|  Proj.forceImageSize(edit. alpha_map, edit.hasBase2Tex() ? sizes[2] : sizes[0], relative, edit. alpha_map_time, time)
+      |  Proj.forceImageSize(edit.  bump_map,                                 sizes[2], relative, edit.  bump_map_time, time)
+      |  Proj.forceImageSize(edit.normal_map,                                 sizes[1], relative, edit.normal_map_time, time)
+    //|  Proj.forceImageSize(edit.smooth_map,                                 sizes[2], relative, edit.smooth_map_time, time)
+    //|  Proj.forceImageSize(edit. metal_map,                                 sizes[2], relative, edit. metal_map_time, time)
+    //|  Proj.forceImageSize(edit.  glow_map,                                 sizes[0], relative, edit.  glow_map_time, time)
       )
       {
          edit.cleanupMaps();

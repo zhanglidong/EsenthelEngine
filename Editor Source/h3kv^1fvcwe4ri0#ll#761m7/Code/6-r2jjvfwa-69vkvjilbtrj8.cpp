@@ -233,11 +233,11 @@ class MtrlBrushClass : Window
             if(d)
             {
                Ms.freeze();
-               flt tex_scale=scale_material->tex_scale;
-               if(Ms.b(0) || Touches.elms()>=2)tex_scale=1;else Clamp(tex_scale*=ScaleFactor(d->sum()), 0.01, 16.0);
-               if(scale_material->tex_scale!=tex_scale)
+               flt uv_scale=scale_material->uv_scale;
+               if(Ms.b(0) || Touches.elms()>=2)uv_scale=1;else Clamp(uv_scale*=ScaleFactor(d->sum()), 0.01, 16.0);
+               if(scale_material->uv_scale!=uv_scale)
                {
-                  scale_material->tex_scale=tex_scale;
+                  scale_material->uv_scale=uv_scale;
                   scale_material->validate();
                   MtrlEdit.elmChanged(scale_material_id);
                }
@@ -249,8 +249,8 @@ class MtrlBrushClass : Window
                   {
                      mtrl_data.newVer();
                      EditMaterial edit_mtrl; edit_mtrl.load(Proj.editPath(*mtrl));
-                     edit_mtrl.tex_scale=scale_material->tex_scale;
-                     edit_mtrl.tex_scale_time.getUTC();
+                     edit_mtrl.uv_scale=scale_material->uv_scale;
+                     edit_mtrl.uv_scale_time.getUTC();
                      Save(  edit_mtrl    , Proj.editPath(*mtrl));
                      Save(*scale_material, Proj.gamePath(*mtrl)); Proj.savedGame(*mtrl);
                      Server.setElmLong(scale_material_id);
