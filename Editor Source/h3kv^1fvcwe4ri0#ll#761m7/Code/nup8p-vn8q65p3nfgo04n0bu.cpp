@@ -651,9 +651,9 @@ class ElmMaterial : ElmData
       downsize_tex_mobile=src.downsize_tex_mobile;
       tex_quality        =src.tex_quality;
 
-      usesTexAlpha(src.usesTexAlpha());
-      usesTexBump (src.usesTexBump ());
-      usesTexGlow (src.usesTexGlow ());
+      usesTexAlpha(src.usesTexColAlpha());
+      usesTexBump (src.usesTexBump    ());
+      usesTexGlow (src.usesTexGlow    ());
    }
    uint undo(C ElmMaterial &src) // don't undo 'downsize_tex_mobile', 'flag' because they should be set only in 'from'
    {
@@ -810,9 +810,9 @@ class ElmWaterMtrl : ElmData
 
       tex_quality=src.tex_quality;
 
-      usesTexAlpha(src.usesTexAlpha());
-      usesTexBump (src.usesTexBump ());
-      usesTexGlow (src.usesTexGlow ());
+      usesTexAlpha(src.usesTexColAlpha());
+      usesTexBump (src.usesTexBump    ());
+      usesTexGlow (src.usesTexGlow    ());
    }
    uint undo(C ElmWaterMtrl &src) {return super.undo(src);} // don't adjust 'ver' here because it also relies on 'EditWaterMtrl', because of that this is included in 'ElmFileInShort', don't undo 'downsize_tex_mobile', 'flag' because they should be set only in 'from'
    uint sync(C ElmWaterMtrl &src) {return super.sync(src);} // don't adjust 'ver' here because it also relies on 'EditWaterMtrl', because of that this is included in 'ElmFileInShort', don't sync 'downsize_tex_mobile', 'flag' because they should be set only in 'from'

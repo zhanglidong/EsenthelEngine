@@ -21,16 +21,16 @@ class ImporterClass
             dest.create(mtrl, time); // set from 'Material' instead of 'XMaterial' because it had '_adjustParams' called
             dest.flip_normal_y=flip_normal_y; dest.flip_normal_y_time=time;
 
-            dest.  color_map  =        color_map; dest.  color_map_time=time;
-            dest.  alpha_map  =        alpha_map; dest.  alpha_map_time=time;
-            dest.   bump_map  =         bump_map; dest.   bump_map_time=time;
-            dest. normal_map  =       normal_map; dest. normal_map_time=time;
-            dest. smooth_map  =       smooth_map; dest. smooth_map_time=time;
-            dest.reflect_map  =      reflect_map; dest.reflect_map_time=time;
-            dest.   glow_map  =         glow_map; dest.   glow_map_time=time;
-            dest.  light_map  =        light_map; dest.  light_map_time=time;
-            dest.  macro_map  =                S; dest.  macro_map_time=time;
-            dest.detail_color = detail_color_map; dest. detail_map_time=time;
+            dest. color_map   =        color_map; dest. color_map_time=time;
+            dest. alpha_map   =        alpha_map; dest. alpha_map_time=time;
+            dest.  bump_map   =         bump_map; dest.  bump_map_time=time;
+            dest.normal_map   =       normal_map; dest.normal_map_time=time;
+            dest.smooth_map   =       smooth_map; dest.smooth_map_time=time;
+            dest. metal_map   =        metal_map; dest. metal_map_time=time;
+            dest.  glow_map   =         glow_map; dest.  glow_map_time=time;
+            dest. light_map   =        light_map; dest. light_map_time=time;
+            dest. macro_map   =                S; dest. macro_map_time=time;
+            dest.detail_color = detail_color_map; dest.detail_map_time=time;
             dest.detail_bump  =  detail_bump_map;
             dest.detail_normal=detail_normal_map;
             dest.detail_smooth=detail_smooth_map;
@@ -58,14 +58,14 @@ class ImporterClass
 
             if(path.is())
             {
-               check(path,   color_map);
-               check(path,   alpha_map);
-               check(path,    bump_map);
-               check(path,    glow_map);
-               check(path,   light_map);
-               check(path,  normal_map);
-               check(path,  smooth_map);
-               check(path, reflect_map);
+               check(path,  color_map);
+               check(path,  alpha_map);
+               check(path,   bump_map);
+               check(path,   glow_map);
+               check(path,  light_map);
+               check(path, normal_map);
+               check(path, smooth_map);
+               check(path,  metal_map);
             }
 
             if(GetExt(color_map)=="img" || GetExt(normal_map)=="img" || GetExt(smooth_map)=="img" || GetExt(detail_color_map)=="img") // this is 'EE.Material' ("mtrl" format) #MaterialTextureLayout
@@ -86,16 +86,16 @@ class ImporterClass
 
                fp=b2; if(fp.name.is())
                {
-                  fp.getParam("channel").setValue("x");  smooth_map=fp.encode();
-                  fp.getParam("channel").setValue("y"); reflect_map=fp.encode();
-                  fp.getParam("channel").setValue("z");    bump_map=fp.encode();
-                  fp.getParam("channel").setValue("w");    glow_map=fp.encode();
+                  fp.getParam("channel").setValue("y"); smooth_map=fp.encode();
+                  fp.getParam("channel").setValue("x");  metal_map=fp.encode();
+                  fp.getParam("channel").setValue("z");   bump_map=fp.encode();
+                  fp.getParam("channel").setValue("w");   glow_map=fp.encode();
                }else
                {
-                   smooth_map.clear();
-                  reflect_map.clear();
-                     bump_map.clear();
-                     glow_map.clear();
+                  smooth_map.clear();
+                   metal_map.clear();
+                    bump_map.clear();
+                    glow_map.clear();
                }
 
                fp=d; if(fp.name.is())
@@ -112,23 +112,23 @@ class ImporterClass
                detail_bump_map.clear();
             }else
             {
-               Image color, alpha, bump, normal, smooth, reflect, glow;
-               ImportImage(  color,   color_map);
-               ImportImage(  alpha,   alpha_map);
-               ImportImage(   bump,    bump_map);
-               ImportImage( normal,  normal_map);
-               ImportImage( smooth,  smooth_map);
-               ImportImage(reflect, reflect_map);
-               ImportImage(   glow,    glow_map);
-               ImportImage(  light,   light_map);
+               Image color, alpha, bump, normal, smooth, metal, glow;
+               ImportImage( color,  color_map);
+               ImportImage( alpha,  alpha_map);
+               ImportImage(  bump,   bump_map);
+               ImportImage(normal, normal_map);
+               ImportImage(smooth, smooth_map);
+               ImportImage( metal,  metal_map);
+               ImportImage(  glow,   glow_map);
+               ImportImage( light,  light_map);
 
                // process textures only if they're added for the first time, otherwise delete them so they won't be saved
-               uint bt=CreateBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, reflect, glow, true, flip_normal_y);
+               uint bt=CreateBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, metal, glow, true, flip_normal_y);
                // enable if are specified but either failed to load or empty, because without it, for example normal value gets zero, and when reapplying correct image path, then when loading new image, normal value doesn't get changed
-               if(   bump_map.is())bt|=BT_BUMP|BT_NORMAL;
-               if( normal_map.is())bt|=BT_NORMAL;
-               if( smooth_map.is())bt|=BT_SMOOTH;
-               if(reflect_map.is())bt|=BT_REFLECT;
+               if(  bump_map.is())bt|=BT_BUMP|BT_NORMAL;
+               if(normal_map.is())bt|=BT_NORMAL;
+               if(smooth_map.is())bt|=BT_SMOOTH;
+               if( metal_map.is())bt|=BT_METAL;
                IMAGE_TYPE ct; ImageProps(base_0, &base_0_id, &ct, MTRL_BASE_0); if(Importer.includeTex(base_0_id))                          base_0.copyTry(base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_0.del();
                               ImageProps(base_1, &base_1_id, &ct, MTRL_BASE_1); if(Importer.includeTex(base_1_id))                          base_1.copyTry(base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_1.del();
                               ImageProps(base_2, &base_2_id, &ct, MTRL_BASE_2); if(Importer.includeTex(base_2_id))                          base_2.copyTry(base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_2.del();

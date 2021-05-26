@@ -504,29 +504,29 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
                ImportMtrlImages.binaryInclude(SkipStartPath(m , ImportSrc), ImportComparePath);
                ImportMtrlImages.binaryInclude(SkipStartPath(l , ImportSrc), ImportComparePath);
 
-               edit.  color_map_time.getUTC(); edit.  color_map=b0; SetTransform(edit.color_map, "channel", "xyz");
-               edit.  alpha_map_time.getUTC(); edit.  alpha_map.clear();
-               edit.   bump_map_time.getUTC(); edit.   bump_map.clear();
-               edit.   glow_map_time.getUTC(); edit.   glow_map.clear();
-               edit. normal_map_time.getUTC(); edit. normal_map=b1; SetTransform(edit.normal_map, "channel", "xy");
-               edit. smooth_map_time.getUTC(); edit. smooth_map.clear();
-               edit.reflect_map_time.getUTC(); edit.reflect_map.clear();
-               edit. detail_map_time.getUTC(); edit.detail_color =d; SetTransform(edit.detail_color , "channel", "z" );
-                                               edit.detail_smooth=d; SetTransform(edit.detail_smooth, "channel", "w" );
-                                               edit.detail_normal=d; SetTransform(edit.detail_normal, "channel", "xy");
-                                               edit.detail_bump.clear();
-               edit.  macro_map_time.getUTC(); edit. macro_map   =m;
-               edit.  light_map_time.getUTC(); edit. light_map   =l;
+               edit. color_map_time.getUTC(); edit. color_map=b0; AddTransform(edit.color_map, "channel", "xyz");
+               edit. alpha_map_time.getUTC(); edit. alpha_map.clear();
+               edit.  bump_map_time.getUTC(); edit.  bump_map.clear();
+               edit.  glow_map_time.getUTC(); edit.  glow_map.clear();
+               edit.normal_map_time.getUTC(); edit.normal_map=b1; AddTransform(edit.normal_map, "channel", "xy");
+               edit.smooth_map_time.getUTC(); edit.smooth_map.clear();
+               edit. metal_map_time.getUTC(); edit. metal_map.clear();
+               edit.detail_map_time.getUTC(); edit.detail_color =d; AddTransform(edit.detail_color , "channel", "z" );
+                                              edit.detail_smooth=d; AddTransform(edit.detail_smooth, "channel", "w" );
+                                              edit.detail_normal=d; AddTransform(edit.detail_normal, "channel", "xy");
+                                              edit.detail_bump.clear();
+               edit. macro_map_time.getUTC(); edit. macro_map   =m;
+               edit. light_map_time.getUTC(); edit. light_map   =l;
                if(b2.is())
                {
-                  edit. smooth_map=b2; SetTransform(edit. smooth_map, "channel", "x");
-                  edit.reflect_map=b2; SetTransform(edit.reflect_map, "channel", "y");
-                  edit.   bump_map=b2; SetTransform(edit.   bump_map, "channel", "z");
-                  edit.  alpha_map=b2; SetTransform(edit.  alpha_map, "channel", "w");
-                  edit.   glow_map=b0; SetTransform(edit.   glow_map, "channel", "w");
+                  edit.smooth_map=b2; AddTransform(edit.smooth_map, "channel", "y");
+                  edit. metal_map=b2; AddTransform(edit. metal_map, "channel", "x");
+                  edit.  bump_map=b2; AddTransform(edit.  bump_map, "channel", "z");
+                  edit. alpha_map=b2; AddTransform(edit. alpha_map, "channel", "w");
+                  edit.  glow_map=b0; AddTransform(edit.  glow_map, "channel", "w");
                }else
                {
-                  edit.alpha_map=b0; SetTransform(edit.alpha_map, "channel", "w");
+                  edit.alpha_map=b0; AddTransform(edit.alpha_map, "channel", "w");
                }
 
                // save

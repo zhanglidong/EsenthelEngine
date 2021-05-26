@@ -14,7 +14,7 @@ class EditWaterMtrl : EditMaterial
              wave_scale_time,
              color_underwater_time;
 
-   EditWaterMtrl() {smooth=1; reflect=0.02;}
+   EditWaterMtrl() {smooth=1; reflect_min=0.02;}
 
    // get
    bool usesTexBump()C {return wave_scale>EPSL && hasBumpMap();}
@@ -54,7 +54,7 @@ class EditWaterMtrl : EditMaterial
       super.create(Material(), time); // call super to setup times for all values
       color_s               =Vec4(src.colorS(), 1); color_time=time;
       smooth                =src.smooth ; smooth_time=time;
-      reflect               =src.reflect; reflect_time=time;
+      reflect_min           =src.reflect; reflect_time=time;
       normal                =src.normal ; normal_time=time;
       wave_scale            =src.wave_scale; wave_scale_time=time;
       scale_color           =src.scale_color; scale_color_time=time;
@@ -75,7 +75,7 @@ class EditWaterMtrl : EditMaterial
    {
       dest.colorS(color_s.xyz);
       dest.smooth                =smooth            ;
-      dest.reflect               =reflect           ;
+      dest.reflect               =reflect_min       ;
       dest.normal                =normal            ;
       dest.wave_scale            =wave_scale        ;
       dest.scale_color           =scale_color       ;

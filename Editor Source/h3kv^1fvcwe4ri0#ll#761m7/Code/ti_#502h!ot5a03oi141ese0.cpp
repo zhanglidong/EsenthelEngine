@@ -56,9 +56,9 @@ class MergeSimilarMaterials : PropWin
          col_s=m.color_s;
          bump=m.bump;
          smooth=m.smooth;
-         reflect=m.reflect;
+         reflect=m.reflect_min;
          glow=m.glow;
-         uv_scale=m.tex_scale;
+         uv_scale=m.uv_scale;
          return T;
       }
    }

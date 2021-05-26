@@ -8,7 +8,7 @@ class MaterialRegion : Region
       TEX_BUMP      ,
       TEX_NORMAL    ,
       TEX_SMOOTH    ,
-      TEX_REFLECT   ,
+      TEX_METAL     ,
       TEX_GLOW      ,
       TEX_DET_COLOR ,
       TEX_DET_BUMP  ,
@@ -68,24 +68,24 @@ class MaterialRegion : Region
                          &light =mr.getLight   ();
             if(!mr.water())switch(type) // #MaterialTextureLayout
             {
-               case TEX_COLOR     : if(em.    color_map.is()                       )return base_0; break;
-               case TEX_ALPHA     : if(em.    color_map.is() || em.alpha_map.is()  )return base_0; break;
-               case TEX_BUMP      : if(em.      hasBumpMap()                       )return base_2; break;
-               case TEX_NORMAL    : if(em.    hasNormalMap()                       )return base_1; break;
-               case TEX_SMOOTH    : if(em.   smooth_map.is()                       )return base_2; break;
-               case TEX_REFLECT   : if(em.  reflect_map.is()                       )return base_2; break;
-               case TEX_GLOW      : if(em.     glow_map.is()                       )return base_2; break;
-               case TEX_LIGHT     : if(em.    light_map.is()                       )return light ; break;
-               case TEX_MACRO     : if(em.    macro_map.is()                       )return macro ; break;
+               case TEX_COLOR     : if(em. color_map   .is()                       )return base_0; break;
+               case TEX_ALPHA     : if(em. color_map   .is() || em.alpha_map.is()  )return base_0; break;
+               case TEX_BUMP      : if(em.  hasBumpMap    ()                       )return base_2; break;
+               case TEX_NORMAL    : if(em.hasNormalMap    ()                       )return base_1; break;
+               case TEX_SMOOTH    : if(em.smooth_map   .is()                       )return base_2; break;
+               case TEX_METAL     : if(em. metal_map   .is()                       )return base_2; break;
+               case TEX_GLOW      : if(em.  glow_map   .is()                       )return base_2; break;
+               case TEX_LIGHT     : if(em. light_map   .is()                       )return light ; break;
+               case TEX_MACRO     : if(em. macro_map   .is()                       )return macro ; break;
                case TEX_DET_COLOR : if(em.detail_color .is()                       )return detail; break;
                case TEX_DET_BUMP  : if(em.detail_bump  .is()                       )return detail; break;
                case TEX_DET_NORMAL: if(em.detail_normal.is() || em.detail_bump.is())return detail; break;
                case TEX_DET_SMOOTH: if(em.detail_smooth.is()                       )return detail; break;
             }else switch(type) // #WaterMaterialTextureLayout
             {
-               case TEX_COLOR     : if(em.    color_map.is()                       )return base_0; break;
-               case TEX_BUMP      : if(em.      hasBumpMap()                       )return base_2; break;
-               case TEX_NORMAL    : if(em.    hasNormalMap()                       )return base_1; break;
+               case TEX_COLOR     : if(em.color_map.is()                           )return base_0; break;
+               case TEX_BUMP      : if(em.  hasBumpMap()                           )return base_2; break;
+               case TEX_NORMAL    : if(em.hasNormalMap()                           )return base_1; break;
             }
          }
          return null;
@@ -106,8 +106,8 @@ class MaterialRegion : Region
          if(type==TEX_MACRO)desc.line()+="Can be set for heightmap materials to decrease repetitiveness of textures.\nBecomes visible at distance of around 100 meters.";
          FREPA(files){desc+='\n'; desc+=files[i].encode();}
          desc+="\nUse Ctrl+Click to Explore";
-         if(type==TEX_SMOOTH )desc+="\nAppend \"?inverseRGB\" to file name when using a \"Roughness\" map,\nor hold Alt while drag and drop to auto append.";
-         if(type==TEX_REFLECT)desc+="\nAppend \"?metalToReflect\" to file name when using a \"Metal\" map,\nor hold Shift while drag and drop to auto append.";
+         if(type==TEX_SMOOTH)desc+="\nAppend \"?inverseRGB\" to file name when using a \"Roughness\" map,\nor hold Alt while drag and drop to auto append.";
+       //if(type==TEX_METAL )desc+="\nAppend \"?metalToReflect\" to file name when using a \"Metal\" map,\nor hold Shift while drag and drop to auto append.";
          T.desc(desc);
       }
       static void FixPath(Mems<FileParams> &fps)
@@ -253,26 +253,26 @@ class MaterialRegion : Region
             ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
             if(!mr.water())switch(type) // #MaterialTextureLayout
             {
-               case TEX_COLOR     : if(em.    color_map.is()                       )if(base_0){                                                      base_0->drawFit(rect); tex=true;} break;
-               case TEX_ALPHA     : if(em.    color_map.is() || em.alpha_map.is()  )if(base_0){VI.shader(ShaderFiles("Main")->get("DrawTexWG"    )); base_0->drawFit(rect); tex=true;} break;
-               case TEX_BUMP      : if(em.      hasBumpMap()                       )if(base_2){VI.shader(ShaderFiles("Main")->get("DrawTexZG"    )); base_2->drawFit(rect); tex=true;} break;
-               case TEX_NORMAL    : if(em.    hasNormalMap()                       )if(base_1){VI.shader(ShaderFiles("Main")->get("DrawTexNrm"   )); base_1->drawFit(rect); tex=true;} break;
-               case TEX_SMOOTH    : if(em.   smooth_map.is()                       )if(base_2){VI.shader(ShaderFiles("Main")->get("DrawTexXG"    )); base_2->drawFit(rect); tex=true;} break;
-               case TEX_REFLECT   : if(em.  reflect_map.is()                       )if(base_2){VI.shader(ShaderFiles("Main")->get("DrawTexYG"    )); base_2->drawFit(rect); tex=true;} break;
-               case TEX_GLOW      : if(em.     glow_map.is()                       )if(base_2){VI.shader(ShaderFiles("Main")->get("DrawTexWG"    )); base_2->drawFit(rect); tex=true;} break;
-               case TEX_LIGHT     : if(em.    light_map.is()                       )if(light ){                                                      light ->drawFit(rect); tex=true;} break;
-               case TEX_MACRO     : if(em.    macro_map.is()                       )if(macro ){                                                      macro ->drawFit(rect); tex=true;} break;
+               case TEX_COLOR     : if(em. color_map   .is()                       )if(base_0){                                                      base_0->drawFit(rect); tex=true;} break;
+               case TEX_ALPHA     : if(em. color_map   .is() || em.alpha_map.is()  )if(base_0){VI.shader(ShaderFiles("Main")->get("DrawTexWG"    )); base_0->drawFit(rect); tex=true;} break;
+               case TEX_BUMP      : if(em.   hasBumpMap   ()                       )if(base_2){VI.shader(ShaderFiles("Main")->get("DrawTexZG"    )); base_2->drawFit(rect); tex=true;} break;
+               case TEX_NORMAL    : if(em. hasNormalMap   ()                       )if(base_1){VI.shader(ShaderFiles("Main")->get("DrawTexNrm"   )); base_1->drawFit(rect); tex=true;} break;
+               case TEX_SMOOTH    : if(em.smooth_map   .is()                       )if(base_2){VI.shader(ShaderFiles("Main")->get("DrawTexYG"    )); base_2->drawFit(rect); tex=true;} break;
+               case TEX_METAL     : if(em. metal_map   .is()                       )if(base_2){VI.shader(ShaderFiles("Main")->get("DrawTexXG"    )); base_2->drawFit(rect); tex=true;} break;
+               case TEX_GLOW      : if(em.  glow_map   .is()                       )if(base_2){VI.shader(ShaderFiles("Main")->get("DrawTexWG"    )); base_2->drawFit(rect); tex=true;} break;
+               case TEX_LIGHT     : if(em. light_map   .is()                       )if(light ){                                                      light ->drawFit(rect); tex=true;} break;
+               case TEX_MACRO     : if(em. macro_map   .is()                       )if(macro ){                                                      macro ->drawFit(rect); tex=true;} break;
                case TEX_DET_COLOR : if(em.detail_color .is()                       )if(detail){VI.shader(ShaderFiles("Main")->get("DrawTexZG"    )); detail->drawFit(rect); tex=true;} break;
                case TEX_DET_BUMP  : if(em.detail_bump  .is()                       )if(detail){      if(Image *bump=mr.getDetailBump(em.detail_bump))bump  ->drawFit(rect); tex=true;} break; // Detail Bump is not stored in texture
                case TEX_DET_NORMAL: if(em.detail_normal.is() || em.detail_bump.is())if(detail){VI.shader(ShaderFiles("Main")->get("DrawTexDetNrm")); detail->drawFit(rect); tex=true;} break;
                case TEX_DET_SMOOTH: if(em.detail_smooth.is()                       )if(detail){VI.shader(ShaderFiles("Main")->get("DrawTexWG"    )); detail->drawFit(rect); tex=true;} break;
-             /*case TEX_RFL_L     : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_LEFT   ); tex=true;} break;
-               case TEX_RFL_F     : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_FORWARD); tex=true;} break;
-               case TEX_RFL_R     : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_RIGHT  ); tex=true;} break;
-               case TEX_RFL_B     : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_BACK   ); tex=true;} break;
-               case TEX_RFL_D     : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_DOWN   ); tex=true;} break;
-               case TEX_RFL_U     : if(em.reflection_map.is()                      )if(      reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_UP     ); tex=true;} break;
-               case TEX_RFL_ALL   : if(em.reflection_map.is()                      )if(      reflection)
+             /*case TEX_RFL_L     : if(em.reflection_map.is()                      )if(reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_LEFT   ); tex=true;} break;
+               case TEX_RFL_F     : if(em.reflection_map.is()                      )if(reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_FORWARD); tex=true;} break;
+               case TEX_RFL_R     : if(em.reflection_map.is()                      )if(reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_RIGHT  ); tex=true;} break;
+               case TEX_RFL_B     : if(em.reflection_map.is()                      )if(reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_BACK   ); tex=true;} break;
+               case TEX_RFL_D     : if(em.reflection_map.is()                      )if(reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_DOWN   ); tex=true;} break;
+               case TEX_RFL_U     : if(em.reflection_map.is()                      )if(reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_UP     ); tex=true;} break;
+               case TEX_RFL_ALL   : if(em.reflection_map.is()                      )if(reflection)
                {
                   Image &i=*reflection; flt x[5]={rect.min.x, rect.lerpX(1.0/4), rect.lerpX(2.0/4), rect.lerpX(3.0/4), rect.max.x},
                                             y[4]={rect.min.y, rect.lerpY(1.0/3), rect.lerpY(2.0/3), rect.max.y};
@@ -444,46 +444,50 @@ class MaterialRegion : Region
    }
 
    static Str  Red  (C MaterialRegion &mr          ) {return mr.edit.color_s.x;}
-   static void Red  (  MaterialRegion &mr, C Str &t) {mr.edit.color_s.x=TextFlt(t); mr.edit.color_time.getUTC();}
+   static void Red  (  MaterialRegion &mr, C Str &t) {       mr.edit.color_s.x=TextFlt(t); mr.edit.color_time.getUTC();}
    static Str  Green(C MaterialRegion &mr          ) {return mr.edit.color_s.y;}
-   static void Green(  MaterialRegion &mr, C Str &t) {mr.edit.color_s.y=TextFlt(t); mr.edit.color_time.getUTC();}
+   static void Green(  MaterialRegion &mr, C Str &t) {       mr.edit.color_s.y=TextFlt(t); mr.edit.color_time.getUTC();}
    static Str  Blue (C MaterialRegion &mr          ) {return mr.edit.color_s.z;}
-   static void Blue (  MaterialRegion &mr, C Str &t) {mr.edit.color_s.z=TextFlt(t); mr.edit.color_time.getUTC();}
+   static void Blue (  MaterialRegion &mr, C Str &t) {       mr.edit.color_s.z=TextFlt(t); mr.edit.color_time.getUTC();}
    static Str  Alpha(C MaterialRegion &mr          ) {return mr.edit.color_s.w;}
-   static void Alpha(  MaterialRegion &mr, C Str &t) {mr.edit.color_s.w=TextFlt(t); mr.edit.color_time.getUTC();}
+   static void Alpha(  MaterialRegion &mr, C Str &t) {       mr.edit.color_s.w=TextFlt(t); mr.edit.color_time.getUTC();}
 
    static const flt BumpScale=0.10;
    static Str  Bump    (C MaterialRegion &mr          ) {return mr.edit.bump/BumpScale;}
-   static void Bump    (  MaterialRegion &mr, C Str &t) {mr.edit.bump=TextFlt(t)*BumpScale; mr.edit.bump_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
+   static void Bump    (  MaterialRegion &mr, C Str &t) {       mr.edit.bump=TextFlt(t)*BumpScale; mr.edit.bump_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
    static Str  NrmScale(C MaterialRegion &mr          ) {return mr.edit.normal;}
-   static void NrmScale(  MaterialRegion &mr, C Str &t) {mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
+   static void NrmScale(  MaterialRegion &mr, C Str &t) {       mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
    static Str  FNY     (C MaterialRegion &mr          ) {return mr.edit.flip_normal_y;}
    static void FNY     (  MaterialRegion &mr, C Str &t) {uint base_tex=mr.edit.baseTex(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(base_tex, true, false);}
 
-   static Str  Smooth (C MaterialRegion &mr          ) {return mr.edit.smooth;}
-   static void Smooth (  MaterialRegion &mr, C Str &t) {mr.edit.smooth=TextFlt(t); mr.edit.smooth_time.getUTC();}
-   static Str  Reflect(C MaterialRegion &mr          ) {return mr.edit.reflect;}
-   static void Reflect(  MaterialRegion &mr, C Str &t) {mr.edit.reflect=TextFlt(t); mr.edit.reflect_time.getUTC();}
-   static Str  Glow   (C MaterialRegion &mr          ) {return mr.edit.glow;}
-   static void Glow   (  MaterialRegion &mr, C Str &t) {mr.edit.glow=TextFlt(t); mr.edit.glow_time.getUTC();}
+   static Str  Smooth    (C MaterialRegion &mr          ) {return mr.edit.smooth;}
+   static void Smooth    (  MaterialRegion &mr, C Str &t) {       mr.edit.smooth=TextFlt(t); mr.edit.smooth_time.getUTC();}
+   static Str  ReflectMin(C MaterialRegion &mr          ) {return mr.edit.reflect_min;}
+   static void ReflectMin(  MaterialRegion &mr, C Str &t) {       mr.edit.reflect_min=TextFlt(t); mr.edit.reflect_time.getUTC();}
+   static Str  ReflectMax(C MaterialRegion &mr          ) {return mr.edit.reflect_max;}
+   static void ReflectMax(  MaterialRegion &mr, C Str &t) {       mr.edit.reflect_max=TextFlt(t); mr.edit.reflect_time.getUTC();}
+   static Str  Glow      (C MaterialRegion &mr          ) {return mr.edit.glow;}
+   static void Glow      (  MaterialRegion &mr, C Str &t) {       mr.edit.glow=TextFlt(t); mr.edit.glow_time.getUTC();}
 
    static Str  DetScale(C MaterialRegion &mr          ) {return mr.edit.det_scale;}
-   static void DetScale(  MaterialRegion &mr, C Str &t) {mr.edit.det_scale=TextFlt(t); mr.edit.detail_time.getUTC();}
+   static void DetScale(  MaterialRegion &mr, C Str &t) {       mr.edit.det_scale=TextFlt(t); mr.edit.detail_time.getUTC();}
    static Str  DetPower(C MaterialRegion &mr          ) {return mr.edit.det_power;}
-   static void DetPower(  MaterialRegion &mr, C Str &t) {mr.edit.det_power=TextFlt(t); mr.edit.detail_time.getUTC();}
+   static void DetPower(  MaterialRegion &mr, C Str &t) {       mr.edit.det_power=TextFlt(t); mr.edit.detail_time.getUTC();}
 
-   static Str  Cull    (C MaterialRegion &mr          ) {return mr.edit.cull;}
-   static void Cull    (  MaterialRegion &mr, C Str &t) {mr.edit.cull=TextBool(t); mr.edit.cull_time.now();}
- //static Str  SSS     (C MaterialRegion &mr          ) {return mr.edit.sss;}
- //static void SSS     (  MaterialRegion &mr, C Str &t) {mr.edit.sss=TextFlt(t); mr.edit.sss_time.getUTC();}
-   static Str  AmbR    (C MaterialRegion &mr          ) {return mr.edit.ambient.x;}
-   static void AmbR    (  MaterialRegion &mr, C Str &t) {mr.edit.ambient.x=TextFlt(t); mr.edit.ambient_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  AmbG    (C MaterialRegion &mr          ) {return mr.edit.ambient.y;}
-   static void AmbG    (  MaterialRegion &mr, C Str &t) {mr.edit.ambient.y=TextFlt(t); mr.edit.ambient_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  AmbB    (C MaterialRegion &mr          ) {return mr.edit.ambient.z;}
-   static void AmbB    (  MaterialRegion &mr, C Str &t) {mr.edit.ambient.z=TextFlt(t); mr.edit.ambient_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  TexScale(C MaterialRegion &mr          ) {return mr.edit.tex_scale;}
-   static void TexScale(  MaterialRegion &mr, C Str &t) {mr.edit.tex_scale=TextFlt(t); mr.edit.tex_scale_time.getUTC();}
+   static Str  Cull(C MaterialRegion &mr          ) {return mr.edit.cull;}
+   static void Cull(  MaterialRegion &mr, C Str &t) {       mr.edit.cull=TextBool(t); mr.edit.cull_time.now();}
+ //static Str  SSS (C MaterialRegion &mr          ) {return mr.edit.sss;}
+ //static void SSS (  MaterialRegion &mr, C Str &t) {       mr.edit.sss=TextFlt(t); mr.edit.sss_time.getUTC();}
+
+   static Str  AmbR(C MaterialRegion &mr          ) {return mr.edit.ambient.x;}
+   static void AmbR(  MaterialRegion &mr, C Str &t) {       mr.edit.ambient.x=TextFlt(t); mr.edit.ambient_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  AmbG(C MaterialRegion &mr          ) {return mr.edit.ambient.y;}
+   static void AmbG(  MaterialRegion &mr, C Str &t) {       mr.edit.ambient.y=TextFlt(t); mr.edit.ambient_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  AmbB(C MaterialRegion &mr          ) {return mr.edit.ambient.z;}
+   static void AmbB(  MaterialRegion &mr, C Str &t) {       mr.edit.ambient.z=TextFlt(t); mr.edit.ambient_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
+
+   static Str  UVScale(C MaterialRegion &mr          ) {return mr.edit.uv_scale;}
+   static void UVScale(  MaterialRegion &mr, C Str &t) {       mr.edit.uv_scale=TextFlt(t); mr.edit.uv_scale_time.getUTC();}
 
    static void Undo  (MaterialRegion &editor) {editor.undos.undo();}
    static void Redo  (MaterialRegion &editor) {editor.undos.redo();}
@@ -609,16 +613,16 @@ class MaterialRegion : Region
 
    bool bigVisible()C {return visible() && big();}
 
-   void   setRGB         (C Vec                   &srgb              ) {if(edit.color_s.xyz        !=srgb   ){        undos.set("rgb"       ); edit.color_s.xyz        =srgb   ; edit.              color_time.getUTC(); setChanged(); toGui();}}
-   void   setNormal      (flt                    normal              ) {if(edit.normal             !=normal ){        undos.set("normal"    ); edit.normal             =normal ; edit.             normal_time.getUTC(); setChanged(); toGui();}}
-   void   setSmooth      (flt                    smooth              ) {if(edit.smooth             !=smooth ){        undos.set("smooth"    ); edit.smooth             =smooth ; edit.             smooth_time.getUTC(); setChanged(); toGui();}}
-   void   setReflect     (flt                   reflect              ) {if(edit.reflect            !=reflect){        undos.set("reflect"   ); edit.reflect            =reflect; edit.            reflect_time.getUTC(); setChanged(); toGui();}}
-   void resetAlpha       (                                           ) {                                              undos.set("alpha"     ); edit.resetAlpha()               ;                                         setChanged(); toGui(); }
-   void cull             (bool                      on               ) {if(edit.cull               !=on     ){        undos.set("cull"      ); edit.cull               =on     ; edit.               cull_time.getUTC(); setChanged(); toGui();}}
-   void flipNrmY         (bool                      on               ) {if(edit.flip_normal_y      !=on     ){        undos.set("fny"       ); edit.flip_normal_y      =on     ; edit.      flip_normal_y_time.getUTC(); rebuildBase(edit.baseTex(), true , false);}} // 'rebuildBase' already calls 'setChanged' and 'toGui'
- //void maxTexSize       (Edit.MAX_TEX_SIZE         mts              ) {if(edit.max_tex_size       !=mts    ){        undos.set("mts"       ); edit.max_tex_size       =mts    ; edit.       max_tex_size_time.getUTC(); setChanged(); toGui();}}
-   void downsizeTexMobile(byte                      ds               ) {if(edit.downsize_tex_mobile!=ds     ){        undos.set("dtm"       ); edit.downsize_tex_mobile=ds     ; edit.downsize_tex_mobile_time.getUTC(); setChanged(); toGui();}}
-   void texQuality       (Edit.Material.TEX_QUALITY q, bool undo=true) {if(edit.tex_quality        !=q      ){if(undo)undos.set("texQuality"); edit.tex_quality        =q      ; edit.        tex_quality_time.getUTC(); rebuildBase(edit.baseTex(), false, false);}} // 'rebuildBase' already calls 'setChanged' and 'toGui'
+   void   setRGB         (C Vec                   &srgb              ) {if(edit.color_s.xyz        !=srgb                                ){        undos.set("rgb"       ); edit.color_s.xyz        =srgb                             ; edit.              color_time.getUTC(); setChanged(); toGui();}}
+   void   setNormal      (flt                    normal              ) {if(edit.normal             !=normal                              ){        undos.set("normal"    ); edit.normal             =normal                           ; edit.             normal_time.getUTC(); setChanged(); toGui();}}
+   void   setSmooth      (flt                    smooth              ) {if(edit.smooth             !=smooth                              ){        undos.set("smooth"    ); edit.smooth             =smooth                           ; edit.             smooth_time.getUTC(); setChanged(); toGui();}}
+   void   setReflect     (flt reflect_min, flt reflect_max           ) {if(edit.reflect_min!=reflect_min || edit.reflect_max!=reflect_max){        undos.set("reflect"   ); edit.reflect_min=reflect_min; edit.reflect_max=reflect_max; edit.            reflect_time.getUTC(); setChanged(); toGui();}}
+   void resetAlpha       (                                           ) {                                                                           undos.set("alpha"     ); edit.resetAlpha()                                         ;                                         setChanged(); toGui(); }
+   void cull             (bool                      on               ) {if(edit.cull               !=on                                  ){        undos.set("cull"      ); edit.cull               =on                               ; edit.               cull_time.getUTC(); setChanged(); toGui();}}
+   void flipNrmY         (bool                      on               ) {if(edit.flip_normal_y      !=on                                  ){        undos.set("fny"       ); edit.flip_normal_y      =on                               ; edit.      flip_normal_y_time.getUTC(); rebuildBase(edit.baseTex(), true , false);}} // 'rebuildBase' already calls 'setChanged' and 'toGui'
+ //void maxTexSize       (Edit.MAX_TEX_SIZE         mts              ) {if(edit.max_tex_size       !=mts                                 ){        undos.set("mts"       ); edit.max_tex_size       =mts                              ; edit.       max_tex_size_time.getUTC(); setChanged(); toGui();}}
+   void downsizeTexMobile(byte                      ds               ) {if(edit.downsize_tex_mobile!=ds                                  ){        undos.set("dtm"       ); edit.downsize_tex_mobile=ds                               ; edit.downsize_tex_mobile_time.getUTC(); setChanged(); toGui();}}
+   void texQuality       (Edit.Material.TEX_QUALITY q, bool undo=true) {if(edit.tex_quality        !=q                                   ){if(undo)undos.set("texQuality"); edit.tex_quality        =q                                ; edit.        tex_quality_time.getUTC(); rebuildBase(edit.baseTex(), false, false);}} // 'rebuildBase' already calls 'setChanged' and 'toGui'
 
    virtual void resizeBase(C VecI2 &size, bool relative=false)
    {
@@ -627,13 +631,13 @@ class MaterialRegion : Region
       VecI2 sizes[3]={size, size, size};
 
       if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
-         if(Proj.forceImageSize(edit.  color_map, 0, relative, edit.  color_map_time, time) // !! use '|' because all need to be processed !!
-         |  Proj.forceImageSize(edit.  alpha_map, 0, relative, edit.  alpha_map_time, time)
-         |  Proj.forceImageSize(edit.   bump_map, 0, relative, edit.   bump_map_time, time)
-         |  Proj.forceImageSize(edit. normal_map, 0, relative, edit. normal_map_time, time)
-         |  Proj.forceImageSize(edit. smooth_map, 0, relative, edit. smooth_map_time, time)
-         |  Proj.forceImageSize(edit.reflect_map, 0, relative, edit.reflect_map_time, time)
-         |  Proj.forceImageSize(edit.   glow_map, 0, relative, edit.   glow_map_time, time))
+         if(Proj.forceImageSize(edit. color_map, 0, relative, edit. color_map_time, time) // !! use '|' because all need to be processed !!
+         |  Proj.forceImageSize(edit. alpha_map, 0, relative, edit. alpha_map_time, time)
+         |  Proj.forceImageSize(edit.  bump_map, 0, relative, edit.  bump_map_time, time)
+         |  Proj.forceImageSize(edit.normal_map, 0, relative, edit.normal_map_time, time)
+         |  Proj.forceImageSize(edit.smooth_map, 0, relative, edit.smooth_map_time, time)
+         |  Proj.forceImageSize(edit. metal_map, 0, relative, edit. metal_map_time, time)
+         |  Proj.forceImageSize(edit.  glow_map, 0, relative, edit.  glow_map_time, time))
       {
          MtrlImages mi; mi.fromMaterial(edit, Proj); mi.baseTextureSizes(&sizes[0], &sizes[1], &sizes[2]); // calculate actual sizes
          REPA(sizes)
@@ -647,13 +651,13 @@ class MaterialRegion : Region
       }
 
       // #MaterialTextureLayout
-      if(Proj.forceImageSize(edit.  color_map, sizes[0], relative, edit.  color_map_time, time) // !! use '|' because all need to be processed !!
-      |  Proj.forceImageSize(edit.  alpha_map, sizes[0], relative, edit.  alpha_map_time, time)
-      |  Proj.forceImageSize(edit.   bump_map, sizes[2], relative, edit.   bump_map_time, time)
-      |  Proj.forceImageSize(edit. normal_map, sizes[1], relative, edit. normal_map_time, time)
-      |  Proj.forceImageSize(edit. smooth_map, sizes[2], relative, edit. smooth_map_time, time)
-      |  Proj.forceImageSize(edit.reflect_map, sizes[2], relative, edit.reflect_map_time, time)
-      |  Proj.forceImageSize(edit.   glow_map, sizes[2], relative, edit.   glow_map_time, time))
+      if(Proj.forceImageSize(edit. color_map, sizes[0], relative, edit. color_map_time, time) // !! use '|' because all need to be processed !!
+      |  Proj.forceImageSize(edit. alpha_map, sizes[0], relative, edit. alpha_map_time, time)
+      |  Proj.forceImageSize(edit.  bump_map, sizes[2], relative, edit.  bump_map_time, time)
+      |  Proj.forceImageSize(edit.normal_map, sizes[1], relative, edit.normal_map_time, time)
+      |  Proj.forceImageSize(edit.smooth_map, sizes[2], relative, edit.smooth_map_time, time)
+      |  Proj.forceImageSize(edit. metal_map, sizes[2], relative, edit. metal_map_time, time)
+      |  Proj.forceImageSize(edit.  glow_map, sizes[2], relative, edit.  glow_map_time, time))
       {
          edit.cleanupMaps();
          rebuildBase(edit.baseTex());
@@ -717,10 +721,10 @@ class MaterialRegion : Region
     //if(relative || game && game->base_1 && game->base_1->size()!=size2)edit.separateNormalMap(time); // separate if needed (normal can be from bump), and before reverting
 
       if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
-         if(Proj.forceImageSize(edit. smooth_map, 0, relative, edit. smooth_map_time, time)  // !! use '|' because all need to be processed !!
-         |  Proj.forceImageSize(edit.reflect_map, 0, relative, edit.reflect_map_time, time)
-         |  Proj.forceImageSize(edit.   bump_map, 0, relative, edit.   bump_map_time, time)
-         |  Proj.forceImageSize(edit.   glow_map, 0, relative, edit.   glow_map_time, time))
+         if(Proj.forceImageSize(edit.smooth_map, 0, relative, edit.smooth_map_time, time)  // !! use '|' because all need to be processed !!
+         |  Proj.forceImageSize(edit. metal_map, 0, relative, edit. metal_map_time, time)
+         |  Proj.forceImageSize(edit.  bump_map, 0, relative, edit.  bump_map_time, time)
+         |  Proj.forceImageSize(edit.  glow_map, 0, relative, edit.  glow_map_time, time))
       {
          MtrlImages mi; mi.fromMaterial(edit, Proj); mi.baseTextureSizes(null, null, &size2); // calculate actual sizes
          size2.set(Max(1, Shl(size2.x, size.x)), Max(1, Shl(size2.y, size.y)));
@@ -728,10 +732,10 @@ class MaterialRegion : Region
          relative=false; // we now have the sizes known, so disable relative mode
       }
 
-      if(Proj.forceImageSize(edit. smooth_map, size2, relative, edit. smooth_map_time, time)  // !! use '|' because all need to be processed !!
-      |  Proj.forceImageSize(edit.reflect_map, size2, relative, edit.reflect_map_time, time)
-      |  Proj.forceImageSize(edit.   bump_map, size2, relative, edit.   bump_map_time, time)
-      |  Proj.forceImageSize(edit.   glow_map, size2, relative, edit.   glow_map_time, time))
+      if(Proj.forceImageSize(edit.smooth_map, size2, relative, edit.smooth_map_time, time)  // !! use '|' because all need to be processed !!
+      |  Proj.forceImageSize(edit. metal_map, size2, relative, edit. metal_map_time, time)
+      |  Proj.forceImageSize(edit.  bump_map, size2, relative, edit.  bump_map_time, time)
+      |  Proj.forceImageSize(edit.  glow_map, size2, relative, edit.  glow_map_time, time))
       {
          edit.cleanupMaps();
          rebuildBase(edit.baseTex());
@@ -802,20 +806,22 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       props.New().create("Normal"         , MemberDesc(DATA_REAL).setFunc(NrmScale, NrmScale)).range(0, 2);
       props.New().create("Flip Normal Y"  , MemberDesc(DATA_BOOL).setFunc(FNY     , FNY     ));
     //props.New();
-      props.New().create("Smoothness"   , MemberDesc(DATA_REAL).setFunc(Smooth , Smooth )).range(0, 4);
-      props.New().create("Reflectivity" , MemberDesc(DATA_REAL).setFunc(Reflect, Reflect)).range(0, 1);
-      props.New().create("Glow"         , MemberDesc(DATA_REAL).setFunc(Glow   , Glow   )).range(0, 1);
-      props.New().create("Ambient Red"  , MemberDesc(DATA_REAL).setFunc(AmbR   , AmbR   )).range(0, 1);
-      props.New().create("Ambient Green", MemberDesc(DATA_REAL).setFunc(AmbG   , AmbG   )).range(0, 1);
-      props.New().create("Ambient Blue" , MemberDesc(DATA_REAL).setFunc(AmbB   , AmbB   )).range(0, 1);
-      props.New();
+      props.New().create("Smoothness"     , MemberDesc(DATA_REAL).setFunc(Smooth    , Smooth    )).range(0, 4);
+      props.New().create("Reflectivity"   , MemberDesc(DATA_REAL).setFunc(ReflectMin, ReflectMin)).range(0, 1).desc(S+"Base Reflectivity\nDefault="+MATERIAL_REFLECT);
+      props.New().create("ReflectivityMax", MemberDesc(DATA_REAL).setFunc(ReflectMax, ReflectMax)).range(0, 1).desc("This value specifies the amount of Reflectivity that can be obtained from the Metal texture.\nIn most cases this value should be left at 1.");
+      props.New().create("Glow"           , MemberDesc(DATA_REAL).setFunc(Glow      , Glow      )).range(0, 1);
+
+      props.New().create("Ambient Red"  , MemberDesc(DATA_REAL).setFunc(AmbR, AmbR)).range(0, 1);
+      props.New().create("Ambient Green", MemberDesc(DATA_REAL).setFunc(AmbG, AmbG)).range(0, 1);
+      props.New().create("Ambient Blue" , MemberDesc(DATA_REAL).setFunc(AmbB, AmbB)).range(0, 1);
+    //props.New();
     //props.New().create("Subsurf Scatter", MemberDesc(DATA_REAL).setFunc(SSS , SSS )).range(0, 1);
       props.New().create("Detail Scale"   , MemberDesc(DATA_REAL).setFunc(DetScale, DetScale)).range(0.01, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
       props.New().create("Detail Power"   , MemberDesc(DATA_REAL).setFunc(DetPower, DetPower)).range(0, 1);
       props.New();
 
-      props.New().create("Cull"         , MemberDesc(DATA_BOOL).setFunc(Cull    , Cull    ));
-      props.New().create("UV Scale"     , MemberDesc(DATA_REAL).setFunc(TexScale, TexScale)).range(0.01, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
+      props.New().create("Cull"         , MemberDesc(DATA_BOOL).setFunc(Cull   , Cull   ));
+      props.New().create("UV Scale"     , MemberDesc(DATA_REAL).setFunc(UVScale, UVScale)).range(0.01, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
 
 Property &tqi=props.New().create("Tex Quality"    , MemberDesc(DATA_INT).setFunc(TexQuality       , TexQuality       )).setEnum().desc("Select Texture Quality"); tqi.combobox.setColumns(NameDescListColumn, Elms(NameDescListColumn)).setData(TexQualities, Elms(TexQualities)); tqi.combobox.menu.list.setElmDesc(MEMBER(NameDesc, desc));
 Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc(DownsizeTexMobile, DownsizeTexMobile)).setEnum(DownsizeTexMobileText, Elms(DownsizeTexMobileText)).desc("If Downsize Textures when making Applications for Mobile platforms");
@@ -833,7 +839,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
       sub+=texs.New().create(TEX_BUMP      , MEMBER(EditMaterial,       bump_map), MEMBER(EditMaterial,       bump_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Bump"          , T);
       sub+=texs.New().create(TEX_NORMAL    , MEMBER(EditMaterial,     normal_map), MEMBER(EditMaterial,     normal_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Normal"        , T); i-=3;
       sub+=texs.New().create(TEX_SMOOTH    , MEMBER(EditMaterial,     smooth_map), MEMBER(EditMaterial,     smooth_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Smooth"        , T);
-      sub+=texs.New().create(TEX_REFLECT   , MEMBER(EditMaterial,    reflect_map), MEMBER(EditMaterial,    reflect_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Reflect"       , T); i-=3;
+      sub+=texs.New().create(TEX_METAL     , MEMBER(EditMaterial,      metal_map), MEMBER(EditMaterial,      metal_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Metal"         , T); i-=3;
       sub+=texs.New().create(TEX_GLOW      , MEMBER(EditMaterial,       glow_map), MEMBER(EditMaterial,       glow_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Glow"          , T);
       sub+=texs.New().create(TEX_LIGHT     , MEMBER(EditMaterial,      light_map), MEMBER(EditMaterial,      light_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Light"         , T); i-=3;
       sub+=texs.New().create(TEX_DET_COLOR , MEMBER(EditMaterial,   detail_color), MEMBER(EditMaterial,     detail_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Detail\nColor" , T);
@@ -850,11 +856,11 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
       sub+=texs.New().create(TEX_RFL_U     , MEMBER(EditMaterial, reflection_map), MEMBER(EditMaterial, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Reflect\nUp"   , T); i-=3; */
       REPA(texs)sub+=texs[i].remove;
 
-      sub+=reload_base_textures.create("Reload Base Textures").func(ReloadBaseTextures, T).desc("Reload base textures, such as Color, Alpha, Bump, Normal, Smooth, Reflect and Glow, from their original source files."); // #MaterialTextureLayout
+      sub+=reload_base_textures.create("Reload Base Textures").func(ReloadBaseTextures, T).desc("Reload base textures, such as Color, Alpha, Bump, Normal, Smooth, Metal and Glow, from their original source files."); // #MaterialTextureLayout
       Node<MenuElm> n;
       n.New().create(auto_reload_name, AutoReload, T).flag(MENU_TOGGLABLE).setOn(auto_reload).desc("If this is enabled then base textures will be instantly reloaded when changing them.\nIf you only want to change the source file paths, without actually reloading the textures, then you can disable this option first.");
       {
-         Node<MenuElm> &resize=(n+="Resize Base Textures"); resize.desc("This allows to resize the base textures, such as Color, Alpha, Bump, Normal, Smooth, Reflect and Glow to a custom size."); // #MaterialTextureLayout
+         Node<MenuElm> &resize=(n+="Resize Base Textures"); resize.desc("This allows to resize the base textures, such as Color, Alpha, Bump, Normal, Smooth, Metal and Glow to a custom size."); // #MaterialTextureLayout
          resize.New().create( "128x128" , ResizeBase128 , T);
          resize.New().create( "256x256" , ResizeBase256 , T);
          resize.New().create( "512x512" , ResizeBase512 , T);
@@ -938,7 +944,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
          resize.New().create("Double"  , ResizeBase1_Double  , T);
       }
       {
-         Node<MenuElm> &resize=(n+=(water() ? "Resize Bump Texture" : "Resize Smooth+Reflect+Bump+Glow Textures")); if(!water())resize.desc("This allows to resize the Base 2 textures, such as Smooth, Reflect, Bump and Glow to a custom size."); // #MaterialTextureLayout #WaterMaterialTextureLayout
+         Node<MenuElm> &resize=(n+=(water() ? "Resize Bump Texture" : "Resize Smooth+Metal+Bump+Glow Textures")); if(!water())resize.desc("This allows to resize the Base 2 textures, such as Smooth, Metal, Bump and Glow to a custom size."); // #MaterialTextureLayout #WaterMaterialTextureLayout
          resize.New().create( "128x128" , ResizeBase2_128 , T);
          resize.New().create( "256x256" , ResizeBase2_256 , T);
          resize.New().create( "512x512" , ResizeBase2_512 , T);
@@ -1154,9 +1160,9 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
          {
             if(Kb.shift()) // Unity (Metal Smoothness)
             {
-               if(tex.type==TEX_COLOR  ) images[0].params.New().set("channel"  , "rgb"); // ignore alpha channel
-               if(tex.type==TEX_SMOOTH ){images[0].params.New().set("channel"  , "a"  ); if(Kb.alt())images[0].params.New().set("inverseRGB");} // get smooth from alpha channel (Unity style), optionally treat it as roughness on Alt
-               if(tex.type==TEX_REFLECT) images[0].params.New().set("metalToReflect"  ); // convert from metal map
+               if(tex.type==TEX_COLOR ) images[0].params.New().set("channel"  , "rgb"); // ignore alpha channel
+               if(tex.type==TEX_SMOOTH){images[0].params.New().set("channel"  , "a"  ); if(Kb.alt())images[0].params.New().set("inverseRGB");} // get smooth from alpha channel (Unity style), optionally treat it as roughness on Alt
+             //if(tex.type==TEX_METAL ) images[0].params.New().set("metalToReflect"  ); // convert from metal map
             }else
             if(Kb.alt()) // Unreal - RMA (Roughness Metal AO)
             {
@@ -1188,9 +1194,9 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
                   Sort(tc, Elms(tc), TexChannel.Compare);
                   REPA(tc)if(InRange(tc[i].pos, INT_MAX))tc_channel[tc[i].type]=i;
                }
-               if(tex.type==TEX_COLOR  ){Mems<TextParam> &params=images[0].params; if(multi_channel && InRange(tc_channel[TC_AO   ], 4))params.New().set("channel", IndexChannel(tc_channel[TC_AO   ])); params.New().set("mode", "mulLum"); append=true;} // AO
-               if(tex.type==TEX_SMOOTH ){Mems<TextParam> &params=images[0].params; if(multi_channel && InRange(tc_channel[TC_ROUGH], 4))params.New().set("channel", IndexChannel(tc_channel[TC_ROUGH])); params.New().set("inverseRGB");                 } // roughness
-               if(tex.type==TEX_REFLECT){Mems<TextParam> &params=images[0].params; if(multi_channel && InRange(tc_channel[TC_METAL], 4))params.New().set("channel", IndexChannel(tc_channel[TC_METAL])); params.New().set("metalToReflect");             } // metalness
+               if(tex.type==TEX_COLOR ){Mems<TextParam> &params=images[0].params; if(multi_channel && InRange(tc_channel[TC_AO   ], 4))params.New().set("channel", IndexChannel(tc_channel[TC_AO   ])); params.New().set("mode", "mulLum"); append=true;} // AO
+               if(tex.type==TEX_SMOOTH){Mems<TextParam> &params=images[0].params; if(multi_channel && InRange(tc_channel[TC_ROUGH], 4))params.New().set("channel", IndexChannel(tc_channel[TC_ROUGH])); params.New().set("inverseRGB");                 } // roughness
+               if(tex.type==TEX_METAL ){Mems<TextParam> &params=images[0].params; if(multi_channel && InRange(tc_channel[TC_METAL], 4))params.New().set("channel", IndexChannel(tc_channel[TC_METAL])); /*params.New().set("metalToReflect");*/         } // metalness
             }else
             if(images.elms()>1 || append) // multiple images
             {
