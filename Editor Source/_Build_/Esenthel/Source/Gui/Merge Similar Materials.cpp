@@ -184,7 +184,7 @@ void DrawIDReplace()
          col_s=m.color_s;
          bump=m.bump;
          smooth=m.smooth;
-         reflect=m.reflect_min;
+         reflect=m.reflect_min; // TODO: only reflect_min is checked
          glow=m.glow;
          uv_scale=m.uv_scale;
          return T;

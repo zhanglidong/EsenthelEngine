@@ -2775,7 +2775,7 @@ void SetTransform(MemPtr<FileParams> files, C Str &name, C Str &value) // this i
       p->setValue(value);
    }
 }
-void AddTransform(MemPtr<FileParams> files, C Str &name, C Str &value) // this ignores partial(non full size) transforms 
+void AddTransform(MemPtr<FileParams> files, C Str &name, C Str &value)
 {
    if(files.elms()) // set only if we have something (to ignore setting for completely empty)
    {
