@@ -954,6 +954,8 @@ bool NonMonoTransform   (C TextParam &p   ) // if can change a mono image to non
        || p.name=="contrastAlphaWeight" && TextVecEx(p.value).anyDifferent()
        || p.name=="addSat"
        || p.name=="addSatPhoto"
+       || p.name=="setSat"
+       || p.name=="setSatPhoto"
        || p.name=="mulAddSat"
        || p.name=="mulAddSatPhoto"
        || p.name=="addHueSat"
@@ -987,6 +989,7 @@ bool HighPrecTransform(C Str &name)
        || name=="avgHue" || name=="avgHuePhoto" || name=="avgHueAlphaWeight" || name=="avgHuePhotoAlphaWeight" || name=="medHue" || name=="medHueAlphaWeight" || name=="medHuePhoto" || name=="medHuePhotoAlphaWeight" || name=="addHue" || name=="addHuePhoto" || name=="setHue" || name=="setHuePhoto" || name=="contrastHue" || name=="contrastHuePhoto" || name=="medContrastHue" || name=="medContrastHuePhoto" || name=="contrastHueAlphaWeight" || name=="contrastHuePhotoAlphaWeight" || name=="contrastHuePow"
        || name=="lerpHue" || name=="lerpHueSat" || name=="rollHue" || name=="rollHueSat" || name=="lerpHuePhoto" || name=="lerpHueSatPhoto" || name=="rollHuePhoto" || name=="rollHueSatPhoto"
        || name=="addSat" || name=="addSatPhoto" || name=="mulSat" || name=="mulSatPhoto" || name=="mulAddSat" || name=="mulAddSatPhoto" || name=="avgSat" || name=="avgSatPhoto" || name=="medSat" || name=="medSatPhoto" || name=="contrastSat" || name=="contrastSatPhoto" || name=="medContrastSat" || name=="contrastSatAlphaWeight" || name=="contrastSatPhotoAlphaWeight"
+       || name=="setSat" || name=="setSatPhoto"
        || name=="addHueSat" || name=="setHueSat" || name=="setHueSatPhoto"
        || name=="mulSatH" || name=="mulSatHS" || name=="mulSatHPhoto" || name=="mulSatHSPhoto"
      //|| name=="metalToReflect"
@@ -1922,6 +1925,8 @@ void TransformImage(Image &image, TextParam param, bool clamp, C Color &backgrou
    if(param.name=="mulAddSatPhoto"){Vec2 ma=param.asVec2(); MulAddSat(image, ma.x, ma.y, box, true);}else
    if(param.name=="addSat"        )MulAddSat(image, 1, param.asFlt(), box);else
    if(param.name=="addSatPhoto"   )MulAddSat(image, 1, param.asFlt(), box, true);else
+   if(param.name=="setSat"        )MulAddSat(image, 0, param.asFlt(), box);else
+   if(param.name=="setSatPhoto"   )MulAddSat(image, 0, param.asFlt(), box, true);else
    if(param.name=="avgSat" || param.name=="avgSatPhoto")
    {
       flt avg; if(image.statsSat(null, null, &avg, null, null, null, null, &box))if(avg)MulAddSat(image, param.asFlt()/avg, 0, box, param.name=="avgSatPhoto");
