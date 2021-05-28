@@ -850,12 +850,13 @@ void AdjustMaterialParams(EditMaterial &edit, Material &game, uint old_base_tex,
 {
    TimeStamp time; time.getUTC();
    game._adjustParams(old_base_tex, new_base_tex);
-   SyncByValueEqual(edit.reflect_time, time, edit.reflect  , game.reflect  );
    SyncByValue     (edit.   tech_time, time, edit.tech       , game.technique   );
    SyncByValueEqual(edit.  color_time, time, edit.color_s.w  , game.color_l.w   ); // alpha
    SyncByValueEqual(edit.   bump_time, time, edit.bump       , game.bump        );
    SyncByValueEqual(edit. normal_time, time, edit.normal     , game.normal      );
    SyncByValueEqual(edit. smooth_time, time, edit.smooth     , game.smooth      );
+   SyncByValueEqual(edit.reflect_time, time, edit.reflect_min, game.reflect   ());
+   SyncByValueEqual(edit.reflect_time, time, edit.reflect_max, game.reflectMax());
    SyncByValueEqual(edit.   glow_time, time, edit.glow       , game.glow        );
 
    bool new_light_map=edit.hasLightMap(); if(old_light_map!=new_light_map)
