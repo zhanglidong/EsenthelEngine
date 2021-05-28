@@ -767,8 +767,10 @@ MeshBase& MeshBase::setAdjacencies(Bool faces, Bool edges)
       Memt<Adj> adj;
       REPAD(f0, tri) // for each triangle
       {
+         VecI f0a=(faces ? tri.adjFace(f0) : tri.adjEdge(f0)); // get current f0 face adjacency (this can be either face or edge, because we're only checking if it's not set yet by comparing to -1)
          VecI f0i=tri.ind(f0); f0i.remap(vtx.dup());
          REPD(f0vi, 3) // for each triangle edge
+            if(f0a.c[f0vi]==-1) // if not yet connected to something
          {
             Int f0v0=f0i.c[ f0vi     ], // edge first  vertex
                 f0v1=f0i.c[(f0vi+1)%3]; // edge second vertex
@@ -778,17 +780,19 @@ MeshBase& MeshBase::setAdjacencies(Bool faces, Bool edges)
                Int f1=ig[vfi];
                if( f1&SIGN_BIT) // quad
                {
+                  VecI4 f1a=(faces ? quad.adjFace(f1^SIGN_BIT) : quad.adjEdge(f1^SIGN_BIT)); // get current f1 face adjacency (this can be either face or edge, because we're only checking if it's not set yet by comparing to -1)
                   VecI4 f1i=quad.ind(f1^SIGN_BIT); f1i.remap(vtx.dup());
-                  if(f1i.c[0]==f0v1 && f1i.c[1]==f0v0)adj.New().set(f1, 0, f1i.c[2]);else
-                  if(f1i.c[1]==f0v1 && f1i.c[2]==f0v0)adj.New().set(f1, 1, f1i.c[3]);else
-                  if(f1i.c[2]==f0v1 && f1i.c[3]==f0v0)adj.New().set(f1, 2, f1i.c[0]);else
-                  if(f1i.c[3]==f0v1 && f1i.c[0]==f0v0)adj.New().set(f1, 3, f1i.c[1]);
+                  if(f1i.c[0]==f0v1 && f1i.c[1]==f0v0){if(f1a.c[0]==-1)adj.New().set(f1, 0, f1i.c[2]);}else // add adjacency to other face only if it's not yet connected to anything !! THIS IS IMPORTANT AS WITHOUT THIS DIRECTX MESH OPTIMIZER MAY CRASH !!
+                  if(f1i.c[1]==f0v1 && f1i.c[2]==f0v0){if(f1a.c[1]==-1)adj.New().set(f1, 1, f1i.c[3]);}else
+                  if(f1i.c[2]==f0v1 && f1i.c[3]==f0v0){if(f1a.c[2]==-1)adj.New().set(f1, 2, f1i.c[0]);}else
+                  if(f1i.c[3]==f0v1 && f1i.c[0]==f0v0){if(f1a.c[3]==-1)adj.New().set(f1, 3, f1i.c[1]);}
                }else
                {
+                  VecI f1a=(faces ? tri.adjFace(f1) : tri.adjEdge(f1)); // get current f1 face adjacency (this can be either face or edge, because we're only checking if it's not set yet by comparing to -1)
                   VecI f1i=tri.ind(f1); f1i.remap(vtx.dup());
-                  if(f1i.c[0]==f0v1 && f1i.c[1]==f0v0)adj.New().set(f1, 0, f1i.c[2]);else
-                  if(f1i.c[1]==f0v1 && f1i.c[2]==f0v0)adj.New().set(f1, 1, f1i.c[0]);else
-                  if(f1i.c[2]==f0v1 && f1i.c[0]==f0v0)adj.New().set(f1, 2, f1i.c[1]);
+                  if(f1i.c[0]==f0v1 && f1i.c[1]==f0v0){if(f1a.c[0]==-1)adj.New().set(f1, 0, f1i.c[2]);}else // add adjacency to other face only if it's not yet connected to anything !! THIS IS IMPORTANT AS WITHOUT THIS DIRECTX MESH OPTIMIZER MAY CRASH !!
+                  if(f1i.c[1]==f0v1 && f1i.c[2]==f0v0){if(f1a.c[1]==-1)adj.New().set(f1, 1, f1i.c[0]);}else
+                  if(f1i.c[2]==f0v1 && f1i.c[0]==f0v0){if(f1a.c[2]==-1)adj.New().set(f1, 2, f1i.c[1]);}
                }
             }
             if(adj.elms())
@@ -806,14 +810,11 @@ MeshBase& MeshBase::setAdjacencies(Bool faces, Bool edges)
                      if( a< angle){adj_i=i; angle=a;} // find face with smallest angle difference from 'a0'
                   }
                }
-               Adj &a =adj[adj_i];
-               Int  f1=a.face;
-               if(  f1&SIGN_BIT || f1>f0) // quad or triangle with bigger index
-               {
-                  Int f1vi=a.vtxi;
-                  if(faces){tri.adjFace(f0).c[f0vi]=f1          ; ((f1&SIGN_BIT) ? quad.adjFace(f1^SIGN_BIT).c[f1vi] : tri.adjFace(f1).c[f1vi])=f0;}
-                  if(edges){tri.adjEdge(f0).c[f0vi]=_edge.elms(); ((f1&SIGN_BIT) ? quad.adjEdge(f1^SIGN_BIT).c[f1vi] : tri.adjEdge(f1).c[f1vi])=_edge.elms(); _edge.New().set(f0v0, f0v1, f0, f1);}
-               }
+               Adj &a   =adj[adj_i];
+               Int  f1  =a.face;
+               Int  f1vi=a.vtxi;
+               if(faces){tri.adjFace(f0).c[f0vi]=f1          ; ((f1&SIGN_BIT) ? quad.adjFace(f1^SIGN_BIT).c[f1vi] : tri.adjFace(f1).c[f1vi])=f0;}
+               if(edges){tri.adjEdge(f0).c[f0vi]=_edge.elms(); ((f1&SIGN_BIT) ? quad.adjEdge(f1^SIGN_BIT).c[f1vi] : tri.adjEdge(f1).c[f1vi])=_edge.elms(); _edge.New().set(f0v0, f0v1, f0, f1);}
                adj.clear();
             }
          }
@@ -821,8 +822,10 @@ MeshBase& MeshBase::setAdjacencies(Bool faces, Bool edges)
 
       REPAD(f0, quad) // for each quad
       {
+         VecI4 f0a=(faces ? quad.adjFace(f0) : quad.adjEdge(f0)); // get current f0 face adjacency (this can be either face or edge, because we're only checking if it's not set yet by comparing to -1)
          VecI4 f0i=quad.ind(f0); f0i.remap(vtx.dup());
          REPD(f0vi, 4) // for each quad edge
+            if(f0a.c[f0vi]==-1) // if not yet connected to something
          {
             Int f0v0=f0i.c[ f0vi     ], // edge first  vertex
                 f0v1=f0i.c[(f0vi+1)%4]; // edge second vertex
@@ -832,17 +835,19 @@ MeshBase& MeshBase::setAdjacencies(Bool faces, Bool edges)
                Int f1=ig[vfi];
                if( f1&SIGN_BIT) // quad
                {
+                  VecI4 f1a=(faces ? quad.adjFace(f1^SIGN_BIT) : quad.adjEdge(f1^SIGN_BIT)); // get current f1 face adjacency (this can be either face or edge, because we're only checking if it's not set yet by comparing to -1)
                   VecI4 f1i=quad.ind(f1^SIGN_BIT); f1i.remap(vtx.dup());
-                  if(f1i.c[0]==f0v1 && f1i.c[1]==f0v0)adj.New().set(f1, 0, f1i.c[2]);else
-                  if(f1i.c[1]==f0v1 && f1i.c[2]==f0v0)adj.New().set(f1, 1, f1i.c[3]);else
-                  if(f1i.c[2]==f0v1 && f1i.c[3]==f0v0)adj.New().set(f1, 2, f1i.c[0]);else
-                  if(f1i.c[3]==f0v1 && f1i.c[0]==f0v0)adj.New().set(f1, 3, f1i.c[1]);
+                  if(f1i.c[0]==f0v1 && f1i.c[1]==f0v0){if(f1a.c[0]==-1)adj.New().set(f1, 0, f1i.c[2]);}else // add adjacency to other face only if it's not yet connected to anything !! THIS IS IMPORTANT AS WITHOUT THIS DIRECTX MESH OPTIMIZER MAY CRASH !!
+                  if(f1i.c[1]==f0v1 && f1i.c[2]==f0v0){if(f1a.c[1]==-1)adj.New().set(f1, 1, f1i.c[3]);}else
+                  if(f1i.c[2]==f0v1 && f1i.c[3]==f0v0){if(f1a.c[2]==-1)adj.New().set(f1, 2, f1i.c[0]);}else
+                  if(f1i.c[3]==f0v1 && f1i.c[0]==f0v0){if(f1a.c[3]==-1)adj.New().set(f1, 3, f1i.c[1]);}
                }else
                {
+                  VecI f1a=(faces ? tri.adjFace(f1) : tri.adjEdge(f1)); // get current f1 face adjacency (this can be either face or edge, because we're only checking if it's not set yet by comparing to -1)
                   VecI f1i=tri.ind(f1); f1i.remap(vtx.dup());
-                  if(f1i.c[0]==f0v1 && f1i.c[1]==f0v0)adj.New().set(f1, 0, f1i.c[2]);else
-                  if(f1i.c[1]==f0v1 && f1i.c[2]==f0v0)adj.New().set(f1, 1, f1i.c[0]);else
-                  if(f1i.c[2]==f0v1 && f1i.c[0]==f0v0)adj.New().set(f1, 2, f1i.c[1]);
+                  if(f1i.c[0]==f0v1 && f1i.c[1]==f0v0){if(f1a.c[0]==-1)adj.New().set(f1, 0, f1i.c[2]);}else // add adjacency to other face only if it's not yet connected to anything !! THIS IS IMPORTANT AS WITHOUT THIS DIRECTX MESH OPTIMIZER MAY CRASH !!
+                  if(f1i.c[1]==f0v1 && f1i.c[2]==f0v0){if(f1a.c[1]==-1)adj.New().set(f1, 1, f1i.c[0]);}else
+                  if(f1i.c[2]==f0v1 && f1i.c[0]==f0v0){if(f1a.c[2]==-1)adj.New().set(f1, 2, f1i.c[1]);}
                }
             }
             if(adj.elms())
@@ -860,14 +865,11 @@ MeshBase& MeshBase::setAdjacencies(Bool faces, Bool edges)
                      if( a< angle){adj_i=i; angle=a;} // find face with smallest angle difference from 'a0'
                   }
                }
-               Adj &a =adj[adj_i];
-               Int  f1=a.face;
-               if((f1&SIGN_BIT) && (f1^SIGN_BIT)>f0) // quad with bigger index
-               {
-                  Int f1vi=a.vtxi;
-                  if(faces){quad.adjFace(f0).c[f0vi]=f1          ; quad.adjFace(f1^SIGN_BIT).c[f1vi]=f0^SIGN_BIT;}
-                  if(edges){quad.adjEdge(f0).c[f0vi]=_edge.elms(); quad.adjEdge(f1^SIGN_BIT).c[f1vi]=_edge.elms(); _edge.New().set(f0v0, f0v1, f0^SIGN_BIT, f1);}
-               }
+               Adj &a   =adj[adj_i];
+               Int  f1  =a.face;
+               Int  f1vi=a.vtxi;
+               if(faces){quad.adjFace(f0).c[f0vi]=f1          ; ((f1&SIGN_BIT) ? quad.adjFace(f1^SIGN_BIT).c[f1vi] : tri.adjFace(f1).c[f1vi])=f0^SIGN_BIT;}
+               if(edges){quad.adjEdge(f0).c[f0vi]=_edge.elms(); ((f1&SIGN_BIT) ? quad.adjEdge(f1^SIGN_BIT).c[f1vi] : tri.adjEdge(f1).c[f1vi])=_edge.elms(); _edge.New().set(f0v0, f0v1, f0^SIGN_BIT, f1);}
                adj.clear();
             }
          }
