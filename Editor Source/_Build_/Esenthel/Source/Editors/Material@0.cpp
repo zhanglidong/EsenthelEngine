@@ -373,6 +373,7 @@ MaterialTech mtrl_techs[]=
       if(mr.blue ){mr.blue ->set(v.z, QUIET); rgb.z=mr.blue ->asFlt();}
       mr.edit.color_time.getUTC(); mr.setChanged();
    }
+   void MaterialRegion::RGB1(MaterialRegion &mr) {mr.undos.set("rgb1"); mr.edit.color_s.xyz=1; mr.edit.color_time.getUTC(); mr.setChanged(); mr.toGui();}
    Str  MaterialRegion::Red(C MaterialRegion &mr          ) {return mr.edit.color_s.x;}
    void MaterialRegion::Red(  MaterialRegion &mr, C Str &t) {       mr.edit.color_s.x=TextFlt(t); mr.edit.color_time.getUTC();}
    Str  MaterialRegion::Green(C MaterialRegion &mr          ) {return mr.edit.color_s.y;}
@@ -723,6 +724,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
       ts.reset().size=0.038f; ts.align.set(1, 0);
       Rect prop_rect=AddProperties(props, sub, 0, prop_height, 0.16f, &ts); REPAO(props).autoData(this).changed(Changed, PreChanged);
       sub+=brightness.create(Rect_RU(red->textline.rect().left(), red->button.rect().w(), prop_height*2)).func(RGB, T).focusable(false).subType(BUTTON_TYPE_PROPERTY_VALUE); brightness.mode=BUTTON_CONTINUOUS;
+      sub+=rgb_1.create(Rect_R(brightness.rect().left()-Vec2(0.01f, 0), prop_height, prop_height*2), "1").func(RGB1, T).focusable(false).desc("Set RGB to 1"); rgb_1.text_size/=2;
       tech.combobox.resize(Vec2(0.27f, 0)); // increase size
       tqi .combobox.resize(Vec2(0.12f, 0)); // increase size
       mts .combobox.resize(Vec2(0.12f, 0)); // increase size

@@ -410,7 +410,7 @@ class EditMaterial
       FREPA(fps)
       {
          FileParams &fp=fps[i];
-         if(!fp.name.is() && fp.params.elms()==1 && fp.params[0].name=="mulRGB")fp.params[0].name="setRGB";
+         if(!fp.name.is() && fp.params.elms()==1 && fp.params[0].name=="mulRGB" && Contains(fp.params[0].value, '@'))fp.params[0].name="setRGB";
          ChangeMulToSet(fp.nodes);
       }
    }

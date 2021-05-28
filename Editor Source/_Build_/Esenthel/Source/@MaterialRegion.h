@@ -77,7 +77,7 @@ public:
    Vec               mouse_edit_value;
    Vec2              light_angle;
    Region            sub;
-   Button            brightness;
+   Button            brightness, rgb_1;
    Property         *red, *green, *blue, *alpha;
    Memx<Property>    props;
    Memx<Texture>     texs;
@@ -133,6 +133,7 @@ public:
    static void MaxTexSize(  MaterialRegion &mr, C Str &t) {int i=TextInt(t); if(InRange(i, max_tex_sizes)){mr.edit.max_tex_size=max_tex_sizes[i].mts; mr.edit.max_tex_size_time.now();}}*/
 
    static void RGB(MaterialRegion &mr);
+   static void RGB1(MaterialRegion &mr);
 
    static Str  Red  (C MaterialRegion &mr          );
    static void Red  (  MaterialRegion &mr, C Str &t);
