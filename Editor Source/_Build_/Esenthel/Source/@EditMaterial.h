@@ -7,7 +7,7 @@ class EditMaterial
    bool                      flip_normal_y, cull;
    byte                      downsize_tex_mobile;
    Vec4                      color_s;
-   Vec                       ambient;
+   Vec                       emissive;
    flt                       smooth, reflect_min, reflect_max, glow, normal, bump,
                              uv_scale, det_scale, det_power;
    UID                       base_0_tex, base_1_tex, base_2_tex, detail_tex, macro_tex, light_tex;
@@ -19,7 +19,7 @@ class EditMaterial
                              color_map_time, alpha_map_time, bump_map_time, normal_map_time, smooth_map_time, metal_map_time, glow_map_time,
                              detail_map_time, macro_map_time, light_map_time,
                              cull_time, tech_time, downsize_tex_mobile_time,
-                             color_time, ambient_time, smooth_time, reflect_time, normal_time, bump_time, glow_time, uv_scale_time, detail_time;
+                             color_time, emissive_time, smooth_time, reflect_time, normal_time, bump_time, glow_time, uv_scale_time, detail_time;
 
    // get
    bool hasBumpMap     ()C;

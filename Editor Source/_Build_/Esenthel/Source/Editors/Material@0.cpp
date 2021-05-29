@@ -402,12 +402,12 @@ MaterialTech mtrl_techs[]=
    void MaterialRegion::DetPower(  MaterialRegion &mr, C Str &t) {       mr.edit.det_power=TextFlt(t); mr.edit.detail_time.getUTC();}
    Str  MaterialRegion::Cull(C MaterialRegion &mr          ) {return mr.edit.cull;}
    void MaterialRegion::Cull(  MaterialRegion &mr, C Str &t) {       mr.edit.cull=TextBool(t); mr.edit.cull_time.now();}
-   Str  MaterialRegion::AmbR(C MaterialRegion &mr          ) {return mr.edit.ambient.x;}
-   void MaterialRegion::AmbR(  MaterialRegion &mr, C Str &t) {       mr.edit.ambient.x=TextFlt(t); mr.edit.ambient_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
-   Str  MaterialRegion::AmbG(C MaterialRegion &mr          ) {return mr.edit.ambient.y;}
-   void MaterialRegion::AmbG(  MaterialRegion &mr, C Str &t) {       mr.edit.ambient.y=TextFlt(t); mr.edit.ambient_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
-   Str  MaterialRegion::AmbB(C MaterialRegion &mr          ) {return mr.edit.ambient.z;}
-   void MaterialRegion::AmbB(  MaterialRegion &mr, C Str &t) {       mr.edit.ambient.z=TextFlt(t); mr.edit.ambient_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
+   Str  MaterialRegion::EmissiveR(C MaterialRegion &mr          ) {return mr.edit.emissive.x;}
+   void MaterialRegion::EmissiveR(  MaterialRegion &mr, C Str &t) {       mr.edit.emissive.x=TextFlt(t); mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
+   Str  MaterialRegion::EmissiveG(C MaterialRegion &mr          ) {return mr.edit.emissive.y;}
+   void MaterialRegion::EmissiveG(  MaterialRegion &mr, C Str &t) {       mr.edit.emissive.y=TextFlt(t); mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
+   Str  MaterialRegion::EmissiveB(C MaterialRegion &mr          ) {return mr.edit.emissive.z;}
+   void MaterialRegion::EmissiveB(  MaterialRegion &mr, C Str &t) {       mr.edit.emissive.z=TextFlt(t); mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
    Str  MaterialRegion::UVScale(C MaterialRegion &mr          ) {return mr.edit.uv_scale;}
    void MaterialRegion::UVScale(  MaterialRegion &mr, C Str &t) {       mr.edit.uv_scale=TextFlt(t); mr.edit.uv_scale_time.getUTC();}
    void MaterialRegion::Undo(MaterialRegion &editor) {editor.undos.undo();}
@@ -706,9 +706,9 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       props.New().create("ReflectivityMax", MemberDesc(DATA_REAL).setFunc(ReflectMax, ReflectMax)).range(0, 1).desc("This value specifies the amount of Reflectivity that can be obtained from the Metal texture.\nIn most cases this value should be left at 1.");
       props.New().create("Glow"           , MemberDesc(DATA_REAL).setFunc(Glow      , Glow      )).range(0, 1);
 
-      props.New().create("Ambient Red"  , MemberDesc(DATA_REAL).setFunc(AmbR, AmbR)).range(0, 1);
-      props.New().create("Ambient Green", MemberDesc(DATA_REAL).setFunc(AmbG, AmbG)).range(0, 1);
-      props.New().create("Ambient Blue" , MemberDesc(DATA_REAL).setFunc(AmbB, AmbB)).range(0, 1);
+      props.New().create("Emissive Red"  , MemberDesc(DATA_REAL).setFunc(EmissiveR, EmissiveR)).range(0, 1);
+      props.New().create("Emissive Green", MemberDesc(DATA_REAL).setFunc(EmissiveG, EmissiveG)).range(0, 1);
+      props.New().create("Emissive Blue" , MemberDesc(DATA_REAL).setFunc(EmissiveB, EmissiveB)).range(0, 1);
     //props.New();
     //props.New().create("Subsurf Scatter", MemberDesc(DATA_REAL).setFunc(SSS , SSS )).range(0, 1);
       props.New().create("Detail Scale"   , MemberDesc(DATA_REAL).setFunc(DetScale, DetScale)).range(0.01f, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);

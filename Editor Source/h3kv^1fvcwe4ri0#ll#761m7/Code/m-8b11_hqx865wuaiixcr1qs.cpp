@@ -480,12 +480,12 @@ class MaterialRegion : Region
  //static Str  SSS (C MaterialRegion &mr          ) {return mr.edit.sss;}
  //static void SSS (  MaterialRegion &mr, C Str &t) {       mr.edit.sss=TextFlt(t); mr.edit.sss_time.getUTC();}
 
-   static Str  AmbR(C MaterialRegion &mr          ) {return mr.edit.ambient.x;}
-   static void AmbR(  MaterialRegion &mr, C Str &t) {       mr.edit.ambient.x=TextFlt(t); mr.edit.ambient_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  AmbG(C MaterialRegion &mr          ) {return mr.edit.ambient.y;}
-   static void AmbG(  MaterialRegion &mr, C Str &t) {       mr.edit.ambient.y=TextFlt(t); mr.edit.ambient_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  AmbB(C MaterialRegion &mr          ) {return mr.edit.ambient.z;}
-   static void AmbB(  MaterialRegion &mr, C Str &t) {       mr.edit.ambient.z=TextFlt(t); mr.edit.ambient_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  EmissiveR(C MaterialRegion &mr          ) {return mr.edit.emissive.x;}
+   static void EmissiveR(  MaterialRegion &mr, C Str &t) {       mr.edit.emissive.x=TextFlt(t); mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  EmissiveG(C MaterialRegion &mr          ) {return mr.edit.emissive.y;}
+   static void EmissiveG(  MaterialRegion &mr, C Str &t) {       mr.edit.emissive.y=TextFlt(t); mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  EmissiveB(C MaterialRegion &mr          ) {return mr.edit.emissive.z;}
+   static void EmissiveB(  MaterialRegion &mr, C Str &t) {       mr.edit.emissive.z=TextFlt(t); mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
 
    static Str  UVScale(C MaterialRegion &mr          ) {return mr.edit.uv_scale;}
    static void UVScale(  MaterialRegion &mr, C Str &t) {       mr.edit.uv_scale=TextFlt(t); mr.edit.uv_scale_time.getUTC();}
@@ -812,9 +812,9 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       props.New().create("ReflectivityMax", MemberDesc(DATA_REAL).setFunc(ReflectMax, ReflectMax)).range(0, 1).desc("This value specifies the amount of Reflectivity that can be obtained from the Metal texture.\nIn most cases this value should be left at 1.");
       props.New().create("Glow"           , MemberDesc(DATA_REAL).setFunc(Glow      , Glow      )).range(0, 1);
 
-      props.New().create("Ambient Red"  , MemberDesc(DATA_REAL).setFunc(AmbR, AmbR)).range(0, 1);
-      props.New().create("Ambient Green", MemberDesc(DATA_REAL).setFunc(AmbG, AmbG)).range(0, 1);
-      props.New().create("Ambient Blue" , MemberDesc(DATA_REAL).setFunc(AmbB, AmbB)).range(0, 1);
+      props.New().create("Emissive Red"  , MemberDesc(DATA_REAL).setFunc(EmissiveR, EmissiveR)).range(0, 1);
+      props.New().create("Emissive Green", MemberDesc(DATA_REAL).setFunc(EmissiveG, EmissiveG)).range(0, 1);
+      props.New().create("Emissive Blue" , MemberDesc(DATA_REAL).setFunc(EmissiveB, EmissiveB)).range(0, 1);
     //props.New();
     //props.New().create("Subsurf Scatter", MemberDesc(DATA_REAL).setFunc(SSS , SSS )).range(0, 1);
       props.New().create("Detail Scale"   , MemberDesc(DATA_REAL).setFunc(DetScale, DetScale)).range(0.01, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);

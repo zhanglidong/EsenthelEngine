@@ -411,7 +411,7 @@ class ConvertToAtlasClass : PropWin
          atlas.mtrl.smooth=0;
          atlas.mtrl.reflect_mul=0; atlas.mtrl.reflect_add=0;
          atlas.mtrl.glow=0;
-         atlas.mtrl.ambient=0;
+         atlas.mtrl.emissive=0;
          Vec4  color_s=0;
          flt   alpha=0; int alpha_num=0; MATERIAL_TECHNIQUE tech=MTECH_DEFAULT; // parameters for alpha materials
          flt   reflect_min=0, reflect_max=0;
@@ -429,7 +429,7 @@ class ConvertToAtlasClass : PropWin
             atlas.mtrl.smooth     +=mtrl.edit.smooth;
                        reflect_min+=mtrl.edit.reflect_min; reflect_max+=mtrl.edit.reflect_max;
             atlas.mtrl.glow       +=mtrl.edit.glow;
-            atlas.mtrl.ambient    +=mtrl.edit.ambient;
+            atlas.mtrl.emissive   +=mtrl.edit.emissive;
 
             if(mtrl.edit.tech){alpha+=mtrl.edit.color_s.w; alpha_num++; tech=mtrl.edit.tech;}
 
@@ -491,14 +491,14 @@ class ConvertToAtlasClass : PropWin
          checkSide(atlas. metal_map, FlagTest(filled, BT_METAL ));
          checkSide(atlas.  glow_map, FlagTest(filled, BT_GLOW  ));
 
-         if(tex_wrote& BT_COLOR          ){atlas.mtrl.color_l.xyz=                                1;                           }else atlas.mtrl.color_l.xyz=SRGBToLinear(color_s.xyz/mtrls.elms());          // if we ended up having color  map, then it means we've used the baked textures, for which we need to set the full color   multiplier
-         if(tex_wrote&(BT_COLOR|BT_ALPHA)){atlas.mtrl.color_l.w  =(alpha_num ? alpha/alpha_num : 1); atlas.mtrl.technique=tech;}else atlas.mtrl.color_l.w  =             color_s.w  /mtrls.elms() ;          // if we ended up having alpha  map, then set parameters from alpha materials only (check color map too because alpha can come from it)
-         if(tex_wrote& BT_BUMP           ){                                                                                    }     atlas.mtrl.bump   /=mtrls.elms();
-         if(tex_wrote& BT_NORMAL         ){atlas.mtrl.normal =1;                                                               }else atlas.mtrl.normal /=mtrls.elms();                                       // if we ended up having normal map, then it means we've used the baked textures, for which we need to set the full normal  multiplier
-         if(tex_wrote& BT_SMOOTH         ){atlas.mtrl.smooth =1;                                                               }else atlas.mtrl.smooth /=mtrls.elms();                                       // if we ended up having smooth map, then it means we've used the baked textures, for which we need to set the full smooth  multiplier
-         if(tex_wrote& BT_METAL          ){atlas.mtrl.reflect(min_reflect);                                                    }else atlas.mtrl.reflect(reflect_min/mtrls.elms(), reflect_max/mtrls.elms()); // if we ended up having metal  map, then it means we've used the baked textures, for which we need to set the full reflect multiplier
-         if(tex_wrote& BT_GLOW           ){atlas.mtrl.glow   =1;                                                               }else atlas.mtrl.glow   /=mtrls.elms();                                       // if we ended up having glow   map, then it means we've used the baked textures, for which we need to set the full glow    multiplier
-                                                                                                                                     atlas.mtrl.ambient/=mtrls.elms();
+         if(tex_wrote& BT_COLOR          ){atlas.mtrl.color_l.xyz=                                1;                           }else atlas.mtrl.color_l.xyz=SRGBToLinear(color_s.xyz/mtrls.elms());           // if we ended up having color  map, then it means we've used the baked textures, for which we need to set the full color   multiplier
+         if(tex_wrote&(BT_COLOR|BT_ALPHA)){atlas.mtrl.color_l.w  =(alpha_num ? alpha/alpha_num : 1); atlas.mtrl.technique=tech;}else atlas.mtrl.color_l.w  =             color_s.w  /mtrls.elms() ;           // if we ended up having alpha  map, then set parameters from alpha materials only (check color map too because alpha can come from it)
+         if(tex_wrote& BT_BUMP           ){                                                                                    }     atlas.mtrl.bump    /=mtrls.elms();
+         if(tex_wrote& BT_NORMAL         ){atlas.mtrl.normal =1;                                                               }else atlas.mtrl.normal  /=mtrls.elms();                                       // if we ended up having normal map, then it means we've used the baked textures, for which we need to set the full normal  multiplier
+         if(tex_wrote& BT_SMOOTH         ){atlas.mtrl.smooth =1;                                                               }else atlas.mtrl.smooth  /=mtrls.elms();                                       // if we ended up having smooth map, then it means we've used the baked textures, for which we need to set the full smooth  multiplier
+         if(tex_wrote& BT_METAL          ){atlas.mtrl.reflect(min_reflect);                                                    }else atlas.mtrl.reflect (reflect_min/mtrls.elms(), reflect_max/mtrls.elms()); // if we ended up having metal  map, then it means we've used the baked textures, for which we need to set the full reflect multiplier
+         if(tex_wrote& BT_GLOW           ){atlas.mtrl.glow   =1;                                                               }else atlas.mtrl.glow    /=mtrls.elms();                                       // if we ended up having glow   map, then it means we've used the baked textures, for which we need to set the full glow    multiplier
+                                                                                                                                     atlas.mtrl.emissive/=mtrls.elms();
 
          EditMaterial edit; atlas.copyTo(edit);
          Proj.createBaseTextures(atlas.base_0, atlas.base_1, atlas.base_2, edit);

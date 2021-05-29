@@ -861,9 +861,9 @@ void AdjustMaterialParams(EditMaterial &edit, Material &game, uint old_base_tex,
 
    bool new_light_map=edit.hasLightMap(); if(old_light_map!=new_light_map)
    {
-      if(!new_light_map              )game.ambient=0;else
-      if(game.ambient.min()<=EPS_COL8)game.ambient=1;
-      SyncByValueEqual(edit.ambient_time, time, edit.ambient, game.ambient);
+      if(!new_light_map               )game.emissive=0;else
+      if(game.emissive.min()<=EPS_COL8)game.emissive=1;
+      SyncByValueEqual(edit.emissive_time, time, edit.emissive, game.emissive);
    }
 }
 void AdjustMaterialParams(EditWaterMtrl &edit, WaterMtrl &game, uint old_base_tex, uint new_base_tex, bool old_light_map)

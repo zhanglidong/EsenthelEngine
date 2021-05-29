@@ -171,12 +171,12 @@ public:
  //static Str  SSS (C MaterialRegion &mr          ) {return mr.edit.sss;}
  //static void SSS (  MaterialRegion &mr, C Str &t) {       mr.edit.sss=TextFlt(t); mr.edit.sss_time.getUTC();}
 
-   static Str  AmbR(C MaterialRegion &mr          );
-   static void AmbR(  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  AmbG(C MaterialRegion &mr          );
-   static void AmbG(  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  AmbB(C MaterialRegion &mr          );
-   static void AmbB(  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  EmissiveR(C MaterialRegion &mr          );
+   static void EmissiveR(  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  EmissiveG(C MaterialRegion &mr          );
+   static void EmissiveG(  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  EmissiveB(C MaterialRegion &mr          );
+   static void EmissiveB(  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
 
    static Str  UVScale(C MaterialRegion &mr          );
    static void UVScale(  MaterialRegion &mr, C Str &t);
