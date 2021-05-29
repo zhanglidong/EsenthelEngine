@@ -645,7 +645,7 @@ RendererClass& RendererClass::operator()(void (&render)())
 
          case RS_LIGHT: if(_lum_1s)
          {
-            if(_ao && !D.aoAll()) // if there's AO available, then it means that ambient hasn't been applied yet to '_lum_1s', to keep consistency with '_lum_1s' when AO is disabled, apply flat ambient here
+            if(!ambientInLum()) // if ambient hasn't been applied to '_lum_1s', apply it here
             {
                set(_lum_1s, null, true);
                D.alpha(ALPHA_ADD);
@@ -881,6 +881,7 @@ Bool RendererClass::hasVolLight      ()C {return D.volLight() && canReadDepth();
 Bool RendererClass::anyDeferred      ()C {return type()==RT_DEFERRED || Water.reflectionRenderer()==RT_DEFERRED;}
 Bool RendererClass::anyForward       ()C {return type()==RT_FORWARD  || Water.reflectionRenderer()==RT_FORWARD ;}
 Bool RendererClass::lowDepthPrecision()C {return _main_ds.type()==IMAGE_D16;} // this can happen only on Android, and there we do have information about the depth buffer
+Bool RendererClass::ambientInLum     ()C {return D.aoAll() || !Renderer._ao;} // only these cases allow putting ambient inside lum RT's #AmbientInLum
 /******************************************************************************/
 Bool RendererClass::show(C ImageRTPtr &image, Bool srgb, Bool sign, Int channel)
 {
@@ -1395,14 +1396,24 @@ void RendererClass::light()
       /*
       -set '_ao' as Ambient Occlusion (one channel, without D.ambientColor)
       -clear '_lum', '_lum_1s', '_spec', '_spec_1s'
-      -add ambient light from meshes
       -calculate screen space light (on MSAA and non-MSAA)
       -final light = sum of all buffers together
-     _ao    = AO;
-     _lum   = 0 ; _lum+=mesh_ambient;     MSAA of _lum   +=light;
-     _lum_1s= 0 ;                     non-MSAA of _lum_1s+=light;
-      LIGHT =_lum + _lum_1s + _ao*D.ambientColor
-   OR LIGHT =_lum + _lum_1s +     D.ambientColor (if "_ao==null")
+     _ao    =AO;
+     _lum   = 0;     MSAA of _lum   +=light;
+     _lum_1s= 0; non-MSAA of _lum_1s+=light;
+      if( _ao &&  D.aoAll)LIGHT=((_lum OR _lum_1s) + D.ambientColor)*_ao;else
+      if( _ao && !D.aoAll)LIGHT= (_lum OR _lum_1s) + D.ambientColor *_ao;else
+      if(!_ao            )LIGHT= (_lum OR _lum_1s) + D.ambientColor     ;
+
+      However for optimization _lum and _lum_1s can be cleared to D.ambientColor instead of 0 in these cases: #AmbientInLum
+      if( _ao &&  D.aoAll)LIGHT=((_lum OR _lum_1s) + D.ambientColor)*_ao;else
+      if(!_ao            )LIGHT= (_lum OR _lum_1s) + D.ambientColor     ;
+
+      Which then becomes:
+     _lum   =D.ambientColor;     MSAA of _lum   +=light;
+     _lum_1s=D.ambientColor; non-MSAA of _lum_1s+=light;
+      if( _ao &&  D.aoAll)LIGHT=((_lum OR _lum_1s))*_ao;else
+      if(!_ao            )LIGHT= (_lum OR _lum_1s)     ;
       */
 
       // Ambient Occlusion
@@ -1410,8 +1421,7 @@ void RendererClass::light()
 
       // add dynamic lights
       DrawLights();
-
-      getLumRT();
+      getLumRT(); // get in case we still haven't initialized it
 
       // add ambient light from meshes
       set(_lum, _ds, true);
@@ -1464,13 +1474,13 @@ void RendererClass::light()
          }
       }
       D.depth2DOff();
-      if(_lum !=_lum_1s  && (  _has_fur ||   stage==RS_LIGHT || stage==RS_LIGHT_AO)){set(_lum_1s , null, true); D.alpha(ALPHA_ADD); Sh.draw(*_lum );} // need to apply multi-sampled lum  to 1-sample for fur and light stage
-      if(_spec!=_spec_1s && (/*_has_fur ||*/ stage==RS_LIGHT || stage==RS_LIGHT_AO)){set(_spec_1s, null, true); D.alpha(ALPHA_ADD); Sh.draw(*_spec);} // need to apply multi-sampled spec to 1-sample for         light stage
+      if(_lum !=_lum_1s  && (  _has_fur ||   stage==RS_LIGHT || stage==RS_LIGHT_AO)){set(_lum_1s , null, true); D.alpha(ALPHA_ADD); if(ambientInLum())Sh.draw(*_lum, Vec4(1), Vec4(-D.ambientColorD(), 0));else Sh.draw(*_lum );} // need to apply multi-sampled lum  to 1-sample for fur and show light stage, if ambient is in _lum and _lum_1s RT's then it means we have to subtract ambient from '_lum' before adding to '_lum_1s', so we don't end up with 2x ambient
+      if(_spec!=_spec_1s && (/*_has_fur ||*/ stage==RS_LIGHT || stage==RS_LIGHT_AO)){set(_spec_1s, null, true); D.alpha(ALPHA_ADD);                                                                             Sh.draw(*_spec);} // need to apply multi-sampled spec to 1-sample for         show light stage
             src    .clear();
            _nrm    .clear();
    //_water_nrm    .clear(); we may still need it for refraction
            _ext    .clear();
-           _lum    .clear(); // '_lum' will not be used after this point, however '_lum_1s' may be for rendering fur
+           _lum    .clear(); // '_lum' will not be used after this point, however '_lum_1s' may be for rendering fur or showing light stage
            _spec   .clear();
            _spec_1s.clear();
    }

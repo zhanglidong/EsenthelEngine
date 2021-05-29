@@ -115,6 +115,7 @@ struct RendererClass // handles rendering
    Bool hasVolLight ()C;
    Bool anyDeferred ()C;
    Bool anyForward  ()C;
+   Bool ambientInLum()C;
 #endif
 
    // get / set

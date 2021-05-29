@@ -56,7 +56,7 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
                     NOPERSP Vec2 inPosXY:TEXCOORD1,
                     NOPERSP PIXEL):TARGET
 {
-   Half ao; VecH ambient; if(AO){ao=TexLod(ImgX, inTex).x; if(!AO_ALL)ambient=AmbientColor*ao;} // use 'TexLod' because AO can be of different size and we need to use tex filtering
+   Half ao; VecH ambient; if(AO){ao=TexLod(ImgX, inTex).x; if(!AO_ALL)ambient=AmbientColor*ao;} // use 'TexLod' because AO can be of different size and we need to use tex filtering. #AmbientInLum
    VecI p=VecI(pixel.xy, 0);
    Vec  eye_dir=Normalize(Vec(inPosXY, 1));
    if(MULTI_SAMPLE==0)
@@ -80,11 +80,10 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
    if(MULTI_SAMPLE==1) // 1 sample
    {
       VecH4  color=TexSample  (ImgMS1, pixel.xy, 0);
-      VecH   lum  =Img2.Load(p).rgb; // Lum1S
+      VecH   lum  =Img2.Load(p).rgb; //  Lum1S
       VecH   spec =Img3.Load(p).rgb; // Spec1S
-      Vec    nrm  =GetNormalMS(        pixel.xy, 0).xyz;
-      VecH2  ext  =GetExtMS   (        pixel.xy, 0);
-             lum +=TexSample  (ImgMS2, pixel.xy, 0).rgb; // LumMS, needed because Mesh Ambient is stored only in Multi Sampled Lum
+      Vec    nrm  =GetNormalMS(pixel.xy, 0).xyz;
+      VecH2  ext  =GetExtMS   (pixel.xy, 0);
       if(AO && !AO_ALL)lum+=ambient;
       color.rgb=LitCol(color, nrm, ext, lum, spec, ao, NightShadeColor, AO && !AO_ALL, eye_dir);
       if(AO && AO_ALL)color*=ao;
@@ -97,8 +96,8 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
       UNROLL for(Int i=0; i<MS_SAMPLES; i++)if(DEPTH_FOREGROUND(TexDepthMSRaw(pixel.xy, i))) // valid sample
       {
          VecH4 color=TexSample  (ImgMS1, pixel.xy, i);
-         VecH  lum  =TexSample  (ImgMS2, pixel.xy, i).rgb;
-         VecH  spec =TexSample  (ImgMS3, pixel.xy, i).rgb;
+         VecH  lum  =TexSample  (ImgMS2, pixel.xy, i).rgb; //  LumMS
+         VecH  spec =TexSample  (ImgMS3, pixel.xy, i).rgb; // SpecMS
          Vec   nrm  =GetNormalMS(        pixel.xy, i).xyz;
          VecH2 ext  =GetExtMS   (        pixel.xy, i);
          if(AO && !AO_ALL)lum+=ambient;

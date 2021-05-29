@@ -156,7 +156,7 @@ static Bool SetLum()
    Bool clear=!Renderer._lum; if(clear)
    {
       GetLum();
-             lum_color=(Renderer._lum_1s!=Renderer._lum || (Renderer._ao && !D.aoAll())) ? Vec4Zero : Vec4(D.ambientColorD(), 0);
+             lum_color=(Renderer.ambientInLum() ? Vec4(D.ambientColorD(), 0) : Vec4Zero);
           merged_clear=MergedClearLum();
       if(!merged_clear)ClearLumSeparate(lum_color, Renderer._lum_1s, Renderer._spec_1s);
    }
@@ -175,7 +175,7 @@ static void SetLumMS(Bool clear)
    if(clear)
    {
       D.stencil(STENCIL_NONE);
-      lum_color=(Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0);
+      lum_color=(Renderer.ambientInLum() ? Vec4(D.ambientColorD(), 0) : Vec4Zero);
           merged_clear=MergedClearLum();
       if(!merged_clear)ClearLumSeparate(lum_color, Renderer._lum, Renderer._spec);
    }
@@ -188,7 +188,7 @@ void RendererClass::getLumRT() // this is called after drawing all lights, in or
    if(!_lum)
    {
       GetLum();
-      Vec4    lum_color=(_ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0); // if '_ao' is not available then set '_lum' to 'ambientColor' (set '_lum' instead of '_lum_1s' because it is the one that is read in both 1-sample and multi-sample ApplyLight shaders, if this is changed then adjust all clears to '_lum_1s' and '_lum' in this file)
+      Vec4    lum_color=(Renderer.ambientInLum() ? Vec4(D.ambientColorD(), 0) : Vec4Zero);
       Bool merged_clear=MergedClearLum();
       if( !merged_clear)
       {
