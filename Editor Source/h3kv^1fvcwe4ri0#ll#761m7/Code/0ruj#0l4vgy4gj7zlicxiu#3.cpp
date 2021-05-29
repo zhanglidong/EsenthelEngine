@@ -2406,7 +2406,9 @@ enum APPLY_MODE
    APPLY_AVG,
    APPLY_MIN,
    APPLY_MAX,
+   APPLY_MAX_RGB,
    APPLY_MAX_A,
+   APPLY_MAX_LUM,
    APPLY_MASK_MUL,
    APPLY_MASK_ADD,
    APPLY_METAL,
@@ -2477,7 +2479,9 @@ force_src_resize:
          if(p.value=="avg" || p.value=="average"                                              )mode=APPLY_AVG;else
          if(p.value=="min"                                                                    )mode=APPLY_MIN;else
          if(p.value=="max"                                                                    )mode=APPLY_MAX;else
+         if(p.value=="maxRGB"                                                                 )mode=APPLY_MAX_RGB;else
          if(p.value=="maxA" || p.value=="maxAlpha"                                            )mode=APPLY_MAX_A;else
+         if(p.value=="maxLum"                                                                 )mode=APPLY_MAX_LUM;else
          if(p.value=="maskMul"                                                                )mode=APPLY_MASK_MUL;else
          if(p.value=="maskAdd"                                                                )mode=APPLY_MASK_ADD;else
          if(p.value=="metal"                                                                  )mode=APPLY_METAL;else
@@ -2565,6 +2569,7 @@ force_src_resize:
                            case APPLY_AVG           : c=Avg(base, l); break;
                            case APPLY_MIN           : c=Min(base, l); break;
                            case APPLY_MAX           : c=Max(base, l); break;
+                           case APPLY_MAX_RGB       : c.set(Max(base.xyz, l.xyz), base.w); break;
                            case APPLY_MAX_A         : c.set(base.xyz, Max(base.w, l.w)); break;
                            case APPLY_METAL         : {flt metal=l.xyz.max(); c.set(Lerp(base.xyz, l.xyz, metal), base.w);} break; // this applies metal map onto diffuse map (by lerping from diffuse to metal based on metal intensity)
 
@@ -2611,6 +2616,17 @@ force_src_resize:
                               c.y=Lerp(base.y, base.y*l.y, sat); // green
                               c.z=Lerp(base.z, base.z*l.z, sat); // blue
                               c.w=base.w;
+                           }break;
+
+                           case APPLY_MAX_LUM:
+                           {
+                              flt base_lum=base.xyz.max(), layer_lum=l.xyz.max();
+                              if(layer_lum>base_lum)
+                              {
+                                 if(base_lum)c.xyz=base.xyz*(layer_lum/base_lum);
+                                 else        c.xyz=layer_lum;
+                              }else c.xyz=base.xyz;
+                                    c.w  =base.w;
                            }break;
 
                            case APPLY_MASK_ADD:
