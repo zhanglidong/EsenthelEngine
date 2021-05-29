@@ -503,11 +503,11 @@ Str8 ShaderDeferred  (Int skin, Int materials, Int layout, Int bump_mode, Int al
 Str8 ShaderForward   (Int skin, Int materials, Int layout, Int bump_mode, Int alpha_test, Int reflect, Int light_map, Int detail, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tesselate);
 Str8 ShaderBlendLight(Int skin, Int color    , Int layout, Int bump_mode, Int alpha_test, Int alpha, Int reflect, Int light_map, Int fx, Int per_pixel, Int shadow_maps, Int tesselate);
 Str8 ShaderPosition  (Int skin, Int alpha_test, Int test_blend, Int fx, Int tesselate);
-Str8 ShaderBlend     (Int skin, Int color, Int layout, Int bump_mode, Int reflect);
+Str8 ShaderBlend     (Int skin, Int color, Int layout, Int bump_mode, Int reflect, Int light_map);
 Str8 ShaderSetColor  (Int skin, Int alpha_test, Int tesselate);
 Str8 ShaderBehind    (Int skin, Int alpha_test);
 Str8 ShaderEarlyZ    (Int skin);
-Str8 ShaderAmbient   (Int skin, Int alpha_test, Int light_map);
+Str8 ShaderEmissive  (Int skin, Int alpha_test, Int light_map);
 Str8 ShaderOverlay   (Int skin, Int normal, Int layout);
 Str8 ShaderFurBase   (Int skin, Int size, Int diffuse);
 Str8 ShaderFurSoft   (Int skin, Int size, Int diffuse);
@@ -524,24 +524,24 @@ struct DefaultShaders
         alpha, alpha_test, alpha_blend, alpha_blend_light,
         skin,
         tesselate;
-   Byte materials, layout, bump, ambient, fx;
+   Byte materials, layout, bump, emissive, fx;
 
    void      init(C Material *material[4], MESH_FLAG mesh_flag, Int lod_index, Bool heightmap);
    DefaultShaders(C Material *material[4], MESH_FLAG mesh_flag, Int lod_index, Bool heightmap) {init(material, mesh_flag, lod_index, heightmap);}
    DefaultShaders(C Material *material   , MESH_FLAG mesh_flag, Int lod_index, Bool heightmap);
 
-   Shader* EarlyZ ()C;
-   Shader* Solid  (Bool mirror=false)C;
-   Shader* Ambient()C;
-   Shader* Outline()C;
-   Shader* Behind ()C;
-   Shader* Fur    ()C;
-   Shader* Shadow ()C;
-   Shader* Blend  ()C;
-   Shader* Overlay()C;
-   Shader* get    (RENDER_MODE mode)C;
-   FRST  * Frst   ()C;
-   BLST  * Blst   ()C;
+   Shader* EarlyZ  ()C;
+   Shader* Solid   (Bool mirror=false)C;
+   Shader* Overlay ()C;
+   Shader* Emissive()C;
+   Shader* Outline ()C;
+   Shader* Behind  ()C;
+   Shader* Fur     ()C;
+   Shader* Shadow  ()C;
+   Shader* Blend   ()C;
+   Shader* get     (RENDER_MODE mode)C;
+   FRST  * Frst    ()C;
+   BLST  * Blst    ()C;
 
    void set(Shader *shader[RM_SHADER_NUM], FRST **frst, BLST **blst);
 };

@@ -744,11 +744,11 @@ INLINE void SkeletonBlendShaderMaterialMeshInstance::set(C MeshRender &mesh)
    super::set(mesh);
    T.stencil_mode=(STENCIL_MODE)Renderer._mesh_stencil_mode;
 }
-INLINE AmbientInstance& AmbientInstance::set(C MeshPart &mesh, C MeshPart::Variation &variation)
+INLINE EmissiveInstance& EmissiveInstance::set(C MeshPart &mesh, C MeshPart::Variation &variation)
 {
    T.mesh=&mesh;
 #if SUPPORT_MATERIAL_CHANGE_IN_RENDERING
-   T.shader  =variation.shader[RM_AMBIENT];
+   T.shader  =variation.shader[RM_EMISSIVE];
    T.material=variation.material();
 #else
    T.variation=&variation;
@@ -757,11 +757,11 @@ INLINE AmbientInstance& AmbientInstance::set(C MeshPart &mesh, C MeshPart::Varia
    variation.material->incUsage(); // for ambient, material will always be != null, because only materials with ambient value can create ambient instances
    return T;
 }
-INLINE void SkeletonAmbientInstance::set(C MeshPart &mesh, C MeshPart::Variation &variation, C AnimatedSkeleton &anim_skel)
+INLINE void SkeletonEmissiveInstance::set(C MeshPart &mesh, C MeshPart::Variation &variation, C AnimatedSkeleton &anim_skel)
 {
    T.mesh=&mesh;
 #if SUPPORT_MATERIAL_CHANGE_IN_RENDERING
-   T.shader  =variation.shader[RM_AMBIENT];
+   T.shader  =variation.shader[RM_EMISSIVE];
    T.material=variation.material();
 #else
    T.variation=&variation;
@@ -870,15 +870,15 @@ void MeshPart::draw(C MatrixM &matrix, C MatrixM &matrix_prev)C
       {
          case RT_DEFERRED:
          {
-         #if SUPPORT_EARLY_Z
-            if(Renderer._mesh_early_z)if(Shader *shader=variation.shader[RM_EARLY_Z])
-            {
-               if(shader==Renderer._shader_early_z)SetViewMatrix(EarlyZInstances[variation.getMaterial().cull].New().set(render).view_matrix, matrix);
-            }
-         #endif
-
             if(Shader *shader=variation.shader[Renderer._solid_mode_index])
             {
+            #if SUPPORT_EARLY_Z
+               if(Renderer._mesh_early_z)if(Shader *shader=variation.shader[RM_EARLY_Z])
+               {
+                  if(shader==Renderer._shader_early_z)SetViewMatrix(EarlyZInstances[variation.getMaterial().cull].New().set(render).view_matrix, matrix);
+               }
+            #endif
+
                if(variation.last_solid_instance<0)
                {
                   if(_umm)NewInstance(MultiMaterialShaderDraws, SolidShaderMaterialMeshInstances.elms(), *shader, &          _umm               ->material_shader, T, variation);
@@ -886,15 +886,15 @@ void MeshPart::draw(C MatrixM &matrix, C MatrixM &matrix_prev)C
                }else                                            SolidShaderMaterialMeshInstances[variation.last_solid_instance].next_instance=SolidShaderMaterialMeshInstances.elms();
                                                                                                  variation.last_solid_instance               =SolidShaderMaterialMeshInstances.elms();
                SetViewMatrix(SolidShaderMaterialMeshInstances.New().set().view_matrix, matrix, matrix_prev);
+
+            #if SUPPORT_EMISSIVE
+               if(Shader *shader=variation.shader[RM_EMISSIVE])SetViewMatrix(EmissiveInstances.New().set(T, variation).view_matrix, matrix);
+            #endif
             }else
             if(Shader *shader=variation.shader[RM_BLEND])BlendInstances.add(*shader        , variation.getMaterial(), T, variation).setMatrix(matrix, matrix_prev);else
             if(               variation.blst            )BlendInstances.add(*variation.blst, variation.getMaterial(), T, variation).setMatrix(matrix, matrix_prev);
 
             if(Shader *shader=variation.shader[RM_FUR])BlendInstances.addFur(*shader, variation.getMaterial(), T, variation).setMatrix(matrix, matrix_prev);
-
-         #if SUPPORT_MATERIAL_AMBIENT
-            if(Shader *shader=variation.shader[RM_AMBIENT])SetViewMatrix(AmbientInstances.New().set(T, variation).view_matrix, matrix);
-         #endif
          }break;
          
          case RT_FORWARD: // velocities not needed for RT_FORWARD
@@ -945,15 +945,15 @@ void MeshPart::draw(C AnimatedSkeleton &anim_skel)C
                SkeletonSolidInstances.getSkeletonInstanceSolid(anim_skel)
                                      .newInstance(*shader, material, SkeletonSolidShaderMaterialMeshInstances);
                SkeletonSolidShaderMaterialMeshInstances.New().set(T);
+
+            #if SUPPORT_EMISSIVE
+               if(Shader *shader=variation.shader[RM_EMISSIVE])SkeletonEmissiveInstances.New().set(T, variation, anim_skel);
+            #endif
             }else
             if(Shader *shader=variation.shader[RM_BLEND])BlendInstances.getSkeletonInstance(anim_skel).addBlend(*        shader, material, T);else
             if(               variation.blst            )BlendInstances.getSkeletonInstance(anim_skel).addBlend(*variation.blst, material, T);
 
             if(Shader *shader=variation.shader[RM_FUR])BlendInstances.getSkeletonInstance(anim_skel).addFur(*shader, material, T);
-
-         #if SUPPORT_MATERIAL_AMBIENT
-            if(Shader *shader=variation.shader[RM_AMBIENT])SkeletonAmbientInstances.New().set(T, variation, anim_skel);
-         #endif
          }break;
          
          case RT_FORWARD:
@@ -993,15 +993,15 @@ void MeshPart::draw(C AnimatedSkeleton &anim_skel, C Material &material)C
                SkeletonSolidInstances.getSkeletonInstanceSolid(anim_skel)
                                      .newInstance(*shader, material, SkeletonSolidShaderMaterialMeshInstances);
                SkeletonSolidShaderMaterialMeshInstances.New().set(T);
+
+            #if SUPPORT_EMISSIVE
+               if(Shader *shader=variation.shader[RM_EMISSIVE])SkeletonEmissiveInstances.New().set(T, variation, anim_skel);
+            #endif
             }else
             if(Shader *shader=variation.shader[RM_BLEND])BlendInstances.getSkeletonInstance(anim_skel).addBlend(*        shader, material, T);else
             if(               variation.blst            )BlendInstances.getSkeletonInstance(anim_skel).addBlend(*variation.blst, material, T);
 
             if(Shader *shader=variation.shader[RM_FUR])BlendInstances.getSkeletonInstance(anim_skel).addFur(*shader, material, T);
-
-         #if SUPPORT_MATERIAL_AMBIENT
-            if(Shader *shader=variation.shader[RM_AMBIENT])SkeletonAmbientInstances.New().set(T, variation, anim_skel);
-         #endif
          }break;
          
          case RT_FORWARD:
@@ -1086,15 +1086,15 @@ void MeshLod::draw()C
             {
              C MeshPart::Variation &variation=part.getVariation();
 
-            #if SUPPORT_EARLY_Z
-               if(Renderer._mesh_early_z)if(Shader *shader=variation.shader[RM_EARLY_Z])
-               {
-                  if(shader==Renderer._shader_early_z)EarlyZInstances[variation.getMaterial().cull].New().set(part.render).view_matrix=view_matrix;
-               }
-            #endif
-
                if(Shader *shader=variation.shader[Renderer._solid_mode_index])
                {
+               #if SUPPORT_EARLY_Z
+                  if(Renderer._mesh_early_z)if(Shader *shader=variation.shader[RM_EARLY_Z])
+                  {
+                     if(shader==Renderer._shader_early_z)EarlyZInstances[variation.getMaterial().cull].New().set(part.render).view_matrix=view_matrix;
+                  }
+               #endif
+
                   if(variation.last_solid_instance<0)
                   {
                      if(part._umm)NewInstance(MultiMaterialShaderDraws, SolidShaderMaterialMeshInstances.elms(), *shader, &     part._umm               ->material_shader, part, variation);
@@ -1102,15 +1102,15 @@ void MeshLod::draw()C
                   }else                                                 SolidShaderMaterialMeshInstances[variation.last_solid_instance].next_instance=SolidShaderMaterialMeshInstances.elms();
                                                                                                          variation.last_solid_instance               =SolidShaderMaterialMeshInstances.elms();
                   SolidShaderMaterialMeshInstances.New().set().view_matrix.set(view_matrix, view_matrix_prev);
+
+               #if SUPPORT_EMISSIVE
+                  if(Shader *shader=variation.shader[RM_EMISSIVE])EmissiveInstances.New().set(part, variation).view_matrix=view_matrix;
+               #endif
                }else
                if(Shader *shader=variation.shader[RM_BLEND])BlendInstances.add(*shader        , variation.getMaterial(), part, variation).setViewMatrix(view_matrix, view_matrix_prev);else
                if(               variation.blst            )BlendInstances.add(*variation.blst, variation.getMaterial(), part, variation).setViewMatrix(view_matrix, view_matrix_prev);
 
                if(Shader *shader=variation.shader[RM_FUR])BlendInstances.addFur(*shader, variation.getMaterial(), part, variation).setViewMatrix(view_matrix, view_matrix_prev);
-
-            #if SUPPORT_MATERIAL_AMBIENT
-               if(Shader *shader=variation.shader[RM_AMBIENT])AmbientInstances.New().set(part, variation).view_matrix=view_matrix;
-            #endif
             }
          }
       }break;
@@ -1170,15 +1170,15 @@ void MeshLod::draw(C MatrixM &matrix, C MatrixM &matrix_prev)C
             {
              C MeshPart::Variation &variation=part.getVariation();
 
-            #if SUPPORT_EARLY_Z
-               if(Renderer._mesh_early_z)if(Shader *shader=variation.shader[RM_EARLY_Z])
-               {
-                  if(shader==Renderer._shader_early_z)EarlyZInstances[variation.getMaterial().cull].New().set(part.render).view_matrix=view_matrix;
-               }
-            #endif
-
                if(Shader *shader=variation.shader[Renderer._solid_mode_index])
                {
+               #if SUPPORT_EARLY_Z
+                  if(Renderer._mesh_early_z)if(Shader *shader=variation.shader[RM_EARLY_Z])
+                  {
+                     if(shader==Renderer._shader_early_z)EarlyZInstances[variation.getMaterial().cull].New().set(part.render).view_matrix=view_matrix;
+                  }
+               #endif
+
                   if(variation.last_solid_instance<0)
                   {
                      if(part._umm)NewInstance(MultiMaterialShaderDraws, SolidShaderMaterialMeshInstances.elms(), *shader, &     part._umm               ->material_shader, part, variation);
@@ -1186,15 +1186,15 @@ void MeshLod::draw(C MatrixM &matrix, C MatrixM &matrix_prev)C
                   }else                                                 SolidShaderMaterialMeshInstances[variation.last_solid_instance].next_instance=SolidShaderMaterialMeshInstances.elms();
                                                                                                          variation.last_solid_instance               =SolidShaderMaterialMeshInstances.elms();
                   SolidShaderMaterialMeshInstances.New().set().view_matrix.set(view_matrix, view_matrix_prev);
+
+               #if SUPPORT_EMISSIVE
+                  if(Shader *shader=variation.shader[RM_EMISSIVE])EmissiveInstances.New().set(part, variation).view_matrix=view_matrix;
+               #endif
                }else
                if(Shader *shader=variation.shader[RM_BLEND])BlendInstances.add(*shader        , variation.getMaterial(), part, variation).setViewMatrix(view_matrix, view_matrix_prev);else
                if(               variation.blst            )BlendInstances.add(*variation.blst, variation.getMaterial(), part, variation).setViewMatrix(view_matrix, view_matrix_prev);
 
                if(Shader *shader=variation.shader[RM_FUR])BlendInstances.addFur(*shader, variation.getMaterial(), part, variation).setViewMatrix(view_matrix, view_matrix_prev);
-
-            #if SUPPORT_MATERIAL_AMBIENT
-               if(Shader *shader=variation.shader[RM_AMBIENT])AmbientInstances.New().set(part, variation).view_matrix=view_matrix;
-            #endif
             }
          }
       }break;
@@ -1259,15 +1259,15 @@ void MeshLod::draw(C AnimatedSkeleton &anim_skel)C
                   if(!solid_skeleton)solid_skeleton=&SkeletonSolidInstances.getSkeletonInstanceSolid(anim_skel);
                                      solid_skeleton->newInstance(*shader, material, SkeletonSolidShaderMaterialMeshInstances);
                   SkeletonSolidShaderMaterialMeshInstances.New().set(part);
+
+               #if SUPPORT_EMISSIVE
+                  if(Shader *shader=variation.shader[RM_EMISSIVE])SkeletonEmissiveInstances.New().set(part, variation, anim_skel);
+               #endif
                }else
                if(Shader *shader=variation.shader[RM_BLEND]){if(!blend_skeleton)blend_skeleton=&BlendInstances.getSkeletonInstance(anim_skel); blend_skeleton->addBlend(*        shader, material, part);}else
                if(               variation.blst            ){if(!blend_skeleton)blend_skeleton=&BlendInstances.getSkeletonInstance(anim_skel); blend_skeleton->addBlend(*variation.blst, material, part);}
 
                if(Shader *shader=variation.shader[RM_FUR]){if(!blend_skeleton)blend_skeleton=&BlendInstances.getSkeletonInstance(anim_skel); blend_skeleton->addFur(*shader, material, part);}
-
-            #if SUPPORT_MATERIAL_AMBIENT
-               if(Shader *shader=variation.shader[RM_AMBIENT])SkeletonAmbientInstances.New().set(part, variation, anim_skel);
-            #endif
             }
          }
       }break;
@@ -1322,15 +1322,15 @@ void MeshLod::draw(C AnimatedSkeleton &anim_skel, C Material &material)C
                   if(!solid_skeleton)solid_skeleton=&SkeletonSolidInstances.getSkeletonInstanceSolid(anim_skel);
                                      solid_skeleton->newInstance(*shader, material, SkeletonSolidShaderMaterialMeshInstances);
                   SkeletonSolidShaderMaterialMeshInstances.New().set(part);
+
+               #if SUPPORT_EMISSIVE
+                  if(Shader *shader=variation.shader[RM_EMISSIVE])SkeletonEmissiveInstances.New().set(part, variation, anim_skel);
+               #endif
                }else
                if(Shader *shader=variation.shader[RM_BLEND]){if(!blend_skeleton)blend_skeleton=&BlendInstances.getSkeletonInstance(anim_skel); blend_skeleton->addBlend(*        shader, material, part);}else
                if(               variation.blst            ){if(!blend_skeleton)blend_skeleton=&BlendInstances.getSkeletonInstance(anim_skel); blend_skeleton->addBlend(*variation.blst, material, part);}
 
                if(Shader *shader=variation.shader[RM_FUR]){if(!blend_skeleton)blend_skeleton=&BlendInstances.getSkeletonInstance(anim_skel); blend_skeleton->addFur(*shader, material, part);}
-
-            #if SUPPORT_MATERIAL_AMBIENT
-               if(Shader *shader=variation.shader[RM_AMBIENT])SkeletonAmbientInstances.New().set(part, variation, anim_skel);
-            #endif
             }
          }
       }break;

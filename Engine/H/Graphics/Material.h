@@ -28,7 +28,7 @@ enum MATERIAL_TECHNIQUE : Byte // Material Techniques
 struct MaterialParams // Material Parameters
 {
    Vec4 color_l    ; // color Linear Gamma (0,0,0,0) .. (1,1,1,1), default=(1,1,1,1)
-   Vec  ambient    ; // ambient              (0,0,0) .. (1,1,1)  , default=(0,0,0)
+   Vec  emissive   ; // emissive             (0,0,0) .. (1,1,1)  , default=(0,0,0)
    Flt  smooth     , // smoothness                 0 .. 1        , default=0
         reflect_mul, // reflectivity from metal texture          , use 'reflect' function
         reflect_add, // reflectivity base                        , use 'reflect' function
@@ -104,7 +104,7 @@ struct Material : MaterialParams // Mesh Rendering Material - contains render pa
    Bool hasLeaf3D         ()C;                          // if material technique involves 3D Leaf  Bending
 
    void setSolid     (     )C;
-   void setAmbient   (     )C;
+   void setEmissive  (     )C;
    void setBlend     (     )C;
    void setBlendForce(     )C;
    void setOutline   (     )C;

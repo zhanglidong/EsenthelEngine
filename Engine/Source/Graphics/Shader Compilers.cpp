@@ -16,7 +16,6 @@ namespace EE{
 #define BLEND_LIGHT
 #define FORWARD
 
-#define AMBIENT
 #define AMBIENT_OCCLUSION
 #define BEHIND
 #define BLEND
@@ -25,6 +24,7 @@ namespace EE{
 #define EARLY_Z
 #define EFFECTS_2D
 #define EFFECTS_3D
+#define EMISSIVE
 #define FOG_LOCAL
 #define FUR
 #define FXAA
@@ -47,10 +47,10 @@ Str8 ShaderDeferred  (Int skin, Int materials, Int layout, Int bump_mode, Int al
 Str8 ShaderBlendLight(Int skin, Int color    , Int layout, Int bump_mode, Int alpha_test, Int alpha, Int reflect, Int light_map, Int fx, Int per_pixel, Int shadow_maps, Int tesselate) {return S8+skin+color+layout+bump_mode+alpha_test+alpha+reflect+light_map+fx+per_pixel+shadow_maps+tesselate;}
 Str8 ShaderForward   (Int skin, Int materials, Int layout, Int bump_mode, Int alpha_test, Int reflect, Int light_map, Int detail, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tesselate) {return S8+skin+materials+layout+bump_mode+alpha_test+reflect+light_map+detail+color+mtrl_blend+heightmap+fx+per_pixel+light_dir+light_dir_shd+light_dir_shd_num+light_point+light_point_shd+light_linear+light_linear_shd+light_cone+light_cone_shd+tesselate;}
 
-Str8 ShaderAmbient   (Int skin, Int alpha_test, Int light_map) {return S8+skin+alpha_test+light_map;}
 Str8 ShaderBehind    (Int skin, Int alpha_test) {return S8+skin+alpha_test;}
-Str8 ShaderBlend     (Int skin, Int color, Int layout, Int bump_mode, Int reflect) {return S8+skin+color+layout+bump_mode+reflect;}
+Str8 ShaderBlend     (Int skin, Int color, Int layout, Int bump_mode, Int reflect, Int light_map) {return S8+skin+color+layout+bump_mode+reflect+light_map;}
 Str8 ShaderEarlyZ    (Int skin) {return S8+skin;}
+Str8 ShaderEmissive  (Int skin, Int alpha_test, Int light_map) {return S8+skin+alpha_test+light_map;}
 Str8 ShaderFurBase   (Int skin, Int size, Int diffuse) {return S8+"Base"+skin+size+diffuse;}
 Str8 ShaderFurSoft   (Int skin, Int size, Int diffuse) {return S8+"Soft"+skin+size+diffuse;}
 Str8 ShaderOverlay   (Int skin, Int normal, Int layout) {return S8+skin+normal+layout;}
@@ -387,17 +387,6 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 }
 #endif
 
-#ifdef AMBIENT
-{
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Ambient", model, api, flag).New(src_path+"Ambient.cpp");
-
-   REPD(skin      , 2)
-   REPD(alpha_test, 2)
-   REPD(light_map , 2)
-      src.New(S, "VS", "PS")("SKIN", skin, "ALPHA_TEST", alpha_test, "LIGHT_MAP", light_map);
-}
-#endif
-
 #ifdef AMBIENT_OCCLUSION
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Ambient Occlusion", model, api, flag).New(src_path+"Ambient Occlusion.cpp");
@@ -422,12 +411,13 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Blend", model, api, flag).New(src_path+"Blend.cpp");
 
-   REPD(skin   , 2)
-   REPD(color  , 2)
-   REPD(layout , 3)
+   REPD(skin     , 2)
+   REPD(color    , 2)
+   REPD(layout   , 3)
    for(Int bump_mode=SBUMP_ZERO; bump_mode<=SBUMP_NORMAL; bump_mode++)
-   REPD(reflect, (bump_mode==SBUMP_ZERO) ? 1 : 2)
-      src.New(S, "VS", "PS")("SKIN", skin, "COLORS", color, "LAYOUT", layout, "BUMP_MODE", bump_mode)("REFLECT", reflect);
+   REPD(reflect  , (bump_mode==SBUMP_ZERO) ? 1 : 2)
+   REPD(light_map, 2)
+      src.New(S, "VS", "PS")("SKIN", skin, "COLORS", color, "LAYOUT", layout, "BUMP_MODE", bump_mode)("REFLECT", reflect, "LIGHT_MAP", light_map);
 }
 #endif
 
@@ -497,6 +487,17 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    for(Int layout=1; layout<=2; layout++)
    REPD(mode      , 3) // 0-default, 1-normals, 2-palette
       src.New("Decal", "Decal_VS", "Decal_PS")("FULLSCREEN", fullscreen, "LAYOUT", layout, "MODE", mode);
+}
+#endif
+
+#ifdef EMISSIVE
+{
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Emissive", model, api, flag).New(src_path+"Emissive.cpp");
+
+   REPD(skin      , 2)
+   REPD(alpha_test, 2)
+   REPD(light_map , 2)
+      src.New(S, "VS", "PS")("SKIN", skin, "ALPHA_TEST", alpha_test, "LIGHT_MAP", light_map);
 }
 #endif
 

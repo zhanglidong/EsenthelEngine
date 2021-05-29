@@ -22,7 +22,7 @@ inline void Area::drawObjAndTerrain()
          if(modes&IndexToFlag(RM_PALETTE )) PaletteObjects.add(&obj);
          if(modes&IndexToFlag(RM_PALETTE1))Palette1Objects.add(&obj);
          if(modes&IndexToFlag(RM_SOLID   ))   SolidObjects.add(&obj);
-         if(modes&IndexToFlag(RM_AMBIENT )) AmbientObjects.add(&obj);
+         if(modes&IndexToFlag(RM_EMISSIVE))EmissiveObjects.add(&obj);
          if(modes&IndexToFlag(RM_OUTLINE )) OutlineObjects.add(&obj);
          if(modes&IndexToFlag(RM_BEHIND  ))  BehindObjects.add(&obj);
       }

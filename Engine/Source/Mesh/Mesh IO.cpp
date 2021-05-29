@@ -17,7 +17,7 @@ XMaterial::XMaterial()
    flip_normal_y=false;
    technique    =MTECH_DEFAULT;
    color        =1;
-   ambient      =0;
+   emissive     =0;
    smooth       =0;
    reflect      =MATERIAL_REFLECT;
    glow         =0;
@@ -37,7 +37,7 @@ void XMaterial::createFrom(C Material &src)
    cull     =src.cull;
    technique=src.technique;
    color    =src.colorS();
-   ambient  =src.ambient;
+   emissive =src.emissive;
    smooth   =src.smooth;
    reflect  =src.reflect();
    glow     =src.glow;
@@ -58,7 +58,7 @@ void XMaterial::copyParamsTo(Material &mtrl)C
    mtrl.cull     =cull;
    mtrl.technique=technique;
    mtrl.colorS   (color);
-   mtrl.ambient  =ambient;
+   mtrl.emissive =emissive;
    mtrl.smooth   =smooth;
    mtrl.reflect  (reflect);
    mtrl.glow     =glow;
@@ -105,7 +105,7 @@ void XMaterial::fixPath(Str path)
 Bool XMaterial::save(File &f)C
 {
    f.cmpUIntV(0); // version
-   f<<cull<<flip_normal_y<<technique<<color<<ambient<<smooth<<reflect<<glow<<normal<<bump<<sss<<det_power<<det_scale<<uv_scale
+   f<<cull<<flip_normal_y<<technique<<color<<emissive<<smooth<<reflect<<glow<<normal<<bump<<sss<<det_power<<det_scale<<uv_scale
     <<color_map<<alpha_map<<bump_map<<glow_map<<light_map<<normal_map<<smooth_map<<metal_map<<detail_color_map<<detail_bump_map<<detail_normal_map<<detail_smooth_map
     <<name;
    return f.ok();
@@ -116,7 +116,7 @@ Bool XMaterial::load(File &f)
    {
       case 0:
       {
-         f>>cull>>flip_normal_y>>technique>>color>>ambient>>smooth>>reflect>>glow>>normal>>bump>>sss>>det_power>>det_scale>>uv_scale
+         f>>cull>>flip_normal_y>>technique>>color>>emissive>>smooth>>reflect>>glow>>normal>>bump>>sss>>det_power>>det_scale>>uv_scale
           >>color_map>>alpha_map>>bump_map>>glow_map>>light_map>>normal_map>>smooth_map>>metal_map>>detail_color_map>>detail_bump_map>>detail_normal_map>>detail_smooth_map
           >>name;
          if(f.ok())return true;

@@ -123,7 +123,7 @@ RendererClass::RendererClass() : material_color_l(null), highlight(null)
   _shader_param_changes=null;
    REPAO(_t_measures)=0;
   _t_last_measure=0;
-   REPAO(_t_reflection)=0; REPAO(_t_prepare)=0; REPAO(_t_solid)=0; REPAO(_t_overlay)=0; REPAO(_t_water)=0; REPAO(_t_light)=0; REPAO(_t_sky)=0; REPAO(_t_edge_detect)=0; REPAO(_t_blend)=0; REPAO(_t_palette)=0; REPAO(_t_behind)=0; REPAO(_t_rays)=0; REPAO(_t_refract)=0; REPAO(_t_volumetric)=0; REPAO(_t_post_process)=0; REPAO(_t_gpu_wait)=0;
+   REPAO(_t_reflection)=0; REPAO(_t_prepare)=0; REPAO(_t_solid)=0; REPAO(_t_overlay)=0; REPAO(_t_water)=0; REPAO(_t_light)=0; REPAO(_t_emissive)=0; REPAO(_t_sky)=0; REPAO(_t_edge_detect)=0; REPAO(_t_blend)=0; REPAO(_t_palette)=0; REPAO(_t_behind)=0; REPAO(_t_rays)=0; REPAO(_t_refract)=0; REPAO(_t_volumetric)=0; REPAO(_t_post_process)=0; REPAO(_t_gpu_wait)=0;
   _ctx=null;
 #endif
 
@@ -683,8 +683,7 @@ RendererClass& RendererClass::operator()(void (&render)())
       }
       if(waterPostLight())goto finished; MEASURE(_t_water[1])if(_t_measure)_t_water[1]+=water;
 
-      MEASURE(temp)
-
+      emissive  (); MEASURE(_t_emissive[1])
       sky       (); MEASURE(_t_sky[1])
       edgeDetect(); MEASURE(_t_edge_detect[1])
       blend     (); MEASURE(_t_blend[1])
@@ -1423,19 +1422,6 @@ void RendererClass::light()
       DrawLights();
       getLumRT(); // get in case we still haven't initialized it
 
-      // add ambient light from meshes
-      set(_lum, _ds, true);
-      D.alpha(ALPHA_ADD);
-      D.set3D(); mode(RM_AMBIENT); D.depth(true); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_LESS_EQUAL); // need to make sure we can apply meshes on existing depth
-      SortAmbientInstances();
-      REPS(_eye, _eye_num)
-      {
-         setEyeViewportCam();
-         DrawAmbientInstances(); _render();
-      }
-      ClearAmbientInstances();
-      D.set2D(); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_DEFAULT);
-
       // light buffer is ready so we can combine it with color
       Bool ao=(_ao!=null), env=(D.envMap()!=null), cel_shade=(cel_shade_palette!=null), night_shade=(D.nightShadeColorD().max()>EPS_COL8_NATIVE), glow=(_has_glow && _col->hwTypeInfo().a); // process glow only if some object reported it and we actually have alpha channel in RT (otherwise glow could be always 1.0)
       ImageRTPtr src=_col; // can't read and write to the same RT
@@ -1566,6 +1552,22 @@ Bool RendererClass::waterPostLight()
   _water_spec.clear();
   _mirror_rt .clear();
    return false;
+}
+void RendererClass::emissive()
+{
+#if SUPPORT_EMISSIVE
+   set(_col, _ds, true);
+   D.alpha(ALPHA_ADD);
+   D.set3D(); D.depthWrite(false); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_LESS_EQUAL); D.depth(true); mode(RM_EMISSIVE); // need to make sure we can apply meshes on existing depth
+   SortEmissiveInstances();
+   REPS(_eye, _eye_num)
+   {
+      setEyeViewportCam();
+      DrawEmissiveInstances(); _render();
+   }
+   ClearEmissiveInstances();
+   D.set2D(); D.depthWrite(true); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_DEFAULT);
+#endif
 }
 void RendererClass::sky()
 {

@@ -2102,7 +2102,7 @@
     <ClCompile Include="Source\Shaders\Cubic.cpp">
       <Filter>Source\Shaders</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Shaders\Ambient.cpp">
+    <ClCompile Include="Source\Shaders\Emissive.cpp">
       <Filter>Source\Shaders\3D</Filter>
     </ClCompile>
     <ClCompile Include="Source\Shaders\Behind.cpp">

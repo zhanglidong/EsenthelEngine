@@ -9,7 +9,7 @@ struct XMaterial // Material stored in external formats
                   flip_normal_y; // if flip normal map Y channel
    MATERIAL_TECHNIQUE technique; // material technique
    Vec4               color    ; // color          (0,0,0,0) .. (1,1,1,1), default=(1,1,1,1)
-   Vec                ambient  ; // ambient          (0,0,0) .. (1,1,1)  , default=(0,0,0)
+   Vec                emissive ; // emissive         (0,0,0) .. (1,1,1)  , default=(0,0,0)
    Flt                smooth   , // smoothness             0 .. 1        , default=0
                       reflect  , // reflectivity           0 .. 1        , default=MATERIAL_REFLECT
                       glow     , // glow amount            0 .. 1        , default=0

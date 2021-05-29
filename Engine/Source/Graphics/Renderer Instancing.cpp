@@ -111,7 +111,7 @@ Memc<      ShaderMaterial            >       ShaderMaterials;
 Memc<      ShaderMaterialMesh        >       ShaderMaterialMeshes;
 Memc< SolidShaderMaterialMeshInstance>  SolidShaderMaterialMeshInstances;
 Memc<ShadowShaderMaterialMeshInstance> ShadowShaderMaterialMeshInstances;
-Memc<                 AmbientInstance>                  AmbientInstances;
+Memc<                EmissiveInstance>                 EmissiveInstances;
 
 Memc<     SkeletonShader                    > SkeletonShaders;
 Memc<     SkeletonBlendShader               > SkeletonBlendShaders;
@@ -120,12 +120,12 @@ Memc<     SkeletonShaderMaterialMeshInstance> SkeletonShadowShaderMaterialMeshIn
 Memc<SkeletonSolidShaderMaterialMeshInstance>  SkeletonSolidShaderMaterialMeshInstances;
 Memc<SkeletonBlendShaderMaterialMeshInstance>  SkeletonBlendShaderMaterialMeshInstances;
      SkeletonInstances                         SkeletonSolidInstances, SkeletonShadowInstances;
-Memc<SkeletonAmbientInstance                >  SkeletonAmbientInstances;
+Memc<SkeletonEmissiveInstance               >  SkeletonEmissiveInstances;
 
 BlendInstancesClass BlendInstances;
 //ClothInstances      SolidClothInstances, ShadowClothInstances;
 
-GameObjects PaletteObjects, Palette1Objects, OverlayObjects, SolidObjects, AmbientObjects, OutlineObjects, BehindObjects;
+GameObjects PaletteObjects, Palette1Objects, OverlayObjects, SolidObjects, EmissiveObjects, OutlineObjects, BehindObjects;
 GameAreas   PaletteAreas  , Palette1Areas;
 /******************************************************************************/
 #if 0 // this doesn't work, because we need to adjust ViewMatrix and not ProjMatrix (for example Shadows in Forward Renderer will not work, because VS_PS.pos in shaders depends on ViewMatrix only, it affects shadows, and reflections, etc.)
@@ -440,59 +440,59 @@ void DrawSolidInstances()
 /******************************************************************************/
 // AMBIENT
 /******************************************************************************/
-static Int Compare(C AmbientInstance &a, C AmbientInstance &b)
+static Int Compare(C EmissiveInstance &a, C EmissiveInstance &b)
 {
 #if SUPPORT_MATERIAL_CHANGE_IN_RENDERING
-   if(Int c=ComparePtr(a.shader                       , b.shader                       ))return c;
-   if(Int c=ComparePtr(a.material                     , b.material                     ))return c;
+   if(Int c=ComparePtr(a.shader                        , b.shader                        ))return c;
+   if(Int c=ComparePtr(a.material                      , b.material                      ))return c;
 #else
-   if(Int c=ComparePtr(a.variation->shader[RM_AMBIENT], b.variation->shader[RM_AMBIENT]))return c;
-   if(Int c=ComparePtr(a.variation->material()        , b.variation->material()        ))return c;
+   if(Int c=ComparePtr(a.variation->shader[RM_EMISSIVE], b.variation->shader[RM_EMISSIVE]))return c;
+   if(Int c=ComparePtr(a.variation->material()         , b.variation->material()         ))return c;
 #endif
-   if(Int c=ComparePtr(a.mesh                         , b.mesh                         ))return c;
+   if(Int c=ComparePtr(a.mesh                          , b.mesh                          ))return c;
    return 0;
 }
-static Int Compare(C SkeletonAmbientInstance &a, C SkeletonAmbientInstance &b)
+static Int Compare(C SkeletonEmissiveInstance &a, C SkeletonEmissiveInstance &b)
 {
-   if(Int c=ComparePtr(a.anim_skel                    , b.anim_skel                    ))return c;
+   if(Int c=ComparePtr(a.anim_skel                     , b.anim_skel                     ))return c;
 #if SUPPORT_MATERIAL_CHANGE_IN_RENDERING
-   if(Int c=ComparePtr(a.shader                       , b.shader                       ))return c;
-   if(Int c=ComparePtr(a.material                     , b.material                     ))return c;
+   if(Int c=ComparePtr(a.shader                        , b.shader                        ))return c;
+   if(Int c=ComparePtr(a.material                      , b.material                      ))return c;
 #else
-   if(Int c=ComparePtr(a.variation->shader[RM_AMBIENT], b.variation->shader[RM_AMBIENT]))return c;
-   if(Int c=ComparePtr(a.variation->material()        , b.variation->material()        ))return c;
+   if(Int c=ComparePtr(a.variation->shader[RM_EMISSIVE], b.variation->shader[RM_EMISSIVE]))return c;
+   if(Int c=ComparePtr(a.variation->material()         , b.variation->material()         ))return c;
 #endif
-   if(Int c=ComparePtr(a.mesh                         , b.mesh                         ))return c;
+   if(Int c=ComparePtr(a.mesh                          , b.mesh                          ))return c;
    return 0;
 }
-void SortAmbientInstances()
+void SortEmissiveInstances()
 {
-#if SUPPORT_MATERIAL_AMBIENT
-           AmbientInstances.sort(Compare);
-   SkeletonAmbientInstances.sort(Compare);
+#if SUPPORT_EMISSIVE
+           EmissiveInstances.sort(Compare);
+   SkeletonEmissiveInstances.sort(Compare);
 #endif
 }
-void DrawAmbientInstances() // !! this function should be safe to call 2 times in a row for both eyes, so can't do any clearing/unlinking that would break things !!
+void DrawEmissiveInstances() // !! this function should be safe to call 2 times in a row for both eyes, so can't do any clearing/unlinking that would break things !!
 {
-#if SUPPORT_MATERIAL_AMBIENT
+#if SUPPORT_EMISSIVE
    SetViewOffset();
    BeginPrecomputedViewMatrix();
    SetMatrixCount();
    DisableSkinning();
-   FREPA(AmbientInstances)
+   FREPA(EmissiveInstances)
    {
       // TODO: this could be optimized to group in state changes (shader->material->mesh->instance) and allow instancing, this is already sorted, we would just need to detect changes between this and next instance
-    C AmbientInstance     &instance = AmbientInstances[i];
+    C EmissiveInstance    &instance = EmissiveInstances[i];
     C MeshPart            &mesh     =*instance.mesh;
    #if SUPPORT_MATERIAL_CHANGE_IN_RENDERING
       Shader              &shader   =*instance.shader;
     C Material            &material =*instance.material;
    #else
     C MeshPart::Variation &variation= instance.Variation();
-      Shader              &shader   =*variation.shader[RM_AMBIENT];
+      Shader              &shader   =*variation.shader[RM_EMISSIVE];
     C Material            &material = variation.getMaterial();
    #endif
-      material.setAmbient(); D.cull(material.cull);
+      material.setEmissive(); D.cull(material.cull);
       SetViewMatrix        (instance.view_matrix         ); Sh.ViewMatrix->setChanged();
       SetShaderParamChanges(instance.shader_param_changes);
       shader.begin(); mesh.render.set().draw();
@@ -501,20 +501,20 @@ void DrawAmbientInstances() // !! this function should be safe to call 2 times i
 
    EndPrecomputedViewMatrix();
    EnableSkinning();
-   FREPA(SkeletonAmbientInstances)
+   FREPA(SkeletonEmissiveInstances)
    {
       // TODO: this could be optimized to group in state changes (shader->material->mesh->instance), this is already sorted, we would just need to detect changes between this and next instance
-    C SkeletonAmbientInstance &instance = SkeletonAmbientInstances[i];
-    C MeshPart                &mesh     =*instance.mesh;
+    C SkeletonEmissiveInstance &instance = SkeletonEmissiveInstances[i];
+    C MeshPart                 &mesh     =*instance.mesh;
    #if SUPPORT_MATERIAL_CHANGE_IN_RENDERING
-      Shader                  &shader   =*instance.shader;
-    C Material                &material =*instance.material;
+      Shader                   &shader   =*instance.shader;
+    C Material                 &material =*instance.material;
    #else
-    C MeshPart::Variation     &variation= instance.Variation();
-      Shader                  &shader   =*variation.shader[RM_AMBIENT];
-    C Material                &material = variation.getMaterial();
+    C MeshPart::Variation      &variation= instance.Variation();
+      Shader                   &shader   =*variation.shader[RM_EMISSIVE];
+    C Material                 &material = variation.getMaterial();
    #endif
-      material.setAmbient(); D.cull(material.cull);
+      material.setEmissive(); D.cull(material.cull);
       instance.anim_skel->setMatrix();
       SetShaderParamChanges(instance.shader_param_changes);
       shader.begin(); mesh.render.set().draw();
@@ -522,13 +522,13 @@ void DrawAmbientInstances() // !! this function should be safe to call 2 times i
    }
 #endif
 
-   FREPAO(AmbientObjects)->drawAmbient();
+   FREPAO(EmissiveObjects)->drawEmissive();
 }
-void ClearAmbientInstances()
+void ClearEmissiveInstances()
 {
-           AmbientInstances.clear();
-   SkeletonAmbientInstances.clear();
-           AmbientObjects  .clear();
+           EmissiveInstances.clear();
+   SkeletonEmissiveInstances.clear();
+           EmissiveObjects  .clear();
 }
 /******************************************************************************/
 // SHADOW
@@ -958,7 +958,7 @@ void ShutInstances()
                  ShaderMaterialMeshes       .del();
             SolidShaderMaterialMeshInstances.del();
            ShadowShaderMaterialMeshInstances.del();
-                            AmbientInstances.del();
+                           EmissiveInstances.del();
    SkeletonShaders                          .del();
    SkeletonBlendShaders                     .del();
    SkeletonShaderMaterials                  .del();
@@ -968,13 +968,13 @@ void ShutInstances()
    SkeletonBlendShaderMaterialMeshInstances .del();
    SkeletonSolidInstances                   .del();
    SkeletonShadowInstances                  .del();
-   SkeletonAmbientInstances                 .del();
+   SkeletonEmissiveInstances                .del();
 
    BlendInstances.del();
 
    //SolidClothInstances.del(); ShadowClothInstances.del();
 
-   PaletteObjects.del(); Palette1Objects.del(); OverlayObjects.del(); SolidObjects.del(); AmbientObjects.del(); OutlineObjects.del(); BehindObjects.del();
+   PaletteObjects.del(); Palette1Objects.del(); OverlayObjects.del(); SolidObjects.del(); EmissiveObjects.del(); OutlineObjects.del(); BehindObjects.del();
    PaletteAreas  .del(); Palette1Areas  .del();
 }
 void InitInstances()
@@ -1013,24 +1013,24 @@ void ClearInstances()
    REPAO(             ShaderMaterialMeshes).unlink();              ShaderMaterialMeshes       .clear(); // !! unlink after  'ShaderMaterials'      !!
                                                               SolidShaderMaterialMeshInstances.clear();
                                                              ShadowShaderMaterialMeshInstances.clear();
-                                                                              AmbientInstances.clear();
+                                                                             EmissiveInstances.clear();
 
-                                 SkeletonShaders                          .clear();
-                                 SkeletonBlendShaders                     .clear();
-                                 SkeletonShaderMaterials                  .clear();
-                                 SkeletonBlendShaderMaterials             .clear();
-                                 SkeletonShadowShaderMaterialMeshInstances.clear();
-                                 SkeletonSolidShaderMaterialMeshInstances .clear();
-                                 SkeletonBlendShaderMaterialMeshInstances .clear();
-   REPAO(SkeletonSolidInstances ).unlinkSolid (); SkeletonSolidInstances  .clear();
-   REPAO(SkeletonShadowInstances).unlinkShadow(); SkeletonShadowInstances .clear();
-                                                  SkeletonAmbientInstances.clear();
+                                                  SkeletonShaders                          .clear();
+                                                  SkeletonBlendShaders                     .clear();
+                                                  SkeletonShaderMaterials                  .clear();
+                                                  SkeletonBlendShaderMaterials             .clear();
+                                                  SkeletonShadowShaderMaterialMeshInstances.clear();
+                                                  SkeletonSolidShaderMaterialMeshInstances .clear();
+                                                  SkeletonBlendShaderMaterialMeshInstances .clear();
+   REPAO(SkeletonSolidInstances ).unlinkSolid (); SkeletonSolidInstances                   .clear();
+   REPAO(SkeletonShadowInstances).unlinkShadow(); SkeletonShadowInstances                  .clear();
+                                                  SkeletonEmissiveInstances                .clear();
 
    REPAO(BlendInstances).unlink(); BlendInstances.clear();
 
    //SolidClothInstances.clear(); ShadowClothInstances.clear();
 
-   PaletteObjects.clear(); Palette1Objects.clear(); OverlayObjects.clear(); SolidObjects.clear(); AmbientObjects.clear(); OutlineObjects.clear(); BehindObjects.clear();
+   PaletteObjects.clear(); Palette1Objects.clear(); OverlayObjects.clear(); SolidObjects.clear(); EmissiveObjects.clear(); OutlineObjects.clear(); BehindObjects.clear();
    PaletteAreas  .clear(); Palette1Areas  .clear();
 
 #if DEBUG && 0

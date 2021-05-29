@@ -399,7 +399,7 @@ BUFFER_END
 struct MaterialClass // this is used when a MeshPart has only one material
 {
    VecH4 color; // !! color must be listed first because ShaderParam handle for setting 'Material.color' is set from the entire Material object pointer !!
-   VecH  ambient;
+   VecH  emissive;
    Half  smooth,
          reflect_mul, reflect_add,
          glow,

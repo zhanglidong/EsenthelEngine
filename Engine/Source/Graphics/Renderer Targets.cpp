@@ -255,6 +255,7 @@ void RendererClass::update()
         _t_overlay     [0]=_t_overlay     [1]*mul;            _t_overlay     [1]=0;
         _t_water       [0]=_t_water       [1]*mul;            _t_water       [1]=0;
         _t_light       [0]=_t_light       [1]*mul;            _t_light       [1]=0;
+        _t_emissive    [0]=_t_emissive    [1]*mul;            _t_emissive    [1]=0;
         _t_sky         [0]=_t_sky         [1]*mul;            _t_sky         [1]=0;
         _t_edge_detect [0]=_t_edge_detect [1]*mul;            _t_edge_detect [1]=0;
         _t_blend       [0]=_t_blend       [1]*mul;            _t_blend       [1]=0;

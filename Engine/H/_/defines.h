@@ -179,8 +179,8 @@ ASSERT(SIZE(Char8)==1); // size of Char8 must be 1 byte
 /******************************************************************************/
 // Rendering
 #define TILE_BASED_GPU                       MOBILE // assume all mobile GPU's are tile-based
-#define SUPPORT_EARLY_Z                      (!TILE_BASED_GPU) // disable on tile-based GPU's because it's discouraged by PowerVR, Mali, ..
-#define SUPPORT_MATERIAL_AMBIENT             1
+#define SUPPORT_EARLY_Z                      (!TILE_BASED_GPU) // disable on tile-based GPU's because it's discouraged by Mali, PowerVR, ..
+#define SUPPORT_EMISSIVE                     1
 #define COUNT_MATERIAL_USAGE                 0 // never use "DEBUG" here, because it affects Material class size/members, which needs to remain constant
 #define SUPPORT_MATERIAL_CHANGE_IN_RENDERING 0
 #define SUPPORT_MLAA                         0

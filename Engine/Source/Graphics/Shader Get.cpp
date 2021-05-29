@@ -77,10 +77,10 @@ static Int BumpMode(C Material &material, MESH_FLAG mesh_flag)
    }
    return SBUMP_ZERO;
 }
-static Bool Detail     (C Material &material) {return  material.detail_map && material.det_power>EPS_COL8;}
-static Bool Macro      (C Material &material) {return  material. macro_map;}
-static Bool Reflect    (C Material &material) {return (material.base_2 ? material.reflect_mul : 0)+material.reflect_add+material.smooth>EPS_COL8;} // #MaterialTextureLayout reflect_mul is multiplied with metal texture which is stored in base_2
-static Int  AmbientMode(C Material &material) {return (material.ambient.max()>EPS_COL8_NATIVE) ? material.light_map ? 2 : 1 : 0;}
+static Bool Detail      (C Material &material) {return  material.detail_map && material.det_power>EPS_COL8;}
+static Bool Macro       (C Material &material) {return  material. macro_map;}
+static Bool Reflect     (C Material &material) {return (material.base_2 ? material.reflect_mul : 0)+material.reflect_add+material.smooth>EPS_COL8;} // #MaterialTextureLayout reflect_mul is multiplied with metal texture which is stored in base_2
+static Int  EmissiveMode(C Material &material) {return (material.emissive.max()>EPS_COL8_NATIVE) ? material.light_map ? 2 : 1 : 0;}
 
 static MESH_FLAG FlagHeightmap(MESH_FLAG mesh_flag, Bool heightmap)
 {
@@ -117,17 +117,17 @@ void DefaultShaders::init(C Material *material[4], MESH_FLAG mesh_flag, Int lod_
    color    =FlagTest(mesh_flag, VTX_COLOR);
    size     =FlagTest(mesh_flag, VTX_SIZE );
 
-   layout=Layout(*m); bump=BumpMode(*m, mesh_flag); detail=Detail(*m); macro=Macro(*m); reflect=Reflect(*m); ambient=AmbientMode(*m);
+   layout=Layout(*m); bump=BumpMode(*m, mesh_flag); detail=Detail(*m); macro=Macro(*m); reflect=Reflect(*m); emissive=EmissiveMode(*m);
    if(material && material[1]) // && (mesh_flag&VTX_MATERIAL)) we must always return a different shader even when there's no VTX_MATERIAL component, because we need a different shader for multi-material parts that have 'umm', as they operate on 'MultiMaterialShaderDraws' and not 'ShaderDraws', otherwise crash or memory corruption may occur, because 'ShaderBase.shader_index' would point to wrong container
    {
-      materials++; MAX(layout, Layout(*material[1])); MAX(bump, BumpMode(*material[1], mesh_flag)); detail|=Detail(*material[1]); macro|=Macro(*material[1]); reflect|=Reflect(*material[1]); MAX(ambient, AmbientMode(*material[1]));
+      materials++; MAX(layout, Layout(*material[1])); MAX(bump, BumpMode(*material[1], mesh_flag)); detail|=Detail(*material[1]); macro|=Macro(*material[1]); reflect|=Reflect(*material[1]); MAX(emissive, EmissiveMode(*material[1]));
       if(material[2])
       {
-         materials++; MAX(layout, Layout(*material[2])); MAX(bump, BumpMode(*material[2], mesh_flag)); detail|=Detail(*material[2]); macro|=Macro(*material[2]); reflect|=Reflect(*material[2]); MAX(ambient, AmbientMode(*material[2]));
+         materials++; MAX(layout, Layout(*material[2])); MAX(bump, BumpMode(*material[2], mesh_flag)); detail|=Detail(*material[2]); macro|=Macro(*material[2]); reflect|=Reflect(*material[2]); MAX(emissive, EmissiveMode(*material[2]));
       #if MAX_MTRLS>=4
          if(material[3])
          {
-            materials++; MAX(layout, Layout(*material[3])); MAX(bump, BumpMode(*material[3], mesh_flag)); detail|=Detail(*material[3]); macro|=Macro(*material[3]); reflect|=Reflect(*material[3]); MAX(ambient, AmbientMode(*material[3]));
+            materials++; MAX(layout, Layout(*material[3])); MAX(bump, BumpMode(*material[3], mesh_flag)); detail|=Detail(*material[3]); macro|=Macro(*material[3]); reflect|=Reflect(*material[3]); MAX(emissive, EmissiveMode(*material[3]));
          }
       #endif
       }
@@ -140,10 +140,10 @@ void DefaultShaders::init(C Material *material[4], MESH_FLAG mesh_flag, Int lod_
    if(!D.texMacro    () || lod_index<=0 || skin || !heightmap)macro =false; // disable macro  for LODs=0, skin, !heightmaps
    if(!D.texDetailLOD() && lod_index> 0                      )detail=false; // disable detail for LODs>0
    if(                     lod_index> 0 || layout<2          )MIN(bump, SBUMP_NORMAL); // limit to normal mapping for LODs>0 and layout<2 (no bump channel)
-   if(!tex                                                   ){layout=0; detail=macro=false; MIN(ambient, 1);} // disable all textures if we don't have texcoords
+   if(!tex                                                   ){layout=0; detail=macro=false; MIN(emissive, 1);} // disable all textures if we don't have texcoords
    if(!normal || !D.envMap()                                 )reflect=false; // reflection requires vtx normals
    if(materials>1                                            )MAX(layout, 1); // multi-materials currently don't support 0 textures
-   if(materials>1 || heightmap                               )ambient=0; // multi-materials and heightmaps currently don't support ambient
+   if(materials>1 || heightmap                               )emissive=0; // multi-materials and heightmaps currently don't support emissive
 
    skin             =(FlagAll(mesh_flag, VTX_SKIN)           && materials==1 &&              !heightmap                             );
    fur              =(normal && tex                          && materials==1 &&              !heightmap && m->technique==MTECH_FUR  ); // this requires tex coordinates, but not a material texture, we can do fur with just material color and 'FurCol'
@@ -158,8 +158,8 @@ void DefaultShaders::init(C Material *material[4], MESH_FLAG mesh_flag, Int lod_
    tesselate        =(normal && (lod_index<=0) && D.shaderModel()>=SM_5 && D.tesselation() && (!heightmap || D.tesselationHeightmap()));
    fx               =(grass ? (m->hasGrass2D() ? FX_GRASS_2D : FX_GRASS_3D) : leaf ? (m->hasLeaf2D() ? (size ? FX_LEAFS_2D : FX_LEAF_2D) : (size ? FX_LEAFS_3D : FX_LEAF_3D)) : FX_NONE);
 
-   if(bump==SBUMP_ZERO){/*materials=1; can't return same shader for multi/single*/ layout=0; alpha_test=detail=macro=mtrl_blend=heightmap=false; fx=FX_NONE; MIN(ambient, 1);} // shaders with SBUMP_ZERO currently are very limited
-   if(fx){detail=macro=tesselate=false; MIN(bump, SBUMP_NORMAL); ambient=0;} // shaders with effects currently don't support detail/macro/tesselate/fancy bump/ambient
+   if(bump==SBUMP_ZERO){/*materials=1; can't return same shader for multi/single*/ layout=0; alpha_test=detail=macro=mtrl_blend=heightmap=false; fx=FX_NONE; MIN(emissive, 1);} // shaders with SBUMP_ZERO currently are very limited
+   if(fx){detail=macro=tesselate=false; MIN(bump, SBUMP_NORMAL); emissive=0;} // shaders with effects currently don't support detail/macro/tesselate/fancy bump/emissive
 }
 Shader* DefaultShaders::EarlyZ()C
 {
@@ -179,10 +179,15 @@ Shader* DefaultShaders::Solid(Bool mirror)C
    }
    return null;
 }
-Shader* DefaultShaders::Ambient()C
+Shader* DefaultShaders::Overlay()C
 {
-#if SUPPORT_MATERIAL_AMBIENT
-   if(valid && !alpha_blend && ambient)return ShaderFiles("Ambient")->get(ShaderAmbient(skin, alpha_test, ambient-1)); // (ambient==2) ? 1 : 0
+   if(valid && !fx)return ShaderFiles("Tattoo")->get(ShaderTattoo(skin, tesselate));
+   return null;
+}
+Shader* DefaultShaders::Emissive()C
+{
+#if SUPPORT_EMISSIVE
+   if(valid && !alpha_blend && emissive)return ShaderFiles("Emissive")->get(ShaderEmissive(skin, alpha_test, emissive-1)); // for alpha_blend emissive is in the blend shader, light_map=(emissive==2) ? 1 : 0
 #endif
    return null;
 }
@@ -209,29 +214,24 @@ Shader* DefaultShaders::Shadow()C
 Shader* DefaultShaders::Blend()C
 {
    if(valid && blend) // "!blend" here will return null so BLST can be used in 'drawBlend'
-      return ShaderFiles("Blend")->get(ShaderBlend(skin, color, layout, Min(bump, SBUMP_NORMAL), reflect)); // blend currently supports only up to normal mapping
-   return null;
-}
-Shader* DefaultShaders::Overlay()C
-{
-   if(valid && !fx)return ShaderFiles("Tattoo")->get(ShaderTattoo(skin, tesselate));
+      return ShaderFiles("Blend")->get(ShaderBlend(skin, color, layout, Min(bump, SBUMP_NORMAL), reflect, emissive>1)); // blend currently supports only up to normal mapping
    return null;
 }
 Shader* DefaultShaders::get(RENDER_MODE mode)C
 {
    switch(mode)
    {
-      default        : return null;
-      case RM_EARLY_Z: return EarlyZ();
-      case RM_SOLID  : return Solid();
-      case RM_SOLID_M: return Solid(true);
-      case RM_AMBIENT: return Ambient();
-      case RM_OUTLINE: return Outline();
-      case RM_BEHIND : return Behind();
-      case RM_FUR    : return Fur();
-      case RM_SHADOW : return Shadow();
-      case RM_BLEND  : return Blend();
-      case RM_OVERLAY: return Overlay();
+      default         : return null;
+      case RM_EARLY_Z : return EarlyZ();
+      case RM_SOLID   : return Solid();
+      case RM_SOLID_M : return Solid(true);
+      case RM_OVERLAY : return Overlay();
+      case RM_EMISSIVE: return Emissive();
+      case RM_OUTLINE : return Outline();
+      case RM_BEHIND  : return Behind();
+      case RM_FUR     : return Fur();
+      case RM_SHADOW  : return Shadow();
+      case RM_BLEND   : return Blend();
    }
 }
 FRST* DefaultShaders::Frst()C
@@ -247,7 +247,7 @@ FRST* DefaultShaders::Frst()C
       key.layout    =layout;
       key.alpha_test=alpha_test;
       key.reflect   =reflect;
-      key.light_map =(ambient>1);
+      key.light_map =(emissive>1);
       key.detail    =(detail && SUPPORT_FORWARD_DETAIL);
       key.color     =color;
       key.mtrl_blend=mtrl_blend;
@@ -275,7 +275,7 @@ BLST* DefaultShaders::Blst()C
       key.alpha_test=alpha_test;
       key.alpha     =alpha;
       key.reflect   =reflect;
-      key.light_map =(ambient>1);
+      key.light_map =(emissive>1);
       key.skin      =skin;
       key.fx        =fx;
       return Blsts(key);
@@ -286,16 +286,16 @@ void DefaultShaders::set(Shader *shader[RM_SHADER_NUM], FRST **frst, BLST **blst
 {
    if(shader)
    {
-      shader[RM_EARLY_Z]=EarlyZ();
-      shader[RM_SOLID  ]=Solid();
-      shader[RM_SOLID_M]=Solid(true);
-      shader[RM_AMBIENT]=Ambient();
-      shader[RM_OUTLINE]=Outline();
-      shader[RM_BEHIND ]=Behind();
-      shader[RM_FUR    ]=Fur();
-      shader[RM_SHADOW ]=Shadow();
-      shader[RM_BLEND  ]=Blend();
-      shader[RM_OVERLAY]=Overlay();
+      shader[RM_EARLY_Z ]=EarlyZ();
+      shader[RM_SOLID   ]=Solid();
+      shader[RM_SOLID_M ]=Solid(true);
+      shader[RM_OVERLAY ]=Overlay();
+      shader[RM_EMISSIVE]=Emissive();
+      shader[RM_OUTLINE ]=Outline();
+      shader[RM_BEHIND  ]=Behind();
+      shader[RM_FUR     ]=Fur();
+      shader[RM_SHADOW  ]=Shadow();
+      shader[RM_BLEND   ]=Blend();
    }
    if(frst)*frst=Frst();
    if(blst)*blst=Blst();

@@ -435,7 +435,7 @@ struct FBX
             if(FbxSurfacePhong *phong=FbxCast<FbxSurfacePhong>(mtrl))
             {
                xm=&materials.New(); ee_mtrl_to_fbx_mtrl.add(mtrl);
-               FbxDouble3 amb  =phong->Ambient           ; //xm->ambient   .set(amb[0], amb[1], amb[2]);
+               FbxDouble3 amb  =phong->Ambient           ; //xm->emissive  .set(amb[0], amb[1], amb[2]);
                FbxDouble3 dif  =phong->Diffuse           ; xm->color.xyz.set(dif[0], dif[1], dif[2]);
                FbxDouble  alpha=phong->TransparencyFactor; xm->color.w=1-alpha;
                FbxDouble3 spec =phong->Specular          ; //xm->color.xyz.set(dif[0], dif[1], dif[2]);
@@ -448,7 +448,7 @@ struct FBX
             if(FbxSurfaceLambert *lambert=FbxCast<FbxSurfaceLambert>(mtrl))
             {
                xm=&materials.New(); ee_mtrl_to_fbx_mtrl.add(mtrl);
-               FbxDouble3 amb  =lambert->Ambient           ; //xm->ambient   .set(amb[0], amb[1], amb[2]);
+               FbxDouble3 amb  =lambert->Ambient           ; //xm->emissive  .set(amb[0], amb[1], amb[2]);
                FbxDouble3 dif  =lambert->Diffuse           ; xm->color.xyz.set(dif[0], dif[1], dif[2]);
                FbxDouble  alpha=lambert->TransparencyFactor; xm->color.w=1-alpha;
                FbxDouble3 glow =lambert->Emissive          ; //xm->glow=Max(glow[0], glow[1], glow[2]);

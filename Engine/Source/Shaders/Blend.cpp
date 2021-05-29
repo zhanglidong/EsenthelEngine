@@ -2,14 +2,14 @@
 #include "!Header.h"
 #include "Sky.h"
 /******************************************************************************
-SKIN, COLORS, LAYOUT, BUMP_MODE, REFLECT
+SKIN, COLORS, LAYOUT, BUMP_MODE, REFLECT, LIGHT_MAP
 /******************************************************************************/
 #ifndef PER_PIXEL
 #define PER_PIXEL 1
 #endif
 #define HEIGHTMAP    0
 #define TESSELATE    0
-#define SET_TEX      (LAYOUT || BUMP_MODE>SBUMP_FLAT)
+#define SET_TEX      (LAYOUT || BUMP_MODE>SBUMP_FLAT || LIGHT_MAP)
 #define VTX_REFLECT  (REFLECT && !PER_PIXEL && BUMP_MODE<=SBUMP_FLAT) // require !PER_PIXEL because even without normal maps (SBUMP_FLAT) the quality suffers
 #define SET_POS      (REFLECT || TESSELATE)
 #define PIXEL_NORMAL (REFLECT) // if calculate normal in the pixel shader
@@ -171,6 +171,7 @@ VecH4 PS
    VecH reflect_col=ReflectCol       (reflect, I.color.rgb, inv_metal); // calc 'reflect_col' from unlit color
 
    I.color.rgb=I.color.rgb*Diffuse(inv_metal);
+
 #if REFLECT // reflection
    Vec eye_dir=Normalize(I.pos);
    #if VTX_REFLECT
@@ -179,6 +180,12 @@ VecH4 PS
       Vec reflect_dir=ReflectDir(eye_dir, nrm);
    #endif
    I.color.rgb+=ReflectTex(reflect_dir, smooth)*EnvColor*ReflectEnv(smooth, reflect, reflect_col, -Dot(nrm, eye_dir), false);
+#endif
+
+#if LIGHT_MAP
+   I.color.rgb+=Material.emissive*Tex(Lum, I.tex).rgb;
+#else
+   I.color.rgb+=Material.emissive;
 #endif
 
    outAlpha=I.color.a;

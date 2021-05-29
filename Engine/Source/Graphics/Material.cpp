@@ -91,8 +91,8 @@ Flt  MaterialParams::reflectMax(                )C {Flt div=(1-reflect_add); ret
 /******************************************************************************/
 Material::Material()
 {
-   color_l.set(1, 1, 1, 1);
-   ambient.set(0, 0, 0);
+   color_l .set(1, 1, 1, 1);
+   emissive.set(0, 0, 0);
    smooth   =0;
    reflect  (MATERIAL_REFLECT);
    glow     =0;
@@ -368,17 +368,17 @@ void Material::setSolid()C
    #endif
    }
 }
-void Material::setAmbient()C
+void Material::setEmissive()C
 {
    if(MaterialLast!=this)
    {
-      MaterialLast=this;
-    //MaterialLast4[0]=null; not needed since multi materials not rendered in ambient mode
+      MaterialLast    =this;
+      MaterialLast4[0]=null; // because they use the same shader images
 
       // textures needed for alpha-test #MaterialTextureLayout
       Sh.Col[0]  ->set(base_0   ());
       Sh.Lum     ->set(light_map());
-      Sh.Material->set<MaterialParams>(T); // params needed for alpha-test and ambient
+      Sh.Material->set<MaterialParams>(T); // params needed for alpha-test and emissive
    #if !LINEAR_GAMMA
       Renderer.material_color_l->set(colorS());
    #endif
@@ -490,7 +490,7 @@ void Material::setAuto()C
       case RM_SOLID   :
       case RM_SOLID_M : setSolid(); break;
 
-      case RM_AMBIENT : setAmbient(); break;
+      case RM_EMISSIVE: setEmissive(); break;
 
       case RM_FUR     :
       case RM_CLOUD   :
@@ -581,7 +581,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 10:
       {
-         f.getMulti(cull, technique)>>color_l>>ambient>>smooth>>reflect>>glow>>normal>>bump>>det_power>>det_scale>>uv_scale;
+         f.getMulti(cull, technique)>>color_l>>emissive>>smooth>>reflect>>glow>>normal>>bump>>det_power>>det_scale>>uv_scale;
          f.getStr(temp);     base_0.require(temp, path);
          f.getStr(temp);     base_1.require(temp, path);
          f.getStr(temp);     base_2.require(temp, path); if(Is(temp))T.reflect(0, reflect);else T.reflect(reflect, 1);
@@ -592,7 +592,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 9:
       {
-         f.getMulti(cull, technique)>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect; colorS(color_l);
+         f.getMulti(cull, technique)>>color_l>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect; colorS(color_l);
          f.getStr(temp);     base_0.require(temp, path);
          f.getStr(temp);     base_1.require(temp, path);
                              base_2=null;
@@ -607,7 +607,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 8:
       {
-         f.getMulti(cull, technique)>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect; colorS(color_l);
+         f.getMulti(cull, technique)>>color_l>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect; colorS(color_l);
          f._getStr1(temp);     base_0.require(temp, path);
          f._getStr1(temp);     base_1.require(temp, path);
                                base_2=null;
@@ -622,7 +622,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 7:
       {
-         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
+         f>>color_l>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
          f._getStr(temp);     base_0.require(temp, path);
          f._getStr(temp);     base_1.require(temp, path);
                               base_2=null;
@@ -637,7 +637,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 6:
       {
-         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
+         f>>color_l>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
          f._getStr(temp);     base_0.require(temp, path);
          f._getStr(temp);     base_1.require(temp, path);
                               base_2=null;
@@ -651,7 +651,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 5:
       {
-         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
+         f>>color_l>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
          f._getStr(temp);     base_0.require(temp, path);
          f._getStr(temp);     base_1.require(temp, path);
                               base_2=null;
@@ -665,7 +665,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 4:
       {
-         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
+         f>>color_l>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
          f._getStr(temp);     base_0.require(temp, path);
          f._getStr(temp);     base_1.require(temp, path);
                               base_2=null;
@@ -678,7 +678,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 3:
       {
-         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull>>technique; uv_scale=1; colorS(color_l);
+         f>>color_l>>emissive>>smooth>>sss>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull>>technique; uv_scale=1; colorS(color_l);
              base_0.require(f._getStr8(), path);
              base_1.require(f._getStr8(), path);
              base_2=null;
@@ -692,7 +692,7 @@ Bool Material::loadData(File &f, CChar *path)
       case 2:
       {
          f.skip(1);
-         f>>color_l>>smooth>>sss>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull>>technique; ambient=0; uv_scale=1; colorS(color_l);
+         f>>color_l>>smooth>>sss>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull>>technique; emissive=0; uv_scale=1; colorS(color_l);
          if(technique==MTECH_FUR){det_power=color_l.w; color_l.w=1;}
              base_0.require(f._getStr8(), path);
              base_1.require(f._getStr8(), path);
@@ -707,7 +707,7 @@ Bool Material::loadData(File &f, CChar *path)
       case 1:
       {
          f.skip(1);
-         f>>color_l>>smooth>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull>>technique; sss=0; ambient=0; uv_scale=1; colorS(color_l);
+         f>>color_l>>smooth>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull>>technique; sss=0; emissive=0; uv_scale=1; colorS(color_l);
          if(technique==MTECH_FUR){det_power=color_l.w; color_l.w=1;}
              base_0.require(f._getStr8(), path);
              base_1.require(f._getStr8(), path);
@@ -722,7 +722,7 @@ Bool Material::loadData(File &f, CChar *path)
       case 0:
       {
          f.skip(1);
-         f>>color_l>>smooth>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull; sss=0; ambient=0; uv_scale=1; colorS(color_l);
+         f>>color_l>>smooth>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull; sss=0; emissive=0; uv_scale=1; colorS(color_l);
          switch(f.getByte())
          {
             default: technique=MTECH_DEFAULT   ; break;

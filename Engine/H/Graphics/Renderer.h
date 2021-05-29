@@ -18,8 +18,8 @@ enum RENDER_MODE : Byte // Rendering Mode, rendering phase of the rendering proc
 {
    RM_SOLID   , // solid
    RM_SOLID_M , // solid in mirrors/reflections
-   RM_AMBIENT , // ambient
    RM_OVERLAY , // overlay mode for rendering semi transparent surfaces onto solid meshes (like bullet holes)
+   RM_EMISSIVE, // emissive
    RM_OUTLINE , // here you can optionally draw outlines of meshes using 'Mesh.drawOutline'
    RM_BEHIND  , // here you can optionally draw meshes which are behind the visible meshes using 'Mesh.drawBehind'
    RM_FUR     , // fur
@@ -150,6 +150,7 @@ struct RendererClass // handles rendering
    Flt  timeOverlay    (       )C {return _t_overlay     [0];}
    Flt  timeWater      (       )C {return _t_water       [0];}
    Flt  timeLight      (       )C {return _t_light       [0];}
+   Flt  timeEmissive   (       )C {return _t_emissive    [0];}
    Flt  timeSky        (       )C {return _t_sky         [0];}
    Flt  timeEdgeDetect (       )C {return _t_edge_detect [0];}
    Flt  timeBlend      (       )C {return _t_blend       [0];}
@@ -196,6 +197,7 @@ struct RendererClass // handles rendering
    void waterPreLight     ();
    void light             ();
    Bool waterPostLight    ();
+   void emissive          ();
    void sky               ();
    void edgeDetect        ();
    void tAACheck          ();
@@ -330,7 +332,7 @@ private:
 
    Int                   _t_measures[2];
    Dbl                   _t_last_measure;
-   Flt                   _t_reflection[2], _t_prepare[2], _t_solid[2], _t_overlay[2], _t_water[2], _t_light[2], _t_sky[2], _t_edge_detect[2], _t_blend[2], _t_palette[2], _t_behind[2], _t_rays[2], _t_refract[2], _t_volumetric[2], _t_post_process[2], _t_gpu_wait[2];
+   Flt                   _t_reflection[2], _t_prepare[2], _t_solid[2], _t_overlay[2], _t_water[2], _t_light[2], _t_emissive[2], _t_sky[2], _t_edge_detect[2], _t_blend[2], _t_palette[2], _t_behind[2], _t_rays[2], _t_refract[2], _t_volumetric[2], _t_post_process[2], _t_gpu_wait[2];
 
    RendererClass();
 }extern

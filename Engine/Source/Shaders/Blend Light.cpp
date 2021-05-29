@@ -11,7 +11,7 @@
 #define LIGHT          1
 #define SHADOW         (SHADOW_MAPS>0)
 #define VTX_LIGHT      (LIGHT && !PER_PIXEL)
-#define AMBIENT_IN_VTX (VTX_LIGHT && !SHADOW && !LIGHT_MAP) // if stored per-vertex (in either 'vtx.col' or 'vtx.lum')
+#define AMBIENT_IN_VTX (VTX_LIGHT && !SHADOW) // if stored per-vertex (in either 'vtx.col' or 'vtx.lum')
 #define LIGHT_IN_COL   (VTX_LIGHT && !DETAIL && (NO_AMBIENT || !SHADOW) && !REFLECT) // can't mix light with vtx.col when REFLECT because for reflections we need unlit color
 #define FOG_IN_COL     (!REFLECT) // can't mix fog with vtx.col when REFLECT because for reflections we need unlit color
 #define USE_VEL        ALPHA_TEST
@@ -198,11 +198,8 @@ void VS
       VecH total_lum;
 
       // AMBIENT
-      if(HAS_AMBIENT && AMBIENT_IN_VTX)
-      {
-         total_lum=AmbientNSColor;
-         /*if(MATERIALS<=1 && FirstPass)*/total_lum+=Material.ambient;
-      }else total_lum=0;
+      if(HAS_AMBIENT && AMBIENT_IN_VTX)total_lum=AmbientNSColor;
+      else                             total_lum=0;
 
       // LIGHTS
       total_lum+=LightDir.color.rgb*Sat(Dot(nrm, LightDir.dir));
@@ -294,18 +291,8 @@ void PS
 
    // lighting
    VecH ambient;
-   if(HAS_AMBIENT && !AMBIENT_IN_VTX)
-   {
-      ambient=AmbientNSColor;
-      /*if(MATERIALS<=1 && FirstPass)*/
-      {
-      #if LIGHT_MAP
-         ambient+=Material.ambient*Tex(Lum, I.tex).rgb;
-      #else
-         ambient+=Material.ambient;
-      #endif
-      }
-   }else ambient=0;
+   if(HAS_AMBIENT && !AMBIENT_IN_VTX)ambient=AmbientNSColor;
+   else                              ambient=0;
 
    VecH total_lum,
         total_specular=0;
@@ -369,6 +356,15 @@ void PS
       I.col.rgb+=ReflectTex(reflect_dir, smooth)*EnvColor*ReflectEnv(smooth, reflect, reflect_col, -Dot(nrm, eye_dir), false);
    }
    #endif
+
+   /*if(MATERIALS<=1 && FirstPass)*/
+   {
+   #if LIGHT_MAP
+      I.col.rgb+=Material.emissive*Tex(Lum, I.tex).rgb;
+   #else
+      I.col.rgb+=Material.emissive;
+   #endif
+   }
 
 #if SET_FOG
    I.col.rgb*=I.fog_rev;
