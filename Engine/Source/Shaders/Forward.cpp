@@ -379,7 +379,7 @@ VecH4 PS
    //Half mac_blend; if(MACRO)mac_blend=LerpRS(MacroFrom, MacroTo, Length(I.pos))*MacroMax;
 
    // Reflect, Smooth, Bump, Glow !! DO THIS FIRST because it may modify 'I.material' which affects everything !!
-   VecH rsg; // reflect_smooth_glow
+   VecH refl_smth_glow;
    if(LAYOUT==2)
    {
       VecH4 ext0, ext1, ext2, ext3;
@@ -394,20 +394,20 @@ VecH4 PS
          if(MATERIALS>=3){I.material.z=MultiMaterialWeight(I.material.z, ext2.BUMP_CHANNEL); if(MATERIALS==3)I.material.xyz /=I.material.x+I.material.y+I.material.z;}
          if(MATERIALS>=4){I.material.w=MultiMaterialWeight(I.material.w, ext3.BUMP_CHANNEL); if(MATERIALS==4)I.material.xyzw/=I.material.x+I.material.y+I.material.z+I.material.w;}
       }
-                      {VecH rsg0=ext0.xyw*MultiMaterial0.rsg_mul+MultiMaterial0.rsg_add; if(DETAIL)rsg0.y+=det0.w; rsg =rsg0*I.material.x;} // #MaterialTextureLayoutDetail
-                      {VecH rsg1=ext1.xyw*MultiMaterial1.rsg_mul+MultiMaterial1.rsg_add; if(DETAIL)rsg1.y+=det1.w; rsg+=rsg1*I.material.y;}
-      if(MATERIALS>=3){VecH rsg2=ext2.xyw*MultiMaterial2.rsg_mul+MultiMaterial2.rsg_add; if(DETAIL)rsg2.y+=det2.w; rsg+=rsg2*I.material.z;}
-      if(MATERIALS>=4){VecH rsg3=ext3.xyw*MultiMaterial3.rsg_mul+MultiMaterial3.rsg_add; if(DETAIL)rsg3.y+=det3.w; rsg+=rsg3*I.material.w;}
+                      {VecH refl_smth_glow0=ext0.xyw*MultiMaterial0.refl_smth_glow_mul+MultiMaterial0.refl_smth_glow_add; if(DETAIL)refl_smth_glow0.y+=det0.w; refl_smth_glow =refl_smth_glow0*I.material.x;} // #MaterialTextureLayoutDetail
+                      {VecH refl_smth_glow1=ext1.xyw*MultiMaterial1.refl_smth_glow_mul+MultiMaterial1.refl_smth_glow_add; if(DETAIL)refl_smth_glow1.y+=det1.w; refl_smth_glow+=refl_smth_glow1*I.material.y;}
+      if(MATERIALS>=3){VecH refl_smth_glow2=ext2.xyw*MultiMaterial2.refl_smth_glow_mul+MultiMaterial2.refl_smth_glow_add; if(DETAIL)refl_smth_glow2.y+=det2.w; refl_smth_glow+=refl_smth_glow2*I.material.z;}
+      if(MATERIALS>=4){VecH refl_smth_glow3=ext3.xyw*MultiMaterial3.refl_smth_glow_mul+MultiMaterial3.refl_smth_glow_add; if(DETAIL)refl_smth_glow3.y+=det3.w; refl_smth_glow+=refl_smth_glow3*I.material.w;}
    }else
    {
-                      {VecH rsg0=MultiMaterial0.rsg_add; if(DETAIL)rsg0.y+=det0.w; rsg =rsg0*I.material.x;} // #MaterialTextureLayoutDetail
-                      {VecH rsg1=MultiMaterial1.rsg_add; if(DETAIL)rsg1.y+=det1.w; rsg+=rsg1*I.material.y;}
-      if(MATERIALS>=3){VecH rsg2=MultiMaterial2.rsg_add; if(DETAIL)rsg2.y+=det2.w; rsg+=rsg2*I.material.z;}
-      if(MATERIALS>=4){VecH rsg3=MultiMaterial3.rsg_add; if(DETAIL)rsg3.y+=det3.w; rsg+=rsg3*I.material.w;}
+                      {VecH refl_smth_glow0=MultiMaterial0.refl_smth_glow_add; if(DETAIL)refl_smth_glow0.y+=det0.w; refl_smth_glow =refl_smth_glow0*I.material.x;} // #MaterialTextureLayoutDetail
+                      {VecH refl_smth_glow1=MultiMaterial1.refl_smth_glow_add; if(DETAIL)refl_smth_glow1.y+=det1.w; refl_smth_glow+=refl_smth_glow1*I.material.y;}
+      if(MATERIALS>=3){VecH refl_smth_glow2=MultiMaterial2.refl_smth_glow_add; if(DETAIL)refl_smth_glow2.y+=det2.w; refl_smth_glow+=refl_smth_glow2*I.material.z;}
+      if(MATERIALS>=4){VecH refl_smth_glow3=MultiMaterial3.refl_smth_glow_add; if(DETAIL)refl_smth_glow3.y+=det3.w; refl_smth_glow+=refl_smth_glow3*I.material.w;}
    }
-   smooth =rsg.y;
-   reflect=rsg.x;
-   glow   =rsg.z;
+   smooth =refl_smth_glow.y;
+   reflect=refl_smth_glow.x;
+   glow   =refl_smth_glow.z;
 
    // Color + Detail + Macro !! do this second after modifying 'I.material' !! here Alpha is ignored for multi-materials
    VecH rgb;

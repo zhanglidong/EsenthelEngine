@@ -122,7 +122,7 @@ private:
    struct Multi
    {
       Vec4 color;
-      Vec  rsg_mul, rsg_add; // reflect, smooth, glow
+      Vec  refl_smth_glow_mul, refl_smth_glow_add;
       Flt  normal, bump, det_mul, det_add, det_inv, macro, // medium prec
            uv_scale, det_scale; // high prec
    }_multi;

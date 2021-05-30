@@ -298,22 +298,22 @@ Material& Material::validate() // #MaterialTextureLayout
       // base2
       if(base_2)
       {
-        _multi.rsg_mul.x=reflect_mul;
-        _multi.rsg_add.x=reflect_add;
+        _multi.refl_smth_glow_mul.x=reflect_mul;
+        _multi.refl_smth_glow_add.x=reflect_add;
 
-        _multi.rsg_mul.y=smooth;
-        _multi.rsg_add.y=0;
+        _multi.refl_smth_glow_mul.y=smooth;
+        _multi.refl_smth_glow_add.y=0;
 
-        _multi.rsg_mul.z=glow;
-        _multi.rsg_add.z=0;
+        _multi.refl_smth_glow_mul.z=glow;
+        _multi.refl_smth_glow_add.z=0;
 
         _multi.bump=bump;
       }else
       {
-        _multi.rsg_mul=0;
-        _multi.rsg_add.x=reflect_add;
-        _multi.rsg_add.y=smooth;
-        _multi.rsg_add.z=glow;
+        _multi.refl_smth_glow_mul=0;
+        _multi.refl_smth_glow_add.x=reflect_add;
+        _multi.refl_smth_glow_add.y=smooth;
+        _multi.refl_smth_glow_add.z=glow;
 
         _multi.bump=0;
       }

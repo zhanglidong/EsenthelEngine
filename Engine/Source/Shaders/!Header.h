@@ -416,7 +416,7 @@ BUFFER_END
 struct MultiMaterialClass // this is used when a MeshPart has multiple materials
 {
    VecH4 color;
-   VecH  rsg_mul, rsg_add;
+   VecH  refl_smth_glow_mul, refl_smth_glow_add;
    Half  normal, bump, det_mul, det_add, det_inv, macro;
    Flt   uv_scale, det_scale;
 };
