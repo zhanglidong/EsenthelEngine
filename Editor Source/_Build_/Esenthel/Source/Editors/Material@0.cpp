@@ -361,6 +361,7 @@ MaterialTech mtrl_techs[]=
    void MaterialRegion::DownsizeTexMobile(  MaterialRegion &mr, C Str &t) {mr.edit.downsize_tex_mobile=TextInt(t); mr.edit.downsize_tex_mobile_time.getUTC();}
    Str  MaterialRegion::TexQuality(C MaterialRegion &mr          ) {REPA(TexQualities)if(TexQualities[i].quality==mr.edit.tex_quality)return i; return S;}
    void MaterialRegion::TexQuality(  MaterialRegion &mr, C Str &t) {int i=TextInt(t); if(InRange(i, TexQualities))mr.texQuality(TexQualities[i].quality, false);}
+   void MaterialRegion::RGB1(MaterialRegion &mr) {mr.undos.set("rgb1"); mr.edit.color_s.xyz=1; mr.edit.color_time.getUTC(); mr.setChanged(); mr.toGui();}
    void MaterialRegion::RGB(MaterialRegion &mr)
    {
       mr.undos.set("brightness");
@@ -373,7 +374,18 @@ MaterialTech mtrl_techs[]=
       if(mr.blue ){mr.blue ->set(v.z, QUIET); rgb.z=mr.blue ->asFlt();}
       mr.edit.color_time.getUTC(); mr.setChanged();
    }
-   void MaterialRegion::RGB1(MaterialRegion &mr) {mr.undos.set("rgb1"); mr.edit.color_s.xyz=1; mr.edit.color_time.getUTC(); mr.setChanged(); mr.toGui();}
+   void MaterialRegion::Emissive(MaterialRegion &mr)
+   {
+      mr.undos.set("Emissive");
+      Vec2 d=0; int on=0, pd=0; REPA(MT)if(MT.b(i) && MT.guiObj(i)==&mr.emissive){d+=MT.ad(i); if(!MT.touch(i))Ms.freeze(); if(MT.bp(i))pd++;else on++;}
+      Vec &rgb=mr.edit.emissive; if(pd && !on){mr.mouse_edit_value=rgb; mr.mouse_edit_delta=0;} flt d_sum=d.sum(); if(mr.emit_red)d_sum*=mr.emit_red->mouse_edit_speed; mr.mouse_edit_delta+=d_sum;
+      flt  max=mr.mouse_edit_value.max(), lum=max+mr.mouse_edit_delta; if(lum<0){mr.mouse_edit_delta-=lum; lum=0;}
+      Vec  v  =mr.mouse_edit_value; if(max)v/=max;else v=1; v*=lum;
+      if(mr.emit_red  ){mr.emit_red  ->set(v.x, QUIET); rgb.x=mr.emit_red  ->asFlt();}
+      if(mr.emit_green){mr.emit_green->set(v.y, QUIET); rgb.y=mr.emit_green->asFlt();}
+      if(mr.emit_blue ){mr.emit_blue ->set(v.z, QUIET); rgb.z=mr.emit_blue ->asFlt();}
+      mr.edit.emissive_time.getUTC(); mr.setChanged();
+   }
    Str  MaterialRegion::Red(C MaterialRegion &mr          ) {return mr.edit.color_s.x;}
    void MaterialRegion::Red(  MaterialRegion &mr, C Str &t) {       mr.edit.color_s.x=TextFlt(t); mr.edit.color_time.getUTC();}
    Str  MaterialRegion::Green(C MaterialRegion &mr          ) {return mr.edit.color_s.y;}
@@ -706,9 +718,9 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       props.New().create("ReflectivityMax", MemberDesc(DATA_REAL).setFunc(ReflectMax, ReflectMax)).range(0, 1).desc("This value specifies the amount of Reflectivity that can be obtained from the Metal texture.\nIn most cases this value should be left at 1.");
       props.New().create("Glow"           , MemberDesc(DATA_REAL).setFunc(Glow      , Glow      )).range(0, 1);
 
-      props.New().create("Emissive Red"  , MemberDesc(DATA_REAL).setFunc(EmissiveR, EmissiveR)).range(0, 1);
-      props.New().create("Emissive Green", MemberDesc(DATA_REAL).setFunc(EmissiveG, EmissiveG)).range(0, 1);
-      props.New().create("Emissive Blue" , MemberDesc(DATA_REAL).setFunc(EmissiveB, EmissiveB)).range(0, 1);
+emit_red  =&props.New().create("Emit Red"  , MemberDesc(DATA_REAL).setFunc(EmissiveR, EmissiveR)).range(0, 1).mouseEditSpeed(0.4f);
+emit_green=&props.New().create("Emit Green", MemberDesc(DATA_REAL).setFunc(EmissiveG, EmissiveG)).range(0, 1).mouseEditSpeed(0.4f);
+emit_blue =&props.New().create("Emit Blue" , MemberDesc(DATA_REAL).setFunc(EmissiveB, EmissiveB)).range(0, 1).mouseEditSpeed(0.4f);
     //props.New();
     //props.New().create("Subsurf Scatter", MemberDesc(DATA_REAL).setFunc(SSS , SSS )).range(0, 1);
       props.New().create("Detail Scale"   , MemberDesc(DATA_REAL).setFunc(DetScale, DetScale)).range(0.01f, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
@@ -723,7 +735,8 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
 
       ts.reset().size=0.038f; ts.align.set(1, 0);
       Rect prop_rect=AddProperties(props, sub, 0, prop_height, 0.16f, &ts); REPAO(props).autoData(this).changed(Changed, PreChanged);
-      sub+=brightness.create(Rect_RU(red->textline.rect().left(), red->button.rect().w(), prop_height*2)).func(RGB, T).focusable(false).subType(BUTTON_TYPE_PROPERTY_VALUE); brightness.mode=BUTTON_CONTINUOUS;
+      sub+=emissive  .create(Rect_RU(emit_red->textline.rect().left(), emit_red->button.rect().w(), prop_height*2)).func(Emissive, T).focusable(false).subType(BUTTON_TYPE_PROPERTY_VALUE); emissive  .mode=BUTTON_CONTINUOUS;
+      sub+=brightness.create(Rect_RU(     red->textline.rect().left(),      red->button.rect().w(), prop_height*2)).func(RGB     , T).focusable(false).subType(BUTTON_TYPE_PROPERTY_VALUE); brightness.mode=BUTTON_CONTINUOUS;
       sub+=rgb_1.create(Rect_R(brightness.rect().left()-Vec2(0.01f, 0), prop_height, prop_height*2), "1").func(RGB1, T).focusable(false).desc("Set RGB to 1"); rgb_1.text_size/=2;
       tech.combobox.resize(Vec2(0.27f, 0)); // increase size
       tqi .combobox.resize(Vec2(0.12f, 0)); // increase size
@@ -737,7 +750,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
       sub+=texs.New().create(TEX_SMOOTH    , MEMBER(EditMaterial,     smooth_map), MEMBER(EditMaterial,     smooth_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Smooth"        , T);
       sub+=texs.New().create(TEX_METAL     , MEMBER(EditMaterial,      metal_map), MEMBER(EditMaterial,      metal_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Metal"         , T); i-=3;
       sub+=texs.New().create(TEX_GLOW      , MEMBER(EditMaterial,       glow_map), MEMBER(EditMaterial,       glow_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Glow"          , T);
-      sub+=texs.New().create(TEX_LIGHT     , MEMBER(EditMaterial,      light_map), MEMBER(EditMaterial,      light_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Light"         , T); i-=3;
+      sub+=texs.New().create(TEX_LIGHT     , MEMBER(EditMaterial,      light_map), MEMBER(EditMaterial,      light_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Emit\nLight"   , T); i-=3;
       sub+=texs.New().create(TEX_DET_COLOR , MEMBER(EditMaterial,   detail_color), MEMBER(EditMaterial,     detail_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Detail\nColor" , T);
       sub+=texs.New().create(TEX_DET_SMOOTH, MEMBER(EditMaterial,  detail_smooth), MEMBER(EditMaterial,     detail_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Detail\nSmooth", T); i-=3;
       sub+=texs.New().create(TEX_DET_BUMP  , MEMBER(EditMaterial,    detail_bump), MEMBER(EditMaterial,     detail_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Detail\nBump"  , T);
@@ -1192,7 +1205,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
          if(next.pd()){next.eat(); Proj.elmNext(elm_id    );}
       }
    }
-MaterialRegion::MaterialRegion() : elm_type(ELM_MTRL), auto_reload(true), min_zoom(0.48f), max_zoom(3), mouse_edit_delta(0), mouse_edit_value(0), light_angle(PI_4), red(null), green(null), blue(null), alpha(null), game(&temp), elm_id(UIDZero), elm(null), changed(false), undos(true) {}
+MaterialRegion::MaterialRegion() : elm_type(ELM_MTRL), auto_reload(true), min_zoom(0.48f), max_zoom(3), mouse_edit_delta(0), mouse_edit_value(0), light_angle(PI_4), red(null), green(null), blue(null), alpha(null), emit_red(null), emit_green(null), emit_blue(null), game(&temp), elm_id(UIDZero), elm(null), changed(false), undos(true) {}
 
 MaterialRegion::Texture::Texture() : mr(null) {}
 

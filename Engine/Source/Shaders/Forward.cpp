@@ -340,10 +340,18 @@ VecH4 PS
       #elif BUMP_MODE==SBUMP_FLAT
          nrmh=I.Nrm(); // can't add DETAIL normal because it would need 'I.mtrx'
       #else
-                   nrmh.xy =Tex(Nrm, I.tex).xy*Material.normal;
-         if(DETAIL)nrmh.xy+=det.xy;
-                   nrmh.z  =CalcZ(nrmh.xy);
-                   nrmh    =Transform(nrmh, I.mtrx);
+         #if 0
+                      nrmh.xy =Tex(Nrm, I.tex).xy*Material.normal;
+            if(DETAIL)nrmh.xy+=det.xy;
+                      nrmh.z  =CalcZ(nrmh.xy);
+                      nrmh    =Transform(nrmh, I.mtrx);
+         #else
+                      nrmh.xy =Tex(Nrm, I.tex).xy;
+                      nrmh.z  =CalcZ(nrmh.xy);
+                      nrmh.xy*=Material.normal;
+            if(DETAIL)nrmh.xy+=det.xy;
+                      nrmh    =Transform(nrmh, I.mtrx);
+         #endif
       #endif
    #endif
 

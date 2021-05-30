@@ -448,11 +448,18 @@ void PS
 #elif BUMP_MODE==SBUMP_FLAT
    nrm=Normalize(I.Nrm()); // can't add DETAIL normal because it would need 'I.mtrx'
 #else
-             nrm.xy =Tex(Nrm, I.tex).xy*Material.normal;
-   if(DETAIL)nrm.xy+=det.xy;
-             nrm.z  =CalcZ(nrm.xy);
-             nrm    =Normalize(Transform(nrm, I.mtrx));
-   // TODO: a better formula would be: nrm.xy=Tex(Nrm, I.tex).xy; nrm.z=CalcZ(nrm.xy); nrm.xy*=Material.normal; nrm=Normalize(Transform(nrm, I.mtrx)); however it gets more complicated/slower with DETAIL and multi-materials, we could do this if GPU's are super fast
+   #if 0 // lower quality, but compatible with multi-materials
+                nrm.xy =Tex(Nrm, I.tex).xy*Material.normal;
+      if(DETAIL)nrm.xy+=det.xy;
+                nrm.z  =CalcZ(nrm.xy);
+                nrm    =Normalize(Transform(nrm, I.mtrx));
+   #else // better quality
+                nrm.xy =Tex(Nrm, I.tex).xy;
+                nrm.z  =CalcZ(nrm.xy);
+                nrm.xy*=Material.normal; // alternatively this could be "nrm.z*=Material.normal_inv", with "normal_inv=1/Max(normal, HALF_EPS)" to avoid div by 0 and also big numbers which would be problematic for Halfs, however this would make detail nrm unproportional (too big/small compared to base nrm)
+      if(DETAIL)nrm.xy+=det.xy;
+                nrm    =Normalize(Transform(nrm, I.mtrx));
+   #endif
 #endif
 
 #else // MATERIALS>1
