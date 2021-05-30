@@ -3,11 +3,12 @@ class EditMaterial
 {
    MATERIAL_TECHNIQUE        tech=MTECH_DEFAULT;
    Edit.Material.TEX_QUALITY tex_quality=Edit.Material.MEDIUM;
-   bool                      flip_normal_y=false, smooth_is_rough=false, cull=true; // !! 'smooth_is_rough' is not yet saved !!
+   bool                      flip_normal_y=false, smooth_is_rough=false, cull=true;
    byte                      downsize_tex_mobile=0;
    Vec4                      color_s(1, 1, 1, 1);
    Vec                       emissive(0, 0, 0);
-   flt                       smooth=0, reflect_min=MATERIAL_REFLECT, reflect_max=1, glow=0, normal=0, bump=0,
+   flt                       smooth=0, // 0..1 without smooth_map, and -1..1 with smooth_map
+                             reflect_min=MATERIAL_REFLECT, reflect_max=1, glow=0, normal=0, bump=0,
                              uv_scale=1, det_scale=4, det_power=0.3;
    UID                       base_0_tex=UIDZero, base_1_tex=UIDZero, base_2_tex=UIDZero, detail_tex=UIDZero, macro_tex=UIDZero, light_tex=UIDZero;
    Str                       color_map, alpha_map, bump_map, normal_map, smooth_map, metal_map, glow_map,
@@ -21,6 +22,22 @@ class EditMaterial
                              color_time, emissive_time, smooth_time, reflect_time, normal_time, bump_time, glow_time, uv_scale_time, detail_time;
 
    // get
+   flt roughMul()C
+   {
+      if(smooth_map.is())
+      {
+         return;
+      }
+      return 0;
+   }
+   flt roughAdd()C
+   {
+      if(smooth_map.is())
+      {
+         return ;
+      }
+      return 1-smooth;
+   }
    bool hasBumpMap     ()C {return   bump_map.is() /*|| bump_from_color && color_map.is()*/;}
    bool hasNormalMap   ()C {return normal_map.is() || hasBumpMap();}
    bool hasDetailMap   ()C {return detail_color.is() || detail_bump.is() || detail_normal.is() || detail_smooth.is();}
@@ -29,14 +46,14 @@ class EditMaterial
    bool hasBase2Tex    ()C {return smooth_map.is() || metal_map.is() || hasBumpMap() || glow_map.is();} // #MaterialTextureLayout
    uint baseTex        ()C {return (color_map.is() ? BT_COLOR : 0)|(alpha_map.is() ? BT_ALPHA : 0)|(hasBumpMap () ? BT_BUMP : 0)|(hasNormalMap () ? BT_NORMAL : 0)|(smooth_map.is() ? BT_SMOOTH : 0)|(metal_map.is() ? BT_METAL : 0)|(glow_map.is() ? BT_GLOW : 0);}
    uint baseTexUsed    ()C {return (color_map.is() ? BT_COLOR : 0)|(usesTexAlpha() ? BT_ALPHA : 0)|(usesTexBump() ? BT_BUMP : 0)|(usesTexNormal() ? BT_NORMAL : 0)|(usesTexSmooth() ? BT_SMOOTH : 0)|(usesTexMetal() ? BT_METAL : 0)|(usesTexGlow() ? BT_GLOW : 0);}
-   bool usesTexColAlpha()C {return tech!=MTECH_DEFAULT                  && (color_map.is() || alpha_map.is());} // alpha may come from color
-   bool usesTexAlpha   ()C {return tech!=MTECH_DEFAULT                  &&  alpha_map.is();} // check only alpha
-   bool usesTexBump    ()C {return (bump       >EPS_MATERIAL_BUMP || 1) && hasBumpMap   ();} // always keep bump map because it can be used for multi-material per-pixel blending
-   bool usesTexNormal  ()C {return  normal     >EPS_COL                 && hasNormalMap ();}
-   bool usesTexSmooth  ()C {return  smooth     >EPS_COL                 && smooth_map.is();}
-   bool usesTexMetal   ()C {return  reflect_max>EPS_COL                 &&  metal_map.is();}
-   bool usesTexGlow    ()C {return  glow       >EPS_COL                 &&   glow_map.is();}
-   bool usesTexDetail  ()C {return  det_power  >EPS_COL                 && hasDetailMap ();}
+   bool usesTexColAlpha()C {return tech!=MTECH_DEFAULT                     && (color_map.is() || alpha_map.is());} // alpha may come from color
+   bool usesTexAlpha   ()C {return tech!=MTECH_DEFAULT                     &&  alpha_map.is();} // check only alpha
+   bool usesTexBump    ()C {return    (bump       >EPS_MATERIAL_BUMP || 1) && hasBumpMap   ();} // always keep bump map because it can be used for multi-material per-pixel blending
+   bool usesTexNormal  ()C {return     normal     >EPS_COL                 && hasNormalMap ();}
+   bool usesTexSmooth  ()C {return Abs(roughMul())>EPS_COL                 && smooth_map.is();}
+   bool usesTexMetal   ()C {return     reflect_max>EPS_COL                 &&  metal_map.is();}
+   bool usesTexGlow    ()C {return     glow       >EPS_COL                 &&   glow_map.is();}
+   bool usesTexDetail  ()C {return     det_power  >EPS_COL                 && hasDetailMap ();}
    bool needTanBin     ()C
    {
       return usesTexBump  ()
@@ -173,7 +190,8 @@ class EditMaterial
       dest.technique=tech;
       dest.colorS(color_s);
       dest.emissive=emissive;
-      dest.smooth=smooth;
+      dest.rough_mul=roughMul();
+      dest.rough_add=roughAdd();
       dest.reflect(reflect_min, reflect_max);
       dest.glow=glow;
       dest.normal=normal;
@@ -456,12 +474,16 @@ class EditMaterial
          reflect_max=1;
       }
    }
+   void fixOldSmooth()
+   {
+      if(smooth_map.is())smooth-=1; // old smooth was always 0..1 and final smooth was SmoothTexture*SmoothValue, new smooth is -1..1 when having 'smooth_map', see 'roughMul/roughAdd' (-1 force rough, 0=use texture, +1=force smooth)
+   }
 
    // io
    bool save(File &f)C
    {
-      f.cmpUIntV(14);
-      f<<flip_normal_y<<cull<<tex_quality<<tech<<downsize_tex_mobile;
+      f.cmpUIntV(15);
+      f<<flip_normal_y<<smooth_is_rough<<cull<<tex_quality<<tech<<downsize_tex_mobile;
       f<<color_s<<emissive<<smooth<<reflect_min<<reflect_max<<glow<<normal<<bump<<uv_scale<<det_scale<<det_power;
       f<<base_0_tex<<base_1_tex<<base_2_tex<<detail_tex<<macro_tex<<light_tex;
 
@@ -470,7 +492,7 @@ class EditMaterial
        <<macro_map
        <<light_map;
 
-      f<<flip_normal_y_time<<tex_quality_time;
+      f<<flip_normal_y_time<<smooth_is_rough_time<<tex_quality_time;
       f<<color_map_time<<alpha_map_time<<bump_map_time<<normal_map_time<<smooth_map_time<<metal_map_time<<glow_map_time;
       f<<detail_map_time<<macro_map_time<<light_map_time;
       f<<cull_time<<tech_time<<downsize_tex_mobile_time;
@@ -482,6 +504,24 @@ class EditMaterial
       flt reflect, sss; bool bump_from_color=false; byte mip_map_blur; UID old_reflection_tex; Str old_reflection_map; TimeStamp sss_time, mip_map_blur_time, bump_from_color_time, old_reflection_map_time;
       reset(); switch(f.decUIntV())
       {
+         case 15:
+         {
+            f>>flip_normal_y>>smooth_is_rough>>cull>>tex_quality>>tech>>downsize_tex_mobile;
+            f>>color_s>>emissive>>smooth>>reflect_min>>reflect_max>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power;
+            f>>base_0_tex>>base_1_tex>>base_2_tex>>detail_tex>>macro_tex>>light_tex;
+
+            f>>color_map>>alpha_map>>bump_map>>normal_map>>smooth_map>>metal_map>>glow_map
+             >>detail_color>>detail_bump>>detail_normal>>detail_smooth
+             >>macro_map
+             >>light_map;
+
+            f>>flip_normal_y_time>>smooth_is_rough_time>>tex_quality_time;
+            f>>color_map_time>>alpha_map_time>>bump_map_time>>normal_map_time>>smooth_map_time>>metal_map_time>>glow_map_time;
+            f>>detail_map_time>>macro_map_time>>light_map_time;
+            f>>cull_time>>tech_time>>downsize_tex_mobile_time;
+            f>>color_time>>emissive_time>>smooth_time>>reflect_time>>normal_time>>bump_time>>glow_time>>uv_scale_time>>detail_time;
+         }break;
+
          case 14:
          {
             f>>flip_normal_y>>cull>>tex_quality>>tech>>downsize_tex_mobile;
@@ -498,6 +538,7 @@ class EditMaterial
             f>>detail_map_time>>macro_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time;
             f>>color_time>>emissive_time>>smooth_time>>reflect_time>>normal_time>>bump_time>>glow_time>>uv_scale_time>>detail_time;
+            fixOldSmooth();
          }break;
 
          case 13:
@@ -516,7 +557,7 @@ class EditMaterial
             f>>detail_map_time>>macro_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time;
             f>>color_time>>emissive_time>>smooth_time>>reflect_time>>normal_time>>bump_time>>glow_time>>uv_scale_time>>detail_time;
-            fixOldFileParams(); fixOldReflect(reflect);
+            fixOldFileParams(); fixOldReflect(reflect); fixOldSmooth();
          }break;
 
          case 12:
@@ -535,7 +576,7 @@ class EditMaterial
             f>>detail_map_time>>macro_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time;
             f>>color_time>>emissive_time>>smooth_time>>reflect_time>>normal_time>>bump_time>>glow_time>>uv_scale_time>>detail_time;
-            fixOldFileParams(); fixOldReflect(reflect);
+            fixOldFileParams(); fixOldReflect(reflect); fixOldSmooth();
          }break;
 
          case 11:
@@ -554,7 +595,7 @@ class EditMaterial
             f>>detail_map_time>>macro_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time;
             f>>color_time>>emissive_time>>smooth_time>>reflect_time>>normal_time>>bump_time>>glow_time>>uv_scale_time>>detail_time;
-            fixOldFileParams(); fixOldReflect(reflect);
+            fixOldFileParams(); fixOldReflect(reflect); fixOldSmooth();
          }break;
 
          case 10:
@@ -574,7 +615,7 @@ class EditMaterial
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time;
             f>>color_time>>emissive_time>>smooth_time>>sss_time>>normal_time>>glow_time>>uv_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else metal_map=smooth_map;
-            fixOldFileParams(); fixOldReflect(reflect);
+            fixOldFileParams(); fixOldReflect(reflect); fixOldSmooth();
          }break;
 
          case 9:
@@ -594,7 +635,7 @@ class EditMaterial
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time;
             f>>color_time>>emissive_time>>smooth_time>>sss_time>>normal_time>>glow_time>>uv_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else metal_map=smooth_map;
-            fixOldFileParams(); fixOldReflect(reflect);
+            fixOldFileParams(); fixOldReflect(reflect); fixOldSmooth();
          }break;
 
          case 8:
@@ -614,7 +655,7 @@ class EditMaterial
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time;
             f>>color_time>>emissive_time>>smooth_time>>sss_time>>normal_time>>glow_time>>uv_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else metal_map=smooth_map;
-            fixOldFileParams(); fixOldReflect(reflect);
+            fixOldFileParams(); fixOldReflect(reflect); fixOldSmooth();
          }break;
 
          case 7:
@@ -634,7 +675,7 @@ class EditMaterial
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time>>mip_map_blur_time;
             f>>color_time>>emissive_time>>smooth_time>>sss_time>>normal_time>>glow_time>>uv_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else metal_map=smooth_map;
-            fixOldFileParams(); fixOldReflect(reflect);
+            fixOldFileParams(); fixOldReflect(reflect); fixOldSmooth();
          }break;
 
          case 6:
@@ -654,7 +695,7 @@ class EditMaterial
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time>>mip_map_blur_time;
             f>>color_time>>emissive_time>>smooth_time>>sss_time>>normal_time>>glow_time>>uv_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else metal_map=smooth_map;
-            fixOldFileParams(); fixOldReflect(reflect);
+            fixOldFileParams(); fixOldReflect(reflect); fixOldSmooth();
          }break;
 
          case 5:
@@ -674,7 +715,7 @@ class EditMaterial
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time>>mip_map_blur_time;
             f>>color_time>>emissive_time>>smooth_time>>sss_time>>normal_time>>glow_time>>uv_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else metal_map=smooth_map;
-            fixOldFileParams(); fixOldReflect(reflect);
+            fixOldFileParams(); fixOldReflect(reflect); fixOldSmooth();
          }break;
 
          case 4:
@@ -693,7 +734,7 @@ class EditMaterial
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time>>mip_map_blur_time;
             f>>color_time>>emissive_time>>smooth_time>>sss_time>>normal_time>>glow_time>>uv_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else metal_map=smooth_map;
-            fixOldFileParams(); fixOldReflect(reflect);
+            fixOldFileParams(); fixOldReflect(reflect); fixOldSmooth();
          }break;
 
          case 3:
@@ -712,7 +753,7 @@ class EditMaterial
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>mip_map_blur_time;
             f>>color_time>>emissive_time>>smooth_time>>sss_time>>normal_time>>glow_time>>uv_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else metal_map=smooth_map;
-            fixOldFileParams(); fixOldReflect(reflect);
+            fixOldFileParams(); fixOldReflect(reflect); fixOldSmooth();
          }break;
 
          case 2:
@@ -731,7 +772,7 @@ class EditMaterial
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time;
             f>>color_time>>emissive_time>>smooth_time>>sss_time>>normal_time>>glow_time>>uv_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else metal_map=smooth_map;
-            fixOldFileParams(); fixOldReflect(reflect);
+            fixOldFileParams(); fixOldReflect(reflect); fixOldSmooth();
          }break;
 
          case 1:
@@ -749,7 +790,7 @@ class EditMaterial
             f>>detail_map_time>>macro_map_time>>old_reflection_map_time;
             f>>cull_time>>tech_time;
             f>>color_time>>emissive_time>>smooth_time>>sss_time>>normal_time>>glow_time>>uv_scale_time>>detail_time>>reflect_time; bump_time=normal_time; if(!old_reflection_map.is())reflect=MATERIAL_REFLECT;else metal_map=smooth_map;
-            fixOldFileParams(); fixOldReflect(reflect);
+            fixOldFileParams(); fixOldReflect(reflect); fixOldSmooth();
          }break;
 
          case 0: break; // empty, this requires 'reset' to be called before

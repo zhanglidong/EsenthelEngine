@@ -4,11 +4,12 @@ class EditMaterial
 {
    MATERIAL_TECHNIQUE        tech;
    Edit::Material::TEX_QUALITY tex_quality;
-   bool                      flip_normal_y, smooth_is_rough, cull; // !! 'smooth_is_rough' is not yet saved !!
+   bool                      flip_normal_y, smooth_is_rough, cull;
    byte                      downsize_tex_mobile;
    Vec4                      color_s;
    Vec                       emissive;
-   flt                       smooth, reflect_min, reflect_max, glow, normal, bump,
+   flt                       smooth, // 0..1 without smooth_map, and -1..1 with smooth_map
+                             reflect_min, reflect_max, glow, normal, bump,
                              uv_scale, det_scale, det_power;
    UID                       base_0_tex, base_1_tex, base_2_tex, detail_tex, macro_tex, light_tex;
    Str                       color_map, alpha_map, bump_map, normal_map, smooth_map, metal_map, glow_map,
@@ -22,6 +23,8 @@ class EditMaterial
                              color_time, emissive_time, smooth_time, reflect_time, normal_time, bump_time, glow_time, uv_scale_time, detail_time;
 
    // get
+   flt roughMul()C;
+   flt roughAdd()C;
    bool hasBumpMap     ()C;
    bool hasNormalMap   ()C;
    bool hasDetailMap   ()C;
@@ -73,6 +76,7 @@ class EditMaterial
    static void ChangeMulToSet(Str &name);
    void fixOldFileParams();
    void fixOldReflect(flt reflect);
+   void fixOldSmooth();
 
    // io
    bool save(File &f)C;

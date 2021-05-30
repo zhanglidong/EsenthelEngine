@@ -37,7 +37,7 @@
    {
       super::create(Material(), time); // call super to setup times for all values
       color_s               =Vec4(src.colorS(), 1); color_time=time;
-      smooth                =src.smooth ; smooth_time=time;
+      smooth                =src.smooth(); smooth_time=time;
       reflect_min           =src.reflect; reflect_time=time;
       normal                =src.normal ; normal_time=time;
       wave_scale            =src.wave_scale; wave_scale_time=time;
@@ -58,7 +58,7 @@
    void EditWaterMtrl::copyTo(WaterMtrl &dest, C Project &proj)C
    {
       dest.colorS(color_s.xyz);
-      dest.smooth                =smooth            ;
+      dest.smooth                (smooth           );
       dest.reflect               =reflect_min       ;
       dest.normal                =normal            ;
       dest.wave_scale            =wave_scale        ;

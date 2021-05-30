@@ -160,6 +160,8 @@ MaterialTech mtrl_techs[]=
                }
             }
 
+            if(type==TEX_SMOOTH)mr->setSmoothRange();
+
             // rebuild methods already call 'setChanged'
             if(type>=TEX_BASE_BEGIN && type<=TEX_BASE_END)mr->rebuildBase  (base_tex);else
             if(type>=TEX_DET_BEGIN  && type<=TEX_DET_END )mr->rebuildDetail();else
@@ -261,10 +263,10 @@ MaterialTech mtrl_techs[]=
                case TEX_GLOW      : if(em.  glow_map   .is()                       )if(base_2){VI.shader(ShaderFiles("Main")->get("DrawTexWG"    )); base_2->drawFit(rect); tex=true;} break;
                case TEX_LIGHT     : if(em. light_map   .is()                       )if(light ){                                                      light ->drawFit(rect); tex=true;} break;
                case TEX_MACRO     : if(em. macro_map   .is()                       )if(macro ){                                                      macro ->drawFit(rect); tex=true;} break;
-               case TEX_DET_COLOR : if(em.detail_color .is()                       )if(detail){VI.shader(ShaderFiles("Main")->get("DrawTexZG"    )); detail->drawFit(rect); tex=true;} break; // #MaterialTextureLayoutDetail
+               case TEX_DET_COLOR : if(em.detail_color .is()                       )if(detail){VI.shader(ShaderFiles("Main")->get("DrawTexWG"    )); detail->drawFit(rect); tex=true;} break; // #MaterialTextureLayoutDetail
                case TEX_DET_BUMP  : if(em.detail_bump  .is()                       )if(detail){      if(Image *bump=mr->getDetailBump(em.detail_bump))bump  ->drawFit(rect); tex=true;} break; // Detail Bump is not stored in texture
                case TEX_DET_NORMAL: if(em.detail_normal.is() || em.detail_bump.is())if(detail){VI.shader(ShaderFiles("Main")->get("DrawTexDetNrm")); detail->drawFit(rect); tex=true;} break;
-               case TEX_DET_SMOOTH: if(em.detail_smooth.is()                       )if(detail){VI.shader(ShaderFiles("Main")->get("DrawTexWG"    )); detail->drawFit(rect); tex=true;} break;
+               case TEX_DET_SMOOTH: if(em.detail_smooth.is()                       )if(detail){VI.shader(ShaderFiles("Main")->get("DrawTexZG"    )); detail->drawFit(rect); tex=true;} break;
              /*case TEX_RFL_L     : if(em.reflection_map.is()                      )if(reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_LEFT   ); tex=true;} break;
                case TEX_RFL_F     : if(em.reflection_map.is()                      )if(reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_FORWARD); tex=true;} break;
                case TEX_RFL_R     : if(em.reflection_map.is()                      )if(reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_RIGHT  ); tex=true;} break;
@@ -674,6 +676,14 @@ MaterialTech mtrl_techs[]=
       reload_base_textures.rect(Rect_LU(0.10f, prop_rect.min.y-0.05f, 0.42f, 0.053f));
            texture_options.rect(Rect_LU(reload_base_textures.rect().ru(), reload_base_textures.rect().h()));
    }
+   void MaterialRegion::setSmoothRange()
+   {
+      if(smooth)
+      {
+         if(edit.smooth_map.is())smooth->range(-1, 1);
+         else                    smooth->range( 0, 1);
+      }
+   }
    void MaterialRegion::create()
    {
       Gui+=super::create(Rect_LU(0, 0, 0.73f, 1)).skin(&LightSkin, false).hide();
@@ -716,10 +726,11 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       props.New().create("Normal"         , MemberDesc(DATA_REAL).setFunc(NrmScale, NrmScale)).range(0, 2);
       props.New().create("Flip Normal Y"  , MemberDesc(DATA_BOOL).setFunc(FNY     , FNY     ));
     //props.New();
-      props.New().create("Smoothness"     , MemberDesc(DATA_REAL).setFunc(Smooth    , Smooth    )).range(0, 4);
-      props.New().create("Reflectivity"   , MemberDesc(DATA_REAL).setFunc(ReflectMin, ReflectMin)).range(0, 1).desc(S+"Base Reflectivity\nDefault="+MATERIAL_REFLECT);
-      props.New().create("ReflectivityMax", MemberDesc(DATA_REAL).setFunc(ReflectMax, ReflectMax)).range(0, 1).desc("This value specifies the amount of Reflectivity that can be obtained from the Metal texture.\nIn most cases this value should be left at 1.");
-      props.New().create("Glow"           , MemberDesc(DATA_REAL).setFunc(Glow      , Glow      )).range(0, 1);
+
+smooth=&props.New().create("Smoothness"     , MemberDesc(DATA_REAL).setFunc(Smooth    , Smooth    )); // range depends on smooth texture presence
+        props.New().create("Reflectivity"   , MemberDesc(DATA_REAL).setFunc(ReflectMin, ReflectMin)).range(0, 1).desc(S+"Base Reflectivity\nDefault="+MATERIAL_REFLECT);
+        props.New().create("ReflectivityMax", MemberDesc(DATA_REAL).setFunc(ReflectMax, ReflectMax)).range(0, 1).desc("This value specifies the amount of Reflectivity that can be obtained from the Metal texture.\nIn most cases this value should be left at 1.");
+        props.New().create("Glow"           , MemberDesc(DATA_REAL).setFunc(Glow      , Glow      )).range(0, 1);
 
 emit_red  =&props.New().create("Emit Red"  , MemberDesc(DATA_REAL).setFunc(EmissiveR, EmissiveR)).range(0, 1).mouseEditSpeed(0.4f);
 emit_green=&props.New().create("Emit Green", MemberDesc(DATA_REAL).setFunc(EmissiveG, EmissiveG)).range(0, 1).mouseEditSpeed(0.4f);
@@ -936,6 +947,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
    {
       REPAO(props).toGui();
       REPAO(texs ).toGui();
+      setSmoothRange();
    }
            void MaterialRegion::flush(C UID &elm_id) {if(T.elm_id==elm_id)flush();}
    void MaterialRegion::flush()
@@ -1054,7 +1066,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
                if(tex.type==TEX_SMOOTH){images[0].params.New().set("channel"  , "a"  ); if(Kb.alt())images[0].params.New().set("inverseRGB");} // get smooth from alpha channel (Unity style), optionally treat it as roughness on Alt
              //if(tex.type==TEX_METAL ) images[0].params.New().set("metalToReflect"  ); // convert from metal map
             }else
-            if(Kb.alt()) // Unreal - RMA (Roughness Metal AO)
+            if(Kb.alt()) // Unreal (Roughness Metal AO)
             {
                bool multi_channel=false;
                byte tc_channel[TC_NUM]; SetMem(tc_channel, 0xFF);
@@ -1208,7 +1220,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
          if(next.pd()){next.eat(); Proj.elmNext(elm_id    );}
       }
    }
-MaterialRegion::MaterialRegion() : elm_type(ELM_MTRL), auto_reload(true), min_zoom(0.48f), max_zoom(3), mouse_edit_delta(0), mouse_edit_value(0), light_angle(PI_4), red(null), green(null), blue(null), alpha(null), emit_red(null), emit_green(null), emit_blue(null), game(&temp), elm_id(UIDZero), elm(null), changed(false), undos(true) {}
+MaterialRegion::MaterialRegion() : elm_type(ELM_MTRL), auto_reload(true), min_zoom(0.48f), max_zoom(3), mouse_edit_delta(0), mouse_edit_value(0), light_angle(PI_4), red(null), green(null), blue(null), alpha(null), emit_red(null), emit_green(null), emit_blue(null), smooth(null), game(&temp), elm_id(UIDZero), elm(null), changed(false), undos(true) {}
 
 MaterialRegion::Texture::Texture() : mr(null) {}
 

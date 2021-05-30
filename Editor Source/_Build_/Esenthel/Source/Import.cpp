@@ -87,10 +87,10 @@ ImporterClass Importer;
                     glow_map.clear();
                }
 
-               fp=d; if(fp.name.is())
+               fp=d; if(fp.name.is()) // #MaterialTextureLayoutDetail
                {
-                  fp.getParam("channel").setValue("z" ); detail_color_map =fp.encode();
-                  fp.getParam("channel").setValue("w" ); detail_smooth_map=fp.encode();
+                  fp.getParam("channel").setValue("w" ); detail_color_map =fp.encode();
+                  fp.getParam("channel").setValue("z" ); detail_smooth_map=fp.encode();
                   fp.getParam("channel").setValue("xy"); detail_normal_map=fp.encode();
                }else
                {

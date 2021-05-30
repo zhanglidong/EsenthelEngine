@@ -78,7 +78,7 @@ public:
    Vec2              light_angle;
    Region            sub;
    Button            brightness, emissive, rgb_1;
-   Property         *red, *green, *blue, *alpha, *emit_red, *emit_green, *emit_blue;
+   Property         *red, *green, *blue, *alpha, *emit_red, *emit_green, *emit_blue, *smooth;
    Memx<Property>    props;
    Memx<Texture>     texs;
    TextBlack         ts;
@@ -336,6 +336,7 @@ public:
    virtual   bool          water      ()C;
 
    void setBottom(C Rect &prop_rect);
+   void setSmoothRange();
    void create();
 
    // operations
