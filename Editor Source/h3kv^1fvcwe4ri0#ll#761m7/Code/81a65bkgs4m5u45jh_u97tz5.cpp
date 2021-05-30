@@ -2196,7 +2196,7 @@ class ProjectEx : ProjectHierarchy
 
       // base 0
          old_tex_id =material.base_0_tex; ImageProps(base_0, &material.base_0_tex, &ct, MTRL_BASE_0|WATER_MTRL, material.tex_quality);
-      if(old_tex_id!=material.base_0_tex)material.color_map_time.getUTC(); // in order for 'base_0_tex' to sync, a base 0 texture time must be changed, but set it only if the new texture is different #WaterMaterialTextureLayout
+      if(old_tex_id!=material.base_0_tex)material.color_map_time.getUTC(); // in order for 'base_0_tex' to sync, a base 0 texture time must be changed, but set it only if the new texture is different #MaterialTextureLayoutWater
       if(base_0.is())
       {
          if(includeTex(material.base_0_tex))
@@ -2209,7 +2209,7 @@ class ProjectEx : ProjectHierarchy
 
       // base 1
          old_tex_id =material.base_1_tex; ImageProps(base_1, &material.base_1_tex, &ct, MTRL_BASE_1|WATER_MTRL);
-      if(old_tex_id!=material.base_1_tex)material.normal_map_time.getUTC(); // in order for 'base_1_tex' to sync, a base 1 texture time must be changed, but set it only if the new texture is different #WaterMaterialTextureLayout
+      if(old_tex_id!=material.base_1_tex)material.normal_map_time.getUTC(); // in order for 'base_1_tex' to sync, a base 1 texture time must be changed, but set it only if the new texture is different #MaterialTextureLayoutWater
       if(base_1.is())
       {
          if(includeTex(material.base_1_tex))
@@ -2222,7 +2222,7 @@ class ProjectEx : ProjectHierarchy
 
       // base 2
          old_tex_id =material.base_2_tex; ImageProps(base_2, &material.base_2_tex, &ct, MTRL_BASE_2|WATER_MTRL);
-      if(old_tex_id!=material.base_2_tex)material.smooth_map_time.getUTC(); // in order for 'base_2_tex' to sync, a base 2 texture time must be changed, but set it only if the new texture is different #WaterMaterialTextureLayout
+      if(old_tex_id!=material.base_2_tex)material.smooth_map_time.getUTC(); // in order for 'base_2_tex' to sync, a base 2 texture time must be changed, but set it only if the new texture is different #MaterialTextureLayoutWater
       if(base_2.is())
       {
          if(includeTex(material.base_2_tex))

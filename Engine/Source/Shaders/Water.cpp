@@ -76,7 +76,7 @@ This code calculates lighting by taking samples along the view ray, which is ref
 /******************************************************************************/
 Half Wave(Vec2 world_pos)
 {
-   return Avg(TexLodWrap(Ext, (WaterOfsBump+world_pos)*WaterMaterial.scale_bump).x,  // it's better to scale 'WaterOfsBump' too #WaterMaterialTextureLayout
+   return Avg(TexLodWrap(Ext, (WaterOfsBump+world_pos)*WaterMaterial.scale_bump).x,  // it's better to scale 'WaterOfsBump' too #MaterialTextureLayoutWater
               TexLodWrap(Ext, (WaterOfsBump-world_pos)*WaterMaterial.scale_bump).x); // it's better to scale 'WaterOfsBump' too
 }
 /******************************************************************************/
@@ -209,7 +209,7 @@ void Surface_PS
 #endif
 ) // #RTOutput
 {
-   VecH nrm_flat; // #WaterMaterialTextureLayout
+   VecH nrm_flat; // #MaterialTextureLayoutWater
 #if DUAL_NORMAL
    nrm_flat.xy=(Tex(Nrm, inTexN0.xy).xy - Tex(Nrm, inTexN0.zw).xy + Tex(Nrm, inTexN1.xy).xy - Tex(Nrm, inTexN1.zw).xy)*(WaterMaterial.normal/4); // Avg(Tex(Nrm, inTexN0.xy).xy, -Tex(Nrm, inTexN0.zw).xy, Tex(Nrm, inTexN1.xy).xy, -Tex(Nrm, inTexN1.zw).xy)*WaterMaterial.normal; normals from mirrored tex coordinates must be subtracted
 #else

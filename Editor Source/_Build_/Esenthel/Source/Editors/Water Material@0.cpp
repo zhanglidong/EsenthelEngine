@@ -202,12 +202,12 @@ WaterMtrlRegion WaterMtrlEdit;
             sizes[i].set(Max(1, Shl(sizes[i].x, size.x)), Max(1, Shl(sizes[i].y, size.y)));
             sizes[i].set(NearestPow2(sizes[i].x), NearestPow2(sizes[i].y)); // textures are gonna be resized to pow2 anyway, so force pow2 size, to avoid double resize
          }
-         // #WaterMaterialTextureLayout
+         // #MaterialTextureLayoutWater
          if(sizes[1]!=sizes[2])edit.separateNormalMap(time); // normal can be from bump
          relative=false; // we now have the sizes known, so disable relative mode
       }
 
-      // #WaterMaterialTextureLayout
+      // #MaterialTextureLayoutWater
       if(Proj.forceImageSize(edit. color_map,                                 sizes[0], relative, edit. color_map_time, time) // !! use '|' because all need to be processed !!
     //|  Proj.forceImageSize(edit. alpha_map, edit.hasBase2Tex() ? sizes[2] : sizes[0], relative, edit. alpha_map_time, time)
       |  Proj.forceImageSize(edit.  bump_map,                                 sizes[2], relative, edit.  bump_map_time, time)
@@ -223,7 +223,7 @@ WaterMtrlRegion WaterMtrlEdit;
    }
    void WaterMtrlRegion::resizeBase0(C VecI2 &size, bool relative)
 {
-      // #WaterMaterialTextureLayout
+      // #MaterialTextureLayoutWater
       undos.set("resizeBase");
       TimeStamp time; time.getUTC();
       VecI2 size0=size;
@@ -245,7 +245,7 @@ WaterMtrlRegion WaterMtrlEdit;
    }
    void WaterMtrlRegion::resizeBase1(C VecI2 &size, bool relative)
 {
-      // #WaterMaterialTextureLayout
+      // #MaterialTextureLayoutWater
       undos.set("resizeBase");
       TimeStamp time; time.getUTC();
       VecI2 size1=size;
@@ -269,7 +269,7 @@ WaterMtrlRegion WaterMtrlEdit;
    }
    void WaterMtrlRegion::resizeBase2(C VecI2 &size, bool relative)
 {
-      // #WaterMaterialTextureLayout
+      // #MaterialTextureLayoutWater
       undos.set("resizeBase");
       TimeStamp time; time.getUTC();
       VecI2 size2=size;

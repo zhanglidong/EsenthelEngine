@@ -60,7 +60,7 @@ void WaterMtrl::set()C
    {
       WaterMtrlLast=this;
       WS.WaterMaterial->set<WaterMtrlParams>(T);
-      Sh.Col[0]->set( _color_map()); // #WaterMaterialTextureLayout
+      Sh.Col[0]->set( _color_map()); // #MaterialTextureLayoutWater
       Sh.Nrm[0]->set(_normal_map());
       Sh.Ext[0]->set(  _bump_map());
    }

@@ -454,16 +454,16 @@ void ImageProps(C Image &image, UID *hash, IMAGE_TYPE *best_type=null, uint flag
          IMAGE_TYPE type=IMAGE_NONE;
          if(flags&WATER_MTRL)
          {
-            if(flags&MTRL_BASE_0){MAX(quality, MinMtrlTexQualityBase0); flags|=SRGB;} // #WaterMaterialTextureLayout
-            if(flags&MTRL_BASE_1){MAX(quality, MinMtrlTexQualityBase1); sign=true; type=((quality>=Edit.Material.FULL) ? IMAGE_R8G8_SIGN : IMAGE_BC5_SIGN);} // normal tex always uses BC5_SIGN (RG HQ) #WaterMaterialTextureLayout
-            if(flags&MTRL_BASE_2){MAX(quality, MinMtrlTexQualityBase2); sign=true; type=((quality>=Edit.Material.FULL) ? IMAGE_R8_SIGN   : IMAGE_BC4_SIGN);} // bump   tex always uses BC4_SIGN (R  HQ) #WaterMaterialTextureLayout
+            if(flags&MTRL_BASE_0){MAX(quality, MinMtrlTexQualityBase0); flags|=SRGB;} // #MaterialTextureLayoutWater
+            if(flags&MTRL_BASE_1){MAX(quality, MinMtrlTexQualityBase1); sign=true; type=((quality>=Edit.Material.FULL) ? IMAGE_R8G8_SIGN : IMAGE_BC5_SIGN);} // normal tex always uses BC5_SIGN (RG HQ) #MaterialTextureLayoutWater
+            if(flags&MTRL_BASE_2){MAX(quality, MinMtrlTexQualityBase2); sign=true; type=((quality>=Edit.Material.FULL) ? IMAGE_R8_SIGN   : IMAGE_BC4_SIGN);} // bump   tex always uses BC4_SIGN (R  HQ) #MaterialTextureLayoutWater
          }else
          {
             if(flags&MTRL_BASE_0){MAX(quality, MinMtrlTexQualityBase0); flags|=SRGB;} // #MaterialTextureLayout
             if(flags&MTRL_BASE_1){MAX(quality, MinMtrlTexQualityBase1); sign=true; type=((quality>=Edit.Material.FULL) ? IMAGE_R8G8_SIGN : IMAGE_BC5_SIGN);} // normal tex always uses BC5_SIGN (RG HQ) #MaterialTextureLayout
             if(flags&MTRL_BASE_2){MAX(quality, MinMtrlTexQualityBase2);} // #MaterialTextureLayout
          }
-         if(flags&MTRL_DETAIL){MAX(quality, MinMtrlTexQualityDetail);}
+         if(flags&MTRL_DETAIL){MAX(quality, MinMtrlTexQualityDetail);} // #MaterialTextureLayoutDetail
          if(flags&MTRL_MACRO ){MAX(quality, MinMtrlTexQualityMacro ); flags|=SRGB|IGNORE_ALPHA;}
          if(flags&MTRL_LIGHT ){MAX(quality, MinMtrlTexQualityLight ); flags|=SRGB|IGNORE_ALPHA;}
 
@@ -569,52 +569,9 @@ void LoadTexture(C Project &proj, C UID &tex_id, Image &image)
 void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *metal, Image *glow)
 { // #MaterialTextureLayout
    uint tex=0;
-   if(base_0.valid() && (color || alpha))
-   {
-      Image b0; LoadTexture(proj, base_0, b0);
-      if(color)color.createSoftTry(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
-      if(alpha)alpha.createSoftTry(b0.w(), b0.h(), 1, IMAGE_L8);
-      REPD(y, b0.h())
-      REPD(x, b0.w())
-      {
-         Color c=b0.color(x, y);
-         if(color){color.color(x, y, c  ); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
-         if(alpha){alpha.pixel(x, y, c.a); if(c.a<254                      )tex|=BT_ALPHA;}
-      }
-   }
-   if(base_1.valid() && normal)
-   {
-      Image b1; LoadTexture(proj, base_1, b1);
-      normal.createSoftTry(b1.w(), b1.h(), 1, IMAGE_R8G8B8);
-      REPD(y, b1.h())
-      REPD(x, b1.w())
-      {
-         Vec4 n; n.xy=b1.colorF(x, y).xy;
-         if(Abs(n.x)>1.5/127
-         || Abs(n.y)>1.5/127)tex|=BT_NORMAL;
-         n.z=CalcZ(n.xy);
-         n.xyz=n.xyz*0.5+0.5;
-         n.w=1;
-         normal.colorF(x, y, n);
-      }
-   }
-   if(base_2.valid() && (smooth || metal || bump || glow))
-   {
-      Image b2; LoadTexture(proj, base_2, b2);
-      if(smooth)smooth.createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
-      if(metal )metal .createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
-      if(bump  )bump  .createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
-      if(glow  )glow  .createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
-      REPD(y, b2.h())
-      REPD(x, b2.w())
-      {
-         Color c=b2.color(x, y);
-         if(smooth){smooth.pixel(x, y, c.g); if(c.g<254                           )tex|=BT_SMOOTH;}
-         if(metal ){metal .pixel(x, y, c.r); if(c.r>1 &&                   c.r<254)tex|=BT_METAL ;} // METAL_DEFAULT_TEX can be either 0,     or 255
-         if(bump  ){bump  .pixel(x, y, c.b); if(c.b>1 && Abs(c.b-128)>1 && c.b<254)tex|=BT_BUMP  ;} //  BUMP_DEFAULT_TEX can be either 0, 128 or 255
-         if(glow  ){glow  .pixel(x, y, c.a); if(c.a<254                           )tex|=BT_GLOW  ;}
-      }
-   }
+   if(base_0.valid() && (color || alpha                 )){Image b0; LoadTexture(proj, base_0, b0); tex|=ExtractBase0Texture(b0, color, alpha             );}
+   if(base_1.valid() && (normal                         )){Image b1; LoadTexture(proj, base_1, b1); tex|=ExtractBase1Texture(b1, normal                   );}
+   if(base_2.valid() && (bump || smooth || metal || glow)){Image b2; LoadTexture(proj, base_2, b2); tex|=ExtractBase2Texture(b2, bump, smooth, metal, glow);}
    if(color  && !(tex&BT_COLOR ))color .del();
    if(alpha  && !(tex&BT_ALPHA ))alpha .del();
    if(bump   && !(tex&BT_BUMP  ))bump  .del();
@@ -624,46 +581,11 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &b
    if(glow   && !(tex&BT_GLOW  ))glow  .del();
 }
 void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow)
-{ // #WaterMaterialTextureLayout
+{ // #MaterialTextureLayoutWater
    uint tex=0;
-   if(base_0.valid() && color)
-   {
-      Image b0; LoadTexture(proj, base_0, b0);
-      if(color)color.createSoftTry(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
-      REPD(y, b0.h())
-      REPD(x, b0.w())
-      {
-         Color c=b0.color(x, y);
-         if(color){color.color(x, y, c); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
-      }
-   }
-   if(base_1.valid() && normal)
-   {
-      Image b1; LoadTexture(proj, base_1, b1);
-      normal.createSoftTry(b1.w(), b1.h(), 1, IMAGE_R8G8B8);
-      REPD(y, b1.h())
-      REPD(x, b1.w())
-      {
-         Vec4 n; n.xy=b1.colorF(x, y).xy;
-         if(Abs(n.x)>1.5/127
-         || Abs(n.y)>1.5/127)tex|=BT_NORMAL;
-         n.z=CalcZ(n.xy);
-         n.xyz=n.xyz*0.5+0.5;
-         n.w=1;
-         normal.colorF(x, y, n);
-      }
-   }
-   if(base_2.valid() && bump)
-   {
-      Image b2; LoadTexture(proj, base_2, b2);
-      if(bump)bump.createSoftTry(b2.w(), b2.h(), 1, IMAGE_L8);
-      REPD(y, b2.h())
-      REPD(x, b2.w())
-      {
-         flt c=b2.pixelF(x, y);
-         if(bump){if(Abs(c)>1.5/127)tex|=BT_BUMP; bump.pixelF(x, y, c*0.5+0.5);}
-      }
-   }
+   if(base_0.valid() && color ){Image b0; LoadTexture(proj, base_0, b0); tex|=ExtractWaterBase0Texture(b0, color );}
+   if(base_1.valid() && normal){Image b1; LoadTexture(proj, base_1, b1); tex|=ExtractWaterBase1Texture(b1, normal);}
+   if(base_2.valid() && bump  ){Image b2; LoadTexture(proj, base_2, b2); tex|=ExtractWaterBase2Texture(b2, bump  );}
    if(color   && !(tex&BT_COLOR ))color  .del();
    if(alpha   && !(tex&BT_ALPHA ))alpha  .del();
    if(bump    && !(tex&BT_BUMP  ))bump   .del();
@@ -673,28 +595,12 @@ void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C U
    if(glow    && !(tex&BT_GLOW  ))glow   .del();
 }
 void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *color, Image *bump, Image *normal, Image *smooth)
-{
+{ // #MaterialTextureLayoutDetail
    uint tex=0;
    if(detail_tex.valid())
-      if(color || /*bump ||*/ normal || smooth)
+      if(color || bump || normal || smooth)
    {
-      Image det; LoadTexture(proj, detail_tex, det);
-      if(color )color .createSoftTry(det.w(), det.h(), 1, IMAGE_L8);
-    //if(bump  )bump  .createSoftTry(det.w(), det.h(), 1, IMAGE_L8);
-      if(normal)normal.createSoftTry(det.w(), det.h(), 1, IMAGE_R8G8B8);
-      if(smooth)smooth.createSoftTry(det.w(), det.h(), 1, IMAGE_L8);
-      REPD(y, det.h())
-      REPD(x, det.w())
-      {
-         Color c=det.color(x, y); // #MaterialTextureLayout
-         if(color ){color .pixel(x, y, c.b); if(c.b<254)tex|=BT_COLOR ;}
-         if(smooth){smooth.pixel(x, y, c.a); if(c.a<254)tex|=BT_SMOOTH;}
-         if(normal)
-         {
-            Vec n; n.xy.set((c.r-128)/127.0, (c.g-128)/127.0); n.z=CalcZ(n.xy);
-            normal.color(x, y, Color(c.r, c.g, Mid(Round(n.z*127+128), 0, 255))); if(Abs(c.r-128)>1 || Abs(c.g-128)>1)tex|=BT_NORMAL;
-         }
-      }
+      Image detail; LoadTexture(proj, detail_tex, detail); tex=ExtractDetailTexture(detail, color, bump, normal, smooth);
    }
    if(color  && !(tex&BT_COLOR ))color .del();
    if(bump   && !(tex&BT_BUMP  ))bump  .del();

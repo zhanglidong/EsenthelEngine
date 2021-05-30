@@ -77,11 +77,11 @@ MaterialTech mtrl_techs[]=
                case TEX_GLOW      : if(em.  glow_map   .is()                       )return base_2; break;
                case TEX_LIGHT     : if(em. light_map   .is()                       )return light ; break;
                case TEX_MACRO     : if(em. macro_map   .is()                       )return macro ; break;
-               case TEX_DET_COLOR : if(em.detail_color .is()                       )return detail; break;
+               case TEX_DET_COLOR : if(em.detail_color .is()                       )return detail; break; // #MaterialTextureLayoutDetail
                case TEX_DET_BUMP  : if(em.detail_bump  .is()                       )return detail; break;
                case TEX_DET_NORMAL: if(em.detail_normal.is() || em.detail_bump.is())return detail; break;
                case TEX_DET_SMOOTH: if(em.detail_smooth.is()                       )return detail; break;
-            }else switch(type) // #WaterMaterialTextureLayout
+            }else switch(type) // #MaterialTextureLayoutWater
             {
                case TEX_COLOR     : if(em.color_map.is()                           )return base_0; break;
                case TEX_BUMP      : if(em.  hasBumpMap()                           )return base_2; break;
@@ -261,7 +261,7 @@ MaterialTech mtrl_techs[]=
                case TEX_GLOW      : if(em.  glow_map   .is()                       )if(base_2){VI.shader(ShaderFiles("Main")->get("DrawTexWG"    )); base_2->drawFit(rect); tex=true;} break;
                case TEX_LIGHT     : if(em. light_map   .is()                       )if(light ){                                                      light ->drawFit(rect); tex=true;} break;
                case TEX_MACRO     : if(em. macro_map   .is()                       )if(macro ){                                                      macro ->drawFit(rect); tex=true;} break;
-               case TEX_DET_COLOR : if(em.detail_color .is()                       )if(detail){VI.shader(ShaderFiles("Main")->get("DrawTexZG"    )); detail->drawFit(rect); tex=true;} break;
+               case TEX_DET_COLOR : if(em.detail_color .is()                       )if(detail){VI.shader(ShaderFiles("Main")->get("DrawTexZG"    )); detail->drawFit(rect); tex=true;} break; // #MaterialTextureLayoutDetail
                case TEX_DET_BUMP  : if(em.detail_bump  .is()                       )if(detail){      if(Image *bump=mr->getDetailBump(em.detail_bump))bump  ->drawFit(rect); tex=true;} break; // Detail Bump is not stored in texture
                case TEX_DET_NORMAL: if(em.detail_normal.is() || em.detail_bump.is())if(detail){VI.shader(ShaderFiles("Main")->get("DrawTexDetNrm")); detail->drawFit(rect); tex=true;} break;
                case TEX_DET_SMOOTH: if(em.detail_smooth.is()                       )if(detail){VI.shader(ShaderFiles("Main")->get("DrawTexWG"    )); detail->drawFit(rect); tex=true;} break;
@@ -283,7 +283,7 @@ MaterialTech mtrl_techs[]=
                   i.drawCubeFace(WHITE, TRANSPARENT, Rect(x[1], y[2], x[2], y[3]), DIR_UP     );
                   tex=true;
                }break;*/
-            }else switch(type) // #WaterMaterialTextureLayout
+            }else switch(type) // #MaterialTextureLayoutWater
             {
                case TEX_COLOR     : if(em.    color_map.is()                       )if(base_0){                                                   base_0->drawFit(rect); tex=true;} break;
                case TEX_BUMP      : if(em.      hasBumpMap()                       )if(base_2){VI.shader(ShaderFiles("Main")->get("DrawTexXSG")); base_2->drawFit(rect); tex=true;} break;
@@ -384,7 +384,7 @@ MaterialTech mtrl_techs[]=
       if(mr.emit_red  ){mr.emit_red  ->set(v.x, QUIET); rgb.x=mr.emit_red  ->asFlt();}
       if(mr.emit_green){mr.emit_green->set(v.y, QUIET); rgb.y=mr.emit_green->asFlt();}
       if(mr.emit_blue ){mr.emit_blue ->set(v.z, QUIET); rgb.z=mr.emit_blue ->asFlt();}
-      mr.edit.emissive_time.getUTC(); mr.setChanged();
+      mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());
    }
    Str  MaterialRegion::Red(C MaterialRegion &mr          ) {return mr.edit.color_s.x;}
    void MaterialRegion::Red(  MaterialRegion &mr, C Str &t) {       mr.edit.color_s.x=TextFlt(t); mr.edit.color_time.getUTC();}
@@ -797,7 +797,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
          resize.New().create("Double"  , ResizeBaseDouble  , T);
       }
       {
-         Node<MenuElm> &resize=(n+=(water() ? "Resize Color Texture" : "Resize Color+Alpha Textures")); if(!water())resize.desc("This allows to resize the Base 0 textures, such as Color and Alpha to a custom size."); // #MaterialTextureLayout #WaterMaterialTextureLayout
+         Node<MenuElm> &resize=(n+=(water() ? "Resize Color Texture" : "Resize Color+Alpha Textures")); if(!water())resize.desc("This allows to resize the Base 0 textures, such as Color and Alpha to a custom size."); // #MaterialTextureLayout #MaterialTextureLayoutWater
          resize.New().create( "128x128" , ResizeBase0_128 , T);
          resize.New().create( "256x256" , ResizeBase0_256 , T);
          resize.New().create( "512x512" , ResizeBase0_512 , T);
@@ -825,7 +825,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
          resize.New().create("Double"  , ResizeBase0_Double  , T);
       }
       {
-         Node<MenuElm> &resize=(n+="Resize Normal Texture"); resize.desc("This allows to resize the Base 1 textures, such as Normal to a custom size."); // #MaterialTextureLayout #WaterMaterialTextureLayout
+         Node<MenuElm> &resize=(n+="Resize Normal Texture"); resize.desc("This allows to resize the Base 1 textures, such as Normal to a custom size."); // #MaterialTextureLayout #MaterialTextureLayoutWater
          resize.New().create( "128x128" , ResizeBase1_128 , T);
          resize.New().create( "256x256" , ResizeBase1_256 , T);
          resize.New().create( "512x512" , ResizeBase1_512 , T);
@@ -853,7 +853,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
          resize.New().create("Double"  , ResizeBase1_Double  , T);
       }
       {
-         Node<MenuElm> &resize=(n+=(water() ? "Resize Bump Texture" : "Resize Smooth+Metal+Bump+Glow Textures")); if(!water())resize.desc("This allows to resize the Base 2 textures, such as Smooth, Metal, Bump and Glow to a custom size."); // #MaterialTextureLayout #WaterMaterialTextureLayout
+         Node<MenuElm> &resize=(n+=(water() ? "Resize Bump Texture" : "Resize Smooth+Metal+Bump+Glow Textures")); if(!water())resize.desc("This allows to resize the Base 2 textures, such as Smooth, Metal, Bump and Glow to a custom size."); // #MaterialTextureLayout #MaterialTextureLayoutWater
          resize.New().create( "128x128" , ResizeBase2_128 , T);
          resize.New().create( "256x256" , ResizeBase2_256 , T);
          resize.New().create( "512x512" , ResizeBase2_512 , T);

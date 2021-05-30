@@ -401,7 +401,7 @@ void PS
       smooth =Material.smooth;
       reflect=Material.reflect_add;
       glow   =Material.glow;
-      if(DETAIL){col*=det.z; smooth*=det.w;}
+      if(DETAIL){col*=det.z; smooth+=det.w;} // #MaterialTextureLayoutDetail
    }
    #elif LAYOUT==1
    {
@@ -417,7 +417,7 @@ void PS
       smooth =Material.smooth;
       reflect=Material.reflect_add;
       glow   =Material.glow;
-      if(DETAIL){col*=det.z; smooth*=det.w;}
+      if(DETAIL){col*=det.z; smooth+=det.w;} // #MaterialTextureLayoutDetail
    }
    #elif LAYOUT==2
    {
@@ -434,7 +434,7 @@ void PS
       smooth =tex_ext.SMOOTH_CHANNEL*Material.smooth;
       reflect=tex_ext. METAL_CHANNEL*Material.reflect_mul+Material.reflect_add;
       glow   =tex_ext.  GLOW_CHANNEL*Material.glow;
-      if(DETAIL){col*=det.z; smooth*=det.w;}
+      if(DETAIL){col*=det.z; smooth+=det.w;} // #MaterialTextureLayoutDetail
    }
    #endif
 
@@ -450,14 +450,14 @@ void PS
 #else
    #if 0 // lower quality, but compatible with multi-materials
                 nrm.xy =Tex(Nrm, I.tex).xy*Material.normal;
-      if(DETAIL)nrm.xy+=det.xy;
+      if(DETAIL)nrm.xy+=det.xy; // #MaterialTextureLayoutDetail
                 nrm.z  =CalcZ(nrm.xy);
                 nrm    =Normalize(Transform(nrm, I.mtrx));
    #else // better quality
                 nrm.xy =Tex(Nrm, I.tex).xy;
                 nrm.z  =CalcZ(nrm.xy);
                 nrm.xy*=Material.normal; // alternatively this could be "nrm.z*=Material.normal_inv", with "normal_inv=1/Max(normal, HALF_EPS)" to avoid div by 0 and also big numbers which would be problematic for Halfs, however this would make detail nrm unproportional (too big/small compared to base nrm)
-      if(DETAIL)nrm.xy+=det.xy;
+      if(DETAIL)nrm.xy+=det.xy; // #MaterialTextureLayoutDetail
                 nrm    =Normalize(Transform(nrm, I.mtrx));
    #endif
 #endif
@@ -655,7 +655,7 @@ void PS
    }
    #endif // Relief
 
-   // #MaterialTextureLayout
+   // #MaterialTextureLayout #MaterialTextureLayoutDetail
 
    // detail texture
    VecH4 det0, det1, det2, det3;
@@ -689,16 +689,16 @@ void PS
          if(MATERIALS>=3){I.material.z=MultiMaterialWeight(I.material.z, ext2.BUMP_CHANNEL); if(MATERIALS==3)I.material.xyz /=I.material.x+I.material.y+I.material.z;}
          if(MATERIALS>=4){I.material.w=MultiMaterialWeight(I.material.w, ext3.BUMP_CHANNEL); if(MATERIALS==4)I.material.xyzw/=I.material.x+I.material.y+I.material.z+I.material.w;}
       }
-                      {VecH rsg0=ext0.xyw*MultiMaterial0.rsg_mul+MultiMaterial0.rsg_add; if(DETAIL)rsg0.y*=det0.w; rsg =rsg0*I.material.x;}
-                      {VecH rsg1=ext1.xyw*MultiMaterial1.rsg_mul+MultiMaterial1.rsg_add; if(DETAIL)rsg1.y*=det1.w; rsg+=rsg1*I.material.y;}
-      if(MATERIALS>=3){VecH rsg2=ext2.xyw*MultiMaterial2.rsg_mul+MultiMaterial2.rsg_add; if(DETAIL)rsg2.y*=det2.w; rsg+=rsg2*I.material.z;}
-      if(MATERIALS>=4){VecH rsg3=ext3.xyw*MultiMaterial3.rsg_mul+MultiMaterial3.rsg_add; if(DETAIL)rsg3.y*=det3.w; rsg+=rsg3*I.material.w;}
+                      {VecH rsg0=ext0.xyw*MultiMaterial0.rsg_mul+MultiMaterial0.rsg_add; if(DETAIL)rsg0.y+=det0.w; rsg =rsg0*I.material.x;} // #MaterialTextureLayoutDetail
+                      {VecH rsg1=ext1.xyw*MultiMaterial1.rsg_mul+MultiMaterial1.rsg_add; if(DETAIL)rsg1.y+=det1.w; rsg+=rsg1*I.material.y;}
+      if(MATERIALS>=3){VecH rsg2=ext2.xyw*MultiMaterial2.rsg_mul+MultiMaterial2.rsg_add; if(DETAIL)rsg2.y+=det2.w; rsg+=rsg2*I.material.z;}
+      if(MATERIALS>=4){VecH rsg3=ext3.xyw*MultiMaterial3.rsg_mul+MultiMaterial3.rsg_add; if(DETAIL)rsg3.y+=det3.w; rsg+=rsg3*I.material.w;}
    }else
    {
-                      {VecH rsg0=MultiMaterial0.rsg_add; if(DETAIL)rsg0.y*=det0.w; rsg =rsg0*I.material.x;}
-                      {VecH rsg1=MultiMaterial1.rsg_add; if(DETAIL)rsg1.y*=det1.w; rsg+=rsg1*I.material.y;}
-      if(MATERIALS>=3){VecH rsg2=MultiMaterial2.rsg_add; if(DETAIL)rsg2.y*=det2.w; rsg+=rsg2*I.material.z;}
-      if(MATERIALS>=4){VecH rsg3=MultiMaterial3.rsg_add; if(DETAIL)rsg3.y*=det3.w; rsg+=rsg3*I.material.w;}
+                      {VecH rsg0=MultiMaterial0.rsg_add; if(DETAIL)rsg0.y+=det0.w; rsg =rsg0*I.material.x;} // #MaterialTextureLayoutDetail
+                      {VecH rsg1=MultiMaterial1.rsg_add; if(DETAIL)rsg1.y+=det1.w; rsg+=rsg1*I.material.y;}
+      if(MATERIALS>=3){VecH rsg2=MultiMaterial2.rsg_add; if(DETAIL)rsg2.y+=det2.w; rsg+=rsg2*I.material.z;}
+      if(MATERIALS>=4){VecH rsg3=MultiMaterial3.rsg_add; if(DETAIL)rsg3.y+=det3.w; rsg+=rsg3*I.material.w;}
    }
    smooth =rsg.y;
    reflect=rsg.x;
@@ -706,7 +706,7 @@ void PS
 
    // Color + Detail + Macro !! do this second after modifying 'I.material' !! here Alpha is ignored for multi-materials
    VecH rgb;
-                   {VecH col0=Tex(Col , tex0).rgb; col0.rgb*=MultiMaterial0.color.rgb; if(DETAIL)col0.rgb*=det0.z; if(MACRO)col0.rgb=Lerp(col0.rgb, Tex(Mac , tex0*MacroScale).rgb, MultiMaterial0.macro*mac_blend); rgb =I.material.x*col0;}
+                   {VecH col0=Tex(Col , tex0).rgb; col0.rgb*=MultiMaterial0.color.rgb; if(DETAIL)col0.rgb*=det0.z; if(MACRO)col0.rgb=Lerp(col0.rgb, Tex(Mac , tex0*MacroScale).rgb, MultiMaterial0.macro*mac_blend); rgb =I.material.x*col0;} // #MaterialTextureLayoutDetail
                    {VecH col1=Tex(Col1, tex1).rgb; col1.rgb*=MultiMaterial1.color.rgb; if(DETAIL)col1.rgb*=det1.z; if(MACRO)col1.rgb=Lerp(col1.rgb, Tex(Mac1, tex1*MacroScale).rgb, MultiMaterial1.macro*mac_blend); rgb+=I.material.y*col1;}
    if(MATERIALS>=3){VecH col2=Tex(Col2, tex2).rgb; col2.rgb*=MultiMaterial2.color.rgb; if(DETAIL)col2.rgb*=det2.z; if(MACRO)col2.rgb=Lerp(col2.rgb, Tex(Mac2, tex2*MacroScale).rgb, MultiMaterial2.macro*mac_blend); rgb+=I.material.z*col2;}
    if(MATERIALS>=4){VecH col3=Tex(Col3, tex3).rgb; col3.rgb*=MultiMaterial3.color.rgb; if(DETAIL)col3.rgb*=det3.z; if(MACRO)col3.rgb=Lerp(col3.rgb, Tex(Mac3, tex3*MacroScale).rgb, MultiMaterial3.macro*mac_blend); rgb+=I.material.w*col3;}
@@ -723,7 +723,7 @@ void PS
    nrm=Normalize(I.Nrm()); // can't add DETAIL normal because it would need 'I.mtrx'
 #else
    if(DETAIL)
-   {
+   { // #MaterialTextureLayoutDetail
                       nrm.xy =(Tex(Nrm , tex0).xy*MultiMaterial0.normal + det0.xy)*I.material.x;
                       nrm.xy+=(Tex(Nrm1, tex1).xy*MultiMaterial1.normal + det1.xy)*I.material.y;
       if(MATERIALS>=3)nrm.xy+=(Tex(Nrm2, tex2).xy*MultiMaterial2.normal + det2.xy)*I.material.z;

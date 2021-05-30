@@ -256,8 +256,8 @@ void PS
    VecH4 tex_col=Tex(Col, I.tex); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
    VecH4 tex_ext=Tex(Ext, I.tex);
    if(ALPHA)I.col*=tex_col;else I.col.rgb*=tex_col.rgb;
-   smooth =tex_ext.SMOOTH_CHANNEL*Material.smooth;
-   reflect=tex_ext. METAL_CHANNEL*Material.reflect_mul+Material.reflect_add;
+   smooth =Sat(tex_ext.SMOOTH_CHANNEL*Material.smooth);
+   reflect=    tex_ext. METAL_CHANNEL*Material.reflect_mul+Material.reflect_add;
 #endif
 
    // normal
