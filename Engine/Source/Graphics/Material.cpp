@@ -790,7 +790,7 @@ static Int ImgH(C ImageSource &src, C Image *img) {return (!img->is()) ? 0 : (sr
 
 static FILTER_TYPE Filter(Int filter) {return InRange(filter, FILTER_NUM) ? FILTER_TYPE(filter) : FILTER_BEST;}
 
-UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &metal, C ImageSource &glow, Bool resize_to_pow2, Bool flip_normal_y)
+UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &metal, C ImageSource &glow, Bool resize_to_pow2, Bool flip_normal_y, Bool smooth_is_rough)
 { // #MaterialTextureLayout
    UInt  ret=0;
    Image dest_0, dest_1, dest_2;
@@ -942,7 +942,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
                      REPD(x, dest_2.w())
                      {
                         Color c;
-                        if(smooth_src->is())                                   c.c[SMOOTH_CHANNEL]=smooth_src->color(x, y).lum();
+                        if(smooth_src->is()){                                  c.c[SMOOTH_CHANNEL]=smooth_src->color(x, y).lum(); if(smooth_is_rough)c.c[SMOOTH_CHANNEL]=255-c.c[SMOOTH_CHANNEL];}
                         if( metal_src->is())                                   c.c[ METAL_CHANNEL]= metal_src->color(x, y).lum();
                         if(  bump_src->is())                                   c.c[  BUMP_CHANNEL]=  bump_src->color(x, y).lum();
                         if(  glow_src->is()){Color glow=glow_src->color(x, y); c.c[  GLOW_CHANNEL]=DivRound(glow.lum()*glow.a, 255);}
@@ -1018,7 +1018,7 @@ UInt ExtractBase2Texture(Image &base_2, Image *bump, Image *smooth, Image *metal
    return tex;
 }
 /******************************************************************************/
-void CreateDetailTexture(Image &detail, C ImageSource &color, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, Bool resize_to_pow2, Bool flip_normal_y)
+void CreateDetailTexture(Image &detail, C ImageSource &color, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, Bool resize_to_pow2, Bool flip_normal_y, Bool smooth_is_rough)
 {
    Image dest;
    {
@@ -1068,16 +1068,16 @@ void CreateDetailTexture(Image &detail, C ImageSource &color, C ImageSource &bum
                   Byte  color =128;
                 //Byte  bump  =128;
                   Color normal=Color(128, 128, 255, 0);
-                  Byte  rough =128;
+                  Byte  smooth=128;
 
                   REPD(y, dest.h())
                   REPD(x, dest.w())
                   {
-                     if( color_src->is()) color =     color_src->color(x, y).lum();
-                   //if(  bump_src->is()) bump  =      bump_src->color(x, y).lum();
-                     if(normal_src->is()){normal=    normal_src->color(x, y)      ; if(flip_normal_y)normal.g=255-normal.g;}
-                     if(smooth_src->is()){rough =255-smooth_src->color(x, y).lum();}
-                     dest.color(x, y, Color(normal.r, normal.g, color, rough)); // #MaterialTextureLayoutDetail
+                     if( color_src->is()) color = color_src->color(x, y).lum();
+                   //if(  bump_src->is()) bump  =  bump_src->color(x, y).lum();
+                     if(normal_src->is()){normal=normal_src->color(x, y)      ; if(flip_normal_y  )normal.g=255-normal.g;}
+                     if(smooth_src->is()){smooth=smooth_src->color(x, y).lum(); if(smooth_is_rough)smooth  =255-smooth  ;}
+                     dest.color(x, y, Color(normal.r, normal.g, color, smooth)); // #MaterialTextureLayoutDetail
                   }
                   smooth_src->unlock();
                }

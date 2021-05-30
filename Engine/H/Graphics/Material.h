@@ -226,12 +226,12 @@ struct ImageSource
 
    ImageSource(C Image &image, C VecI2 &size=0, Int filter=-1, Bool clamp=false) : image(image), size(size), filter(filter), clamp(clamp) {}
 };
-UInt  CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &metal, C ImageSource &glow, Bool resize_to_pow2=true, Bool flip_normal_y=false); // create 'base_0', 'base_1' and 'base_2' base material textures from given images, textures will be created as IMAGE_R8G8B8A8_SRGB, IMAGE_R8G8_SIGN, IMAGE_R8G8B8A8 IMAGE_SOFT, 'flip_normal_y'=if flip normal map Y channel, returns bit combination of BASE_TEX enums of what the base textures have
+UInt  CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &metal, C ImageSource &glow, Bool resize_to_pow2=true, Bool flip_normal_y=false, Bool smooth_is_rough=false); // create 'base_0', 'base_1' and 'base_2' base material textures from given images, textures will be created as IMAGE_R8G8B8A8_SRGB, IMAGE_R8G8_SIGN, IMAGE_R8G8B8A8 IMAGE_SOFT, 'flip_normal_y'=if flip normal map Y channel, 'smooth_is_rough'=if smoothness map is actually roughness map, returns bit combination of BASE_TEX enums of what the base textures have
 UInt ExtractBase0Texture(Image &base_0, Image *color, Image *alpha);
 UInt ExtractBase1Texture(Image &base_1, Image *normal);
 UInt ExtractBase2Texture(Image &base_2, Image *bump, Image *smooth, Image *metal, Image *glow);
 
-void  CreateDetailTexture(  Image &detail, C ImageSource &color, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, Bool resize_to_pow2=true, Bool flip_normal_y=false); // create 'detail' material texture from given images, texture  will be created as IMAGE_R8G8B8A8 IMAGE_SOFT, 'flip_normal_y'=if flip normal map Y channel
+void  CreateDetailTexture(  Image &detail, C ImageSource &color, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, Bool resize_to_pow2=true, Bool flip_normal_y=false, Bool smooth_is_rough=false); // create 'detail' material texture from given images, texture  will be created as IMAGE_R8G8B8A8 IMAGE_SOFT, 'flip_normal_y'=if flip normal map Y channel, 'smooth_is_rough'=if smoothness map is actually roughness map
 UInt ExtractDetailTexture(C Image &detail,   Image       *color,   Image       *bump,   Image       *normal,   Image       *smooth);
 
 Bool CreateBumpFromColor(Image &bump, C Image &color, Flt min_blur_range=-1, Flt max_blur_range=-1, Bool clamp=false); // create 'bump' texture from color image, texture will be created as IMAGE_F32 IMAGE_SOFT, 'min_blur_range' and 'max_blur_range' are minimum and maximum blur ranges used for creating the bump map, use -1 for auto values

@@ -209,7 +209,7 @@ struct Material
    };
    MATERIAL_TECHNIQUE technique;
    TEX_QUALITY        tex_quality;
-   Bool               cull, flip_normal_y;
+   Bool               cull, flip_normal_y, smooth_is_rough;
    Byte               downsize_tex_mobile; // how much to downsize textures for Mobile platforms, 0=full size, 1=half size, 2=quarter size, ..
    Vec4               color_s; // sRGB Gamma
    Vec                emissive;

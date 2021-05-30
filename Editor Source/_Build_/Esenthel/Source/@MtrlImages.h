@@ -19,7 +19,7 @@ class MtrlImages
 public:
    ImageResize();
    };
-   bool        flip_normal_y;
+   bool        flip_normal_y, smooth_is_rough;
    int         tex;
    ImageResize color, alpha, bump, normal, smooth, metal, glow;
    
@@ -37,7 +37,7 @@ public:
    }
    void clear()
    {
-      flip_normal_y=false;
+      flip_normal_y=smooth_is_rough=false;
       tex=0;
       color .clear();
       alpha .clear();
@@ -122,8 +122,8 @@ public:
       metal .apply();
       glow  .apply();
    }*/
-   void fromMaterial(C EditMaterial &material, C Project &proj, bool changed_flip_normal_y=false);
-   void fromMaterial(C EditWaterMtrl &material, C Project &proj, bool changed_flip_normal_y=false);
+   void fromMaterial(C EditMaterial &material, C Project &proj, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
+   void fromMaterial(C EditWaterMtrl &material, C Project &proj, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
    uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2)C;
    uint createWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2)C;
    void baseTextureSizes(VecI2 *size0, VecI2 *size1, VecI2 *size2);

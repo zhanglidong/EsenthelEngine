@@ -383,6 +383,7 @@ public:
    bool mtrlSetTexGlow(C MemPtr<UID> &elm_ids, C Str &glow_map);
    void mtrlCull(C MemPtr<UID> &elm_ids, bool on);
    void mtrlFlipNrmY(C MemPtr<UID> &elm_ids, bool on);
+   void mtrlSmoothIsRough(C MemPtr<UID> &elm_ids, bool on);
    void mtrlDownsizeTexMobile(C MemPtr<UID> &elm_ids, byte downsize, C UID &base_0=UIDZero, C UID &base_1=UIDZero, C UID &base_2=UIDZero);
    bool mtrlTexQuality(C MemPtr<UID> &elm_ids, Edit::Material::TEX_QUALITY quality, C UID &base_0=UIDZero, C UID &base_1=UIDZero, C UID &base_2=UIDZero); // !! this is not perfect !!
    bool mtrlMulTexCol(C MemPtr<UID> &elm_ids);
@@ -394,10 +395,10 @@ public:
    bool mtrlSync(C UID &elm_id, C EditMaterial &mtrl, bool reload_textures, bool adjust_params, cptr undo_change_type="sync");
    bool mtrlSync(C UID &elm_id, C EditWaterMtrl &mtrl, bool reload_textures, bool adjust_params, cptr undo_change_type="sync");
    bool mtrlSync(C UID &elm_id, C Edit::Material &mtrl, bool reload_textures, bool adjust_params);
-   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditMaterial &material, bool changed_flip_normal_y=false);
-   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditWaterMtrl &material, bool changed_flip_normal_y=false);
-   uint mtrlCreateBaseTextures(EditMaterial &material, bool changed_flip_normal_y=false);
-   uint mtrlCreateBaseTextures(EditWaterMtrl &material, bool changed_flip_normal_y=false);
+   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditMaterial &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
+   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditWaterMtrl &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
+   uint mtrlCreateBaseTextures(EditMaterial &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
+   uint mtrlCreateBaseTextures(EditWaterMtrl &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
    /*bool mtrlCreateReflectionTexture(Image &reflection, C EditMaterial &material)
    {
       bool loaded=false;

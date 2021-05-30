@@ -31,6 +31,8 @@ class WaterMtrlRegion : MaterialRegion
    static void NrmScale (  WaterMtrlRegion &mr, C Str &t);
    static Str  FNY      (C WaterMtrlRegion &mr          );
    static void FNY      (  WaterMtrlRegion &mr, C Str &t);
+   static Str  SmtIsRgh (C WaterMtrlRegion &mr          );
+   static void SmtIsRgh (  WaterMtrlRegion &mr, C Str &t);
    static Str  WaveScale(C WaterMtrlRegion &mr          );
    static void WaveScale(  WaterMtrlRegion &mr, C Str &t);
 
@@ -83,7 +85,7 @@ class WaterMtrlRegion : MaterialRegion
    virtual void resizeBase1(C VecI2 &size, bool relative=false)override;
    virtual void resizeBase2(C VecI2 &size, bool relative=false)override;
 
-   virtual void rebuildBase(uint old_base_tex, bool changed_flip_normal_y=false, bool adjust_params=true, bool always=false)override;
+   virtual void rebuildBase(uint old_base_tex, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false, bool adjust_params=true, bool always=false)override;
    virtual void rebuildDetail()override;
    virtual void rebuildMacro()override;
    virtual void rebuildLight(bool old_light_map, bool adjust_params=true)override;

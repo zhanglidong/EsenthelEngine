@@ -281,8 +281,9 @@ ConvertToAtlasClass ConvertToAtlas;
             FileParams &fp=fps_dest.New();
             Swap(fps_src, fp.nodes);
             VecI2 size=mtrl.packed_rect.size();
-            if(mtrl.edit.flip_normal_y && tex_type==BT_NORMAL) fp.params.New().set("inverseG"); // !! this needs to be done before 'swapRG' !!
-            if(mtrl.rotated                                  ){fp.params.New().set("swapXY"); if(tex_type==BT_NORMAL)fp.params.New().set("swapRG");} // !! this needs to be done before 'resizeClamp' !!
+            if(mtrl.edit.smooth_is_rough && tex_type==BT_SMOOTH) fp.params.New().set("inverseRGB");
+            if(mtrl.edit.flip_normal_y   && tex_type==BT_NORMAL) fp.params.New().set("inverseG"); // !! this needs to be done before 'swapRG' !!
+            if(mtrl.rotated                                    ){fp.params.New().set("swapXY"); if(tex_type==BT_NORMAL)fp.params.New().set("swapRG");} // !! this needs to be done before 'resizeClamp' !!
 
             bool need_mul=!Equal(mul, Vec(1)),
                  need_add=!Equal(add, Vec(0));
@@ -303,7 +304,7 @@ ConvertToAtlasClass ConvertToAtlas;
             added=true;
          }else // don't have source map
          if(force) // but we need to write based on params (because there are other materials that need this texture to be generated, so we have to write something)
-         {
+         { // #MaterialTextureLayout
             flt src=((tex_type==BT_METAL) ? 0 : 1); // for metal if there's no source map, then source is treated as no metal (0)
             Vec set=src*mul+add;
             FileParams &fp=fps_dest.New();

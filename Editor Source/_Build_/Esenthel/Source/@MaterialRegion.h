@@ -152,6 +152,8 @@ public:
    static void NrmScale(  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
    static Str  FNY     (C MaterialRegion &mr          );
    static void FNY     (  MaterialRegion &mr, C Str &t);
+   static Str  SmtIsRgh(C MaterialRegion &mr          );
+   static void SmtIsRgh(  MaterialRegion &mr, C Str &t);
 
    static Str  Smooth    (C MaterialRegion &mr          );
    static void Smooth    (  MaterialRegion &mr, C Str &t);
@@ -313,6 +315,7 @@ public:
    void resetAlpha       (                                           );
    void cull             (bool                      on               );
    void flipNrmY         (bool                      on               ); // 'rebuildBase' already calls 'setChanged' and 'toGui'
+   void smoothIsRough    (bool                      on               ); // 'rebuildBase' already calls 'setChanged' and 'toGui'
  //void maxTexSize       (Edit.MAX_TEX_SIZE         mts              ) {if(edit.max_tex_size       !=mts                                 ){        undos.set("mts"       ); edit.max_tex_size       =mts                              ; edit.       max_tex_size_time.getUTC(); setChanged(); toGui();}}
    void downsizeTexMobile(byte                      ds               );  
    void texQuality       (Edit::Material::TEX_QUALITY q, bool undo=true); // 'rebuildBase' already calls 'setChanged' and 'toGui'
@@ -381,7 +384,7 @@ public:
    };
    void drop(Memc<Str> &names, GuiObj *focus_obj, C Vec2 &screen_pos);
 
-   virtual void rebuildBase(uint old_base_tex, bool changed_flip_normal_y=false, bool adjust_params=true, bool always=false);
+   virtual void rebuildBase(uint old_base_tex, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false, bool adjust_params=true, bool always=false);
    virtual void rebuildDetail();
    virtual void rebuildMacro();
    virtual void rebuildLight(bool old_light_map, bool adjust_params=true);

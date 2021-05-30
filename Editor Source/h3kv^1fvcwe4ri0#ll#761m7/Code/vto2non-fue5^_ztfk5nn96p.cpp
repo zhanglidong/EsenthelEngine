@@ -436,13 +436,13 @@ class MtrlImages
       }
       operator ImageSource()C {return ImageSource(T, size, filter, clamp);}
    }
-   bool        flip_normal_y=false;
+   bool        flip_normal_y=false, smooth_is_rough=false;
    int         tex=0;
    ImageResize color, alpha, bump, normal, smooth, metal, glow;
    
    MtrlImages& del()
    {
-      flip_normal_y=false;
+      flip_normal_y=smooth_is_rough=false;
       tex=0;
       color.del(); alpha.del(); bump.del(); normal.del(); smooth.del(); metal.del(); glow.del();
       return T;
@@ -460,7 +460,7 @@ class MtrlImages
    }
    void clear()
    {
-      flip_normal_y=false;
+      flip_normal_y=smooth_is_rough=false;
       tex=0;
       color .clear();
       alpha .clear();
@@ -545,14 +545,14 @@ class MtrlImages
       metal .apply();
       glow  .apply();
    }*/
-   void fromMaterial(C EditMaterial &material, C Project &proj, bool changed_flip_normal_y=false)
+   void fromMaterial(C EditMaterial &material, C Project &proj, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false)
    {
       del();
 
       // here when loading images, load them without resize, in case for example bump is original 256x256, resized to 128x128, and normal created from bump resized to 256x256, normally normal would be created from bump that was already resized from 256x256 to 128x128 and then resized again to 256x256
       TextParam color_resize, alpha_resize, smooth_resize, metal_resize, bump_resize, normal_resize, glow_resize;
 
-      // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !!
+      // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !! #MaterialTextureLayout
       bool color_ok=proj.loadImages( color, & color_resize, material.  color_map, true , false),
            alpha_ok=proj.loadImages( alpha, & alpha_resize, material.  alpha_map, false, false, WHITE, &color, &color_resize),
           smooth_ok=proj.loadImages(smooth, &smooth_resize, material. smooth_map, false, false, WHITE, &color, &color_resize),
@@ -576,16 +576,17 @@ class MtrlImages
       ExtractBaseTextures(proj, material.base_0_tex, material.base_1_tex, material.base_2_tex,
          color_ok ? null : &color, alpha_ok ? null : &alpha, bump_ok ? null : &bump, normal_ok ? null : &normal, smooth_ok ? null : &smooth, metal_ok ? null : &metal, glow_ok ? null : &glow);
 
-      T.flip_normal_y=(normal_ok ? material.flip_normal_y : changed_flip_normal_y); // if we failed to load the original image, and instead we're using extracted normal map, then we need to flip Y only if we're changing flipping at this moment
+      T.flip_normal_y  =(normal_ok ? material.flip_normal_y   : changed_flip_normal_y  ); // if we failed to load the original image, and instead we're using extracted normal map, then we need to flip Y only if we're changing flipping at this moment
+      T.smooth_is_rough=(smooth_ok ? material.smooth_is_rough : changed_smooth_is_rough);
    }
-   void fromMaterial(C EditWaterMtrl &material, C Project &proj, bool changed_flip_normal_y=false)
+   void fromMaterial(C EditWaterMtrl &material, C Project &proj, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false)
    {
       del();
 
       // here when loading images, load them without resize, in case for example bump is original 256x256, resized to 128x128, and normal created from bump resized to 256x256, normally normal would be created from bump that was already resized from 256x256 to 128x128 and then resized again to 256x256
       TextParam color_resize, alpha_resize, smooth_resize, metal_resize, bump_resize, normal_resize, glow_resize;
 
-      // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !!
+      // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !! #MaterialTextureLayoutWater
       bool color_ok=proj.loadImages( color, & color_resize, material. color_map, true , false),
            alpha_ok=proj.loadImages( alpha, & alpha_resize, material. alpha_map, false, false, WHITE, &color, &color_resize),
           smooth_ok=proj.loadImages(smooth, &smooth_resize, material.smooth_map, false, false, WHITE, &color, &color_resize),
@@ -609,15 +610,16 @@ class MtrlImages
       ExtractWaterBaseTextures(proj, material.base_0_tex, material.base_1_tex, material.base_2_tex,
          color_ok ? null : &color, alpha_ok ? null : &alpha, bump_ok ? null : &bump, normal_ok ? null : &normal, smooth_ok ? null : &smooth, metal_ok ? null : &metal, glow_ok ? null : &glow);
 
-      T.flip_normal_y=(normal_ok ? material.flip_normal_y : changed_flip_normal_y); // if we failed to load the original image, and instead we're using extracted normal map, then we need to flip Y only if we're changing flipping at this moment
+      T.flip_normal_y  =(normal_ok ? material.flip_normal_y   : changed_flip_normal_y  ); // if we failed to load the original image, and instead we're using extracted normal map, then we need to flip Y only if we're changing flipping at this moment
+      T.smooth_is_rough=(smooth_ok ? material.smooth_is_rough : changed_smooth_is_rough);
    }
    uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2)C
    {
-      return CreateBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, metal, glow, true, flip_normal_y);
+      return CreateBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, metal, glow, true, flip_normal_y, smooth_is_rough);
    }
    uint createWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2)C
    {
-      return CreateWaterBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, metal, glow, true, flip_normal_y);
+      return CreateWaterBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, metal, glow, true, flip_normal_y, smooth_is_rough);
    }
    void baseTextureSizes(VecI2 *size0, VecI2 *size1, VecI2 *size2)
    { // TODO: this could be optimized by calculating Max of image sizes, however there are some special cases (normal made from bump, etc.)

@@ -64,7 +64,9 @@ WaterMtrlRegion WaterMtrlEdit;
    Str  WaterMtrlRegion::NrmScale(C WaterMtrlRegion &mr          ) {return mr.edit.normal;}
    void WaterMtrlRegion::NrmScale(  WaterMtrlRegion &mr, C Str &t) {mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC();}
    Str  WaterMtrlRegion::FNY(C WaterMtrlRegion &mr          ) {return mr.edit.flip_normal_y;}
-   void WaterMtrlRegion::FNY(  WaterMtrlRegion &mr, C Str &t) {uint base_tex=mr.edit.baseTex(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(base_tex, true, false);}
+   void WaterMtrlRegion::FNY(  WaterMtrlRegion &mr, C Str &t) {uint base_tex=mr.edit.baseTex(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(base_tex, true, false, false);}
+   Str  WaterMtrlRegion::SmtIsRgh(C WaterMtrlRegion &mr          ) {return mr.edit.smooth_is_rough;}
+   void WaterMtrlRegion::SmtIsRgh(  WaterMtrlRegion &mr, C Str &t) {uint base_tex=mr.edit.baseTex(); mr.edit.smooth_is_rough=TextBool(t); mr.edit.smooth_is_rough_time.getUTC(); mr.rebuildBase(base_tex, false, true, false);}
    Str  WaterMtrlRegion::WaveScale(C WaterMtrlRegion &mr          ) {return mr.edit.wave_scale;}
    void WaterMtrlRegion::WaveScale(  WaterMtrlRegion &mr, C Str &t) {mr.edit.wave_scale=TextFlt(t); mr.edit.wave_scale_time.getUTC();}
    Str  WaterMtrlRegion::ScaleColor(C WaterMtrlRegion &mr          ) {return 1/mr.edit.scale_color;}
@@ -291,14 +293,14 @@ WaterMtrlRegion WaterMtrlEdit;
          rebuildBase(edit.baseTex());
       }
    }
-   void WaterMtrlRegion::rebuildBase(uint old_base_tex, bool changed_flip_normal_y, bool adjust_params, bool always)
+   void WaterMtrlRegion::rebuildBase(uint old_base_tex, bool changed_flip_normal_y, bool changed_smooth_is_rough, bool adjust_params, bool always)
 {
       if(elm && game)
       {
          uint new_base_tex;
          if(auto_reload || always)
          {
-            new_base_tex=Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y); // set precise
+            new_base_tex=Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y, changed_smooth_is_rough); // set precise
             Time.skipUpdate(); // compressing textures can be slow
          }else new_base_tex=edit.baseTex(); // set approximate
 

@@ -4,7 +4,7 @@ class EditMaterial
 {
    MATERIAL_TECHNIQUE        tech;
    Edit::Material::TEX_QUALITY tex_quality;
-   bool                      flip_normal_y, cull;
+   bool                      flip_normal_y, smooth_is_rough, cull; // !! 'smooth_is_rough' is not yet saved !!
    byte                      downsize_tex_mobile;
    Vec4                      color_s;
    Vec                       emissive;
@@ -15,7 +15,7 @@ class EditMaterial
                              detail_color, detail_bump, detail_normal, detail_smooth,
                              macro_map,
                              light_map;
-   TimeStamp                 flip_normal_y_time, tex_quality_time,
+   TimeStamp                 flip_normal_y_time, smooth_is_rough_time, tex_quality_time,
                              color_map_time, alpha_map_time, bump_map_time, normal_map_time, smooth_map_time, metal_map_time, glow_map_time,
                              detail_map_time, macro_map_time, light_map_time,
                              cull_time, tech_time, downsize_tex_mobile_time,
@@ -58,11 +58,12 @@ class EditMaterial
    enum
    {
       CHANGED_PARAM=1<<0,
-      CHANGED_FNY  =1<<1,
-      CHANGED_BASE =1<<2,
-      CHANGED_DET  =1<<3,
-      CHANGED_MACRO=1<<4,
-      CHANGED_LIGHT=1<<5,
+      CHANGED_BASE =1<<1,
+      CHANGED_DET  =1<<2,
+      CHANGED_MACRO=1<<3,
+      CHANGED_LIGHT=1<<4,
+      CHANGED_FNY  =1<<5,
+      CHANGED_SIR  =1<<6,
    };
    uint sync(C Edit::Material &src);
    uint sync(C EditMaterial &src);

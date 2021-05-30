@@ -1682,6 +1682,23 @@ class ProjectEx : ProjectHierarchy
          }
       }
    }
+   void mtrlSmoothIsRough(C MemPtr<UID> &elm_ids, bool on)
+   {
+      REPA(elm_ids)
+      if(Elm *mtrl=findElm(elm_ids[i], ELM_MTRL))
+      if(ElmMaterial *mtrl_data=mtrl.mtrlData())
+      if(MtrlEdit.elm==mtrl)MtrlEdit.smoothIsRough(on);else
+      {
+         EditMaterial edit; if(edit.load(editPath(mtrl.id)))if(edit.smooth_is_rough!=on)
+         {
+            mtrl_data.newVer();
+            edit.smooth_is_rough=on; edit.smooth_is_rough_time.now();
+            Save(edit, editPath(mtrl.id));
+          //makeGameVer(*mtrl); not needed because 'smooth_is_rough' is not stored in game, however if tex ID is changed, then it's handled by 'mtrlReloadTextures' below
+            if(!mtrlReloadTextures(mtrl.id, true, false, false, false))Server.setElmLong(mtrl.id); // 'Server.setElmLong' will be called by 'mtrlReloadTextures' unless it failed
+         }
+      }
+   }
    void mtrlDownsizeTexMobile(C MemPtr<UID> &elm_ids, byte downsize, C UID &base_0=UIDZero, C UID &base_1=UIDZero, C UID &base_2=UIDZero)
    {
       Memt<UID> mtrls;
@@ -1886,7 +1903,7 @@ class ProjectEx : ProjectHierarchy
             {
                if(reload_textures)
                {
-                  if(changed&EditMaterial.CHANGED_BASE )MtrlEdit.rebuildBase  (base_tex, FlagTest(changed, EditMaterial.CHANGED_FNY), adjust_params, true);
+                  if(changed&EditMaterial.CHANGED_BASE )MtrlEdit.rebuildBase  (base_tex, FlagTest(changed, EditMaterial.CHANGED_FNY), FlagTest(changed, EditMaterial.CHANGED_SIR), adjust_params, true);
                   if(changed&EditMaterial.CHANGED_DET  )MtrlEdit.rebuildDetail();
                   if(changed&EditMaterial.CHANGED_MACRO)MtrlEdit.rebuildMacro ();
                   if(changed&EditMaterial.CHANGED_LIGHT)MtrlEdit.rebuildLight (light_map, adjust_params);
@@ -1909,7 +1926,7 @@ class ProjectEx : ProjectHierarchy
             {
                if(reload_textures)
                {
-                  if(changed&EditMaterial.CHANGED_BASE )WaterMtrlEdit.rebuildBase  (base_tex, FlagTest(changed, EditMaterial.CHANGED_FNY), adjust_params, true);
+                  if(changed&EditMaterial.CHANGED_BASE )WaterMtrlEdit.rebuildBase  (base_tex, FlagTest(changed, EditMaterial.CHANGED_FNY), FlagTest(changed, EditMaterial.CHANGED_SIR), adjust_params, true);
                   if(changed&EditMaterial.CHANGED_DET  )WaterMtrlEdit.rebuildDetail();
                   if(changed&EditMaterial.CHANGED_MACRO)WaterMtrlEdit.rebuildMacro ();
                   if(changed&EditMaterial.CHANGED_LIGHT)WaterMtrlEdit.rebuildLight (light_map, adjust_params);
@@ -1938,7 +1955,7 @@ class ProjectEx : ProjectHierarchy
 
                   if(reload_textures)
                   {
-                     if(changed&EditMaterial.CHANGED_BASE )new_base_tex=mtrlCreateBaseTextures (edit, FlagTest(changed, EditMaterial.CHANGED_FNY)); // get precise base tex
+                     if(changed&EditMaterial.CHANGED_BASE )new_base_tex=mtrlCreateBaseTextures (edit, FlagTest(changed, EditMaterial.CHANGED_FNY), FlagTest(changed, EditMaterial.CHANGED_SIR)); // get precise base tex
                      if(changed&EditMaterial.CHANGED_DET  )             mtrlCreateDetailTexture(edit);
                      if(changed&EditMaterial.CHANGED_MACRO)             mtrlCreateMacroTexture (edit);
                      if(changed&EditMaterial.CHANGED_LIGHT)             mtrlCreateLightTexture (edit);
@@ -1973,7 +1990,7 @@ class ProjectEx : ProjectHierarchy
 
                   if(reload_textures)
                   {
-                     if(changed&EditMaterial.CHANGED_BASE )new_base_tex=mtrlCreateBaseTextures (edit, FlagTest(changed, EditMaterial.CHANGED_FNY)); // get precise base tex
+                     if(changed&EditMaterial.CHANGED_BASE )new_base_tex=mtrlCreateBaseTextures (edit, FlagTest(changed, EditMaterial.CHANGED_FNY), FlagTest(changed, EditMaterial.CHANGED_SIR)); // get precise base tex
                      if(changed&EditMaterial.CHANGED_DET  )             mtrlCreateDetailTexture(edit);
                      if(changed&EditMaterial.CHANGED_MACRO)             mtrlCreateMacroTexture (edit);
                      if(changed&EditMaterial.CHANGED_LIGHT)             mtrlCreateLightTexture (edit);
@@ -2011,7 +2028,7 @@ class ProjectEx : ProjectHierarchy
             {
                if(reload_textures)
                {
-                  if(changed&EditWaterMtrl.CHANGED_BASE )WaterMtrlEdit.rebuildBase  (base_tex, FlagTest(changed, EditWaterMtrl.CHANGED_FNY), adjust_params, true);
+                  if(changed&EditWaterMtrl.CHANGED_BASE )WaterMtrlEdit.rebuildBase  (base_tex, FlagTest(changed, EditWaterMtrl.CHANGED_FNY), FlagTest(changed, EditWaterMtrl.CHANGED_SIR), adjust_params, true);
                   if(changed&EditWaterMtrl.CHANGED_DET  )WaterMtrlEdit.rebuildDetail();
                   if(changed&EditWaterMtrl.CHANGED_MACRO)WaterMtrlEdit.rebuildMacro ();
                   if(changed&EditWaterMtrl.CHANGED_LIGHT)WaterMtrlEdit.rebuildLight (light_map, adjust_params);
@@ -2037,7 +2054,7 @@ class ProjectEx : ProjectHierarchy
 
             if(reload_textures)
             {
-               if(changed&EditWaterMtrl.CHANGED_BASE )new_base_tex=mtrlCreateBaseTextures (edit, FlagTest(changed, EditWaterMtrl.CHANGED_FNY)); // get precise base tex
+               if(changed&EditWaterMtrl.CHANGED_BASE )new_base_tex=mtrlCreateBaseTextures (edit, FlagTest(changed, EditWaterMtrl.CHANGED_FNY), FlagTest(changed, EditWaterMtrl.CHANGED_SIR)); // get precise base tex
                if(changed&EditWaterMtrl.CHANGED_DET  )             mtrlCreateDetailTexture(edit);
                if(changed&EditWaterMtrl.CHANGED_MACRO)             mtrlCreateMacroTexture (edit);
                if(changed&EditWaterMtrl.CHANGED_LIGHT)             mtrlCreateLightTexture (edit);
@@ -2074,7 +2091,7 @@ class ProjectEx : ProjectHierarchy
             {
                if(reload_textures)
                {
-                  if(changed&EditMaterial.CHANGED_BASE )MtrlEdit.rebuildBase  (base_tex, FlagTest(changed, EditMaterial.CHANGED_FNY), adjust_params, true);
+                  if(changed&EditMaterial.CHANGED_BASE )MtrlEdit.rebuildBase  (base_tex, FlagTest(changed, EditMaterial.CHANGED_FNY), FlagTest(changed, EditMaterial.CHANGED_SIR), adjust_params, true);
                   if(changed&EditMaterial.CHANGED_DET  )MtrlEdit.rebuildDetail();
                   if(changed&EditMaterial.CHANGED_MACRO)MtrlEdit.rebuildMacro ();
                   if(changed&EditMaterial.CHANGED_LIGHT)MtrlEdit.rebuildLight (light_map, adjust_params);
@@ -2101,7 +2118,7 @@ class ProjectEx : ProjectHierarchy
 
                   if(reload_textures)
                   {
-                     if(changed&EditMaterial.CHANGED_BASE )new_base_tex=mtrlCreateBaseTextures (edit, FlagTest(changed, EditMaterial.CHANGED_FNY)); // get precise base tex
+                     if(changed&EditMaterial.CHANGED_BASE )new_base_tex=mtrlCreateBaseTextures (edit, FlagTest(changed, EditMaterial.CHANGED_FNY), FlagTest(changed, EditMaterial.CHANGED_SIR)); // get precise base tex
                      if(changed&EditMaterial.CHANGED_DET  )             mtrlCreateDetailTexture(edit);
                      if(changed&EditMaterial.CHANGED_MACRO)             mtrlCreateMacroTexture (edit);
                      if(changed&EditMaterial.CHANGED_LIGHT)             mtrlCreateLightTexture (edit);
@@ -2125,23 +2142,23 @@ class ProjectEx : ProjectHierarchy
       }
       return false;
    }
-   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditMaterial &material, bool changed_flip_normal_y=false)
+   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditMaterial &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false)
    {
       MtrlImages mtrl_images;
-             mtrl_images.fromMaterial(material, T, changed_flip_normal_y);
+             mtrl_images.fromMaterial(material, T, changed_flip_normal_y, changed_smooth_is_rough);
       return mtrl_images.createBaseTextures(base_0, base_1, base_2);
    }
-   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditWaterMtrl &material, bool changed_flip_normal_y=false)
+   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditWaterMtrl &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false)
    {
       MtrlImages mtrl_images;
-             mtrl_images.fromMaterial(material, T, changed_flip_normal_y);
+             mtrl_images.fromMaterial(material, T, changed_flip_normal_y, changed_smooth_is_rough);
       return mtrl_images.createWaterBaseTextures(base_0, base_1, base_2);
    }
-   uint mtrlCreateBaseTextures(EditMaterial &material, bool changed_flip_normal_y=false)
+   uint mtrlCreateBaseTextures(EditMaterial &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false)
    {
       // TODO: generating textures when the sources were not found, will reuse existing images, but due to compression, the quality will be lost, and new textures will be generated even though images are the same, this is because BC7->RGBA->BC7 is not the same
       Image      base_0, base_1, base_2;
-      uint       bt=createBaseTextures(base_0, base_1, base_2, material, changed_flip_normal_y);
+      uint       bt=createBaseTextures(base_0, base_1, base_2, material, changed_flip_normal_y, changed_smooth_is_rough);
       UID        old_tex_id;
       IMAGE_TYPE ct;
 
@@ -2186,11 +2203,11 @@ class ProjectEx : ProjectHierarchy
 
       return bt;
    }
-   uint mtrlCreateBaseTextures(EditWaterMtrl &material, bool changed_flip_normal_y=false)
+   uint mtrlCreateBaseTextures(EditWaterMtrl &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false)
    {
       // TODO: generating textures when the sources were not found, will reuse existing images, but due to compression, the quality will be lost, and new textures will be generated even though images are the same, this is because BC7->RGBA->BC7 is not the same
       Image      base_0, base_1, base_2;
-      uint       bt=createBaseTextures(base_0, base_1, base_2, material, changed_flip_normal_y);
+      uint       bt=createBaseTextures(base_0, base_1, base_2, material, changed_flip_normal_y, changed_smooth_is_rough);
       UID        old_tex_id;
       IMAGE_TYPE ct;
 
@@ -2298,7 +2315,7 @@ class ProjectEx : ProjectHierarchy
    {
       // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !!
       TextParam color_resize, smooth_resize, bump_resize, normal_resize;
-      MtrlImages.ImageResize color, smooth, bump, normal;
+      MtrlImages.ImageResize color, smooth, bump, normal; // #MaterialTextureLayoutDetail
       bool color_ok=loadImages( color, & color_resize, material.detail_color , true                                                                                                   ), // load before 'smooth', here 'color' 'smooth' 'bump' are not yet available
           smooth_ok=loadImages(smooth, &smooth_resize, material.detail_smooth, false, false, WHITE               , &color, &color_resize, null   , null          , null , null        ), // load before 'bump'  , here         'smooth' 'bump' are not yet available
             bump_ok=loadImages(  bump, &  bump_resize, material.detail_bump  , false, false, GREY                , &color, &color_resize, &smooth, &smooth_resize, null , null        ), // load before 'normal', here                  'bump' is  not yet available
@@ -2372,7 +2389,7 @@ class ProjectEx : ProjectHierarchy
          if(MtrlEdit.elm_id==elm_id)
          {
             MtrlEdit.undos.set("EI");
-            if(base  )MtrlEdit.rebuildBase  (0, false, false, true);
+            if(base  )MtrlEdit.rebuildBase  (0, false, false, false, true);
             if(detail)MtrlEdit.rebuildDetail();
             if(macro )MtrlEdit.rebuildMacro ();
             if(light )MtrlEdit.rebuildLight (false, false);
@@ -2381,7 +2398,7 @@ class ProjectEx : ProjectHierarchy
          if(WaterMtrlEdit.elm_id==elm_id)
          {
             WaterMtrlEdit.undos.set("EI");
-            if(base  )WaterMtrlEdit.rebuildBase(0, false, false, true);
+            if(base  )WaterMtrlEdit.rebuildBase(0, false, false, false, true);
             if(detail)WaterMtrlEdit.rebuildDetail();
             if(macro )WaterMtrlEdit.rebuildMacro();
             if(light )WaterMtrlEdit.rebuildLight(false, false);

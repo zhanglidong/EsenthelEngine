@@ -27,7 +27,7 @@
    }
    bool EditMaterial::equal(C EditMaterial &src)C
    {
-      return flip_normal_y_time==src.flip_normal_y_time && tex_quality_time==src.tex_quality_time
+      return flip_normal_y_time==src.flip_normal_y_time && smooth_is_rough_time==src.smooth_is_rough_time && tex_quality_time==src.tex_quality_time
       && color_map_time==src.color_map_time && alpha_map_time==src.alpha_map_time && bump_map_time==src.bump_map_time && normal_map_time==src.normal_map_time && smooth_map_time==src.smooth_map_time && metal_map_time==src.metal_map_time && glow_map_time==src.glow_map_time
       && detail_map_time==src.detail_map_time && macro_map_time==src.macro_map_time && light_map_time==src.light_map_time
       && cull_time==src.cull_time && tech_time==src.tech_time && downsize_tex_mobile_time==src.downsize_tex_mobile_time
@@ -36,7 +36,7 @@
    }
    bool EditMaterial::newer(C EditMaterial &src)C
    {
-      return flip_normal_y_time>src.flip_normal_y_time || tex_quality_time>src.tex_quality_time
+      return flip_normal_y_time>src.flip_normal_y_time || smooth_is_rough_time>src.smooth_is_rough_time || tex_quality_time>src.tex_quality_time
       || color_map_time>src.color_map_time || alpha_map_time>src.alpha_map_time || bump_map_time>src.bump_map_time || normal_map_time>src.normal_map_time || smooth_map_time>src.smooth_map_time || metal_map_time>src.metal_map_time || glow_map_time>src.glow_map_time
       || detail_map_time>src.detail_map_time || macro_map_time>src.macro_map_time || light_map_time>src.light_map_time
       || cull_time>src.cull_time || tech_time>src.tech_time || downsize_tex_mobile_time>src.downsize_tex_mobile_time
@@ -118,7 +118,7 @@
    }
    void EditMaterial::newData()
    {
-      flip_normal_y_time++; tex_quality_time++;
+      flip_normal_y_time++; smooth_is_rough_time++; tex_quality_time++;
       color_map_time++; alpha_map_time++; bump_map_time++; normal_map_time++; smooth_map_time++; metal_map_time++; glow_map_time++;
       detail_map_time++; macro_map_time++; light_map_time++;
       cull_time++; tech_time++; downsize_tex_mobile_time++;
@@ -173,6 +173,7 @@
       dest.downsize_tex_mobile=downsize_tex_mobile;
       dest.cull=cull;
       dest.flip_normal_y=flip_normal_y;
+      dest.smooth_is_rough=smooth_is_rough;
       dest.tex_quality=tex_quality;
       dest.color_s=color_s;
       dest.emissive=emissive;
@@ -205,6 +206,7 @@
       changed|=CHANGED_PARAM*SyncByValue(               tech_time, time, tech               , src.technique          );
       changed|=CHANGED_PARAM*SyncByValue(               cull_time, time, cull               , src.cull               );
       changed|=              SyncByValue(      flip_normal_y_time, time, flip_normal_y      , src.flip_normal_y      )*(CHANGED_PARAM|CHANGED_BASE|CHANGED_FNY); // set CHANGED_BASE too because this should trigger reloading base textures
+      changed|=              SyncByValue(    smooth_is_rough_time, time, smooth_is_rough    , src.smooth_is_rough    )*(CHANGED_PARAM|CHANGED_BASE|CHANGED_SIR); // set CHANGED_BASE too because this should trigger reloading base textures
       changed|=              SyncByValue(        tex_quality_time, time, tex_quality        , src.tex_quality        )*(CHANGED_PARAM|CHANGED_BASE            ); // set CHANGED_BASE too because this should trigger reloading base textures
       changed|=CHANGED_PARAM*SyncByValue(downsize_tex_mobile_time, time, downsize_tex_mobile, src.downsize_tex_mobile);
 
@@ -238,7 +240,8 @@
    {
       uint changed=0;
 
-      changed|=Sync(flip_normal_y_time, src.flip_normal_y_time, flip_normal_y, src.flip_normal_y)*(CHANGED_PARAM|CHANGED_BASE|CHANGED_FNY); // set CHANGED_BASE too because this should trigger reloading base textures
+      changed|=Sync(  flip_normal_y_time, src.  flip_normal_y_time, flip_normal_y  , src.flip_normal_y  )*(CHANGED_PARAM|CHANGED_BASE|CHANGED_FNY); // set CHANGED_BASE too because this should trigger reloading base textures
+      changed|=Sync(smooth_is_rough_time, src.smooth_is_rough_time, smooth_is_rough, src.smooth_is_rough)*(CHANGED_PARAM|CHANGED_BASE|CHANGED_SIR); // set CHANGED_BASE too because this should trigger reloading base textures
 
       changed|=Sync( color_map_time, src. color_map_time,  color_map, src. color_map)*CHANGED_BASE;
       changed|=Sync( alpha_map_time, src. alpha_map_time,  alpha_map, src. alpha_map)*CHANGED_BASE;
@@ -305,7 +308,8 @@
    {
       uint changed=0;
 
-      changed|=Undo(flip_normal_y_time, src.flip_normal_y_time, flip_normal_y, src.flip_normal_y)*(CHANGED_PARAM|CHANGED_BASE|CHANGED_FNY); // set CHANGED_BASE too because this should trigger reloading base textures
+      changed|=Undo(  flip_normal_y_time, src.  flip_normal_y_time, flip_normal_y  , src.flip_normal_y  )*(CHANGED_PARAM|CHANGED_BASE|CHANGED_FNY); // set CHANGED_BASE too because this should trigger reloading base textures
+      changed|=Undo(smooth_is_rough_time, src.smooth_is_rough_time, smooth_is_rough, src.smooth_is_rough)*(CHANGED_PARAM|CHANGED_BASE|CHANGED_SIR); // set CHANGED_BASE too because this should trigger reloading base textures
 
       changed|=Undo( color_map_time, src. color_map_time,  color_map, src. color_map)*CHANGED_BASE;
       changed|=Undo( alpha_map_time, src. alpha_map_time,  alpha_map, src. alpha_map)*CHANGED_BASE;
@@ -731,6 +735,6 @@
       File f; if(f.readTry(name))return load(f);
       reset(); return false;
    }
-EditMaterial::EditMaterial() : tech(MTECH_DEFAULT), tex_quality(Edit::Material::MEDIUM), flip_normal_y(false), cull(true), downsize_tex_mobile(0), color_s(1, 1, 1, 1), emissive(0, 0, 0), smooth(0), reflect_min(MATERIAL_REFLECT), reflect_max(1), glow(0), normal(0), bump(0), uv_scale(1), det_scale(4), det_power(0.3f), base_0_tex(UIDZero), base_1_tex(UIDZero), base_2_tex(UIDZero), detail_tex(UIDZero), macro_tex(UIDZero), light_tex(UIDZero) {}
+EditMaterial::EditMaterial() : tech(MTECH_DEFAULT), tex_quality(Edit::Material::MEDIUM), flip_normal_y(false), smooth_is_rough(false), cull(true), downsize_tex_mobile(0), color_s(1, 1, 1, 1), emissive(0, 0, 0), smooth(0), reflect_min(MATERIAL_REFLECT), reflect_max(1), glow(0), normal(0), bump(0), uv_scale(1), det_scale(4), det_power(0.3f), base_0_tex(UIDZero), base_1_tex(UIDZero), base_2_tex(UIDZero), detail_tex(UIDZero), macro_tex(UIDZero), light_tex(UIDZero) {}
 
 /******************************************************************************/

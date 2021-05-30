@@ -399,7 +399,9 @@ MaterialTech mtrl_techs[]=
    Str  MaterialRegion::NrmScale(C MaterialRegion &mr          ) {return mr.edit.normal;}
    void MaterialRegion::NrmScale(  MaterialRegion &mr, C Str &t) {       mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
    Str  MaterialRegion::FNY(C MaterialRegion &mr          ) {return mr.edit.flip_normal_y;}
-   void MaterialRegion::FNY(  MaterialRegion &mr, C Str &t) {uint base_tex=mr.edit.baseTex(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(base_tex, true, false);}
+   void MaterialRegion::FNY(  MaterialRegion &mr, C Str &t) {uint base_tex=mr.edit.baseTex(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(base_tex, true, false, false);}
+   Str  MaterialRegion::SmtIsRgh(C MaterialRegion &mr          ) {return mr.edit.smooth_is_rough;}
+   void MaterialRegion::SmtIsRgh(  MaterialRegion &mr, C Str &t) {uint base_tex=mr.edit.baseTex(); mr.edit.smooth_is_rough=TextBool(t); mr.edit.smooth_is_rough_time.getUTC(); mr.rebuildBase(base_tex, false, true, false);}
    Str  MaterialRegion::Smooth(C MaterialRegion &mr          ) {return mr.edit.smooth;}
    void MaterialRegion::Smooth(  MaterialRegion &mr, C Str &t) {       mr.edit.smooth=TextFlt(t); mr.edit.smooth_time.getUTC();}
    Str  MaterialRegion::ReflectMin(C MaterialRegion &mr          ) {return mr.edit.reflect_min;}
@@ -428,7 +430,7 @@ MaterialTech mtrl_techs[]=
    void MaterialRegion::Hide(MaterialRegion &editor) {editor.set(null);}
    void MaterialRegion::SetMtrl(MaterialRegion &editor) {SetObjOp(editor.set_mtrl() ? OP_OBJ_SET_MTRL : OP_OBJ_NONE);}
    void MaterialRegion::AutoReload(MaterialRegion &editor) {editor.auto_reload=editor.texture_options.menu(auto_reload_name);}
-   void MaterialRegion::ReloadBaseTextures(MaterialRegion &editor) {editor.undos.set("rebuildBase"); editor.rebuildBase(editor.getEditMtrl().baseTex(), false, false, true);}
+   void MaterialRegion::ReloadBaseTextures(MaterialRegion &editor) {editor.undos.set("rebuildBase"); editor.rebuildBase(editor.getEditMtrl().baseTex(), false, false, false, true);}
    void MaterialRegion::ResizeBase128(MaterialRegion &editor) {editor.resizeBase(128);}
    void MaterialRegion::ResizeBase256(MaterialRegion &editor) {editor.resizeBase(256);}
    void MaterialRegion::ResizeBase512(MaterialRegion &editor) {editor.resizeBase(512);}
@@ -530,9 +532,10 @@ MaterialTech mtrl_techs[]=
    void   MaterialRegion::setReflect(flt reflect_min, flt reflect_max           ) {if(edit.reflect_min!=reflect_min || edit.reflect_max!=reflect_max){        undos.set("reflect"   ); edit.reflect_min=reflect_min; edit.reflect_max=reflect_max; edit.            reflect_time.getUTC(); setChanged(); toGui();}}
    void MaterialRegion::resetAlpha(                                           ) {                                                                           undos.set("alpha"     ); edit.resetAlpha()                                         ;                                         setChanged(); toGui(); }
    void MaterialRegion::cull(bool                      on               ) {if(edit.cull               !=on                                  ){        undos.set("cull"      ); edit.cull               =on                               ; edit.               cull_time.getUTC(); setChanged(); toGui();}}
-   void MaterialRegion::flipNrmY(bool                      on               ) {if(edit.flip_normal_y      !=on                                  ){        undos.set("fny"       ); edit.flip_normal_y      =on                               ; edit.      flip_normal_y_time.getUTC(); rebuildBase(edit.baseTex(), true , false);}}
+   void MaterialRegion::flipNrmY(bool                      on               ) {if(edit.flip_normal_y      !=on                                  ){        undos.set("fny"       ); edit.flip_normal_y      =on                               ; edit.      flip_normal_y_time.getUTC(); rebuildBase(edit.baseTex(), true , false, false);}}
+   void MaterialRegion::smoothIsRough(bool                      on               ) {if(edit.smooth_is_rough    !=on                                  ){        undos.set("sir"       ); edit.smooth_is_rough    =on                               ; edit.    smooth_is_rough_time.getUTC(); rebuildBase(edit.baseTex(), false, true , false);}}
    void MaterialRegion::downsizeTexMobile(byte                      ds               ) {if(edit.downsize_tex_mobile!=ds                                  ){        undos.set("dtm"       ); edit.downsize_tex_mobile=ds                               ; edit.downsize_tex_mobile_time.getUTC(); setChanged(); toGui();}}
-   void MaterialRegion::texQuality(Edit::Material::TEX_QUALITY q, bool undo) {if(edit.tex_quality        !=q                                   ){if(undo)undos.set("texQuality"); edit.tex_quality        =q                                ; edit.        tex_quality_time.getUTC(); rebuildBase(edit.baseTex(), false, false);}}
+   void MaterialRegion::texQuality(Edit::Material::TEX_QUALITY q, bool undo) {if(edit.tex_quality        !=q                                   ){if(undo)undos.set("texQuality"); edit.tex_quality        =q                                ; edit.        tex_quality_time.getUTC(); rebuildBase(edit.baseTex(), false, false, false);}}
    void MaterialRegion::resizeBase(C VecI2 &size, bool relative)
    {
       undos.set("resizeBase");
@@ -1103,7 +1106,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
          break;
       }
    }
-   void MaterialRegion::rebuildBase(uint old_base_tex, bool changed_flip_normal_y, bool adjust_params, bool always)
+   void MaterialRegion::rebuildBase(uint old_base_tex, bool changed_flip_normal_y, bool changed_smooth_is_rough, bool adjust_params, bool always)
    {
       if(elm && game)
       {
@@ -1112,7 +1115,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
          uint new_base_tex;
          if(auto_reload || always)
          {
-            new_base_tex=Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y); // set precise
+            new_base_tex=Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y, changed_smooth_is_rough); // set precise
             Time.skipUpdate(); // compressing textures can be slow
          }else new_base_tex=edit.baseTex(); // set approximate
 
