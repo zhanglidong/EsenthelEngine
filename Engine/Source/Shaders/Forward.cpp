@@ -296,7 +296,7 @@ VecH4 PS
       smooth =Material.smooth;
       reflect=Material.reflect_add;
       glow   =Material.glow;
-      if(DETAIL){col*=det.z; smooth+=det.w;} // #MaterialTextureLayoutDetail
+      if(DETAIL){col*=det.DETAIL_COLOR_CHANNEL; smooth+=det.DETAIL_SMOOTH_CHANNEL;} // #MaterialTextureLayoutDetail
    }
    #elif LAYOUT==1
    {
@@ -312,7 +312,7 @@ VecH4 PS
       smooth =Material.smooth;
       reflect=Material.reflect_add;
       glow   =Material.glow;
-      if(DETAIL){col*=det.z; smooth+=det.w;} // #MaterialTextureLayoutDetail
+      if(DETAIL){col*=det.DETAIL_COLOR_CHANNEL; smooth+=det.DETAIL_SMOOTH_CHANNEL;} // #MaterialTextureLayoutDetail
    }
    #elif LAYOUT==2
    {
@@ -329,7 +329,7 @@ VecH4 PS
       smooth =tex_ext.SMOOTH_CHANNEL*Material.smooth;
       reflect=tex_ext. METAL_CHANNEL*Material.reflect_mul+Material.reflect_add;
       glow   =tex_ext.  GLOW_CHANNEL*Material.glow;
-      if(DETAIL){col*=det.z; smooth+=det.w;} // #MaterialTextureLayoutDetail
+      if(DETAIL){col*=det.DETAIL_COLOR_CHANNEL; smooth+=det.DETAIL_SMOOTH_CHANNEL;} // #MaterialTextureLayoutDetail
    }
    #endif
 
@@ -342,16 +342,15 @@ VecH4 PS
       #else
          #if 0
                       nrmh.xy =Tex(Nrm, I.tex).xy*Material.normal;
-            if(DETAIL)nrmh.xy+=det.xy; // #MaterialTextureLayoutDetail
+            if(DETAIL)nrmh.xy+=det.DETAIL_NORMAL_CHANNEL; // #MaterialTextureLayoutDetail
                       nrmh.z  =CalcZ(nrmh.xy);
-                      nrmh    =Transform(nrmh, I.mtrx);
          #else
                       nrmh.xy =Tex(Nrm, I.tex).xy;
                       nrmh.z  =CalcZ(nrmh.xy);
                       nrmh.xy*=Material.normal;
-            if(DETAIL)nrmh.xy+=det.xy; // #MaterialTextureLayoutDetail
-                      nrmh    =Transform(nrmh, I.mtrx);
+            if(DETAIL)nrmh.xy+=det.DETAIL_NORMAL_CHANNEL; // #MaterialTextureLayoutDetail
          #endif
+                      nrmh    =Transform(nrmh, I.mtrx);
       #endif
    #endif
 
@@ -394,16 +393,16 @@ VecH4 PS
          if(MATERIALS>=3){I.material.z=MultiMaterialWeight(I.material.z, ext2.BUMP_CHANNEL); if(MATERIALS==3)I.material.xyz /=I.material.x+I.material.y+I.material.z;}
          if(MATERIALS>=4){I.material.w=MultiMaterialWeight(I.material.w, ext3.BUMP_CHANNEL); if(MATERIALS==4)I.material.xyzw/=I.material.x+I.material.y+I.material.z+I.material.w;}
       }
-                      {VecH refl_smth_glow0=ext0.xyw*MultiMaterial0.refl_smth_glow_mul+MultiMaterial0.refl_smth_glow_add; if(DETAIL)refl_smth_glow0.y+=det0.w; refl_smth_glow =refl_smth_glow0*I.material.x;} // #MaterialTextureLayoutDetail
-                      {VecH refl_smth_glow1=ext1.xyw*MultiMaterial1.refl_smth_glow_mul+MultiMaterial1.refl_smth_glow_add; if(DETAIL)refl_smth_glow1.y+=det1.w; refl_smth_glow+=refl_smth_glow1*I.material.y;}
-      if(MATERIALS>=3){VecH refl_smth_glow2=ext2.xyw*MultiMaterial2.refl_smth_glow_mul+MultiMaterial2.refl_smth_glow_add; if(DETAIL)refl_smth_glow2.y+=det2.w; refl_smth_glow+=refl_smth_glow2*I.material.z;}
-      if(MATERIALS>=4){VecH refl_smth_glow3=ext3.xyw*MultiMaterial3.refl_smth_glow_mul+MultiMaterial3.refl_smth_glow_add; if(DETAIL)refl_smth_glow3.y+=det3.w; refl_smth_glow+=refl_smth_glow3*I.material.w;}
+                      {VecH refl_smth_glow0=ext0.xyw*MultiMaterial0.refl_smth_glow_mul+MultiMaterial0.refl_smth_glow_add; if(DETAIL)refl_smth_glow0.y+=det0.DETAIL_SMOOTH_CHANNEL; refl_smth_glow =refl_smth_glow0*I.material.x;} // #MaterialTextureLayoutDetail
+                      {VecH refl_smth_glow1=ext1.xyw*MultiMaterial1.refl_smth_glow_mul+MultiMaterial1.refl_smth_glow_add; if(DETAIL)refl_smth_glow1.y+=det1.DETAIL_SMOOTH_CHANNEL; refl_smth_glow+=refl_smth_glow1*I.material.y;}
+      if(MATERIALS>=3){VecH refl_smth_glow2=ext2.xyw*MultiMaterial2.refl_smth_glow_mul+MultiMaterial2.refl_smth_glow_add; if(DETAIL)refl_smth_glow2.y+=det2.DETAIL_SMOOTH_CHANNEL; refl_smth_glow+=refl_smth_glow2*I.material.z;}
+      if(MATERIALS>=4){VecH refl_smth_glow3=ext3.xyw*MultiMaterial3.refl_smth_glow_mul+MultiMaterial3.refl_smth_glow_add; if(DETAIL)refl_smth_glow3.y+=det3.DETAIL_SMOOTH_CHANNEL; refl_smth_glow+=refl_smth_glow3*I.material.w;}
    }else
    {
-                      {VecH refl_smth_glow0=MultiMaterial0.refl_smth_glow_add; if(DETAIL)refl_smth_glow0.y+=det0.w; refl_smth_glow =refl_smth_glow0*I.material.x;} // #MaterialTextureLayoutDetail
-                      {VecH refl_smth_glow1=MultiMaterial1.refl_smth_glow_add; if(DETAIL)refl_smth_glow1.y+=det1.w; refl_smth_glow+=refl_smth_glow1*I.material.y;}
-      if(MATERIALS>=3){VecH refl_smth_glow2=MultiMaterial2.refl_smth_glow_add; if(DETAIL)refl_smth_glow2.y+=det2.w; refl_smth_glow+=refl_smth_glow2*I.material.z;}
-      if(MATERIALS>=4){VecH refl_smth_glow3=MultiMaterial3.refl_smth_glow_add; if(DETAIL)refl_smth_glow3.y+=det3.w; refl_smth_glow+=refl_smth_glow3*I.material.w;}
+                      {VecH refl_smth_glow0=MultiMaterial0.refl_smth_glow_add; if(DETAIL)refl_smth_glow0.y+=det0.DETAIL_SMOOTH_CHANNEL; refl_smth_glow =refl_smth_glow0*I.material.x;} // #MaterialTextureLayoutDetail
+                      {VecH refl_smth_glow1=MultiMaterial1.refl_smth_glow_add; if(DETAIL)refl_smth_glow1.y+=det1.DETAIL_SMOOTH_CHANNEL; refl_smth_glow+=refl_smth_glow1*I.material.y;}
+      if(MATERIALS>=3){VecH refl_smth_glow2=MultiMaterial2.refl_smth_glow_add; if(DETAIL)refl_smth_glow2.y+=det2.DETAIL_SMOOTH_CHANNEL; refl_smth_glow+=refl_smth_glow2*I.material.z;}
+      if(MATERIALS>=4){VecH refl_smth_glow3=MultiMaterial3.refl_smth_glow_add; if(DETAIL)refl_smth_glow3.y+=det3.DETAIL_SMOOTH_CHANNEL; refl_smth_glow+=refl_smth_glow3*I.material.w;}
    }
    smooth =refl_smth_glow.y;
    reflect=refl_smth_glow.x;
@@ -411,10 +410,10 @@ VecH4 PS
 
    // Color + Detail + Macro !! do this second after modifying 'I.material' !! here Alpha is ignored for multi-materials
    VecH rgb;
-                   {VecH col0=Tex(Col , tex0).rgb; col0.rgb*=MultiMaterial0.color.rgb; if(DETAIL)col0.rgb*=det0.z; /*if(MACRO)col0.rgb=Lerp(col0.rgb, Tex(Mac , tex0*MacroScale).rgb, MultiMaterial0.macro*mac_blend);*/ rgb =I.material.x*col0;} // #MaterialTextureLayoutDetail
-                   {VecH col1=Tex(Col1, tex1).rgb; col1.rgb*=MultiMaterial1.color.rgb; if(DETAIL)col1.rgb*=det1.z; /*if(MACRO)col1.rgb=Lerp(col1.rgb, Tex(Mac1, tex1*MacroScale).rgb, MultiMaterial1.macro*mac_blend);*/ rgb+=I.material.y*col1;}
-   if(MATERIALS>=3){VecH col2=Tex(Col2, tex2).rgb; col2.rgb*=MultiMaterial2.color.rgb; if(DETAIL)col2.rgb*=det2.z; /*if(MACRO)col2.rgb=Lerp(col2.rgb, Tex(Mac2, tex2*MacroScale).rgb, MultiMaterial2.macro*mac_blend);*/ rgb+=I.material.z*col2;}
-   if(MATERIALS>=4){VecH col3=Tex(Col3, tex3).rgb; col3.rgb*=MultiMaterial3.color.rgb; if(DETAIL)col3.rgb*=det3.z; /*if(MACRO)col3.rgb=Lerp(col3.rgb, Tex(Mac3, tex3*MacroScale).rgb, MultiMaterial3.macro*mac_blend);*/ rgb+=I.material.w*col3;}
+                   {VecH col0=Tex(Col , tex0).rgb; col0.rgb*=MultiMaterial0.color.rgb; if(DETAIL)col0.rgb*=det0.DETAIL_COLOR_CHANNEL; /*if(MACRO)col0.rgb=Lerp(col0.rgb, Tex(Mac , tex0*MacroScale).rgb, MultiMaterial0.macro*mac_blend);*/ rgb =I.material.x*col0;} // #MaterialTextureLayoutDetail
+                   {VecH col1=Tex(Col1, tex1).rgb; col1.rgb*=MultiMaterial1.color.rgb; if(DETAIL)col1.rgb*=det1.DETAIL_COLOR_CHANNEL; /*if(MACRO)col1.rgb=Lerp(col1.rgb, Tex(Mac1, tex1*MacroScale).rgb, MultiMaterial1.macro*mac_blend);*/ rgb+=I.material.y*col1;}
+   if(MATERIALS>=3){VecH col2=Tex(Col2, tex2).rgb; col2.rgb*=MultiMaterial2.color.rgb; if(DETAIL)col2.rgb*=det2.DETAIL_COLOR_CHANNEL; /*if(MACRO)col2.rgb=Lerp(col2.rgb, Tex(Mac2, tex2*MacroScale).rgb, MultiMaterial2.macro*mac_blend);*/ rgb+=I.material.z*col2;}
+   if(MATERIALS>=4){VecH col3=Tex(Col3, tex3).rgb; col3.rgb*=MultiMaterial3.color.rgb; if(DETAIL)col3.rgb*=det3.DETAIL_COLOR_CHANNEL; /*if(MACRO)col3.rgb=Lerp(col3.rgb, Tex(Mac3, tex3*MacroScale).rgb, MultiMaterial3.macro*mac_blend);*/ rgb+=I.material.w*col3;}
 #if SET_COL
    col*=rgb.rgb;
 #else
@@ -430,10 +429,10 @@ VecH4 PS
       #else
          if(DETAIL)
          { // #MaterialTextureLayoutDetail
-                            nrmh.xy =(Tex(Nrm , tex0).xy*MultiMaterial0.normal + det0.xy)*I.material.x;
-                            nrmh.xy+=(Tex(Nrm1, tex1).xy*MultiMaterial1.normal + det1.xy)*I.material.y;
-            if(MATERIALS>=3)nrmh.xy+=(Tex(Nrm2, tex2).xy*MultiMaterial2.normal + det2.xy)*I.material.z;
-            if(MATERIALS>=4)nrmh.xy+=(Tex(Nrm3, tex3).xy*MultiMaterial3.normal + det3.xy)*I.material.w;
+                            nrmh.xy =(Tex(Nrm , tex0).xy*MultiMaterial0.normal + det0.DETAIL_NORMAL_CHANNEL)*I.material.x;
+                            nrmh.xy+=(Tex(Nrm1, tex1).xy*MultiMaterial1.normal + det1.DETAIL_NORMAL_CHANNEL)*I.material.y;
+            if(MATERIALS>=3)nrmh.xy+=(Tex(Nrm2, tex2).xy*MultiMaterial2.normal + det2.DETAIL_NORMAL_CHANNEL)*I.material.z;
+            if(MATERIALS>=4)nrmh.xy+=(Tex(Nrm3, tex3).xy*MultiMaterial3.normal + det3.DETAIL_NORMAL_CHANNEL)*I.material.w;
          }else
          {
                             nrmh.xy =Tex(Nrm , tex0).xy*(MultiMaterial0.normal*I.material.x);

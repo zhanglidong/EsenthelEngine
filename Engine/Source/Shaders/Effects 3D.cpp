@@ -243,11 +243,18 @@ VecH4 Decal_PS(PIXEL,
    col*=Material.color*Color[0];
 
    #if MODE==1 // normal
-           VecH nrm;
-                nrm.xy =Tex(Nrm, pos.xy).xy*Material.normal; // #MaterialTextureLayout
-    //if(DETAIL)nrm.xy+=det.xy;
-                nrm.z  =CalcZ(nrm.xy);
-                nrm    =Transform(nrm, inMatrixN);
+      VecH nrm;
+         #if 0
+            nrm.xy =Tex(Nrm, pos.xy).xy*Material.normal; // #MaterialTextureLayout
+//if(DETAIL)nrm.xy+=det.DETAIL_NORMAL_CHANNEL; // #MaterialTextureLayoutDetail
+            nrm.z  =CalcZ(nrm.xy);
+         #else
+            nrm.xy =Tex(Nrm, pos.xy).xy; // #MaterialTextureLayout
+            nrm.z  =CalcZ(nrm.xy);
+            nrm.xy*=Material.normal;
+//if(DETAIL)nrm.xy+=det.DETAIL_NORMAL_CHANNEL; // #MaterialTextureLayoutDetail
+         #endif
+            nrm=Normalize(Transform(nrm, inMatrixN));
 
       #if SIGNED_NRM_RT
          outNrm.xyz=nrm;

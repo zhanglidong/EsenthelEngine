@@ -446,6 +446,11 @@ Image     Ext, Ext1, Ext2, Ext3,
 #define   GLOW_CHANNEL w
 #define  ALPHA_CHANNEL w
 
+// #MaterialTextureLayoutDetail
+#define DETAIL_NORMAL_CHANNEL xy
+#define DETAIL_SMOOTH_CHANNEL z
+#define DETAIL_COLOR_CHANNEL  w
+
 Image     Img, Img1, Img2, Img3, Img4, Img5;
 ImageH    ImgX, ImgX1, ImgX2, ImgX3;
 ImageF    ImgXF, ImgXF1, Depth;
@@ -1575,24 +1580,24 @@ Half DepthWeight(Flt delta, Vec2 dw_mad)
 /******************************************************************************/
 // DETAIL
 /******************************************************************************/
-VecH4 GetDetail(Vec2 tex) // XY=nrm.xy -1..1 delta, Z=color 0..2 scale, W=roughness -1..1 delta
+VecH4 GetDetail(Vec2 tex) // XY=nrm.xy -1..1 delta, Z=roughness -1..1 delta, W=color 0..2 scale
 {
-   VecH4 det=Tex(Det, tex*Material.det_scale); // XY=nrm.xy, Z=color, W=smooth #MaterialTextureLayoutDetail
+   VecH4 det=Tex(Det, tex*Material.det_scale); // XY=nrm.xy, Z=roughness, W=color #MaterialTextureLayoutDetail
 
    /* unoptimized
-   det.xyw=(det.xyw-0.5)*2*Material.det_power;
-   det.z  = det.z       *2*Material.det_power+(1-Material.det_power); // Lerp(1, det.z*2, Material.det_power) = 1*(1-Material.det_power) + det.z*2*Material.det_power */
+   det.xyz                 =(det.xyz            -0.5)*2*Material.det_power;
+   det.DETAIL_COLOR_CHANNEL= det.DETAIL_COLOR_CHANNEL*2*Material.det_power+(1-Material.det_power); // Lerp(1, det*2, Material.det_power) = 1*(1-Material.det_power) + det*2*Material.det_power */
 
    // optimized TODO: these constants could be precalculated as det_power2=det_power*2; det_power_neg=-det_power; det_power_inv=1-det_power; however that would increase the Material buffer size
-   det.xyw=det.xyw*(Material.det_power*2)+( -Material.det_power);
-   det.z  =det.z  *(Material.det_power*2)+(1-Material.det_power);
+   det.xyz                 =det.xyz                 *(Material.det_power*2)+( -Material.det_power);
+   det.DETAIL_COLOR_CHANNEL=det.DETAIL_COLOR_CHANNEL*(Material.det_power*2)+(1-Material.det_power);
 
    return det;
 }
-VecH4 GetDetail0(Vec2 tex) {VecH4 det=Tex(Det , tex*MultiMaterial0.det_scale); det.xyw=det.xyw*MultiMaterial0.det_mul+MultiMaterial0.det_add; det.z=det.z*MultiMaterial0.det_mul+MultiMaterial0.det_inv; return det;}
-VecH4 GetDetail1(Vec2 tex) {VecH4 det=Tex(Det1, tex*MultiMaterial1.det_scale); det.xyw=det.xyw*MultiMaterial1.det_mul+MultiMaterial1.det_add; det.z=det.z*MultiMaterial1.det_mul+MultiMaterial1.det_inv; return det;}
-VecH4 GetDetail2(Vec2 tex) {VecH4 det=Tex(Det2, tex*MultiMaterial2.det_scale); det.xyw=det.xyw*MultiMaterial2.det_mul+MultiMaterial2.det_add; det.z=det.z*MultiMaterial2.det_mul+MultiMaterial2.det_inv; return det;}
-VecH4 GetDetail3(Vec2 tex) {VecH4 det=Tex(Det3, tex*MultiMaterial3.det_scale); det.xyw=det.xyw*MultiMaterial3.det_mul+MultiMaterial3.det_add; det.z=det.z*MultiMaterial3.det_mul+MultiMaterial3.det_inv; return det;}
+VecH4 GetDetail0(Vec2 tex) {VecH4 det=Tex(Det , tex*MultiMaterial0.det_scale); det.xyz=det.xyz*MultiMaterial0.det_mul+MultiMaterial0.det_add; det.DETAIL_COLOR_CHANNEL=det.DETAIL_COLOR_CHANNEL*MultiMaterial0.det_mul+MultiMaterial0.det_inv; return det;}
+VecH4 GetDetail1(Vec2 tex) {VecH4 det=Tex(Det1, tex*MultiMaterial1.det_scale); det.xyz=det.xyz*MultiMaterial1.det_mul+MultiMaterial1.det_add; det.DETAIL_COLOR_CHANNEL=det.DETAIL_COLOR_CHANNEL*MultiMaterial1.det_mul+MultiMaterial1.det_inv; return det;}
+VecH4 GetDetail2(Vec2 tex) {VecH4 det=Tex(Det2, tex*MultiMaterial2.det_scale); det.xyz=det.xyz*MultiMaterial2.det_mul+MultiMaterial2.det_add; det.DETAIL_COLOR_CHANNEL=det.DETAIL_COLOR_CHANNEL*MultiMaterial2.det_mul+MultiMaterial2.det_inv; return det;}
+VecH4 GetDetail3(Vec2 tex) {VecH4 det=Tex(Det3, tex*MultiMaterial3.det_scale); det.xyz=det.xyz*MultiMaterial3.det_mul+MultiMaterial3.det_add; det.DETAIL_COLOR_CHANNEL=det.DETAIL_COLOR_CHANNEL*MultiMaterial3.det_mul+MultiMaterial3.det_inv; return det;}
 /******************************************************************************/
 // FACE NORMAL HANDLING
 /******************************************************************************/

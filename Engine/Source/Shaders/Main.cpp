@@ -91,7 +91,7 @@ VecH4 DrawTexNrm_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 }
 VecH4 DrawTexDetNrm_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
-   VecH nrm; nrm.xy=Tex(Img, inTex).xy*2-1; // #MaterialTextureLayoutDetail
+   VecH nrm; nrm.xy=Tex(Img, inTex).DETAIL_NORMAL_CHANNEL*2-1; // #MaterialTextureLayoutDetail
              nrm.z =CalcZ(nrm.xy);
              nrm   =Normalize(nrm)*0.5+0.5;
           #if LINEAR_GAMMA

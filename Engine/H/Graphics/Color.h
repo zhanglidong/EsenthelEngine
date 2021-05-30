@@ -16,9 +16,13 @@ struct Color // 4-Byte Color
    union
    {
       struct{Byte  r, g, b, a;}; // red, green, blue, alpha
+      struct{Byte  x, y, z, w;};
       struct{Byte  c[4]      ;}; // component
       struct{UInt  u         ;};
+      struct{VecB2 rg        ;};
       struct{VecB  rgb       ;};
+      struct{VecB2 xy        ;};
+      struct{VecB  xyz       ;};
       struct{VecB2 v2        ;};
       struct{VecB  v3        ;};
       struct{VecB4 v4        ;};

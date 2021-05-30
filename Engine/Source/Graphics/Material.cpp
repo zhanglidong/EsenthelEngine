@@ -63,10 +63,17 @@ namespace EE{
 #define   NRMX_CHANNEL 0
 #define   NRMY_CHANNEL 1
 // base_2
-#define SMOOTH_CHANNEL 1
-#define  METAL_CHANNEL 0
-#define   BUMP_CHANNEL 2
-#define   GLOW_CHANNEL 3
+#define SMOOTH_CHANNEL y
+#define  METAL_CHANNEL x
+#define   BUMP_CHANNEL z
+#define   GLOW_CHANNEL w
+
+// #MaterialTextureLayoutDetail
+#define DETAIL_NORMAL_CHANNEL   xy
+#define DETAIL_NORMAL_X_CHANNEL x
+#define DETAIL_NORMAL_Y_CHANNEL y
+#define DETAIL_SMOOTH_CHANNEL   z
+#define DETAIL_COLOR_CHANNEL    w
 /******************************************************************************/
 static Int Compare(C UniqueMultiMaterialKey &a, C UniqueMultiMaterialKey &b)
 {
@@ -319,11 +326,11 @@ Material& Material::validate() // #MaterialTextureLayout
       }
 
       // #MaterialTextureLayoutDetail
-      // XY=nrm.xy -1..1 delta, Z=color 0..2 scale, W=roughness -1..1 delta
-      // SINGLE: det.xyw=det.xyw*(Material.det_power*2)+( -Material.det_power); -1..1
-      // SINGLE: det.z  =det.z  *(Material.det_power*2)+(1-Material.det_power);  0..2
-      // MULTI : det.xyw=det.xyw*MultiMaterial0.det_mul+MultiMaterial0.det_add; -1..1
-      // MULTI : det.z  =det.z  *MultiMaterial0.det_mul+MultiMaterial0.det_inv;  0..2
+      // XY=nrm.xy -1..1 delta, Z=roughness -1..1 delta, W=color 0..2 scale
+      // SINGLE: det.xyz=det.xyz*(Material.det_power*2)+( -Material.det_power); -1..1
+      // SINGLE: det.w  =det.w  *(Material.det_power*2)+(1-Material.det_power);  0..2
+      // MULTI : det.xyz=det.xyz*MultiMaterial0.det_mul+MultiMaterial0.det_add; -1..1
+      // MULTI : det.w  =det.w  *MultiMaterial0.det_mul+MultiMaterial0.det_inv;  0..2
       if(detail_map)
       {
         _multi.det_mul=  det_power*2;
@@ -934,18 +941,18 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
                   {
                      dest_2.createSoftTry(w, h, 1, IMAGE_R8G8B8A8);
                      Color c;
-                     c.c[SMOOTH_CHANNEL]=SMOOTH_DEFAULT_TEX;
-                     c.c[ METAL_CHANNEL]= METAL_DEFAULT_TEX;
-                     c.c[  BUMP_CHANNEL]=  BUMP_DEFAULT_TEX;
-                     c.c[  GLOW_CHANNEL]=255;
+                     c.SMOOTH_CHANNEL=SMOOTH_DEFAULT_TEX;
+                     c. METAL_CHANNEL= METAL_DEFAULT_TEX;
+                     c.  BUMP_CHANNEL=  BUMP_DEFAULT_TEX;
+                     c.  GLOW_CHANNEL=255;
                      REPD(y, dest_2.h())
                      REPD(x, dest_2.w())
                      {
                         Color c;
-                        if(smooth_src->is()){                                  c.c[SMOOTH_CHANNEL]=smooth_src->color(x, y).lum(); if(smooth_is_rough)c.c[SMOOTH_CHANNEL]=255-c.c[SMOOTH_CHANNEL];}
-                        if( metal_src->is())                                   c.c[ METAL_CHANNEL]= metal_src->color(x, y).lum();
-                        if(  bump_src->is())                                   c.c[  BUMP_CHANNEL]=  bump_src->color(x, y).lum();
-                        if(  glow_src->is()){Color glow=glow_src->color(x, y); c.c[  GLOW_CHANNEL]=DivRound(glow.lum()*glow.a, 255);}
+                        if(smooth_src->is()){                                  c.SMOOTH_CHANNEL=smooth_src->color(x, y).lum(); if(smooth_is_rough)c.SMOOTH_CHANNEL=255-c.SMOOTH_CHANNEL;}
+                        if( metal_src->is())                                   c. METAL_CHANNEL= metal_src->color(x, y).lum();
+                        if(  bump_src->is())                                   c.  BUMP_CHANNEL=  bump_src->color(x, y).lum();
+                        if(  glow_src->is()){Color glow=glow_src->color(x, y); c.  GLOW_CHANNEL=DivRound(glow.lum()*glow.a, 255);}
                         dest_2.color(x, y, c);
                      }
                      glow_src->unlock();
@@ -1010,10 +1017,10 @@ UInt ExtractBase2Texture(Image &base_2, Image *bump, Image *smooth, Image *metal
    REPD(x, base_2.w())
    {
       Color c=base_2.color(x, y); // #MaterialTextureLayout
-      if(smooth){smooth->pixel(x, y, c.c[SMOOTH_CHANNEL]); if(    c.c[SMOOTH_CHANNEL]<254                )tex|=BT_SMOOTH;} ASSERT(SMOOTH_DEFAULT_TEX==255);
-      if(metal ){metal ->pixel(x, y, c.c[ METAL_CHANNEL]); if(    c.c[ METAL_CHANNEL]>1                  )tex|=BT_METAL ;} ASSERT( METAL_DEFAULT_TEX==0);
-      if(bump  ){bump  ->pixel(x, y, c.c[  BUMP_CHANNEL]); if(Abs(c.c[  BUMP_CHANNEL]-BUMP_DEFAULT_TEX)>1)tex|=BT_BUMP  ;}
-      if(glow  ){glow  ->pixel(x, y, c.c[  GLOW_CHANNEL]); if(    c.c[  GLOW_CHANNEL]<254                )tex|=BT_GLOW  ;}
+      if(smooth){smooth->pixel(x, y, c.SMOOTH_CHANNEL); if(    c.SMOOTH_CHANNEL<254                )tex|=BT_SMOOTH;} ASSERT(SMOOTH_DEFAULT_TEX==255);
+      if(metal ){metal ->pixel(x, y, c. METAL_CHANNEL); if(    c. METAL_CHANNEL>1                  )tex|=BT_METAL ;} ASSERT( METAL_DEFAULT_TEX==0);
+      if(bump  ){bump  ->pixel(x, y, c.  BUMP_CHANNEL); if(Abs(c.  BUMP_CHANNEL-BUMP_DEFAULT_TEX)>1)tex|=BT_BUMP  ;}
+      if(glow  ){glow  ->pixel(x, y, c.  GLOW_CHANNEL); if(    c.  GLOW_CHANNEL<254                )tex|=BT_GLOW  ;}
    }
    return tex;
 }
@@ -1065,19 +1072,19 @@ void CreateDetailTexture(Image &detail, C ImageSource &color, C ImageSource &bum
             {
                if(!smooth_src->is() || smooth_src->lockRead())
                {
-                  Byte  color =128;
-                //Byte  bump  =128;
-                  Color normal=Color(128, 128, 255, 0);
-                  Byte  smooth=128;
+                  Color detail; // #MaterialTextureLayoutDetail
+                  detail.DETAIL_NORMAL_CHANNEL=128;
+                  detail.DETAIL_SMOOTH_CHANNEL=128;
+                  detail.DETAIL_COLOR_CHANNEL =128;
 
                   REPD(y, dest.h())
                   REPD(x, dest.w())
                   {
-                     if( color_src->is()) color = color_src->color(x, y).lum();
-                   //if(  bump_src->is()) bump  =  bump_src->color(x, y).lum();
-                     if(normal_src->is()){normal=normal_src->color(x, y)      ; if(flip_normal_y  )normal.g=255-normal.g;}
-                     if(smooth_src->is()){smooth=smooth_src->color(x, y).lum(); if(smooth_is_rough)smooth  =255-smooth  ;}
-                     dest.color(x, y, Color(normal.r, normal.g, color, smooth)); // #MaterialTextureLayoutDetail
+                     if( color_src->is()) detail.DETAIL_COLOR_CHANNEL = color_src->color(x, y).lum();
+                   //if(  bump_src->is()) bump                        =  bump_src->color(x, y).lum();
+                     if(normal_src->is()){detail.DETAIL_NORMAL_CHANNEL=normal_src->color(x, y).rg   ; if(flip_normal_y  )detail.DETAIL_NORMAL_Y_CHANNEL=255-detail.DETAIL_NORMAL_Y_CHANNEL;}
+                     if(smooth_src->is()){detail.DETAIL_SMOOTH_CHANNEL=smooth_src->color(x, y).lum(); if(smooth_is_rough)detail.DETAIL_SMOOTH_CHANNEL  =255-detail.DETAIL_SMOOTH_CHANNEL  ;}
+                     dest.color(x, y, detail);
                   }
                   smooth_src->unlock();
                }
@@ -1103,12 +1110,12 @@ UInt ExtractDetailTexture(C Image &detail, Image *color, Image *bump, Image *nor
    REPD(x, detail.w())
    {
       Color c=detail.color(x, y); // #MaterialTextureLayoutDetail
-      if(color ){color ->pixel(x, y, c.b); if(Abs(c.b-128)>1)tex|=BT_COLOR ;}
-      if(smooth){smooth->pixel(x, y, c.a); if(Abs(c.a-128)>1)tex|=BT_SMOOTH;}
+      if(color ){color ->pixel(x, y, c.DETAIL_COLOR_CHANNEL ); if(Abs(c.DETAIL_COLOR_CHANNEL -128)>1)tex|=BT_COLOR ;}
+      if(smooth){smooth->pixel(x, y, c.DETAIL_SMOOTH_CHANNEL); if(Abs(c.DETAIL_SMOOTH_CHANNEL-128)>1)tex|=BT_SMOOTH;}
       if(normal)
       {
-         Vec n; n.xy.set((c.r-128)/127.0, (c.g-128)/127.0); n.z=CalcZ(n.xy);
-         normal->color(x, y, Color(c.r, c.g, Mid(Round(n.z*127+128), 0, 255))); if(Abs(c.r-128)>1 || Abs(c.g-128)>1)tex|=BT_NORMAL;
+         Vec n; n.xy.set((c.DETAIL_NORMAL_X_CHANNEL-128)/127.0, (c.DETAIL_NORMAL_Y_CHANNEL-128)/127.0); n.z=CalcZ(n.xy);
+         normal->color(x, y, Color(c.DETAIL_NORMAL_X_CHANNEL, c.DETAIL_NORMAL_Y_CHANNEL, Mid(Round(n.z*127+128), 0, 255))); if(Abs(c.DETAIL_NORMAL_X_CHANNEL-128)>1 || Abs(c.DETAIL_NORMAL_Y_CHANNEL-128)>1)tex|=BT_NORMAL;
       }
    }
    return tex;
@@ -1365,7 +1372,7 @@ Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int 
          REPD(x, glow.w())
          {
             Vec4 c=color.colorF(x, y); // RGB
-            c.xyz*=b2.colorF(x, y).c[GLOW_CHANNEL]*glow_mul; // Glow
+            c.xyz*=b2.colorF(x, y).GLOW_CHANNEL*glow_mul; // Glow
             glow.colorF(x, y, c);
          }
          glow.blur(glow.size3()*glow_blur, false);
@@ -1405,7 +1412,7 @@ Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int 
                Flt d=Sat(-Dot(n, *light_dir)), l=ambient + light_power*d;
                col=ColorBrightness(col, l);
             }
-            if(has_spec)if(Byte s=b2.color(x, y).c[SMOOTH_CHANNEL])
+            if(has_spec)if(Byte s=b2.color(x, y).SMOOTH_CHANNEL)
             {
                Flt spec=LightSpecular(-n, *light_dir, Vec(0, 0, 1))*spec_mul;
                Color cs=ColorBrightness(s*spec); cs.a=0;
