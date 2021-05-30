@@ -1010,10 +1010,10 @@ UInt ExtractBase2Texture(Image &base_2, Image *bump, Image *smooth, Image *metal
    REPD(x, base_2.w())
    {
       Color c=base_2.color(x, y); // #MaterialTextureLayout
-      if(smooth){smooth->pixel(x, y, c.g); if(c.g<254                    )tex|=BT_SMOOTH;} ASSERT(SMOOTH_DEFAULT_TEX==255);
-      if(metal ){metal ->pixel(x, y, c.r); if(c.r>1                      )tex|=BT_METAL ;} ASSERT( METAL_DEFAULT_TEX==0);
-      if(bump  ){bump  ->pixel(x, y, c.b); if(Abs(c.b-BUMP_DEFAULT_TEX)>1)tex|=BT_BUMP  ;}
-      if(glow  ){glow  ->pixel(x, y, c.a); if(c.a<254                    )tex|=BT_GLOW  ;}
+      if(smooth){smooth->pixel(x, y, c.c[SMOOTH_CHANNEL]); if(    c.c[SMOOTH_CHANNEL]<254                )tex|=BT_SMOOTH;} ASSERT(SMOOTH_DEFAULT_TEX==255);
+      if(metal ){metal ->pixel(x, y, c.c[ METAL_CHANNEL]); if(    c.c[ METAL_CHANNEL]>1                  )tex|=BT_METAL ;} ASSERT( METAL_DEFAULT_TEX==0);
+      if(bump  ){bump  ->pixel(x, y, c.c[  BUMP_CHANNEL]); if(Abs(c.c[  BUMP_CHANNEL]-BUMP_DEFAULT_TEX)>1)tex|=BT_BUMP  ;}
+      if(glow  ){glow  ->pixel(x, y, c.c[  GLOW_CHANNEL]); if(    c.c[  GLOW_CHANNEL]<254                )tex|=BT_GLOW  ;}
    }
    return tex;
 }
