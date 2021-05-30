@@ -63,8 +63,30 @@
 #define SSI_LINEAR_CWW   6
 #define SSI_NUM          7
 
+// Material Textures
+#define TEX_IS_ROUGH 1 // if texture has roughness (if 0 then it has smoothness)
+
+// #MaterialTextureLayout
+// base_0
+#define BASE_CHANNEL_ALPHA w
+// base_1
+#define BASE_CHANNEL_NORMAL_X x
+#define BASE_CHANNEL_NORMAL_Y y
+// base_2
+#define BASE_CHANNEL_ROUGH y
+#define BASE_CHANNEL_METAL x
+#define BASE_CHANNEL_BUMP  z
+#define BASE_CHANNEL_GLOW  w
+
+// #MaterialTextureLayoutDetail
+#define DETAIL_CHANNEL_NORMAL   xy
+#define DETAIL_CHANNEL_NORMAL_X x
+#define DETAIL_CHANNEL_NORMAL_Y y
+#define DETAIL_CHANNEL_ROUGH    z
+#define DETAIL_CHANNEL_COLOR    w
+
 // Other
 #define MAX_MTRLS 4 // 3 or 4 (3 to make shaders smaller, 4 to support more materials per-triangle)
 
-#define LCScale 0.2 // must be in sync with GLSL
+#define LCScale 0.2
 /******************************************************************************/

@@ -3,10 +3,11 @@
 namespace EE{
 /******************************************************************************
 
+   #MaterialTextureLayout
    base_0: RGB, Alpha
    base_1: NrmX, NrmY
-   base_2: Metal, Smooth, Bump, Glow
-   detail: NrmX, NrmY, Col, Smooth
+   base_2: Metal, Rough, Bump, Glow
+   detail: NrmX, NrmY, Rough, Col   #MaterialTextureLayoutDetail
 
    When changing the above to a different order, then look for "#MaterialTextureLayout" text in Engine/Editor to update the codes.
 
@@ -51,29 +52,12 @@ namespace EE{
 /******************************************************************************/
 #define CC4_MTRL CC4('M','T','R','L')
 
-#define SMOOTH_DEFAULT_TEX 255
+constexpr Byte TexSmooth(Byte tx) {return TEX_IS_ROUGH ? 255-tx : tx;} // convert between texture and smoothness
+
+#define SMOOTH_DEFAULT_TEX 0
 #define  METAL_DEFAULT_TEX 0
 #define   BUMP_DEFAULT_TEX 0 // 0..255, normally this should be 128, but 0 will allow to use BC4/BC5 (for Mtrl.base_2 tex if there's no Glow) and always set Material.bump=0 when bump is not used #MaterialTextureLayout
 #define   BUMP_DEFAULT_PAR 0.03f
-
-// #MaterialTextureLayout
-// base_0
-#define  ALPHA_CHANNEL 3
-// base_1
-#define   NRMX_CHANNEL 0
-#define   NRMY_CHANNEL 1
-// base_2
-#define SMOOTH_CHANNEL y
-#define  METAL_CHANNEL x
-#define   BUMP_CHANNEL z
-#define   GLOW_CHANNEL w
-
-// #MaterialTextureLayoutDetail
-#define DETAIL_NORMAL_CHANNEL   xy
-#define DETAIL_NORMAL_X_CHANNEL x
-#define DETAIL_NORMAL_Y_CHANNEL y
-#define DETAIL_SMOOTH_CHANNEL   z
-#define DETAIL_COLOR_CHANNEL    w
 /******************************************************************************/
 static Int Compare(C UniqueMultiMaterialKey &a, C UniqueMultiMaterialKey &b)
 {
@@ -102,7 +86,7 @@ Material::Material()
 {
    color_l .set(1, 1, 1, 1);
    emissive.set(0, 0, 0);
-   smooth   =0;
+   rough_mul=0; rough_add=1;
    reflect  (MATERIAL_REFLECT);
    glow     =0;
    normal   =0;
@@ -305,28 +289,28 @@ Material& Material::validate() // #MaterialTextureLayout
       // base2
       if(base_2)
       {
-        _multi.refl_smth_glow_mul.x=reflect_mul;
-        _multi.refl_smth_glow_add.x=reflect_add;
+        _multi.refl_rogh_glow_mul.x=reflect_mul;
+        _multi.refl_rogh_glow_add.x=reflect_add;
 
-        _multi.refl_smth_glow_mul.y=smooth;
-        _multi.refl_smth_glow_add.y=0;
+        _multi.refl_rogh_glow_mul.y=rough_mul;
+        _multi.refl_rogh_glow_add.y=rough_add;
 
-        _multi.refl_smth_glow_mul.z=glow;
-        _multi.refl_smth_glow_add.z=0;
+        _multi.refl_rogh_glow_mul.z=glow;
+        _multi.refl_rogh_glow_add.z=0;
 
         _multi.bump=bump;
       }else
       {
-        _multi.refl_smth_glow_mul=0;
-        _multi.refl_smth_glow_add.x=reflect_add;
-        _multi.refl_smth_glow_add.y=smooth;
-        _multi.refl_smth_glow_add.z=glow;
+        _multi.refl_rogh_glow_mul=0;
+        _multi.refl_rogh_glow_add.x=reflect_add;
+        _multi.refl_rogh_glow_add.y=  rough_add;
+        _multi.refl_rogh_glow_add.z=glow;
 
         _multi.bump=0;
       }
 
       // #MaterialTextureLayoutDetail
-      // XY=nrm.xy -1..1 delta, Z=roughness -1..1 delta, W=color 0..2 scale
+      // XY=nrm.xy -1..1 delta, Z=rough -1..1 delta, W=color 0..2 scale
       // SINGLE: det.xyz=det.xyz*(Material.det_power*2)+( -Material.det_power); -1..1
       // SINGLE: det.w  =det.w  *(Material.det_power*2)+(1-Material.det_power);  0..2
       // MULTI : det.xyz=det.xyz*MultiMaterial0.det_mul+MultiMaterial0.det_add; -1..1
@@ -533,15 +517,16 @@ void Material::_adjustParams(UInt old_base_tex, UInt new_base_tex)
    }
    if(changed&(BT_BUMP|BT_NORMAL))
    {
-      if(!(new_base_tex&BT_BUMP) && !(new_base_tex&BT_NORMAL))normal=0;else
+      if(!(new_base_tex&(BT_BUMP|BT_NORMAL)))normal=0;else
       if(                                    normal<=EPS_COL8)normal=1;
    }
 
    if(changed&BT_SMOOTH)
-      if(!(new_base_tex&BT_SMOOTH))smooth=0;else
-      if(smooth<=EPS_COL8         )smooth=1;
+      if(!(new_base_tex&BT_SMOOTH)){rough_mul=0; rough_add=1;} // no  texture -> fully rough
+      else                         {rough_mul=1; rough_add=0;} // has texture -> use it
 
- /*if(changed&BT_METAL)
+ /*Not needed because current setup will work well with or without texture
+   if(changed&BT_METAL)
       if(!(new_base_tex&BT_METAL)          )reflect=MATERIAL_REFLECT;else
       if(reflect<=MATERIAL_REFLECT+EPS_COL8)reflect=1;*/
 
@@ -566,7 +551,7 @@ void Material::_adjustParams(UInt old_base_tex, UInt new_base_tex)
 /******************************************************************************/
 Bool Material::saveData(File &f, CChar *path)C
 {
-   f.putMulti(Byte(11), cull, technique)<<SCAST(C MaterialParams, T); // version
+   f.putMulti(Byte(12), cull, technique)<<SCAST(C MaterialParams, T); // version
 
    // textures
    f.putStr(    base_0.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
@@ -580,10 +565,10 @@ Bool Material::saveData(File &f, CChar *path)C
 }
 Bool Material::loadData(File &f, CChar *path)
 {
-   MaterialParams &mp=T; Char temp[MAX_LONG_PATH]; Flt sss, reflect;
+   MaterialParams &mp=T; Char temp[MAX_LONG_PATH]; Flt sss, smooth, reflect;
    switch(f.decUIntV())
    {
-      case 11:
+      case 12:
       {
          f.getMulti(cull, technique)>>mp;
          f.getStr(temp);     base_0.require(temp, path);
@@ -594,15 +579,28 @@ Bool Material::loadData(File &f, CChar *path)
          f.getStr(temp);  light_map.require(temp, path);
       }break;
 
+      case 11:
+      {
+         f.getMulti(cull, technique)>>color_l>>emissive>>smooth>>reflect_mul>>reflect_add>>glow>>normal>>bump>>det_power>>det_scale>>uv_scale;
+         f.getStr(temp);     base_0.require(temp, path);
+         f.getStr(temp);     base_1.require(temp, path);
+         f.getStr(temp);     base_2.require(temp, path);
+         f.getStr(temp); detail_map.require(temp, path);
+         f.getStr(temp);  macro_map.require(temp, path);
+         f.getStr(temp);  light_map.require(temp, path);
+         T.rough_add=1; T.rough_mul=-smooth;
+      }break;
+
       case 10:
       {
          f.getMulti(cull, technique)>>color_l>>emissive>>smooth>>reflect>>glow>>normal>>bump>>det_power>>det_scale>>uv_scale;
          f.getStr(temp);     base_0.require(temp, path);
          f.getStr(temp);     base_1.require(temp, path);
-         f.getStr(temp);     base_2.require(temp, path); if(Is(temp))T.reflect(0, reflect);else T.reflect(reflect, 1);
+         f.getStr(temp);     base_2.require(temp, path);
          f.getStr(temp); detail_map.require(temp, path);
          f.getStr(temp);  macro_map.require(temp, path);
          f.getStr(temp);  light_map.require(temp, path);
+         T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
       }break;
 
       case 9:
@@ -613,11 +611,11 @@ Bool Material::loadData(File &f, CChar *path)
                              base_2=null;
          f.getStr(temp); detail_map.require(temp, path);
          f.getStr(temp);  macro_map.require(temp, path);
-         f.getStr(temp); if(!Is(temp))reflect=MATERIAL_REFLECT;
+         f.getStr(temp);
          f.getStr(temp);  light_map.require(temp, path);
          f.getStr(temp);
          f.getStr(temp);
-         T.reflect(MATERIAL_REFLECT);
+         T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
       }break;
 
       case 8:
@@ -628,11 +626,11 @@ Bool Material::loadData(File &f, CChar *path)
                                base_2=null;
          f._getStr1(temp); detail_map.require(temp, path);
          f._getStr1(temp);  macro_map.require(temp, path);
-         f._getStr1(temp); if(!Is(temp))reflect=MATERIAL_REFLECT;
+         f._getStr1(temp);
          f._getStr1(temp);  light_map.require(temp, path);
          f._getStr1(temp);
          f._getStr1(temp);
-         T.reflect(MATERIAL_REFLECT);
+         T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
       }break;
 
       case 7:
@@ -643,11 +641,11 @@ Bool Material::loadData(File &f, CChar *path)
                               base_2=null;
          f._getStr(temp); detail_map.require(temp, path);
          f._getStr(temp);  macro_map.require(temp, path);
-         f._getStr(temp); if(!Is(temp))reflect=MATERIAL_REFLECT;
+         f._getStr(temp);
          f._getStr(temp);  light_map.require(temp, path);
          f._getStr(temp);
          f._getStr(temp);
-         T.reflect(MATERIAL_REFLECT);
+         T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
       }break;
 
       case 6:
@@ -658,10 +656,10 @@ Bool Material::loadData(File &f, CChar *path)
                               base_2=null;
          f._getStr(temp); detail_map.require(temp, path);
          f._getStr(temp);  macro_map.require(temp, path);
-         f._getStr(temp); if(!Is(temp))reflect=MATERIAL_REFLECT;
+         f._getStr(temp);
          f._getStr(temp);  light_map.require(temp, path);
          f._getStr8();
-         T.reflect(MATERIAL_REFLECT);
+         T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
       }break;
 
       case 5:
@@ -671,11 +669,11 @@ Bool Material::loadData(File &f, CChar *path)
          f._getStr(temp);     base_1.require(temp, path);
                               base_2=null;
          f._getStr(temp); detail_map.require(temp, path);
-         f._getStr(temp); if(!Is(temp))reflect=MATERIAL_REFLECT;
+         f._getStr(temp);
          f._getStr(temp);  light_map.require(temp, path);
                            macro_map=null;
          f._getStr8();
-         T.reflect(MATERIAL_REFLECT);
+         T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
       }break;
 
       case 4:
@@ -685,10 +683,10 @@ Bool Material::loadData(File &f, CChar *path)
          f._getStr(temp);     base_1.require(temp, path);
                               base_2=null;
          f._getStr(temp); detail_map.require(temp, path);
-         f._getStr(temp); if(!Is(temp))reflect=MATERIAL_REFLECT;
+         f._getStr(temp);
          f._getStr(temp);  light_map.require(temp, path);
                            macro_map=null;
-         T.reflect(MATERIAL_REFLECT);
+         T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
       }break;
 
       case 3:
@@ -698,10 +696,10 @@ Bool Material::loadData(File &f, CChar *path)
              base_1.require(f._getStr8(), path);
              base_2=null;
          detail_map.require(f._getStr8(), path);
-                  Str8 temp=f._getStr8(); if(!Is(temp))reflect=MATERIAL_REFLECT;
+                  Str8 temp=f._getStr8();
           light_map.require(f._getStr8(), path);
           macro_map=null;
-         T.reflect(MATERIAL_REFLECT);
+         T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
       }break;
 
       case 2:
@@ -713,10 +711,10 @@ Bool Material::loadData(File &f, CChar *path)
              base_1.require(f._getStr8(), path);
              base_2=null;
          detail_map.require(f._getStr8(), path);
-                  Str8 temp=f._getStr8(); if(!Is(temp))reflect=MATERIAL_REFLECT;
+                  Str8 temp=f._getStr8();
           light_map=null;
           macro_map=null;
-         T.reflect(MATERIAL_REFLECT);
+         T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
       }break;
 
       case 1:
@@ -728,10 +726,10 @@ Bool Material::loadData(File &f, CChar *path)
              base_1.require(f._getStr8(), path);
              base_2=null;
          detail_map.require(f._getStr8(), path);
-                  Str8 temp=f._getStr8(); if(!Is(temp))reflect=MATERIAL_REFLECT;
+                  Str8 temp=f._getStr8();
           light_map=null;
           macro_map=null;
-         T.reflect(MATERIAL_REFLECT);
+         T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
       }break;
 
       case 0:
@@ -751,10 +749,10 @@ Bool Material::loadData(File &f, CChar *path)
          f>>temp;     base_1.require(temp, path);
                       base_2=null;
          f>>temp; detail_map.require(temp, path);
-         f>>temp; if(!Is(temp))reflect=MATERIAL_REFLECT;
+         f>>temp;
                    light_map=null;
                    macro_map=null;
-         T.reflect(MATERIAL_REFLECT);
+         T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
       }break;
 
       default: goto error;
@@ -941,18 +939,18 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
                   {
                      dest_2.createSoftTry(w, h, 1, IMAGE_R8G8B8A8);
                      Color c;
-                     c.SMOOTH_CHANNEL=SMOOTH_DEFAULT_TEX;
-                     c. METAL_CHANNEL= METAL_DEFAULT_TEX;
-                     c.  BUMP_CHANNEL=  BUMP_DEFAULT_TEX;
-                     c.  GLOW_CHANNEL=255;
+                     c.BASE_CHANNEL_ROUGH=TexSmooth(SMOOTH_DEFAULT_TEX);
+                     c.BASE_CHANNEL_METAL=           METAL_DEFAULT_TEX ;
+                     c.BASE_CHANNEL_BUMP =            BUMP_DEFAULT_TEX ;
+                     c.BASE_CHANNEL_GLOW =255;
                      REPD(y, dest_2.h())
                      REPD(x, dest_2.w())
                      {
                         Color c;
-                        if(smooth_src->is()){                                  c.SMOOTH_CHANNEL=smooth_src->color(x, y).lum(); if(smooth_is_rough)c.SMOOTH_CHANNEL=255-c.SMOOTH_CHANNEL;}
-                        if( metal_src->is())                                   c. METAL_CHANNEL= metal_src->color(x, y).lum();
-                        if(  bump_src->is())                                   c.  BUMP_CHANNEL=  bump_src->color(x, y).lum();
-                        if(  glow_src->is()){Color glow=glow_src->color(x, y); c.  GLOW_CHANNEL=DivRound(glow.lum()*glow.a, 255);}
+                        if(smooth_src->is()){                                  c.BASE_CHANNEL_ROUGH=smooth_src->color(x, y).lum(); if(smooth_is_rough!=TEX_IS_ROUGH)c.BASE_CHANNEL_ROUGH=255-c.BASE_CHANNEL_ROUGH;}
+                        if( metal_src->is())                                   c.BASE_CHANNEL_METAL= metal_src->color(x, y).lum();
+                        if(  bump_src->is())                                   c.BASE_CHANNEL_BUMP =  bump_src->color(x, y).lum();
+                        if(  glow_src->is()){Color glow=glow_src->color(x, y); c.BASE_CHANNEL_GLOW =DivRound(glow.lum()*glow.a, 255);}
                         dest_2.color(x, y, c);
                      }
                      glow_src->unlock();
@@ -1017,10 +1015,10 @@ UInt ExtractBase2Texture(Image &base_2, Image *bump, Image *smooth, Image *metal
    REPD(x, base_2.w())
    {
       Color c=base_2.color(x, y); // #MaterialTextureLayout
-      if(smooth){smooth->pixel(x, y, c.SMOOTH_CHANNEL); if(    c.SMOOTH_CHANNEL<254                )tex|=BT_SMOOTH;} ASSERT(SMOOTH_DEFAULT_TEX==255);
-      if(metal ){metal ->pixel(x, y, c. METAL_CHANNEL); if(    c. METAL_CHANNEL>1                  )tex|=BT_METAL ;} ASSERT( METAL_DEFAULT_TEX==0);
-      if(bump  ){bump  ->pixel(x, y, c.  BUMP_CHANNEL); if(Abs(c.  BUMP_CHANNEL-BUMP_DEFAULT_TEX)>1)tex|=BT_BUMP  ;}
-      if(glow  ){glow  ->pixel(x, y, c.  GLOW_CHANNEL); if(    c.  GLOW_CHANNEL<254                )tex|=BT_GLOW  ;}
+      if(smooth){smooth->pixel(x, y, TexSmooth(c.BASE_CHANNEL_ROUGH)); if(TexSmooth(c.BASE_CHANNEL_ROUGH)>1                )tex|=BT_SMOOTH;} ASSERT(SMOOTH_DEFAULT_TEX==0);
+      if(metal ){metal ->pixel(x, y,           c.BASE_CHANNEL_METAL ); if(          c.BASE_CHANNEL_METAL >1                )tex|=BT_METAL ;} ASSERT( METAL_DEFAULT_TEX==0);
+      if(bump  ){bump  ->pixel(x, y,           c.BASE_CHANNEL_BUMP  ); if(      Abs(c.BASE_CHANNEL_BUMP-BUMP_DEFAULT_TEX)>1)tex|=BT_BUMP  ;}
+      if(glow  ){glow  ->pixel(x, y,           c.BASE_CHANNEL_GLOW  ); if(          c.BASE_CHANNEL_GLOW  <254              )tex|=BT_GLOW  ;}
    }
    return tex;
 }
@@ -1073,17 +1071,17 @@ void CreateDetailTexture(Image &detail, C ImageSource &color, C ImageSource &bum
                if(!smooth_src->is() || smooth_src->lockRead())
                {
                   Color detail; // #MaterialTextureLayoutDetail
-                  detail.DETAIL_NORMAL_CHANNEL=128;
-                  detail.DETAIL_SMOOTH_CHANNEL=128;
-                  detail.DETAIL_COLOR_CHANNEL =128;
+                  detail.DETAIL_CHANNEL_NORMAL=128;
+                  detail.DETAIL_CHANNEL_ROUGH =128;
+                  detail.DETAIL_CHANNEL_COLOR =128;
 
                   REPD(y, dest.h())
                   REPD(x, dest.w())
                   {
-                     if( color_src->is()) detail.DETAIL_COLOR_CHANNEL = color_src->color(x, y).lum();
+                     if( color_src->is()) detail.DETAIL_CHANNEL_COLOR = color_src->color(x, y).lum();
                    //if(  bump_src->is()) bump                        =  bump_src->color(x, y).lum();
-                     if(normal_src->is()){detail.DETAIL_NORMAL_CHANNEL=normal_src->color(x, y).rg   ; if(flip_normal_y  )detail.DETAIL_NORMAL_Y_CHANNEL=255-detail.DETAIL_NORMAL_Y_CHANNEL;}
-                     if(smooth_src->is()){detail.DETAIL_SMOOTH_CHANNEL=smooth_src->color(x, y).lum(); if(smooth_is_rough)detail.DETAIL_SMOOTH_CHANNEL  =255-detail.DETAIL_SMOOTH_CHANNEL  ;}
+                     if(normal_src->is()){detail.DETAIL_CHANNEL_NORMAL=normal_src->color(x, y).rg   ; if(flip_normal_y                )detail.DETAIL_CHANNEL_NORMAL_Y=255-detail.DETAIL_CHANNEL_NORMAL_Y;}
+                     if(smooth_src->is()){detail.DETAIL_CHANNEL_ROUGH =smooth_src->color(x, y).lum(); if(smooth_is_rough!=TEX_IS_ROUGH)detail.DETAIL_CHANNEL_ROUGH   =255-detail.DETAIL_CHANNEL_ROUGH   ;}
                      dest.color(x, y, detail);
                   }
                   smooth_src->unlock();
@@ -1110,12 +1108,12 @@ UInt ExtractDetailTexture(C Image &detail, Image *color, Image *bump, Image *nor
    REPD(x, detail.w())
    {
       Color c=detail.color(x, y); // #MaterialTextureLayoutDetail
-      if(color ){color ->pixel(x, y, c.DETAIL_COLOR_CHANNEL ); if(Abs(c.DETAIL_COLOR_CHANNEL -128)>1)tex|=BT_COLOR ;}
-      if(smooth){smooth->pixel(x, y, c.DETAIL_SMOOTH_CHANNEL); if(Abs(c.DETAIL_SMOOTH_CHANNEL-128)>1)tex|=BT_SMOOTH;}
+      if(color ){color ->pixel(x, y,           c.DETAIL_CHANNEL_COLOR ); if(Abs(c.DETAIL_CHANNEL_COLOR-128)>1)tex|=BT_COLOR ;}
+      if(smooth){smooth->pixel(x, y, TexSmooth(c.DETAIL_CHANNEL_ROUGH)); if(Abs(c.DETAIL_CHANNEL_ROUGH-128)>1)tex|=BT_SMOOTH;}
       if(normal)
       {
-         Vec n; n.xy.set((c.DETAIL_NORMAL_X_CHANNEL-128)/127.0, (c.DETAIL_NORMAL_Y_CHANNEL-128)/127.0); n.z=CalcZ(n.xy);
-         normal->color(x, y, Color(c.DETAIL_NORMAL_X_CHANNEL, c.DETAIL_NORMAL_Y_CHANNEL, Mid(Round(n.z*127+128), 0, 255))); if(Abs(c.DETAIL_NORMAL_X_CHANNEL-128)>1 || Abs(c.DETAIL_NORMAL_Y_CHANNEL-128)>1)tex|=BT_NORMAL;
+         Vec n; n.xy.set((c.DETAIL_CHANNEL_NORMAL_X-128)/127.0, (c.DETAIL_CHANNEL_NORMAL_Y-128)/127.0); n.z=CalcZ(n.xy);
+         normal->color(x, y, Color(c.DETAIL_CHANNEL_NORMAL_X, c.DETAIL_CHANNEL_NORMAL_Y, Mid(Round(n.z*127+128), 0, 255))); if(Abs(c.DETAIL_CHANNEL_NORMAL_X-128)>1 || Abs(c.DETAIL_CHANNEL_NORMAL_Y-128)>1)tex|=BT_NORMAL;
       }
    }
    return tex;
@@ -1351,13 +1349,14 @@ Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int 
          REPD(x, color.w())color.color(x, y, WHITE);
       }
 
+      // TODO: this has to be updated based on PBR
       MAX(light_power, 0);
-           spec_mul*=material.smooth*light_power/255.0f;
-      Flt  glow_mul =material.glow  *(2*1.75f), // *2 because shaders use this multiplier, *1.75 because shaders iterate over few pixels and take the max out of them (this is just approximation)
+           spec_mul*=(1-material.rough_add)*light_power/255.0f;
+      Flt  glow_mul =   material.glow      *(2*1.75f), // *2 because shaders use this multiplier, *1.75 because shaders iterate over few pixels and take the max out of them (this is just approximation)
            glow_blur=0.07f;
-      Bool has_normal=(light_dir && material.base_1 && material.normal*light_power>0.01f),
-           has_spec  =(light_dir && material.base_2 && material.smooth*light_power>0.01f),
-           has_glow  =(             material.base_2 && material.glow              >0.01f);
+      Bool has_normal=(light_dir && material.base_1 &&    material.normal    *light_power>0.01f),
+           has_spec  =(light_dir && material.base_2 && (1-material.rough_add)*light_power>0.01f),
+           has_glow  =(             material.base_2 &&    material.glow                  >0.01f);
 
       Image normal; // 'base_1' resized to 'color' resolution
       if(has_normal)if(!material.base_1->copyTry(normal, color.w(), color.h(), 1, ImageTypeUncompressed(material.base_1->type()), IMAGE_SOFT, 1, filter, IC_WRAP))return false;
@@ -1372,7 +1371,7 @@ Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int 
          REPD(x, glow.w())
          {
             Vec4 c=color.colorF(x, y); // RGB
-            c.xyz*=b2.colorF(x, y).GLOW_CHANNEL*glow_mul; // Glow
+            c.xyz*=b2.colorF(x, y).BASE_CHANNEL_GLOW*glow_mul; // Glow
             glow.colorF(x, y, c);
          }
          glow.blur(glow.size3()*glow_blur, false);
@@ -1412,7 +1411,7 @@ Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int 
                Flt d=Sat(-Dot(n, *light_dir)), l=ambient + light_power*d;
                col=ColorBrightness(col, l);
             }
-            if(has_spec)if(Byte s=b2.color(x, y).SMOOTH_CHANNEL)
+            if(has_spec)if(Byte s=TexSmooth(b2.color(x, y).BASE_CHANNEL_ROUGH)) // #MaterialTextureLayout
             {
                Flt spec=LightSpecular(-n, *light_dir, Vec(0, 0, 1))*spec_mul;
                Color cs=ColorBrightness(s*spec); cs.a=0;

@@ -276,7 +276,7 @@ VecH4 PS
 #if PIXEL_NORMAL
    VecH nrmh;
 #endif
-   Half smooth, reflect, glow;
+   Half rough, reflect, glow;
 
 #if SET_COL
    col=I.col;
@@ -293,10 +293,10 @@ VecH4 PS
    // #MaterialTextureLayout
    #if LAYOUT==0
    {
-      smooth =Material.smooth;
+      rough  =Material.  rough_add;
       reflect=Material.reflect_add;
       glow   =Material.glow;
-      if(DETAIL){col*=det.DETAIL_COLOR_CHANNEL; smooth+=det.DETAIL_SMOOTH_CHANNEL;} // #MaterialTextureLayoutDetail
+      if(DETAIL){col*=det.DETAIL_CHANNEL_COLOR; APPLY_DETAIL_ROUGH(rough, det.DETAIL_CHANNEL_ROUGH);} // #MaterialTextureLayoutDetail
    }
    #elif LAYOUT==1
    {
@@ -309,10 +309,10 @@ VecH4 PS
          AlphaTest(tex_col.a);
       }
       col   *=tex_col.rgb;
-      smooth =Material.smooth;
+      rough  =Material.  rough_add;
       reflect=Material.reflect_add;
       glow   =Material.glow;
-      if(DETAIL){col*=det.DETAIL_COLOR_CHANNEL; smooth+=det.DETAIL_SMOOTH_CHANNEL;} // #MaterialTextureLayoutDetail
+      if(DETAIL){col*=det.DETAIL_CHANNEL_COLOR; APPLY_DETAIL_ROUGH(rough, det.DETAIL_CHANNEL_ROUGH);} // #MaterialTextureLayoutDetail
    }
    #elif LAYOUT==2
    {
@@ -326,10 +326,10 @@ VecH4 PS
       }
       VecH4 tex_ext=Tex(Ext, I.tex);
       col   *=tex_col.rgb;
-      smooth =tex_ext.SMOOTH_CHANNEL*Material.smooth;
-      reflect=tex_ext. METAL_CHANNEL*Material.reflect_mul+Material.reflect_add;
-      glow   =tex_ext.  GLOW_CHANNEL*Material.glow;
-      if(DETAIL){col*=det.DETAIL_COLOR_CHANNEL; smooth+=det.DETAIL_SMOOTH_CHANNEL;} // #MaterialTextureLayoutDetail
+      rough  =tex_ext.BASE_CHANNEL_ROUGH*Material.  rough_mul+Material.  rough_add; // saturated later below
+      reflect=tex_ext.BASE_CHANNEL_METAL*Material.reflect_mul+Material.reflect_add;
+      glow   =tex_ext.BASE_CHANNEL_GLOW *Material.glow;
+      if(DETAIL){col*=det.DETAIL_CHANNEL_COLOR; APPLY_DETAIL_ROUGH(rough, det.DETAIL_CHANNEL_ROUGH);} // #MaterialTextureLayoutDetail
    }
    #endif
 
@@ -342,13 +342,13 @@ VecH4 PS
       #else
          #if 0
                       nrmh.xy =Tex(Nrm, I.tex).xy*Material.normal;
-            if(DETAIL)nrmh.xy+=det.DETAIL_NORMAL_CHANNEL; // #MaterialTextureLayoutDetail
+            if(DETAIL)nrmh.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
                       nrmh.z  =CalcZ(nrmh.xy);
          #else
                       nrmh.xy =Tex(Nrm, I.tex).xy;
                       nrmh.z  =CalcZ(nrmh.xy);
                       nrmh.xy*=Material.normal;
-            if(DETAIL)nrmh.xy+=det.DETAIL_NORMAL_CHANNEL; // #MaterialTextureLayoutDetail
+            if(DETAIL)nrmh.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
          #endif
                       nrmh    =Transform(nrmh, I.mtrx);
       #endif
@@ -377,8 +377,8 @@ VecH4 PS
    // macro texture
    //Half mac_blend; if(MACRO)mac_blend=LerpRS(MacroFrom, MacroTo, Length(I.pos))*MacroMax;
 
-   // Reflect, Smooth, Bump, Glow !! DO THIS FIRST because it may modify 'I.material' which affects everything !!
-   VecH refl_smth_glow;
+   // Reflect, Rough, Bump, Glow !! DO THIS FIRST because it may modify 'I.material' which affects everything !!
+   VecH refl_rogh_glow;
    if(LAYOUT==2)
    {
       VecH4 ext0, ext1, ext2, ext3;
@@ -388,32 +388,32 @@ VecH4 PS
       if(MATERIALS>=4)ext3=Tex(Ext3, tex3);
       if(MTRL_BLEND)
       {
-                          I.material.x=MultiMaterialWeight(I.material.x, ext0.BUMP_CHANNEL);
-                          I.material.y=MultiMaterialWeight(I.material.y, ext1.BUMP_CHANNEL); if(MATERIALS==2)I.material.xy  /=I.material.x+I.material.y;
-         if(MATERIALS>=3){I.material.z=MultiMaterialWeight(I.material.z, ext2.BUMP_CHANNEL); if(MATERIALS==3)I.material.xyz /=I.material.x+I.material.y+I.material.z;}
-         if(MATERIALS>=4){I.material.w=MultiMaterialWeight(I.material.w, ext3.BUMP_CHANNEL); if(MATERIALS==4)I.material.xyzw/=I.material.x+I.material.y+I.material.z+I.material.w;}
+                          I.material.x=MultiMaterialWeight(I.material.x, ext0.BASE_CHANNEL_BUMP);
+                          I.material.y=MultiMaterialWeight(I.material.y, ext1.BASE_CHANNEL_BUMP); if(MATERIALS==2)I.material.xy  /=I.material.x+I.material.y;
+         if(MATERIALS>=3){I.material.z=MultiMaterialWeight(I.material.z, ext2.BASE_CHANNEL_BUMP); if(MATERIALS==3)I.material.xyz /=I.material.x+I.material.y+I.material.z;}
+         if(MATERIALS>=4){I.material.w=MultiMaterialWeight(I.material.w, ext3.BASE_CHANNEL_BUMP); if(MATERIALS==4)I.material.xyzw/=I.material.x+I.material.y+I.material.z+I.material.w;}
       }
-                      {VecH refl_smth_glow0=ext0.xyw*MultiMaterial0.refl_smth_glow_mul+MultiMaterial0.refl_smth_glow_add; if(DETAIL)refl_smth_glow0.y+=det0.DETAIL_SMOOTH_CHANNEL; refl_smth_glow =refl_smth_glow0*I.material.x;} // #MaterialTextureLayoutDetail
-                      {VecH refl_smth_glow1=ext1.xyw*MultiMaterial1.refl_smth_glow_mul+MultiMaterial1.refl_smth_glow_add; if(DETAIL)refl_smth_glow1.y+=det1.DETAIL_SMOOTH_CHANNEL; refl_smth_glow+=refl_smth_glow1*I.material.y;}
-      if(MATERIALS>=3){VecH refl_smth_glow2=ext2.xyw*MultiMaterial2.refl_smth_glow_mul+MultiMaterial2.refl_smth_glow_add; if(DETAIL)refl_smth_glow2.y+=det2.DETAIL_SMOOTH_CHANNEL; refl_smth_glow+=refl_smth_glow2*I.material.z;}
-      if(MATERIALS>=4){VecH refl_smth_glow3=ext3.xyw*MultiMaterial3.refl_smth_glow_mul+MultiMaterial3.refl_smth_glow_add; if(DETAIL)refl_smth_glow3.y+=det3.DETAIL_SMOOTH_CHANNEL; refl_smth_glow+=refl_smth_glow3*I.material.w;}
+                      {VecH refl_rogh_glow0=ext0.xyw*MultiMaterial0.refl_rogh_glow_mul+MultiMaterial0.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow0.y, det0.DETAIL_CHANNEL_ROUGH); refl_rogh_glow =refl_rogh_glow0*I.material.x;} // #MaterialTextureLayoutDetail
+                      {VecH refl_rogh_glow1=ext1.xyw*MultiMaterial1.refl_rogh_glow_mul+MultiMaterial1.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow1.y, det1.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow1*I.material.y;}
+      if(MATERIALS>=3){VecH refl_rogh_glow2=ext2.xyw*MultiMaterial2.refl_rogh_glow_mul+MultiMaterial2.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow2.y, det2.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow2*I.material.z;}
+      if(MATERIALS>=4){VecH refl_rogh_glow3=ext3.xyw*MultiMaterial3.refl_rogh_glow_mul+MultiMaterial3.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow3.y, det3.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow3*I.material.w;}
    }else
    {
-                      {VecH refl_smth_glow0=MultiMaterial0.refl_smth_glow_add; if(DETAIL)refl_smth_glow0.y+=det0.DETAIL_SMOOTH_CHANNEL; refl_smth_glow =refl_smth_glow0*I.material.x;} // #MaterialTextureLayoutDetail
-                      {VecH refl_smth_glow1=MultiMaterial1.refl_smth_glow_add; if(DETAIL)refl_smth_glow1.y+=det1.DETAIL_SMOOTH_CHANNEL; refl_smth_glow+=refl_smth_glow1*I.material.y;}
-      if(MATERIALS>=3){VecH refl_smth_glow2=MultiMaterial2.refl_smth_glow_add; if(DETAIL)refl_smth_glow2.y+=det2.DETAIL_SMOOTH_CHANNEL; refl_smth_glow+=refl_smth_glow2*I.material.z;}
-      if(MATERIALS>=4){VecH refl_smth_glow3=MultiMaterial3.refl_smth_glow_add; if(DETAIL)refl_smth_glow3.y+=det3.DETAIL_SMOOTH_CHANNEL; refl_smth_glow+=refl_smth_glow3*I.material.w;}
+                      {VecH refl_rogh_glow0=MultiMaterial0.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow0.y, det0.DETAIL_CHANNEL_ROUGH); refl_rogh_glow =refl_rogh_glow0*I.material.x;} // #MaterialTextureLayoutDetail
+                      {VecH refl_rogh_glow1=MultiMaterial1.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow1.y, det1.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow1*I.material.y;}
+      if(MATERIALS>=3){VecH refl_rogh_glow2=MultiMaterial2.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow2.y, det2.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow2*I.material.z;}
+      if(MATERIALS>=4){VecH refl_rogh_glow3=MultiMaterial3.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow3.y, det3.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow3*I.material.w;}
    }
-   smooth =refl_smth_glow.y;
-   reflect=refl_smth_glow.x;
-   glow   =refl_smth_glow.z;
+   rough  =refl_rogh_glow.y;
+   reflect=refl_rogh_glow.x;
+   glow   =refl_rogh_glow.z;
 
    // Color + Detail + Macro !! do this second after modifying 'I.material' !! here Alpha is ignored for multi-materials
    VecH rgb;
-                   {VecH col0=Tex(Col , tex0).rgb; col0.rgb*=MultiMaterial0.color.rgb; if(DETAIL)col0.rgb*=det0.DETAIL_COLOR_CHANNEL; /*if(MACRO)col0.rgb=Lerp(col0.rgb, Tex(Mac , tex0*MacroScale).rgb, MultiMaterial0.macro*mac_blend);*/ rgb =I.material.x*col0;} // #MaterialTextureLayoutDetail
-                   {VecH col1=Tex(Col1, tex1).rgb; col1.rgb*=MultiMaterial1.color.rgb; if(DETAIL)col1.rgb*=det1.DETAIL_COLOR_CHANNEL; /*if(MACRO)col1.rgb=Lerp(col1.rgb, Tex(Mac1, tex1*MacroScale).rgb, MultiMaterial1.macro*mac_blend);*/ rgb+=I.material.y*col1;}
-   if(MATERIALS>=3){VecH col2=Tex(Col2, tex2).rgb; col2.rgb*=MultiMaterial2.color.rgb; if(DETAIL)col2.rgb*=det2.DETAIL_COLOR_CHANNEL; /*if(MACRO)col2.rgb=Lerp(col2.rgb, Tex(Mac2, tex2*MacroScale).rgb, MultiMaterial2.macro*mac_blend);*/ rgb+=I.material.z*col2;}
-   if(MATERIALS>=4){VecH col3=Tex(Col3, tex3).rgb; col3.rgb*=MultiMaterial3.color.rgb; if(DETAIL)col3.rgb*=det3.DETAIL_COLOR_CHANNEL; /*if(MACRO)col3.rgb=Lerp(col3.rgb, Tex(Mac3, tex3*MacroScale).rgb, MultiMaterial3.macro*mac_blend);*/ rgb+=I.material.w*col3;}
+                   {VecH col0=Tex(Col , tex0).rgb; col0.rgb*=MultiMaterial0.color.rgb; if(DETAIL)col0.rgb*=det0.DETAIL_CHANNEL_COLOR; /*if(MACRO)col0.rgb=Lerp(col0.rgb, Tex(Mac , tex0*MacroScale).rgb, MultiMaterial0.macro*mac_blend);*/ rgb =I.material.x*col0;} // #MaterialTextureLayoutDetail
+                   {VecH col1=Tex(Col1, tex1).rgb; col1.rgb*=MultiMaterial1.color.rgb; if(DETAIL)col1.rgb*=det1.DETAIL_CHANNEL_COLOR; /*if(MACRO)col1.rgb=Lerp(col1.rgb, Tex(Mac1, tex1*MacroScale).rgb, MultiMaterial1.macro*mac_blend);*/ rgb+=I.material.y*col1;}
+   if(MATERIALS>=3){VecH col2=Tex(Col2, tex2).rgb; col2.rgb*=MultiMaterial2.color.rgb; if(DETAIL)col2.rgb*=det2.DETAIL_CHANNEL_COLOR; /*if(MACRO)col2.rgb=Lerp(col2.rgb, Tex(Mac2, tex2*MacroScale).rgb, MultiMaterial2.macro*mac_blend);*/ rgb+=I.material.z*col2;}
+   if(MATERIALS>=4){VecH col3=Tex(Col3, tex3).rgb; col3.rgb*=MultiMaterial3.color.rgb; if(DETAIL)col3.rgb*=det3.DETAIL_CHANNEL_COLOR; /*if(MACRO)col3.rgb=Lerp(col3.rgb, Tex(Mac3, tex3*MacroScale).rgb, MultiMaterial3.macro*mac_blend);*/ rgb+=I.material.w*col3;}
 #if SET_COL
    col*=rgb.rgb;
 #else
@@ -429,10 +429,10 @@ VecH4 PS
       #else
          if(DETAIL)
          { // #MaterialTextureLayoutDetail
-                            nrmh.xy =(Tex(Nrm , tex0).xy*MultiMaterial0.normal + det0.DETAIL_NORMAL_CHANNEL)*I.material.x;
-                            nrmh.xy+=(Tex(Nrm1, tex1).xy*MultiMaterial1.normal + det1.DETAIL_NORMAL_CHANNEL)*I.material.y;
-            if(MATERIALS>=3)nrmh.xy+=(Tex(Nrm2, tex2).xy*MultiMaterial2.normal + det2.DETAIL_NORMAL_CHANNEL)*I.material.z;
-            if(MATERIALS>=4)nrmh.xy+=(Tex(Nrm3, tex3).xy*MultiMaterial3.normal + det3.DETAIL_NORMAL_CHANNEL)*I.material.w;
+                            nrmh.xy =(Tex(Nrm , tex0).xy*MultiMaterial0.normal + det0.DETAIL_CHANNEL_NORMAL)*I.material.x;
+                            nrmh.xy+=(Tex(Nrm1, tex1).xy*MultiMaterial1.normal + det1.DETAIL_CHANNEL_NORMAL)*I.material.y;
+            if(MATERIALS>=3)nrmh.xy+=(Tex(Nrm2, tex2).xy*MultiMaterial2.normal + det2.DETAIL_CHANNEL_NORMAL)*I.material.z;
+            if(MATERIALS>=4)nrmh.xy+=(Tex(Nrm3, tex3).xy*MultiMaterial3.normal + det3.DETAIL_CHANNEL_NORMAL)*I.material.w;
          }else
          {
                             nrmh.xy =Tex(Nrm , tex0).xy*(MultiMaterial0.normal*I.material.x);
@@ -448,7 +448,7 @@ VecH4 PS
 #endif // MATERIALS
 
    col+=Highlight.rgb;
-   if(LAYOUT==2 || DETAIL)smooth=Sat(smooth);
+   if(LAYOUT==2 || DETAIL)rough=Sat(rough); // need to saturate to avoid invalid values
 
 #if PIXEL_NORMAL
    #if FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
@@ -520,8 +520,8 @@ VecH4 PS
             lp.set(nrm, light_dir, eye_dir);
 
             VecH            lum_rgb=LightDir.color.rgb*lum;
-            total_lum     +=lum_rgb*lp.diffuse (smooth                                                   ); // diffuse
-            total_specular+=lum_rgb*lp.specular(smooth, reflect, reflect_col, false, LightDir.radius_frac); // specular
+            total_lum     +=lum_rgb*lp.diffuse (rough                                                   ); // diffuse
+            total_specular+=lum_rgb*lp.specular(rough, reflect, reflect_col, false, LightDir.radius_frac); // specular
          }
       }
       #endif
@@ -549,8 +549,8 @@ VecH4 PS
             lp.set(nrm, light_dir, eye_dir);
             
             VecH            lum_rgb=LightPoint.color.rgb*lum;
-            total_lum     +=lum_rgb*lp.diffuse (smooth                             ); // diffuse
-            total_specular+=lum_rgb*lp.specular(smooth, reflect, reflect_col, false); // specular
+            total_lum     +=lum_rgb*lp.diffuse (rough                             ); // diffuse
+            total_specular+=lum_rgb*lp.specular(rough, reflect, reflect_col, false); // specular
          }
       }
       #endif
@@ -578,8 +578,8 @@ VecH4 PS
             lp.set(nrm, light_dir, eye_dir);
             
             VecH            lum_rgb=LightLinear.color.rgb*lum;
-            total_lum     +=lum_rgb*lp.diffuse (smooth                             ); // diffuse
-            total_specular+=lum_rgb*lp.specular(smooth, reflect, reflect_col, false); // specular
+            total_lum     +=lum_rgb*lp.diffuse (rough                             ); // diffuse
+            total_specular+=lum_rgb*lp.specular(rough, reflect, reflect_col, false); // specular
          }
       }
       #endif
@@ -610,8 +610,8 @@ VecH4 PS
                lp.set(nrm, light_dir, eye_dir);
             
                VecH            lum_rgb=LightCone.color.rgb*lum;
-               total_lum     +=lum_rgb*lp.diffuse (smooth                             ); // diffuse
-               total_specular+=lum_rgb*lp.specular(smooth, reflect, reflect_col, false); // specular
+               total_lum     +=lum_rgb*lp.diffuse (rough                             ); // diffuse
+               total_specular+=lum_rgb*lp.specular(rough, reflect, reflect_col, false); // specular
             }
          }
       }
@@ -629,7 +629,7 @@ VecH4 PS
    #else
       Vec reflect_dir=ReflectDir(eye_dir, nrm);
    #endif
-      col+=ReflectTex(reflect_dir, smooth)*EnvColor*ReflectEnv(smooth, reflect, reflect_col, -Dot(nrm, eye_dir), false);
+      col+=ReflectTex(reflect_dir, rough)*EnvColor*ReflectEnv(rough, reflect, reflect_col, -Dot(nrm, eye_dir), false);
    }
 #endif
 

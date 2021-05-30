@@ -77,11 +77,12 @@ static Int BumpMode(C Material &material, MESH_FLAG mesh_flag)
    }
    return SBUMP_ZERO;
 }
+static Int  EmissiveMode(C Material &material) {return (material.emissive.max()>EPS_COL8_NATIVE) ? material.light_map ? 2 : 1 : 0;}
 static Bool Detail      (C Material &material) {return  material.detail_map && material.det_power>EPS_COL8;} // #MaterialTextureLayoutDetail
 static Bool Macro       (C Material &material) {return  material. macro_map;}
-static Bool Reflect     (C Material &material) {return (material.base_2 ? material.reflect_mul : 0)+material.reflect_add+material.smooth>EPS_COL8;} // #MaterialTextureLayout reflect_mul is multiplied with metal texture which is stored in base_2
-static Int  EmissiveMode(C Material &material) {return (material.emissive.max()>EPS_COL8_NATIVE) ? material.light_map ? 2 : 1 : 0;}
-
+static Bool Reflect     (C Material &material) {return  material.reflect_add+((material.base_2 && material.reflect_mul>0) ? material.reflect_mul : 0)  // get maximum possible reflectivity                                                           , add 'reflect_mul' only if it increases reflectivity (>0) because we only want possible maximum. #MaterialTextureLayout 'reflect_mul' is multiplied with metal     texture which is stored in base_2
+                                                    +1-(material.  rough_add+((material.base_2 && material.  rough_mul<0) ? material.  rough_mul : 0)) // get maximum possible smoothness, which is minimum possible roughness converted to smoothness, add   'rough_mul' only if it decreases roughness    (<0) because we only want possible minimum. #MaterialTextureLayout   'rough_mul' is multiplied with roughness texture which is stored in base_2
+                                                       >EPS_COL8;}
 static MESH_FLAG FlagHeightmap(MESH_FLAG mesh_flag, Bool heightmap)
 {
    if(heightmap)

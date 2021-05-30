@@ -2316,9 +2316,9 @@ class ProjectEx : ProjectHierarchy
       // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !!
       TextParam color_resize, smooth_resize, bump_resize, normal_resize;
       MtrlImages.ImageResize color, smooth, bump, normal; // #MaterialTextureLayoutDetail
-      bool color_ok=loadImages( color, & color_resize, material.detail_color , true                                                                                                   ), // load before 'smooth', here 'color' 'smooth' 'bump' are not yet available
-          smooth_ok=loadImages(smooth, &smooth_resize, material.detail_smooth, false, false, WHITE               , &color, &color_resize, null   , null          , null , null        ), // load before 'bump'  , here         'smooth' 'bump' are not yet available
-            bump_ok=loadImages(  bump, &  bump_resize, material.detail_bump  , false, false, GREY                , &color, &color_resize, &smooth, &smooth_resize, null , null        ), // load before 'normal', here                  'bump' is  not yet available
+      bool color_ok=loadImages( color, & color_resize, material.detail_color , true , false, GREY                                                                                     ), // load before 'smooth', here 'color' 'smooth' 'bump' are not yet available #MaterialTextureLayoutDetail
+          smooth_ok=loadImages(smooth, &smooth_resize, material.detail_smooth, false, false, GREY                , &color, &color_resize, null   , null          , null , null        ), // load before 'bump'  , here         'smooth' 'bump' are not yet available #MaterialTextureLayoutDetail
+            bump_ok=loadImages(  bump, &  bump_resize, material.detail_bump  , false, false, GREY                , &color, &color_resize, &smooth, &smooth_resize, null , null        ), // load before 'normal', here                  'bump' is  not yet available #MaterialTextureLayoutDetail
           normal_ok=loadImages(normal, &normal_resize, material.detail_normal, false, false, Color(128, 128, 255), &color, &color_resize, &smooth, &smooth_resize, &bump, &bump_resize);
 
       // process resize

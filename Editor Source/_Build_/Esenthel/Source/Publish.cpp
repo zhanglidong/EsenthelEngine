@@ -473,10 +473,9 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                   {
                      Vec4 avg; if(mtrl->base_2 && mtrl->base_2->stats(null, null, &avg))
                      {
-                        flt avg_smooth=avg.y, avg_metal=avg.x; // #MaterialTextureLayout
-                        temp.smooth *=avg_smooth;
-                      //temp.reflect*=avg_reflect;
-                        temp.reflect(avg_metal*temp.reflect_mul+temp.reflect_add);
+                        flt avg_rough=avg.y, avg_metal=avg.x; // #MaterialTextureLayout
+                        temp.rough_add=avg_rough*temp.  rough_mul+temp.  rough_add ; temp.rough_mul=0; // !! clear 'rough_mul' after calculating 'rough_add' !!
+                        temp.reflect  (avg_metal*temp.reflect_mul+temp.reflect_add);
                      }
                   }
                   if(data->usesTexGlow())temp.glow=0; // disable glow if there was a glow map, because now it's removed

@@ -400,7 +400,7 @@ struct MaterialClass // this is used when a MeshPart has only one material
 {
    VecH4 color; // !! color must be listed first because ShaderParam handle for setting 'Material.color' is set from the entire Material object pointer !!
    VecH  emissive;
-   Half  smooth,
+   Half    rough_mul,   rough_add,
          reflect_mul, reflect_add,
          glow,
          normal,
@@ -416,7 +416,7 @@ BUFFER_END
 struct MultiMaterialClass // this is used when a MeshPart has multiple materials
 {
    VecH4 color;
-   VecH  refl_smth_glow_mul, refl_smth_glow_add;
+   VecH  refl_rogh_glow_mul, refl_rogh_glow_add;
    Half  normal, bump, det_mul, det_add, det_inv, macro;
    Flt   uv_scale, det_scale;
 };
@@ -439,17 +439,10 @@ Image     Ext, Ext1, Ext2, Ext3,
           Lum;
 
 // #MaterialTextureLayout
-#define   BUMP_IMAGE   Ext
-#define SMOOTH_CHANNEL y
-#define  METAL_CHANNEL x
-#define   BUMP_CHANNEL z
-#define   GLOW_CHANNEL w
-#define  ALPHA_CHANNEL w
+#define BUMP_IMAGE Ext
 
 // #MaterialTextureLayoutDetail
-#define DETAIL_NORMAL_CHANNEL xy
-#define DETAIL_SMOOTH_CHANNEL z
-#define DETAIL_COLOR_CHANNEL  w
+#define APPLY_DETAIL_ROUGH(rough, tx_delta) rough+=(TEX_IS_ROUGH ? tx_delta : -tx_delta) // apply texture relative delta onto roughness (this is -tx and not 1-tx because this is relative delta and not absolute value)
 
 Image     Img, Img1, Img2, Img3, Img4, Img5;
 ImageH    ImgX, ImgX1, ImgX2, ImgX3;
@@ -1580,24 +1573,24 @@ Half DepthWeight(Flt delta, Vec2 dw_mad)
 /******************************************************************************/
 // DETAIL
 /******************************************************************************/
-VecH4 GetDetail(Vec2 tex) // XY=nrm.xy -1..1 delta, Z=roughness -1..1 delta, W=color 0..2 scale
+VecH4 GetDetail(Vec2 tex) // XY=nrm.xy -1..1 delta, Z=rough -1..1 delta, W=color 0..2 scale
 {
-   VecH4 det=Tex(Det, tex*Material.det_scale); // XY=nrm.xy, Z=roughness, W=color #MaterialTextureLayoutDetail
+   VecH4 det=Tex(Det, tex*Material.det_scale); // XY=nrm.xy, Z=rough, W=color #MaterialTextureLayoutDetail
 
    /* unoptimized
    det.xyz                 =(det.xyz            -0.5)*2*Material.det_power;
-   det.DETAIL_COLOR_CHANNEL= det.DETAIL_COLOR_CHANNEL*2*Material.det_power+(1-Material.det_power); // Lerp(1, det*2, Material.det_power) = 1*(1-Material.det_power) + det*2*Material.det_power */
+   det.DETAIL_CHANNEL_COLOR= det.DETAIL_CHANNEL_COLOR*2*Material.det_power+(1-Material.det_power); // Lerp(1, det*2, Material.det_power) = 1*(1-Material.det_power) + det*2*Material.det_power */
 
    // optimized TODO: these constants could be precalculated as det_power2=det_power*2; det_power_neg=-det_power; det_power_inv=1-det_power; however that would increase the Material buffer size
    det.xyz                 =det.xyz                 *(Material.det_power*2)+( -Material.det_power);
-   det.DETAIL_COLOR_CHANNEL=det.DETAIL_COLOR_CHANNEL*(Material.det_power*2)+(1-Material.det_power);
+   det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*(Material.det_power*2)+(1-Material.det_power);
 
    return det;
 }
-VecH4 GetDetail0(Vec2 tex) {VecH4 det=Tex(Det , tex*MultiMaterial0.det_scale); det.xyz=det.xyz*MultiMaterial0.det_mul+MultiMaterial0.det_add; det.DETAIL_COLOR_CHANNEL=det.DETAIL_COLOR_CHANNEL*MultiMaterial0.det_mul+MultiMaterial0.det_inv; return det;}
-VecH4 GetDetail1(Vec2 tex) {VecH4 det=Tex(Det1, tex*MultiMaterial1.det_scale); det.xyz=det.xyz*MultiMaterial1.det_mul+MultiMaterial1.det_add; det.DETAIL_COLOR_CHANNEL=det.DETAIL_COLOR_CHANNEL*MultiMaterial1.det_mul+MultiMaterial1.det_inv; return det;}
-VecH4 GetDetail2(Vec2 tex) {VecH4 det=Tex(Det2, tex*MultiMaterial2.det_scale); det.xyz=det.xyz*MultiMaterial2.det_mul+MultiMaterial2.det_add; det.DETAIL_COLOR_CHANNEL=det.DETAIL_COLOR_CHANNEL*MultiMaterial2.det_mul+MultiMaterial2.det_inv; return det;}
-VecH4 GetDetail3(Vec2 tex) {VecH4 det=Tex(Det3, tex*MultiMaterial3.det_scale); det.xyz=det.xyz*MultiMaterial3.det_mul+MultiMaterial3.det_add; det.DETAIL_COLOR_CHANNEL=det.DETAIL_COLOR_CHANNEL*MultiMaterial3.det_mul+MultiMaterial3.det_inv; return det;}
+VecH4 GetDetail0(Vec2 tex) {VecH4 det=Tex(Det , tex*MultiMaterial0.det_scale); det.xyz=det.xyz*MultiMaterial0.det_mul+MultiMaterial0.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial0.det_mul+MultiMaterial0.det_inv; return det;}
+VecH4 GetDetail1(Vec2 tex) {VecH4 det=Tex(Det1, tex*MultiMaterial1.det_scale); det.xyz=det.xyz*MultiMaterial1.det_mul+MultiMaterial1.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial1.det_mul+MultiMaterial1.det_inv; return det;}
+VecH4 GetDetail2(Vec2 tex) {VecH4 det=Tex(Det2, tex*MultiMaterial2.det_scale); det.xyz=det.xyz*MultiMaterial2.det_mul+MultiMaterial2.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial2.det_mul+MultiMaterial2.det_inv; return det;}
+VecH4 GetDetail3(Vec2 tex) {VecH4 det=Tex(Det3, tex*MultiMaterial3.det_scale); det.xyz=det.xyz*MultiMaterial3.det_mul+MultiMaterial3.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial3.det_mul+MultiMaterial3.det_inv; return det;}
 /******************************************************************************/
 // FACE NORMAL HANDLING
 /******************************************************************************/
@@ -1689,37 +1682,37 @@ VecH F_Schlick(VecH f0, Half f90, Half cos) // High Precision not needed
    Half q=Quint(1-cos); // Quint(1-x) = ~exp2(-9.28*x)
    return f90*q + f0*(1-q); // re-ordered because of Vec
 }
-Half Vis_SmithR2Inv(Half roughness2, Half NdotL, Half NdotV) // High Precision not needed, "roughness2=Sqr(roughness)", result is inversed 1/x
+Half Vis_SmithR2Inv(Half rough2, Half NdotL, Half NdotV) // High Precision not needed, "rough2=Sqr(rough)", result is inversed 1/x
 {
 #if 1
-   Half view =NdotV+Sqrt((-NdotV*roughness2+NdotV)*NdotV+roughness2);
-	Half light=NdotL+Sqrt((-NdotL*roughness2+NdotL)*NdotL+roughness2);
+   Half view =NdotV+Sqrt((-NdotV*rough2+NdotV)*NdotV+rough2);
+	Half light=NdotL+Sqrt((-NdotL*rough2+NdotL)*NdotL+rough2);
 	return view*light;
 #else // gives same results but has 2 MUL and 1 ADD, instead of 2 ADD 1 MUL, don't use in case MUL is slower than ADD
    // Warning: "NdotL*" and "NdotV*" are exchanged on purpose
-   Half view =NdotL*Sqrt((-NdotV*roughness2+NdotV)*NdotV+roughness2);
-   Half light=NdotV*Sqrt((-NdotL*roughness2+NdotL)*NdotL+roughness2);
+   Half view =NdotL*Sqrt((-NdotV*rough2+NdotV)*NdotV+rough2);
+   Half light=NdotV*Sqrt((-NdotL*rough2+NdotL)*NdotL+rough2);
    return (view+light)*2;
 #endif
 }
-Half Vis_SmithFastInv(Half roughness, Half NdotL, Half NdotV) // fast approximation of 'Vis_Smith', High Precision not needed, result is inversed 1/x
+Half Vis_SmithFastInv(Half rough, Half NdotL, Half NdotV) // fast approximation of 'Vis_Smith', High Precision not needed, result is inversed 1/x
 {
-	Half view =NdotL*(NdotV*(1-roughness)+roughness);
-	Half light=NdotV*(NdotL*(1-roughness)+roughness);
+	Half view =NdotL*(NdotV*(1-rough)+rough);
+	Half light=NdotV*(NdotL*(1-rough)+rough);
 	return (view+light)*2;
 }
-/*Half D_GGX(Half roughness, Flt NdotH) // Trowbridge-Reitz, High Precision required
+/*Half D_GGX(Half rough, Flt NdotH) // Trowbridge-Reitz, High Precision required
 {
-   Flt roughness2=Sqr(roughness);
-   Flt f=(NdotH*roughness2-NdotH)*NdotH+1;
-   return roughness2/(f*f); // NaN
+   Flt rough2=Sqr(rough);
+   Flt f=(NdotH*rough2-NdotH)*NdotH+1;
+   return rough2/(f*f); // NaN
 }*/
-Half D_GGX_Vis_Smith(Half roughness, Flt NdotH, Half NdotL, Half NdotV, Bool quality) // D_GGX and Vis_Smith combined together
+Half D_GGX_Vis_Smith(Half rough, Flt NdotH, Half NdotL, Half NdotV, Bool quality) // D_GGX and Vis_Smith combined together
 {
-   Half roughness2=Sqr(roughness);
-   Flt  f=(NdotH*roughness2-NdotH)*NdotH+1;
-   Flt  div=f*f*(quality ? Vis_SmithR2Inv(roughness2, NdotL, NdotV) : Vis_SmithFastInv(roughness, NdotL, NdotV));
-   return div ? roughness2/div : HALF_MAX;
+   Half rough2=Sqr(rough);
+   Flt  f=(NdotH*rough2-NdotH)*NdotH+1;
+   Flt  div=f*f*(quality ? Vis_SmithR2Inv(rough2, NdotL, NdotV) : Vis_SmithFastInv(rough, NdotL, NdotV));
+   return div ? rough2/div : HALF_MAX;
 }
 /******************************************************************************
 Popular game engines use only metalness texture, and calculate "Diffuse{return (1-metal)*base_color}" and "ReflectCol{return Lerp(0.04, base_color, metal)}"
@@ -1781,20 +1774,18 @@ struct LightParams
    }
 
    // High Precision not needed for Diffuse
-   Half diffuseOrenNayar(Half smooth) // highlights edges starting from smooth = 1 -> 0
+   Half diffuseOrenNayar(Half rough) // highlights edges starting from smooth = 1 -> 0
    {
-      Half roughness=1-smooth;
-	   Half a=Sqr(roughness), a2=Sqr(a); // it's better to square roughness for 'a' too, because it provides smoother transitions between 0..1
+	   Half a=Sqr(rough), a2=Sqr(a); // it's better to square roughness for 'a' too, because it provides smoother transitions between 0..1
 	   Half s=VdotL - NdotV*NdotL;
 	   Half A=1-0.5*a2/(a2+0.33);
 	   Half B= 0.45*a2/(a2+0.09)*s; if(s>=0)B/=Max(NdotL, NdotV);
 	   return (A+B)*(a*0.5+1);
    }
-   Half diffuseBurley(Half smooth) // aka Disney, highlights edges starting from smooth = 0.5 -> 0 and darkens starting from smooth = 0.5 -> 1.0
+   Half diffuseBurley(Half rough) // aka Disney, highlights edges starting from smooth = 0.5 -> 0 and darkens starting from smooth = 0.5 -> 1.0
    {
-      Half roughness=1-smooth;
-    //Half f90=0.5+(2*VdotH*VdotH)*roughness; 2*VdotH*VdotH=1+VdotL;
-      Half f90=0.5+roughness+roughness*VdotL;
+    //Half f90=0.5+(2*VdotH*VdotH)*rough; 2*VdotH*VdotH=1+VdotL;
+      Half f90=0.5+rough+rough*VdotL;
       Half light_scatter=F_Schlick(1, f90,     NdotL );
       Half  view_scatter=F_Schlick(1, f90, Abs(NdotV));
       return 0.965521237*light_scatter*view_scatter;
@@ -1810,38 +1801,37 @@ struct LightParams
       return Lerp(1.0, min, Sqr(NdotV));
    #endif
    }
-   Half diffuse(Half smooth)
+   Half diffuse(Half rough)
    {
    #if WATER
       return diffuseWater();
    #elif DIFFUSE_MODE==SDIFFUSE_OREN_NAYAR
-      return diffuseOrenNayar(smooth);
+      return diffuseOrenNayar(rough);
    #elif DIFFUSE_MODE==SDIFFUSE_BURLEY
-      return diffuseBurley(smooth);
+      return diffuseBurley(rough);
    #else
       return 1;
    #endif
    }
 
-   VecH specular(Half smooth, Half reflectivity, VecH reflect_col, Bool quality, Half light_radius_frac=0.0036)
+   VecH specular(Half rough, Half reflectivity, VecH reflect_col, Bool quality, Half light_radius_frac=0.0036)
    { // currently specular can be generated even for smooth=0 and reflectivity=0 #SpecularReflectionFromZeroSmoothReflectivity
-      Half roughness=1-smooth;
    #if 0
-      if( Q)roughness=Lerp(Pow(light_radius_frac, E ? 1.0/4 : 1.0/2), Pow(1, E ? 1.0/4 : 1.0/2), roughness);
-      roughness=(E ? Quart(roughness) : Sqr(roughness));
-      if(!Q)roughness=Lerp(light_radius_frac, 1, roughness);
+      if( Q)rough=Lerp(Pow(light_radius_frac, E ? 1.0/4 : 1.0/2), Pow(1, E ? 1.0/4 : 1.0/2), rough);
+      rough=(E ? Quart(rough) : Sqr(rough));
+      if(!Q)rough=Lerp(light_radius_frac, 1, rough);
    #else
-      roughness =Sqr(roughness);
-      roughness+=light_radius_frac*(1-roughness); // roughness=Lerp(light_radius_frac, 1, roughness);
+      rough =Sqr(rough);
+      rough+=light_radius_frac*(1-rough); // rough=Lerp(light_radius_frac, 1, rough);
    #endif
 
       VecH F=F_Schlick(reflect_col, REFLECT_OCCL ? Sat(reflectivity*50) : 1, VdotH);
    #if 0
-      Half D=D_GGX(roughness, NdotH_HP);
-      Half Vis=(quality ? Vis_Smith(roughness, NdotL, Abs(NdotV)) : Vis_SmithFast(roughness, NdotL, Abs(NdotV))); // use "Abs(NdotV)" as it helps greatly with faces away from the camera
+      Half D=D_GGX(rough, NdotH_HP);
+      Half Vis=(quality ? Vis_Smith(rough, NdotL, Abs(NdotV)) : Vis_SmithFast(rough, NdotL, Abs(NdotV))); // use "Abs(NdotV)" as it helps greatly with faces away from the camera
       return F*(D*Vis/PI);
    #else
-      Half D_Vis=D_GGX_Vis_Smith(roughness, NdotH_HP, NdotL, Abs(NdotV), quality); // use "Abs(NdotV)" as it helps greatly with faces away from the camera
+      Half D_Vis=D_GGX_Vis_Smith(rough, NdotH_HP, NdotL, Abs(NdotV), quality); // use "Abs(NdotV)" as it helps greatly with faces away from the camera
       return F*(D_Vis/PI);
    #endif
    }
@@ -1849,20 +1839,20 @@ struct LightParams
 /******************************************************************************/
 // PBR REFLECTION
 /******************************************************************************/
-VecH2 EnvDFGTex(Half smooth, Half NdotV) // uses precomputed texture
+VecH2 EnvDFGTex(Half rough, Half NdotV) // uses precomputed texture
 {
-   return TexLodClamp(EnvDFG, VecH2(smooth, NdotV)).xy;
+   return TexLodClamp(EnvDFG, VecH2(rough, NdotV)).xy;
 }
 /* https://blog.selfshadow.com/publications/s2013-shading-course/lazarov/s2013_pbs_black_ops_2_notes.pdf
 originally developed by Lazarov, modified by Karis */
-VecH2 EnvDFGLazarovKaris(Half smooth, Half NdotV) 
+VecH2 EnvDFGLazarovKaris(Half rough, Half NdotV) 
 {
    const VecH4 m={-1, -0.0275, -0.572,  0.022},
                a={ 1,  0.0425,  1.04 , -0.04 };
-#if 0
-   VecH4 r=roughness*m+a;
+#if 1
+   VecH4 r=rough*m+a;
 #else
-   // roughness=1-smooth
+   // rough=1-smooth
    VecH4 r=smooth*(-m)+(a+m);
 #endif
    Half mul=Min(r.x*r.x, Quint(1-NdotV))*r.x + r.y;
@@ -1871,16 +1861,16 @@ VecH2 EnvDFGLazarovKaris(Half smooth, Half NdotV)
 /*
 http://miciwan.com/SIGGRAPH2015/course_notes_wip.pdf
 NO because has overshots in low reflectivity
-VecH2 EnvDFGIwanicki(Half roughness, Half NdotV)
+VecH2 EnvDFGIwanicki(Half rough, Half NdotV)
 {
-   Half bias=exp2(-(7*NdotV+4*roughness));
-   Half scale=1-bias-roughness*Max(bias, Min(Sqrt(roughness), 0.739 + 0.323*NdotV)-0.434);
+   Half bias=exp2(-(7*NdotV+4*rough));
+   Half scale=1-bias-rough*Max(bias, Min(Sqrt(rough), 0.739 + 0.323*NdotV)-0.434);
    return VecH2(scale, bias);
 }
 
 https://knarkowicz.wordpress.com/2014/12/27/analytical-dfg-term-for-ibl/
 NO because for low reflect and high smooth, 'EnvDFGLazarovKaris' looks better
-VecH2 EnvDFGLazarovNarkowicz(Half smooth, Half NdotV)
+VecH2 EnvDFGLazarovNarkowiczSmooth(Half smooth, Half NdotV)
 {
    smooth=Sqr(smooth);
    VecH4 p0 = VecH4( 0.5745, 1.548, -0.02397, 1.301 );
@@ -1897,7 +1887,7 @@ VecH2 EnvDFGLazarovNarkowicz(Half smooth, Half NdotV)
 
 https://knarkowicz.wordpress.com/2014/12/27/analytical-dfg-term-for-ibl/
 NO because for low reflect, and high smooth it looks the same for long smooth range
-VecH2 EnvDFGNarkowicz(Half smooth, Half NdotV)
+VecH2 EnvDFGNarkowiczSmooth(Half smooth, Half NdotV)
 {
    smooth=Sqr(smooth);
 
@@ -1924,14 +1914,14 @@ VecH2 EnvDFGNarkowicz(Half smooth, Half NdotV)
  
    return VecH2(scale, bias);
 }*/
-VecH ReflectEnv(Half smooth, Half reflectivity, VecH reflect_col, Half NdotV, Bool quality)
+VecH ReflectEnv(Half rough, Half reflectivity, VecH reflect_col, Half NdotV, Bool quality)
 {
    // currently reflection can be generated even for smooth=0 and reflectivity=0 #SpecularReflectionFromZeroSmoothReflectivity
    VecH2 mad;
- //smooth=  Sqr(  smooth); // don't do because it decreases highlights too much
- //smooth=1-Sqr(1-smooth); // don't do because it increases highlights too much
-   if(quality)mad=EnvDFGTex         (smooth, NdotV);
-   else       mad=EnvDFGLazarovKaris(smooth, NdotV);
+ //rough=  Sqr(  rough); // don't do because it decreases highlights too much
+ //rough=1-Sqr(1-rough); // don't do because it increases highlights too much
+   if(quality)mad=EnvDFGTex         (rough, NdotV);
+   else       mad=EnvDFGLazarovKaris(rough, NdotV);
 
    // energy compensation, increase reflectivity if it's close to 1 to account for multi-bounce https://google.github.io/filament/Filament.html#materialsystem/improvingthebrdfs/energylossinspecularreflectance
 #if 1 // Esenthel version
@@ -1945,12 +1935,11 @@ Vec ReflectDir(Vec eye_dir, Vec nrm) // High Precision needed for high resolutio
 {
    return Transform3(reflect(eye_dir, nrm), CamMatrix);
 }
-VecH ReflectTex(Vec reflect_dir, Half smooth)
+VecH ReflectTex(Vec reflect_dir, Half rough)
 {
-   Half roughness=1-smooth;
-   return TexCubeLodI(Env, reflect_dir, roughness*EnvMipMaps).rgb;
+   return TexCubeLodI(Env, reflect_dir, rough*EnvMipMaps).rgb;
 }
-VecH PBR(VecH unlit_col, VecH lit_col, Vec nrm, Half smooth, Half reflectivity, Vec eye_dir, VecH spec)
+VecH PBR(VecH unlit_col, VecH lit_col, Vec nrm, Half rough, Half reflectivity, Vec eye_dir, VecH spec)
 {
    Half NdotV      =-Dot(nrm, eye_dir);
    Vec  reflect_dir=ReflectDir       (eye_dir, nrm);
@@ -1958,7 +1947,7 @@ VecH PBR(VecH unlit_col, VecH lit_col, Vec nrm, Half smooth, Half reflectivity, 
    VecH reflect_col=ReflectCol       (reflectivity, unlit_col, inv_metal);
    return lit_col*Diffuse(inv_metal)
          +spec
-         +ReflectTex(reflect_dir, smooth)*EnvColor*ReflectEnv(smooth, reflectivity, reflect_col, NdotV, true);
+         +ReflectTex(reflect_dir, rough)*EnvColor*ReflectEnv(rough, reflectivity, reflect_col, NdotV, true);
 }
 /******************************************************************************/
 // SHADOWS
@@ -2071,7 +2060,7 @@ struct DeferredSolidOutput // use this structure in Pixel Shader for setting the
    // #RTOutput
    VecH4 out0:TARGET0; // Col, Glow
    VecH4 out1:TARGET1; // Nrm XYZ, Translucent
-   VecH2 out2:TARGET2; // Smooth, Reflect
+   VecH2 out2:TARGET2; // Rough, Reflect
    VecH2 out3:TARGET3; // Velocity (TEXCOORD delta)
 
    // set components
@@ -2087,7 +2076,7 @@ struct DeferredSolidOutput // use this structure in Pixel Shader for setting the
    }
    void translucent(Half translucent) {out1.w=translucent;}
 
-   void smooth (Half smooth ) {out2.x=smooth ;}
+   void rough  (Half rough  ) {out2.x=rough  ;}
    void reflect(Half reflect) {out2.y=reflect;}
 
    void velocity    (Vec projected_prev_pos_xyw, Vec4 pixel) {out3.xy=GetVelocityPixel(projected_prev_pos_xyw, pixel);}

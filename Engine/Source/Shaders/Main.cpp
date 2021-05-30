@@ -91,7 +91,7 @@ VecH4 DrawTexNrm_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 }
 VecH4 DrawTexDetNrm_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
-   VecH nrm; nrm.xy=Tex(Img, inTex).DETAIL_NORMAL_CHANNEL*2-1; // #MaterialTextureLayoutDetail
+   VecH nrm; nrm.xy=Tex(Img, inTex).DETAIL_CHANNEL_NORMAL*2-1; // #MaterialTextureLayoutDetail
              nrm.z =CalcZ(nrm.xy);
              nrm   =Normalize(nrm)*0.5+0.5;
           #if LINEAR_GAMMA
@@ -474,7 +474,7 @@ void ClearDeferred_PS(NOPERSP Vec2 inTex                 :TEXCOORD,
    output.glow       (0);
    output.normal     (VecH(0, 0, -1)); // set -1 because of AO #NRM_CLEAR
    output.translucent(0);
-   output.smooth     (0);
+   output.rough      (1);
    output.reflect    (0);
    output.velocityUV (projected_prev_pos_xyw, inTex);
 }

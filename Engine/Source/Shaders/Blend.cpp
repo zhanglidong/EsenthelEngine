@@ -128,21 +128,21 @@ VecH4 PS
    out Half outAlpha:TARGET2 // #RTOutput.Blend
 ):TARGET
 {
-   Half smooth, reflect;
+   Half rough, reflect;
 
    // #MaterialTextureLayout
 #if LAYOUT==0
-   smooth =Material.smooth;
+   rough  =Material.  rough_add;
    reflect=Material.reflect_add;
 #elif LAYOUT==1
    I.color*=Tex(Col, I.tex);
-   smooth =Material.smooth;
+   rough  =Material.  rough_add;
    reflect=Material.reflect_add;
 #elif LAYOUT==2
     I.color*=Tex(Col, I.tex);
    VecH2 ext=Tex(Ext, I.tex).xy;
-   smooth =ext.SMOOTH_CHANNEL*Material.smooth;
-   reflect=ext. METAL_CHANNEL*Material.reflect_mul+Material.reflect_add;
+   rough  =Sat(ext.BASE_CHANNEL_ROUGH*Material.  rough_mul+Material.  rough_add); // need to saturate to avoid invalid values
+   reflect=    ext.BASE_CHANNEL_METAL*Material.reflect_mul+Material.reflect_add ;
 #endif
 
    // normal
@@ -185,7 +185,7 @@ VecH4 PS
    #else
       Vec reflect_dir=ReflectDir(eye_dir, nrm);
    #endif
-   I.color.rgb+=ReflectTex(reflect_dir, smooth)*EnvColor*ReflectEnv(smooth, reflect, reflect_col, -Dot(nrm, eye_dir), false);
+   I.color.rgb+=ReflectTex(reflect_dir, rough)*EnvColor*ReflectEnv(rough, reflect, reflect_col, -Dot(nrm, eye_dir), false);
 #endif
 
 #if LIGHT_MAP

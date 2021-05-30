@@ -6,7 +6,7 @@ namespace EE{
 #define  VEL_CLEAR Vec4(0.5f, 0.5f, 0.5f, 0)
 #define SNRM_CLEAR Vec4(0   , 0   ,   -1, 0) // normally Z should be set to 0   to set 'VecZero' normals, however Z is set to -1 makes ambient occlusion more precise when it uses normals (because ambient occlusion will not work good on the VecZero normals) #NRM_CLEAR
 #define  NRM_CLEAR Vec4(0.5f, 0.5f,    0, 0) // normally Z should be set to 0.5 to set 'VecZero' normals, however Z is set to  0 makes ambient occlusion more precise when it uses normals (because ambient occlusion will not work good on the VecZero normals) #NRM_CLEAR
-#define  EXT_CLEAR Vec4(0   , 0   ,    0, 0)
+#define  EXT_CLEAR Vec4(1   , 0   ,    0, 0) // rough, reflect
 #define  NRM_CLEAR_START 1 // 1 works faster on GeForce 650m GT, TODO: check on newer hardware
 #define  EXT_CLEAR_START 0 // TODO: which is better?
 #define  VEL_CLEAR_START 0 // this is not needed because "ClearDeferred" is used later, performance tests suggested it's better don't clear unless necessary, instead 'Image.discard' is used and improves performance (at least on Mobile), TODO: check on newer hardware

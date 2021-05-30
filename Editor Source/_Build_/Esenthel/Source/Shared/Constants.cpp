@@ -308,7 +308,7 @@ ListColumn NameDescListColumn[1]= // !! need to define array size because this w
       // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !! #MaterialTextureLayout
       bool color_ok=proj.loadImages( color, & color_resize, material.  color_map, true , false),
            alpha_ok=proj.loadImages( alpha, & alpha_resize, material.  alpha_map, false, false, WHITE, &color, &color_resize),
-          smooth_ok=proj.loadImages(smooth, &smooth_resize, material. smooth_map, false, false, WHITE, &color, &color_resize),
+          smooth_ok=proj.loadImages(smooth, &smooth_resize, material. smooth_map, false, false, BLACK, &color, &color_resize),
            metal_ok=proj.loadImages( metal, & metal_resize, material.  metal_map, false, false, BLACK, &color, &color_resize, &smooth, &smooth_resize),
             bump_ok=proj.loadImages(  bump, &  bump_resize, material.   bump_map, false, false, GREY , &color, &color_resize, &smooth, &smooth_resize),
           normal_ok=proj.loadImages(normal, &normal_resize, material. normal_map, false, false, Color(128, 128, 255), &color, &color_resize, &smooth, &smooth_resize, &bump, &bump_resize),

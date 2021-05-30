@@ -1,6 +1,6 @@
 /******************************************************************************/
-const uint ProjectVersion     =81, // !! increase this by one if any of engine/editor asset formats have changed !!
-           ClientServerVersion=81; // !! client/server version (client will fail if tries to connect to server compiled with different version), increase this by one if any of engine resource formats have changed or if the network protocol has changed or if editor classes formats have changed !!
+const uint ProjectVersion     =82, // !! increase this by one if any of engine/editor asset formats have changed !!
+           ClientServerVersion=82; // !! client/server version (client will fail if tries to connect to server compiled with different version), increase this by one if any of engine resource formats have changed or if the network protocol has changed or if editor classes formats have changed !!
 const Str  ClientServerString ="Esenthel Editor";
 /******************************************************************************/
 const cchar8       *WorldVerSuffix     ="\\Data",
@@ -555,7 +555,7 @@ class MtrlImages
       // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !! #MaterialTextureLayout
       bool color_ok=proj.loadImages( color, & color_resize, material.  color_map, true , false),
            alpha_ok=proj.loadImages( alpha, & alpha_resize, material.  alpha_map, false, false, WHITE, &color, &color_resize),
-          smooth_ok=proj.loadImages(smooth, &smooth_resize, material. smooth_map, false, false, WHITE, &color, &color_resize),
+          smooth_ok=proj.loadImages(smooth, &smooth_resize, material. smooth_map, false, false, BLACK, &color, &color_resize),
            metal_ok=proj.loadImages( metal, & metal_resize, material.  metal_map, false, false, BLACK, &color, &color_resize, &smooth, &smooth_resize),
             bump_ok=proj.loadImages(  bump, &  bump_resize, material.   bump_map, false, false, GREY , &color, &color_resize, &smooth, &smooth_resize),
           normal_ok=proj.loadImages(normal, &normal_resize, material. normal_map, false, false, Color(128, 128, 255), &color, &color_resize, &smooth, &smooth_resize, &bump, &bump_resize),

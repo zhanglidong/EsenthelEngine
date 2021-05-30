@@ -2,7 +2,7 @@
 struct WaterMtrlParams // Water Material Parameters
 {
    Vec color             ; // color Linear Gamma          , (0,0,0)..(1,1,1), default=(1,1,1)
-   Flt smooth            , // smoothness                  ,       0..1      , default=1
+   Flt rough             , // roughness                   ,       0..1      , default=0
        reflect           , // reflectivity                ,       0..1      , default=0.02
        normal            , // normal map sharpness        ,       0..1      , default=1
        wave_scale        , // vertical wave scale         ,       0..1      , default=0 (0 is the fastest)
@@ -16,8 +16,9 @@ struct WaterMtrlParams // Water Material Parameters
        refract           , // refraction power            ,       0..1      , default=0.10 (0 is the fastest)
        refract_reflection; // refraction of the reflection,       0..1      , default=0.06
 
- C Vec& colorL()C {return color;}   void colorL(C Vec &color_l) {T.color=color_l;} // get/set Linear Gamma color
-   Vec  colorS()C;                  void colorS(C Vec &color_s);                   // get/set sRGB   Gamma color
+ C Vec& colorL()C {return   color;}   void colorL(C Vec &color_l) {T.color= color_l;} // get/set Linear Gamma color
+   Vec  colorS()C;                    void colorS(C Vec &color_s);                    // get/set sRGB   Gamma color
+   Flt  smooth()C {return 1-rough;}   void smooth(  Flt  smooth ) {T.rough=1-smooth;} // get/set smoothness
 };
 struct WaterMtrl : WaterMtrlParams // Water Material
 {

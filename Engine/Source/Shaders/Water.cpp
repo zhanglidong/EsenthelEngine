@@ -163,11 +163,11 @@ void WaterReflectColor(inout VecH total_specular, Vec nrm, Vec eye_dir, Vec2 tex
 {
    #if REFLECT_ENV || REFLECT_MIRROR
    {
-      VecH reflect_power=ReflectEnv(WaterMaterial.smooth, WaterMaterial.reflect, WaterMaterial.reflect, -Dot(nrm, eye_dir), false);
+      VecH reflect_power=ReflectEnv(WaterMaterial.rough, WaterMaterial.reflect, WaterMaterial.reflect, -Dot(nrm, eye_dir), false);
 
    #if REFLECT_ENV
       Vec  reflect_dir=ReflectDir(eye_dir, nrm); if(1)reflect_dir.y=Max(0, reflect_dir.y); // don't go below water level (to skip showing ground)
-      VecH reflect_env=ReflectTex(reflect_dir, WaterMaterial.smooth)*EnvColor;
+      VecH reflect_env=ReflectTex(reflect_dir, WaterMaterial.rough)*EnvColor;
    #endif
    #if REFLECT_MIRROR
       Vec2 reflect_tex=Mid((tex+refract*WaterMaterial.refract_reflection)*WaterReflectMulAdd.xy+WaterReflectMulAdd.zw, WaterClamp.xy, WaterClamp.zw);
@@ -254,8 +254,8 @@ void Surface_PS
       lp.set(nrm, light_dir, eye_dir);
             
       VecH            lum_rgb=LightDir.color.rgb*lum;
-      total_lum     +=lum_rgb*lp.diffuseWater(                                                                                               ); // diffuse
-      total_specular+=lum_rgb*lp.specular    (WaterMaterial.smooth, WaterMaterial.reflect, WaterMaterial.reflect, false, LightDir.radius_frac); // specular
+      total_lum     +=lum_rgb*lp.diffuseWater(                                                                                              ); // diffuse
+      total_specular+=lum_rgb*lp.specular    (WaterMaterial.rough, WaterMaterial.reflect, WaterMaterial.reflect, false, LightDir.radius_frac); // specular
    }
    water_col.rgb*=total_lum;
 

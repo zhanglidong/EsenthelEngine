@@ -29,9 +29,10 @@ struct MaterialParams // Material Parameters
 {
    Vec4 color_l    ; // color Linear Gamma (0,0,0,0) .. (1,1,1,1), default=(1,1,1,1)
    Vec  emissive   ; // emissive             (0,0,0) .. (1,1,1)  , default=(0,0,0)
-   Flt  smooth     , // smoothness                 0 .. 1        , default=0
-        reflect_mul, // reflectivity from metal texture          , use 'reflect' function
-        reflect_add, // reflectivity base                        , use 'reflect' function
+   Flt    rough_mul, // roughness    from       texture          , default=0
+          rough_add, // roughness    base                        , default=1
+        reflect_mul, // reflectivity from metal texture          , default=1-MATERIAL_REFLECT, see 'reflect' function
+        reflect_add, // reflectivity base                        , default=  MATERIAL_REFLECT, see 'reflect' function
         glow       , // glow amount                0 .. 1        , default=0
         normal     , // normal map sharpness       0 .. 1        , default=0
         bump       , // bumpiness                  0 .. 0.09     , default=0
@@ -59,7 +60,7 @@ struct Material : MaterialParams // Mesh Rendering Material - contains render pa
 #endif
    ImagePtr            base_0  , // base      texture #0, default=null, this texture contains data packed in following channel order: RGB, Alpha
                        base_1  , // base      texture #1, default=null, this texture contains data packed in following channel order: NormalX, NormalY
-                       base_2  , // base      texture #2, default=null, this texture contains data packed in following channel order: Metal, Smooth, Bump, Glow
+                       base_2  , // base      texture #2, default=null, this texture contains data packed in following channel order: Metal, Rough, Bump, Glow
                      detail_map, // detail    texture   , default=null, this texture contains data packed in following channel order: NormalX, NormalY, Rough, Color
                       macro_map, // macro     texture   , default=null
                       light_map; // light map texture   , default=null
@@ -122,7 +123,7 @@ private:
    struct Multi
    {
       Vec4 color;
-      Vec  refl_smth_glow_mul, refl_smth_glow_add;
+      Vec  refl_rogh_glow_mul, refl_rogh_glow_add;
       Flt  normal, bump, det_mul, det_add, det_inv, macro, // medium prec
            uv_scale, det_scale; // high prec
    }_multi;

@@ -42,9 +42,9 @@ VecH LitCol(VecH4 color, Vec nrm, VecH2 ext, VecH lum, VecH spec, Half ao, VecH 
       if(apply_ao)night_shade_intensity*=ao;
          lit_col+=night_shade_intensity*night_shade_col;
    }
-   Half smooth=ext.x, reflect=ext.y; // #RTOutput
+   Half rough=ext.x, reflect=ext.y; // #RTOutput
 #if REFLECT
-   lit_col=PBR(color.rgb, lit_col, nrm, smooth, reflect, eye_dir, spec);
+   lit_col=PBR(color.rgb, lit_col, nrm, rough, reflect, eye_dir, spec);
 #else
    Half inv_metal=ReflectToInvMetal(reflect);
    lit_col=lit_col*Diffuse(inv_metal) + spec;

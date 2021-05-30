@@ -241,23 +241,23 @@ void PS
 , out Half  outAlpha:TARGET2 // #RTOutput.Blend
 ) // #RTOutput
 {
-   Half smooth, reflect;
+   Half rough, reflect;
 
    // #MaterialTextureLayout
 #if   LAYOUT==0
-   smooth =Material.smooth;
+   rough  =Material.  rough_add;
    reflect=Material.reflect_add;
 #elif LAYOUT==1
    VecH4 tex_col=Tex(Col, I.tex); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
    if(ALPHA)I.col*=tex_col;else I.col.rgb*=tex_col.rgb;
-   smooth =Material.smooth;
+   rough  =Material.  rough_add;
    reflect=Material.reflect_add;
 #elif LAYOUT==2
    VecH4 tex_col=Tex(Col, I.tex); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
    VecH4 tex_ext=Tex(Ext, I.tex);
    if(ALPHA)I.col*=tex_col;else I.col.rgb*=tex_col.rgb;
-   smooth =Sat(tex_ext.SMOOTH_CHANNEL*Material.smooth);
-   reflect=    tex_ext. METAL_CHANNEL*Material.reflect_mul+Material.reflect_add;
+   rough  =Sat(tex_ext.BASE_CHANNEL_ROUGH*Material.  rough_mul+Material.  rough_add); // need to saturate to avoid invalid values
+   reflect=    tex_ext.BASE_CHANNEL_METAL*Material.reflect_mul+Material.reflect_add ;
 #endif
 
    // normal
@@ -344,8 +344,8 @@ void PS
             lp.set(nrm, light_dir, eye_dir);
 
             VecH            lum_rgb=LightDir.color.rgb*lum;
-            total_lum     +=lum_rgb*lp.diffuse (smooth                                                   ); // diffuse
-            total_specular+=lum_rgb*lp.specular(smooth, reflect, reflect_col, false, LightDir.radius_frac); // specular
+            total_lum     +=lum_rgb*lp.diffuse (rough                                                   ); // diffuse
+            total_specular+=lum_rgb*lp.specular(rough, reflect, reflect_col, false, LightDir.radius_frac); // specular
          }
       }
    }
@@ -359,7 +359,7 @@ void PS
    #else
       Vec reflect_dir=ReflectDir(eye_dir, nrm);
    #endif
-      I.col.rgb+=ReflectTex(reflect_dir, smooth)*EnvColor*ReflectEnv(smooth, reflect, reflect_col, -Dot(nrm, eye_dir), false);
+      I.col.rgb+=ReflectTex(reflect_dir, rough)*EnvColor*ReflectEnv(rough, reflect, reflect_col, -Dot(nrm, eye_dir), false);
    }
    #endif
 

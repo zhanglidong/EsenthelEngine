@@ -86,7 +86,7 @@ void Base_PS
    output.glow        (0);
    output.normal      (I.nrm);
    output.translucent (0);
-   output.smooth      (Material.smooth);
+   output.rough       (Material.  rough_add);
    output.reflect     (Material.reflect_add);
 #if USE_VEL
    output.velocity    (I.projected_prev_pos_xyw, pixel);

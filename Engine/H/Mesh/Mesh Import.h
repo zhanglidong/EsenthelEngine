@@ -10,7 +10,7 @@ struct XMaterial // Material stored in external formats
    MATERIAL_TECHNIQUE technique; // material technique
    Vec4               color    ; // color          (0,0,0,0) .. (1,1,1,1), default=(1,1,1,1)
    Vec                emissive ; // emissive         (0,0,0) .. (1,1,1)  , default=(0,0,0)
-   Flt                smooth   , // smoothness             0 .. 1        , default=0
+   Flt                rough    , // roughness              0 .. 1        , default=1
                       reflect  , // reflectivity           0 .. 1        , default=MATERIAL_REFLECT
                       glow     , // glow amount            0 .. 1        , default=0
                       normal   , // normal map sharpness   0 .. 1        , default=1

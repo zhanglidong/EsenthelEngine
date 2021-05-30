@@ -87,7 +87,7 @@ VecH LightDir_PS
 
    // ext+col
 #if WATER
-   VecH2 ext      ={WaterMaterial.smooth, WaterMaterial.reflect}; // #RTOutput Water doesn't have Ext Texture #WaterExt
+   VecH2 ext      ={WaterMaterial.rough, WaterMaterial.reflect}; // #RTOutput Water doesn't have Ext Texture #WaterExt
    Half  unlit_col= WaterMaterial.reflect; // this is used for calculation of final reflectivity, just copy from water reflectivity #WaterExt
 #elif MULTI_SAMPLE
    VecH2 ext      =GetExtMS (pixel.xy, index);
@@ -162,7 +162,7 @@ VecH LightPoint_PS
 
    // ext+col
 #if WATER
-   VecH2 ext      ={WaterMaterial.smooth, WaterMaterial.reflect}; // #RTOutput Water doesn't have Ext Texture #WaterExt
+   VecH2 ext      ={WaterMaterial.rough, WaterMaterial.reflect}; // #RTOutput Water doesn't have Ext Texture #WaterExt
    Half  unlit_col= WaterMaterial.reflect; // this is used for calculation of final reflectivity, just copy from water reflectivity #WaterExt
 #elif MULTI_SAMPLE
    VecH2 ext      =GetExtMS (pixel.xy, index);
@@ -237,7 +237,7 @@ VecH LightLinear_PS
 
    // ext+col
 #if WATER
-   VecH2 ext      ={WaterMaterial.smooth, WaterMaterial.reflect}; // #RTOutput Water doesn't have Ext Texture #WaterExt
+   VecH2 ext      ={WaterMaterial.rough, WaterMaterial.reflect}; // #RTOutput Water doesn't have Ext Texture #WaterExt
    Half  unlit_col= WaterMaterial.reflect; // this is used for calculation of final reflectivity, just copy from water reflectivity #WaterExt
 #elif MULTI_SAMPLE
    VecH2 ext      =GetExtMS (pixel.xy, index);
@@ -323,7 +323,7 @@ VecH LightCone_PS
 
    // ext+col
 #if WATER
-   VecH2 ext      ={WaterMaterial.smooth, WaterMaterial.reflect}; // #RTOutput Water doesn't have Ext Texture #WaterExt
+   VecH2 ext      ={WaterMaterial.rough, WaterMaterial.reflect}; // #RTOutput Water doesn't have Ext Texture #WaterExt
    Half  unlit_col= WaterMaterial.reflect; // this is used for calculation of final reflectivity, just copy from water reflectivity #WaterExt
 #elif MULTI_SAMPLE
    VecH2 ext      =GetExtMS (pixel.xy, index);

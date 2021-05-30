@@ -3,7 +3,7 @@
 struct WaterMaterialClass
 {
    VecH color;
-   Half smooth,
+   Half rough,
         reflect,
         normal,
         wave_scale;

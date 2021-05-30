@@ -24,7 +24,7 @@ WaterMtrl::WaterMtrl()
    colorUnderwater0S(Vec(0.26f, 0.35f, 0.42f));
    colorUnderwater1S(Vec(0.10f, 0.20f, 0.30f));
 
-   smooth            =1;
+   rough             =0;
    reflect           =0.02f;
    normal            =1;
    wave_scale        =0;
@@ -68,7 +68,7 @@ void WaterMtrl::set()C
 /******************************************************************************/
 Bool WaterMtrl::save(File &f, CChar *path)C
 {
-   f.cmpUIntV(1); // version
+   f.cmpUIntV(2); // version
 
    f<<SCAST(C WaterMtrlParams, T)
     <<color_underwater0
@@ -87,10 +87,23 @@ Bool WaterMtrl::load(File &f, CChar *path)
    Char temp[MAX_LONG_PATH];
    switch(f.decUIntV()) // version
    {
-      case 1:
+      case 2:
       {
          f>>SCAST(WaterMtrlParams, T)
           >>color_underwater0
+          >>color_underwater1
+          >>refract_underwater;
+         f.getStr(temp);  _color_map.require(temp, path);
+         f.getStr(temp); _normal_map.require(temp, path);
+         f.getStr(temp);   _bump_map.require(temp, path);
+         if(f.ok())return true;
+      }break;
+
+      case 1:
+      {
+         Flt smooth;
+         f>>color>>smooth>>reflect>>normal>>wave_scale>>scale_color>>scale_normal>>scale_bump>>density>>density_add>>refract>>refract_reflection; T.smooth(smooth);
+         f>>color_underwater0
           >>color_underwater1
           >>refract_underwater;
          f.getStr(temp);  _color_map.require(temp, path);

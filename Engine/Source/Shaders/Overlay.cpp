@@ -69,13 +69,13 @@ out VecH4   outExt   :TARGET2
    col  *=Material.color;
    col.a*=Sat(inTex.z)*OverlayAlpha();
 
-   Half smooth, reflect;
+   Half rough, reflect;
 #if LAYOUT==2 // #MaterialTextureLayout
    VecH2 ext=Tex(Ext, inTex.xy).xy;
-   smooth =ext.SMOOTH_CHANNEL*Material.smooth;
-   reflect=ext. METAL_CHANNEL*Material.reflect_mul+Material.reflect_add;
+   rough  =Sat(ext.BASE_CHANNEL_ROUGH*Material.  rough_mul+Material.  rough_add); // need to saturate to avoid invalid values. Even though we store values in 0..1 RT, we use alpha blending which may produce different results if values are outside 0..1
+   reflect=    ext.BASE_CHANNEL_METAL*Material.reflect_mul+Material.reflect_add ;
 #else
-   smooth =Material.smooth;
+   rough  =Material.  rough_add;
    reflect=Material.reflect_add;
 #endif
 
@@ -83,13 +83,13 @@ out VecH4   outExt   :TARGET2
 #if NORMALS
    #if 0
                   nrm.xy =Tex(Nrm, inTex.xy).xy*Material.normal; // #MaterialTextureLayout
-      //if(DETAIL)nrm.xy+=det.DETAIL_NORMAL_CHANNEL; // #MaterialTextureLayoutDetail
+      //if(DETAIL)nrm.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
                   nrm.z  =CalcZ(nrm.xy);
    #else
                   nrm.xy =Tex(Nrm, inTex.xy).xy; // #MaterialTextureLayout
                   nrm.z  =CalcZ(nrm.xy);
                   nrm.xy*=Material.normal;
-      //if(DETAIL)nrm.xy+=det.DETAIL_NORMAL_CHANNEL; // #MaterialTextureLayoutDetail
+      //if(DETAIL)nrm.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
    #endif
                   nrm    =Normalize(Transform(nrm, inMatrix));
 #else
@@ -105,7 +105,7 @@ out VecH4   outExt   :TARGET2
    outNrm.w=col.a; // alpha needed because of blending
 
    // Ext
-   outExt.x=smooth;
+   outExt.x=rough;
    outExt.y=reflect;
    outExt.z=0;
    outExt.w=col.a; // alpha needed because of blending

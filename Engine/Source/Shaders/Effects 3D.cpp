@@ -176,7 +176,7 @@ void Laser_PS(Vec                 inPos:TEXCOORD0,
 #endif
    output.normal      (0);
    output.translucent (0);
-   output.smooth      (0);
+   output.rough       (1);
    output.reflect     (0);
    output.velocityZero( );
 }
@@ -246,13 +246,13 @@ VecH4 Decal_PS(PIXEL,
       VecH nrm;
          #if 0
             nrm.xy =Tex(Nrm, pos.xy).xy*Material.normal; // #MaterialTextureLayout
-//if(DETAIL)nrm.xy+=det.DETAIL_NORMAL_CHANNEL; // #MaterialTextureLayoutDetail
+//if(DETAIL)nrm.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
             nrm.z  =CalcZ(nrm.xy);
          #else
             nrm.xy =Tex(Nrm, pos.xy).xy; // #MaterialTextureLayout
             nrm.z  =CalcZ(nrm.xy);
             nrm.xy*=Material.normal;
-//if(DETAIL)nrm.xy+=det.DETAIL_NORMAL_CHANNEL; // #MaterialTextureLayoutDetail
+//if(DETAIL)nrm.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
          #endif
             nrm=Normalize(Transform(nrm, inMatrixN));
 

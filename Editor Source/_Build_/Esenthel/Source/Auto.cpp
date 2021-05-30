@@ -8,7 +8,7 @@
 /******************************************************************************/
 #define    STEAM   0 // if Application properties have Steam enabled
 #define    OPEN_VR 0 // if Application properties have OpenVR enabled
-const bool EE_PUBLISH          =true; // this is set to true when compiling for publishing
+const bool EE_PUBLISH          =false; // this is set to true when compiling for publishing
 const bool EE_ENGINE_EMBED     =(true && !WINDOWS_NEW && !MOBILE && !WEB); // this is set to true when "Embed Engine Data" was enabled in application settings, this is always disabled for WindowsNew, Mobile and Web builds
 const bool EE_ANDROID_EXPANSION=false; // this is set to true when auto-download of Android Expansion Files is enabled
 cchar *C   EE_ENGINE_PATH      =((WINDOWS_NEW || MOBILE || WEB) ? u"Engine.pak"  : EE_PUBLISH ? u"Bin/Engine.pak"  : u"C:/Esenthel/Editor/Bin/Engine.pak");
