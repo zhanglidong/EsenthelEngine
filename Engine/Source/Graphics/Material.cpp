@@ -28,7 +28,7 @@ namespace EE{
       Rock, Bark       0.039
       Glass            0.04
       Plastic          0.04 .. 0.05
-      Fabric	        0.04 .. 0.056
+      Fabric           0.04 .. 0.056
       Sand             0.046
       Hair             0.047
       Asphalt          0.06
@@ -800,7 +800,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
    UInt  ret=0;
    Image dest_0, dest_1, dest_2;
    {
-      Image  color_temp; C Image * color_src=& color.image; if( color_src->compressed())if( color_src->copyTry( color_temp, -1, -1, -1,  color_src->typeInfo().a    ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) color_src=& color_temp;else goto error;
+      Image  color_temp; C Image * color_src=& color.image; if( color_src->compressed())if( color_src->copyTry( color_temp, -1, -1, -1,  color_src->typeInfo().a    ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) color_src=& color_temp;else goto error; // keep alpha because we might use it for alpha and IC_ALPHA_WEIGHT
       Image  alpha_temp; C Image * alpha_src=& alpha.image; if( alpha_src->compressed())if( alpha_src->copyTry( alpha_temp, -1, -1, -1,  alpha_src->typeInfo().a    ? IMAGE_L8A8          : IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) alpha_src=& alpha_temp;else goto error;
       Image   bump_temp; C Image *  bump_src=&  bump.image; if(  bump_src->compressed())if(  bump_src->copyTry(  bump_temp, -1, -1, -1,   bump_src->highPrecision() ? IMAGE_F32           : IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))  bump_src=&  bump_temp;else goto error; // use high precision because we might use it to create normal map or stretch
       Image normal_temp; C Image *normal_src=&normal.image; if(normal_src->compressed())if(normal_src->copyTry(normal_temp, -1, -1, -1, normal_src->highPrecision() ? IMAGE_F32_2         : IMAGE_R8G8       , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))normal_src=&normal_temp;else goto error; // use high precision because we still do math operations so higher precision could be useful
@@ -1124,7 +1124,7 @@ UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Imag
    UInt  ret=0;
    Image dest_0, dest_1, dest_2;
    {
-      Image  color_temp; C Image * color_src=& color.image; if( color_src->compressed())if( color_src->copyTry( color_temp, -1, -1, -1,  color_src->typeInfo().a    ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) color_src=& color_temp;else goto error;
+      Image  color_temp; C Image * color_src=& color.image; if( color_src->compressed())if( color_src->copyTry( color_temp, -1, -1, -1,  color_src->typeInfo().a    ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) color_src=& color_temp;else goto error; // keep alpha because we might use it for alpha and IC_ALPHA_WEIGHT
     //Image  alpha_temp; C Image * alpha_src=& alpha.image; if( alpha_src->compressed())if( alpha_src->copyTry( alpha_temp, -1, -1, -1,  alpha_src->typeInfo().a    ? IMAGE_L8A8          : IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) alpha_src=& alpha_temp;else goto error;
       Image   bump_temp; C Image *  bump_src=&  bump.image; if(  bump_src->compressed())if(  bump_src->copyTry(  bump_temp, -1, -1, -1,   bump_src->highPrecision() ? IMAGE_F32           : IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))  bump_src=&  bump_temp;else goto error; // use high precision because we still do math operations so higher precision could be useful
       Image normal_temp; C Image *normal_src=&normal.image; if(normal_src->compressed())if(normal_src->copyTry(normal_temp, -1, -1, -1, normal_src->highPrecision() ? IMAGE_F32_2         : IMAGE_R8G8       , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))normal_src=&normal_temp;else goto error; // use high precision because we still do math operations so higher precision could be useful

@@ -1053,9 +1053,9 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
    }
    void toGui()
    {
+      setSmoothRange(); // call this first, in case it affects 'toGui'
       REPAO(props).toGui();
       REPAO(texs ).toGui();
-      setSmoothRange();
    }
            void flush(C UID &elm_id) {if(T.elm_id==elm_id)flush();}
    virtual void flush()
