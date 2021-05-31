@@ -499,8 +499,8 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
             Texture *t0; if(        t0=GetTexture(publish_texs,        base_0_tex)){t0->sRGB(true); t0->downSize(downsize); MAX(t0->quality, MinMtrlTexQualityBase0 ); MAX(t0->quality, data->tex_quality); t0->flags|=flags;}
             Texture *t1; if(        t1=GetTexture(publish_texs,        base_1_tex)){               t1->downSize(downsize); MAX(t1->quality, MinMtrlTexQualityBase1 ); t1->normal();}
             Texture *t2; if(        t2=GetTexture(publish_texs,        base_2_tex)){               t2->downSize(downsize); MAX(t2->quality, MinMtrlTexQualityBase2 );}
-                         if(Texture *t=GetTexture(publish_texs, data->  detail_tex)){               t ->downSize(downsize); MAX(t ->quality, MinMtrlTexQualityDetail); t->usesAlpha();} // Detail uses Alpha for Rough #MaterialTextureLayoutDetail
-                         if(Texture *t=GetTexture(publish_texs, data->   macro_tex)){t ->sRGB(true); t ->downSize(downsize); MAX(t ->quality, MinMtrlTexQualityMacro ); MAX(t ->quality, data->tex_quality);} // doesn't use Alpha, 'GetTexture' needs to be called
+                         if(Texture *t=GetTexture(publish_texs, data->  detail_tex)){               t ->downSize(downsize); MAX(t ->quality, MinMtrlTexQualityDetail); t->usesAlpha();} // Detail uses Alpha for Color #MaterialTextureLayoutDetail
+                         if(Texture *t=GetTexture(publish_texs, data->   macro_tex)){t ->sRGB(true); t ->downSize(downsize); MAX(t ->quality, MinMtrlTexQualityMacro ); MAX(t->quality, data->tex_quality);} // doesn't use Alpha, 'GetTexture' needs to be called
                          if(Texture *t=GetTexture(publish_texs, data->emissive_tex)){t ->sRGB(true); t ->downSize(downsize); MAX(t ->quality, MinMtrlTexQualityLight );} // doesn't use Alpha, 'GetTexture' needs to be called
 
             // check which base textures use Alpha Channel, #MaterialTextureLayout

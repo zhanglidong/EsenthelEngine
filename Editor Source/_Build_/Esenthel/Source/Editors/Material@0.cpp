@@ -257,7 +257,7 @@ MaterialTech mtrl_techs[]=
                case TEX_ALPHA     : if(em.   color_map   .is() || em.alpha_map.is()  )if(base_0  ){VI.shader(ShaderFiles("Main")->get("DrawTexWG"    )); base_0  ->drawFit(rect); tex=true;} break;
                case TEX_BUMP      : if(em.  hasBumpMap      ()                       )if(base_2  ){VI.shader(ShaderFiles("Main")->get("DrawTexZG"    )); base_2  ->drawFit(rect); tex=true;} break;
                case TEX_NORMAL    : if(em.hasNormalMap      ()                       )if(base_1  ){VI.shader(ShaderFiles("Main")->get("DrawTexNrm"   )); base_1  ->drawFit(rect); tex=true;} break;
-               case TEX_SMOOTH    : if(em.  smooth_map   .is()                       )if(base_2  ){VI.shader(ShaderFiles("Main")->get("DrawTexYG"    )); base_2  ->drawFit(rect); tex=true;} break;
+               case TEX_SMOOTH    : if(em.  smooth_map   .is()                       )if(base_2  ){VI.shader(ShaderFiles("Main")->get("DrawTexYIG"   )); base_2  ->drawFit(rect); tex=true;} break; // inverse because it's roughness
                case TEX_METAL     : if(em.   metal_map   .is()                       )if(base_2  ){VI.shader(ShaderFiles("Main")->get("DrawTexXG"    )); base_2  ->drawFit(rect); tex=true;} break;
                case TEX_GLOW      : if(em.    glow_map   .is()                       )if(base_2  ){VI.shader(ShaderFiles("Main")->get("DrawTexWG"    )); base_2  ->drawFit(rect); tex=true;} break;
                case TEX_EMISSIVE  : if(em.emissive_map   .is()                       )if(emissive){                                                      emissive->drawFit(rect); tex=true;} break;
@@ -265,7 +265,7 @@ MaterialTech mtrl_techs[]=
                case TEX_DET_COLOR : if(em.  detail_color .is()                       )if(detail  ){VI.shader(ShaderFiles("Main")->get("DrawTexWG"    )); detail  ->drawFit(rect); tex=true;} break; // #MaterialTextureLayoutDetail
                case TEX_DET_BUMP  : if(em.  detail_bump  .is()                       )if(detail  ){      if(Image *bump=mr->getDetailBump(em.detail_bump))bump    ->drawFit(rect); tex=true;} break; // Detail Bump is not stored in texture
                case TEX_DET_NORMAL: if(em.  detail_normal.is() || em.detail_bump.is())if(detail  ){VI.shader(ShaderFiles("Main")->get("DrawTexDetNrm")); detail  ->drawFit(rect); tex=true;} break;
-               case TEX_DET_SMOOTH: if(em.  detail_smooth.is()                       )if(detail  ){VI.shader(ShaderFiles("Main")->get("DrawTexZG"    )); detail  ->drawFit(rect); tex=true;} break;
+               case TEX_DET_SMOOTH: if(em.  detail_smooth.is()                       )if(detail  ){VI.shader(ShaderFiles("Main")->get("DrawTexZIG"   )); detail  ->drawFit(rect); tex=true;} break; // inverse because it's roughness
              /*case TEX_RFL_L     : if(em. reflection_map.is()                       )if(reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_LEFT   ); tex=true;} break;
                case TEX_RFL_F     : if(em. reflection_map.is()                       )if(reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_FORWARD); tex=true;} break;
                case TEX_RFL_R     : if(em. reflection_map.is()                       )if(reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_RIGHT  ); tex=true;} break;

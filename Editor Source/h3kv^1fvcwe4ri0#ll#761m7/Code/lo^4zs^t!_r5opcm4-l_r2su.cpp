@@ -85,9 +85,9 @@ class ImporterClass
 
                if(detail_path.is()) // #MaterialTextureLayoutDetail
                {
-                  fp=d; fp.params.New().set("channel", "w" );                                        detail_color_map =fp.encode();
-                  fp=d; fp.params.New().set("channel", "z" ); fp.params.New().setName("inverseRGB"); detail_smooth_map=fp.encode();
-                  fp=d; fp.params.New().set("channel", "xy");                                        detail_normal_map=fp.encode();
+                  fp=detail_path; fp.params.New().set("channel", "w" );                                        detail_color_map =fp.encode();
+                  fp=detail_path; fp.params.New().set("channel", "z" ); fp.params.New().setName("inverseRGB"); detail_smooth_map=fp.encode();
+                  fp=detail_path; fp.params.New().set("channel", "xy");                                        detail_normal_map=fp.encode();
                }else
                {
                   detail_color_map .clear();

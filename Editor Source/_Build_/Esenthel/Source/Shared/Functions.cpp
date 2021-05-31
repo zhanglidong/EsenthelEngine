@@ -462,7 +462,7 @@ void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C U
    if(reflect && !(tex&TEXF_METAL ))reflect->del();
    if(glow    && !(tex&TEXF_GLOW  ))glow   ->del();
 }
-void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *color, Image *bump, Image *normal, Image *smooth)
+void ExtractDetailTextures(C Project &proj, C UID &detail_tex, Image *color, Image *bump, Image *normal, Image *smooth)
 { // #MaterialTextureLayoutDetail
    TEX_FLAG tex=TEXF_NONE;
    if(detail_tex.valid())

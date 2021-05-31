@@ -359,34 +359,34 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
                if(edit.   macro_tex.valid())if(Proj.includeTex(edit.   macro_tex))game.   macro_map->save(Proj.texPath(edit.   macro_tex));
                if(edit.emissive_tex.valid())if(Proj.includeTex(edit.emissive_tex))game.emissive_map->save(Proj.texPath(edit.emissive_tex));
 
-               Str b0=MakeFullPath(game.      base_0.name(), FILE_DATA),
-                   b1=MakeFullPath(game.      base_1.name(), FILE_DATA),
-                   b2=MakeFullPath(game.      base_2.name(), FILE_DATA),
-                    d=MakeFullPath(game.  detail_map.name(), FILE_DATA),
-                    m=MakeFullPath(game.   macro_map.name(), FILE_DATA),
-                    e=MakeFullPath(game.emissive_map.name(), FILE_DATA);
-               ImportMtrlImages.binaryInclude(SkipStartPath(b0, ImportSrc), ImportComparePath);
-               ImportMtrlImages.binaryInclude(SkipStartPath(b1, ImportSrc), ImportComparePath);
-               ImportMtrlImages.binaryInclude(SkipStartPath(b2, ImportSrc), ImportComparePath);
-               ImportMtrlImages.binaryInclude(SkipStartPath(d , ImportSrc), ImportComparePath);
-               ImportMtrlImages.binaryInclude(SkipStartPath(m , ImportSrc), ImportComparePath);
-               ImportMtrlImages.binaryInclude(SkipStartPath(e , ImportSrc), ImportComparePath);
+               Str base0_path=MakeFullPath(game.      base_0.name(), FILE_DATA),
+                   base1_path=MakeFullPath(game.      base_1.name(), FILE_DATA),
+                   base2_path=MakeFullPath(game.      base_2.name(), FILE_DATA),
+                  detail_path=MakeFullPath(game.  detail_map.name(), FILE_DATA),
+                   macro_path=MakeFullPath(game.   macro_map.name(), FILE_DATA),
+                emissive_path=MakeFullPath(game.emissive_map.name(), FILE_DATA);
+               ImportMtrlImages.binaryInclude(SkipStartPath(   base0_path, ImportSrc), ImportComparePath);
+               ImportMtrlImages.binaryInclude(SkipStartPath(   base1_path, ImportSrc), ImportComparePath);
+               ImportMtrlImages.binaryInclude(SkipStartPath(   base2_path, ImportSrc), ImportComparePath);
+               ImportMtrlImages.binaryInclude(SkipStartPath(  detail_path, ImportSrc), ImportComparePath);
+               ImportMtrlImages.binaryInclude(SkipStartPath(   macro_path, ImportSrc), ImportComparePath);
+               ImportMtrlImages.binaryInclude(SkipStartPath(emissive_path , ImportSrc), ImportComparePath);
 
                // #MaterialTextureLayout
-               edit.   color_map_time.getUTC(); edit. color_map=b0; //AddTransform(edit.color_map, "channel", "xyz"); don't set because we might need alpha
+               edit.   color_map_time.getUTC(); edit. color_map=base0_path; //AddTransform(edit.color_map, "channel", "xyz"); don't set because we might need alpha
                edit.   alpha_map_time.getUTC(); edit. alpha_map.clear(); // just use from 'color_map'
-               edit.  normal_map_time.getUTC(); edit.normal_map=b1; AddTransform(edit.normal_map, "channel", "xy");
-               edit.    bump_map_time.getUTC(); edit.  bump_map=b2; AddTransform(edit.  bump_map, "channel", "z");
-               edit.    glow_map_time.getUTC(); edit.  glow_map=b2; AddTransform(edit.  glow_map, "channel", "w");
-               edit.  smooth_map_time.getUTC(); edit.smooth_map=b2; AddTransform(edit.smooth_map, "channel", "y");
-               edit.   metal_map_time.getUTC(); edit. metal_map=b2; AddTransform(edit. metal_map, "channel", "x");
+               edit.  normal_map_time.getUTC(); edit.normal_map=base1_path; AddTransform(edit.normal_map, "channel", "xy");
+               edit.    bump_map_time.getUTC(); edit.  bump_map=base2_path; AddTransform(edit.  bump_map, "channel", "z");
+               edit.    glow_map_time.getUTC(); edit.  glow_map=base2_path; AddTransform(edit.  glow_map, "channel", "w");
+               edit.  smooth_map_time.getUTC(); edit.smooth_map=base2_path; AddTransform(edit.smooth_map, "channel", "y"); AddTransform(edit.smooth_map, "inverseRGB");
+               edit.   metal_map_time.getUTC(); edit. metal_map=base2_path; AddTransform(edit. metal_map, "channel", "x");
                // #MaterialTextureLayoutDetail
-               edit.  detail_map_time.getUTC(); edit.  detail_color =d; AddTransform(edit.detail_color , "channel", "w" );
-                                                edit.  detail_smooth=d; AddTransform(edit.detail_smooth, "channel", "z" );
-                                                edit.  detail_normal=d; AddTransform(edit.detail_normal, "channel", "xy");
+               edit.  detail_map_time.getUTC(); edit.  detail_color =detail_path; AddTransform(edit.detail_color , "channel", "w" );
+                                                edit.  detail_smooth=detail_path; AddTransform(edit.detail_smooth, "channel", "z" ); AddTransform(edit.detail_smooth, "inverseRGB");
+                                                edit.  detail_normal=detail_path; AddTransform(edit.detail_normal, "channel", "xy");
                                                 edit.  detail_bump.clear();
-               edit.   macro_map_time.getUTC(); edit.   macro_map   =m;
-               edit.emissive_map_time.getUTC(); edit.emissive_map   =e;
+               edit.   macro_map_time.getUTC(); edit.   macro_map   =macro_path;
+               edit.emissive_map_time.getUTC(); edit.emissive_map   =emissive_path;
 
                // save
                Save(edit, Proj.editPath(elm));

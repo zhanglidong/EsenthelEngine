@@ -141,7 +141,7 @@ void ImageProps(C Image &image, UID *hash, IMAGE_TYPE *best_type=null, uint flag
 void LoadTexture(C Project &proj, C UID &tex_id, Image &image);
 void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *metal, Image *glow);
 void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow);
-void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *color, Image *bump, Image *normal, Image *smooth);
+void ExtractDetailTextures(C Project &proj, C UID &detail_tex, Image *color, Image *bump, Image *normal, Image *smooth);
 UID MergedBaseTexturesID(C UID &base_0, C UID &base_1, C UID &base_2);
 VecI ImageSize(C VecI &src, C VecI2 &custom, bool pow2);
 VecI2 GetSize(C Str &name, C Str &value, C VecI &src);
