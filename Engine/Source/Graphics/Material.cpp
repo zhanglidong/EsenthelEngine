@@ -1115,7 +1115,7 @@ TEX_FLAG ExtractDetailTexture(C Image &detail, Image *color, Image *bump, Image 
    return tex;
 }
 /******************************************************************************/
-TEX_FLAG CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &metal, C ImageSource &glow, Bool resize_to_pow2, Bool flip_normal_y)
+TEX_FLAG CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &metal, C ImageSource &glow, Bool resize_to_pow2, Bool flip_normal_y, Bool smooth_is_rough)
 { // #MaterialTextureLayoutWater
    TEX_FLAG texf=TEXF_NONE;
    Image dest_0, dest_1, dest_2;

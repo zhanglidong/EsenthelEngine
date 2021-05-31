@@ -5,19 +5,13 @@
 /******************************************************************************/
    flt EditMaterial::roughMul()C
    {
-      if(smooth_map.is()) // this means 'smooth' is -1..1
-      {
-         return 1-Min(Abs(smooth), 1);
-      }
-      return 0; // 'smooth' is 0..1
+      if(smooth_map.is())return 1-Min(Abs(smooth), 1); // here 'smooth' is -1..1
+                         return 0                    ; // here 'smooth' is  0..1
    }
    flt EditMaterial::roughAdd()C
    {
-      if(smooth_map.is()) // this means 'smooth' is -1..1
-      {
-         flt rough=-smooth; return Sat(rough);
-      }
-      return Sat(1-smooth); // 'smooth' is 0..1
+      if(smooth_map.is())return Sat( -smooth); // here 'smooth' is -1..1
+                         return Sat(1-smooth); // here 'smooth' is  0..1
    }
    bool     EditMaterial::hasBumpMap()C {return   bump_map.is() /*|| bump_from_color && color_map.is()*/;}
    bool     EditMaterial::hasNormalMap()C {return normal_map.is() || hasBumpMap();}
@@ -133,7 +127,6 @@
       tech=src.technique; tech_time=time;
       color_s=src.color; color_time=time;
       emissive=src.emissive; emissive_time=time;
-      smooth=src.smooth; smooth_time=time;
       reflect_min=src.reflect(); reflect_max=src.reflectMax(); reflect_time=time;
       glow=src.glow; glow_time=time;
       normal=src.normal; normal_time=time;
@@ -141,6 +134,12 @@
        uv_scale=src. uv_scale; uv_scale_time=time;
       det_scale=src.det_scale; detail_time=time;
       det_power=src.det_power; detail_time=time;
+
+      if(src.smooth_map.is()) // here 'smooth' is -1..1
+      { // it's best to calculate from average roughness: flt avg_rough=0.5*src.rough_mul+src.rough_add (0..1), rough_tweak=avg_rough*2-1 (-1..1), smooth_tweak=-rough_tweak;
+            smooth=1-src.rough_mul-src.rough_add*2; // optimized
+      }else smooth=1-src.rough_add; // here 'smooth' is 0..1
+            smooth_time=time;
 
         base_0_tex=src.  base_0_id;
         base_1_tex=src.  base_1_id;
