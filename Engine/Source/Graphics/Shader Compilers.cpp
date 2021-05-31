@@ -4,7 +4,6 @@ namespace EE{
 /******************************************************************************/
 #if WINDOWS
    #define COMPILE_DX       0
-   #define COMPILE_DX_AMD   0 // #ShaderAMD
    #define COMPILE_GL       0
    #define COMPILE_GL_SPIRV 0
 #endif
@@ -58,7 +57,7 @@ Str8 ShaderPosition  (Int skin, Int alpha_test, Int test_blend, Int fx, Int tess
 Str8 ShaderSetColor  (Int skin, Int alpha_test, Int tesselate) {return S8+skin+alpha_test+tesselate;}
 Str8 ShaderTattoo    (Int skin, Int tesselate) {return S8+skin+tesselate;}
 /******************************************************************************/
-#if COMPILE_DX_AMD || COMPILE_DX || COMPILE_GL || COMPILE_GL_SPIRV
+#if COMPILE_DX || COMPILE_GL || COMPILE_GL_SPIRV
 /******************************************************************************/
 static Memx<ShaderCompiler> ShaderCompilers; // use 'Memx' because we store pointers to 'ShaderCompiler'
 /******************************************************************************/
@@ -815,14 +814,11 @@ static void SetShaderHash()
 }
 void MainShaderClass::compile()
 {
-#if COMPILE_DX || COMPILE_DX_AMD || COMPILE_GL || COMPILE_GL_SPIRV
+#if COMPILE_DX || COMPILE_GL || COMPILE_GL_SPIRV
    App.stayAwake(AWAKE_SYSTEM);
 
 #if COMPILE_DX
    Compile(API_DX);
-#endif
-#if COMPILE_DX_AMD
-   Compile(API_DX, SC_AMD);
 #endif
 #if COMPILE_GL
    Compile(API_GL);

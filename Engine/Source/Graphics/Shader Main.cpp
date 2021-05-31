@@ -260,15 +260,13 @@ void MainShaderClass::createSamplers()
    CreateFontSampler       ();
    CreateAnisotropicSampler();
 }
-Bool AMD; // #ShaderAMD !! WHEN REMOVING THEN ALSO REMOVE FROM "Esenthel Builder" !!
 void MainShaderClass::create()
 {
-   AMD=ContainsAll(D.deviceName(), "Radeon", true, WHOLE_WORD_ALPHA); // test only for "Radeon" instead of "AMD Radeon" as there might be some GPU cards without "AMD"
    if(LogInit)LogN("MainShaderClass.create");
    compile();
 
 #if DX11
-   path=(AMD ? "Shader\\4 AMD\\" : "Shader\\4\\");
+   path="Shader\\4\\";
 #elif GL
    path=(D.SpirVAvailable() ? "Shader\\GL SPIR-V\\" : "Shader\\GL\\");
 #else

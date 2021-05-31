@@ -56,7 +56,6 @@ enum SC_FLAG : Byte
 {
    SC_NONE =   0,
    SC_SPIRV=1<<0,
-   SC_AMD  =1<<1, // #ShaderAMD
 };
 SET_ENUM_FLAGS(SC_FLAG);
 

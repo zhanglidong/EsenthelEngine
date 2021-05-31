@@ -1019,12 +1019,6 @@ static Bool CreateEngineEmbedPak(C Str &src, C Str &dest, Bool use_cipher, Bool 
       AddFile(files, *src_pak, src_pak->find("Shader/GL SPIR-V/Main"));
       AddFile(files, *src_pak, src_pak->find("Shader/GL SPIR-V/Position"));
       
-      // #ShaderAMD
-      Add    (files, *src_pak, src_pak->find("Shader/4 AMD"));
-      AddFile(files, *src_pak, src_pak->find("Shader/4 AMD/Early Z"));
-      AddFile(files, *src_pak, src_pak->find("Shader/4 AMD/Main"));
-      AddFile(files, *src_pak, src_pak->find("Shader/4 AMD/Position"));
-
       AddChildren(files, *src_pak, src_pak->find("Gui"));
       FREP(src_pak->rootFiles())AddFile(files, *src_pak, src_pak->file(i)); // add all root files (gui files)
    }
