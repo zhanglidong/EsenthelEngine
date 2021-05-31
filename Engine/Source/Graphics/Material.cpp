@@ -934,7 +934,6 @@ TEX_FLAG CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image
                      REPD(y, dest_2.h())
                      REPD(x, dest_2.w())
                      {
-                        Color c;
                         if(smooth_src->is()){c.BASE_CHANNEL_ROUGH=smooth_src->color(x, y).lum(); if(smooth_is_rough!=TEX_IS_ROUGH)c.BASE_CHANNEL_ROUGH=255-c.BASE_CHANNEL_ROUGH;}
                         if( metal_src->is()) c.BASE_CHANNEL_METAL= metal_src->color(x, y).lum();
                         if(  bump_src->is()) c.BASE_CHANNEL_BUMP =  bump_src->color(x, y).lum();
