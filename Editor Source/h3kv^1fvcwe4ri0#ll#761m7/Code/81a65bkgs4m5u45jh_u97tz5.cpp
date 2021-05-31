@@ -2324,9 +2324,9 @@ class ProjectEx : ProjectHierarchy
 
       if(color_ok || smooth_ok || bump_ok || normal_ok) // proceed only if succeeded with setting anything, this is to avoid clearing existing texture when all failed to load, continue if at least one succeeded, in case the image is different while others will be extracted from old version
       {
-                                ExtractDetailTexture(T, material.detail_tex, color_ok ? null : &color, bump_ok ? null : &bump, normal_ok ? null : &normal, smooth_ok ? null : &smooth);
-         Image  detail; textures=CreateDetailTexture(detail, color, bump, normal, smooth);
-         IMAGE_TYPE ct;                   ImageProps(detail, &material.detail_tex, &ct, MTRL_DETAIL); material.detail_map_time.getUTC(); // in order for 'detail_tex' to sync, 'detail_map_time' time must be changed
+                                ExtractDetailTextures(T, material.detail_tex, color_ok ? null : &color, bump_ok ? null : &bump, normal_ok ? null : &normal, smooth_ok ? null : &smooth);
+         Image  detail; textures=CreateDetailTexture (detail, color, bump, normal, smooth);
+         IMAGE_TYPE ct;                    ImageProps(detail, &material.detail_tex, &ct, MTRL_DETAIL); material.detail_map_time.getUTC(); // in order for 'detail_tex' to sync, 'detail_map_time' time must be changed
          if(detail.is())
          {
             if(includeTex(material.detail_tex))

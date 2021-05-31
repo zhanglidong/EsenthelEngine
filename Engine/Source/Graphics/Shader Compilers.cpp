@@ -122,6 +122,11 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       src.New("DrawTexZG", "Draw2DTex_VS", "DrawTexZG_PS");
       src.New("DrawTexWG", "Draw2DTex_VS", "DrawTexWG_PS");
 
+      src.New("DrawTexXIG", "Draw2DTex_VS", "DrawTexXIG_PS");
+      src.New("DrawTexYIG", "Draw2DTex_VS", "DrawTexYIG_PS");
+      src.New("DrawTexZIG", "Draw2DTex_VS", "DrawTexZIG_PS");
+      src.New("DrawTexWIG", "Draw2DTex_VS", "DrawTexWIG_PS");
+
       src.New("DrawTexXSG" , "Draw2DTex_VS", "DrawTexXSG_PS");
       src.New("DrawTexXYSG", "Draw2DTex_VS", "DrawTexXYSG_PS");
       src.New("DrawTexSG"  , "Draw2DTex_VS", "DrawTexSG_PS");

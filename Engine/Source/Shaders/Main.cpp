@@ -75,6 +75,11 @@ VecH4 DrawTexYG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinea
 VecH4 DrawTexZG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(Tex(Img, inTex).z).xxx, 1);}
 VecH4 DrawTexWG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(Tex(Img, inTex).w).xxx, 1);}
 
+VecH4 DrawTexXIG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(1-Tex(Img, inTex).x).xxx, 1);}
+VecH4 DrawTexYIG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(1-Tex(Img, inTex).y).xxx, 1);}
+VecH4 DrawTexZIG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(1-Tex(Img, inTex).z).xxx, 1);}
+VecH4 DrawTexWIG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(1-Tex(Img, inTex).w).xxx, 1);}
+
 VecH4 DrawTexXSG_PS (NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(Tex(Img, inTex).x *0.5+0.5).xxx, 1);}
 VecH4 DrawTexXYSG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(Tex(Img, inTex).xy*0.5+0.5),  0, 1);}
 VecH4 DrawTexSG_PS  (NOPERSP Vec2 inTex:TEXCOORD):TARGET {return       SRGBToLinear(Tex(Img, inTex)   *0.5+0.5);}

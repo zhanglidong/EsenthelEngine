@@ -172,7 +172,7 @@ struct RendererClass // handles rendering
    void getLumRT     ();
    void getWaterLumRT();
 
-   Bool show      (C ImageRTPtr &image, Bool srgb, Bool sign=false, Int channel=-1);
+   Bool show      (C ImageRTPtr &image, Bool srgb, Bool sign=false, Int channel=-1, Bool inverse=false);
    void setOutline(C Color      &color);
 
    void mode(RENDER_MODE mode);

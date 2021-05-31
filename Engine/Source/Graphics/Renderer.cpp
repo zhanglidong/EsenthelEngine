@@ -633,7 +633,7 @@ RendererClass& RendererClass::operator()(void (&render)())
       {
          case RS_COLOR  : if(_cur_type==RT_DEFERRED && show(_col  , true                  ))goto finished; break; // only on deferred renderer the color is unlit
          case RS_NORMAL : if(                          show(_nrm  , false, D.signedNrmRT()))goto finished; break;
-         case RS_SMOOTH : if(                          show(_ext  , false, false, 0       ))goto finished; break; // #RTOutput
+         case RS_SMOOTH : if(                          show(_ext  , false, false, 0, true ))goto finished; break; // #RTOutput inverse because it's roughness
          case RS_REFLECT: if(                          show(_ext  , false, false, 1       ))goto finished; break; // #RTOutput
          case RS_GLOW   : if(                          show(_col  , false, false, 3       ))goto finished; break; // #RTOutput
          case RS_DEPTH  : if(                          show(_ds_1s, false                 ))goto finished; break; // this may be affected by test blend materials later
@@ -883,7 +883,7 @@ Bool RendererClass::anyForward       ()C {return type()==RT_FORWARD  || Water.re
 Bool RendererClass::lowDepthPrecision()C {return _main_ds.type()==IMAGE_D16;} // this can happen only on Android, and there we do have information about the depth buffer
 Bool RendererClass::ambientInLum     ()C {return D.aoAll() || !Renderer._ao;} // only these cases allow putting ambient inside lum RT's #AmbientInLum
 /******************************************************************************/
-Bool RendererClass::show(C ImageRTPtr &image, Bool srgb, Bool sign, Int channel)
+Bool RendererClass::show(C ImageRTPtr &image, Bool srgb, Bool sign, Int channel, Bool inverse)
 {
    if(image)
    {
@@ -905,16 +905,16 @@ Bool RendererClass::show(C ImageRTPtr &image, Bool srgb, Bool sign, Int channel)
          Shader *shader;
          if(LINEAR_GAMMA && !srgb)switch(channel) // gamma convert
          {
-            case 0: shader=Sh.get("DrawTexXG"); break;
-            case 1: shader=Sh.get("DrawTexYG"); break;
-            case 2: shader=Sh.get("DrawTexZG"); break;
-            case 3: shader=Sh.get("DrawTexWG"); break;
+            case 0: shader=Sh.get(inverse ? "DrawTexXIG" : "DrawTexXG"); break;
+            case 1: shader=Sh.get(inverse ? "DrawTexYIG" : "DrawTexYG"); break;
+            case 2: shader=Sh.get(inverse ? "DrawTexZIG" : "DrawTexZG"); break;
+            case 3: shader=Sh.get(inverse ? "DrawTexWIG" : "DrawTexWG"); break;
          }else switch(channel)
          {
-            case 0: shader=Sh.get("DrawTexX"); break;
-            case 1: shader=Sh.get("DrawTexY"); break;
-            case 2: shader=Sh.get("DrawTexZ"); break;
-            case 3: shader=Sh.get("DrawTexW"); break;
+            case 0: shader=Sh.get(inverse ? "DrawTexXI" : "DrawTexX"); break;
+            case 1: shader=Sh.get(inverse ? "DrawTexYI" : "DrawTexY"); break;
+            case 2: shader=Sh.get(inverse ? "DrawTexZI" : "DrawTexZ"); break;
+            case 3: shader=Sh.get(inverse ? "DrawTexWI" : "DrawTexW"); break;
          }
          VI.shader(shader); image->draw(D.rect());
       }else

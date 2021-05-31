@@ -520,6 +520,10 @@ void MainShaderClass::getTechniques()
  //DrawTexYG    =get("DrawTexYG"); used by Editor
  //DrawTexZG    =get("DrawTexZG"); used by Editor
  //DrawTexWG    =get("DrawTexWG"); used by Editor
+ //DrawTexXIG   =get("DrawTexXIG"); used by Editor
+ //DrawTexYIG   =get("DrawTexYIG"); used by Editor
+ //DrawTexZIG   =get("DrawTexZIG"); used by Editor
+ //DrawTexWIG   =get("DrawTexWIG"); used by Editor
  //DrawTexXSG   =get("DrawTexXSG"); used by Editor
  //DrawTexXYSG  =get("DrawTexXYSG"); used by Editor
  //DrawTexSG    =get("DrawTexSG"); used by Editor

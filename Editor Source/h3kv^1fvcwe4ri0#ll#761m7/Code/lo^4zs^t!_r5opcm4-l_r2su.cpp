@@ -48,26 +48,33 @@ class ImporterClass
 
             if(GetExt(color_map)=="img" || GetExt(normal_map)=="img" || GetExt(smooth_map)=="img" || GetExt(detail_color_map)=="img") // this is 'EE.Material' ("mtrl" format) #MaterialTextureLayout
             {
-               Str b0=color_map, b1=normal_map, b2=smooth_map, d=detail_color_map, e=emissive_map, m;
-               base_0      .load(b0); ImageProps(base_0      , &  base_0_id, null, MTRL_BASE_0  );
-               base_1      .load(b1); ImageProps(base_1      , &  base_1_id, null, MTRL_BASE_1  );
-               base_2      .load(b2); ImageProps(base_2      , &  base_2_id, null, MTRL_BASE_2  );
-               detail      .load(d ); ImageProps(detail      , &  detail_id, null, MTRL_DETAIL  );
-               macro       .load(m ); ImageProps(macro       , &   macro_id, null, MTRL_MACRO   );
-               emissive_img.load(e ); ImageProps(emissive_img, &emissive_id, null, MTRL_EMISSIVE);
+               Str base0_path=color_map, base1_path=normal_map, base2_path=smooth_map, detail_path=detail_color_map, emissive_path=emissive_map, macro_path;
+               base_0      .load(   base0_path); ImageProps(base_0      , &  base_0_id, null, MTRL_BASE_0  );
+               base_1      .load(   base1_path); ImageProps(base_1      , &  base_1_id, null, MTRL_BASE_1  );
+               base_2      .load(   base2_path); ImageProps(base_2      , &  base_2_id, null, MTRL_BASE_2  );
+               detail      .load(  detail_path); ImageProps(detail      , &  detail_id, null, MTRL_DETAIL  );
+               macro       .load(   macro_path); ImageProps(macro       , &   macro_id, null, MTRL_MACRO   );
+               emissive_img.load(emissive_path); ImageProps(emissive_img, &emissive_id, null, MTRL_EMISSIVE);
 
                FileParams fp; 
-               color_map=b0;
+               color_map=base0_path;
                alpha_map.clear();
+               emissive_map=emissive_path;
 
-               fp=b1; if(fp.name.is())fp.getParam("channel").setValue("xy"); normal_map=fp.encode();
-
-               fp=b2; if(fp.name.is())
+               if(base1_path.is())
                {
-                  fp.getParam("channel").setValue("y"); smooth_map=fp.encode();
-                  fp.getParam("channel").setValue("x");  metal_map=fp.encode();
-                  fp.getParam("channel").setValue("z");   bump_map=fp.encode();
-                  fp.getParam("channel").setValue("w");   glow_map=fp.encode();
+                  fp=base1_path; fp.params.New().set("channel", "xy"); normal_map=fp.encode();
+               }else
+               {
+                  normal_map.clear();
+               }
+
+               if(base2_path.is())
+               {
+                  fp=base2_path; fp.params.New().set("channel", "y"); fp.params.New().setName("inverseRGB"); smooth_map=fp.encode();
+                  fp=base2_path; fp.params.New().set("channel", "x");                                         metal_map=fp.encode();
+                  fp=base2_path; fp.params.New().set("channel", "z");                                          bump_map=fp.encode();
+                  fp=base2_path; fp.params.New().set("channel", "w");                                          glow_map=fp.encode();
                }else
                {
                   smooth_map.clear();
@@ -76,11 +83,11 @@ class ImporterClass
                     glow_map.clear();
                }
 
-               fp=d; if(fp.name.is()) // #MaterialTextureLayoutDetail
+               if(detail_path.is()) // #MaterialTextureLayoutDetail
                {
-                  fp.getParam("channel").setValue("w" ); detail_color_map =fp.encode();
-                  fp.getParam("channel").setValue("z" ); detail_smooth_map=fp.encode();
-                  fp.getParam("channel").setValue("xy"); detail_normal_map=fp.encode();
+                  fp=d; fp.params.New().set("channel", "w" );                                        detail_color_map =fp.encode();
+                  fp=d; fp.params.New().set("channel", "z" ); fp.params.New().setName("inverseRGB"); detail_smooth_map=fp.encode();
+                  fp=d; fp.params.New().set("channel", "xy");                                        detail_normal_map=fp.encode();
                }else
                {
                   detail_color_map .clear();
