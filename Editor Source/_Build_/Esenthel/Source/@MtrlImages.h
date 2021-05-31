@@ -54,13 +54,13 @@ public:
    }
    void compact()
    {
-      if(!(tex&BT_COLOR ))color .del();
-      if(!(tex&BT_ALPHA ))alpha .del();
-      if(!(tex&BT_BUMP  ))bump  .del();
-      if(!(tex&BT_NORMAL))normal.del();
-      if(!(tex&BT_SMOOTH))smooth.del();
-      if(!(tex&BT_METAL ))metal .del();
-      if(!(tex&BT_GLOW  ))glow  .del();
+      if(!(tex&TEXF_COLOR ))color .del();
+      if(!(tex&TEXF_ALPHA ))alpha .del();
+      if(!(tex&TEXF_BUMP  ))bump  .del();
+      if(!(tex&TEXF_NORMAL))normal.del();
+      if(!(tex&TEXF_SMOOTH))smooth.del();
+      if(!(tex&TEXF_METAL ))metal .del();
+      if(!(tex&TEXF_GLOW  ))glow  .del();
    }
    void Export(C Str &name, C Str &ext)C
    {
@@ -124,8 +124,8 @@ public:
    }*/
    void fromMaterial(C EditMaterial &material, C Project &proj, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
    void fromMaterial(C EditWaterMtrl &material, C Project &proj, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
-   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2)C;
-   uint createWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2)C;
+   TEX_FLAG createBaseTextures(Image &base_0, Image &base_1, Image &base_2)C;
+   TEX_FLAG createWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2)C;
    void baseTextureSizes(VecI2 *size0, VecI2 *size1, VecI2 *size2);
    void waterBaseTextureSizes(VecI2 *size0, VecI2 *size1, VecI2 *size2);
    /*void processAlpha()

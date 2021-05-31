@@ -170,11 +170,14 @@ Bool HasLeaf(MATERIAL_TECHNIQUE technique)
    }
 }
 /******************************************************************************/
-Vec4 MaterialParams::colorS    (                )C {return        LinearToSRGB(color_l) ;}
-void MaterialParams::colorS    (C Vec4 &color_s )  {return colorL(SRGBToLinear(color_s));}
-void MaterialParams::reflect   (  Flt   reflect )  {reflect_add=reflect; reflect_mul= 1-reflect     ;}
-void MaterialParams::reflect   (Flt min, Flt max)  {reflect_add=    min; reflect_mul=(1-min    )*max;}
-Flt  MaterialParams::reflectMax(                )C {Flt div=(1-reflect_add); return Equal(div, 0) ? 1 : reflect_mul/div;}
+Vec4  MaterialParams::colorS    (                )C {return        LinearToSRGB(color_l) ;}
+void  MaterialParams::colorS    (C Vec4 &color_s )  {return colorL(SRGBToLinear(color_s));}
+void  MaterialParams::reflect   (  Flt   reflect )  {reflect_add=reflect; reflect_mul= 1-reflect     ;}
+void XMaterial      ::reflect   (  Flt   reflect )  {reflect_add=reflect; reflect_mul= 1-reflect     ;}
+void  MaterialParams::reflect   (Flt min, Flt max)  {reflect_add=    min; reflect_mul=(1-min    )*max;}
+void XMaterial      ::reflect   (Flt min, Flt max)  {reflect_add=    min; reflect_mul=(1-min    )*max;}
+Flt   MaterialParams::reflectMax(                )C {Flt div=(1-reflect_add); return Equal(div, 0) ? 1 : reflect_mul/div;}
+Flt  XMaterial      ::reflectMax(                )C {Flt div=(1-reflect_add); return Equal(div, 0) ? 1 : reflect_mul/div;}
 /******************************************************************************/
 Material::Material()
 {
@@ -780,9 +783,9 @@ static Int ImgH(C ImageSource &src, C Image *img) {return (!img->is()) ? 0 : (sr
 
 static FILTER_TYPE Filter(Int filter) {return InRange(filter, FILTER_NUM) ? FILTER_TYPE(filter) : FILTER_BEST;}
 
-UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &metal, C ImageSource &glow, Bool resize_to_pow2, Bool flip_normal_y, Bool smooth_is_rough)
+TEX_FLAG CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &metal, C ImageSource &glow, Bool resize_to_pow2, Bool flip_normal_y, Bool smooth_is_rough)
 { // #MaterialTextureLayout
-   UInt  ret=0;
+   TEX_FLAG texf=TEXF_NONE;
    Image dest_0, dest_1, dest_2;
    {
       Image  color_temp; C Image * color_src=& color.image; if( color_src->compressed())if( color_src->copyTry( color_temp, -1, -1, -1,  color_src->typeInfo().a    ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) color_src=& color_temp;else goto error; // keep alpha because we might use it for alpha and IC_ALPHA_WEIGHT
@@ -834,17 +837,17 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
       VecI2       alpha_size; if(!alpha_src->is())alpha_size.zero();else alpha_size.set((alpha.size.x>0) ? alpha.size.x : (alpha_from_col && color.size.x>0) ? color.size.x : alpha_src->w(),
                                                                                         (alpha.size.y>0) ? alpha.size.y : (alpha_from_col && color.size.y>0) ? color.size.y : alpha_src->h());
 
-      // set what textures do we have (set this before 'normal' is generated from 'bump')
-      if( color_src->is())ret|=BT_COLOR ;
-      if( alpha_src->is())ret|=BT_ALPHA ;
-      if(  bump_src->is())ret|=BT_BUMP  ;
-      if(normal_src->is())ret|=BT_NORMAL;
-      if(smooth_src->is())ret|=BT_SMOOTH;
-      if( metal_src->is())ret|=BT_METAL ;
-      if(  glow_src->is())ret|=BT_GLOW  ;
+      // set what textures we have (set this before 'normal' is generated from 'bump')
+      if( color_src->is())texf|=TEXF_COLOR ;
+      if( alpha_src->is())texf|=TEXF_ALPHA ;
+      if(  bump_src->is())texf|=TEXF_BUMP  ;
+      if(normal_src->is())texf|=TEXF_NORMAL;
+      if(smooth_src->is())texf|=TEXF_SMOOTH;
+      if( metal_src->is())texf|=TEXF_METAL ;
+      if(  glow_src->is())texf|=TEXF_GLOW  ;
 
       // base_0 RGBA
-      if(ret&(BT_COLOR|BT_ALPHA|BT_SMOOTH|BT_METAL|BT_BUMP|BT_GLOW)) // if want any for Base0 or Base2, because shaders support base_2 only if base_0 is also present, so if we want base_2 then also need base_0
+      if(texf&(TEXF_COLOR|TEXF_ALPHA|TEXF_SMOOTH|TEXF_METAL|TEXF_BUMP|TEXF_GLOW)) // if want any for Base0 or Base2, because shaders support base_2 only if base_0 is also present, so if we want base_2 then also need base_0
       {
          Int w=Max(1, ImgW(color, color_src), alpha_size.x), // Max 1 in case all images are empty, but we still need it because of Base2
              h=Max(1, ImgH(color, color_src), alpha_size.y); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
@@ -904,7 +907,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
       }
 
       // base_2 SRBG
-      if(ret&(BT_SMOOTH|BT_METAL|BT_BUMP|BT_GLOW))
+      if(texf&(TEXF_SMOOTH|TEXF_METAL|TEXF_BUMP|TEXF_GLOW))
       {
          Int w=Max(ImgW(smooth, smooth_src), ImgW(metal, metal_src), ImgW(bump, bump_src), ImgW(glow, glow_src)),
              h=Max(ImgH(smooth, smooth_src), ImgH(metal, metal_src), ImgH(bump, bump_src), ImgH(glow, glow_src)); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
@@ -953,25 +956,25 @@ error:
    Swap(dest_0, base_0);
    Swap(dest_1, base_1);
    Swap(dest_2, base_2);
-   return ret;
+   return texf;
 }
-UInt ExtractBase0Texture(Image &base_0, Image *color, Image *alpha)
+TEX_FLAG ExtractBase0Texture(Image &base_0, Image *color, Image *alpha)
 {
-   UInt tex=0;
+   TEX_FLAG tex=TEXF_NONE;
    if(color)color->createSoftTry(base_0.w(), base_0.h(), 1, IMAGE_R8G8B8_SRGB);
    if(alpha)alpha->createSoftTry(base_0.w(), base_0.h(), 1, IMAGE_L8);
    REPD(y, base_0.h())
    REPD(x, base_0.w())
    {
       Color c=base_0.color(x, y); // #MaterialTextureLayout
-      if(color){color->color(x, y, c  ); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
-      if(alpha){alpha->pixel(x, y, c.a); if(c.a<254                      )tex|=BT_ALPHA;}
+      if(color){color->color(x, y, c  ); if(c.r<254 || c.g<254 || c.b<254)tex|=TEXF_COLOR;}
+      if(alpha){alpha->pixel(x, y, c.a); if(c.a<254                      )tex|=TEXF_ALPHA;}
    }
    return tex;
 }
-UInt ExtractBase1Texture(Image &base_1, Image *normal)
+TEX_FLAG ExtractBase1Texture(Image &base_1, Image *normal)
 {
-   UInt tex=0;
+   TEX_FLAG tex=TEXF_NONE;
    if(normal)
    {
       normal->createSoftTry(base_1.w(), base_1.h(), 1, IMAGE_R8G8B8);
@@ -980,7 +983,7 @@ UInt ExtractBase1Texture(Image &base_1, Image *normal)
       {
          Vec4 n; n.xy=base_1.colorF(x, y).xy; // #MaterialTextureLayout
          if(Abs(n.x)>1.5/127
-         || Abs(n.y)>1.5/127)tex|=BT_NORMAL;
+         || Abs(n.y)>1.5/127)tex|=TEXF_NORMAL;
          n.z=CalcZ(n.xy);
          n.xyz=n.xyz*0.5+0.5;
          n.w=1;
@@ -989,9 +992,9 @@ UInt ExtractBase1Texture(Image &base_1, Image *normal)
    }
    return tex;
 }
-UInt ExtractBase2Texture(Image &base_2, Image *bump, Image *smooth, Image *metal, Image *glow)
+TEX_FLAG ExtractBase2Texture(Image &base_2, Image *bump, Image *smooth, Image *metal, Image *glow)
 {
-   UInt tex=0;
+   TEX_FLAG tex=TEXF_NONE;
    if(smooth)smooth->createSoftTry(base_2.w(), base_2.h(), 1, IMAGE_L8);
    if(metal )metal ->createSoftTry(base_2.w(), base_2.h(), 1, IMAGE_L8);
    if(bump  )bump  ->createSoftTry(base_2.w(), base_2.h(), 1, IMAGE_L8);
@@ -1000,22 +1003,29 @@ UInt ExtractBase2Texture(Image &base_2, Image *bump, Image *smooth, Image *metal
    REPD(x, base_2.w())
    {
       Color c=base_2.color(x, y); // #MaterialTextureLayout
-      if(smooth){smooth->pixel(x, y, TexSmooth(c.BASE_CHANNEL_ROUGH)); if(TexSmooth(c.BASE_CHANNEL_ROUGH)>1                )tex|=BT_SMOOTH;} ASSERT(TEX_DEFAULT_SMOOTH==0);
-      if(metal ){metal ->pixel(x, y,           c.BASE_CHANNEL_METAL ); if(          c.BASE_CHANNEL_METAL >1                )tex|=BT_METAL ;} ASSERT(TEX_DEFAULT_METAL ==0);
-      if(bump  ){bump  ->pixel(x, y,           c.BASE_CHANNEL_BUMP  ); if(      Abs(c.BASE_CHANNEL_BUMP-TEX_DEFAULT_BUMP)>1)tex|=BT_BUMP  ;}
-      if(glow  ){glow  ->pixel(x, y,           c.BASE_CHANNEL_GLOW  ); if(          c.BASE_CHANNEL_GLOW  <254              )tex|=BT_GLOW  ;}
+      if(smooth){smooth->pixel(x, y, TexSmooth(c.BASE_CHANNEL_ROUGH)); if(TexSmooth(c.BASE_CHANNEL_ROUGH)>1                )tex|=TEXF_SMOOTH;} ASSERT(TEX_DEFAULT_SMOOTH==0);
+      if(metal ){metal ->pixel(x, y,           c.BASE_CHANNEL_METAL ); if(          c.BASE_CHANNEL_METAL >1                )tex|=TEXF_METAL ;} ASSERT(TEX_DEFAULT_METAL ==0);
+      if(bump  ){bump  ->pixel(x, y,           c.BASE_CHANNEL_BUMP  ); if(      Abs(c.BASE_CHANNEL_BUMP-TEX_DEFAULT_BUMP)>1)tex|=TEXF_BUMP  ;}
+      if(glow  ){glow  ->pixel(x, y,           c.BASE_CHANNEL_GLOW  ); if(          c.BASE_CHANNEL_GLOW  <254              )tex|=TEXF_GLOW  ;}
    }
    return tex;
 }
 /******************************************************************************/
-void CreateDetailTexture(Image &detail, C ImageSource &color, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, Bool resize_to_pow2, Bool flip_normal_y, Bool smooth_is_rough)
+TEX_FLAG CreateDetailTexture(Image &detail, C ImageSource &color, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, Bool resize_to_pow2, Bool flip_normal_y, Bool smooth_is_rough)
 {
+   TEX_FLAG texf=TEXF_NONE;
    Image dest;
    {
       Image  color_temp; C Image * color_src=& color.image; if( color_src->compressed())if( color_src->copyTry( color_temp, -1, -1, -1,                                         IMAGE_L8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) color_src=& color_temp;else goto error;
       Image   bump_temp; C Image *  bump_src=&  bump.image; if(  bump_src->compressed())if(  bump_src->copyTry(  bump_temp, -1, -1, -1, bump_src->highPrecision() ? IMAGE_F32 : IMAGE_L8     , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))  bump_src=&  bump_temp;else goto error; // use high precision because we might use it to create normal map or stretch
       Image normal_temp; C Image *normal_src=&normal.image; if(normal_src->compressed())if(normal_src->copyTry(normal_temp, -1, -1, -1,                                         IMAGE_R8G8   , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))normal_src=&normal_temp;else goto error;
       Image smooth_temp; C Image *smooth_src=&smooth.image; if(smooth_src->compressed())if(smooth_src->copyTry(smooth_temp, -1, -1, -1,                                         IMAGE_L8     , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))smooth_src=&smooth_temp;else goto error;
+
+      // set what textures we have (set this before 'normal' is generated from 'bump')
+      if( color_src->is())texf|=TEXF_DET_COLOR ;
+    //if(  bump_src->is())texf|=TEXF_DET_BUMP  ;
+      if(normal_src->is())texf|=TEXF_DET_NORMAL;
+      if(smooth_src->is())texf|=TEXF_DET_SMOOTH;
 
       Int w=Max(ImgW(color, color_src), ImgW(smooth, smooth_src)),
           h=Max(ImgH(color, color_src), ImgH(smooth, smooth_src)); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
@@ -1081,10 +1091,11 @@ void CreateDetailTexture(Image &detail, C ImageSource &color, C ImageSource &bum
 
 error:
    Swap(dest, detail);
+   return texf;
 }
-UInt ExtractDetailTexture(C Image &detail, Image *color, Image *bump, Image *normal, Image *smooth)
+TEX_FLAG ExtractDetailTexture(C Image &detail, Image *color, Image *bump, Image *normal, Image *smooth)
 {
-   UInt tex=0;
+   TEX_FLAG tex=TEXF_NONE;
    if(color )color ->createSoftTry(detail.w(), detail.h(), 1, IMAGE_L8);
    if(bump  )bump  ->del();
    if(normal)normal->createSoftTry(detail.w(), detail.h(), 1, IMAGE_R8G8B8);
@@ -1093,20 +1104,20 @@ UInt ExtractDetailTexture(C Image &detail, Image *color, Image *bump, Image *nor
    REPD(x, detail.w())
    {
       Color c=detail.color(x, y); // #MaterialTextureLayoutDetail
-      if(color ){color ->pixel(x, y,           c.DETAIL_CHANNEL_COLOR ); if(Abs(c.DETAIL_CHANNEL_COLOR-128)>1)tex|=BT_COLOR ;}
-      if(smooth){smooth->pixel(x, y, TexSmooth(c.DETAIL_CHANNEL_ROUGH)); if(Abs(c.DETAIL_CHANNEL_ROUGH-128)>1)tex|=BT_SMOOTH;}
+      if(color ){color ->pixel(x, y,           c.DETAIL_CHANNEL_COLOR ); if(Abs(c.DETAIL_CHANNEL_COLOR-128)>1)tex|=TEXF_DET_COLOR ;}
+      if(smooth){smooth->pixel(x, y, TexSmooth(c.DETAIL_CHANNEL_ROUGH)); if(Abs(c.DETAIL_CHANNEL_ROUGH-128)>1)tex|=TEXF_DET_SMOOTH;}
       if(normal)
       {
          Vec n; n.xy.set((c.DETAIL_CHANNEL_NORMAL_X-128)/127.0, (c.DETAIL_CHANNEL_NORMAL_Y-128)/127.0); n.z=CalcZ(n.xy);
-         normal->color(x, y, Color(c.DETAIL_CHANNEL_NORMAL_X, c.DETAIL_CHANNEL_NORMAL_Y, Mid(Round(n.z*127+128), 0, 255))); if(Abs(c.DETAIL_CHANNEL_NORMAL_X-128)>1 || Abs(c.DETAIL_CHANNEL_NORMAL_Y-128)>1)tex|=BT_NORMAL;
+         normal->color(x, y, Color(c.DETAIL_CHANNEL_NORMAL_X, c.DETAIL_CHANNEL_NORMAL_Y, Mid(Round(n.z*127+128), 0, 255))); if(Abs(c.DETAIL_CHANNEL_NORMAL_X-128)>1 || Abs(c.DETAIL_CHANNEL_NORMAL_Y-128)>1)tex|=TEXF_DET_NORMAL;
       }
    }
    return tex;
 }
 /******************************************************************************/
-UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &metal, C ImageSource &glow, Bool resize_to_pow2, Bool flip_normal_y)
+TEX_FLAG CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &metal, C ImageSource &glow, Bool resize_to_pow2, Bool flip_normal_y)
 { // #MaterialTextureLayoutWater
-   UInt  ret=0;
+   TEX_FLAG texf=TEXF_NONE;
    Image dest_0, dest_1, dest_2;
    {
       Image  color_temp; C Image * color_src=& color.image; if( color_src->compressed())if( color_src->copyTry( color_temp, -1, -1, -1,  color_src->typeInfo().a    ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) color_src=& color_temp;else goto error; // keep alpha because we might use it for alpha and IC_ALPHA_WEIGHT
@@ -1117,14 +1128,14 @@ UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Imag
     //Image  metal_temp; C Image * metal_src=& metal.image; if( metal_src->compressed())if( metal_src->copyTry( metal_temp, -1, -1, -1,                                                     IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) metal_src=& metal_temp;else goto error;
     //Image   glow_temp; C Image *  glow_src=&  glow.image; if(  glow_src->compressed())if(  glow_src->copyTry(  glow_temp, -1, -1, -1,                                                     IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))  glow_src=&  glow_temp;else goto error;
 
-      // set what textures do we have (set this before 'normal' is generated from 'bump')
-      if( color_src->is())ret|=BT_COLOR ;
-    //if( alpha_src->is())ret|=BT_ALPHA ;
-      if(  bump_src->is())ret|=BT_BUMP  ;
-      if(normal_src->is())ret|=BT_NORMAL;
-    //if(smooth_src->is())ret|=BT_SMOOTH;
-    //if( metal_src->is())ret|=BT_METAL ;
-    //if(  glow_src->is())ret|=BT_GLOW  ;
+      // set what textures we have (set this before 'normal' is generated from 'bump')
+      if( color_src->is())texf|=TEXF_COLOR ;
+    //if( alpha_src->is())texf|=TEXF_ALPHA ;
+      if(  bump_src->is())texf|=TEXF_BUMP  ;
+      if(normal_src->is())texf|=TEXF_NORMAL;
+    //if(smooth_src->is())texf|=TEXF_SMOOTH;
+    //if( metal_src->is())texf|=TEXF_METAL ;
+    //if(  glow_src->is())texf|=TEXF_GLOW  ;
 
       // base_0
       {
@@ -1203,11 +1214,11 @@ error:
    Swap(dest_0, base_0);
    Swap(dest_1, base_1);
    Swap(dest_2, base_2);
-   return ret;
+   return texf;
 }
-UInt ExtractWaterBase0Texture(C Image &base_0, Image *color)
+TEX_FLAG ExtractWaterBase0Texture(C Image &base_0, Image *color)
 { // #MaterialTextureLayoutWater
-   UInt tex=0;
+   TEX_FLAG tex=TEXF_NONE;
    if(color)
    {
       color->createSoftTry(base_0.w(), base_0.h(), 1, IMAGE_R8G8B8_SRGB);
@@ -1215,15 +1226,15 @@ UInt ExtractWaterBase0Texture(C Image &base_0, Image *color)
       REPD(x, base_0.w())
       {
          Color c=base_0.color(x, y);
-         if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;
+         if(c.r<254 || c.g<254 || c.b<254)tex|=TEXF_COLOR;
          color->color(x, y, c);
       }
    }
    return tex;
 }
-UInt ExtractWaterBase1Texture(C Image &base_1, Image *normal)
+TEX_FLAG ExtractWaterBase1Texture(C Image &base_1, Image *normal)
 { // #MaterialTextureLayoutWater
-   UInt tex=0;
+   TEX_FLAG tex=TEXF_NONE;
    if(normal)
    {
       normal->createSoftTry(base_1.w(), base_1.h(), 1, IMAGE_R8G8B8);
@@ -1232,7 +1243,7 @@ UInt ExtractWaterBase1Texture(C Image &base_1, Image *normal)
       {
          Vec4 n; n.xy=base_1.colorF(x, y).xy;
          if(Abs(n.x)>1.5/127
-         || Abs(n.y)>1.5/127)tex|=BT_NORMAL;
+         || Abs(n.y)>1.5/127)tex|=TEXF_NORMAL;
          n.z=CalcZ(n.xy);
          n.xyz=n.xyz*0.5+0.5;
          n.w=1;
@@ -1241,9 +1252,9 @@ UInt ExtractWaterBase1Texture(C Image &base_1, Image *normal)
    }
    return tex;
 }
-UInt ExtractWaterBase2Texture(C Image &base_2, Image *bump)
+TEX_FLAG ExtractWaterBase2Texture(C Image &base_2, Image *bump)
 { // #MaterialTextureLayoutWater
-   UInt tex=0;
+   TEX_FLAG tex=TEXF_NONE;
    if(bump)
    {
       bump->createSoftTry(base_2.w(), base_2.h(), 1, IMAGE_L8);
@@ -1251,7 +1262,7 @@ UInt ExtractWaterBase2Texture(C Image &base_2, Image *bump)
       REPD(x, base_2.w())
       {
          Flt c=base_2.pixelF(x, y);
-         if(Abs(c)>1.5/127)tex|=BT_BUMP;
+         if(Abs(c)>1.5/127)tex|=TEXF_BUMP;
          bump->pixelF(x, y, c*0.5+0.5);
       }
    }

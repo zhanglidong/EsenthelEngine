@@ -72,9 +72,9 @@ class WaterMtrlRegion : MaterialRegion
    static Str  NrmScale (C WaterMtrlRegion &mr          ) {return mr.edit.normal;}
    static void NrmScale (  WaterMtrlRegion &mr, C Str &t) {mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC();}
    static Str  FNY      (C WaterMtrlRegion &mr          ) {return mr.edit.flip_normal_y;}
-   static void FNY      (  WaterMtrlRegion &mr, C Str &t) {uint base_tex=mr.edit.baseTex(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(base_tex, true, false, false);}
+   static void FNY      (  WaterMtrlRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(textures, true, false, false);}
    static Str  SmtIsRgh (C WaterMtrlRegion &mr          ) {return mr.edit.smooth_is_rough;}
-   static void SmtIsRgh (  WaterMtrlRegion &mr, C Str &t) {uint base_tex=mr.edit.baseTex(); mr.edit.smooth_is_rough=TextBool(t); mr.edit.smooth_is_rough_time.getUTC(); mr.rebuildBase(base_tex, false, true, false);}
+   static void SmtIsRgh (  WaterMtrlRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.smooth_is_rough=TextBool(t); mr.edit.smooth_is_rough_time.getUTC(); mr.rebuildBase(textures, false, true, false);}
    static Str  WaveScale(C WaterMtrlRegion &mr          ) {return mr.edit.wave_scale;}
    static void WaveScale(  WaterMtrlRegion &mr, C Str &t) {mr.edit.wave_scale=TextFlt(t); mr.edit.wave_scale_time.getUTC();}
 
@@ -243,7 +243,7 @@ class WaterMtrlRegion : MaterialRegion
       )
       {
          edit.cleanupMaps();
-         rebuildBase(edit.baseTex());
+         rebuildBase(edit.textures());
       }
    }
    virtual void resizeBase0(C VecI2 &size, bool relative=false)override
@@ -265,7 +265,7 @@ class WaterMtrlRegion : MaterialRegion
       if(Proj.forceImageSize(edit.color_map, size0, relative, edit.color_map_time, time))
       {
          edit.cleanupMaps();
-         rebuildBase(edit.baseTex());
+         rebuildBase(edit.textures());
       }
    }
    virtual void resizeBase1(C VecI2 &size, bool relative=false)override
@@ -289,7 +289,7 @@ class WaterMtrlRegion : MaterialRegion
       if(Proj.forceImageSize(edit.normal_map, size1, relative, edit.normal_map_time, time))
       {
          edit.cleanupMaps();
-         rebuildBase(edit.baseTex());
+         rebuildBase(edit.textures());
       }
    }
    virtual void resizeBase2(C VecI2 &size, bool relative=false)override
@@ -313,21 +313,21 @@ class WaterMtrlRegion : MaterialRegion
       if(Proj.forceImageSize(edit.bump_map, size2, relative, edit.bump_map_time, time))
       {
          edit.cleanupMaps();
-         rebuildBase(edit.baseTex());
+         rebuildBase(edit.textures());
       }
    }
 
-   virtual void rebuildBase(uint old_base_tex, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false, bool adjust_params=true, bool always=false)override
+   virtual void rebuildBase(TEX_FLAG old_textures, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false, bool adjust_params=true, bool always=false)override
    {
       if(elm && game)
       {
-         uint new_base_tex;
+         TEX_FLAG new_textures;
          if(auto_reload || always)
          {
-            new_base_tex=Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y, changed_smooth_is_rough); // set precise
+            new_textures=Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y, changed_smooth_is_rough); // set precise
             Time.skipUpdate(); // compressing textures can be slow
-         }else new_base_tex=edit.baseTex(); // set approximate
-         if(adjust_params)edit.adjustParams(old_base_tex, new_base_tex, edit.hasLightMap());
+         }else new_textures=edit.textures(); // set approximate
+         if(adjust_params)edit.adjustParams(old_textures, new_textures);
 
          setChanged();
          Proj.mtrlTexChanged();
@@ -341,7 +341,7 @@ class WaterMtrlRegion : MaterialRegion
    virtual void rebuildMacro()override
    {
    }
-   virtual void rebuildLight(bool old_light_map, bool adjust_params=true)override
+   virtual void rebuildLight(TEX_FLAG old_textures, bool adjust_params=true)override
    {
    }
 

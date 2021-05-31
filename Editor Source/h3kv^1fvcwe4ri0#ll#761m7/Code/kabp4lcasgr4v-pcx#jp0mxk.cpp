@@ -475,7 +475,8 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
             Material game; if(game.load(file))
             {
                Elm &elm=Proj.Project.newElm(name, Proj.getPathID(path), ELM_MTRL);
-               EditMaterial edit; edit.create(game); // create from material
+               ImporterClass.Import.MaterialEx mtrl_ex; mtrl_ex.create(game);
+               EditMaterial edit; edit.create(mtrl_ex); // create from material
 
                // set textures
                if(game.    base_0)ImageProps(*game.    base_0, &edit.base_0_tex, null, MTRL_BASE_0);else edit.base_0_tex.zero();
@@ -504,30 +505,21 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
                ImportMtrlImages.binaryInclude(SkipStartPath(m , ImportSrc), ImportComparePath);
                ImportMtrlImages.binaryInclude(SkipStartPath(l , ImportSrc), ImportComparePath);
 
-               edit. color_map_time.getUTC(); edit. color_map=b0; AddTransform(edit.color_map, "channel", "xyz");
-               edit. alpha_map_time.getUTC(); edit. alpha_map.clear();
-               edit.  bump_map_time.getUTC(); edit.  bump_map.clear();
-               edit.  glow_map_time.getUTC(); edit.  glow_map.clear();
+               // #MaterialTextureLayout
+               edit. color_map_time.getUTC(); edit. color_map=b0; //AddTransform(edit.color_map, "channel", "xyz"); don't set because we might need alpha
+               edit. alpha_map_time.getUTC(); edit. alpha_map.clear(); // just use from 'color_map'
                edit.normal_map_time.getUTC(); edit.normal_map=b1; AddTransform(edit.normal_map, "channel", "xy");
-               edit.smooth_map_time.getUTC(); edit.smooth_map.clear();
-               edit. metal_map_time.getUTC(); edit. metal_map.clear();
-               edit.detail_map_time.getUTC(); edit.detail_color =d; AddTransform(edit.detail_color , "channel", "z" );
-                                              edit.detail_smooth=d; AddTransform(edit.detail_smooth, "channel", "w" );
+               edit.  bump_map_time.getUTC(); edit.  bump_map=b2; AddTransform(edit.  bump_map, "channel", "z");
+               edit.  glow_map_time.getUTC(); edit.  glow_map=b2; AddTransform(edit.  glow_map, "channel", "w");
+               edit.smooth_map_time.getUTC(); edit.smooth_map=b2; AddTransform(edit.smooth_map, "channel", "y");
+               edit. metal_map_time.getUTC(); edit. metal_map=b2; AddTransform(edit. metal_map, "channel", "x");
+               // #MaterialTextureLayoutDetail
+               edit.detail_map_time.getUTC(); edit.detail_color =d; AddTransform(edit.detail_color , "channel", "w" );
+                                              edit.detail_smooth=d; AddTransform(edit.detail_smooth, "channel", "z" );
                                               edit.detail_normal=d; AddTransform(edit.detail_normal, "channel", "xy");
                                               edit.detail_bump.clear();
                edit. macro_map_time.getUTC(); edit. macro_map   =m;
                edit. light_map_time.getUTC(); edit. light_map   =l;
-               if(b2.is())
-               {
-                  edit.smooth_map=b2; AddTransform(edit.smooth_map, "channel", "y");
-                  edit. metal_map=b2; AddTransform(edit. metal_map, "channel", "x");
-                  edit.  bump_map=b2; AddTransform(edit.  bump_map, "channel", "z");
-                  edit. alpha_map=b2; AddTransform(edit. alpha_map, "channel", "w");
-                  edit.  glow_map=b0; AddTransform(edit.  glow_map, "channel", "w");
-               }else
-               {
-                  edit.alpha_map=b0; AddTransform(edit.alpha_map, "channel", "w");
-               }
 
                // save
                Save(edit, Proj.editPath(elm));

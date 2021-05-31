@@ -1,28 +1,6 @@
 /******************************************************************************/
 class MaterialRegion : Region
 {
-   enum TEX_TYPE
-   {
-      TEX_COLOR     ,
-      TEX_ALPHA     ,
-      TEX_BUMP      ,
-      TEX_NORMAL    ,
-      TEX_SMOOTH    ,
-      TEX_METAL     ,
-      TEX_GLOW      ,
-      TEX_DET_COLOR ,
-      TEX_DET_BUMP  ,
-      TEX_DET_NORMAL,
-      TEX_DET_SMOOTH,
-      TEX_MACRO     ,
-      TEX_LIGHT     ,
-      
-      TEX_BASE_BEGIN=TEX_COLOR,
-      TEX_BASE_END  =TEX_GLOW ,
-      TEX_DET_BEGIN =TEX_DET_COLOR,
-      TEX_DET_END   =TEX_DET_SMOOTH,
-   }
-
    class Change : Edit._Undo.Change
    {
       EditMaterial data;
@@ -75,7 +53,7 @@ class MaterialRegion : Region
                case TEX_SMOOTH    : if(em.smooth_map   .is()                       )return base_2; break;
                case TEX_METAL     : if(em. metal_map   .is()                       )return base_2; break;
                case TEX_GLOW      : if(em.  glow_map   .is()                       )return base_2; break;
-               case TEX_LIGHT     : if(em. light_map   .is()                       )return light ; break;
+               case TEX_EMISSIVE  : if(em. light_map   .is()                       )return light ; break;
                case TEX_MACRO     : if(em. macro_map   .is()                       )return macro ; break;
                case TEX_DET_COLOR : if(em.detail_color .is()                       )return detail; break; // #MaterialTextureLayoutDetail
                case TEX_DET_BUMP  : if(em.detail_bump  .is()                       )return detail; break;
@@ -131,8 +109,7 @@ class MaterialRegion : Region
          {
             mr.undos.set(null, true);
             EditMaterial &mtrl=mr.getEditMtrl();
-            uint base_tex =mtrl.baseTex(); // get current state of textures before making any change
-            bool light_map=mtrl.hasLightMap();
+            TEX_FLAG  textures=mtrl.textures(); // get current state of textures before making any change
           //if(type>=TEX_RFL_L && type<=TEX_RFL_U)file=SetCubeFile(md_file.asText(&mtrl), type-TEX_RFL_L, file);
             md_time.as<TimeStamp>(&mtrl).now();
             md_file.fromText     (&mtrl, file);
@@ -163,10 +140,10 @@ class MaterialRegion : Region
             if(type==TEX_SMOOTH)mr.setSmoothRange();
 
             // rebuild methods already call 'setChanged'
-            if(type>=TEX_BASE_BEGIN && type<=TEX_BASE_END)mr.rebuildBase  (base_tex);else
+            if(type>=TEX_BASE_BEGIN && type<=TEX_BASE_END)mr.rebuildBase  (textures);else
             if(type>=TEX_DET_BEGIN  && type<=TEX_DET_END )mr.rebuildDetail();else
             if(type==TEX_MACRO                           )mr.rebuildMacro ();else
-            if(type==TEX_LIGHT                           )mr.rebuildLight (light_map);else
+            if(type==TEX_EMISSIVE                        )mr.rebuildLight (textures);else
                                                           mr.setChanged   ();
 
             // if adjusting reflection texture, then adjust parameters of all other relfection slots, because they are connected
@@ -262,7 +239,7 @@ class MaterialRegion : Region
                case TEX_SMOOTH    : if(em.smooth_map   .is()                       )if(base_2){VI.shader(ShaderFiles("Main")->get("DrawTexYG"    )); base_2->drawFit(rect); tex=true;} break;
                case TEX_METAL     : if(em. metal_map   .is()                       )if(base_2){VI.shader(ShaderFiles("Main")->get("DrawTexXG"    )); base_2->drawFit(rect); tex=true;} break;
                case TEX_GLOW      : if(em.  glow_map   .is()                       )if(base_2){VI.shader(ShaderFiles("Main")->get("DrawTexWG"    )); base_2->drawFit(rect); tex=true;} break;
-               case TEX_LIGHT     : if(em. light_map   .is()                       )if(light ){                                                      light ->drawFit(rect); tex=true;} break;
+               case TEX_EMISSIVE  : if(em. light_map   .is()                       )if(light ){                                                      light ->drawFit(rect); tex=true;} break;
                case TEX_MACRO     : if(em. macro_map   .is()                       )if(macro ){                                                      macro ->drawFit(rect); tex=true;} break;
                case TEX_DET_COLOR : if(em.detail_color .is()                       )if(detail){VI.shader(ShaderFiles("Main")->get("DrawTexWG"    )); detail->drawFit(rect); tex=true;} break; // #MaterialTextureLayoutDetail
                case TEX_DET_BUMP  : if(em.detail_bump  .is()                       )if(detail){      if(Image *bump=mr.getDetailBump(em.detail_bump))bump  ->drawFit(rect); tex=true;} break; // Detail Bump is not stored in texture
@@ -473,9 +450,9 @@ class MaterialRegion : Region
    static Str  NrmScale(C MaterialRegion &mr          ) {return mr.edit.normal;}
    static void NrmScale(  MaterialRegion &mr, C Str &t) {       mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
    static Str  FNY     (C MaterialRegion &mr          ) {return mr.edit.flip_normal_y;}
-   static void FNY     (  MaterialRegion &mr, C Str &t) {uint base_tex=mr.edit.baseTex(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(base_tex, true, false, false);}
+   static void FNY     (  MaterialRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(textures, true, false, false);}
    static Str  SmtIsRgh(C MaterialRegion &mr          ) {return mr.edit.smooth_is_rough;}
-   static void SmtIsRgh(  MaterialRegion &mr, C Str &t) {uint base_tex=mr.edit.baseTex(); mr.edit.smooth_is_rough=TextBool(t); mr.edit.smooth_is_rough_time.getUTC(); mr.rebuildBase(base_tex, false, true, false);}
+   static void SmtIsRgh(  MaterialRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.smooth_is_rough=TextBool(t); mr.edit.smooth_is_rough_time.getUTC(); mr.rebuildBase(textures, false, true, false);}
 
    static Str  Smooth    (C MaterialRegion &mr          ) {return mr.edit.smooth;}
    static void Smooth    (  MaterialRegion &mr, C Str &t) {       mr.edit.smooth=TextFlt(t); mr.edit.smooth_time.getUTC();}
@@ -514,7 +491,7 @@ class MaterialRegion : Region
    static void SetMtrl(MaterialRegion &editor) {SetObjOp(editor.set_mtrl() ? OP_OBJ_SET_MTRL : OP_OBJ_NONE);}
 
    static void AutoReload        (MaterialRegion &editor) {editor.auto_reload=editor.texture_options.menu(auto_reload_name);}
-   static void ReloadBaseTextures(MaterialRegion &editor) {editor.undos.set("rebuildBase"); editor.rebuildBase(editor.getEditMtrl().baseTex(), false, false, false, true);}
+   static void ReloadBaseTextures(MaterialRegion &editor) {editor.undos.set("rebuildBase"); editor.rebuildBase(editor.getEditMtrl().textures(), false, false, false, true);}
 
    static void ResizeBase128 (MaterialRegion &editor) {editor.resizeBase(128);}
    static void ResizeBase256 (MaterialRegion &editor) {editor.resizeBase(256);}
@@ -636,11 +613,11 @@ class MaterialRegion : Region
    void   setReflect     (flt reflect_min, flt reflect_max           ) {if(edit.reflect_min!=reflect_min || edit.reflect_max!=reflect_max){        undos.set("reflect"   ); edit.reflect_min=reflect_min; edit.reflect_max=reflect_max; edit.            reflect_time.getUTC(); setChanged(); toGui();}}
    void resetAlpha       (                                           ) {                                                                           undos.set("alpha"     ); edit.resetAlpha()                                         ;                                         setChanged(); toGui(); }
    void cull             (bool                      on               ) {if(edit.cull               !=on                                  ){        undos.set("cull"      ); edit.cull               =on                               ; edit.               cull_time.getUTC(); setChanged(); toGui();}}
-   void flipNrmY         (bool                      on               ) {if(edit.flip_normal_y      !=on                                  ){        undos.set("fny"       ); edit.flip_normal_y      =on                               ; edit.      flip_normal_y_time.getUTC(); rebuildBase(edit.baseTex(), true , false, false);}} // 'rebuildBase' already calls 'setChanged' and 'toGui'
-   void smoothIsRough    (bool                      on               ) {if(edit.smooth_is_rough    !=on                                  ){        undos.set("sir"       ); edit.smooth_is_rough    =on                               ; edit.    smooth_is_rough_time.getUTC(); rebuildBase(edit.baseTex(), false, true , false);}} // 'rebuildBase' already calls 'setChanged' and 'toGui'
+   void flipNrmY         (bool                      on               ) {if(edit.flip_normal_y      !=on                                  ){        undos.set("fny"       ); edit.flip_normal_y      =on                               ; edit.      flip_normal_y_time.getUTC(); rebuildBase(edit.textures(), true , false, false);}} // 'rebuildBase' already calls 'setChanged' and 'toGui'
+   void smoothIsRough    (bool                      on               ) {if(edit.smooth_is_rough    !=on                                  ){        undos.set("sir"       ); edit.smooth_is_rough    =on                               ; edit.    smooth_is_rough_time.getUTC(); rebuildBase(edit.textures(), false, true , false);}} // 'rebuildBase' already calls 'setChanged' and 'toGui'
  //void maxTexSize       (Edit.MAX_TEX_SIZE         mts              ) {if(edit.max_tex_size       !=mts                                 ){        undos.set("mts"       ); edit.max_tex_size       =mts                              ; edit.       max_tex_size_time.getUTC(); setChanged(); toGui();}}
    void downsizeTexMobile(byte                      ds               ) {if(edit.downsize_tex_mobile!=ds                                  ){        undos.set("dtm"       ); edit.downsize_tex_mobile=ds                               ; edit.downsize_tex_mobile_time.getUTC(); setChanged(); toGui();}}
-   void texQuality       (Edit.Material.TEX_QUALITY q, bool undo=true) {if(edit.tex_quality        !=q                                   ){if(undo)undos.set("texQuality"); edit.tex_quality        =q                                ; edit.        tex_quality_time.getUTC(); rebuildBase(edit.baseTex(), false, false, false);}} // 'rebuildBase' already calls 'setChanged' and 'toGui'
+   void texQuality       (Edit.Material.TEX_QUALITY q, bool undo=true) {if(edit.tex_quality        !=q                                   ){if(undo)undos.set("texQuality"); edit.tex_quality        =q                                ; edit.        tex_quality_time.getUTC(); rebuildBase(edit.textures(), false, false, false);}} // 'rebuildBase' already calls 'setChanged' and 'toGui'
 
    virtual void resizeBase(C VecI2 &size, bool relative=false)
    {
@@ -678,7 +655,7 @@ class MaterialRegion : Region
       |  Proj.forceImageSize(edit.  glow_map, sizes[2], relative, edit.  glow_map_time, time))
       {
          edit.cleanupMaps();
-         rebuildBase(edit.baseTex());
+         rebuildBase(edit.textures());
       }
    }
    virtual void resizeBase0(C VecI2 &size, bool relative=false)
@@ -702,7 +679,7 @@ class MaterialRegion : Region
       |  Proj.forceImageSize(edit.alpha_map, size0, relative, edit.alpha_map_time, time))
       {
          edit.cleanupMaps();
-         rebuildBase(edit.baseTex());
+         rebuildBase(edit.textures());
       }
    }
    virtual void resizeBase1(C VecI2 &size, bool relative=false)
@@ -726,7 +703,7 @@ class MaterialRegion : Region
       if(Proj.forceImageSize(edit.normal_map, size1, relative, edit.normal_map_time, time))
       {
          edit.cleanupMaps();
-         rebuildBase(edit.baseTex());
+         rebuildBase(edit.textures());
       }
    }
    virtual void resizeBase2(C VecI2 &size, bool relative=false)
@@ -756,16 +733,16 @@ class MaterialRegion : Region
       |  Proj.forceImageSize(edit.  glow_map, size2, relative, edit.  glow_map_time, time))
       {
          edit.cleanupMaps();
-         rebuildBase(edit.baseTex());
+         rebuildBase(edit.textures());
       }
    }
    void bumpFromCol(int blur)
    {
       undos.set("bumpFromCol");
       EditMaterial &edit=getEditMtrl();
-      uint base_tex=edit.baseTex(); // get current state of textures before making any change
+      TEX_FLAG textures=edit.textures(); // get current state of textures before making any change
       edit.bump_map=BumpFromColTransform(edit.color_map, blur); edit.bump_map_time.now();
-      rebuildBase(base_tex);
+      rebuildBase(textures);
    }
 
    virtual   EditMaterial& getEditMtrl() {return edit;}
@@ -870,7 +847,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
       sub+=texs.New().create(TEX_SMOOTH    , MEMBER(EditMaterial,     smooth_map), MEMBER(EditMaterial,     smooth_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Smooth"        , T);
       sub+=texs.New().create(TEX_METAL     , MEMBER(EditMaterial,      metal_map), MEMBER(EditMaterial,      metal_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Metal"         , T); i-=3;
       sub+=texs.New().create(TEX_GLOW      , MEMBER(EditMaterial,       glow_map), MEMBER(EditMaterial,       glow_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Glow"          , T);
-      sub+=texs.New().create(TEX_LIGHT     , MEMBER(EditMaterial,      light_map), MEMBER(EditMaterial,      light_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Emit\nLight"   , T); i-=3;
+      sub+=texs.New().create(TEX_EMISSIVE  , MEMBER(EditMaterial,      light_map), MEMBER(EditMaterial,      light_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Emit\nLight"   , T); i-=3;
       sub+=texs.New().create(TEX_DET_COLOR , MEMBER(EditMaterial,   detail_color), MEMBER(EditMaterial,     detail_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Detail\nColor" , T);
       sub+=texs.New().create(TEX_DET_SMOOTH, MEMBER(EditMaterial,  detail_smooth), MEMBER(EditMaterial,     detail_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Detail\nSmooth", T); i-=3;
       sub+=texs.New().create(TEX_DET_BUMP  , MEMBER(EditMaterial,    detail_bump), MEMBER(EditMaterial,     detail_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Detail\nBump"  , T);
@@ -1247,19 +1224,19 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
       }
    }
 
-   virtual void rebuildBase(uint old_base_tex, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false, bool adjust_params=true, bool always=false)
+   virtual void rebuildBase(TEX_FLAG old_textures, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false, bool adjust_params=true, bool always=false)
    {
       if(elm && game)
       {
          bool want_tan_bin=game->needTanBin();
 
-         uint new_base_tex;
+         TEX_FLAG new_textures;
          if(auto_reload || always)
          {
-            new_base_tex=Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y, changed_smooth_is_rough); // set precise
+            new_textures=Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y, changed_smooth_is_rough); // set precise
             Time.skipUpdate(); // compressing textures can be slow
-         }else new_base_tex=edit.baseTex(); // set approximate
-         if(adjust_params)edit.adjustParams(old_base_tex, new_base_tex, edit.hasLightMap());
+         }else new_textures=edit.textures(); // set approximate
+         if(adjust_params)edit.adjustParams(old_textures, new_textures);
 
          setChanged();
          Proj.mtrlTexChanged();
@@ -1299,12 +1276,12 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
          toGui();
       }
    }
-   virtual void rebuildLight(bool old_light_map, bool adjust_params=true)
+   virtual void rebuildLight(TEX_FLAG old_textures, bool adjust_params=true)
    {
       if(elm && game)
       {
          Proj.mtrlCreateLightTexture(edit);
-         if(adjust_params)edit.adjustParams(edit.baseTex(), edit.baseTex(), old_light_map);
+         if(adjust_params)edit.adjustParams(old_textures, edit.textures());
          setChanged();
          Proj.mtrlTexChanged();
          Time.skipUpdate(); // compressing textures can be slow

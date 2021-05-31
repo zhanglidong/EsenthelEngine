@@ -19,23 +19,23 @@
       }
       return Sat(1-smooth); // 'smooth' is 0..1
    }
-   bool EditMaterial::hasBumpMap()C {return   bump_map.is() /*|| bump_from_color && color_map.is()*/;}
-   bool EditMaterial::hasNormalMap()C {return normal_map.is() || hasBumpMap();}
-   bool EditMaterial::hasDetailMap()C {return detail_color.is() || detail_bump.is() || detail_normal.is() || detail_smooth.is();}
-   bool EditMaterial::hasLightMap()C {return light_map.is();}
-   bool EditMaterial::hasBase1Tex()C {return hasNormalMap();}
-   bool EditMaterial::hasBase2Tex()C {return smooth_map.is() || metal_map.is() || hasBumpMap() || glow_map.is();}
-   uint EditMaterial::baseTex()C {return (color_map.is() ? BT_COLOR : 0)|(alpha_map.is() ? BT_ALPHA : 0)|(hasBumpMap () ? BT_BUMP : 0)|(hasNormalMap () ? BT_NORMAL : 0)|(smooth_map.is() ? BT_SMOOTH : 0)|(metal_map.is() ? BT_METAL : 0)|(glow_map.is() ? BT_GLOW : 0);}
-   uint EditMaterial::baseTexUsed()C {return (color_map.is() ? BT_COLOR : 0)|(usesTexAlpha() ? BT_ALPHA : 0)|(usesTexBump() ? BT_BUMP : 0)|(usesTexNormal() ? BT_NORMAL : 0)|(usesTexSmooth() ? BT_SMOOTH : 0)|(usesTexMetal() ? BT_METAL : 0)|(usesTexGlow() ? BT_GLOW : 0);}
-   bool EditMaterial::usesTexColAlpha()C {return tech!=MTECH_DEFAULT                     && (color_map.is() || alpha_map.is());}
-   bool EditMaterial::usesTexAlpha()C {return tech!=MTECH_DEFAULT                     &&  alpha_map.is();}
-   bool EditMaterial::usesTexBump()C {return    (bump       >EPS_MATERIAL_BUMP || 1) && hasBumpMap   ();}
-   bool EditMaterial::usesTexNormal()C {return     normal     >EPS_COL                 && hasNormalMap ();}
-   bool EditMaterial::usesTexSmooth()C {return Abs(roughMul())>EPS_COL                 && smooth_map.is();}
-   bool EditMaterial::usesTexMetal()C {return     reflect_max>EPS_COL                 &&  metal_map.is();}
-   bool EditMaterial::usesTexGlow()C {return     glow       >EPS_COL                 &&   glow_map.is();}
-   bool EditMaterial::usesTexDetail()C {return     det_power  >EPS_COL                 && hasDetailMap ();}
-   bool EditMaterial::needTanBin()C
+   bool     EditMaterial::hasBumpMap()C {return   bump_map.is() /*|| bump_from_color && color_map.is()*/;}
+   bool     EditMaterial::hasNormalMap()C {return normal_map.is() || hasBumpMap();}
+   bool     EditMaterial::hasDetailMap()C {return detail_color.is() || detail_bump.is() || detail_normal.is() || detail_smooth.is();}
+   bool     EditMaterial::hasBase1Tex()C {return hasNormalMap();}
+   bool     EditMaterial::hasBase2Tex()C {return smooth_map.is() || metal_map.is() || hasBumpMap() || glow_map.is();}
+   TEX_FLAG EditMaterial::textures()C {TEX_FLAG tf=TEXF_NONE; if(color_map.is())tf|=TEXF_COLOR; if(alpha_map.is())tf|=TEXF_ALPHA; if(hasBumpMap ())tf|=TEXF_BUMP; if(hasNormalMap ())tf|=TEXF_NORMAL; if(smooth_map.is())tf|=TEXF_SMOOTH; if(metal_map.is())tf|=TEXF_METAL; if(glow_map.is())tf|=TEXF_GLOW; if(light_map.is()   )tf|=TEXF_EMISSIVE; return tf;}
+   TEX_FLAG EditMaterial::texturesUsed()C {TEX_FLAG tf=TEXF_NONE; if(color_map.is())tf|=TEXF_COLOR; if(usesTexAlpha())tf|=TEXF_ALPHA; if(usesTexBump())tf|=TEXF_BUMP; if(usesTexNormal())tf|=TEXF_NORMAL; if(usesTexSmooth())tf|=TEXF_SMOOTH; if(usesTexMetal())tf|=TEXF_METAL; if(usesTexGlow())tf|=TEXF_GLOW; if(usesTexEmissive())tf|=TEXF_EMISSIVE; return tf;}
+   bool     EditMaterial::usesTexColAlpha()C {return tech!=MTECH_DEFAULT                     && (color_map.is() || alpha_map.is());}
+   bool     EditMaterial::usesTexAlpha()C {return tech!=MTECH_DEFAULT                     &&  alpha_map.is();}
+   bool     EditMaterial::usesTexBump()C {return    (bump       >EPS_MATERIAL_BUMP || 1) && hasBumpMap   ();}
+   bool     EditMaterial::usesTexNormal()C {return     normal     >EPS_COL                 && hasNormalMap ();}
+   bool     EditMaterial::usesTexSmooth()C {return Abs(roughMul())>EPS_COL                 && smooth_map.is();}
+   bool     EditMaterial::usesTexMetal()C {return     reflect_max>EPS_COL                 &&  metal_map.is();}
+   bool     EditMaterial::usesTexGlow()C {return     glow       >EPS_COL                 &&   glow_map.is();}
+   bool     EditMaterial::usesTexDetail()C {return     det_power  >EPS_COL                 && hasDetailMap ();}
+   bool     EditMaterial::usesTexEmissive()C {return  emissive.max()>EPS_COL                 &&  light_map.is();}
+   bool     EditMaterial::needTanBin()C
    {
       return usesTexBump  ()
           || usesTexNormal()
@@ -126,11 +126,12 @@
       cull_time++; tech_time++; downsize_tex_mobile_time++;
       color_time++; emissive_time++; smooth_time++; reflect_time++; normal_time++; bump_time++; glow_time++; uv_scale_time++; detail_time++;
    }
-   void EditMaterial::create(C Material &src, C TimeStamp &time)
+   void EditMaterial::create(C ImporterClass::Import::MaterialEx &src, C TimeStamp &time) // used when importing models from 'XMaterial' and also when creating atlases from 'EditMaterial'
    {
+      flip_normal_y=src.flip_normal_y; flip_normal_y_time=time;
       cull=src.cull; cull_time=time;
       tech=src.technique; tech_time=time;
-      color_s=src.colorS(); color_time=time;
+      color_s=src.color; color_time=time;
       emissive=src.emissive; emissive_time=time;
       smooth=src.smooth; smooth_time=time;
       reflect_min=src.reflect(); reflect_max=src.reflectMax(); reflect_time=time;
@@ -140,12 +141,29 @@
        uv_scale=src. uv_scale; uv_scale_time=time;
       det_scale=src.det_scale; detail_time=time;
       det_power=src.det_power; detail_time=time;
-      base_0_tex=src.    base_0.id();
-      base_1_tex=src.    base_1.id();
-      base_2_tex=src.    base_2.id();
-      detail_tex=src.detail_map.id();
-       macro_tex=src. macro_map.id();
-       light_tex=src. light_map.id();
+
+      base_0_tex=src.base_0_id;
+      base_1_tex=src.base_1_id;
+      base_2_tex=src.base_2_id;
+      detail_tex=src.detail_id;
+       macro_tex=src. macro_id;
+       light_tex=src. light_id;
+
+       color_map   =src.        color_map;  color_map_time=time;
+       alpha_map   =src.        alpha_map;  alpha_map_time=time;
+        bump_map   =src.         bump_map;   bump_map_time=time;
+      normal_map   =src.       normal_map; normal_map_time=time;
+      smooth_map   =src.       smooth_map; smooth_map_time=time;
+       metal_map   =src.        metal_map;  metal_map_time=time;
+        glow_map   =src.         glow_map;   glow_map_time=time;
+       light_map   =src.        light_map;  light_map_time=time;
+       macro_map   =                    S;  macro_map_time=time;
+      detail_color =src. detail_color_map; detail_map_time=time;
+      detail_bump  =src.  detail_bump_map;
+      detail_normal=src.detail_normal_map;
+      detail_smooth=src.detail_smooth_map;
+
+      if(src.adjust_params)adjustParams(~src.textures, src.textures);
    }
    void EditMaterial::copyTo(Material &dest, C Project &proj)C
    {
@@ -375,37 +393,14 @@
       }
       return changed;
    }
-   void EditMaterial::adjustParams(uint old_base_tex, uint new_base_tex, bool old_light_map)
+   void EditMaterial::adjustParams(TEX_FLAG old_textures, TEX_FLAG new_textures)
    {
       TimeStamp time; time.getUTC();
-      uint changed=(old_base_tex^new_base_tex);
-      if(changed&BT_BUMP)
+      TEX_FLAG changed=(old_textures^new_textures);
+
+      if(changed&TEXF_ALPHA)
       {
-         if(!(new_base_tex&BT_BUMP)){bump=0   ; bump_time=time;}else
-         if(bump<=EPS_MATERIAL_BUMP){bump=0.03f; bump_time=time;}
-      }
-      if(changed&(BT_BUMP|BT_NORMAL))
-      {
-         if(!(new_base_tex&(BT_BUMP|BT_NORMAL))){normal=0; normal_time=time;}else
-         if(normal<=EPS_COL8                   ){normal=1; normal_time=time;}
-      }
-
-      if(changed&BT_SMOOTH)
-         if(!(new_base_tex&BT_SMOOTH)){smooth=0; smooth_time=time;} // no  texture -> no smooth/fully rough
-         else                         {smooth=0; smooth_time=time;} // has texture -> use it
-
-    /*Not needed because current setup will work well with or without texture
-      if(changed&BT_METAL)
-         if(!(new_base_tex&BT_METAL)          ){reflect=MATERIAL_REFLECT; reflect_time=time;}else
-         if(reflect<=MATERIAL_REFLECT+EPS_COL8){reflect=               1; reflect_time=time;}*/
-
-      if(changed&BT_GLOW)
-         if(!(new_base_tex&BT_GLOW)){glow=0; glow_time=time;}else
-         if(glow<=EPS_COL8         ){glow=1; glow_time=time;}
-
-      if(changed&BT_ALPHA)
-      {
-         if(new_base_tex&BT_ALPHA)
+         if(new_textures&TEXF_ALPHA)
          {
             if(!HasAlphaBlend(tech) && color_s.w>=1-EPS_COL8){color_s.w=0.5f; color_time=time;}
             if(!HasAlpha     (tech)                         ){tech=MTECH_ALPHA_TEST; tech_time=time;}
@@ -415,11 +410,30 @@
          }
       }
 
-      bool new_light_map=hasLightMap(); if(old_light_map!=new_light_map)
-      {
-         if(!new_light_map          ){emissive=0; emissive_time=time;}else
-         if(emissive.min()<=EPS_COL8){emissive=1; emissive_time=time;}
-      }
+      if(changed&TEXF_BUMP)
+         if(!(new_textures&TEXF_BUMP)){bump=0   ; bump_time=time;}else
+         if(bump<=EPS_MATERIAL_BUMP  ){bump=0.03f; bump_time=time;}
+
+      if(changed&(TEXF_BUMP|TEXF_NORMAL))
+         if(!(new_textures&(TEXF_BUMP|TEXF_NORMAL))){normal=0; normal_time=time;}else
+         if(normal<=EPS_COL8                       ){normal=1; normal_time=time;}
+
+      if(changed&TEXF_SMOOTH)
+         if(!(new_textures&TEXF_SMOOTH)){smooth=0; smooth_time=time;} // no  texture -> smooth  0..1, 0=no smooth/fully rough
+         else                           {smooth=0; smooth_time=time;} // has texture -> smooth -1..1, 0=use it
+
+    /*Not needed because current setup will work well with or without texture
+      if(changed&TEXF_METAL)
+         if(!(new_textures&TEXF_METAL)        ){reflect=MATERIAL_REFLECT; reflect_time=time;}else
+         if(reflect<=MATERIAL_REFLECT+EPS_COL8){reflect=               1; reflect_time=time;}*/
+
+      if(changed&TEXF_GLOW)
+         if(!(new_textures&TEXF_GLOW)){glow=0; glow_time=time;}else
+         if(glow<=EPS_COL8           ){glow=1; glow_time=time;}
+
+      if(changed&TEXF_EMISSIVE)
+         if(!(new_textures&TEXF_EMISSIVE)){emissive=0; emissive_time=time;}else
+         if(emissive.min()<=EPS_COL8     ){emissive=1; emissive_time=time;}
    }
    void EditMaterial::FixOldFileParams(Str &name)
    {

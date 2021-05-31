@@ -522,18 +522,17 @@ Bool ImportB3D(C Str &name, Mesh *mesh, Skeleton *skeleton, XAnimation *animatio
          {
             BRUS      &b       =brus[i];
             XMaterial &material=materials.New();
-            material.name    =b.name;
-            material.cull    =b.cull;
-            material.color   =b.color;
-            material.rough   =1-b.specular;
-            material.emissive=b.full_bright;
+            material.name =b.name;
+            material.cull =b.cull;
+          //material.color=b.color;
+          //material.spec =b.specular;
             if(b.tex_id.elms()>=1)material.color_map=texs[b.tex_id[0]].file;
             if(b.tex_id.elms()>=2)material.light_map=texs[b.tex_id[1]].file;
-            if(b.tex_id.elms()>=1 && texs[b.tex_id[0]].has_alpha)
+          /*if(b.tex_id.elms()>=1 && texs[b.tex_id[0]].has_alpha)
             {
                material.technique=MTECH_ALPHA_TEST;
                material.color.w  =0.5f;
-            }
+            }*/
             material.fixPath(GetPath(name));
          }
          return true;

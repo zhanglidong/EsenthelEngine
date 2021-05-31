@@ -477,13 +477,13 @@ class MtrlImages
    }
    void compact()
    {
-      if(!(tex&BT_COLOR ))color .del();
-      if(!(tex&BT_ALPHA ))alpha .del();
-      if(!(tex&BT_BUMP  ))bump  .del();
-      if(!(tex&BT_NORMAL))normal.del();
-      if(!(tex&BT_SMOOTH))smooth.del();
-      if(!(tex&BT_METAL ))metal .del();
-      if(!(tex&BT_GLOW  ))glow  .del();
+      if(!(tex&TEXF_COLOR ))color .del();
+      if(!(tex&TEXF_ALPHA ))alpha .del();
+      if(!(tex&TEXF_BUMP  ))bump  .del();
+      if(!(tex&TEXF_NORMAL))normal.del();
+      if(!(tex&TEXF_SMOOTH))smooth.del();
+      if(!(tex&TEXF_METAL ))metal .del();
+      if(!(tex&TEXF_GLOW  ))glow  .del();
    }
    void Export(C Str &name, C Str &ext)C
    {
@@ -613,11 +613,11 @@ class MtrlImages
       T.flip_normal_y  =(normal_ok ? material.flip_normal_y   : changed_flip_normal_y  ); // if we failed to load the original image, and instead we're using extracted normal map, then we need to flip Y only if we're changing flipping at this moment
       T.smooth_is_rough=(smooth_ok ? material.smooth_is_rough : changed_smooth_is_rough);
    }
-   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2)C
+   TEX_FLAG createBaseTextures(Image &base_0, Image &base_1, Image &base_2)C
    {
       return CreateBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, metal, glow, true, flip_normal_y, smooth_is_rough);
    }
-   uint createWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2)C
+   TEX_FLAG createWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2)C
    {
       return CreateWaterBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, metal, glow, true, flip_normal_y, smooth_is_rough);
    }

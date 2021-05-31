@@ -1730,10 +1730,10 @@ void DAE::create(MemPtr<XMaterial> materials, Str path)
       {
          Effect &fx=*src.effect;
 
-         dest.name     =   src.name;
-         dest.color.xyz=    fx.color;
-         dest.rough    =1-((fx.spec_level>=0) ? fx.spec_level : fx.specular.max());
-         dest.cull     =   !fx.double_sided;
+         dest.name     = src.name;
+       //dest.color.xyz=  fx.color;
+       //dest.spec     =((fx.spec_level>=0) ? fx.spec_level : fx.specular.max());
+         dest.cull     = !fx.double_sided;
 
          if(Image *   color_map=findImage(fx.   color_map_image_id))dest. color_map=   color_map->texture;
          if(Image *   alpha_map=findImage(fx.   alpha_map_image_id))dest. alpha_map=   alpha_map->texture;

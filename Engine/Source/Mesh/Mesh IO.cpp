@@ -11,6 +11,7 @@ namespace EE{
 /******************************************************************************/
 // XMATERIAL
 /******************************************************************************/
+// !! IF CHANGING THIS IN ANY WAY THEN RECOMPILE FBX DLL'S !!
 XMaterial::XMaterial()
 {
    cull         =true;
@@ -18,12 +19,11 @@ XMaterial::XMaterial()
    technique    =MTECH_DEFAULT;
    color        =1;
    emissive     =0;
-   rough        =1;
-   reflect      =MATERIAL_REFLECT;
+   rough_mul    =0; rough_add=1;
+   reflect      (MATERIAL_REFLECT);
    glow         =0;
-   normal       =1;
-   bump         =0.03f;
-   sss          =0;
+   normal       =0;
+   bump         =0;
    det_power    =0.3f;
    det_scale    =4;
     uv_scale    =1.0f;
@@ -32,43 +32,25 @@ void XMaterial::del()
 {
    T=XMaterial();
 }
-void XMaterial::createFrom(C Material &src)
+void XMaterial::create(C Material &src)
 {
-   cull     =src.cull;
-   technique=src.technique;
-   color    =src.colorS();
-   emissive =src.emissive;
-   rough    =src.rough_add;
-   reflect  =src.reflect();
-   glow     =src.glow;
-   normal   =src.normal;
-   bump     =src.bump;
- //sss      =src.sss;
-   det_power=src.det_power;
-   det_scale=src.det_scale;
-    uv_scale=src. uv_scale;
+     cull     =src.cull;
+     technique=src.technique;
+     color    =src.colorS();
+     emissive =src.emissive;
+     rough_mul=src.  rough_mul;   rough_add=src.  rough_add;
+   reflect_mul=src.reflect_mul; reflect_add=src.reflect_add;
+     glow     =src.glow;
+     normal   =src.normal;
+     bump     =src.bump;
+     det_power=src.det_power;
+     det_scale=src.det_scale;
+      uv_scale=src. uv_scale;
 
           color_map=src.    base_0.name();
          normal_map=src.    base_1.name();
    detail_color_map=src.detail_map.name();
           light_map=src. light_map.name();
-}
-void XMaterial::copyParamsTo(Material &mtrl)C
-{
-   mtrl.cull     =cull;
-   mtrl.technique=technique;
-   mtrl.colorS   (color);
-   mtrl.emissive =emissive;
-   mtrl.rough_mul=0; mtrl.rough_add=1; // just use default
-   mtrl.reflect  (reflect);
-   mtrl.glow     =glow;
-   mtrl.normal   =normal;
-   mtrl.bump     =bump;
- //mtrl.sss      =sss;
-   mtrl.det_power=det_power;
-   mtrl.det_scale=det_scale;
-   mtrl. uv_scale= uv_scale;
-   mtrl.validate();
 }
 static void FixPath(Str &name, Str &path)
 {
@@ -103,9 +85,9 @@ void XMaterial::fixPath(Str path)
    FixPath(detail_smooth_map, path);
 }
 Bool XMaterial::save(File &f)C
-{
+{  // !! IF CHANGING THIS IN ANY WAY THEN RECOMPILE FBX DLL'S !!
    f.cmpUIntV(0); // version
-   f<<cull<<flip_normal_y<<technique<<color<<emissive<<rough<<reflect<<glow<<normal<<bump<<sss<<det_power<<det_scale<<uv_scale
+   f<<cull<<flip_normal_y<<technique<<color<<emissive<<rough_mul<<rough_add<<reflect_mul<<reflect_add<<glow<<normal<<bump<<det_power<<det_scale<<uv_scale
     <<color_map<<alpha_map<<bump_map<<glow_map<<light_map<<normal_map<<smooth_map<<metal_map<<detail_color_map<<detail_bump_map<<detail_normal_map<<detail_smooth_map
     <<name;
    return f.ok();
@@ -116,7 +98,7 @@ Bool XMaterial::load(File &f)
    {
       case 0:
       {
-         f>>cull>>flip_normal_y>>technique>>color>>emissive>>rough>>reflect>>glow>>normal>>bump>>sss>>det_power>>det_scale>>uv_scale
+         f>>cull>>flip_normal_y>>technique>>color>>emissive>>rough_mul>>rough_add>>reflect_mul>>reflect_add>>glow>>normal>>bump>>det_power>>det_scale>>uv_scale
           >>color_map>>alpha_map>>bump_map>>glow_map>>light_map>>normal_map>>smooth_map>>metal_map>>detail_color_map>>detail_bump_map>>detail_normal_map>>detail_smooth_map
           >>name;
          if(f.ok())return true;
@@ -1531,7 +1513,7 @@ Bool Import(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XAnimation> anim
             if(materials)FREPA(mesh_mtrls) // create 'XMaterial's
             {
                XMaterial &xm=materials.New();
-               xm.createFrom(*mesh_mtrls[i]);
+               xm.create(*mesh_mtrls[i]);
                xm.name=GetBaseNoExt(Materials.name(mesh_mtrls[i]));
             }
             if(part_material_index)FREPD(l, mesh->lods()) // set 'part_material_index'
@@ -1550,7 +1532,7 @@ Bool Import(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XAnimation> anim
       Material mtrl; if(materials)if(mtrl.load(name))
       {
          XMaterial &m=materials.New();
-         m.createFrom(mtrl);
+         m.create(mtrl);
          m.name=GetBaseNoExt(name);
          return true;
       }

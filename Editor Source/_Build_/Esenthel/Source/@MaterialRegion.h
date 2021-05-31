@@ -2,28 +2,6 @@
 /******************************************************************************/
 class MaterialRegion : Region
 {
-   enum TEX_TYPE
-   {
-      TEX_COLOR     ,
-      TEX_ALPHA     ,
-      TEX_BUMP      ,
-      TEX_NORMAL    ,
-      TEX_SMOOTH    ,
-      TEX_METAL     ,
-      TEX_GLOW      ,
-      TEX_DET_COLOR ,
-      TEX_DET_BUMP  ,
-      TEX_DET_NORMAL,
-      TEX_DET_SMOOTH,
-      TEX_MACRO     ,
-      TEX_LIGHT     ,
-      
-      TEX_BASE_BEGIN=TEX_COLOR,
-      TEX_BASE_END  =TEX_GLOW ,
-      TEX_DET_BEGIN =TEX_DET_COLOR,
-      TEX_DET_END   =TEX_DET_SMOOTH,
-   };
-
    class Change : Edit::_Undo::Change
    {
       EditMaterial data;
@@ -385,10 +363,10 @@ public:
    };
    void drop(Memc<Str> &names, GuiObj *focus_obj, C Vec2 &screen_pos);
 
-   virtual void rebuildBase(uint old_base_tex, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false, bool adjust_params=true, bool always=false);
+   virtual void rebuildBase(TEX_FLAG old_textures, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false, bool adjust_params=true, bool always=false);
    virtual void rebuildDetail();
    virtual void rebuildMacro();
-   virtual void rebuildLight(bool old_light_map, bool adjust_params=true);
+   virtual void rebuildLight(TEX_FLAG old_textures, bool adjust_params=true);
 
    virtual void elmChanged(C UID&mtrl_id);
    void erasing(C UID &elm_id);         

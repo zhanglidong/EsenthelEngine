@@ -13,11 +13,12 @@ class ImporterClass
    {
       class MaterialEx : XMaterial
       {
-         Material mtrl;
          Image    base_0, base_1, base_2, detail, macro, light;
          UID      base_0_id, base_1_id, base_2_id, detail_id, macro_id, light_id;
+         bool     adjust_params;
+         TEX_FLAG textures;
 
-         void copyTo(EditMaterial &dest, C TimeStamp &time=TimeStamp().getUTC())C;
+         void create(C Material &src);
          void check(C Str &path, Str &tex);
          void process(C Str &path);
 

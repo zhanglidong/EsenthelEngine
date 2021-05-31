@@ -49,7 +49,7 @@ class EditWaterMtrl : EditMaterial
       wave_scale_time++;
       color_underwater_time++;
    }
-   void create(C WaterMtrl &src, C TimeStamp &time=TimeStamp().getUTC())
+   /*void create(C WaterMtrl &src, C TimeStamp &time=TimeStamp().getUTC())
    {
       super.create(Material(), time); // call super to setup times for all values
       color_s               =Vec4(src.colorS(), 1); color_time=time;
@@ -70,7 +70,7 @@ class EditWaterMtrl : EditMaterial
       base_0_tex=src. colorMap().id();
       base_1_tex=src.normalMap().id();
       base_2_tex=src.  bumpMap().id();
-   }
+   }*/
    void copyTo(WaterMtrl &dest, C Project &proj)C
    {
       dest.colorS(color_s.xyz);
@@ -142,19 +142,19 @@ class EditWaterMtrl : EditMaterial
       }
       return changed;
    }
-   void adjustParams(uint old_base_tex, uint new_base_tex, bool old_light_map)
+   void adjustParams(TEX_FLAG old_textures, TEX_FLAG new_textures)
    {
       TimeStamp time; time.getUTC();
-      uint changed=(old_base_tex^new_base_tex);
-      if(changed&BT_BUMP)
+      TEX_FLAG  changed=(old_textures^new_textures);
+      if(changed&TEXF_BUMP)
       {
-         if(!(new_base_tex&BT_BUMP)      ){wave_scale=0  ; wave_scale_time=time;}else
+         if(!(new_textures&TEXF_BUMP)    ){wave_scale=0  ; wave_scale_time=time;}else
          if(wave_scale<=EPS_MATERIAL_BUMP){wave_scale=0.1; wave_scale_time=time;}
       }
-      if(changed&(BT_BUMP|BT_NORMAL))
+      if(changed&(TEXF_BUMP|TEXF_NORMAL))
       {
-         if(!(new_base_tex&BT_BUMP) && !(new_base_tex&BT_NORMAL)){normal=0; normal_time=time;}else
-         if(normal<=EPS_COL8                                    ){normal=1; normal_time=time;}
+         if(!(new_textures&TEXF_BUMP) && !(new_textures&TEXF_NORMAL)){normal=0; normal_time=time;}else
+         if(normal<=EPS_COL8                                        ){normal=1; normal_time=time;}
       }
    }
 

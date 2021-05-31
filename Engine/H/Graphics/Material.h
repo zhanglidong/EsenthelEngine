@@ -33,23 +33,23 @@ Bool HasLeaf            (MATERIAL_TECHNIQUE technique); // if 'technique' involv
 /******************************************************************************/
 struct MaterialParams // Material Parameters
 {
-   Vec4 color_l    ; // color Linear Gamma (0,0,0,0) .. (1,1,1,1), default=(1,1,1,1)
-   Vec  emissive   ; // emissive             (0,0,0) .. (1,1,1)  , default=(0,0,0)
-   Flt    rough_mul, // roughness    from       texture          , default=0
-          rough_add, // roughness    base                        , default=1
-        reflect_mul, // reflectivity from metal texture          , default=1-MATERIAL_REFLECT, see 'reflect' function
-        reflect_add, // reflectivity base                        , default=  MATERIAL_REFLECT, see 'reflect' function
-        glow       , // glow amount                0 .. 1        , default=0
-        normal     , // normal map sharpness       0 .. 1        , default=0
-        bump       , // bumpiness                  0 .. 0.09     , default=0
-        det_power  , // detail     power           0 .. 1        , default=0.3
-        det_scale  , // detail  UV scale           0 .. Inf      , default=4
-         uv_scale  ; // texture UV scale           0 .. Inf      , default=1, this is used mainly for World terrain textures UV scaling
+   Vec4 color_l    ; // color Linear Gamma      (0,0,0,0) .. (1,1,1,1), default=(1,1,1,1)
+   Vec  emissive   ; // emissive                  (0,0,0) .. (1,1,1)  , default=(0,0,0)
+   Flt    rough_mul, // roughness    from       texture 0 .. 1        , default=0
+          rough_add, // roughness    base               0 .. 1        , default=1
+        reflect_mul, // reflectivity from metal texture 0 .. 1        , default=1-MATERIAL_REFLECT
+        reflect_add, // reflectivity base               0 .. 1        , default=  MATERIAL_REFLECT
+        glow       , // glow amount                     0 .. 1        , default=0
+        normal     , // normal map sharpness            0 .. 1        , default=0
+        bump       , // bumpiness                       0 .. 1        , default=0
+        det_power  , // detail     power                0 .. 1        , default=0.3
+        det_scale  , // detail  UV scale                0 .. Inf      , default=4
+         uv_scale  ; // texture UV scale                0 .. Inf      , default=1, this is used mainly for World terrain textures UV scaling
 
  C Vec4& colorL()C {return color_l;}   void colorL(C Vec4 &color_l) {T.color_l=color_l;} // get/set Linear Gamma color
    Vec4  colorS()C;                    void colorS(C Vec4 &color_s);                     // get/set sRGB   Gamma color
 
-   Flt reflect   ()C {return reflect_add;}   void reflect(Flt reflect     ); // set reflectivity, 0..1, default=MATERIAL_REFLECT
+   Flt reflect   ()C {return reflect_add;}   void reflect(Flt reflect     ); // get/set reflectivity, 0..1, default=MATERIAL_REFLECT
    Flt reflectMax()C;                        void reflect(Flt min, Flt max); // advanced
 #if EE_PRIVATE
    #if LINEAR_GAMMA
@@ -214,16 +214,51 @@ INLINE C Material& GetMaterial      (C Material *material                    ) {
 INLINE C Material& GetShadowMaterial(C Material *material, Bool reuse_default) {return reuse_default ? (material && !material->cull) ? MaterialDefaultNoCull : MaterialDefault : GetMaterial(material);}
 #endif
 /******************************************************************************/
-enum BASE_TEX
+enum TEX_TYPE // Material Texture Type
 {
-   BT_COLOR =1<<0, // base texture contains color
-   BT_ALPHA =1<<1, // base texture contains alpha
-   BT_BUMP  =1<<2, // base texture contains bump
-   BT_NORMAL=1<<3, // base texture contains normal
-   BT_SMOOTH=1<<4, // base texture contains smoothness
-   BT_METAL =1<<5, // base texture contains metallic
-   BT_GLOW  =1<<6, // base texture contains glow
+   TEX_COLOR     ,
+   TEX_ALPHA     ,
+   TEX_BUMP      ,
+   TEX_NORMAL    ,
+   TEX_SMOOTH    ,
+   TEX_METAL     ,
+   TEX_GLOW      ,
+   TEX_DET_COLOR ,
+   TEX_DET_BUMP  ,
+   TEX_DET_NORMAL,
+   TEX_DET_SMOOTH,
+   TEX_MACRO     ,
+   TEX_EMISSIVE  ,
+      
+   TEX_BASE_BEGIN=TEX_COLOR,
+   TEX_BASE_END  =TEX_GLOW ,
+   TEX_DET_BEGIN =TEX_DET_COLOR,
+   TEX_DET_END   =TEX_DET_SMOOTH,
 };
+enum TEX_FLAG
+{
+   TEXF_COLOR     =1<<TEX_COLOR     ,
+   TEXF_ALPHA     =1<<TEX_ALPHA     ,
+   TEXF_BUMP      =1<<TEX_BUMP      ,
+   TEXF_NORMAL    =1<<TEX_NORMAL    ,
+   TEXF_SMOOTH    =1<<TEX_SMOOTH    ,
+   TEXF_METAL     =1<<TEX_METAL     ,
+   TEXF_GLOW      =1<<TEX_GLOW      ,
+   TEXF_DET_COLOR =1<<TEX_DET_COLOR ,
+   TEXF_DET_BUMP  =1<<TEX_DET_BUMP  ,
+   TEXF_DET_NORMAL=1<<TEX_DET_NORMAL,
+   TEXF_DET_SMOOTH=1<<TEX_DET_SMOOTH,
+   TEXF_MACRO     =1<<TEX_MACRO     ,
+   TEXF_EMISSIVE  =1<<TEX_EMISSIVE  ,
+
+   TEXF_NONE= 0,
+   TEXF_ALL =~0,
+
+   TEXF_BASE=TEXF_COLOR|TEXF_ALPHA|TEXF_BUMP|TEXF_NORMAL|TEXF_SMOOTH|TEXF_METAL|TEXF_GLOW,
+   TEXF_DET =TEXF_DET_COLOR|TEXF_DET_BUMP|TEXF_DET_NORMAL|TEXF_DET_SMOOTH,
+};
+SET_ENUM_FLAGS(TEX_FLAG);
+
 struct ImageSource
 {
  C Image &image;
@@ -233,13 +268,13 @@ struct ImageSource
 
    ImageSource(C Image &image, C VecI2 &size=0, Int filter=-1, Bool clamp=false) : image(image), size(size), filter(filter), clamp(clamp) {}
 };
-UInt  CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &metal, C ImageSource &glow, Bool resize_to_pow2=true, Bool flip_normal_y=false, Bool smooth_is_rough=false); // create 'base_0', 'base_1' and 'base_2' base material textures from given images, textures will be created as IMAGE_R8G8B8A8_SRGB, IMAGE_R8G8_SIGN, IMAGE_R8G8B8A8 IMAGE_SOFT, 'flip_normal_y'=if flip normal map Y channel, 'smooth_is_rough'=if smoothness map is actually roughness map, returns bit combination of BASE_TEX enums of what the base textures have
-UInt ExtractBase0Texture(Image &base_0, Image *color, Image *alpha);
-UInt ExtractBase1Texture(Image &base_1, Image *normal);
-UInt ExtractBase2Texture(Image &base_2, Image *bump, Image *smooth, Image *metal, Image *glow);
+TEX_FLAG  CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &metal, C ImageSource &glow, Bool resize_to_pow2=true, Bool flip_normal_y=false, Bool smooth_is_rough=false); // create 'base_0', 'base_1' and 'base_2' base material textures from given images, textures will be created as IMAGE_R8G8B8A8_SRGB, IMAGE_R8G8_SIGN, IMAGE_R8G8B8A8 IMAGE_SOFT, 'flip_normal_y'=if flip normal map Y channel, 'smooth_is_rough'=if smoothness map is actually roughness map, returns bit combination of used textures
+TEX_FLAG ExtractBase0Texture(Image &base_0, Image *color, Image *alpha                           ); // returns bit combination of used textures
+TEX_FLAG ExtractBase1Texture(Image &base_1, Image *normal                                        ); // returns bit combination of used textures
+TEX_FLAG ExtractBase2Texture(Image &base_2, Image *bump, Image *smooth, Image *metal, Image *glow); // returns bit combination of used textures
 
-void  CreateDetailTexture(  Image &detail, C ImageSource &color, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, Bool resize_to_pow2=true, Bool flip_normal_y=false, Bool smooth_is_rough=false); // create 'detail' material texture from given images, texture  will be created as IMAGE_R8G8B8A8 IMAGE_SOFT, 'flip_normal_y'=if flip normal map Y channel, 'smooth_is_rough'=if smoothness map is actually roughness map
-UInt ExtractDetailTexture(C Image &detail,   Image       *color,   Image       *bump,   Image       *normal,   Image       *smooth);
+TEX_FLAG  CreateDetailTexture(  Image &detail, C ImageSource &color, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, Bool resize_to_pow2=true, Bool flip_normal_y=false, Bool smooth_is_rough=false); // create 'detail' material texture from given images, texture  will be created as IMAGE_R8G8B8A8 IMAGE_SOFT, 'flip_normal_y'=if flip normal map Y channel, 'smooth_is_rough'=if smoothness map is actually roughness map, returns bit combination of used textures
+TEX_FLAG ExtractDetailTexture(C Image &detail,   Image       *color,   Image       *bump,   Image       *normal,   Image       *smooth); // returns bit combination of used textures
 
 Bool CreateBumpFromColor(Image &bump, C Image &color, Flt min_blur_range=-1, Flt max_blur_range=-1, Bool clamp=false); // create 'bump' texture from color image, texture will be created as IMAGE_F32 IMAGE_SOFT, 'min_blur_range' and 'max_blur_range' are minimum and maximum blur ranges used for creating the bump map, use -1 for auto values
 

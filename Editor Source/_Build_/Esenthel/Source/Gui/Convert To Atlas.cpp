@@ -251,15 +251,15 @@ ConvertToAtlasClass ConvertToAtlas;
          }
       }
    }
-   bool ConvertToAtlasClass::AddMap(bool &forced, Str &dest, C Str &src, bool force, C Mtrl &mtrl, uint tex_type,
+   bool ConvertToAtlasClass::AddMap(bool &forced, Str &dest, C Str &src, bool force, C Mtrl &mtrl, TEX_FLAG tex_flag,
                     C Vec &src_mul, C Vec &src_add, // transformation of the source map
                       flt dest_mul,   flt dest_add) // transformation of the dest   map
    {
       forced=false;
 
       if(force) // if need to write based on params (because there are other materials that need this texture to be generated, so we have to write something)
-         if(tex_type&(BT_BUMP|BT_NORMAL // don't set bump/normal because it should always be flat without src map
-                     |BT_ALPHA)) // just leave alpha for now, because it's treated differently depending on alpha blend/test/opaque
+         if(tex_flag&(TEXF_BUMP|TEXF_NORMAL // don't set bump/normal because it should always be flat without src map
+                     |TEXF_ALPHA)) // just leave alpha for now, because it's treated differently depending on alpha blend/test/opaque
             force=false;
 
       if(src.is() || force)
@@ -280,15 +280,15 @@ ConvertToAtlasClass ConvertToAtlas;
             FileParams &fp=fps_dest.New();
             Swap(fps_src, fp.nodes);
             VecI2 size=mtrl.packed_rect.size();
-            if(mtrl.edit.smooth_is_rough && tex_type==BT_SMOOTH) fp.params.New().set("inverseRGB");
-            if(mtrl.edit.flip_normal_y   && tex_type==BT_NORMAL) fp.params.New().set("inverseG"); // !! this needs to be done before 'swapRG' !!
-            if(mtrl.rotated                                    ){fp.params.New().set("swapXY"); if(tex_type==BT_NORMAL)fp.params.New().set("swapRG");} // !! this needs to be done before 'resizeClamp' !!
+            if(mtrl.edit.smooth_is_rough && tex_flag==TEXF_SMOOTH) fp.params.New().set("inverseRGB");
+            if(mtrl.edit.flip_normal_y   && tex_flag==TEXF_NORMAL) fp.params.New().set("inverseG"); // !! this needs to be done before 'swapRG' !!
+            if(mtrl.rotated                                      ){fp.params.New().set("swapXY"); if(tex_flag==TEXF_NORMAL)fp.params.New().set("swapRG");} // !! this needs to be done before 'resizeClamp' !!
 
             bool need_mul=!Equal(mul, Vec(1)),
                  need_add=!Equal(add, Vec(0));
             if(need_mul || need_add) // have to transform
             {
-               if(tex_type&(BT_BUMP|BT_NORMAL)) // bump and normal have to scale
+               if(tex_flag&(TEXF_BUMP|TEXF_NORMAL)) // bump and normal have to scale
                {
                   if(need_mul)fp.params.New().set("scale", TextVecEx(mul));
                }else
@@ -304,7 +304,7 @@ ConvertToAtlasClass ConvertToAtlas;
          }else // don't have source map
          if(force) // but we need to write based on params (because there are other materials that need this texture to be generated, so we have to write something)
          { // #MaterialTextureLayout
-            flt src=((tex_type&(BT_SMOOTH|BT_METAL)) ? 0 : 1); // for smooth/metal if there's no source map, then source is treated as no smooth/metal (0)
+            flt src=((tex_flag&(TEXF_SMOOTH|TEXF_METAL)) ? 0 : 1); // for smooth/metal if there's no source map, then source is treated as no smooth/metal (0)
             Vec set=src*mul+add;
             FileParams &fp=fps_dest.New();
             fp.params.New().set("setRGB", TextVecEx(set)+'@'+mtrl.packed_rect.min.x+','+mtrl.packed_rect.min.y+','+mtrl.packed_rect.w()+','+mtrl.packed_rect.h());
@@ -333,14 +333,14 @@ ConvertToAtlasClass ConvertToAtlas;
       // convert before hiding because that may release resources
       if(mtrls.elms())
       {
-         uint tex_used=0; // detect what textures are present and used in all materials, if at least one material uses a texture, then it means we will have to specify it for all materials
-         flt  min_reflect=MATERIAL_REFLECT; // minimum reflectivity of all materials
+         TEX_FLAG tex_used=TEXF_NONE; // detect what textures are present and used in all materials, if at least one material uses a texture, then it means we will have to specify it for all materials
+         flt      min_reflect=MATERIAL_REFLECT; // minimum reflectivity of all materials
          Map<UID, int> parent_occurence(Compare, Create);
          REPA(mtrls)
          {
             Mtrl &mtrl=mtrls[i]; MtrlEdit.flush(mtrl.id); mtrl.edit.load(Proj.editPath(mtrl.id)); // load after flushing
             if(Elm *elm=Proj.findElm(mtrl.id))(*parent_occurence(elm->parent_id))++; // calculate which parent is most frequently used for stored materials
-            tex_used|=mtrl.edit.baseTexUsed();
+            tex_used|=mtrl.edit.texturesUsed();
             MIN(min_reflect, mtrl.edit.reflect_min);
          }
          int occurences=0; UID parent_id=UIDZero; REPA(parent_occurence)if(parent_occurence[i]>occurences){occurences=parent_occurence[i]; parent_id=parent_occurence.key(i);} // calculate which parent is most frequently used for stored materials
@@ -353,33 +353,34 @@ ConvertToAtlasClass ConvertToAtlas;
          atlas_images.Export("d:/", "bmp"); */
 
          ImporterClass::Import::MaterialEx atlas;
+         atlas.adjust_params=false; // don't adjust params because EE Materials are OK
          atlas.name="Atlas";
-         atlas.mtrl.cull=true;
-         atlas.mtrl.color_l=0;
-         atlas.mtrl.normal=0;
-         atlas.mtrl.bump=0;
-         atlas.mtrl.  rough_mul=0; atlas.mtrl.  rough_add=0;
-         atlas.mtrl.reflect_mul=0; atlas.mtrl.reflect_add=0;
-         atlas.mtrl.glow=0;
-         atlas.mtrl.emissive=0;
-         Vec4  color_s=0;
-         flt   alpha=0; int alpha_num=0; MATERIAL_TECHNIQUE tech=MTECH_DEFAULT; // parameters for alpha materials
-         flt   reflect_min=0, reflect_max=0;
-         uint  tex_wrote=0; // what textures we wrote to atlas
-         uint  tex_force_size=0; // what textures need size forced
-         VecI2 tex_filled=0; // 'tex_filled.x'=bit mask of which textures fill atlas image in X, 'tex_filled.y'=bit mask of which textures fill atlas image in Y
+         atlas.cull=true;
+         atlas.color=0;
+         atlas.normal=0;
+         atlas.bump=0;
+         atlas.  rough_mul=0; atlas.  rough_add=0;
+         atlas.reflect_mul=0; atlas.reflect_add=0;
+         atlas.glow=0;
+         atlas.emissive=0;
+         flt      alpha=0; int alpha_num=0; MATERIAL_TECHNIQUE tech=MTECH_DEFAULT; // parameters for alpha materials
+         flt      reflect_min=0, reflect_max=0;
+         TEX_FLAG tex_wrote     =TEXF_NONE; // what textures we wrote to atlas
+         TEX_FLAG tex_force_size=TEXF_NONE; // what textures need size forced
+         TEX_FLAG tex_filled_x  =TEXF_NONE; // bit mask of which textures fill atlas image in X
+         TEX_FLAG tex_filled_y  =TEXF_NONE; // bit mask of which textures fill atlas image in Y
          MaterialParams params; // temporary used for calculating reflect values
          FREPA(mtrls)
          {
             Mtrl &mtrl=mtrls[i];
-            atlas.mtrl.cull       &=mtrl.edit.cull; // if at least one material requires cull disabled, then disable for all
-                       color_s    +=mtrl.edit.color_s;
-            atlas.mtrl.normal     +=mtrl.edit.normal;
-            atlas.mtrl.bump       +=mtrl.edit.bump;
-            atlas.mtrl.smooth     +=mtrl.edit.smooth;
-                       reflect_min+=mtrl.edit.reflect_min; reflect_max+=mtrl.edit.reflect_max;
-            atlas.mtrl.glow       +=mtrl.edit.glow;
-            atlas.mtrl.emissive   +=mtrl.edit.emissive;
+            atlas.cull     &=mtrl.edit.cull; // if at least one material requires cull disabled, then disable for all
+            atlas.color    +=mtrl.edit.color_s;
+            atlas.normal   +=mtrl.edit.normal;
+            atlas.bump     +=mtrl.edit.bump;
+            atlas.rough_mul+=mtrl.edit.roughMul(); atlas.rough_add+=mtrl.edit.roughAdd();
+                reflect_min+=mtrl.edit.reflect_min; reflect_max+=mtrl.edit.reflect_max;
+            atlas.glow     +=mtrl.edit.glow;
+            atlas.emissive +=mtrl.edit.emissive;
 
             if(mtrl.edit.tech){alpha+=mtrl.edit.color_s.w; alpha_num++; tech=mtrl.edit.tech;}
 
@@ -395,14 +396,14 @@ ConvertToAtlasClass ConvertToAtlas;
 
             mtrl.edit.expandMaps(); // have to expand maps, because if normal map was referring to bump, then the new bump will be different (atlas of bumps)
 
-            if(tex_used&BT_ALPHA) // if at least one material uses 'alpha_map', then we need to specify all of them, in case: alpha in one material comes from 'color_map', or it will in the future
+            if(tex_used&TEXF_ALPHA) // if at least one material uses 'alpha_map', then we need to specify all of them, in case: alpha in one material comes from 'color_map', or it will in the future
                if(!mtrl.edit.alpha_map.is()) // if not yet specified
             {
                mtrl.edit.alpha_map=mtrl.edit.color_map; // set from 'color_map'
                AddTransform(mtrl.edit.alpha_map, "channel", "a"); // use alpha channel of 'color_map'
             }
 
-            if(tex_used&BT_BUMP) // if at least one material uses 'bump_map', then we need to specify all normal maps
+            if(tex_used&TEXF_BUMP) // if at least one material uses 'bump_map', then we need to specify all normal maps
                if(!mtrl.edit.normal_map.is()) // if not yet specified
             {
                mtrl.edit.normal_map=mtrl.edit.bump_map; // set from 'bump_map'
@@ -410,47 +411,49 @@ ConvertToAtlasClass ConvertToAtlas;
                mtrl.edit.flip_normal_y=false; // "bumpToNormal" always generates correct normal, so have to disable flip
             }
 
-            uint tex_mtrl=0; // what textures we've written to the atlas from this material, if there's at least one other texture of the same type in another material, then we have to force writing it for this material
-            bool forced;
+            TEX_FLAG tex_mtrl=TEXF_NONE; // what textures we've written to the atlas from this material, if there's at least one other texture of the same type in another material, then we have to force writing it for this material
+            bool     forced;
             params.reflect(mtrl.edit.reflect_min, mtrl.edit.reflect_max); // calculate mul add
-            if(AddMap(forced, atlas. color_map, mtrl.edit. color_map, FlagTest(tex_used, BT_COLOR ), mtrl, BT_COLOR , mtrl.edit.color_s.xyz                                             )){tex_mtrl|=BT_COLOR ; if(forced)tex_force_size|=BT_COLOR ;}
-            if(AddMap(forced, atlas. alpha_map, mtrl.edit. alpha_map, FlagTest(tex_used, BT_ALPHA ), mtrl, BT_ALPHA                                                                     )){tex_mtrl|=BT_ALPHA ; if(forced)tex_force_size|=BT_ALPHA ;}
-            if(AddMap(forced, atlas.  bump_map, mtrl.edit.  bump_map, FlagTest(tex_used, BT_BUMP  ), mtrl, BT_BUMP                                                                      )){tex_mtrl|=BT_BUMP  ; if(forced)tex_force_size|=BT_BUMP  ;}
-            if(AddMap(forced, atlas.normal_map, mtrl.edit.normal_map, FlagTest(tex_used, BT_NORMAL), mtrl, BT_NORMAL, mtrl.edit.normal                                                  )){tex_mtrl|=BT_NORMAL; if(forced)tex_force_size|=BT_NORMAL;}
-            if(AddMap(forced, atlas.smooth_map, mtrl.edit.smooth_map, FlagTest(tex_used, BT_SMOOTH), mtrl, BT_SMOOTH, mtrl.edit.smooth                                                  )){tex_mtrl|=BT_SMOOTH; if(forced)tex_force_size|=BT_SMOOTH;}
-            if(AddMap(forced, atlas. metal_map, mtrl.edit. metal_map, FlagTest(tex_used, BT_METAL ), mtrl, BT_METAL , params.reflect_mul, params.reflect_add, 1-min_reflect, min_reflect)){tex_mtrl|=BT_METAL ; if(forced)tex_force_size|=BT_METAL ;} // 1-min_reflect because we will operate on min_reflect..1 range, so mul=1-min_reflect, add=min_reflect
-            if(AddMap(forced, atlas.  glow_map, mtrl.edit.  glow_map, FlagTest(tex_used, BT_GLOW  ), mtrl, BT_GLOW  , mtrl.edit.glow                                                    )){tex_mtrl|=BT_GLOW  ; if(forced)tex_force_size|=BT_GLOW  ;}
+            if(AddMap(forced, atlas. color_map, mtrl.edit. color_map, FlagTest(tex_used, TEXF_COLOR   ), mtrl, TEXF_COLOR   , mtrl.edit.color_s.xyz                                             )){tex_mtrl|=TEXF_COLOR   ; if(forced)tex_force_size|=TEXF_COLOR   ;}
+            if(AddMap(forced, atlas. alpha_map, mtrl.edit. alpha_map, FlagTest(tex_used, TEXF_ALPHA   ), mtrl, TEXF_ALPHA                                                                       )){tex_mtrl|=TEXF_ALPHA   ; if(forced)tex_force_size|=TEXF_ALPHA   ;}
+            if(AddMap(forced, atlas.  bump_map, mtrl.edit.  bump_map, FlagTest(tex_used, TEXF_BUMP    ), mtrl, TEXF_BUMP                                                                        )){tex_mtrl|=TEXF_BUMP    ; if(forced)tex_force_size|=TEXF_BUMP    ;}
+            if(AddMap(forced, atlas.normal_map, mtrl.edit.normal_map, FlagTest(tex_used, TEXF_NORMAL  ), mtrl, TEXF_NORMAL  , mtrl.edit.normal                                                  )){tex_mtrl|=TEXF_NORMAL  ; if(forced)tex_force_size|=TEXF_NORMAL  ;}
+            if(AddMap(forced, atlas.smooth_map, mtrl.edit.smooth_map, FlagTest(tex_used, TEXF_SMOOTH  ), mtrl, TEXF_SMOOTH  , mtrl.edit.smooth                                                  )){tex_mtrl|=TEXF_SMOOTH  ; if(forced)tex_force_size|=TEXF_SMOOTH  ;}
+            if(AddMap(forced, atlas. metal_map, mtrl.edit. metal_map, FlagTest(tex_used, TEXF_METAL   ), mtrl, TEXF_METAL   , params.reflect_mul, params.reflect_add, 1-min_reflect, min_reflect)){tex_mtrl|=TEXF_METAL   ; if(forced)tex_force_size|=TEXF_METAL   ;} // 1-min_reflect because we will operate on min_reflect..1 range, so mul=1-min_reflect, add=min_reflect
+            if(AddMap(forced, atlas.  glow_map, mtrl.edit.  glow_map, FlagTest(tex_used, TEXF_GLOW    ), mtrl, TEXF_GLOW    , mtrl.edit.glow                                                    )){tex_mtrl|=TEXF_GLOW    ; if(forced)tex_force_size|=TEXF_GLOW    ;}
+            if(AddMap(forced, atlas. light_map, mtrl.edit. light_map, FlagTest(tex_used, TEXF_EMISSIVE), mtrl, TEXF_EMISSIVE, mtrl.edit.emissive                                                )){tex_mtrl|=TEXF_EMISSIVE; if(forced)tex_force_size|=TEXF_EMISSIVE;}
 
             tex_wrote|=tex_mtrl;
 
             if(mtrl.packed_rect.includesX(tex_size.x)) // if this packed rect includes the right side
-               tex_filled.x|=tex_mtrl; // add filled textures from this material
+               tex_filled_x|=tex_mtrl; // add filled textures from this material
 
             if(mtrl.packed_rect.includesY(tex_size.y)) // if this packed rect includes the bottom side
-               tex_filled.y|=tex_mtrl; // add filled textures from this material
+               tex_filled_y|=tex_mtrl; // add filled textures from this material
          }
 
          // if textures didn't fill entire needed space, then we need to place a dummy to force image size
-         uint filled=tex_filled.x&tex_filled.y; // we need both sides to be filled
+         TEX_FLAG filled=tex_filled_x&tex_filled_y; // we need both sides to be filled
          filled&=~tex_force_size; // if a texture needs to have forced size, then we must disable filled so the size is specified
-         checkSide(atlas. color_map, FlagTest(filled, BT_COLOR ));
-         checkSide(atlas. alpha_map, FlagTest(filled, BT_ALPHA ));
-         checkSide(atlas.  bump_map, FlagTest(filled, BT_BUMP  ));
-         checkSide(atlas.normal_map, FlagTest(filled, BT_NORMAL));
-         checkSide(atlas.smooth_map, FlagTest(filled, BT_SMOOTH));
-         checkSide(atlas. metal_map, FlagTest(filled, BT_METAL ));
-         checkSide(atlas.  glow_map, FlagTest(filled, BT_GLOW  ));
+         checkSide(atlas. color_map, FlagTest(filled, TEXF_COLOR   ));
+         checkSide(atlas. alpha_map, FlagTest(filled, TEXF_ALPHA   ));
+         checkSide(atlas.  bump_map, FlagTest(filled, TEXF_BUMP    ));
+         checkSide(atlas.normal_map, FlagTest(filled, TEXF_NORMAL  ));
+         checkSide(atlas.smooth_map, FlagTest(filled, TEXF_SMOOTH  ));
+         checkSide(atlas. metal_map, FlagTest(filled, TEXF_METAL   ));
+         checkSide(atlas.  glow_map, FlagTest(filled, TEXF_GLOW    ));
+         checkSide(atlas. light_map, FlagTest(filled, TEXF_EMISSIVE));
 
-         if(tex_wrote& BT_COLOR          ){atlas.mtrl.color_l.xyz=                                1;                           }else atlas.mtrl.color_l.xyz=SRGBToLinear(color_s.xyz/mtrls.elms());            // if we ended up having color  map, then it means we've used the baked textures, for which we need to set the full color   multiplier
-         if(tex_wrote&(BT_COLOR|BT_ALPHA)){atlas.mtrl.color_l.w  =(alpha_num ? alpha/alpha_num : 1); atlas.mtrl.technique=tech;}else atlas.mtrl.color_l.w  =             color_s.w  /mtrls.elms() ;            // if we ended up having alpha  map, then set parameters from alpha materials only (check color map too because alpha can come from it)
-         if(tex_wrote& BT_BUMP           ){                                                                                    }     atlas.mtrl.bump     /=mtrls.elms();
-         if(tex_wrote& BT_NORMAL         ){atlas.mtrl.normal =1;                                                               }else atlas.mtrl.normal   /=mtrls.elms();                                       // if we ended up having normal map, then it means we've used the baked textures, for which we need to set the full normal  multiplier
-         if(tex_wrote& BT_SMOOTH         ){atlas.mtrl.rough_mul=1; atlas.mtrl.rough_add=0;                                     }else{atlas.mtrl.rough_mul/=mtrls.elms(); atlas.mtrl.rough_add/=mtrls.elms();}  // if we ended up having smooth map, then it means we've used the baked textures, for which we need to set the full smooth  multiplier
-         if(tex_wrote& BT_METAL          ){atlas.mtrl.reflect(min_reflect);                                                    }else atlas.mtrl.reflect  (reflect_min/mtrls.elms(), reflect_max/mtrls.elms()); // if we ended up having metal  map, then it means we've used the baked textures, for which we need to set the full reflect multiplier
-         if(tex_wrote& BT_GLOW           ){atlas.mtrl.glow   =1;                                                               }else atlas.mtrl.glow     /=mtrls.elms();                                       // if we ended up having glow   map, then it means we've used the baked textures, for which we need to set the full glow    multiplier
-                                                                                                                                     atlas.mtrl.emissive /=mtrls.elms();
+         if(tex_wrote& TEXF_COLOR            ){atlas.color.xyz=                                1;                      }else atlas.color.xyz/=mtrls.elms();                                       // if we ended up having color  map, then it means we've used the baked textures, for which we need to set the full color    multiplier
+         if(tex_wrote&(TEXF_COLOR|TEXF_ALPHA)){atlas.color.w  =(alpha_num ? alpha/alpha_num : 1); atlas.technique=tech;}else atlas.color.w  /=mtrls.elms();                                       // if we ended up having alpha  map, then set parameters from alpha materials only (check color map too because alpha can come from it)
+         if(tex_wrote& TEXF_BUMP             ){                                                                        }     atlas.bump     /=mtrls.elms();
+         if(tex_wrote& TEXF_NORMAL           ){atlas.normal  =1;                                                       }else atlas.normal   /=mtrls.elms();                                       // if we ended up having normal map, then it means we've used the baked textures, for which we need to set the full normal   multiplier
+         if(tex_wrote& TEXF_SMOOTH           ){atlas.rough_mul=1; atlas.rough_add=0;                                   }else{atlas.rough_mul/=mtrls.elms(); atlas.rough_add/=mtrls.elms();}       // if we ended up having smooth map, then it means we've used the baked textures, for which we need to set the full smooth   multiplier
+         if(tex_wrote& TEXF_METAL            ){atlas.reflect(min_reflect);                                             }else atlas.reflect  (reflect_min/mtrls.elms(), reflect_max/mtrls.elms()); // if we ended up having metal  map, then it means we've used the baked textures, for which we need to set the full reflect  multiplier
+         if(tex_wrote& TEXF_GLOW             ){atlas.glow    =1;                                                       }else atlas.glow     /=mtrls.elms();                                       // if we ended up having glow   map, then it means we've used the baked textures, for which we need to set the full glow     multiplier
+         if(tex_wrote& TEXF_EMISSIVE         ){atlas.emissive=1;                                                       }else atlas.emissive /=mtrls.elms();                                       // if we ended up having light  map, then it means we've used the baked textures, for which we need to set the full emissive multiplier
 
-         EditMaterial edit; atlas.copyTo(edit);
+         EditMaterial edit; edit.create(atlas);
          Proj.createBaseTextures(atlas.base_0, atlas.base_1, atlas.base_2, edit);
          // copy images only if 'Importer.includeTex' which means this texture was encountered for the first time, don't check for 'Proj.includeTex' because with it we would have to also save the textures, which are done automatically in 'Proj.newMtrl'
          IMAGE_TYPE ct; ImageProps(atlas.base_0, &atlas.base_0_id, &ct, MTRL_BASE_0, edit.tex_quality); if(Importer.includeTex(atlas.base_0_id))atlas.base_0.copyTry(atlas.base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);

@@ -1081,7 +1081,7 @@ void DrawProject()
          if(src.light .is() && includeTex(src. light_id))saveTex(src.light , src. light_id); Server.setTex(src. light_id);
 
          TimeStamp time; time.getUTC();
-         EditMaterial edit_mtrl; src.copyTo(edit_mtrl, time);
+         EditMaterial edit_mtrl; edit_mtrl.create(src, time);
          Save(edit_mtrl, editPath(mtrl));
          makeGameVer(mtrl);
          data->newVer();
@@ -1916,16 +1916,15 @@ void DrawProject()
          if(MtrlEdit.elm_id==elm_id)
          {
             MtrlEdit.undos.set(undo_change_type);
-               uint base_tex =MtrlEdit.edit.baseTex(); // get current state of textures before making any change
-               bool light_map=MtrlEdit.edit.hasLightMap();
-            if(uint changed  =MtrlEdit.edit.sync(mtrl))
+               TEX_FLAG textures=MtrlEdit.edit.textures(); // get current state of textures before making any change
+            if(uint     changed =MtrlEdit.edit.sync(mtrl))
             {
                if(reload_textures)
                {
-                  if(changed&EditMaterial::CHANGED_BASE )MtrlEdit.rebuildBase  (base_tex, FlagTest(changed, EditMaterial::CHANGED_FNY), FlagTest(changed, EditMaterial::CHANGED_SIR), adjust_params, true);
+                  if(changed&EditMaterial::CHANGED_BASE )MtrlEdit.rebuildBase  (textures, FlagTest(changed, EditMaterial::CHANGED_FNY), FlagTest(changed, EditMaterial::CHANGED_SIR), adjust_params, true);
                   if(changed&EditMaterial::CHANGED_DET  )MtrlEdit.rebuildDetail();
                   if(changed&EditMaterial::CHANGED_MACRO)MtrlEdit.rebuildMacro ();
-                  if(changed&EditMaterial::CHANGED_LIGHT)MtrlEdit.rebuildLight (light_map, adjust_params);
+                  if(changed&EditMaterial::CHANGED_LIGHT)MtrlEdit.rebuildLight (textures, adjust_params);
                }else
                {
                   if(changed&(EditMaterial::CHANGED_BASE|EditMaterial::CHANGED_DET|EditMaterial::CHANGED_MACRO|EditMaterial::CHANGED_LIGHT))mtrlTexChanged();
@@ -1939,16 +1938,15 @@ void DrawProject()
          if(WaterMtrlEdit.elm_id==elm_id)
          {
             WaterMtrlEdit.undos.set(undo_change_type);
-               uint base_tex =WaterMtrlEdit.edit.baseTex(); // get current state of textures before making any change
-               bool light_map=WaterMtrlEdit.edit.hasLightMap();
-            if(uint changed  =WaterMtrlEdit.edit.sync(mtrl))
+               TEX_FLAG textures=WaterMtrlEdit.edit.textures(); // get current state of textures before making any change
+            if(uint     changed =WaterMtrlEdit.edit.sync(mtrl))
             {
                if(reload_textures)
                {
-                  if(changed&EditMaterial::CHANGED_BASE )WaterMtrlEdit.rebuildBase  (base_tex, FlagTest(changed, EditMaterial::CHANGED_FNY), FlagTest(changed, EditMaterial::CHANGED_SIR), adjust_params, true);
+                  if(changed&EditMaterial::CHANGED_BASE )WaterMtrlEdit.rebuildBase  (textures, FlagTest(changed, EditMaterial::CHANGED_FNY), FlagTest(changed, EditMaterial::CHANGED_SIR), adjust_params, true);
                   if(changed&EditMaterial::CHANGED_DET  )WaterMtrlEdit.rebuildDetail();
                   if(changed&EditMaterial::CHANGED_MACRO)WaterMtrlEdit.rebuildMacro ();
-                  if(changed&EditMaterial::CHANGED_LIGHT)WaterMtrlEdit.rebuildLight (light_map, adjust_params);
+                  if(changed&EditMaterial::CHANGED_LIGHT)WaterMtrlEdit.rebuildLight (textures, adjust_params);
                }else
                {
                   if(changed&(EditMaterial::CHANGED_BASE|EditMaterial::CHANGED_DET|EditMaterial::CHANGED_MACRO|EditMaterial::CHANGED_LIGHT))mtrlTexChanged();
@@ -1964,23 +1962,22 @@ void DrawProject()
             case ELM_MTRL:
             {
                EditMaterial edit; if(!mtrlGet(elm_id, edit))return false; // load
-               uint         old_base_tex =edit.baseTex();
-               bool         old_light_map=edit.hasLightMap();
+               TEX_FLAG     old_textures=edit.textures();
                if(uint changed=edit.sync(mtrl)) // if changed anything
                {
                   MaterialPtr game=gamePath(elm_id); if(!game)return false;
                   bool        want_tan_bin=game->needTanBin();
-                  uint        new_base_tex=edit.baseTex(); // use estimated base tex
+                  TEX_FLAG    new_textures=edit.textures(); // use estimated base tex
 
                   if(reload_textures)
                   {
-                     if(changed&EditMaterial::CHANGED_BASE )new_base_tex=mtrlCreateBaseTextures (edit, FlagTest(changed, EditMaterial::CHANGED_FNY), FlagTest(changed, EditMaterial::CHANGED_SIR)); // get precise base tex
+                     if(changed&EditMaterial::CHANGED_BASE )new_textures=mtrlCreateBaseTextures (edit, FlagTest(changed, EditMaterial::CHANGED_FNY), FlagTest(changed, EditMaterial::CHANGED_SIR)); // get precise base tex
                      if(changed&EditMaterial::CHANGED_DET  )             mtrlCreateDetailTexture(edit);
                      if(changed&EditMaterial::CHANGED_MACRO)             mtrlCreateMacroTexture (edit);
                      if(changed&EditMaterial::CHANGED_LIGHT)             mtrlCreateLightTexture (edit);
                   }
 
-                  if(adjust_params)edit.adjustParams(old_base_tex, new_base_tex, old_light_map);
+                  if(adjust_params)edit.adjustParams(old_textures, new_textures);
                   edit.copyTo(*game, T);
 
                   // save
@@ -1999,23 +1996,22 @@ void DrawProject()
             case ELM_WATER_MTRL:
             {
                EditWaterMtrl edit; if(!mtrlGet(elm_id, edit))return false; // load
-               uint          old_base_tex =edit.baseTex();
-               bool          old_light_map=edit.hasLightMap();
+               TEX_FLAG      old_textures=edit.textures();
                if(uint changed=edit.sync(mtrl)) // if changed anything
                {
                   WaterMtrlPtr game=gamePath(elm_id); if(!game)return false;
                 //bool         want_tan_bin=game->needTanBin();
-                  uint         new_base_tex=edit.baseTex(); // use estimated base tex
+                  TEX_FLAG     new_textures=edit.textures(); // use estimated base tex
 
                   if(reload_textures)
                   {
-                     if(changed&EditMaterial::CHANGED_BASE )new_base_tex=mtrlCreateBaseTextures (edit, FlagTest(changed, EditMaterial::CHANGED_FNY), FlagTest(changed, EditMaterial::CHANGED_SIR)); // get precise base tex
+                     if(changed&EditMaterial::CHANGED_BASE )new_textures=mtrlCreateBaseTextures (edit, FlagTest(changed, EditMaterial::CHANGED_FNY), FlagTest(changed, EditMaterial::CHANGED_SIR)); // get precise base tex
                      if(changed&EditMaterial::CHANGED_DET  )             mtrlCreateDetailTexture(edit);
                      if(changed&EditMaterial::CHANGED_MACRO)             mtrlCreateMacroTexture (edit);
                      if(changed&EditMaterial::CHANGED_LIGHT)             mtrlCreateLightTexture (edit);
                   }
 
-                  if(adjust_params)edit.adjustParams(old_base_tex, new_base_tex, old_light_map);
+                  if(adjust_params)edit.adjustParams(old_textures, new_textures);
                   edit.copyTo(*game, T);
 
                   // save
@@ -2041,16 +2037,15 @@ void DrawProject()
          if(WaterMtrlEdit.elm_id==elm_id)
          {
             WaterMtrlEdit.undos.set(undo_change_type);
-               uint base_tex =WaterMtrlEdit.edit.baseTex(); // get current state of textures before making any change
-               bool light_map=WaterMtrlEdit.edit.hasLightMap();
-            if(uint changed  =WaterMtrlEdit.edit.sync(mtrl))
+               TEX_FLAG textures=WaterMtrlEdit.edit.textures(); // get current state of textures before making any change
+            if(uint     changed =WaterMtrlEdit.edit.sync(mtrl))
             {
                if(reload_textures)
                {
-                  if(changed&EditWaterMtrl::CHANGED_BASE )WaterMtrlEdit.rebuildBase  (base_tex, FlagTest(changed, EditWaterMtrl::CHANGED_FNY), FlagTest(changed, EditWaterMtrl::CHANGED_SIR), adjust_params, true);
+                  if(changed&EditWaterMtrl::CHANGED_BASE )WaterMtrlEdit.rebuildBase  (textures, FlagTest(changed, EditWaterMtrl::CHANGED_FNY), FlagTest(changed, EditWaterMtrl::CHANGED_SIR), adjust_params, true);
                   if(changed&EditWaterMtrl::CHANGED_DET  )WaterMtrlEdit.rebuildDetail();
                   if(changed&EditWaterMtrl::CHANGED_MACRO)WaterMtrlEdit.rebuildMacro ();
-                  if(changed&EditWaterMtrl::CHANGED_LIGHT)WaterMtrlEdit.rebuildLight (light_map, adjust_params);
+                  if(changed&EditWaterMtrl::CHANGED_LIGHT)WaterMtrlEdit.rebuildLight (textures, adjust_params);
                }else
                {
                   if(changed&(EditWaterMtrl::CHANGED_BASE|EditWaterMtrl::CHANGED_DET|EditWaterMtrl::CHANGED_MACRO|EditWaterMtrl::CHANGED_LIGHT))mtrlTexChanged();
@@ -2063,23 +2058,22 @@ void DrawProject()
          }
          // load
          EditWaterMtrl edit; if(!mtrlGet(elm_id, edit))return false;
-         uint          old_base_tex =edit.baseTex();
-         bool          old_light_map=edit.hasLightMap();
+         TEX_FLAG      old_textures=edit.textures();
          if(uint changed=edit.sync(mtrl)) // if changed anything
          {
             WaterMtrlPtr game=gamePath(elm_id); if(!game)return false;
           //bool         want_tan_bin=game->needTanBin();
-            uint         new_base_tex=edit.baseTex(); // use estimated base tex
+            TEX_FLAG     new_textures=edit.textures(); // use estimated base tex
 
             if(reload_textures)
             {
-               if(changed&EditWaterMtrl::CHANGED_BASE )new_base_tex=mtrlCreateBaseTextures (edit, FlagTest(changed, EditWaterMtrl::CHANGED_FNY), FlagTest(changed, EditWaterMtrl::CHANGED_SIR)); // get precise base tex
+               if(changed&EditWaterMtrl::CHANGED_BASE )new_textures=mtrlCreateBaseTextures (edit, FlagTest(changed, EditWaterMtrl::CHANGED_FNY), FlagTest(changed, EditWaterMtrl::CHANGED_SIR)); // get precise base tex
                if(changed&EditWaterMtrl::CHANGED_DET  )             mtrlCreateDetailTexture(edit);
                if(changed&EditWaterMtrl::CHANGED_MACRO)             mtrlCreateMacroTexture (edit);
                if(changed&EditWaterMtrl::CHANGED_LIGHT)             mtrlCreateLightTexture (edit);
             }
 
-            if(adjust_params)edit.adjustParams(old_base_tex, new_base_tex, old_light_map);
+            if(adjust_params)edit.adjustParams(old_textures, new_textures);
             edit.copyTo(*game, T);
 
             // save
@@ -2104,16 +2098,15 @@ void DrawProject()
          if(MtrlEdit.elm_id==elm_id)
          {
             MtrlEdit.undos.set("sync");
-               uint base_tex =MtrlEdit.edit.baseTex(); // get current state of textures before making any change
-               bool light_map=MtrlEdit.edit.hasLightMap();
-            if(uint changed  =MtrlEdit.edit.sync(mtrl))
+               TEX_FLAG textures=MtrlEdit.edit.textures(); // get current state of textures before making any change
+            if(uint     changed =MtrlEdit.edit.sync(mtrl))
             {
                if(reload_textures)
                {
-                  if(changed&EditMaterial::CHANGED_BASE )MtrlEdit.rebuildBase  (base_tex, FlagTest(changed, EditMaterial::CHANGED_FNY), FlagTest(changed, EditMaterial::CHANGED_SIR), adjust_params, true);
+                  if(changed&EditMaterial::CHANGED_BASE )MtrlEdit.rebuildBase  (textures, FlagTest(changed, EditMaterial::CHANGED_FNY), FlagTest(changed, EditMaterial::CHANGED_SIR), adjust_params, true);
                   if(changed&EditMaterial::CHANGED_DET  )MtrlEdit.rebuildDetail();
                   if(changed&EditMaterial::CHANGED_MACRO)MtrlEdit.rebuildMacro ();
-                  if(changed&EditMaterial::CHANGED_LIGHT)MtrlEdit.rebuildLight (light_map, adjust_params);
+                  if(changed&EditMaterial::CHANGED_LIGHT)MtrlEdit.rebuildLight (textures, adjust_params);
                }
                MtrlEdit.toGui();
                MtrlEdit.setChanged();
@@ -2127,23 +2120,22 @@ void DrawProject()
             {
                // load
                EditMaterial edit; if(!mtrlGet(elm_id, edit))return false;
-               uint         old_base_tex =edit.baseTex();
-               bool         old_light_map=edit.hasLightMap();
+               TEX_FLAG     old_textures=edit.textures();
                if(uint changed=edit.sync(mtrl)) // if changed anything
                {
                   MaterialPtr game=gamePath(elm_id); if(!game)return false;
                   bool        want_tan_bin=game->needTanBin();
-                  uint        new_base_tex=edit.baseTex(); // use estimated base tex
+                  TEX_FLAG    new_textures=edit.textures(); // use estimated base tex
 
                   if(reload_textures)
                   {
-                     if(changed&EditMaterial::CHANGED_BASE )new_base_tex=mtrlCreateBaseTextures (edit, FlagTest(changed, EditMaterial::CHANGED_FNY), FlagTest(changed, EditMaterial::CHANGED_SIR)); // get precise base tex
+                     if(changed&EditMaterial::CHANGED_BASE )new_textures=mtrlCreateBaseTextures (edit, FlagTest(changed, EditMaterial::CHANGED_FNY), FlagTest(changed, EditMaterial::CHANGED_SIR)); // get precise base tex
                      if(changed&EditMaterial::CHANGED_DET  )             mtrlCreateDetailTexture(edit);
                      if(changed&EditMaterial::CHANGED_MACRO)             mtrlCreateMacroTexture (edit);
                      if(changed&EditMaterial::CHANGED_LIGHT)             mtrlCreateLightTexture (edit);
                   }
 
-                  if(adjust_params)edit.adjustParams(old_base_tex, new_base_tex, old_light_map);
+                  if(adjust_params)edit.adjustParams(old_textures, new_textures);
                   edit.copyTo(*game, T);
 
                   // save
@@ -2161,23 +2153,23 @@ void DrawProject()
       }
       return false;
    }
-   uint ProjectEx::createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditMaterial &material, bool changed_flip_normal_y, bool changed_smooth_is_rough)
+   TEX_FLAG ProjectEx::createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditMaterial &material, bool changed_flip_normal_y, bool changed_smooth_is_rough)
    {
       MtrlImages mtrl_images;
              mtrl_images.fromMaterial(material, T, changed_flip_normal_y, changed_smooth_is_rough);
       return mtrl_images.createBaseTextures(base_0, base_1, base_2);
    }
-   uint ProjectEx::createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditWaterMtrl &material, bool changed_flip_normal_y, bool changed_smooth_is_rough)
+   TEX_FLAG ProjectEx::createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditWaterMtrl &material, bool changed_flip_normal_y, bool changed_smooth_is_rough)
    {
       MtrlImages mtrl_images;
              mtrl_images.fromMaterial(material, T, changed_flip_normal_y, changed_smooth_is_rough);
       return mtrl_images.createWaterBaseTextures(base_0, base_1, base_2);
    }
-   uint ProjectEx::mtrlCreateBaseTextures(EditMaterial &material, bool changed_flip_normal_y, bool changed_smooth_is_rough)
+   TEX_FLAG ProjectEx::mtrlCreateBaseTextures(EditMaterial &material, bool changed_flip_normal_y, bool changed_smooth_is_rough)
    {
       // TODO: generating textures when the sources were not found, will reuse existing images, but due to compression, the quality will be lost, and new textures will be generated even though images are the same, this is because BC7->RGBA->BC7 is not the same
       Image      base_0, base_1, base_2;
-      uint       bt=createBaseTextures(base_0, base_1, base_2, material, changed_flip_normal_y, changed_smooth_is_rough);
+      TEX_FLAG   textures=createBaseTextures(base_0, base_1, base_2, material, changed_flip_normal_y, changed_smooth_is_rough);
       UID        old_tex_id;
       IMAGE_TYPE ct;
 
@@ -2220,13 +2212,13 @@ void DrawProject()
          Server.setTex(material.base_2_tex);
       }
 
-      return bt;
+      return textures;
    }
-   uint ProjectEx::mtrlCreateBaseTextures(EditWaterMtrl &material, bool changed_flip_normal_y, bool changed_smooth_is_rough)
+   TEX_FLAG ProjectEx::mtrlCreateBaseTextures(EditWaterMtrl &material, bool changed_flip_normal_y, bool changed_smooth_is_rough)
    {
       // TODO: generating textures when the sources were not found, will reuse existing images, but due to compression, the quality will be lost, and new textures will be generated even though images are the same, this is because BC7->RGBA->BC7 is not the same
       Image      base_0, base_1, base_2;
-      uint       bt=createBaseTextures(base_0, base_1, base_2, material, changed_flip_normal_y, changed_smooth_is_rough);
+      TEX_FLAG   textures=createBaseTextures(base_0, base_1, base_2, material, changed_flip_normal_y, changed_smooth_is_rough);
       UID        old_tex_id;
       IMAGE_TYPE ct;
 
@@ -2269,10 +2261,11 @@ void DrawProject()
          Server.setTex(material.base_2_tex);
       }
 
-      return bt;
+      return textures;
    }
-   void ProjectEx::mtrlCreateDetailTexture(EditMaterial &material)
+   TEX_FLAG ProjectEx::mtrlCreateDetailTexture(EditMaterial &material)
    {
+      TEX_FLAG textures=TEXF_NONE;
       // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !!
       TextParam color_resize, smooth_resize, bump_resize, normal_resize;
       MtrlImages::ImageResize color, smooth, bump, normal; // #MaterialTextureLayoutDetail
@@ -2291,9 +2284,9 @@ void DrawProject()
 
       if(color_ok || smooth_ok || bump_ok || normal_ok) // proceed only if succeeded with setting anything, this is to avoid clearing existing texture when all failed to load, continue if at least one succeeded, in case the image is different while others will be extracted from old version
       {
-                       ExtractDetailTexture(T, material.detail_tex, color_ok ? null : &color, bump_ok ? null : &bump, normal_ok ? null : &normal, smooth_ok ? null : &smooth);
-         Image  detail; CreateDetailTexture(detail, color, bump, normal, smooth);
-         IMAGE_TYPE ct;          ImageProps(detail, &material.detail_tex, &ct, MTRL_DETAIL); material.detail_map_time.getUTC(); // in order for 'detail_tex' to sync, 'detail_map_time' time must be changed
+                                ExtractDetailTexture(T, material.detail_tex, color_ok ? null : &color, bump_ok ? null : &bump, normal_ok ? null : &normal, smooth_ok ? null : &smooth);
+         Image  detail; textures=CreateDetailTexture(detail, color, bump, normal, smooth);
+         IMAGE_TYPE ct;                   ImageProps(detail, &material.detail_tex, &ct, MTRL_DETAIL); material.detail_map_time.getUTC(); // in order for 'detail_tex' to sync, 'detail_map_time' time must be changed
          if(detail.is())
          {
             if(includeTex(material.detail_tex))
@@ -2304,8 +2297,9 @@ void DrawProject()
             Server.setTex(material.detail_tex);
          }
       }
+      return textures;
    }
-   void ProjectEx::mtrlCreateMacroTexture(EditMaterial &material)
+   TEX_FLAG ProjectEx::mtrlCreateMacroTexture(EditMaterial &material)
    {
       Image macro; if(loadImages(macro, null, material.macro_map, true)) // proceed only if loaded ok
       {
@@ -2320,10 +2314,12 @@ void DrawProject()
                saveTex(macro, material.macro_tex);
             }
             Server.setTex(material.macro_tex);
+            return TEXF_MACRO;
          }
       }
+      return TEXF_NONE;
    }
-   void ProjectEx::mtrlCreateLightTexture(EditMaterial &material)
+   TEX_FLAG ProjectEx::mtrlCreateLightTexture(EditMaterial &material)
    {
       Image light; if(loadImages(light, null, material.light_map, true)) // proceed only if loaded ok
       {
@@ -2338,8 +2334,10 @@ void DrawProject()
                saveTex(light, material.light_tex);
             }
             Server.setTex(material.light_tex);
+            return TEXF_EMISSIVE;
          }
       }
+      return TEXF_NONE;
    }
    bool ProjectEx::mtrlReloadTextures(C UID &elm_id, bool base, bool detail, bool macro, bool light)
    {
@@ -2349,19 +2347,19 @@ void DrawProject()
          if(MtrlEdit.elm_id==elm_id)
          {
             MtrlEdit.undos.set("EI");
-            if(base  )MtrlEdit.rebuildBase  (0, false, false, false, true);
+            if(base  )MtrlEdit.rebuildBase  (TEXF_NONE, false, false, false, true);
             if(detail)MtrlEdit.rebuildDetail();
             if(macro )MtrlEdit.rebuildMacro ();
-            if(light )MtrlEdit.rebuildLight (false, false);
+            if(light )MtrlEdit.rebuildLight (TEXF_NONE, false);
             return true;
          }
          if(WaterMtrlEdit.elm_id==elm_id)
          {
             WaterMtrlEdit.undos.set("EI");
-            if(base  )WaterMtrlEdit.rebuildBase(0, false, false, false, true);
+            if(base  )WaterMtrlEdit.rebuildBase(TEXF_NONE, false, false, false, true);
             if(detail)WaterMtrlEdit.rebuildDetail();
             if(macro )WaterMtrlEdit.rebuildMacro();
-            if(light )WaterMtrlEdit.rebuildLight(false, false);
+            if(light )WaterMtrlEdit.rebuildLight(TEXF_NONE, false);
             return true;
          }
          switch(elm->type)

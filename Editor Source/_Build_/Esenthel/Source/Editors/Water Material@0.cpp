@@ -64,9 +64,9 @@ WaterMtrlRegion WaterMtrlEdit;
    Str  WaterMtrlRegion::NrmScale(C WaterMtrlRegion &mr          ) {return mr.edit.normal;}
    void WaterMtrlRegion::NrmScale(  WaterMtrlRegion &mr, C Str &t) {mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC();}
    Str  WaterMtrlRegion::FNY(C WaterMtrlRegion &mr          ) {return mr.edit.flip_normal_y;}
-   void WaterMtrlRegion::FNY(  WaterMtrlRegion &mr, C Str &t) {uint base_tex=mr.edit.baseTex(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(base_tex, true, false, false);}
+   void WaterMtrlRegion::FNY(  WaterMtrlRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(textures, true, false, false);}
    Str  WaterMtrlRegion::SmtIsRgh(C WaterMtrlRegion &mr          ) {return mr.edit.smooth_is_rough;}
-   void WaterMtrlRegion::SmtIsRgh(  WaterMtrlRegion &mr, C Str &t) {uint base_tex=mr.edit.baseTex(); mr.edit.smooth_is_rough=TextBool(t); mr.edit.smooth_is_rough_time.getUTC(); mr.rebuildBase(base_tex, false, true, false);}
+   void WaterMtrlRegion::SmtIsRgh(  WaterMtrlRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.smooth_is_rough=TextBool(t); mr.edit.smooth_is_rough_time.getUTC(); mr.rebuildBase(textures, false, true, false);}
    Str  WaterMtrlRegion::WaveScale(C WaterMtrlRegion &mr          ) {return mr.edit.wave_scale;}
    void WaterMtrlRegion::WaveScale(  WaterMtrlRegion &mr, C Str &t) {mr.edit.wave_scale=TextFlt(t); mr.edit.wave_scale_time.getUTC();}
    Str  WaterMtrlRegion::ScaleColor(C WaterMtrlRegion &mr          ) {return 1/mr.edit.scale_color;}
@@ -220,7 +220,7 @@ WaterMtrlRegion WaterMtrlEdit;
       )
       {
          edit.cleanupMaps();
-         rebuildBase(edit.baseTex());
+         rebuildBase(edit.textures());
       }
    }
    void WaterMtrlRegion::resizeBase0(C VecI2 &size, bool relative)
@@ -242,7 +242,7 @@ WaterMtrlRegion WaterMtrlEdit;
       if(Proj.forceImageSize(edit.color_map, size0, relative, edit.color_map_time, time))
       {
          edit.cleanupMaps();
-         rebuildBase(edit.baseTex());
+         rebuildBase(edit.textures());
       }
    }
    void WaterMtrlRegion::resizeBase1(C VecI2 &size, bool relative)
@@ -266,7 +266,7 @@ WaterMtrlRegion WaterMtrlEdit;
       if(Proj.forceImageSize(edit.normal_map, size1, relative, edit.normal_map_time, time))
       {
          edit.cleanupMaps();
-         rebuildBase(edit.baseTex());
+         rebuildBase(edit.textures());
       }
    }
    void WaterMtrlRegion::resizeBase2(C VecI2 &size, bool relative)
@@ -290,20 +290,20 @@ WaterMtrlRegion WaterMtrlEdit;
       if(Proj.forceImageSize(edit.bump_map, size2, relative, edit.bump_map_time, time))
       {
          edit.cleanupMaps();
-         rebuildBase(edit.baseTex());
+         rebuildBase(edit.textures());
       }
    }
-   void WaterMtrlRegion::rebuildBase(uint old_base_tex, bool changed_flip_normal_y, bool changed_smooth_is_rough, bool adjust_params, bool always)
+   void WaterMtrlRegion::rebuildBase(TEX_FLAG old_textures, bool changed_flip_normal_y, bool changed_smooth_is_rough, bool adjust_params, bool always)
 {
       if(elm && game)
       {
-         uint new_base_tex;
+         TEX_FLAG new_textures;
          if(auto_reload || always)
          {
-            new_base_tex=Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y, changed_smooth_is_rough); // set precise
+            new_textures=Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y, changed_smooth_is_rough); // set precise
             Time.skipUpdate(); // compressing textures can be slow
-         }else new_base_tex=edit.baseTex(); // set approximate
-         if(adjust_params)edit.adjustParams(old_base_tex, new_base_tex, edit.hasLightMap());
+         }else new_textures=edit.textures(); // set approximate
+         if(adjust_params)edit.adjustParams(old_textures, new_textures);
 
          setChanged();
          Proj.mtrlTexChanged();
@@ -317,7 +317,7 @@ WaterMtrlRegion WaterMtrlEdit;
    void WaterMtrlRegion::rebuildMacro()
 {
    }
-   void WaterMtrlRegion::rebuildLight(bool old_light_map, bool adjust_params)
+   void WaterMtrlRegion::rebuildLight(TEX_FLAG old_textures, bool adjust_params)
 {
    }
    void WaterMtrlRegion::elmChanged(C UID &mtrl_id)

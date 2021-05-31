@@ -568,44 +568,44 @@ void LoadTexture(C Project &proj, C UID &tex_id, Image &image)
 }
 void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *metal, Image *glow)
 { // #MaterialTextureLayout
-   uint tex=0;
+   TEX_FLAG tex=TEXF_NONE;
    if(base_0.valid() && (color || alpha                 )){Image b0; LoadTexture(proj, base_0, b0); tex|=ExtractBase0Texture(b0, color, alpha             );}
    if(base_1.valid() && (normal                         )){Image b1; LoadTexture(proj, base_1, b1); tex|=ExtractBase1Texture(b1, normal                   );}
    if(base_2.valid() && (bump || smooth || metal || glow)){Image b2; LoadTexture(proj, base_2, b2); tex|=ExtractBase2Texture(b2, bump, smooth, metal, glow);}
-   if(color  && !(tex&BT_COLOR ))color .del();
-   if(alpha  && !(tex&BT_ALPHA ))alpha .del();
-   if(bump   && !(tex&BT_BUMP  ))bump  .del();
-   if(normal && !(tex&BT_NORMAL))normal.del();
-   if(smooth && !(tex&BT_SMOOTH))smooth.del();
-   if(metal  && !(tex&BT_METAL ))metal .del();
-   if(glow   && !(tex&BT_GLOW  ))glow  .del();
+   if(color  && !(tex&TEXF_COLOR ))color .del();
+   if(alpha  && !(tex&TEXF_ALPHA ))alpha .del();
+   if(bump   && !(tex&TEXF_BUMP  ))bump  .del();
+   if(normal && !(tex&TEXF_NORMAL))normal.del();
+   if(smooth && !(tex&TEXF_SMOOTH))smooth.del();
+   if(metal  && !(tex&TEXF_METAL ))metal .del();
+   if(glow   && !(tex&TEXF_GLOW  ))glow  .del();
 }
 void ExtractWaterBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *color, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow)
 { // #MaterialTextureLayoutWater
-   uint tex=0;
+   TEX_FLAG tex=TEXF_NONE;
    if(base_0.valid() && color ){Image b0; LoadTexture(proj, base_0, b0); tex|=ExtractWaterBase0Texture(b0, color );}
    if(base_1.valid() && normal){Image b1; LoadTexture(proj, base_1, b1); tex|=ExtractWaterBase1Texture(b1, normal);}
    if(base_2.valid() && bump  ){Image b2; LoadTexture(proj, base_2, b2); tex|=ExtractWaterBase2Texture(b2, bump  );}
-   if(color   && !(tex&BT_COLOR ))color  .del();
-   if(alpha   && !(tex&BT_ALPHA ))alpha  .del();
-   if(bump    && !(tex&BT_BUMP  ))bump   .del();
-   if(normal  && !(tex&BT_NORMAL))normal .del();
-   if(smooth  && !(tex&BT_SMOOTH))smooth .del();
-   if(reflect && !(tex&BT_METAL ))reflect.del();
-   if(glow    && !(tex&BT_GLOW  ))glow   .del();
+   if(color   && !(tex&TEXF_COLOR ))color  .del();
+   if(alpha   && !(tex&TEXF_ALPHA ))alpha  .del();
+   if(bump    && !(tex&TEXF_BUMP  ))bump   .del();
+   if(normal  && !(tex&TEXF_NORMAL))normal .del();
+   if(smooth  && !(tex&TEXF_SMOOTH))smooth .del();
+   if(reflect && !(tex&TEXF_METAL ))reflect.del();
+   if(glow    && !(tex&TEXF_GLOW  ))glow   .del();
 }
 void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *color, Image *bump, Image *normal, Image *smooth)
 { // #MaterialTextureLayoutDetail
-   uint tex=0;
+   TEX_FLAG tex=TEXF_NONE;
    if(detail_tex.valid())
       if(color || bump || normal || smooth)
    {
       Image detail; LoadTexture(proj, detail_tex, detail); tex=ExtractDetailTexture(detail, color, bump, normal, smooth);
    }
-   if(color  && !(tex&BT_COLOR ))color .del();
-   if(bump   && !(tex&BT_BUMP  ))bump  .del();
-   if(normal && !(tex&BT_NORMAL))normal.del();
-   if(smooth && !(tex&BT_SMOOTH))smooth.del();
+   if(color  && !(tex&TEXF_DET_COLOR ))color .del();
+   if(bump   && !(tex&TEXF_DET_BUMP  ))bump  .del();
+   if(normal && !(tex&TEXF_DET_NORMAL))normal.del();
+   if(smooth && !(tex&TEXF_DET_SMOOTH))smooth.del();
 }
 UID MergedBaseTexturesID(C UID &base_0, C UID &base_1, C UID &base_2) // this function generates ID of a merged texture created from two base textures, formula for this function can be freely modified as in worst case merged textures will just get regenerated
 {

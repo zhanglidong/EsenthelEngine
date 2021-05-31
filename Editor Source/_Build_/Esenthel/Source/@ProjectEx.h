@@ -395,10 +395,10 @@ public:
    bool mtrlSync(C UID &elm_id, C EditMaterial &mtrl, bool reload_textures, bool adjust_params, cptr undo_change_type="sync");
    bool mtrlSync(C UID &elm_id, C EditWaterMtrl &mtrl, bool reload_textures, bool adjust_params, cptr undo_change_type="sync");
    bool mtrlSync(C UID &elm_id, C Edit::Material &mtrl, bool reload_textures, bool adjust_params);
-   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditMaterial &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
-   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditWaterMtrl &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
-   uint mtrlCreateBaseTextures(EditMaterial &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
-   uint mtrlCreateBaseTextures(EditWaterMtrl &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
+   TEX_FLAG createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditMaterial &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
+   TEX_FLAG createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditWaterMtrl &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
+   TEX_FLAG mtrlCreateBaseTextures(EditMaterial &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
+   TEX_FLAG mtrlCreateBaseTextures(EditWaterMtrl &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
    /*bool mtrlCreateReflectionTexture(Image &reflection, C EditMaterial &material)
    {
       bool loaded=false;
@@ -458,9 +458,9 @@ public:
          }
       }
    }*/
-   void mtrlCreateDetailTexture(EditMaterial &material);
-   void mtrlCreateMacroTexture(EditMaterial &material);
-   void mtrlCreateLightTexture(EditMaterial &material);
+   TEX_FLAG mtrlCreateDetailTexture(EditMaterial &material);
+   TEX_FLAG mtrlCreateMacroTexture(EditMaterial &material);
+   TEX_FLAG mtrlCreateLightTexture(EditMaterial &material);
    bool mtrlReloadTextures(C UID &elm_id, bool base, bool detail, bool macro, bool light);
    void mtrlReloadTextures(C MemPtr<UID> &elm_ids, bool base, bool detail, bool macro, bool light);
    bool skelGet(C UID &elm_id, Skeleton &skel)C;

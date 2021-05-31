@@ -12,35 +12,15 @@ class ImporterClass
    {
       class MaterialEx : XMaterial
       {
-         Material mtrl;
          Image    base_0, base_1, base_2, detail, macro, light;
          UID      base_0_id=UIDZero, base_1_id=UIDZero, base_2_id=UIDZero, detail_id=UIDZero, macro_id=UIDZero, light_id=UIDZero;
+         bool     adjust_params=true;
+         TEX_FLAG textures=TEXF_NONE;
 
-         void copyTo(EditMaterial &dest, C TimeStamp &time=TimeStamp().getUTC())C
+         void create(C Material &src)
          {
-            dest.create(mtrl, time); // set from 'Material' instead of 'XMaterial' because it had '_adjustParams' called
-            dest.flip_normal_y=flip_normal_y; dest.flip_normal_y_time=time;
-
-            dest. color_map   =        color_map; dest. color_map_time=time;
-            dest. alpha_map   =        alpha_map; dest. alpha_map_time=time;
-            dest.  bump_map   =         bump_map; dest.  bump_map_time=time;
-            dest.normal_map   =       normal_map; dest.normal_map_time=time;
-            dest.smooth_map   =       smooth_map; dest.smooth_map_time=time;
-            dest. metal_map   =        metal_map; dest. metal_map_time=time;
-            dest.  glow_map   =         glow_map; dest.  glow_map_time=time;
-            dest. light_map   =        light_map; dest. light_map_time=time;
-            dest. macro_map   =                S; dest. macro_map_time=time;
-            dest.detail_color = detail_color_map; dest.detail_map_time=time;
-            dest.detail_bump  =  detail_bump_map;
-            dest.detail_normal=detail_normal_map;
-            dest.detail_smooth=detail_smooth_map;
-
-            dest.base_0_tex=base_0_id;
-            dest.base_1_tex=base_1_id;
-            dest.base_2_tex=base_2_id;
-            dest.detail_tex=detail_id;
-            dest. macro_tex= macro_id;
-            dest. light_tex= light_id;
+            super.create(src);
+            adjust_params=false; // don't adjust params because EE Materials are OK
          }
          void check(C Str &path, Str &tex)
          {
@@ -54,8 +34,6 @@ class ImporterClass
          }
          void process(C Str &path)
          {
-            copyParamsTo(mtrl);
-
             if(path.is())
             {
                check(path,  color_map);
@@ -123,17 +101,16 @@ class ImporterClass
                ImportImage( light,  light_map);
 
                // process textures only if they're added for the first time, otherwise delete them so they won't be saved
-               uint bt=CreateBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, metal, glow, true, flip_normal_y);
+               textures=CreateBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, metal, glow, true, flip_normal_y);
                // enable if are specified but either failed to load or empty, because without it, for example normal value gets zero, and when reapplying correct image path, then when loading new image, normal value doesn't get changed
-               if(  bump_map.is())bt|=BT_BUMP|BT_NORMAL;
-               if(normal_map.is())bt|=BT_NORMAL;
-               if(smooth_map.is())bt|=BT_SMOOTH;
-               if( metal_map.is())bt|=BT_METAL;
+               if(  bump_map.is())textures|=TEXF_BUMP|TEXF_NORMAL;
+               if(normal_map.is())textures|=TEXF_NORMAL;
+               if(smooth_map.is())textures|=TEXF_SMOOTH;
+               if( metal_map.is())textures|=TEXF_METAL;
                IMAGE_TYPE ct; ImageProps(base_0, &base_0_id, &ct, MTRL_BASE_0); if(Importer.includeTex(base_0_id))                          base_0.copyTry(base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_0.del();
                               ImageProps(base_1, &base_1_id, &ct, MTRL_BASE_1); if(Importer.includeTex(base_1_id))                          base_1.copyTry(base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_1.del();
                               ImageProps(base_2, &base_2_id, &ct, MTRL_BASE_2); if(Importer.includeTex(base_2_id))                          base_2.copyTry(base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_2.del();
                               ImageProps( light, & light_id, &ct, MTRL_LIGHT ); if(Importer.includeTex( light_id)){SetFullAlpha(light, ct); light .copyTry(light , -1, -1, -1, ct, IMAGE_2D, 0                      );}else light .del();
-               mtrl._adjustParams(~bt, bt);
             }
          }
       }
@@ -551,10 +528,11 @@ class ImporterClass
             {
                if(GetExt(file)=="mtrl") // EE mtrl
                {
-                  MaterialEx &m=mtrls.New(); if(m.mtrl.load(file))
+                  Material mtrl; if(mtrl.load(file))
                   {
-                     m.createFrom(m.mtrl);
-                     m.process(S);
+                     MaterialEx &mtrl_ex=mtrls.New();
+                     mtrl_ex.create(mtrl);
+                     mtrl_ex.process(S);
                      return true;
                   }
                }else // mtrl inside mesh

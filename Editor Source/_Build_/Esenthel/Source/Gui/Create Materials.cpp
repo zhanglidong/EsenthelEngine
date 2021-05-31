@@ -93,12 +93,12 @@ void DrawCreateMaterials()
       edit.color_map_time.getUTC();
 
       SyncLockerEx locker(lock);
-      Image base_0, base_1, base_2;
-      uint  bt=Proj.createBaseTextures(base_0, base_1, base_2, edit);
+      Image    base_0, base_1, base_2;
+      TEX_FLAG textures=Proj.createBaseTextures(base_0, base_1, base_2, edit);
       locker.off();
       if(base_0.is() && !base_1.is() && !base_2.is()) // we should get only base0
       {
-         if(bt&BT_ALPHA) // if we ended up having an alpha texture, then set alpha-test params
+         if(textures&TEXF_ALPHA) // if we ended up having an alpha texture, then set alpha-test params
          {
             edit.tech=MTECH_ALPHA_TEST;
             edit.color_s.w=0.5f;

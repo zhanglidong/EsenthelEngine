@@ -28,10 +28,10 @@ struct Mtrl : XMaterial
          if(f.cur("*MATERIAL_TWOSIDED"    ))cull     =  false      ;else
          if(f.cur("*MATERIAL_NAME"        ))name     =  f.getName();else
        //if(f.cur("*MATERIAL_AMBIENT"     ))ambient  =  f.getVec ();else
-         if(f.cur("*MATERIAL_DIFFUSE"     ))color.xyz=  f.getVec ();else
+       //if(f.cur("*MATERIAL_DIFFUSE"     ))color.xyz=  f.getVec ();else
        //if(f.cur("*MATERIAL_SPECULAR"    ))specular =  f.getVec ();else
-         if(f.cur("*MATERIAL_SHINE"       ))rough    =1-f.getFlt ();else
-         if(f.cur("*MATERIAL_TRANSPARENCY"))color.w  =1-f.getFlt ();else
+       //if(f.cur("*MATERIAL_SHINE"       ))shine    =  f.getFlt ();else
+       //if(f.cur("*MATERIAL_TRANSPARENCY"))color.w  =1-f.getFlt ();else
          if(f.cur("*MAP_GENERIC") && f.getIn())
          {
             for(; f.level(); )

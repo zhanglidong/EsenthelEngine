@@ -25,23 +25,23 @@ class EditMaterial
    // get
    flt roughMul()C;
    flt roughAdd()C;
-   bool hasBumpMap     ()C;
-   bool hasNormalMap   ()C;
-   bool hasDetailMap   ()C;
-   bool hasLightMap    ()C;
-   bool hasBase1Tex    ()C; // #MaterialTextureLayout
-   bool hasBase2Tex    ()C; // #MaterialTextureLayout
-   uint baseTex        ()C;
-   uint baseTexUsed    ()C;
-   bool usesTexColAlpha()C; // alpha may come from color
-   bool usesTexAlpha   ()C; // check only alpha
-   bool usesTexBump    ()C; // always keep bump map because it can be used for multi-material per-pixel blending
-   bool usesTexNormal  ()C;
-   bool usesTexSmooth  ()C;
-   bool usesTexMetal   ()C;
-   bool usesTexGlow    ()C;
-   bool usesTexDetail  ()C;
-   bool needTanBin     ()C;
+   bool     hasBumpMap     ()C;
+   bool     hasNormalMap   ()C;
+   bool     hasDetailMap   ()C;
+   bool     hasBase1Tex    ()C; // #MaterialTextureLayout
+   bool     hasBase2Tex    ()C; // #MaterialTextureLayout
+   TEX_FLAG textures       ()C;
+   TEX_FLAG texturesUsed   ()C;
+   bool     usesTexColAlpha()C; // alpha may come from color
+   bool     usesTexAlpha   ()C; // check only alpha
+   bool     usesTexBump    ()C; // always keep bump map because it can be used for multi-material per-pixel blending
+   bool     usesTexNormal  ()C;
+   bool     usesTexSmooth  ()C;
+   bool     usesTexMetal   ()C;
+   bool     usesTexGlow    ()C;
+   bool     usesTexDetail  ()C;
+   bool     usesTexEmissive()C;
+   bool     needTanBin     ()C;
 
    bool equal(C EditMaterial &src)C;
    bool newer(C EditMaterial &src)C;
@@ -55,7 +55,7 @@ class EditMaterial
    void expandMaps();
 
    void newData();
-   void create(C Material &src, C TimeStamp &time=TimeStamp().getUTC());
+   void create(C ImporterClass::Import::MaterialEx &src, C TimeStamp &time=TimeStamp().getUTC()); // used when importing models from 'XMaterial' and also when creating atlases from 'EditMaterial'
    void copyTo(Material &dest, C Project &proj)C;
    void copyTo(Edit::Material &dest)C;
    enum
@@ -71,7 +71,7 @@ class EditMaterial
    uint sync(C Edit::Material &src);
    uint sync(C EditMaterial &src);
    uint undo(C EditMaterial &src);
-   void adjustParams(uint old_base_tex, uint new_base_tex, bool old_light_map);
+   void adjustParams(TEX_FLAG old_textures, TEX_FLAG new_textures);
 
    static void FixOldFileParams(Str &name);
    static void ChangeMulToSet(Mems<FileParams> &fps);

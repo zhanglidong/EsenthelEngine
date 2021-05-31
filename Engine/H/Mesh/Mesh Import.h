@@ -8,17 +8,18 @@ struct XMaterial // Material stored in external formats
    Bool               cull     , // enable face culling
                   flip_normal_y; // if flip normal map Y channel
    MATERIAL_TECHNIQUE technique; // material technique
-   Vec4               color    ; // color          (0,0,0,0) .. (1,1,1,1), default=(1,1,1,1)
-   Vec                emissive ; // emissive         (0,0,0) .. (1,1,1)  , default=(0,0,0)
-   Flt                rough    , // roughness              0 .. 1        , default=1
-                      reflect  , // reflectivity           0 .. 1        , default=MATERIAL_REFLECT
-                      glow     , // glow amount            0 .. 1        , default=0
-                      normal   , // normal map sharpness   0 .. 1        , default=1
-                      bump     , // bumpiness              0 .. 0.09     , default=0.03
-                      sss      , // sub-surface scattering 0 .. 1        , default=0
-                      det_power, // detail     power       0 .. 1        , default=0.3
-                      det_scale, // detail  UV scale       0 .. Inf      , default=4
-                       uv_scale; // texture UV scale       0 .. Inf      , default=1, this is used mainly for World terrain textures scaling
+   Vec4               color    ; // color                   (0,0,0,0) .. (1,1,1,1), default=(1,1,1,1)
+   Vec                emissive ; // emissive                  (0,0,0) .. (1,1,1)  , default=(0,0,0)
+   Flt                rough_mul, // roughness    from       texture 0 .. 1        , default=0
+                      rough_add, // roughness    base               0 .. 1        , default=1
+                    reflect_mul, // reflectivity from metal texture 0 .. 1        , default=1-MATERIAL_REFLECT
+                    reflect_add, // reflectivity base               0 .. 1        , default=  MATERIAL_REFLECT
+                      glow     , // glow amount                     0 .. 1        , default=0
+                      normal   , // normal map sharpness            0 .. 1        , default=0
+                      bump     , // bumpiness                       0 .. 1        , default=0
+                      det_power, // detail     power                0 .. 1        , default=0.3
+                      det_scale, // detail  UV scale                0 .. Inf      , default=4
+                       uv_scale; // texture UV scale                0 .. Inf      , default=1, this is used mainly for World terrain textures scaling
    Str                color_map, // color         texture file name
                       alpha_map, // alpha         texture file name
                        bump_map, // bump          texture file name
@@ -33,8 +34,10 @@ struct XMaterial // Material stored in external formats
               detail_smooth_map, // detail smooth texture file name
                            name; // material name
 
-   void createFrom  (C Material &src ) ; // create        from 'src'  material
-   void copyParamsTo(  Material &mtrl)C; // copy parameters to 'mtrl' material (this does not copy textures)
+   void create(C Material &src); // create from 'src' material
+
+   Flt reflect   ()C {return reflect_add;}   void reflect(Flt reflect     ); // get/set reflectivity, 0..1, default=MATERIAL_REFLECT
+   Flt reflectMax()C;                        void reflect(Flt min, Flt max); // advanced
 #if EE_PRIVATE
    void     del();
    void fixPath(Str path);

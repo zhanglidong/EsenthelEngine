@@ -366,11 +366,11 @@ ListColumn NameDescListColumn[1]= // !! need to define array size because this w
       T.flip_normal_y  =(normal_ok ? material.flip_normal_y   : changed_flip_normal_y  ); // if we failed to load the original image, and instead we're using extracted normal map, then we need to flip Y only if we're changing flipping at this moment
       T.smooth_is_rough=(smooth_ok ? material.smooth_is_rough : changed_smooth_is_rough);
    }
-   uint MtrlImages::createBaseTextures(Image &base_0, Image &base_1, Image &base_2)C
+   TEX_FLAG MtrlImages::createBaseTextures(Image &base_0, Image &base_1, Image &base_2)C
    {
       return CreateBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, metal, glow, true, flip_normal_y, smooth_is_rough);
    }
-   uint MtrlImages::createWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2)C
+   TEX_FLAG MtrlImages::createWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2)C
    {
       return CreateWaterBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, metal, glow, true, flip_normal_y, smooth_is_rough);
    }
