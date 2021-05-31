@@ -8,7 +8,7 @@ class EditMaterial
    byte                      downsize_tex_mobile;
    Vec4                      color_s;
    Vec                       emissive;
-   flt                       smooth, // 0..1 without smooth_map, and -1..1 with smooth_map
+   flt                       smooth, // 0..1 without 'smooth_map', and -1..1 with 'smooth_map'
                              reflect_min, reflect_max, glow, normal, bump,
                              uv_scale, det_scale, det_power;
    UID                       base_0_tex, base_1_tex, base_2_tex, detail_tex, macro_tex, light_tex;
@@ -47,9 +47,9 @@ class EditMaterial
    bool newer(C EditMaterial &src)C;
 
    // operations
-   void reset();     
-   void resetAlpha();
-   void separateNormalMap(C TimeStamp &time=TimeStamp().getUTC());
+   void reset();                   
+   void resetAlpha();                                            
+   void separateNormalMap(C TimeStamp&time=TimeStamp().getUTC());
    void cleanupMaps();
    void expandMap(Str &map, C MemPtr<FileParams> &color, C MemPtr<FileParams> &smooth, C MemPtr<FileParams> &bump);
    void expandMaps();

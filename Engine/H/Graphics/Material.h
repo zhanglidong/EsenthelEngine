@@ -22,6 +22,12 @@ enum MATERIAL_TECHNIQUE : Byte // Material Techniques
    MTECH_LEAF_2D               , // mesh vertexes will bend on the wind like tree leafs, to use this technique mesh must also contain leaf attachment positions, which can be generated in the Model Editor tool through menu options
    MTECH_NUM                   , // number of Material Techniques
 };
+Bool HasAlpha           (MATERIAL_TECHNIQUE technique); // if 'technique' involves Alpha-Blending or     Alpha-Testing
+Bool HasAlphaTest       (MATERIAL_TECHNIQUE technique); // if 'technique' involves Alpha-Testing
+Bool HasAlphaTestNoBlend(MATERIAL_TECHNIQUE technique); // if 'technique' involves Alpha-Testing  but no Alpha-Blending
+Bool HasAlphaBlend      (MATERIAL_TECHNIQUE technique); // if 'technique' involves Alpha-Blending
+Bool HasAlphaBlendNoTest(MATERIAL_TECHNIQUE technique); // if 'technique' involves Alpha-Blending but no Alpha-Testing
+Bool HasLeaf            (MATERIAL_TECHNIQUE technique); // if 'technique' involves Leaf  Bending
 /******************************************************************************/
 #define MATERIAL_REFLECT 0.04f // default Material reflectivity value
 /******************************************************************************/
@@ -93,16 +99,18 @@ struct Material : MaterialParams // Mesh Rendering Material - contains render pa
   ~Material();
 
 #if EE_PRIVATE
-   Bool hasAlpha          ()C;                          // if material technique involves Alpha Blending or Testing
-   Bool hasAlphaBlend     ()C;                          // if material technique involves Alpha Blending
-   Bool hasAlphaTest      ()C {return _has_alpha_test;} // if material technique involves Alpha Testing
-   Bool hasAlphaBlendLight()C;                          // if material technique involves Alpha Blending with Light
-   Bool hasGrass          ()C;                          // if material technique involves    Grass Bending
-   Bool hasGrass2D        ()C;                          // if material technique involves 2D Grass Bending
-   Bool hasGrass3D        ()C;                          // if material technique involves 3D Grass Bending
-   Bool hasLeaf           ()C;                          // if material technique involves    Leaf  Bending
-   Bool hasLeaf2D         ()C;                          // if material technique involves 2D Leaf  Bending
-   Bool hasLeaf3D         ()C;                          // if material technique involves 3D Leaf  Bending
+   Bool hasAlpha           ()C {return  HasAlpha           (technique);} // if material technique involves Alpha-Blending or     Alpha-Testing
+   Bool hasAlphaBlend      ()C {return  HasAlphaBlend      (technique);} // if material technique involves Alpha-Blending
+   Bool hasAlphaBlendNoTest()C {return  HasAlphaBlendNoTest(technique);} // if material technique involves Alpha-Blending but no Alpha-Testing
+   Bool hasAlphaTest       ()C {return _has_alpha_test                ;} // if material technique involves Alpha-Testing
+   Bool hasAlphaTestNoBlend()C {return  HasAlphaTestNoBlend(technique);} // if material technique involves Alpha-Testing  but no Alpha-Blending
+   Bool hasAlphaBlendLight ()C;                                          // if material technique involves Alpha-Blending with Light
+   Bool hasGrass           ()C;                                          // if material technique involves    Grass Bending
+   Bool hasGrass2D         ()C;                                          // if material technique involves 2D Grass Bending
+   Bool hasGrass3D         ()C;                                          // if material technique involves 3D Grass Bending
+   Bool hasLeaf            ()C {return  HasLeaf            (technique);} // if material technique involves    Leaf  Bending
+   Bool hasLeaf2D          ()C;                                          // if material technique involves 2D Leaf  Bending
+   Bool hasLeaf3D          ()C;                                          // if material technique involves 3D Leaf  Bending
 
    void setSolid     (     )C;
    void setEmissive  (     )C;

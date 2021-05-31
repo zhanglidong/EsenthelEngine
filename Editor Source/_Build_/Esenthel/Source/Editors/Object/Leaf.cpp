@@ -210,7 +210,7 @@
    void LeafRegion::clear() {attachments.clear();}
    void LeafRegion::update(C GuiPC &gpc)
 {
-      visible(MtrlEdit.visible() && (MtrlEdit.edit.tech==MTECH_LEAF_2D || MtrlEdit.edit.tech==MTECH_LEAF || MtrlEdit.edit.tech==MTECH_BLEND_LIGHT_LEAF || MtrlEdit.edit.tech==MTECH_TEST_BLEND_LIGHT_LEAF) && meshHasMtrl(MtrlEdit.game));
+      visible(MtrlEdit.visible() && HasLeaf(MtrlEdit.edit.tech) && meshHasMtrl(MtrlEdit.game));
       super::update(gpc);
       if(Ms.bp(2) && contains(Gui.ms()))MtrlEdit.set(null);
    }

@@ -76,6 +76,101 @@ const Material        *MaterialLast,
 MaterialPtr            MaterialNull;
 ThreadSafeMap<UniqueMultiMaterialKey, UniqueMultiMaterialData> UniqueMultiMaterialMap(Compare);
 /******************************************************************************/
+Bool HasAlpha(MATERIAL_TECHNIQUE technique)
+{
+   switch(technique)
+   {
+      case MTECH_ALPHA_TEST:
+      case MTECH_GRASS:
+      case MTECH_GRASS_3D:
+      case MTECH_LEAF_2D:
+      case MTECH_LEAF:
+      case MTECH_BLEND:
+      case MTECH_BLEND_LIGHT:
+      case MTECH_BLEND_LIGHT_GRASS:
+      case MTECH_BLEND_LIGHT_LEAF:
+      case MTECH_TEST_BLEND_LIGHT:
+      case MTECH_TEST_BLEND_LIGHT_GRASS:
+      case MTECH_TEST_BLEND_LIGHT_LEAF:
+         return true;
+
+      default: return false;
+   }
+}
+Bool HasAlphaTest(MATERIAL_TECHNIQUE technique)
+{
+   switch(technique)
+   {
+      case MTECH_ALPHA_TEST            :
+      case MTECH_GRASS                 :
+      case MTECH_GRASS_3D              :
+      case MTECH_LEAF_2D               :
+      case MTECH_LEAF                  :
+      case MTECH_TEST_BLEND_LIGHT      :
+      case MTECH_TEST_BLEND_LIGHT_GRASS:
+      case MTECH_TEST_BLEND_LIGHT_LEAF :
+         return true;
+
+      default: return false;
+   }
+}
+Bool HasAlphaTestNoBlend(MATERIAL_TECHNIQUE technique)
+{
+   switch(technique)
+   {
+      case MTECH_ALPHA_TEST:
+      case MTECH_GRASS     :
+      case MTECH_GRASS_3D  :
+      case MTECH_LEAF_2D   :
+      case MTECH_LEAF      :
+         return true;
+
+      default: return false;
+   }
+}
+Bool HasAlphaBlend(MATERIAL_TECHNIQUE technique)C
+{
+   switch(technique)
+   {
+      case MTECH_BLEND:
+      case MTECH_BLEND_LIGHT:
+      case MTECH_BLEND_LIGHT_GRASS:
+      case MTECH_BLEND_LIGHT_LEAF:
+      case MTECH_TEST_BLEND_LIGHT:
+      case MTECH_TEST_BLEND_LIGHT_GRASS:
+      case MTECH_TEST_BLEND_LIGHT_LEAF:
+         return true;
+
+      default: return false;
+   }
+}
+Bool HasAlphaBlendNoTest(MATERIAL_TECHNIQUE technique)
+{
+   switch(technique)
+   {
+      case MTECH_BLEND:
+      case MTECH_BLEND_LIGHT:
+      case MTECH_BLEND_LIGHT_GRASS:
+      case MTECH_BLEND_LIGHT_LEAF:
+         return true;
+
+      default: return false;
+   }
+}
+Bool HasLeaf(MATERIAL_TECHNIQUE technique)
+{
+   switch(technique)
+   {
+      case MTECH_LEAF_2D:
+      case MTECH_LEAF:
+      case MTECH_BLEND_LIGHT_LEAF:
+      case MTECH_TEST_BLEND_LIGHT_LEAF:
+         return true;
+
+      default: return false;
+   }
+}
+/******************************************************************************/
 Vec4 MaterialParams::colorS    (                )C {return        LinearToSRGB(color_l) ;}
 void MaterialParams::colorS    (C Vec4 &color_s )  {return colorL(SRGBToLinear(color_s));}
 void MaterialParams::reflect   (  Flt   reflect )  {reflect_add=reflect; reflect_mul= 1-reflect     ;}
@@ -112,60 +207,6 @@ Material::~Material()
    }
 }
 /******************************************************************************/
-static Bool HasAlphaTest(MATERIAL_TECHNIQUE technique)
-{
-   switch(technique)
-   {
-      case MTECH_ALPHA_TEST            :
-      case MTECH_GRASS                 :
-      case MTECH_GRASS_3D              :
-      case MTECH_LEAF_2D               :
-      case MTECH_LEAF                  :
-      case MTECH_TEST_BLEND_LIGHT      :
-      case MTECH_TEST_BLEND_LIGHT_GRASS:
-      case MTECH_TEST_BLEND_LIGHT_LEAF :
-         return true;
-
-      default: return false;
-   }
-}
-Bool Material::hasAlpha()C
-{
-   switch(technique)
-   {
-      case MTECH_ALPHA_TEST:
-      case MTECH_GRASS:
-      case MTECH_GRASS_3D:
-      case MTECH_LEAF_2D:
-      case MTECH_LEAF:
-      case MTECH_BLEND:
-      case MTECH_BLEND_LIGHT:
-      case MTECH_BLEND_LIGHT_GRASS:
-      case MTECH_BLEND_LIGHT_LEAF:
-      case MTECH_TEST_BLEND_LIGHT:
-      case MTECH_TEST_BLEND_LIGHT_GRASS:
-      case MTECH_TEST_BLEND_LIGHT_LEAF:
-         return true;
-
-      default: return false;
-   }
-}
-Bool Material::hasAlphaBlend()C
-{
-   switch(technique)
-   {
-      case MTECH_BLEND:
-      case MTECH_BLEND_LIGHT:
-      case MTECH_BLEND_LIGHT_GRASS:
-      case MTECH_BLEND_LIGHT_LEAF:
-      case MTECH_TEST_BLEND_LIGHT:
-      case MTECH_TEST_BLEND_LIGHT_GRASS:
-      case MTECH_TEST_BLEND_LIGHT_LEAF:
-         return true;
-
-      default: return false;
-   }
-}
 Bool Material::hasAlphaBlendLight()C
 {
    switch(technique)
@@ -216,19 +257,6 @@ Bool Material::hasGrass3D()C
       default: return false;
    }
 }
-Bool Material::hasLeaf()C
-{
-   switch(technique)
-   {
-      case MTECH_LEAF_2D:
-      case MTECH_LEAF:
-      case MTECH_BLEND_LIGHT_LEAF:
-      case MTECH_TEST_BLEND_LIGHT_LEAF:
-         return true;
-
-      default: return false;
-   }
-}
 Bool Material::hasLeaf2D()C
 {
    switch(technique)
@@ -266,9 +294,9 @@ Material& Material::validate() // #MaterialTextureLayout
                       if(this==MaterialLast    )MaterialLast    =null;
    REPA(MaterialLast4)if(this==MaterialLast4[i])MaterialLast4[i]=null;
 
-  _has_alpha_test=HasAlphaTest(technique); // !! set this first, because codes below rely on this !!
-  _depth_write   =!(hasAlphaBlend() && !hasAlphaTest ());
-//_coverage      = (hasAlphaTest () && !hasAlphaBlend());
+  _has_alpha_test= HasAlphaTest(technique); // !! set this first, because codes below rely on this, call 'HasAlphaTest' instead of 'hasAlphaTest' because that one just uses '_has_alpha_test' which we're setting here !!
+  _depth_write   =!hasAlphaBlendNoTest();
+//_coverage      = hasAlphaTestNoBlend();
   _alpha_factor.set(0, 0, 0, FltToByte(T.glow));
 
    // set multi

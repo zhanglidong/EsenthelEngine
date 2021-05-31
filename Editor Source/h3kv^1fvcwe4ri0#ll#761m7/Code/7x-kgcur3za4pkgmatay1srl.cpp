@@ -7,7 +7,7 @@ class EditMaterial
    byte                      downsize_tex_mobile=0;
    Vec4                      color_s(1, 1, 1, 1);
    Vec                       emissive(0, 0, 0);
-   flt                       smooth=0, // 0..1 without smooth_map, and -1..1 with smooth_map
+   flt                       smooth=0, // 0..1 without 'smooth_map', and -1..1 with 'smooth_map'
                              reflect_min=MATERIAL_REFLECT, reflect_max=1, glow=0, normal=0, bump=0,
                              uv_scale=1, det_scale=4, det_power=0.3;
    UID                       base_0_tex=UIDZero, base_1_tex=UIDZero, base_2_tex=UIDZero, detail_tex=UIDZero, macro_tex=UIDZero, light_tex=UIDZero;
@@ -24,19 +24,19 @@ class EditMaterial
    // get
    flt roughMul()C
    {
-      if(smooth_map.is())
+      if(smooth_map.is()) // this means 'smooth' is -1..1
       {
-         return;
+         return 1-Min(Abs(smooth), 1);
       }
-      return 0;
+      return 0; // 'smooth' is 0..1
    }
    flt roughAdd()C
    {
-      if(smooth_map.is())
+      if(smooth_map.is()) // this means 'smooth' is -1..1
       {
-         return ;
+         flt rough=-smooth; return Sat(rough);
       }
-      return 1-smooth;
+      return Sat(1-smooth); // 'smooth' is 0..1
    }
    bool hasBumpMap     ()C {return   bump_map.is() /*|| bump_from_color && color_map.is()*/;}
    bool hasNormalMap   ()C {return normal_map.is() || hasBumpMap();}
@@ -82,21 +82,7 @@ class EditMaterial
 
    // operations
    void reset() {T=EditMaterial();}
-   void resetAlpha()
-   {
-      switch(tech)
-      {
-         case MTECH_ALPHA_TEST:
-         case MTECH_GRASS     :
-         case MTECH_GRASS_3D  :
-         case MTECH_LEAF_2D   :
-         case MTECH_LEAF      :
-            color_s.w=0.5; break;
-
-         default: color_s.w=1; break;
-      }
-      color_time.getUTC();
-   }
+   void resetAlpha() {color_s.w=(HasAlphaTestNoBlend(tech) ? 0.5 : 1); color_time.getUTC();}
    void separateNormalMap(C TimeStamp &time=TimeStamp().getUTC())
    {
       if(!normal_map.is() && hasNormalMap()) // if normal map is not specified, but is created from some other map

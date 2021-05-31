@@ -5,19 +5,19 @@
 /******************************************************************************/
    flt EditMaterial::roughMul()C
    {
-      if(smooth_map.is())
+      if(smooth_map.is()) // this means 'smooth' is -1..1
       {
-         return;
+         return 1-Min(Abs(smooth), 1);
       }
-      return 0;
+      return 0; // 'smooth' is 0..1
    }
    flt EditMaterial::roughAdd()C
    {
-      if(smooth_map.is())
+      if(smooth_map.is()) // this means 'smooth' is -1..1
       {
-         return ;
+         flt rough=-smooth; return Sat(rough);
       }
-      return 1-smooth;
+      return Sat(1-smooth); // 'smooth' is 0..1
    }
    bool EditMaterial::hasBumpMap()C {return   bump_map.is() /*|| bump_from_color && color_map.is()*/;}
    bool EditMaterial::hasNormalMap()C {return normal_map.is() || hasBumpMap();}
@@ -60,21 +60,7 @@
       || glow_time>src.glow_time || uv_scale_time>src.uv_scale_time || detail_time>src.detail_time;
    }
    void EditMaterial::reset() {T=EditMaterial();}
-   void EditMaterial::resetAlpha()
-   {
-      switch(tech)
-      {
-         case MTECH_ALPHA_TEST:
-         case MTECH_GRASS     :
-         case MTECH_GRASS_3D  :
-         case MTECH_LEAF_2D   :
-         case MTECH_LEAF      :
-            color_s.w=0.5f; break;
-
-         default: color_s.w=1; break;
-      }
-      color_time.getUTC();
-   }
+   void EditMaterial::resetAlpha() {color_s.w=(HasAlphaTestNoBlend(tech) ? 0.5f : 1); color_time.getUTC();}
    void EditMaterial::separateNormalMap(C TimeStamp &time)
    {
       if(!normal_map.is() && hasNormalMap()) // if normal map is not specified, but is created from some other map
