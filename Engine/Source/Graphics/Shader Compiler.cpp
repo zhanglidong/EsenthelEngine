@@ -803,16 +803,10 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
          macro.Name      =APIName[i];
          macro.Definition=((compiler->api==i) ? "1" : "0");
       }
-      Bool amd=FlagTest(compiler->flag, SC_AMD); if(amd)
-      {
-         auto &macro=macros.NewAt(macros.elms()-1);
-         macro.Name      ="AMD";
-         macro.Definition="1";
-      }
       Zero(macros.last()); // must be null-terminated
 
       ID3DBlob *buffer=null, *error_blob=null;
-      D3DCompile(source->file_data.data(), source->file_data.elms(), (Str8)source->file_name, macros.data(), &NoTemp(Include11(source->file_name)), func_name, target, (amd ? D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY : 0)|(get_default_val ? D3DCOMPILE_SKIP_VALIDATION|D3DCOMPILE_SKIP_OPTIMIZATION : SKIP_OPTIMIZATION ? D3DCOMPILE_SKIP_OPTIMIZATION : D3DCOMPILE_OPTIMIZATION_LEVEL3), 0, &buffer, &error_blob);
+      D3DCompile(source->file_data.data(), source->file_data.elms(), (Str8)source->file_name, macros.data(), &NoTemp(Include11(source->file_name)), func_name, target, (get_default_val ? D3DCOMPILE_SKIP_VALIDATION|D3DCOMPILE_SKIP_OPTIMIZATION : SKIP_OPTIMIZATION ? D3DCOMPILE_SKIP_OPTIMIZATION : D3DCOMPILE_OPTIMIZATION_LEVEL3), 0, &buffer, &error_blob);
       if(error_blob)
       {
          CChar8 *e=(Char8*)error_blob->GetBufferPointer();
