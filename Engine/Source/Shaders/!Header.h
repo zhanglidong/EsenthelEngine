@@ -1575,7 +1575,7 @@ Half DepthWeight(Flt delta, Vec2 dw_mad)
 /******************************************************************************/
 VecH4 GetDetail(Vec2 tex) // XY=nrm.xy -1..1 delta, Z=rough -1..1 delta, W=color 0..2 scale
 {
-   VecH4 det=Tex(Det, tex*Material.det_scale); // XY=nrm.xy, Z=rough, W=color #MaterialTextureLayoutDetail
+   VecH4 det=Tex(Det, tex*Material.det_scale); // XY=nrm.xy 0..1, Z=rough 0..1, W=color 0..1 #MaterialTextureLayoutDetail
 
    /* unoptimized
    det.xyz                 =(det.xyz            -0.5)*2*Material.det_power;

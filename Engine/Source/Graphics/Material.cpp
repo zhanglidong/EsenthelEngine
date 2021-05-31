@@ -468,7 +468,7 @@ void Material::setOutline()C
     //MaterialLast4[0]=null; not needed since multi materials not rendered in outline mode
       // textures needed for alpha-test #MaterialTextureLayout
       Sh.Col[0]->set(base_0());
-      Renderer.material_color_l->set(colorD()); // only Material Color is used for potential alpha-testing
+      Renderer.material_color_l->set(colorD()); // only Material Color is used for alpha-testing
    }
 }
 void Material::setBehind()C
@@ -479,7 +479,7 @@ void Material::setBehind()C
     //MaterialLast4[0]=null; not needed since multi materials not rendered in behind mode
       // textures needed for alpha-test #MaterialTextureLayout
       Sh.Col[0]->set(base_0());
-      Renderer.material_color_l->set(colorD()); // only Material Color is used
+      Renderer.material_color_l->set(colorD()); // only Material Color is used for alpha-testing
    }
 }
 void Material::setShadow()C
@@ -490,7 +490,7 @@ void Material::setShadow()C
     //MaterialLast4[0]=null; not needed since multi materials don't have alpha test and don't need to set values in shadow mode
       // textures needed for alpha-test #MaterialTextureLayout
       Sh.Col[0]->set(base_0());
-      Renderer.material_color_l->set(colorD()); // only Material Color is used
+      Renderer.material_color_l->set(colorD()); // only Material Color is used for alpha-testing
    }
 }
 void Material::setMulti(Int i)C

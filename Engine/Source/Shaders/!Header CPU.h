@@ -70,6 +70,7 @@
 // base_0
 #define BASE_CHANNEL_ALPHA w
 // base_1
+#define BASE_CHANNEL_NORMAL   xy
 #define BASE_CHANNEL_NORMAL_X x
 #define BASE_CHANNEL_NORMAL_Y y
 // base_2
