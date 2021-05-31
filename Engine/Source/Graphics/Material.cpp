@@ -800,13 +800,13 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
    UInt  ret=0;
    Image dest_0, dest_1, dest_2;
    {
-      Image  color_temp; C Image * color_src=& color.image; if( color_src->compressed())if( color_src->copyTry( color_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1)) color_src=& color_temp;else goto error;
-      Image  alpha_temp; C Image * alpha_src=& alpha.image; if( alpha_src->compressed())if( alpha_src->copyTry( alpha_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1)) alpha_src=& alpha_temp;else goto error;
-      Image   bump_temp; C Image *  bump_src=&  bump.image; if(  bump_src->compressed())if(  bump_src->copyTry(  bump_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))  bump_src=&  bump_temp;else goto error;
-      Image normal_temp; C Image *normal_src=&normal.image; if(normal_src->compressed())if(normal_src->copyTry(normal_temp, -1, -1, -1, IMAGE_R8G8         , IMAGE_SOFT, 1))normal_src=&normal_temp;else goto error;
-      Image smooth_temp; C Image *smooth_src=&smooth.image; if(smooth_src->compressed())if(smooth_src->copyTry(smooth_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))smooth_src=&smooth_temp;else goto error;
-      Image  metal_temp; C Image * metal_src=& metal.image; if( metal_src->compressed())if( metal_src->copyTry( metal_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1)) metal_src=& metal_temp;else goto error;
-      Image   glow_temp; C Image *  glow_src=&  glow.image; if(  glow_src->compressed())if(  glow_src->copyTry(  glow_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))  glow_src=&  glow_temp;else goto error;
+      Image  color_temp; C Image * color_src=& color.image; if( color_src->compressed())if( color_src->copyTry( color_temp, -1, -1, -1,  color_src->typeInfo().a    ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) color_src=& color_temp;else goto error;
+      Image  alpha_temp; C Image * alpha_src=& alpha.image; if( alpha_src->compressed())if( alpha_src->copyTry( alpha_temp, -1, -1, -1,  alpha_src->typeInfo().a    ? IMAGE_L8A8          : IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) alpha_src=& alpha_temp;else goto error;
+      Image   bump_temp; C Image *  bump_src=&  bump.image; if(  bump_src->compressed())if(  bump_src->copyTry(  bump_temp, -1, -1, -1,   bump_src->highPrecision() ? IMAGE_F32           : IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))  bump_src=&  bump_temp;else goto error; // use high precision because we might use it to create normal map or stretch
+      Image normal_temp; C Image *normal_src=&normal.image; if(normal_src->compressed())if(normal_src->copyTry(normal_temp, -1, -1, -1, normal_src->highPrecision() ? IMAGE_F32_2         : IMAGE_R8G8       , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))normal_src=&normal_temp;else goto error; // use high precision because we still do math operations so higher precision could be useful
+      Image smooth_temp; C Image *smooth_src=&smooth.image; if(smooth_src->compressed())if(smooth_src->copyTry(smooth_temp, -1, -1, -1,                                                     IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))smooth_src=&smooth_temp;else goto error;
+      Image  metal_temp; C Image * metal_src=& metal.image; if( metal_src->compressed())if( metal_src->copyTry( metal_temp, -1, -1, -1,                                                     IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) metal_src=& metal_temp;else goto error;
+      Image   glow_temp; C Image *  glow_src=&  glow.image; if(  glow_src->compressed())if(  glow_src->copyTry(  glow_temp, -1, -1, -1,                                                     IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))  glow_src=&  glow_temp;else goto error;
 
       // set alpha
       Bool alpha_from_col=false;
@@ -824,7 +824,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
                MIN(min_lum  , c.lum());
             }
             alpha_src->unlock();
-            if(min_alpha>=254 && min_lum<254)if(alpha_src->copyTry(alpha_temp, -1, -1, -1, IMAGE_L8, IMAGE_SOFT, 1))alpha_src=&alpha_temp;else goto error; // alpha channel is fully white -> use luminance as alpha
+            if(min_alpha>=254 && min_lum<254)if(alpha_src->copyTry(alpha_temp, -1, -1, -1, IMAGE_L8, IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))alpha_src=&alpha_temp;else goto error; // alpha channel is fully white -> use luminance as alpha
          }
       }else // if there's no alpha map
       if(color.image.typeInfo().a) // but there is alpha channel in color map
@@ -863,8 +863,8 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
       {
          Int w=Max(1, ImgW(color, color_src), alpha_size.x), // Max 1 in case all images are empty, but we still need it because of Base2
              h=Max(1, ImgH(color, color_src), alpha_size.y); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         if( color_src->is() && (color_src->w()!=w || color_src->h()!=h))if(color_src->copyTry(color_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(color.filter), (color.clamp?IC_CLAMP:IC_WRAP)|IC_ALPHA_WEIGHT))color_src=&color_temp;else goto error;
-         if( alpha_src->is() && (alpha_src->w()!=w || alpha_src->h()!=h))if(alpha_src->copyTry(alpha_temp, w, h, -1, -1, IMAGE_SOFT, 1,        alpha_filter , (alpha.clamp?IC_CLAMP:IC_WRAP)                ))alpha_src=&alpha_temp;else goto error;
+         if( color_src->is() && (color_src->w()!=w || color_src->h()!=h))if(color_src->copyTry(color_temp, w, h, -1,                           IMAGE_R8G8B8_SRGB  , IMAGE_SOFT, 1, Filter(color.filter), (color.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA|IC_ALPHA_WEIGHT))color_src=&color_temp;else goto error;
+         if( alpha_src->is() && (alpha_src->w()!=w || alpha_src->h()!=h))if(alpha_src->copyTry(alpha_temp, w, h, -1, alpha_src->typeInfo().a ? IMAGE_A8 : IMAGE_L8, IMAGE_SOFT, 1,        alpha_filter , (alpha.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA                ))alpha_src=&alpha_temp;else goto error;
          if(!color_src->is() ||  color_src->lockRead())
          {
             if(!alpha_src->is() || alpha_src->lockRead())
@@ -895,7 +895,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
          Int w=((normal.size.x>0) ? normal.size.x : (bump_to_normal==bump_src && bump.size.x>0) ? bump.size.x : bump_to_normal->w()),
              h=((normal.size.y>0) ? normal.size.y : (bump_to_normal==bump_src && bump.size.y>0) ? bump.size.y : bump_to_normal->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
        C ImageSource &src=((bump_to_normal==bump_src) ? bump : normal);
-         if(bump_to_normal->w()!=w || bump_to_normal->h()!=h)if(bump_to_normal->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(src.filter), (src.clamp?IC_CLAMP:IC_WRAP)))bump_to_normal=&normal_temp;else goto error; // !! convert to 'normal_temp' instead of 'bump_temp' because we still need original bump later !!
+         if(bump_to_normal->w()!=w || bump_to_normal->h()!=h)if(bump_to_normal->copyTry(normal_temp, w, h, -1, IMAGE_F32, IMAGE_SOFT, 1, Filter(src.filter), (src.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA))bump_to_normal=&normal_temp;else goto error; // !! convert to 'normal_temp' instead of 'bump_temp' because we still need original bump later !!
          bump_to_normal->bumpToNormal(normal_temp, AvgF(w, h)*BUMP_TO_NORMAL_SCALE); normal_src=&normal_temp;
          flip_normal_y=false; // no need to flip since normal map generated from bump is always correct
       }
@@ -903,7 +903,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
       {
          Int w=ImgW(normal, normal_src),
              h=ImgH(normal, normal_src); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         if( normal_src->is() && (normal_src->w()!=w || normal_src->h()!=h))if(normal_src->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(normal.filter), (normal.clamp?IC_CLAMP:IC_WRAP)))normal_src=&normal_temp;else goto error;
+         if( normal_src->is() && (normal_src->w()!=w || normal_src->h()!=h))if(normal_src->copyTry(normal_temp, w, h, -1, IMAGE_F32_2, IMAGE_SOFT, 1, Filter(normal.filter), (normal.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA))normal_src=&normal_temp;else goto error; // use high precision because we still do math operations so higher precision could be useful
          if(!normal_src->is() ||  normal_src->lockRead())
          {
             dest_1.createSoftTry(w, h, 1, IMAGE_R8G8_SIGN, 1);
@@ -924,10 +924,10 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
          Int w=Max(ImgW(smooth, smooth_src), ImgW(metal, metal_src), ImgW(bump, bump_src), ImgW(glow, glow_src)),
              h=Max(ImgH(smooth, smooth_src), ImgH(metal, metal_src), ImgH(bump, bump_src), ImgH(glow, glow_src)); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
 
-         if(smooth_src->is() && (smooth_src->w()!=w || smooth_src->h()!=h))if(smooth_src->copyTry(smooth_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(smooth.filter), (smooth.clamp?IC_CLAMP:IC_WRAP)))smooth_src=&smooth_temp;else goto error;
-         if( metal_src->is() && ( metal_src->w()!=w ||  metal_src->h()!=h))if( metal_src->copyTry( metal_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter( metal.filter), ( metal.clamp?IC_CLAMP:IC_WRAP))) metal_src=& metal_temp;else goto error;
-         if(  bump_src->is() && (  bump_src->w()!=w ||   bump_src->h()!=h))if(  bump_src->copyTry(  bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(  bump.filter), (  bump.clamp?IC_CLAMP:IC_WRAP)))  bump_src=&  bump_temp;else goto error;
-         if(  glow_src->is() && (  glow_src->w()!=w ||   glow_src->h()!=h))if(  glow_src->copyTry(  glow_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(  glow.filter), (  glow.clamp?IC_CLAMP:IC_WRAP)))  glow_src=&  glow_temp;else goto error;
+         if(smooth_src->is() && (smooth_src->w()!=w || smooth_src->h()!=h))if(smooth_src->copyTry(smooth_temp, w, h, -1, IMAGE_L8, IMAGE_SOFT, 1, Filter(smooth.filter), (smooth.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA))smooth_src=&smooth_temp;else goto error;
+         if( metal_src->is() && ( metal_src->w()!=w ||  metal_src->h()!=h))if( metal_src->copyTry( metal_temp, w, h, -1, IMAGE_L8, IMAGE_SOFT, 1, Filter( metal.filter), ( metal.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA)) metal_src=& metal_temp;else goto error;
+         if(  bump_src->is() && (  bump_src->w()!=w ||   bump_src->h()!=h))if(  bump_src->copyTry(  bump_temp, w, h, -1, IMAGE_L8, IMAGE_SOFT, 1, Filter(  bump.filter), (  bump.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA))  bump_src=&  bump_temp;else goto error;
+         if(  glow_src->is() && (  glow_src->w()!=w ||   glow_src->h()!=h))if(  glow_src->copyTry(  glow_temp, w, h, -1, IMAGE_L8, IMAGE_SOFT, 1, Filter(  glow.filter), (  glow.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA))  glow_src=&  glow_temp;else goto error;
 
          if(!smooth_src->is() || smooth_src->lockRead())
          {
@@ -947,10 +947,10 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
                      REPD(x, dest_2.w())
                      {
                         Color c;
-                        if(smooth_src->is()){                                  c.BASE_CHANNEL_ROUGH=smooth_src->color(x, y).lum(); if(smooth_is_rough!=TEX_IS_ROUGH)c.BASE_CHANNEL_ROUGH=255-c.BASE_CHANNEL_ROUGH;}
-                        if( metal_src->is())                                   c.BASE_CHANNEL_METAL= metal_src->color(x, y).lum();
-                        if(  bump_src->is())                                   c.BASE_CHANNEL_BUMP =  bump_src->color(x, y).lum();
-                        if(  glow_src->is()){Color glow=glow_src->color(x, y); c.BASE_CHANNEL_GLOW =DivRound(glow.lum()*glow.a, 255);}
+                        if(smooth_src->is()){c.BASE_CHANNEL_ROUGH=smooth_src->color(x, y).lum(); if(smooth_is_rough!=TEX_IS_ROUGH)c.BASE_CHANNEL_ROUGH=255-c.BASE_CHANNEL_ROUGH;}
+                        if( metal_src->is()) c.BASE_CHANNEL_METAL= metal_src->color(x, y).lum();
+                        if(  bump_src->is()) c.BASE_CHANNEL_BUMP =  bump_src->color(x, y).lum();
+                        if(  glow_src->is()) c.BASE_CHANNEL_GLOW =  glow_src->color(x, y).lum();
                         dest_2.color(x, y, c);
                      }
                      glow_src->unlock();
@@ -1027,10 +1027,10 @@ void CreateDetailTexture(Image &detail, C ImageSource &color, C ImageSource &bum
 {
    Image dest;
    {
-      Image  color_temp; C Image * color_src=& color.image; if( color_src->compressed())if( color_src->copyTry( color_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1)) color_src=& color_temp;else goto error;
-      Image   bump_temp; C Image *  bump_src=&  bump.image; if(  bump_src->compressed())if(  bump_src->copyTry(  bump_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))  bump_src=&  bump_temp;else goto error;
-      Image normal_temp; C Image *normal_src=&normal.image; if(normal_src->compressed())if(normal_src->copyTry(normal_temp, -1, -1, -1, IMAGE_R8G8         , IMAGE_SOFT, 1))normal_src=&normal_temp;else goto error;
-      Image smooth_temp; C Image *smooth_src=&smooth.image; if(smooth_src->compressed())if(smooth_src->copyTry(smooth_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))smooth_src=&smooth_temp;else goto error;
+      Image  color_temp; C Image * color_src=& color.image; if( color_src->compressed())if( color_src->copyTry( color_temp, -1, -1, -1,                                         IMAGE_L8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) color_src=& color_temp;else goto error;
+      Image   bump_temp; C Image *  bump_src=&  bump.image; if(  bump_src->compressed())if(  bump_src->copyTry(  bump_temp, -1, -1, -1, bump_src->highPrecision() ? IMAGE_F32 : IMAGE_L8     , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))  bump_src=&  bump_temp;else goto error; // use high precision because we might use it to create normal map or stretch
+      Image normal_temp; C Image *normal_src=&normal.image; if(normal_src->compressed())if(normal_src->copyTry(normal_temp, -1, -1, -1,                                         IMAGE_R8G8   , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))normal_src=&normal_temp;else goto error;
+      Image smooth_temp; C Image *smooth_src=&smooth.image; if(smooth_src->compressed())if(smooth_src->copyTry(smooth_temp, -1, -1, -1,                                         IMAGE_L8     , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))smooth_src=&smooth_temp;else goto error;
 
       Int w=Max(ImgW(color, color_src), ImgW(smooth, smooth_src)),
           h=Max(ImgH(color, color_src), ImgH(smooth, smooth_src)); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
@@ -1045,7 +1045,7 @@ void CreateDetailTexture(Image &detail, C ImageSource &color, C ImageSource &bum
          MAX(w, (normal.size.x>0) ? normal.size.x : (bump_to_normal==bump_src && bump.size.x>0) ? bump.size.x : bump_to_normal->w());
          MAX(h, (normal.size.y>0) ? normal.size.y : (bump_to_normal==bump_src && bump.size.y>0) ? bump.size.y : bump_to_normal->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
        C ImageSource &src=((bump_to_normal==bump_src) ? bump : normal);
-         if(bump_to_normal->w()!=w || bump_to_normal->h()!=h)if(bump_to_normal->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(src.filter), (src.clamp?IC_CLAMP:IC_WRAP)))bump_to_normal=&normal_temp;else goto error; // !! convert to 'normal_temp' instead of 'bump_temp' because we still need original bump later !!
+         if(bump_to_normal->w()!=w || bump_to_normal->h()!=h)if(bump_to_normal->copyTry(normal_temp, w, h, -1, IMAGE_F32, IMAGE_SOFT, 1, Filter(src.filter), (src.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA))bump_to_normal=&normal_temp;else goto error; // !! convert to 'normal_temp' instead of 'bump_temp' because we still need original bump later !!
          bump_to_normal->bumpToNormal(normal_temp, AvgF(w, h)*BUMP_TO_NORMAL_SCALE); normal_src=&normal_temp;
          flip_normal_y=false; // no need to flip since normal map generated from bump is always correct
       }else
@@ -1055,10 +1055,10 @@ void CreateDetailTexture(Image &detail, C ImageSource &color, C ImageSource &bum
          MAX(h, ImgH(normal, normal_src)); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
       }
 
-      if( color_src->is() && ( color_src->w()!=w ||  color_src->h()!=h))if( color_src->copyTry( color_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter( color.filter), ( color.clamp?IC_CLAMP:IC_WRAP)|IC_ALPHA_WEIGHT)) color_src=& color_temp;else goto error;
-      if(  bump_src->is() && (  bump_src->w()!=w ||   bump_src->h()!=h))if(  bump_src->copyTry(  bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(  bump.filter), (  bump.clamp?IC_CLAMP:IC_WRAP)                ))  bump_src=&  bump_temp;else goto error;
-      if(normal_src->is() && (normal_src->w()!=w || normal_src->h()!=h))if(normal_src->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(normal.filter), (normal.clamp?IC_CLAMP:IC_WRAP)                ))normal_src=&normal_temp;else goto error;
-      if(smooth_src->is() && (smooth_src->w()!=w || smooth_src->h()!=h))if(smooth_src->copyTry(smooth_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(smooth.filter), (smooth.clamp?IC_CLAMP:IC_WRAP)                ))smooth_src=&smooth_temp;else goto error;
+      if( color_src->is() && ( color_src->w()!=w ||  color_src->h()!=h))if( color_src->copyTry( color_temp, w, h, -1, IMAGE_L8_SRGB, IMAGE_SOFT, 1, Filter( color.filter), ( color.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA|IC_ALPHA_WEIGHT)) color_src=& color_temp;else goto error;
+    //if(  bump_src->is() && (  bump_src->w()!=w ||   bump_src->h()!=h))if(  bump_src->copyTry(  bump_temp, w, h, -1, IMAGE_L8     , IMAGE_SOFT, 1, Filter(  bump.filter), (  bump.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA                ))  bump_src=&  bump_temp;else goto error;
+      if(normal_src->is() && (normal_src->w()!=w || normal_src->h()!=h))if(normal_src->copyTry(normal_temp, w, h, -1, IMAGE_R8G8   , IMAGE_SOFT, 1, Filter(normal.filter), (normal.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA                ))normal_src=&normal_temp;else goto error;
+      if(smooth_src->is() && (smooth_src->w()!=w || smooth_src->h()!=h))if(smooth_src->copyTry(smooth_temp, w, h, -1, IMAGE_L8     , IMAGE_SOFT, 1, Filter(smooth.filter), (smooth.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA                ))smooth_src=&smooth_temp;else goto error;
 
       dest.createSoftTry(w, h, 1, IMAGE_R8G8B8A8);
 
@@ -1124,13 +1124,13 @@ UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Imag
    UInt  ret=0;
    Image dest_0, dest_1, dest_2;
    {
-      Image  color_temp; C Image * color_src=& color.image; if( color_src->compressed())if( color_src->copyTry( color_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1)) color_src=& color_temp;else goto error;
-    //Image  alpha_temp; C Image * alpha_src=& alpha.image; if( alpha_src->compressed())if( alpha_src->copyTry( alpha_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1)) alpha_src=& alpha_temp;else goto error;
-      Image   bump_temp; C Image *  bump_src=&  bump.image; if(  bump_src->compressed())if(  bump_src->copyTry(  bump_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))  bump_src=&  bump_temp;else goto error;
-      Image normal_temp; C Image *normal_src=&normal.image; if(normal_src->compressed())if(normal_src->copyTry(normal_temp, -1, -1, -1, IMAGE_R8G8         , IMAGE_SOFT, 1))normal_src=&normal_temp;else goto error;
-    //Image smooth_temp; C Image *smooth_src=&smooth.image; if(smooth_src->compressed())if(smooth_src->copyTry(smooth_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))smooth_src=&smooth_temp;else goto error;
-    //Image  metal_temp; C Image * metal_src=& metal.image; if( metal_src->compressed())if( metal_src->copyTry( metal_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1)) metal_src=& metal_temp;else goto error;
-    //Image   glow_temp; C Image *  glow_src=&  glow.image; if(  glow_src->compressed())if(  glow_src->copyTry(  glow_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))  glow_src=&  glow_temp;else goto error;
+      Image  color_temp; C Image * color_src=& color.image; if( color_src->compressed())if( color_src->copyTry( color_temp, -1, -1, -1,  color_src->typeInfo().a    ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) color_src=& color_temp;else goto error;
+    //Image  alpha_temp; C Image * alpha_src=& alpha.image; if( alpha_src->compressed())if( alpha_src->copyTry( alpha_temp, -1, -1, -1,  alpha_src->typeInfo().a    ? IMAGE_L8A8          : IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) alpha_src=& alpha_temp;else goto error;
+      Image   bump_temp; C Image *  bump_src=&  bump.image; if(  bump_src->compressed())if(  bump_src->copyTry(  bump_temp, -1, -1, -1,   bump_src->highPrecision() ? IMAGE_F32           : IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))  bump_src=&  bump_temp;else goto error; // use high precision because we still do math operations so higher precision could be useful
+      Image normal_temp; C Image *normal_src=&normal.image; if(normal_src->compressed())if(normal_src->copyTry(normal_temp, -1, -1, -1, normal_src->highPrecision() ? IMAGE_F32_2         : IMAGE_R8G8       , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))normal_src=&normal_temp;else goto error; // use high precision because we still do math operations so higher precision could be useful
+    //Image smooth_temp; C Image *smooth_src=&smooth.image; if(smooth_src->compressed())if(smooth_src->copyTry(smooth_temp, -1, -1, -1,                                                     IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))smooth_src=&smooth_temp;else goto error;
+    //Image  metal_temp; C Image * metal_src=& metal.image; if( metal_src->compressed())if( metal_src->copyTry( metal_temp, -1, -1, -1,                                                     IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) metal_src=& metal_temp;else goto error;
+    //Image   glow_temp; C Image *  glow_src=&  glow.image; if(  glow_src->compressed())if(  glow_src->copyTry(  glow_temp, -1, -1, -1,                                                     IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))  glow_src=&  glow_temp;else goto error;
 
       // set what textures do we have (set this before 'normal' is generated from 'bump')
       if( color_src->is())ret|=BT_COLOR ;
@@ -1145,15 +1145,15 @@ UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Imag
       {
          Int w=ImgW(color, color_src),
              h=ImgH(color, color_src); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         if( color_src->is() && (color_src->w()!=w || color_src->h()!=h))if(color_src->copyTry(color_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(color.filter), (color.clamp?IC_CLAMP:IC_WRAP)|IC_ALPHA_WEIGHT))color_src=&color_temp;else goto error;
+         if( color_src->is() && (color_src->w()!=w || color_src->h()!=h))if(color_src->copyTry(color_temp, w, h, -1, IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1, Filter(color.filter), (color.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA|IC_ALPHA_WEIGHT))color_src=&color_temp;else goto error;
          if(!color_src->is() ||  color_src->lockRead())
          {
             dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8_SRGB);
+            Color c=WHITE;
             REPD(y, dest_0.h())
             REPD(x, dest_0.w())
             {
-               Color c=(color_src->is() ? color_src->color(x, y) : WHITE);
-               c.a=255; // force full alpha
+               if(color_src->is())c.rgb=color_src->color(x, y).rgb;
                dest_0.color(x, y, c);
             }
             color_src->unlock();
@@ -1170,7 +1170,7 @@ UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Imag
          Int w=((normal.size.x>0) ? normal.size.x : (bump_to_normal==bump_src && bump.size.x>0) ? bump.size.x : bump_to_normal->w()),
              h=((normal.size.y>0) ? normal.size.y : (bump_to_normal==bump_src && bump.size.y>0) ? bump.size.y : bump_to_normal->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
        C ImageSource &src=((bump_to_normal==bump_src) ? bump : normal);
-         if(bump_to_normal->w()!=w || bump_to_normal->h()!=h)if(bump_to_normal->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(src.filter), (src.clamp?IC_CLAMP:IC_WRAP)))bump_to_normal=&normal_temp;else goto error; // !! convert to 'normal_temp' instead of 'bump_temp' because we still need original bump later !!
+         if(bump_to_normal->w()!=w || bump_to_normal->h()!=h)if(bump_to_normal->copyTry(normal_temp, w, h, -1, IMAGE_F32, IMAGE_SOFT, 1, Filter(src.filter), (src.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA))bump_to_normal=&normal_temp;else goto error; // !! convert to 'normal_temp' instead of 'bump_temp' because we still need original bump later !!
          bump_to_normal->bumpToNormal(normal_temp, AvgF(w, h)*BUMP_TO_NORMAL_SCALE); normal_src=&normal_temp;
          flip_normal_y=false; // no need to flip since normal map generated from bump is always correct
       }
@@ -1178,16 +1178,15 @@ UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Imag
       {
          Int w=ImgW(normal, normal_src),
              h=ImgH(normal, normal_src); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         if( normal_src->is() && (normal_src->w()!=w || normal_src->h()!=h))if(normal_src->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(normal.filter), (normal.clamp?IC_CLAMP:IC_WRAP)))normal_src=&normal_temp;else goto error;
+         if( normal_src->is() && (normal_src->w()!=w || normal_src->h()!=h))if(normal_src->copyTry(normal_temp, w, h, -1, IMAGE_F32_2, IMAGE_SOFT, 1, Filter(normal.filter), (normal.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA))normal_src=&normal_temp;else goto error;
          if(!normal_src->is() ||  normal_src->lockRead())
          {
             dest_1.createSoftTry(w, h, 1, IMAGE_R8G8_SIGN, 1);
-            Vec4 c; c.zw=0;
+            Vec4 c=0;
             REPD(y, dest_1.h())
             REPD(x, dest_1.w())
             {
-               c.xy=(normal_src->is() ? normal_src->colorF(x, y).xy*2-1 : Vec2Zero);
-               if(flip_normal_y)CHS(c.y);
+               if(normal_src->is()){c.xy=normal_src->colorF(x, y).xy*2-1; if(flip_normal_y)CHS(c.y);}
                dest_1.colorF(x, y, c);
             }
             normal_src->unlock();
@@ -1199,7 +1198,7 @@ UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Imag
       {
          Int w=ImgW(bump, bump_src),
              h=ImgH(bump, bump_src); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         if( bump_src->is() && (bump_src->w()!=w || bump_src->h()!=h))if(bump_src->copyTry(bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(bump.filter), (bump.clamp?IC_CLAMP:IC_WRAP)))bump_src=&bump_temp;else goto error;
+         if( bump_src->is() && (bump_src->w()!=w || bump_src->h()!=h))if(bump_src->copyTry(bump_temp, w, h, -1, IMAGE_F32, IMAGE_SOFT, 1, Filter(bump.filter), (bump.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA))bump_src=&bump_temp;else goto error;
          if(!bump_src->is() ||  bump_src->lockRead())
          {
             dest_2.createSoftTry(w, h, 1, IMAGE_R8_SIGN);
