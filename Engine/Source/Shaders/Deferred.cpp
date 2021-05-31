@@ -449,11 +449,11 @@ void PS
    nrm=Normalize(I.Nrm()); // can't add DETAIL normal because it would need 'I.mtrx'
 #else
    #if 0 // lower quality, but compatible with multi-materials
-                nrm.xy =Tex(Nrm, I.tex).xy*Material.normal;
+                nrm.xy =Tex(Nrm, I.tex).BASE_CHANNEL_NORMAL*Material.normal;
       if(DETAIL)nrm.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
                 nrm.z  =CalcZ(nrm.xy);
    #else // better quality
-                nrm.xy =Tex(Nrm, I.tex).xy;
+                nrm.xy =Tex(Nrm, I.tex).BASE_CHANNEL_NORMAL;
                 nrm.z  =CalcZ(nrm.xy);
                 nrm.xy*=Material.normal; // alternatively this could be "nrm.z*=Material.normal_inv", with "normal_inv=1/Max(normal, HALF_EPS)" to avoid div by 0 and also big numbers which would be problematic for Halfs, however this would make detail nrm unproportional (too big/small compared to base nrm)
       if(DETAIL)nrm.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
@@ -723,16 +723,16 @@ void PS
 #else
    if(DETAIL)
    { // #MaterialTextureLayoutDetail
-                      nrm.xy =(Tex(Nrm , tex0).xy*MultiMaterial0.normal + det0.DETAIL_CHANNEL_NORMAL)*I.material.x;
-                      nrm.xy+=(Tex(Nrm1, tex1).xy*MultiMaterial1.normal + det1.DETAIL_CHANNEL_NORMAL)*I.material.y;
-      if(MATERIALS>=3)nrm.xy+=(Tex(Nrm2, tex2).xy*MultiMaterial2.normal + det2.DETAIL_CHANNEL_NORMAL)*I.material.z;
-      if(MATERIALS>=4)nrm.xy+=(Tex(Nrm3, tex3).xy*MultiMaterial3.normal + det3.DETAIL_CHANNEL_NORMAL)*I.material.w;
+                      nrm.xy =(Tex(Nrm , tex0).BASE_CHANNEL_NORMAL*MultiMaterial0.normal + det0.DETAIL_CHANNEL_NORMAL)*I.material.x;
+                      nrm.xy+=(Tex(Nrm1, tex1).BASE_CHANNEL_NORMAL*MultiMaterial1.normal + det1.DETAIL_CHANNEL_NORMAL)*I.material.y;
+      if(MATERIALS>=3)nrm.xy+=(Tex(Nrm2, tex2).BASE_CHANNEL_NORMAL*MultiMaterial2.normal + det2.DETAIL_CHANNEL_NORMAL)*I.material.z;
+      if(MATERIALS>=4)nrm.xy+=(Tex(Nrm3, tex3).BASE_CHANNEL_NORMAL*MultiMaterial3.normal + det3.DETAIL_CHANNEL_NORMAL)*I.material.w;
    }else
    {
-                      nrm.xy =Tex(Nrm , tex0).xy*(MultiMaterial0.normal*I.material.x);
-                      nrm.xy+=Tex(Nrm1, tex1).xy*(MultiMaterial1.normal*I.material.y);
-      if(MATERIALS>=3)nrm.xy+=Tex(Nrm2, tex2).xy*(MultiMaterial2.normal*I.material.z);
-      if(MATERIALS>=4)nrm.xy+=Tex(Nrm3, tex3).xy*(MultiMaterial3.normal*I.material.w);
+                      nrm.xy =Tex(Nrm , tex0).BASE_CHANNEL_NORMAL*(MultiMaterial0.normal*I.material.x);
+                      nrm.xy+=Tex(Nrm1, tex1).BASE_CHANNEL_NORMAL*(MultiMaterial1.normal*I.material.y);
+      if(MATERIALS>=3)nrm.xy+=Tex(Nrm2, tex2).BASE_CHANNEL_NORMAL*(MultiMaterial2.normal*I.material.z);
+      if(MATERIALS>=4)nrm.xy+=Tex(Nrm3, tex3).BASE_CHANNEL_NORMAL*(MultiMaterial3.normal*I.material.w);
    }
    nrm.z=CalcZ(nrm.xy);
    nrm  =Normalize(Transform(nrm, I.mtrx));

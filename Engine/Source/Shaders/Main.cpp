@@ -81,7 +81,7 @@ VecH4 DrawTexSG_PS  (NOPERSP Vec2 inTex:TEXCOORD):TARGET {return       SRGBToLin
 
 VecH4 DrawTexNrm_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
-   VecH nrm; nrm.xy=Tex(Img, inTex).xy; // #MaterialTextureLayout
+   VecH nrm; nrm.xy=Tex(Img, inTex).BASE_CHANNEL_NORMAL; // #MaterialTextureLayout
              nrm.z =CalcZ(nrm.xy);
              nrm   =Normalize(nrm)*0.5+0.5;
           #if LINEAR_GAMMA

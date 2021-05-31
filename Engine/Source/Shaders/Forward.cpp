@@ -341,11 +341,11 @@ VecH4 PS
          nrmh=I.Nrm(); // can't add DETAIL normal because it would need 'I.mtrx'
       #else
          #if 0
-                      nrmh.xy =Tex(Nrm, I.tex).xy*Material.normal;
+                      nrmh.xy =Tex(Nrm, I.tex).BASE_CHANNEL_NORMAL*Material.normal;
             if(DETAIL)nrmh.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
                       nrmh.z  =CalcZ(nrmh.xy);
          #else
-                      nrmh.xy =Tex(Nrm, I.tex).xy;
+                      nrmh.xy =Tex(Nrm, I.tex).BASE_CHANNEL_NORMAL;
                       nrmh.z  =CalcZ(nrmh.xy);
                       nrmh.xy*=Material.normal;
             if(DETAIL)nrmh.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
@@ -429,16 +429,16 @@ VecH4 PS
       #else
          if(DETAIL)
          { // #MaterialTextureLayoutDetail
-                            nrmh.xy =(Tex(Nrm , tex0).xy*MultiMaterial0.normal + det0.DETAIL_CHANNEL_NORMAL)*I.material.x;
-                            nrmh.xy+=(Tex(Nrm1, tex1).xy*MultiMaterial1.normal + det1.DETAIL_CHANNEL_NORMAL)*I.material.y;
-            if(MATERIALS>=3)nrmh.xy+=(Tex(Nrm2, tex2).xy*MultiMaterial2.normal + det2.DETAIL_CHANNEL_NORMAL)*I.material.z;
-            if(MATERIALS>=4)nrmh.xy+=(Tex(Nrm3, tex3).xy*MultiMaterial3.normal + det3.DETAIL_CHANNEL_NORMAL)*I.material.w;
+                            nrmh.xy =(Tex(Nrm , tex0).BASE_CHANNEL_NORMAL*MultiMaterial0.normal + det0.DETAIL_CHANNEL_NORMAL)*I.material.x;
+                            nrmh.xy+=(Tex(Nrm1, tex1).BASE_CHANNEL_NORMAL*MultiMaterial1.normal + det1.DETAIL_CHANNEL_NORMAL)*I.material.y;
+            if(MATERIALS>=3)nrmh.xy+=(Tex(Nrm2, tex2).BASE_CHANNEL_NORMAL*MultiMaterial2.normal + det2.DETAIL_CHANNEL_NORMAL)*I.material.z;
+            if(MATERIALS>=4)nrmh.xy+=(Tex(Nrm3, tex3).BASE_CHANNEL_NORMAL*MultiMaterial3.normal + det3.DETAIL_CHANNEL_NORMAL)*I.material.w;
          }else
          {
-                            nrmh.xy =Tex(Nrm , tex0).xy*(MultiMaterial0.normal*I.material.x);
-                            nrmh.xy+=Tex(Nrm1, tex1).xy*(MultiMaterial1.normal*I.material.y);
-            if(MATERIALS>=3)nrmh.xy+=Tex(Nrm2, tex2).xy*(MultiMaterial2.normal*I.material.z);
-            if(MATERIALS>=4)nrmh.xy+=Tex(Nrm3, tex3).xy*(MultiMaterial3.normal*I.material.w);
+                            nrmh.xy =Tex(Nrm , tex0).BASE_CHANNEL_NORMAL*(MultiMaterial0.normal*I.material.x);
+                            nrmh.xy+=Tex(Nrm1, tex1).BASE_CHANNEL_NORMAL*(MultiMaterial1.normal*I.material.y);
+            if(MATERIALS>=3)nrmh.xy+=Tex(Nrm2, tex2).BASE_CHANNEL_NORMAL*(MultiMaterial2.normal*I.material.z);
+            if(MATERIALS>=4)nrmh.xy+=Tex(Nrm3, tex3).BASE_CHANNEL_NORMAL*(MultiMaterial3.normal*I.material.w);
          }
          nrmh.z=CalcZ(nrmh.xy);
          nrmh  =Transform(nrmh, I.mtrx);

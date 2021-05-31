@@ -82,11 +82,11 @@ out VecH4   outExt   :TARGET2
    VecH nrm;
 #if NORMALS
    #if 0
-                  nrm.xy =Tex(Nrm, inTex.xy).xy*Material.normal; // #MaterialTextureLayout
+                  nrm.xy =Tex(Nrm, inTex.xy).BASE_CHANNEL_NORMAL*Material.normal; // #MaterialTextureLayout
       //if(DETAIL)nrm.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
                   nrm.z  =CalcZ(nrm.xy);
    #else
-                  nrm.xy =Tex(Nrm, inTex.xy).xy; // #MaterialTextureLayout
+                  nrm.xy =Tex(Nrm, inTex.xy).BASE_CHANNEL_NORMAL; // #MaterialTextureLayout
                   nrm.z  =CalcZ(nrm.xy);
                   nrm.xy*=Material.normal;
       //if(DETAIL)nrm.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail

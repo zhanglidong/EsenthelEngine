@@ -154,10 +154,10 @@ VecH4 PS
       nrmh=I.Nrm();
    #else
       #if 0
-         nrmh.xy=Tex(Nrm, I.tex).xy*Material.normal;
+         nrmh.xy=Tex(Nrm, I.tex).BASE_CHANNEL_NORMAL*Material.normal;
          nrmh.z =CalcZ(nrmh.xy);
       #else
-         nrmh.xy =Tex(Nrm, I.tex).xy;
+         nrmh.xy =Tex(Nrm, I.tex).BASE_CHANNEL_NORMAL;
          nrmh.z  =CalcZ(nrmh.xy);
          nrmh.xy*=Material.normal;
       #endif
