@@ -419,15 +419,15 @@ bool SetFullAlpha(Image &image, IMAGE_TYPE dest_type) // returns if any change w
 
 enum
 {
-   IGNORE_ALPHA=1<<0,
-   SRGB        =1<<1,
-   MTRL_BASE_0 =1<<2,
-   MTRL_BASE_1 =1<<3,
-   MTRL_BASE_2 =1<<4,
-   WATER_MTRL  =1<<5,
-   MTRL_DETAIL =1<<6,
-   MTRL_MACRO  =1<<7,
-   MTRL_LIGHT  =1<<8,
+   IGNORE_ALPHA =1<<0,
+   SRGB         =1<<1,
+   MTRL_BASE_0  =1<<2,
+   MTRL_BASE_1  =1<<3,
+   MTRL_BASE_2  =1<<4,
+   WATER_MTRL   =1<<5,
+   MTRL_DETAIL  =1<<6,
+   MTRL_MACRO   =1<<7,
+   MTRL_EMISSIVE=1<<8,
 }
 class ImageHashHeader // !! try to don't make any changes to this class layout, because doing so will require a new hash for every texture !!
 {
@@ -463,9 +463,9 @@ void ImageProps(C Image &image, UID *hash, IMAGE_TYPE *best_type=null, uint flag
             if(flags&MTRL_BASE_1){MAX(quality, MinMtrlTexQualityBase1); sign=true; type=((quality>=Edit.Material.FULL) ? IMAGE_R8G8_SIGN : IMAGE_BC5_SIGN);} // normal tex always uses BC5_SIGN (RG HQ) #MaterialTextureLayout
             if(flags&MTRL_BASE_2){MAX(quality, MinMtrlTexQualityBase2);} // #MaterialTextureLayout
          }
-         if(flags&MTRL_DETAIL){MAX(quality, MinMtrlTexQualityDetail);} // #MaterialTextureLayoutDetail
-         if(flags&MTRL_MACRO ){MAX(quality, MinMtrlTexQualityMacro ); flags|=SRGB|IGNORE_ALPHA;}
-         if(flags&MTRL_LIGHT ){MAX(quality, MinMtrlTexQualityLight ); flags|=SRGB|IGNORE_ALPHA;}
+         if(flags&MTRL_DETAIL  ){MAX(quality, MinMtrlTexQualityDetail);} // #MaterialTextureLayoutDetail
+         if(flags&MTRL_MACRO   ){MAX(quality, MinMtrlTexQualityMacro ); flags|=SRGB|IGNORE_ALPHA;}
+         if(flags&MTRL_EMISSIVE){MAX(quality, MinMtrlTexQualityLight ); flags|=SRGB|IGNORE_ALPHA;}
 
          MD5  h;
          bool bc1=true, // BC1 4-bit uses 1-bit alpha (0 or 255) (R,G,B,a?255:0)

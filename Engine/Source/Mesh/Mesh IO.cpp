@@ -47,10 +47,10 @@ void XMaterial::create(C Material &src)
      det_scale=src.det_scale;
       uv_scale=src. uv_scale;
 
-          color_map=src.    base_0.name();
-         normal_map=src.    base_1.name();
-   detail_color_map=src.detail_map.name();
-          light_map=src. light_map.name();
+          color_map=src.      base_0.name();
+         normal_map=src.      base_1.name();
+   detail_color_map=src.  detail_map.name();
+       emissive_map=src.emissive_map.name();
 }
 static void FixPath(Str &name, Str &path)
 {
@@ -74,7 +74,7 @@ void XMaterial::fixPath(Str path)
    path.tailSlash(true);
    FixPath(        color_map, path);
    FixPath(        alpha_map, path);
-   FixPath(        light_map, path);
+   FixPath(     emissive_map, path);
    FixPath(         bump_map, path);
    FixPath(       normal_map, path);
    FixPath(       smooth_map, path);
@@ -88,7 +88,7 @@ Bool XMaterial::save(File &f)C
 {  // !! IF CHANGING THIS IN ANY WAY THEN RECOMPILE FBX DLL'S !!
    f.cmpUIntV(0); // version
    f<<cull<<flip_normal_y<<technique<<color<<emissive<<rough_mul<<rough_add<<reflect_mul<<reflect_add<<glow<<normal<<bump<<det_power<<det_scale<<uv_scale
-    <<color_map<<alpha_map<<bump_map<<glow_map<<light_map<<normal_map<<smooth_map<<metal_map<<detail_color_map<<detail_bump_map<<detail_normal_map<<detail_smooth_map
+    <<color_map<<alpha_map<<bump_map<<glow_map<<emissive_map<<normal_map<<smooth_map<<metal_map<<detail_color_map<<detail_bump_map<<detail_normal_map<<detail_smooth_map
     <<name;
    return f.ok();
 }
@@ -99,7 +99,7 @@ Bool XMaterial::load(File &f)
       case 0:
       {
          f>>cull>>flip_normal_y>>technique>>color>>emissive>>rough_mul>>rough_add>>reflect_mul>>reflect_add>>glow>>normal>>bump>>det_power>>det_scale>>uv_scale
-          >>color_map>>alpha_map>>bump_map>>glow_map>>light_map>>normal_map>>smooth_map>>metal_map>>detail_color_map>>detail_bump_map>>detail_normal_map>>detail_smooth_map
+          >>color_map>>alpha_map>>bump_map>>glow_map>>emissive_map>>normal_map>>smooth_map>>metal_map>>detail_color_map>>detail_bump_map>>detail_normal_map>>detail_smooth_map
           >>name;
          if(f.ok())return true;
       }break;

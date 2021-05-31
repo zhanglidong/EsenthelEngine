@@ -12,8 +12,8 @@ class ImporterClass
    {
       class MaterialEx : XMaterial
       {
-         Image    base_0, base_1, base_2, detail, macro, light;
-         UID      base_0_id=UIDZero, base_1_id=UIDZero, base_2_id=UIDZero, detail_id=UIDZero, macro_id=UIDZero, light_id=UIDZero;
+         Image    base_0, base_1, base_2, detail, macro, emissive_img;
+         UID      base_0_id=UIDZero, base_1_id=UIDZero, base_2_id=UIDZero, detail_id=UIDZero, macro_id=UIDZero, emissive_id=UIDZero;
          bool     adjust_params=true;
          TEX_FLAG textures=TEXF_NONE;
 
@@ -36,25 +36,25 @@ class ImporterClass
          {
             if(path.is())
             {
-               check(path,  color_map);
-               check(path,  alpha_map);
-               check(path,   bump_map);
-               check(path,   glow_map);
-               check(path,  light_map);
-               check(path, normal_map);
-               check(path, smooth_map);
-               check(path,  metal_map);
+               check(path,    color_map);
+               check(path,    alpha_map);
+               check(path,     bump_map);
+               check(path,     glow_map);
+               check(path, emissive_map);
+               check(path,   normal_map);
+               check(path,   smooth_map);
+               check(path,    metal_map);
             }
 
             if(GetExt(color_map)=="img" || GetExt(normal_map)=="img" || GetExt(smooth_map)=="img" || GetExt(detail_color_map)=="img") // this is 'EE.Material' ("mtrl" format) #MaterialTextureLayout
             {
-               Str b0=color_map, b1=normal_map, b2=smooth_map, d=detail_color_map, l=light_map, m;
-               base_0.load(b0); ImageProps(base_0, &base_0_id, null, MTRL_BASE_0);
-               base_1.load(b1); ImageProps(base_1, &base_1_id, null, MTRL_BASE_1);
-               base_2.load(b2); ImageProps(base_2, &base_2_id, null, MTRL_BASE_2);
-               detail.load(d ); ImageProps(detail, &detail_id, null, MTRL_DETAIL);
-               macro .load(m ); ImageProps(macro , & macro_id, null, MTRL_MACRO );
-               light .load(l ); ImageProps(light , & light_id, null, MTRL_LIGHT );
+               Str b0=color_map, b1=normal_map, b2=smooth_map, d=detail_color_map, e=emissive_map, m;
+               base_0      .load(b0); ImageProps(base_0      , &  base_0_id, null, MTRL_BASE_0  );
+               base_1      .load(b1); ImageProps(base_1      , &  base_1_id, null, MTRL_BASE_1  );
+               base_2      .load(b2); ImageProps(base_2      , &  base_2_id, null, MTRL_BASE_2  );
+               detail      .load(d ); ImageProps(detail      , &  detail_id, null, MTRL_DETAIL  );
+               macro       .load(m ); ImageProps(macro       , &   macro_id, null, MTRL_MACRO   );
+               emissive_img.load(e ); ImageProps(emissive_img, &emissive_id, null, MTRL_EMISSIVE);
 
                FileParams fp; 
                color_map=b0;
@@ -91,14 +91,14 @@ class ImporterClass
             }else
             {
                Image color, alpha, bump, normal, smooth, metal, glow;
-               ImportImage( color,  color_map);
-               ImportImage( alpha,  alpha_map);
-               ImportImage(  bump,   bump_map);
-               ImportImage(normal, normal_map);
-               ImportImage(smooth, smooth_map);
-               ImportImage( metal,  metal_map);
-               ImportImage(  glow,   glow_map);
-               ImportImage( light,  light_map);
+               ImportImage(   color    ,    color_map);
+               ImportImage(   alpha    ,    alpha_map);
+               ImportImage(    bump    ,     bump_map);
+               ImportImage(  normal    ,   normal_map);
+               ImportImage(  smooth    ,   smooth_map);
+               ImportImage(   metal    ,    metal_map);
+               ImportImage(    glow    ,     glow_map);
+               ImportImage(emissive_img, emissive_map);
 
                // process textures only if they're added for the first time, otherwise delete them so they won't be saved
                textures=CreateBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, metal, glow, true, flip_normal_y);
@@ -107,10 +107,10 @@ class ImporterClass
                if(normal_map.is())textures|=TEXF_NORMAL;
                if(smooth_map.is())textures|=TEXF_SMOOTH;
                if( metal_map.is())textures|=TEXF_METAL;
-               IMAGE_TYPE ct; ImageProps(base_0, &base_0_id, &ct, MTRL_BASE_0); if(Importer.includeTex(base_0_id))                          base_0.copyTry(base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_0.del();
-                              ImageProps(base_1, &base_1_id, &ct, MTRL_BASE_1); if(Importer.includeTex(base_1_id))                          base_1.copyTry(base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_1.del();
-                              ImageProps(base_2, &base_2_id, &ct, MTRL_BASE_2); if(Importer.includeTex(base_2_id))                          base_2.copyTry(base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_2.del();
-                              ImageProps( light, & light_id, &ct, MTRL_LIGHT ); if(Importer.includeTex( light_id)){SetFullAlpha(light, ct); light .copyTry(light , -1, -1, -1, ct, IMAGE_2D, 0                      );}else light .del();
+               IMAGE_TYPE ct; ImageProps(      base_0, &  base_0_id, &ct, MTRL_BASE_0  ); if(Importer.includeTex(  base_0_id))                                 base_0      .copyTry(base_0      , -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else   base_0    .del();
+                              ImageProps(      base_1, &  base_1_id, &ct, MTRL_BASE_1  ); if(Importer.includeTex(  base_1_id))                                 base_1      .copyTry(base_1      , -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else   base_1    .del();
+                              ImageProps(      base_2, &  base_2_id, &ct, MTRL_BASE_2  ); if(Importer.includeTex(  base_2_id))                                 base_2      .copyTry(base_2      , -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else   base_2    .del();
+                              ImageProps(emissive_img, &emissive_id, &ct, MTRL_EMISSIVE); if(Importer.includeTex(emissive_id)){SetFullAlpha(emissive_img, ct); emissive_img.copyTry(emissive_img, -1, -1, -1, ct, IMAGE_2D, 0                      );}else emissive_img.del();
             }
          }
       }

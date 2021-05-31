@@ -90,9 +90,9 @@ WaterMtrlRegion WaterMtrlEdit;
    Str  WaterMtrlRegion::RefractUnderwater(C WaterMtrlRegion &mr          ) {return mr.edit.refract_underwater;}
    void WaterMtrlRegion::RefractUnderwater(  WaterMtrlRegion &mr, C Str &t) {mr.edit.refract_underwater=TextFlt(t); mr.edit.refract_underwater_time.getUTC();}
    EditMaterial& WaterMtrlRegion::getEditMtrl(){return edit;}
-   C ImagePtr    & WaterMtrlRegion::getBase0(){return game->  colorMap();}
-   C ImagePtr    & WaterMtrlRegion::getBase1(){return game-> normalMap();}
-   C ImagePtr    & WaterMtrlRegion::getBase2(){return game->   bumpMap();}
+   C ImagePtr    & WaterMtrlRegion::getBase0(){return game->    colorMap();}
+   C ImagePtr    & WaterMtrlRegion::getBase1(){return game->   normalMap();}
+   C ImagePtr    & WaterMtrlRegion::getBase2(){return game->     bumpMap();}
    bool          WaterMtrlRegion::water()C {return true;}
    void WaterMtrlRegion::create()
    {
@@ -297,12 +297,12 @@ WaterMtrlRegion WaterMtrlEdit;
 {
       if(elm && game)
       {
-         TEX_FLAG new_textures;
+         TEX_FLAG new_textures=edit.textures(); // set approximate
          if(auto_reload || always)
          {
-            new_textures=Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y, changed_smooth_is_rough); // set precise
+            FlagCopy(new_textures, Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y, changed_smooth_is_rough), TEXF_BASE); // set precise
             Time.skipUpdate(); // compressing textures can be slow
-         }else new_textures=edit.textures(); // set approximate
+         }
          if(adjust_params)edit.adjustParams(old_textures, new_textures);
 
          setChanged();
@@ -317,7 +317,7 @@ WaterMtrlRegion WaterMtrlEdit;
    void WaterMtrlRegion::rebuildMacro()
 {
    }
-   void WaterMtrlRegion::rebuildLight(TEX_FLAG old_textures, bool adjust_params)
+   void WaterMtrlRegion::rebuildEmissive(TEX_FLAG old_textures, bool adjust_params)
 {
    }
    void WaterMtrlRegion::elmChanged(C UID &mtrl_id)

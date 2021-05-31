@@ -1,7 +1,7 @@
 /******************************************************************************/
 #include "!Header.h"
 /******************************************************************************
-SKIN, MATERIALS, LAYOUT, BUMP_MODE, ALPHA_TEST, REFLECT, LIGHT_MAP, DETAIL, COLORS, MTRL_BLEND, HEIGHTMAP, FX, PER_PIXEL
+SKIN, MATERIALS, LAYOUT, BUMP_MODE, ALPHA_TEST, REFLECT, EMISSIVE_MAP, DETAIL, COLORS, MTRL_BLEND, HEIGHTMAP, FX, PER_PIXEL
 LIGHT_DIR, LIGHT_DIR_SHD, LIGHT_DIR_SHD_NUM
 LIGHT_POINT, LIGHT_POINT_SHD
 LIGHT_LINEAR, LIGHT_LINEAR_SHD
@@ -20,7 +20,7 @@ Final = (TexCol*MtrlCol*VtxCol+Detail)*FinalLight
 #define AMBIENT_IN_VTX (VTX_LIGHT && !SHADOW) // if stored per-vertex (in either 'vtx.col' or 'vtx.lum')
 #define LIGHT_IN_COL   (VTX_LIGHT && !DETAIL && (NO_AMBIENT || !SHADOW) && !REFLECT) // can't mix light with vtx.col when REFLECT because for reflections we need unlit color
 #define SET_POS        ((LIGHT && PER_PIXEL) || SHADOW || REFLECT || TESSELATE)
-#define SET_TEX        (LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
+#define SET_TEX        (LAYOUT || DETAIL || EMISSIVE_MAP || BUMP_MODE>SBUMP_FLAT)
 #define SET_COL        (COLORS || LIGHT_IN_COL)
 #define SET_LUM        (VTX_LIGHT && !LIGHT_IN_COL)
 #define VTX_REFLECT    (REFLECT && !PER_PIXEL && BUMP_MODE<=SBUMP_FLAT) // require !PER_PIXEL because even without normal maps (SBUMP_FLAT) the quality suffers
@@ -635,7 +635,7 @@ VecH4 PS
 
    if(MATERIALS<=1 && FirstPass)
    {
-   #if LIGHT_MAP
+   #if EMISSIVE_MAP
       col+=Material.emissive*Tex(Lum, I.tex).rgb;
    #else
       col+=Material.emissive;

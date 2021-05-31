@@ -310,7 +310,7 @@ public:
    virtual C ImagePtr    & getBase2   (); 
    virtual C ImagePtr    & getDetail  (); 
    virtual C ImagePtr    & getMacro   (); 
-   virtual C ImagePtr    & getLight   (); 
+   virtual C ImagePtr    & getEmissive(); 
    virtual   bool          water      ()C;
 
    void setBottom(C Rect &prop_rect);
@@ -366,7 +366,7 @@ public:
    virtual void rebuildBase(TEX_FLAG old_textures, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false, bool adjust_params=true, bool always=false);
    virtual void rebuildDetail();
    virtual void rebuildMacro();
-   virtual void rebuildLight(TEX_FLAG old_textures, bool adjust_params=true);
+   virtual void rebuildEmissive(TEX_FLAG old_textures, bool adjust_params=true);
 
    virtual void elmChanged(C UID&mtrl_id);
    void erasing(C UID &elm_id);         

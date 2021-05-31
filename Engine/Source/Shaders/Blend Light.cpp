@@ -3,7 +3,7 @@
 #include "Fog.h"
 #include "Sky.h"
 /******************************************************************************/
-// SKIN, COLORS, LAYOUT, BUMP_MODE, ALPHA_TEST, ALPHA, REFLECT, LIGHT_MAP, FX, PER_PIXEL, SHADOW_MAPS, TESSELATE
+// SKIN, COLORS, LAYOUT, BUMP_MODE, ALPHA_TEST, ALPHA, REFLECT, EMISSIVE_MAP, FX, PER_PIXEL, SHADOW_MAPS, TESSELATE
 #define NO_AMBIENT  0 // this could be set to 1 for Secondary Passes, if we would use this then we could remove 'FirstPass'
 #define HAS_AMBIENT (!NO_AMBIENT)
 
@@ -16,7 +16,7 @@
 #define FOG_IN_COL     (!REFLECT) // can't mix fog with vtx.col when REFLECT because for reflections we need unlit color
 #define USE_VEL        ALPHA_TEST
 #define SET_POS        ((LIGHT && PER_PIXEL) || SHADOW || REFLECT || TESSELATE)
-#define SET_TEX        (LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
+#define SET_TEX        (LAYOUT || DETAIL || EMISSIVE_MAP || BUMP_MODE>SBUMP_FLAT)
 #define SET_LUM        (VTX_LIGHT && !LIGHT_IN_COL)
 #define SET_FOG        (!FOG_IN_COL)
 #define VTX_REFLECT    (REFLECT && !PER_PIXEL && BUMP_MODE<=SBUMP_FLAT) // require !PER_PIXEL because even without normal maps (SBUMP_FLAT) the quality suffers
@@ -365,7 +365,7 @@ void PS
 
    /*if(MATERIALS<=1 && FirstPass)*/
    {
-   #if LIGHT_MAP
+   #if EMISSIVE_MAP
       I.col.rgb+=Material.emissive*Tex(Lum, I.tex).rgb;
    #else
       I.col.rgb+=Material.emissive;

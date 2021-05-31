@@ -460,9 +460,9 @@ public:
    }*/
    TEX_FLAG mtrlCreateDetailTexture(EditMaterial &material);
    TEX_FLAG mtrlCreateMacroTexture(EditMaterial &material);
-   TEX_FLAG mtrlCreateLightTexture(EditMaterial &material);
-   bool mtrlReloadTextures(C UID &elm_id, bool base, bool detail, bool macro, bool light);
-   void mtrlReloadTextures(C MemPtr<UID> &elm_ids, bool base, bool detail, bool macro, bool light);
+   TEX_FLAG mtrlCreateEmissiveTexture(EditMaterial &material);
+   bool mtrlReloadTextures(C UID &elm_id, bool base, bool detail, bool macro, bool emissive);
+   void mtrlReloadTextures(C MemPtr<UID> &elm_ids, bool base, bool detail, bool macro, bool emissive);
    bool skelGet(C UID &elm_id, Skeleton &skel)C;
    Animation* getAnim(C UID &elm_id, Animation &temp)C;
    bool animGet(C UID &elm_id, Animation &anim)C;

@@ -140,32 +140,32 @@ Material& Material::reset()
    normal=0;
    bump=0;
    uv_scale=1;
-    color_map.clear();  alpha_map.clear();
-     bump_map.clear(); normal_map.clear();
-   smooth_map.clear();  metal_map.clear();
-     glow_map.clear();
-   detail_color .clear();
-   detail_bump  .clear();
-   detail_normal.clear();
-   detail_smooth.clear();
-   macro_map.clear();
-   light_map.clear();
+      color_map   .clear();  alpha_map.clear();
+       bump_map   .clear(); normal_map.clear();
+     smooth_map   .clear();  metal_map.clear();
+       glow_map   .clear();
+     detail_color .clear();
+     detail_bump  .clear();
+     detail_normal.clear();
+     detail_smooth.clear();
+      macro_map   .clear();
+   emissive_map   .clear();
    return T;
 }
 Bool Material::save(File &f)C
 {
    f.cmpUIntV(0);
    f<<technique<<tex_quality<<cull<<flip_normal_y<<smooth_is_rough<<downsize_tex_mobile<<color_s<<emissive<<smooth<<reflect_min<<reflect_max<<glow<<normal<<bump<<uv_scale
-    <<Encode( color_map)<<Encode( alpha_map)
-    <<Encode(  bump_map)<<Encode(normal_map)
-    <<Encode(smooth_map)<<Encode( metal_map)
-    <<Encode(  glow_map)
-    <<Encode(detail_color )
-    <<Encode(detail_bump  )
-    <<Encode(detail_normal)
-    <<Encode(detail_smooth)
-    <<Encode(macro_map)
-    <<Encode(light_map);
+    <<Encode(   color_map   )<<Encode( alpha_map)
+    <<Encode(    bump_map   )<<Encode(normal_map)
+    <<Encode(  smooth_map   )<<Encode( metal_map)
+    <<Encode(    glow_map   )
+    <<Encode(  detail_color )
+    <<Encode(  detail_bump  )
+    <<Encode(  detail_normal)
+    <<Encode(  detail_smooth)
+    <<Encode(   macro_map   )
+    <<Encode(emissive_map   );
    return f.ok();
 }
 Bool Material::load(File &f)
@@ -175,16 +175,16 @@ Bool Material::load(File &f)
       case 0:
       {
          f>>technique>>tex_quality>>cull>>flip_normal_y>>smooth_is_rough>>downsize_tex_mobile>>color_s>>emissive>>smooth>>reflect_min>>reflect_max>>glow>>normal>>bump>>uv_scale;
-         Decode(f,  color_map); Decode(f,  alpha_map);
-         Decode(f,   bump_map); Decode(f, normal_map);
-         Decode(f, smooth_map); Decode(f,  metal_map);
-         Decode(f,   glow_map);
-         Decode(f, detail_color );
-         Decode(f, detail_bump  );
-         Decode(f, detail_normal);
-         Decode(f, detail_smooth);
-         Decode(f, macro_map);
-         Decode(f, light_map);
+         Decode(f,    color_map   ); Decode(f,  alpha_map);
+         Decode(f,     bump_map   ); Decode(f, normal_map);
+         Decode(f,   smooth_map   ); Decode(f,  metal_map);
+         Decode(f,     glow_map   );
+         Decode(f,   detail_color );
+         Decode(f,   detail_bump  );
+         Decode(f,   detail_normal);
+         Decode(f,   detail_smooth);
+         Decode(f,    macro_map   );
+         Decode(f, emissive_map   );
          if(f.ok())return true;
       }break;
    }
@@ -1264,11 +1264,11 @@ Bool EditorInterface::setMaterial(C UID &elm_id, C Material &mtrl, Bool reload_t
    }
    return false;
 }
-Bool EditorInterface::reloadMaterialTextures(C UID &elm_id, bool base, bool detail, bool macro, bool light)
+Bool EditorInterface::reloadMaterialTextures(C UID &elm_id, bool base, bool detail, bool macro, bool emissive)
 {
    if(elm_id.valid() && connected())
    {
-      File &f=_conn.data.reset(); f.putByte(EI_RLD_MTRL_TEX).putUID(elm_id).putByte(base*1 | detail*2 | macro*4 | light*8); f.pos(0);
+      File &f=_conn.data.reset(); f.putByte(EI_RLD_MTRL_TEX).putUID(elm_id).putByte(base*1 | detail*2 | macro*4 | emissive*8); f.pos(0);
       if(_conn.send(f))
       if(_conn.receive(CLIENT_WAIT_TIME_LONG)) // reloading textures may take a long time
       if(f.getByte()==EI_RLD_MTRL_TEX)return f.getBool();

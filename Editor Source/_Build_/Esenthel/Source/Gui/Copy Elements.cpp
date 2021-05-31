@@ -397,7 +397,7 @@ void DrawCopyElms()
 
          case ELM_MTRL: if(ElmMaterial *data=elm->mtrlData())
          {
-            includeTex(data->base_0_tex); includeTex(data->base_1_tex); includeTex(data->base_2_tex); includeTex(data->detail_tex); includeTex(data->macro_tex); includeTex(data->light_tex); // always include
+            includeTex(data->base_0_tex); includeTex(data->base_1_tex); includeTex(data->base_2_tex); includeTex(data->detail_tex); includeTex(data->macro_tex); includeTex(data->emissive_tex); // always include
          }break;
 
          case ELM_WATER_MTRL: if(ElmWaterMtrl *data=elm->waterMtrlData())

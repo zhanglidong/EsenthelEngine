@@ -24,7 +24,7 @@ struct XMaterial // Material stored in external formats
                       alpha_map, // alpha         texture file name
                        bump_map, // bump          texture file name
                        glow_map, // glow          texture file name
-                      light_map, // light         texture file name
+                   emissive_map, // emissive      texture file name
                      normal_map, // normal        texture file name
                      smooth_map, // smoothness    texture file name
                       metal_map, // metallic      texture file name

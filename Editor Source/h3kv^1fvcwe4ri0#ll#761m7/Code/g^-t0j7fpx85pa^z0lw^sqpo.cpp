@@ -514,7 +514,7 @@ class Project
 
          case ELM_MTRL: if(ElmMaterial *data=elm.mtrlData())
          {
-            return invalidTex(data.base_0_tex) || invalidTex(data.base_1_tex) || invalidTex(data.base_2_tex) || invalidTex(data.detail_tex) || invalidTex(data.macro_tex) || invalidTex(data.light_tex);
+            return invalidTex(data.base_0_tex) || invalidTex(data.base_1_tex) || invalidTex(data.base_2_tex) || invalidTex(data.detail_tex) || invalidTex(data.macro_tex) || invalidTex(data.emissive_tex);
          }break;
 
          case ELM_WATER_MTRL: if(ElmWaterMtrl *data=elm.waterMtrlData())
@@ -1171,19 +1171,19 @@ class Project
                {
                   if(ver<=46)
                   {
-                     edit. color_map   .replace('|', '\n');
-                     edit. alpha_map   .replace('|', '\n');
-                     edit.  bump_map   .replace('|', '\n');
-                     edit.normal_map   .replace('|', '\n');
-                     edit.smooth_map   .replace('|', '\n');
-                     edit. metal_map   .replace('|', '\n');
-                     edit.  glow_map   .replace('|', '\n');
-                     edit.detail_color .replace('|', '\n');
-                     edit.detail_bump  .replace('|', '\n');
-                     edit.detail_normal.replace('|', '\n');
-                     edit.detail_smooth.replace('|', '\n');
-                     edit. macro_map   .replace('|', '\n');
-                     edit. light_map   .replace('|', '\n');
+                     edit.   color_map   .replace('|', '\n');
+                     edit.   alpha_map   .replace('|', '\n');
+                     edit.    bump_map   .replace('|', '\n');
+                     edit.  normal_map   .replace('|', '\n');
+                     edit.  smooth_map   .replace('|', '\n');
+                     edit.   metal_map   .replace('|', '\n');
+                     edit.    glow_map   .replace('|', '\n');
+                     edit.  detail_color .replace('|', '\n');
+                     edit.  detail_bump  .replace('|', '\n');
+                     edit.  detail_normal.replace('|', '\n');
+                     edit.  detail_smooth.replace('|', '\n');
+                     edit.   macro_map   .replace('|', '\n');
+                     edit.emissive_map   .replace('|', '\n');
                      Save(edit, editPath(elm.id));
                      mtrl_data.from(edit);
                   }

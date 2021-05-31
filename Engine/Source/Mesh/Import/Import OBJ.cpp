@@ -36,13 +36,13 @@ static void ImportMtl(C Str &name, MemPtr<XMaterial> materials)
       for(Str line; !f.end(); )
       {
          f.getLine(line);
-         if(Starts(line, "newmtl "  )){                    materials.New ().name      =        _SkipChar(TextPos(line, ' '))       ;}else
-       //if(Starts(line, "Kd "      )){if(materials.elms())materials.last().color.xyz =TextVec(_SkipChar(TextPos(line, ' ')))      ;}else
-       //if(Starts(line, "Ke "      )){if(materials.elms())materials.last().emissive  =TextVec(_SkipChar(TextPos(line, ' ')))      ;}else
-       //if(Starts(line, "Ks "      )){if(materials.elms())materials.last().spec      =TextVec(_SkipChar(TextPos(line, ' '))).max();}else
-         if(Starts(line, "map_Kd "  )){if(materials.elms())materials.last(). color_map=        _SkipChar(TextPos(line, ' '))       ;}else
-         if(Starts(line, "map_Ke "  )){if(materials.elms())materials.last(). light_map=        _SkipChar(TextPos(line, ' '))       ;}else
-         if(Starts(line, "map_Ks "  )){if(materials.elms())materials.last().smooth_map=        _SkipChar(TextPos(line, ' '))       ;}else
+         if(Starts(line, "newmtl "  )){                    materials.New ().name        =        _SkipChar(TextPos(line, ' '))       ;}else
+       //if(Starts(line, "Kd "      )){if(materials.elms())materials.last().color.xyz   =TextVec(_SkipChar(TextPos(line, ' ')))      ;}else
+       //if(Starts(line, "Ke "      )){if(materials.elms())materials.last().emissive    =TextVec(_SkipChar(TextPos(line, ' ')))      ;}else
+       //if(Starts(line, "Ks "      )){if(materials.elms())materials.last().spec        =TextVec(_SkipChar(TextPos(line, ' '))).max();}else
+         if(Starts(line, "map_Kd "  )){if(materials.elms())materials.last().   color_map=        _SkipChar(TextPos(line, ' '))       ;}else
+         if(Starts(line, "map_Ke "  )){if(materials.elms())materials.last().emissive_map=        _SkipChar(TextPos(line, ' '))       ;}else
+         if(Starts(line, "map_Ks "  )){if(materials.elms())materials.last().  smooth_map=        _SkipChar(TextPos(line, ' '))       ;}else
          if(Starts(line, "map_bump "))
          {
             if(materials.elms())

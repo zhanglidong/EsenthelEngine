@@ -606,7 +606,7 @@ class ElmMaterial : ElmData
       USES_TEX_BUMP =1<<1,
       USES_TEX_GLOW =1<<2,
    }
-   UID                       base_0_tex=UIDZero, base_1_tex=UIDZero, base_2_tex=UIDZero, detail_tex=UIDZero, macro_tex=UIDZero, light_tex=UIDZero;
+   UID                       base_0_tex=UIDZero, base_1_tex=UIDZero, base_2_tex=UIDZero, detail_tex=UIDZero, macro_tex=UIDZero, emissive_tex=UIDZero;
    byte                      downsize_tex_mobile=0, flag=0;
    Edit.Material.TEX_QUALITY tex_quality=Edit.Material.MEDIUM;
 
@@ -623,30 +623,30 @@ class ElmMaterial : ElmData
    {
       if(id.valid())
       {
-         if(base_0_tex==id || base_1_tex==id || base_2_tex==id || detail_tex==id || macro_tex==id || light_tex==id)return true;
+         if(base_0_tex==id || base_1_tex==id || base_2_tex==id || detail_tex==id || macro_tex==id || emissive_tex==id)return true;
          if(test_merged && MergedBaseTexturesID(base_0_tex, base_1_tex, base_2_tex)==id)return true;
       }
       return false;
    }
    virtual void listTexs(MemPtr<UID> texs)C override
    {
-      if(base_0_tex.valid())texs.binaryInclude(base_0_tex);
-      if(base_1_tex.valid())texs.binaryInclude(base_1_tex);
-      if(base_2_tex.valid())texs.binaryInclude(base_2_tex);
-      if(detail_tex.valid())texs.binaryInclude(detail_tex);
-      if( macro_tex.valid())texs.binaryInclude( macro_tex);
-      if( light_tex.valid())texs.binaryInclude( light_tex);
+      if(  base_0_tex.valid())texs.binaryInclude(  base_0_tex);
+      if(  base_1_tex.valid())texs.binaryInclude(  base_1_tex);
+      if(  base_2_tex.valid())texs.binaryInclude(  base_2_tex);
+      if(  detail_tex.valid())texs.binaryInclude(  detail_tex);
+      if(   macro_tex.valid())texs.binaryInclude(   macro_tex);
+      if(emissive_tex.valid())texs.binaryInclude(emissive_tex);
    }
 
    // operations
    void from(C EditMaterial &src)
    {
-      base_0_tex=src.base_0_tex;
-      base_1_tex=src.base_1_tex;
-      base_2_tex=src.base_2_tex;
-      detail_tex=src.detail_tex;
-       macro_tex=src. macro_tex;
-       light_tex=src. light_tex;
+        base_0_tex=src.  base_0_tex;
+        base_1_tex=src.  base_1_tex;
+        base_2_tex=src.  base_2_tex;
+        detail_tex=src.  detail_tex;
+         macro_tex=src.   macro_tex;
+      emissive_tex=src.emissive_tex;
 
       downsize_tex_mobile=src.downsize_tex_mobile;
       tex_quality        =src.tex_quality;
@@ -671,7 +671,7 @@ class ElmMaterial : ElmData
    {
       super.save(f);
       f.cmpUIntV(6);
-      f<<base_0_tex<<base_1_tex<<base_2_tex<<detail_tex<<macro_tex<<light_tex<<downsize_tex_mobile<<tex_quality<<flag;
+      f<<base_0_tex<<base_1_tex<<base_2_tex<<detail_tex<<macro_tex<<emissive_tex<<downsize_tex_mobile<<tex_quality<<flag;
       return f.ok();
    }
    virtual bool load(File &f)override
@@ -681,43 +681,43 @@ class ElmMaterial : ElmData
       {
          case 6:
          {
-            f>>base_0_tex>>base_1_tex>>base_2_tex>>detail_tex>>macro_tex>>light_tex>>downsize_tex_mobile>>tex_quality>>flag;
+            f>>base_0_tex>>base_1_tex>>base_2_tex>>detail_tex>>macro_tex>>emissive_tex>>downsize_tex_mobile>>tex_quality>>flag;
             if(f.ok())return true;
          }break;
 
          case 5:
          {
-            f>>base_0_tex>>base_1_tex>>base_2_tex>>detail_tex>>macro_tex>>light_tex>>downsize_tex_mobile>>flag; if(flag&(1<<3)){tex_quality=Edit.Material.HIGH; FlagDisable(flag, 1<<3);}
+            f>>base_0_tex>>base_1_tex>>base_2_tex>>detail_tex>>macro_tex>>emissive_tex>>downsize_tex_mobile>>flag; if(flag&(1<<3)){tex_quality=Edit.Material.HIGH; FlagDisable(flag, 1<<3);}
             if(f.ok())return true;
          }break;
 
          case 4:
          {
-            f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>light_tex>>downsize_tex_mobile>>flag; base_2_tex.zero(); if(flag&(1<<3)){tex_quality=Edit.Material.HIGH; FlagDisable(flag, 1<<3);}
+            f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>emissive_tex>>downsize_tex_mobile>>flag; base_2_tex.zero(); if(flag&(1<<3)){tex_quality=Edit.Material.HIGH; FlagDisable(flag, 1<<3);}
             if(f.ok())return true;
          }break;
 
          case 3:
          {
-            byte max_tex_size; f>>max_tex_size>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>light_tex; base_2_tex.zero(); downsize_tex_mobile=(max_tex_size>=1 && max_tex_size<=10); flag=0;
+            byte max_tex_size; f>>max_tex_size>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>emissive_tex; base_2_tex.zero(); downsize_tex_mobile=(max_tex_size>=1 && max_tex_size<=10); flag=0;
             if(f.ok())return true;
          }break;
 
          case 2:
          {
-            byte max_tex_size; UID mesh_id; f>>max_tex_size>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>light_tex>>mesh_id; base_2_tex.zero(); downsize_tex_mobile=(max_tex_size>=1 && max_tex_size<=10); flag=0;
+            byte max_tex_size; UID mesh_id; f>>max_tex_size>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>emissive_tex>>mesh_id; base_2_tex.zero(); downsize_tex_mobile=(max_tex_size>=1 && max_tex_size<=10); flag=0;
             if(f.ok())return true;
          }break;
 
          case 1:
          {
-            UID mesh_id; f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>light_tex>>mesh_id; base_2_tex.zero(); downsize_tex_mobile=0; flag=0;
+            UID mesh_id; f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>emissive_tex>>mesh_id; base_2_tex.zero(); downsize_tex_mobile=0; flag=0;
             if(f.ok())return true;
          }break;
 
          case 0:
          {
-            UID mesh_id; f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>mesh_id; base_2_tex.zero(); downsize_tex_mobile=0; flag=0; light_tex.zero();
+            UID mesh_id; f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>mesh_id; base_2_tex.zero(); downsize_tex_mobile=0; flag=0; emissive_tex.zero();
             if(f.ok())return true;
          }break;
       }
@@ -731,7 +731,7 @@ class ElmMaterial : ElmData
       if(  base_2_tex.valid())nodes.New().setFN("Base2"            ,   base_2_tex);
       if(  detail_tex.valid())nodes.New().setFN("Detail"           ,   detail_tex);
       if(   macro_tex.valid())nodes.New().setFN("Macro"            ,    macro_tex);
-      if(   light_tex.valid())nodes.New().setFN("Light"            ,    light_tex);
+      if(emissive_tex.valid())nodes.New().setFN("Emissive"         , emissive_tex);
       if(downsize_tex_mobile )nodes.New().set  ("MobileTexDownsize", downsize_tex_mobile);
                               nodes.New().set  ("TexQuality"       ,  tex_quality);
       if(usesTexAlpha())nodes.New().set("UsesTexAlpha");
@@ -744,12 +744,12 @@ class ElmMaterial : ElmData
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
-         if(n.name=="Base0"            )n.getValue(base_0_tex);else
-         if(n.name=="Base1"            )n.getValue(base_1_tex);else
-         if(n.name=="Base2"            )n.getValue(base_2_tex);else
-         if(n.name=="Detail"           )n.getValue(detail_tex);else
-         if(n.name=="Macro"            )n.getValue( macro_tex);else
-         if(n.name=="Light"            )n.getValue( light_tex);else
+         if(n.name=="Base0"            )n.getValue(  base_0_tex);else
+         if(n.name=="Base1"            )n.getValue(  base_1_tex);else
+         if(n.name=="Base2"            )n.getValue(  base_2_tex);else
+         if(n.name=="Detail"           )n.getValue(  detail_tex);else
+         if(n.name=="Macro"            )n.getValue(   macro_tex);else
+         if(n.name=="Emissive"         )n.getValue(emissive_tex);else
          if(n.name=="MobileTexDownsize")downsize_tex_mobile=                           n.asInt();else
          if(n.name=="TexQuality"       )tex_quality        =(Edit.Material.TEX_QUALITY)n.asInt();else
          if(n.name=="UsesTexAlpha"     )FlagSet(flag, USES_TEX_ALPHA, n.asBool1());else

@@ -77,7 +77,7 @@ static Int BumpMode(C Material &material, MESH_FLAG mesh_flag)
    }
    return SBUMP_ZERO;
 }
-static Int  EmissiveMode(C Material &material) {return (material.emissive.max()>EPS_COL8_NATIVE) ? material.light_map ? 2 : 1 : 0;}
+static Int  EmissiveMode(C Material &material) {return (material.emissive.max()>EPS_COL8_NATIVE) ? material.emissive_map ? 2 : 1 : 0;}
 static Bool Detail      (C Material &material) {return  material.detail_map && material.det_power>EPS_COL8;} // #MaterialTextureLayoutDetail
 static Bool Macro       (C Material &material) {return  material. macro_map;}
 static Bool Reflect     (C Material &material) {return  material.reflect_add+((material.base_2 && material.reflect_mul>0) ? material.reflect_mul : 0)  // get maximum possible reflectivity                                                           , add 'reflect_mul' only if it increases reflectivity (>0) because we only want possible maximum. #MaterialTextureLayout 'reflect_mul' is multiplied with metal     texture which is stored in base_2
@@ -188,7 +188,7 @@ Shader* DefaultShaders::Overlay()C
 Shader* DefaultShaders::Emissive()C
 {
 #if SUPPORT_EMISSIVE
-   if(valid && !alpha_blend && emissive)return ShaderFiles("Emissive")->get(ShaderEmissive(skin, alpha_test, emissive-1)); // for alpha_blend emissive is in the blend shader, light_map=(emissive==2) ? 1 : 0
+   if(valid && !alpha_blend && emissive)return ShaderFiles("Emissive")->get(ShaderEmissive(skin, alpha_test, emissive-1)); // for alpha_blend emissive is in the blend shader, emissive_map=(emissive==2) ? 1 : 0
 #endif
    return null;
 }
@@ -240,21 +240,21 @@ FRST* DefaultShaders::Frst()C
    if(valid && !alpha_blend && Renderer.anyForward())
    {
       FRSTKey key;
-      key.per_pixel =(Renderer.forwardPrecision() && bump>SBUMP_ZERO);
+      key.per_pixel   =(Renderer.forwardPrecision() && bump>SBUMP_ZERO);
 
-      key.bump_mode =Min(bump, key.per_pixel ? SBUMP_NORMAL : SBUMP_FLAT); // forward supports only up to normal mapping
-      key.skin      =skin;
-      key.materials =materials;
-      key.layout    =layout;
-      key.alpha_test=alpha_test;
-      key.reflect   =reflect;
-      key.light_map =(emissive>1);
-      key.detail    =(detail && SUPPORT_FORWARD_DETAIL);
-      key.color     =color;
-      key.mtrl_blend=mtrl_blend;
-      key.fx        =fx;
-      key.heightmap =heightmap;
-      key.tesselate =(tesselate && SUPPORT_FORWARD_TESSELATE);
+      key.bump_mode   =Min(bump, key.per_pixel ? SBUMP_NORMAL : SBUMP_FLAT); // forward supports only up to normal mapping
+      key.skin        =skin;
+      key.materials   =materials;
+      key.layout      =layout;
+      key.alpha_test  =alpha_test;
+      key.reflect     =reflect;
+      key.emissive_map=(emissive>1);
+      key.detail      =(detail && SUPPORT_FORWARD_DETAIL);
+      key.color       =color;
+      key.mtrl_blend  =mtrl_blend;
+      key.fx          =fx;
+      key.heightmap   =heightmap;
+      key.tesselate   =(tesselate && SUPPORT_FORWARD_TESSELATE);
       return Frsts(key);
    }
    return null;
@@ -270,15 +270,15 @@ BLST* DefaultShaders::Blst()C
       BLSTKey key;
       key.per_pixel =(((Renderer.type()==RT_FORWARD) ? Renderer.forwardPrecision() : true) && bump>SBUMP_ZERO);
 
-      key.bump_mode =Min(bump, key.per_pixel ? SBUMP_NORMAL : SBUMP_FLAT); // blend light currently supports only up to normal mapping
-      key.color     =color;
-      key.layout    =layout;
-      key.alpha_test=alpha_test;
-      key.alpha     =alpha;
-      key.reflect   =reflect;
-      key.light_map =(emissive>1);
-      key.skin      =skin;
-      key.fx        =fx;
+      key.bump_mode   =Min(bump, key.per_pixel ? SBUMP_NORMAL : SBUMP_FLAT); // blend light currently supports only up to normal mapping
+      key.color       =color;
+      key.layout      =layout;
+      key.alpha_test  =alpha_test;
+      key.alpha       =alpha;
+      key.reflect     =reflect;
+      key.emissive_map=(emissive>1);
+      key.skin        =skin;
+      key.fx          =fx;
       return Blsts(key);
    }
    return null;

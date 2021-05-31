@@ -44,13 +44,13 @@ namespace EE{
 // SHADER NAMES
 /******************************************************************************/
 Str8 ShaderDeferred  (Int skin, Int materials, Int layout, Int bump_mode, Int alpha_test, Int detail, Int macro, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tesselate) {return S8+skin+materials+layout+bump_mode+alpha_test+detail+macro+color+mtrl_blend+heightmap+fx+tesselate;}
-Str8 ShaderBlendLight(Int skin, Int color    , Int layout, Int bump_mode, Int alpha_test, Int alpha, Int reflect, Int light_map, Int fx, Int per_pixel, Int shadow_maps, Int tesselate) {return S8+skin+color+layout+bump_mode+alpha_test+alpha+reflect+light_map+fx+per_pixel+shadow_maps+tesselate;}
-Str8 ShaderForward   (Int skin, Int materials, Int layout, Int bump_mode, Int alpha_test, Int reflect, Int light_map, Int detail, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tesselate) {return S8+skin+materials+layout+bump_mode+alpha_test+reflect+light_map+detail+color+mtrl_blend+heightmap+fx+per_pixel+light_dir+light_dir_shd+light_dir_shd_num+light_point+light_point_shd+light_linear+light_linear_shd+light_cone+light_cone_shd+tesselate;}
+Str8 ShaderBlendLight(Int skin, Int color    , Int layout, Int bump_mode, Int alpha_test, Int alpha, Int reflect, Int emissive_map, Int fx, Int per_pixel, Int shadow_maps, Int tesselate) {return S8+skin+color+layout+bump_mode+alpha_test+alpha+reflect+emissive_map+fx+per_pixel+shadow_maps+tesselate;}
+Str8 ShaderForward   (Int skin, Int materials, Int layout, Int bump_mode, Int alpha_test, Int reflect, Int emissive_map, Int detail, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tesselate) {return S8+skin+materials+layout+bump_mode+alpha_test+reflect+emissive_map+detail+color+mtrl_blend+heightmap+fx+per_pixel+light_dir+light_dir_shd+light_dir_shd_num+light_point+light_point_shd+light_linear+light_linear_shd+light_cone+light_cone_shd+tesselate;}
 
 Str8 ShaderBehind    (Int skin, Int alpha_test) {return S8+skin+alpha_test;}
-Str8 ShaderBlend     (Int skin, Int color, Int layout, Int bump_mode, Int reflect, Int light_map) {return S8+skin+color+layout+bump_mode+reflect+light_map;}
+Str8 ShaderBlend     (Int skin, Int color, Int layout, Int bump_mode, Int reflect, Int emissive_map) {return S8+skin+color+layout+bump_mode+reflect+emissive_map;}
 Str8 ShaderEarlyZ    (Int skin) {return S8+skin;}
-Str8 ShaderEmissive  (Int skin, Int alpha_test, Int light_map) {return S8+skin+alpha_test+light_map;}
+Str8 ShaderEmissive  (Int skin, Int alpha_test, Int emissive_map) {return S8+skin+alpha_test+emissive_map;}
 Str8 ShaderFurBase   (Int skin, Int size, Int diffuse) {return S8+"Base"+skin+size+diffuse;}
 Str8 ShaderFurSoft   (Int skin, Int size, Int diffuse) {return S8+"Soft"+skin+size+diffuse;}
 Str8 ShaderOverlay   (Int skin, Int normal, Int layout) {return S8+skin+normal+layout;}
@@ -411,13 +411,13 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Blend", model, api, flag).New(src_path+"Blend.cpp");
 
-   REPD(skin     , 2)
-   REPD(color    , 2)
-   REPD(layout   , 3)
+   REPD(skin        , 2)
+   REPD(color       , 2)
+   REPD(layout      , 3)
    for(Int bump_mode=SBUMP_ZERO; bump_mode<=SBUMP_NORMAL; bump_mode++)
-   REPD(reflect  , (bump_mode==SBUMP_ZERO) ? 1 : 2)
-   REPD(light_map, 2)
-      src.New(S, "VS", "PS")("SKIN", skin, "COLORS", color, "LAYOUT", layout, "BUMP_MODE", bump_mode)("REFLECT", reflect, "LIGHT_MAP", light_map);
+   REPD(reflect     , (bump_mode==SBUMP_ZERO) ? 1 : 2)
+   REPD(emissive_map, 2)
+      src.New(S, "VS", "PS")("SKIN", skin, "COLORS", color, "LAYOUT", layout, "BUMP_MODE", bump_mode)("REFLECT", reflect, "EMISSIVE_MAP", emissive_map);
 }
 #endif
 
@@ -494,10 +494,10 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Emissive", model, api, flag).New(src_path+"Emissive.cpp");
 
-   REPD(skin      , 2)
-   REPD(alpha_test, 2)
-   REPD(light_map , 2)
-      src.New(S, "VS", "PS")("SKIN", skin, "ALPHA_TEST", alpha_test, "LIGHT_MAP", light_map);
+   REPD(skin        , 2)
+   REPD(alpha_test  , 2)
+   REPD(emissive_map, 2)
+      src.New(S, "VS", "PS")("SKIN", skin, "ALPHA_TEST", alpha_test, "EMISSIVE_MAP", emissive_map);
 }
 #endif
 
@@ -735,13 +735,13 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    REPD(reflect    , 2)
    {
       // base
-      REPD(skin      , 2)
-      REPD(layout    , 3)
-      REPD(bump_mode , per_pixel ? 2 : 1)
-      REPD(alpha_test, layout    ? 2 : 1)
-      REPD(alpha     , layout    ? 2 : 1)
-      REPD(light_map , 2)
-         src.New().blendLight(skin, color, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, alpha, reflect, light_map, FX_NONE, per_pixel, shadow_maps);
+      REPD(skin        , 2)
+      REPD(layout      , 3)
+      REPD(bump_mode   , per_pixel ? 2 : 1)
+      REPD(alpha_test  , layout    ? 2 : 1)
+      REPD(alpha       , layout    ? 2 : 1)
+      REPD(emissive_map, 2)
+         src.New().blendLight(skin, color, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, alpha, reflect, emissive_map, FX_NONE, per_pixel, shadow_maps);
 
       // grass+leaf, 1 material, 1-2 tex
       for(Int layout=1; layout<=2; layout++)
@@ -763,19 +763,19 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
          src.forward(skin, 1, 0, SBUMP_ZERO, false, false, false, false, color, false, false, FX_NONE, false,   false,false,0,   false,false,   false,false,   false,false,   false);
 
       // default
-      REPD(skin      , 2)
-      REPD(per_pixel , 2)
+      REPD(skin        , 2)
+      REPD(per_pixel   , 2)
       for(Int materials=1, materials_max=(skin ? 1 : MAX_MTRLS); materials<=materials_max; materials++)
       for(Int layout=((materials==1) ? 0 : 1); layout<=2; layout++) // multi-materials don't support 0 textures
-      REPD(bump_mode , per_pixel                              ? 2 : 1)
-      REPD(mtrl_blend, (materials> 1 && layout>=2           ) ? 2 : 1) // can do per-pixel mtrl-blend only if we have bump map
-      REPD(heightmap , (!skin                               ) ? 2 : 1)
-      REPD(alpha_test, (materials==1 && layout && !heightmap) ? 2 : 1)
-      REPD(light_map , (materials==1 &&           !heightmap) ? 2 : 1)
-      REPD(tesselate , (tess && SUPPORT_FORWARD_TESSELATE   ) ? 2 : 1)
-      REPD(detail    , (        SUPPORT_FORWARD_DETAIL      ) ? 2 : 1)
-      REPD(reflect   , 2)
-         src.forwardLight(skin, materials, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, reflect, light_map, detail, color, mtrl_blend, heightmap, FX_NONE, per_pixel, tesselate);
+      REPD(bump_mode   , per_pixel                              ? 2 : 1)
+      REPD(mtrl_blend  , (materials> 1 && layout>=2           ) ? 2 : 1) // can do per-pixel mtrl-blend only if we have bump map
+      REPD(heightmap   , (!skin                               ) ? 2 : 1)
+      REPD(alpha_test  , (materials==1 && layout && !heightmap) ? 2 : 1)
+      REPD(emissive_map, (materials==1 &&           !heightmap) ? 2 : 1)
+      REPD(tesselate   , (tess && SUPPORT_FORWARD_TESSELATE   ) ? 2 : 1)
+      REPD(detail      , (        SUPPORT_FORWARD_DETAIL      ) ? 2 : 1)
+      REPD(reflect     , 2)
+         src.forwardLight(skin, materials, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, reflect, emissive_map, detail, color, mtrl_blend, heightmap, FX_NONE, per_pixel, tesselate);
 
       // grass + leaf, 1 material, 1-2 tex
       for(Int layout=1; layout<=2; layout++)

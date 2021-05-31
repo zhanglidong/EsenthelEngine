@@ -346,47 +346,47 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
                EditMaterial edit; edit.create(mtrl_ex); // create from material
 
                // set textures
-               if(game.    base_0)ImageProps(*game.    base_0, &edit.base_0_tex, null, MTRL_BASE_0);else edit.base_0_tex.zero();
-               if(game.    base_1)ImageProps(*game.    base_1, &edit.base_1_tex, null, MTRL_BASE_1);else edit.base_1_tex.zero();
-               if(game.    base_2)ImageProps(*game.    base_2, &edit.base_2_tex, null, MTRL_BASE_2);else edit.base_2_tex.zero();
-               if(game.detail_map)ImageProps(*game.detail_map, &edit.detail_tex, null, MTRL_DETAIL);else edit.detail_tex.zero();
-               if(game. macro_map)ImageProps(*game. macro_map, &edit. macro_tex, null, MTRL_MACRO );else edit. macro_tex.zero();
-               if(game. light_map)ImageProps(*game. light_map, &edit. light_tex, null, MTRL_LIGHT );else edit. light_tex.zero();
-               if(edit.base_0_tex.valid())if(Proj.includeTex(edit.base_0_tex))game.    base_0->save(Proj.texPath(edit.base_0_tex));
-               if(edit.base_1_tex.valid())if(Proj.includeTex(edit.base_1_tex))game.    base_1->save(Proj.texPath(edit.base_1_tex));
-               if(edit.base_2_tex.valid())if(Proj.includeTex(edit.base_2_tex))game.    base_2->save(Proj.texPath(edit.base_2_tex));
-               if(edit.detail_tex.valid())if(Proj.includeTex(edit.detail_tex))game.detail_map->save(Proj.texPath(edit.detail_tex));
-               if(edit. macro_tex.valid())if(Proj.includeTex(edit. macro_tex))game. macro_map->save(Proj.texPath(edit. macro_tex));
-               if(edit. light_tex.valid())if(Proj.includeTex(edit. light_tex))game. light_map->save(Proj.texPath(edit. light_tex));
+               if(game.      base_0)ImageProps(*game.      base_0, &edit.  base_0_tex, null, MTRL_BASE_0  );else edit.  base_0_tex.zero();
+               if(game.      base_1)ImageProps(*game.      base_1, &edit.  base_1_tex, null, MTRL_BASE_1  );else edit.  base_1_tex.zero();
+               if(game.      base_2)ImageProps(*game.      base_2, &edit.  base_2_tex, null, MTRL_BASE_2  );else edit.  base_2_tex.zero();
+               if(game.  detail_map)ImageProps(*game.  detail_map, &edit.  detail_tex, null, MTRL_DETAIL  );else edit.  detail_tex.zero();
+               if(game.   macro_map)ImageProps(*game.   macro_map, &edit.   macro_tex, null, MTRL_MACRO   );else edit.   macro_tex.zero();
+               if(game.emissive_map)ImageProps(*game.emissive_map, &edit.emissive_tex, null, MTRL_EMISSIVE);else edit.emissive_tex.zero();
+               if(edit.  base_0_tex.valid())if(Proj.includeTex(edit.  base_0_tex))game.      base_0->save(Proj.texPath(edit.  base_0_tex));
+               if(edit.  base_1_tex.valid())if(Proj.includeTex(edit.  base_1_tex))game.      base_1->save(Proj.texPath(edit.  base_1_tex));
+               if(edit.  base_2_tex.valid())if(Proj.includeTex(edit.  base_2_tex))game.      base_2->save(Proj.texPath(edit.  base_2_tex));
+               if(edit.  detail_tex.valid())if(Proj.includeTex(edit.  detail_tex))game.  detail_map->save(Proj.texPath(edit.  detail_tex));
+               if(edit.   macro_tex.valid())if(Proj.includeTex(edit.   macro_tex))game.   macro_map->save(Proj.texPath(edit.   macro_tex));
+               if(edit.emissive_tex.valid())if(Proj.includeTex(edit.emissive_tex))game.emissive_map->save(Proj.texPath(edit.emissive_tex));
 
-               Str b0=MakeFullPath(game.    base_0.name(), FILE_DATA),
-                   b1=MakeFullPath(game.    base_1.name(), FILE_DATA),
-                   b2=MakeFullPath(game.    base_2.name(), FILE_DATA),
-                    d=MakeFullPath(game.detail_map.name(), FILE_DATA),
-                    m=MakeFullPath(game. macro_map.name(), FILE_DATA),
-                    l=MakeFullPath(game. light_map.name(), FILE_DATA);
+               Str b0=MakeFullPath(game.      base_0.name(), FILE_DATA),
+                   b1=MakeFullPath(game.      base_1.name(), FILE_DATA),
+                   b2=MakeFullPath(game.      base_2.name(), FILE_DATA),
+                    d=MakeFullPath(game.  detail_map.name(), FILE_DATA),
+                    m=MakeFullPath(game.   macro_map.name(), FILE_DATA),
+                    e=MakeFullPath(game.emissive_map.name(), FILE_DATA);
                ImportMtrlImages.binaryInclude(SkipStartPath(b0, ImportSrc), ImportComparePath);
                ImportMtrlImages.binaryInclude(SkipStartPath(b1, ImportSrc), ImportComparePath);
                ImportMtrlImages.binaryInclude(SkipStartPath(b2, ImportSrc), ImportComparePath);
                ImportMtrlImages.binaryInclude(SkipStartPath(d , ImportSrc), ImportComparePath);
                ImportMtrlImages.binaryInclude(SkipStartPath(m , ImportSrc), ImportComparePath);
-               ImportMtrlImages.binaryInclude(SkipStartPath(l , ImportSrc), ImportComparePath);
+               ImportMtrlImages.binaryInclude(SkipStartPath(e , ImportSrc), ImportComparePath);
 
                // #MaterialTextureLayout
-               edit. color_map_time.getUTC(); edit. color_map=b0; //AddTransform(edit.color_map, "channel", "xyz"); don't set because we might need alpha
-               edit. alpha_map_time.getUTC(); edit. alpha_map.clear(); // just use from 'color_map'
-               edit.normal_map_time.getUTC(); edit.normal_map=b1; AddTransform(edit.normal_map, "channel", "xy");
-               edit.  bump_map_time.getUTC(); edit.  bump_map=b2; AddTransform(edit.  bump_map, "channel", "z");
-               edit.  glow_map_time.getUTC(); edit.  glow_map=b2; AddTransform(edit.  glow_map, "channel", "w");
-               edit.smooth_map_time.getUTC(); edit.smooth_map=b2; AddTransform(edit.smooth_map, "channel", "y");
-               edit. metal_map_time.getUTC(); edit. metal_map=b2; AddTransform(edit. metal_map, "channel", "x");
+               edit.   color_map_time.getUTC(); edit. color_map=b0; //AddTransform(edit.color_map, "channel", "xyz"); don't set because we might need alpha
+               edit.   alpha_map_time.getUTC(); edit. alpha_map.clear(); // just use from 'color_map'
+               edit.  normal_map_time.getUTC(); edit.normal_map=b1; AddTransform(edit.normal_map, "channel", "xy");
+               edit.    bump_map_time.getUTC(); edit.  bump_map=b2; AddTransform(edit.  bump_map, "channel", "z");
+               edit.    glow_map_time.getUTC(); edit.  glow_map=b2; AddTransform(edit.  glow_map, "channel", "w");
+               edit.  smooth_map_time.getUTC(); edit.smooth_map=b2; AddTransform(edit.smooth_map, "channel", "y");
+               edit.   metal_map_time.getUTC(); edit. metal_map=b2; AddTransform(edit. metal_map, "channel", "x");
                // #MaterialTextureLayoutDetail
-               edit.detail_map_time.getUTC(); edit.detail_color =d; AddTransform(edit.detail_color , "channel", "w" );
-                                              edit.detail_smooth=d; AddTransform(edit.detail_smooth, "channel", "z" );
-                                              edit.detail_normal=d; AddTransform(edit.detail_normal, "channel", "xy");
-                                              edit.detail_bump.clear();
-               edit. macro_map_time.getUTC(); edit. macro_map   =m;
-               edit. light_map_time.getUTC(); edit. light_map   =l;
+               edit.  detail_map_time.getUTC(); edit.  detail_color =d; AddTransform(edit.detail_color , "channel", "w" );
+                                                edit.  detail_smooth=d; AddTransform(edit.detail_smooth, "channel", "z" );
+                                                edit.  detail_normal=d; AddTransform(edit.detail_normal, "channel", "xy");
+                                                edit.  detail_bump.clear();
+               edit.   macro_map_time.getUTC(); edit.   macro_map   =m;
+               edit.emissive_map_time.getUTC(); edit.emissive_map   =e;
 
                // save
                Save(edit, Proj.editPath(elm));

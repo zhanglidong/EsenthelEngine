@@ -150,16 +150,16 @@ void DrawIDReplace()
    int IDReplace::Compare(C IDReplace &a, C UID       &b) {return ::Compare(a.from, b     );}
       bool MergeSimilarMaterials::Mtrl::similar(C Mtrl &m)C
       {
-         if(MSM.            name   &&        name!=m.      name)return false;
-         if(MSM.      color_name   &&  color_name!=m.color_name)return false;
-         if(MSM.       color_tex   &&  base_0_tex!=m.base_0_tex)return false;
-         if(MSM.      normal_tex   &&  base_1_tex!=m.base_1_tex)return false;
-         if(MSM.       base2_tex   &&  base_2_tex!=m.base_2_tex)return false;
-         if(MSM.      detail_tex   &&  detail_tex!=m.detail_tex)return false;
-         if(MSM.       macro_tex   &&   macro_tex!=m. macro_tex)return false;
-         if(MSM.       light_tex   &&   light_tex!=m. light_tex)return false;
-         if(MSM.            cull   &&        cull!=m.      cull)return false;
-         if(MSM.            tech   &&        tech!=m.      tech)return false;
+         if(MSM.            name   &&         name!=m.        name)return false;
+         if(MSM.      color_name   &&   color_name!=m.  color_name)return false;
+         if(MSM.       color_tex   &&   base_0_tex!=m.  base_0_tex)return false;
+         if(MSM.      normal_tex   &&   base_1_tex!=m.  base_1_tex)return false;
+         if(MSM.       base2_tex   &&   base_2_tex!=m.  base_2_tex)return false;
+         if(MSM.      detail_tex   &&   detail_tex!=m.  detail_tex)return false;
+         if(MSM.       macro_tex   &&    macro_tex!=m.   macro_tex)return false;
+         if(MSM.    emissive_tex   && emissive_tex!=m.emissive_tex)return false;
+         if(MSM.            cull   &&         cull!=m.        cull)return false;
+         if(MSM.            tech   &&         tech!=m.        tech)return false;
          if(MSM.  color_value_on() && Abs(col_s   -m.col_s   ).max()>MSM.  color_value)return false;
          if(MSM.   bump_value_on() && Abs(bump    -m.bump    )      >MSM.   bump_value)return false;
          if(MSM. smooth_value_on() && Abs(smooth  -m.smooth  )      >MSM. smooth_value)return false;
@@ -172,13 +172,13 @@ void DrawIDReplace()
       {
          if(Elm *elm=Proj.findElm(elm_id))name=elm->name;
          T.elm_id=elm_id;
-         color_name=m.color_map;
-         base_0_tex=m.base_0_tex;
-         base_1_tex=m.base_1_tex;
-         base_2_tex=m.base_2_tex;
-         detail_tex=m.detail_tex;
-          macro_tex=m.macro_tex;
-          light_tex=m.light_tex;
+           color_name=m.color_map;
+           base_0_tex=m.  base_0_tex;
+           base_1_tex=m.  base_1_tex;
+           base_2_tex=m.  base_2_tex;
+           detail_tex=m.  detail_tex;
+            macro_tex=m.   macro_tex;
+         emissive_tex=m.emissive_tex;
          cull=m.cull;
          tech=m.tech;
          col_s=m.color_s;
@@ -304,14 +304,14 @@ void DrawIDReplace()
    void MergeSimilarMaterials::create()
    {
       add("Require Same:");
-      add("Material Name"    , MEMBER(MergeSimilarMaterials,        name)).desc("Materials will be tested against their name in the project");
-      add("Color Source Name", MEMBER(MergeSimilarMaterials,  color_name)).desc("Materials will be tested against the source file name of the color texture");
-      add("Color Texture"    , MEMBER(MergeSimilarMaterials,  color_tex )).desc("Materials will be tested against the actual color texture image");
-      add("Normal Texture"   , MEMBER(MergeSimilarMaterials, normal_tex ));
-      add("Base2 Texture"    , MEMBER(MergeSimilarMaterials,  base2_tex ));
-      add("Detail Texture"   , MEMBER(MergeSimilarMaterials, detail_tex ));
-      add("Macro Texture"    , MEMBER(MergeSimilarMaterials,  macro_tex ));
-      add("Light Texture"    , MEMBER(MergeSimilarMaterials,  light_tex ));
+      add("Material Name"    , MEMBER(MergeSimilarMaterials,         name)).desc("Materials will be tested against their name in the project");
+      add("Color Source Name", MEMBER(MergeSimilarMaterials,   color_name)).desc("Materials will be tested against the source file name of the color texture");
+      add("Color Texture"    , MEMBER(MergeSimilarMaterials,    color_tex)).desc("Materials will be tested against the actual color texture image");
+      add("Normal Texture"   , MEMBER(MergeSimilarMaterials,   normal_tex));
+      add("Base2 Texture"    , MEMBER(MergeSimilarMaterials,    base2_tex));
+      add("Detail Texture"   , MEMBER(MergeSimilarMaterials,   detail_tex));
+      add("Macro Texture"    , MEMBER(MergeSimilarMaterials,    macro_tex));
+      add("Emissive Texture" , MEMBER(MergeSimilarMaterials, emissive_tex));
       add("Technique"        , MEMBER(MergeSimilarMaterials, tech));
       add("Cull"             , MEMBER(MergeSimilarMaterials, cull));
       add("Color Value"      , MEMBER(MergeSimilarMaterials,   color_value)).desc("Tolerance").range(0, 2);
@@ -364,7 +364,7 @@ void DrawIDReplace()
          if(Ms.tappedFirst(0) && Gui.ms()==&list)if(Data *data=list())if(Elm *elm=Proj.findElm(data->id))MtrlEdit.toggle(elm);
       }
    }
-MergeSimilarMaterials::MergeSimilarMaterials() : name(false), color_name(false), color_is(false), color_tex(true), normal_tex(true), base2_tex(true), detail_tex(true), macro_tex(true), light_tex(true), tech(true), cull(true), color_value(0.1f), bump_value(0.1f), smooth_value(0.1f), reflect_value(0.1f), glow_value(0.1f), uv_scale(0.1f) {}
+MergeSimilarMaterials::MergeSimilarMaterials() : name(false), color_name(false), color_is(false), color_tex(true), normal_tex(true), base2_tex(true), detail_tex(true), macro_tex(true), emissive_tex(true), tech(true), cull(true), color_value(0.1f), bump_value(0.1f), smooth_value(0.1f), reflect_value(0.1f), glow_value(0.1f), uv_scale(0.1f) {}
 
 MergeSimilarMaterials::Data::Data() : id(UIDZero) {}
 

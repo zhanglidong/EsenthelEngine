@@ -66,9 +66,9 @@ class WaterMtrlRegion : MaterialRegion
    virtual C ImagePtr    & getBase0   ()override; 
    virtual C ImagePtr    & getBase1   ()override; 
    virtual C ImagePtr    & getBase2   ()override; 
- //virtual C ImagePtr    & getDetail  ()override  {return game->detail_map  ;}
- //virtual C ImagePtr    & getMacro   ()override  {return game-> macro_map  ;}
- //virtual C ImagePtr    & getLight   ()override  {return game-> light_map  ;}
+ //virtual C ImagePtr    & getDetail  ()override  {return game->  detail_map  ;}
+ //virtual C ImagePtr    & getMacro   ()override  {return game->   macro_map  ;}
+ //virtual C ImagePtr    & getEmissive()override  {return game->emissive_map  ;}
    virtual   bool          water      ()C override;
 
    void create();
@@ -88,7 +88,7 @@ class WaterMtrlRegion : MaterialRegion
    virtual void rebuildBase(TEX_FLAG old_textures, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false, bool adjust_params=true, bool always=false)override;
    virtual void rebuildDetail()override;
    virtual void rebuildMacro()override;
-   virtual void rebuildLight(TEX_FLAG old_textures, bool adjust_params=true)override;
+   virtual void rebuildEmissive(TEX_FLAG old_textures, bool adjust_params=true)override;
 
    virtual void elmChanged(C UID &mtrl_id)override;
 

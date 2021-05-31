@@ -922,8 +922,8 @@ EditorServer EditServer;
                case Edit::EI_RLD_MTRL_TEX:
                {
                   File &f=connection.data; UID elm_id=f.getUID(); byte texs=f.getByte();
-                  bool base=FlagTest(texs, 1), detail=FlagTest(texs, 2), macro=FlagTest(texs, 4), light=FlagTest(texs, 8);
-                  bool ok=Proj.mtrlReloadTextures(elm_id, base, detail, macro, light);
+                  bool base=FlagTest(texs, 1), detail=FlagTest(texs, 2), macro=FlagTest(texs, 4), emissive=FlagTest(texs, 8);
+                  bool ok=Proj.mtrlReloadTextures(elm_id, base, detail, macro, emissive);
                   f.reset().putByte(Edit::EI_RLD_MTRL_TEX).putBool(ok); f.pos(0); connection.send(f);
                }break;
 

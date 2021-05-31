@@ -331,9 +331,9 @@ void ImageProps(C Image &image, UID *hash, IMAGE_TYPE *best_type, uint flags, Ed
             if(flags&MTRL_BASE_1){MAX(quality, MinMtrlTexQualityBase1); sign=true; type=((quality>=Edit::Material::FULL) ? IMAGE_R8G8_SIGN : IMAGE_BC5_SIGN);} // normal tex always uses BC5_SIGN (RG HQ) #MaterialTextureLayout
             if(flags&MTRL_BASE_2){MAX(quality, MinMtrlTexQualityBase2);} // #MaterialTextureLayout
          }
-         if(flags&MTRL_DETAIL){MAX(quality, MinMtrlTexQualityDetail);} // #MaterialTextureLayoutDetail
-         if(flags&MTRL_MACRO ){MAX(quality, MinMtrlTexQualityMacro ); flags|=SRGB|IGNORE_ALPHA;}
-         if(flags&MTRL_LIGHT ){MAX(quality, MinMtrlTexQualityLight ); flags|=SRGB|IGNORE_ALPHA;}
+         if(flags&MTRL_DETAIL  ){MAX(quality, MinMtrlTexQualityDetail);} // #MaterialTextureLayoutDetail
+         if(flags&MTRL_MACRO   ){MAX(quality, MinMtrlTexQualityMacro ); flags|=SRGB|IGNORE_ALPHA;}
+         if(flags&MTRL_EMISSIVE){MAX(quality, MinMtrlTexQualityLight ); flags|=SRGB|IGNORE_ALPHA;}
 
          MD5  h;
          bool bc1=true, // BC1 4-bit uses 1-bit alpha (0 or 255) (R,G,B,a?255:0)

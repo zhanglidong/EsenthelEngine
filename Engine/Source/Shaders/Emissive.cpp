@@ -1,13 +1,13 @@
 /******************************************************************************/
 #include "!Header.h"
 /******************************************************************************
-SKIN, ALPHA_TEST, LIGHT_MAP
+SKIN, ALPHA_TEST, EMISSIVE_MAP
 /******************************************************************************/
 void VS
 (
    VtxInput vtx,
 
-#if ALPHA_TEST || LIGHT_MAP
+#if ALPHA_TEST || EMISSIVE_MAP
    out Vec2 outTex:TEXCOORD,
 #endif
    out Vec4 outVtx:POSITION,
@@ -15,7 +15,7 @@ void VS
    CLIP_DIST
 )
 {
-#if ALPHA_TEST || LIGHT_MAP
+#if ALPHA_TEST || EMISSIVE_MAP
    outTex=vtx.tex();
 #endif
 
@@ -27,7 +27,7 @@ void VS
 /******************************************************************************/
 VecH4 PS
 (
-#if ALPHA_TEST || LIGHT_MAP
+#if ALPHA_TEST || EMISSIVE_MAP
    Vec2 inTex:TEXCOORD
 #endif
 ):TARGET
@@ -36,7 +36,7 @@ VecH4 PS
    clip(Tex(Col, inTex).a + Material.color.a-1);
 #endif
 
-#if LIGHT_MAP
+#if EMISSIVE_MAP
    return VecH4(Material.emissive*Tex(Lum, inTex).rgb, 0);
 #else
    return VecH4(Material.emissive, 0);

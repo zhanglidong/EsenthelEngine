@@ -385,12 +385,12 @@ void Material::setSolid()C
       MaterialLast4[0]=null; // because they use the same shader images
 
       if(_alpha_factor.a)Renderer._has_glow=true;
-      Sh.Col[0]  ->set(    base_0());
-      Sh.Nrm[0]  ->set(    base_1());
-      Sh.Ext[0]  ->set(    base_2());
-      Sh.Det[0]  ->set(detail_map());
-      Sh.Mac[0]  ->set( macro_map());
-      Sh.Lum     ->set( light_map());
+      Sh.Col[0]  ->set(      base_0());
+      Sh.Nrm[0]  ->set(      base_1());
+      Sh.Ext[0]  ->set(      base_2());
+      Sh.Det[0]  ->set(  detail_map());
+      Sh.Mac[0]  ->set(   macro_map());
+      Sh.Lum     ->set(emissive_map());
       Sh.Material->set<MaterialParams>(T);
    #if !LINEAR_GAMMA
       Renderer.material_color_l->set(colorS());
@@ -405,8 +405,8 @@ void Material::setEmissive()C
       MaterialLast4[0]=null; // because they use the same shader images
 
       // textures needed for alpha-test #MaterialTextureLayout
-      Sh.Col[0]  ->set(base_0   ());
-      Sh.Lum     ->set(light_map());
+      Sh.Col[0]  ->set(base_0      ());
+      Sh.Lum     ->set(emissive_map());
       Sh.Material->set<MaterialParams>(T); // params needed for alpha-test and emissive
    #if !LINEAR_GAMMA
       Renderer.material_color_l->set(colorS());
@@ -422,12 +422,12 @@ void Material::setBlend()C
 
       D.alphaFactor(_alpha_factor); if(_alpha_factor.a)Renderer._has_glow=true;
 
-      Sh.Col[0]  ->set(    base_0());
-      Sh.Nrm[0]  ->set(    base_1());
-      Sh.Ext[0]  ->set(    base_2());
-      Sh.Det[0]  ->set(detail_map());
-      Sh.Mac[0]  ->set( macro_map());
-      Sh.Lum     ->set( light_map());
+      Sh.Col[0]  ->set(      base_0());
+      Sh.Nrm[0]  ->set(      base_1());
+      Sh.Ext[0]  ->set(      base_2());
+      Sh.Det[0]  ->set(  detail_map());
+      Sh.Mac[0]  ->set(   macro_map());
+      Sh.Lum     ->set(emissive_map());
       Sh.Material->set<MaterialParams>(T);
    #if !LINEAR_GAMMA
       Renderer.material_color_l->set(colorS());
@@ -449,12 +449,12 @@ void Material::setBlendForce()C
       D.alphaFactor(_alpha_factor); if(_alpha_factor.a)Renderer._has_glow=true;
    }
 
-   Sh.Col[0]  ->set(    base_0());
-   Sh.Nrm[0]  ->set(    base_1());
-   Sh.Ext[0]  ->set(    base_2());
-   Sh.Det[0]  ->set(detail_map());
-   Sh.Mac[0]  ->set( macro_map());
-   Sh.Lum     ->set( light_map());
+   Sh.Col[0]  ->set(      base_0());
+   Sh.Nrm[0]  ->set(      base_1());
+   Sh.Ext[0]  ->set(      base_2());
+   Sh.Det[0]  ->set(  detail_map());
+   Sh.Mac[0]  ->set(   macro_map());
+   Sh.Lum     ->set(emissive_map());
    Sh.Material->set<MaterialParams>(T);
 #if !LINEAR_GAMMA
    Renderer.material_color_l->set(colorS());
@@ -542,12 +542,12 @@ Bool Material::saveData(File &f, CChar *path)C
    f.putMulti(Byte(12), cull, technique)<<SCAST(C MaterialParams, T); // version
 
    // textures
-   f.putStr(    base_0.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
-   f.putStr(    base_1.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
-   f.putStr(    base_2.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
-   f.putStr(detail_map.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
-   f.putStr( macro_map.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
-   f.putStr( light_map.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
+   f.putStr(      base_0.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
+   f.putStr(      base_1.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
+   f.putStr(      base_2.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
+   f.putStr(  detail_map.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
+   f.putStr(   macro_map.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
+   f.putStr(emissive_map.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
 
    return f.ok();
 }
@@ -559,48 +559,48 @@ Bool Material::loadData(File &f, CChar *path)
       case 12:
       {
          f.getMulti(cull, technique)>>mp;
-         f.getStr(temp);     base_0.require(temp, path);
-         f.getStr(temp);     base_1.require(temp, path);
-         f.getStr(temp);     base_2.require(temp, path);
-         f.getStr(temp); detail_map.require(temp, path);
-         f.getStr(temp);  macro_map.require(temp, path);
-         f.getStr(temp);  light_map.require(temp, path);
+         f.getStr(temp);       base_0.require(temp, path);
+         f.getStr(temp);       base_1.require(temp, path);
+         f.getStr(temp);       base_2.require(temp, path);
+         f.getStr(temp);   detail_map.require(temp, path);
+         f.getStr(temp);    macro_map.require(temp, path);
+         f.getStr(temp); emissive_map.require(temp, path);
       }break;
 
       case 11:
       {
          f.getMulti(cull, technique)>>color_l>>emissive>>smooth>>reflect_mul>>reflect_add>>glow>>normal>>bump>>det_power>>det_scale>>uv_scale;
-         f.getStr(temp);     base_0.require(temp, path);
-         f.getStr(temp);     base_1.require(temp, path);
-         f.getStr(temp);     base_2.require(temp, path);
-         f.getStr(temp); detail_map.require(temp, path);
-         f.getStr(temp);  macro_map.require(temp, path);
-         f.getStr(temp);  light_map.require(temp, path);
+         f.getStr(temp);       base_0.require(temp, path);
+         f.getStr(temp);       base_1.require(temp, path);
+         f.getStr(temp);       base_2.require(temp, path);
+         f.getStr(temp);   detail_map.require(temp, path);
+         f.getStr(temp);    macro_map.require(temp, path);
+         f.getStr(temp); emissive_map.require(temp, path);
          T.rough_add=1; T.rough_mul=-smooth;
       }break;
 
       case 10:
       {
          f.getMulti(cull, technique)>>color_l>>emissive>>smooth>>reflect>>glow>>normal>>bump>>det_power>>det_scale>>uv_scale;
-         f.getStr(temp);     base_0.require(temp, path);
-         f.getStr(temp);     base_1.require(temp, path);
-         f.getStr(temp);     base_2.require(temp, path);
-         f.getStr(temp); detail_map.require(temp, path);
-         f.getStr(temp);  macro_map.require(temp, path);
-         f.getStr(temp);  light_map.require(temp, path);
+         f.getStr(temp);       base_0.require(temp, path);
+         f.getStr(temp);       base_1.require(temp, path);
+         f.getStr(temp);       base_2.require(temp, path);
+         f.getStr(temp);   detail_map.require(temp, path);
+         f.getStr(temp);    macro_map.require(temp, path);
+         f.getStr(temp); emissive_map.require(temp, path);
          T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
       }break;
 
       case 9:
       {
          f.getMulti(cull, technique)>>color_l>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect; colorS(color_l);
-         f.getStr(temp);     base_0.require(temp, path);
-         f.getStr(temp);     base_1.require(temp, path);
-                             base_2=null;
-         f.getStr(temp); detail_map.require(temp, path);
-         f.getStr(temp);  macro_map.require(temp, path);
+         f.getStr(temp);       base_0.require(temp, path);
+         f.getStr(temp);       base_1.require(temp, path);
+                               base_2=null;
+         f.getStr(temp);   detail_map.require(temp, path);
+         f.getStr(temp);    macro_map.require(temp, path);
          f.getStr(temp);
-         f.getStr(temp);  light_map.require(temp, path);
+         f.getStr(temp); emissive_map.require(temp, path);
          f.getStr(temp);
          f.getStr(temp);
          T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
@@ -609,13 +609,13 @@ Bool Material::loadData(File &f, CChar *path)
       case 8:
       {
          f.getMulti(cull, technique)>>color_l>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect; colorS(color_l);
-         f._getStr1(temp);     base_0.require(temp, path);
-         f._getStr1(temp);     base_1.require(temp, path);
-                               base_2=null;
-         f._getStr1(temp); detail_map.require(temp, path);
-         f._getStr1(temp);  macro_map.require(temp, path);
+         f._getStr1(temp);       base_0.require(temp, path);
+         f._getStr1(temp);       base_1.require(temp, path);
+                                 base_2=null;
+         f._getStr1(temp);   detail_map.require(temp, path);
+         f._getStr1(temp);    macro_map.require(temp, path);
          f._getStr1(temp);
-         f._getStr1(temp);  light_map.require(temp, path);
+         f._getStr1(temp); emissive_map.require(temp, path);
          f._getStr1(temp);
          f._getStr1(temp);
          T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
@@ -624,13 +624,13 @@ Bool Material::loadData(File &f, CChar *path)
       case 7:
       {
          f>>color_l>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
-         f._getStr(temp);     base_0.require(temp, path);
-         f._getStr(temp);     base_1.require(temp, path);
-                              base_2=null;
-         f._getStr(temp); detail_map.require(temp, path);
-         f._getStr(temp);  macro_map.require(temp, path);
+         f._getStr(temp);       base_0.require(temp, path);
+         f._getStr(temp);       base_1.require(temp, path);
+                                base_2=null;
+         f._getStr(temp);   detail_map.require(temp, path);
+         f._getStr(temp);    macro_map.require(temp, path);
          f._getStr(temp);
-         f._getStr(temp);  light_map.require(temp, path);
+         f._getStr(temp); emissive_map.require(temp, path);
          f._getStr(temp);
          f._getStr(temp);
          T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
@@ -639,13 +639,13 @@ Bool Material::loadData(File &f, CChar *path)
       case 6:
       {
          f>>color_l>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
-         f._getStr(temp);     base_0.require(temp, path);
-         f._getStr(temp);     base_1.require(temp, path);
-                              base_2=null;
-         f._getStr(temp); detail_map.require(temp, path);
-         f._getStr(temp);  macro_map.require(temp, path);
+         f._getStr(temp);       base_0.require(temp, path);
+         f._getStr(temp);       base_1.require(temp, path);
+                                base_2=null;
+         f._getStr(temp);   detail_map.require(temp, path);
+         f._getStr(temp);    macro_map.require(temp, path);
          f._getStr(temp);
-         f._getStr(temp);  light_map.require(temp, path);
+         f._getStr(temp); emissive_map.require(temp, path);
          f._getStr8();
          T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
       }break;
@@ -653,13 +653,13 @@ Bool Material::loadData(File &f, CChar *path)
       case 5:
       {
          f>>color_l>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
-         f._getStr(temp);     base_0.require(temp, path);
-         f._getStr(temp);     base_1.require(temp, path);
-                              base_2=null;
-         f._getStr(temp); detail_map.require(temp, path);
+         f._getStr(temp);       base_0.require(temp, path);
+         f._getStr(temp);       base_1.require(temp, path);
+                                base_2=null;
+         f._getStr(temp);   detail_map.require(temp, path);
          f._getStr(temp);
-         f._getStr(temp);  light_map.require(temp, path);
-                           macro_map=null;
+         f._getStr(temp); emissive_map.require(temp, path);
+                             macro_map=null;
          f._getStr8();
          T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
       }break;
@@ -667,26 +667,26 @@ Bool Material::loadData(File &f, CChar *path)
       case 4:
       {
          f>>color_l>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
-         f._getStr(temp);     base_0.require(temp, path);
-         f._getStr(temp);     base_1.require(temp, path);
-                              base_2=null;
-         f._getStr(temp); detail_map.require(temp, path);
+         f._getStr(temp);       base_0.require(temp, path);
+         f._getStr(temp);       base_1.require(temp, path);
+                                base_2=null;
+         f._getStr(temp);   detail_map.require(temp, path);
          f._getStr(temp);
-         f._getStr(temp);  light_map.require(temp, path);
-                           macro_map=null;
+         f._getStr(temp); emissive_map.require(temp, path);
+                             macro_map=null;
          T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
       }break;
 
       case 3:
       {
          f>>color_l>>emissive>>smooth>>sss>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull>>technique; uv_scale=1; colorS(color_l);
-             base_0.require(f._getStr8(), path);
-             base_1.require(f._getStr8(), path);
-             base_2=null;
-         detail_map.require(f._getStr8(), path);
-                  Str8 temp=f._getStr8();
-          light_map.require(f._getStr8(), path);
-          macro_map=null;
+                base_0.require(f._getStr8(), path);
+                base_1.require(f._getStr8(), path);
+                base_2=null;
+            detail_map.require(f._getStr8(), path);
+                     Str8 temp=f._getStr8();
+          emissive_map.require(f._getStr8(), path);
+             macro_map=null;
          T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
       }break;
 
@@ -700,8 +700,8 @@ Bool Material::loadData(File &f, CChar *path)
              base_2=null;
          detail_map.require(f._getStr8(), path);
                   Str8 temp=f._getStr8();
-          light_map=null;
-          macro_map=null;
+          emissive_map=null;
+             macro_map=null;
          T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
       }break;
 
@@ -715,8 +715,8 @@ Bool Material::loadData(File &f, CChar *path)
              base_2=null;
          detail_map.require(f._getStr8(), path);
                   Str8 temp=f._getStr8();
-          light_map=null;
-          macro_map=null;
+          emissive_map=null;
+             macro_map=null;
          T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
       }break;
 
@@ -738,7 +738,7 @@ Bool Material::loadData(File &f, CChar *path)
                       base_2=null;
          f>>temp; detail_map.require(temp, path);
          f>>temp;
-                   light_map=null;
+                emissive_map=null;
                    macro_map=null;
          T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
       }break;

@@ -5,7 +5,7 @@ class MergeSimilarMaterials : PropWin
    class Mtrl
    {
       Str  name, color_name;
-      UID  elm_id, base_0_tex, base_1_tex, base_2_tex, detail_tex, macro_tex, light_tex;
+      UID  elm_id, base_0_tex, base_1_tex, base_2_tex, detail_tex, macro_tex, emissive_tex;
       bool cull;
       MATERIAL_TECHNIQUE tech;
       Vec4 col_s;
@@ -34,7 +34,7 @@ public:
    List<Data>      list;
    Region          region;
 
-   bool     name, color_name, color_is, color_tex, normal_tex, base2_tex, detail_tex, macro_tex, light_tex, tech, cull;
+   bool     name, color_name, color_is, color_tex, normal_tex, base2_tex, detail_tex, macro_tex, emissive_tex, tech, cull;
    flt      color_value, bump_value, smooth_value, reflect_value, glow_value, uv_scale;
    CheckBox color_value_on, bump_value_on, smooth_value_on, reflect_value_on, glow_value_on, uv_scale_on;
    Button   detect, merge;

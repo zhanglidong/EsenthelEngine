@@ -527,7 +527,7 @@ Bool ImportB3D(C Str &name, Mesh *mesh, Skeleton *skeleton, XAnimation *animatio
           //material.color=b.color;
           //material.spec =b.specular;
             if(b.tex_id.elms()>=1)material.color_map=texs[b.tex_id[0]].file;
-            if(b.tex_id.elms()>=2)material.light_map=texs[b.tex_id[1]].file;
+          //if(b.tex_id.elms()>=2)material.light_map=texs[b.tex_id[1]].file;
           /*if(b.tex_id.elms()>=1 && texs[b.tex_id[0]].has_alpha)
             {
                material.technique=MTECH_ALPHA_TEST;

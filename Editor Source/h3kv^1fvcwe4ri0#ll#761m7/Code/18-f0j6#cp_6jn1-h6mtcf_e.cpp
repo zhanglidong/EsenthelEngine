@@ -105,12 +105,12 @@ class WaterMtrlRegion : MaterialRegion
 
    // #MaterialTextureLayoutWater
    virtual   EditMaterial& getEditMtrl()override  {return edit;}
-   virtual C ImagePtr    & getBase0   ()override  {return game->  colorMap();}
-   virtual C ImagePtr    & getBase1   ()override  {return game-> normalMap();}
-   virtual C ImagePtr    & getBase2   ()override  {return game->   bumpMap();}
- //virtual C ImagePtr    & getDetail  ()override  {return game->detail_map  ;}
- //virtual C ImagePtr    & getMacro   ()override  {return game-> macro_map  ;}
- //virtual C ImagePtr    & getLight   ()override  {return game-> light_map  ;}
+   virtual C ImagePtr    & getBase0   ()override  {return game->    colorMap();}
+   virtual C ImagePtr    & getBase1   ()override  {return game->   normalMap();}
+   virtual C ImagePtr    & getBase2   ()override  {return game->     bumpMap();}
+ //virtual C ImagePtr    & getDetail  ()override  {return game->  detail_map  ;}
+ //virtual C ImagePtr    & getMacro   ()override  {return game->   macro_map  ;}
+ //virtual C ImagePtr    & getEmissive()override  {return game->emissive_map  ;}
    virtual   bool          water      ()C override{return true;}
 
    void create()
@@ -321,12 +321,12 @@ class WaterMtrlRegion : MaterialRegion
    {
       if(elm && game)
       {
-         TEX_FLAG new_textures;
+         TEX_FLAG new_textures=edit.textures(); // set approximate
          if(auto_reload || always)
          {
-            new_textures=Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y, changed_smooth_is_rough); // set precise
+            FlagCopy(new_textures, Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y, changed_smooth_is_rough), TEXF_BASE); // set precise
             Time.skipUpdate(); // compressing textures can be slow
-         }else new_textures=edit.textures(); // set approximate
+         }
          if(adjust_params)edit.adjustParams(old_textures, new_textures);
 
          setChanged();
@@ -341,7 +341,7 @@ class WaterMtrlRegion : MaterialRegion
    virtual void rebuildMacro()override
    {
    }
-   virtual void rebuildLight(TEX_FLAG old_textures, bool adjust_params=true)override
+   virtual void rebuildEmissive(TEX_FLAG old_textures, bool adjust_params=true)override
    {
    }
 

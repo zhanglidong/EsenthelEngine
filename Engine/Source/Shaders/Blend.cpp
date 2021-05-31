@@ -2,14 +2,14 @@
 #include "!Header.h"
 #include "Sky.h"
 /******************************************************************************
-SKIN, COLORS, LAYOUT, BUMP_MODE, REFLECT, LIGHT_MAP
+SKIN, COLORS, LAYOUT, BUMP_MODE, REFLECT, EMISSIVE_MAP
 /******************************************************************************/
 #ifndef PER_PIXEL
 #define PER_PIXEL 1
 #endif
 #define HEIGHTMAP    0
 #define TESSELATE    0
-#define SET_TEX      (LAYOUT || BUMP_MODE>SBUMP_FLAT || LIGHT_MAP)
+#define SET_TEX      (LAYOUT || BUMP_MODE>SBUMP_FLAT || EMISSIVE_MAP)
 #define VTX_REFLECT  (REFLECT && !PER_PIXEL && BUMP_MODE<=SBUMP_FLAT) // require !PER_PIXEL because even without normal maps (SBUMP_FLAT) the quality suffers
 #define SET_POS      (REFLECT || TESSELATE)
 #define PIXEL_NORMAL (REFLECT) // if calculate normal in the pixel shader
@@ -188,7 +188,7 @@ VecH4 PS
    I.color.rgb+=ReflectTex(reflect_dir, rough)*EnvColor*ReflectEnv(rough, reflect, reflect_col, -Dot(nrm, eye_dir), false);
 #endif
 
-#if LIGHT_MAP
+#if EMISSIVE_MAP
    I.color.rgb+=Material.emissive*Tex(Lum, I.tex).rgb;
 #else
    I.color.rgb+=Material.emissive;

@@ -565,15 +565,15 @@ enum MODE
 /******************************************************************************/
 enum
 {
-   IGNORE_ALPHA=1<<0,
-   SRGB        =1<<1,
-   MTRL_BASE_0 =1<<2,
-   MTRL_BASE_1 =1<<3,
-   MTRL_BASE_2 =1<<4,
-   WATER_MTRL  =1<<5,
-   MTRL_DETAIL =1<<6,
-   MTRL_MACRO  =1<<7,
-   MTRL_LIGHT  =1<<8,
+   IGNORE_ALPHA =1<<0,
+   SRGB         =1<<1,
+   MTRL_BASE_0  =1<<2,
+   MTRL_BASE_1  =1<<3,
+   MTRL_BASE_2  =1<<4,
+   WATER_MTRL   =1<<5,
+   MTRL_DETAIL  =1<<6,
+   MTRL_MACRO   =1<<7,
+   MTRL_EMISSIVE=1<<8,
 };
 /******************************************************************************/
 enum
