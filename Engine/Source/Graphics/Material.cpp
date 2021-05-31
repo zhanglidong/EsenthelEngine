@@ -128,7 +128,7 @@ Bool HasAlphaTestNoBlend(MATERIAL_TECHNIQUE technique)
       default: return false;
    }
 }
-Bool HasAlphaBlend(MATERIAL_TECHNIQUE technique)C
+Bool HasAlphaBlend(MATERIAL_TECHNIQUE technique)
 {
    switch(technique)
    {
