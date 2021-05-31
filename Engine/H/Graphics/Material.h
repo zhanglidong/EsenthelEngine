@@ -169,8 +169,6 @@ private:
    void unlink      ()C {unlinkSolid(); unlinkShadow();}
    Bool canBeRemoved()C {return _solid_material_shader.empty() && _shadow_material_shader.empty() && emptyUsage();}
 #endif
-public:
-   void _adjustParams(UInt old_base_tex, UInt new_base_tex);
 };
 #if EE_PRIVATE
 extern Material

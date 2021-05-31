@@ -54,10 +54,9 @@ namespace EE{
 
 constexpr Byte TexSmooth(Byte tx) {return TEX_IS_ROUGH ? 255-tx : tx;} // convert between texture and smoothness
 
-#define SMOOTH_DEFAULT_TEX 0
-#define  METAL_DEFAULT_TEX 0
-#define   BUMP_DEFAULT_TEX 0 // 0..255, normally this should be 128, but 0 will allow to use BC4/BC5 (for Mtrl.base_2 tex if there's no Glow) and always set Material.bump=0 when bump is not used #MaterialTextureLayout
-#define   BUMP_DEFAULT_PAR 0.03f
+#define TEX_DEFAULT_SMOOTH 0 // 0..255
+#define TEX_DEFAULT_METAL  0 // 0..255
+#define TEX_DEFAULT_BUMP   0 // 0..255, normally this should be 128, but 0 will allow to use BC4/BC5 (for Mtrl.base_2 tex if there's no Glow) and always set Material.bump=0 when bump is not used #MaterialTextureLayout
 /******************************************************************************/
 static Int Compare(C UniqueMultiMaterialKey &a, C UniqueMultiMaterialKey &b)
 {
@@ -535,48 +534,6 @@ void Material::setAuto()C
    }
 }
 /******************************************************************************/
-void Material::_adjustParams(UInt old_base_tex, UInt new_base_tex)
-{
-   UInt changed=(old_base_tex^new_base_tex);
-   if(changed&BT_BUMP)
-   {
-      if(!(new_base_tex&BT_BUMP))bump=0;else
-      if(bump<=EPS_MATERIAL_BUMP)bump=BUMP_DEFAULT_PAR;
-   }
-   if(changed&(BT_BUMP|BT_NORMAL))
-   {
-      if(!(new_base_tex&(BT_BUMP|BT_NORMAL)))normal=0;else
-      if(                                    normal<=EPS_COL8)normal=1;
-   }
-
-   if(changed&BT_SMOOTH)
-      if(!(new_base_tex&BT_SMOOTH)){rough_mul=0; rough_add=1;} // no  texture -> fully rough
-      else                         {rough_mul=1; rough_add=0;} // has texture -> use it
-
- /*Not needed because current setup will work well with or without texture
-   if(changed&BT_METAL)
-      if(!(new_base_tex&BT_METAL)          )reflect=MATERIAL_REFLECT;else
-      if(reflect<=MATERIAL_REFLECT+EPS_COL8)reflect=1;*/
-
-   if(changed&BT_GLOW)
-      if(!(new_base_tex&BT_GLOW))glow=0;else
-      if(glow<=EPS_COL8         )glow=1;
-
-   if(changed&BT_ALPHA)
-   {
-      if(new_base_tex&BT_ALPHA)
-      {
-         if(!hasAlphaBlend() && color_l.w>=1-EPS_COL8)color_l.w=0.5f;
-         if(!hasAlpha     ()                         )technique=MTECH_ALPHA_TEST;
-      }else
-      {
-         if(hasAlpha())technique=MTECH_DEFAULT; // disable alpha technique if alpha map is not available
-      }
-   }
-
-   validate();
-}
-/******************************************************************************/
 Bool Material::saveData(File &f, CChar *path)C
 {
    f.putMulti(Byte(12), cull, technique)<<SCAST(C MaterialParams, T); // version
@@ -967,9 +924,9 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
                   {
                      dest_2.createSoftTry(w, h, 1, IMAGE_R8G8B8A8);
                      Color c;
-                     c.BASE_CHANNEL_ROUGH=TexSmooth(SMOOTH_DEFAULT_TEX);
-                     c.BASE_CHANNEL_METAL=           METAL_DEFAULT_TEX ;
-                     c.BASE_CHANNEL_BUMP =            BUMP_DEFAULT_TEX ;
+                     c.BASE_CHANNEL_ROUGH=TexSmooth(TEX_DEFAULT_SMOOTH);
+                     c.BASE_CHANNEL_METAL=          TEX_DEFAULT_METAL  ;
+                     c.BASE_CHANNEL_BUMP =          TEX_DEFAULT_BUMP   ;
                      c.BASE_CHANNEL_GLOW =255;
                      REPD(y, dest_2.h())
                      REPD(x, dest_2.w())
@@ -1043,9 +1000,9 @@ UInt ExtractBase2Texture(Image &base_2, Image *bump, Image *smooth, Image *metal
    REPD(x, base_2.w())
    {
       Color c=base_2.color(x, y); // #MaterialTextureLayout
-      if(smooth){smooth->pixel(x, y, TexSmooth(c.BASE_CHANNEL_ROUGH)); if(TexSmooth(c.BASE_CHANNEL_ROUGH)>1                )tex|=BT_SMOOTH;} ASSERT(SMOOTH_DEFAULT_TEX==0);
-      if(metal ){metal ->pixel(x, y,           c.BASE_CHANNEL_METAL ); if(          c.BASE_CHANNEL_METAL >1                )tex|=BT_METAL ;} ASSERT( METAL_DEFAULT_TEX==0);
-      if(bump  ){bump  ->pixel(x, y,           c.BASE_CHANNEL_BUMP  ); if(      Abs(c.BASE_CHANNEL_BUMP-BUMP_DEFAULT_TEX)>1)tex|=BT_BUMP  ;}
+      if(smooth){smooth->pixel(x, y, TexSmooth(c.BASE_CHANNEL_ROUGH)); if(TexSmooth(c.BASE_CHANNEL_ROUGH)>1                )tex|=BT_SMOOTH;} ASSERT(TEX_DEFAULT_SMOOTH==0);
+      if(metal ){metal ->pixel(x, y,           c.BASE_CHANNEL_METAL ); if(          c.BASE_CHANNEL_METAL >1                )tex|=BT_METAL ;} ASSERT(TEX_DEFAULT_METAL ==0);
+      if(bump  ){bump  ->pixel(x, y,           c.BASE_CHANNEL_BUMP  ); if(      Abs(c.BASE_CHANNEL_BUMP-TEX_DEFAULT_BUMP)>1)tex|=BT_BUMP  ;}
       if(glow  ){glow  ->pixel(x, y,           c.BASE_CHANNEL_GLOW  ); if(          c.BASE_CHANNEL_GLOW  <254              )tex|=BT_GLOW  ;}
    }
    return tex;

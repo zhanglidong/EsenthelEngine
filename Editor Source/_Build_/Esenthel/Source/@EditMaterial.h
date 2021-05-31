@@ -71,6 +71,8 @@ class EditMaterial
    uint sync(C Edit::Material &src);
    uint sync(C EditMaterial &src);
    uint undo(C EditMaterial &src);
+   void adjustParams(uint old_base_tex, uint new_base_tex, bool old_light_map);
+
    static void FixOldFileParams(Str &name);
    static void ChangeMulToSet(Mems<FileParams> &fps);
    static void ChangeMulToSet(Str &name);

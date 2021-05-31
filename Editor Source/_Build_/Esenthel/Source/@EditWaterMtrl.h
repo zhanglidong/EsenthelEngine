@@ -31,6 +31,7 @@ class EditWaterMtrl : EditMaterial
    uint sync(C EditMaterial  &src);            
    uint sync(C EditWaterMtrl &src);
    uint undo(C EditWaterMtrl &src);
+   void adjustParams(uint old_base_tex, uint new_base_tex, bool old_light_map);
 
    // io
    bool save(File &f)C;

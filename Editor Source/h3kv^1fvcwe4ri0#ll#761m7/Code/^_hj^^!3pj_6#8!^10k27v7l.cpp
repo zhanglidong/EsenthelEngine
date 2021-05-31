@@ -142,6 +142,21 @@ class EditWaterMtrl : EditMaterial
       }
       return changed;
    }
+   void adjustParams(uint old_base_tex, uint new_base_tex, bool old_light_map)
+   {
+      TimeStamp time; time.getUTC();
+      uint changed=(old_base_tex^new_base_tex);
+      if(changed&BT_BUMP)
+      {
+         if(!(new_base_tex&BT_BUMP)      ){wave_scale=0  ; wave_scale_time=time;}else
+         if(wave_scale<=EPS_MATERIAL_BUMP){wave_scale=0.1; wave_scale_time=time;}
+      }
+      if(changed&(BT_BUMP|BT_NORMAL))
+      {
+         if(!(new_base_tex&BT_BUMP) && !(new_base_tex&BT_NORMAL)){normal=0; normal_time=time;}else
+         if(normal<=EPS_COL8                                    ){normal=1; normal_time=time;}
+      }
+   }
 
    // io
    bool save(File &f)C

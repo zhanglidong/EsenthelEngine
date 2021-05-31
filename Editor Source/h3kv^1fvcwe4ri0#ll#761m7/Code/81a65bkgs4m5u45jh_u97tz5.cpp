@@ -1961,8 +1961,8 @@ class ProjectEx : ProjectHierarchy
                      if(changed&EditMaterial.CHANGED_LIGHT)             mtrlCreateLightTexture (edit);
                   }
 
+                  if(adjust_params)edit.adjustParams(old_base_tex, new_base_tex, old_light_map);
                   edit.copyTo(*game, T);
-                  if(adjust_params)AdjustMaterialParams(edit, *game, old_base_tex, new_base_tex, old_light_map);
 
                   // save
                   if(ElmMaterial *data=elm.mtrlData()){data.newVer(); data.from(edit);}
@@ -1996,8 +1996,8 @@ class ProjectEx : ProjectHierarchy
                      if(changed&EditMaterial.CHANGED_LIGHT)             mtrlCreateLightTexture (edit);
                   }
 
+                  if(adjust_params)edit.adjustParams(old_base_tex, new_base_tex, old_light_map);
                   edit.copyTo(*game, T);
-                  if(adjust_params)AdjustMaterialParams(edit, *game, old_base_tex, new_base_tex, old_light_map);
 
                   // save
                   if(ElmWaterMtrl *data=elm.waterMtrlData()){data.newVer(); data.from(edit);}
@@ -2060,8 +2060,8 @@ class ProjectEx : ProjectHierarchy
                if(changed&EditWaterMtrl.CHANGED_LIGHT)             mtrlCreateLightTexture (edit);
             }
 
+            if(adjust_params)edit.adjustParams(old_base_tex, new_base_tex, old_light_map);
             edit.copyTo(*game, T);
-            if(adjust_params)AdjustMaterialParams(edit, *game, old_base_tex, new_base_tex, old_light_map);
 
             // save
             if(ElmWaterMtrl *data=elm.waterMtrlData()){data.newVer(); data.from(edit);}
@@ -2124,8 +2124,8 @@ class ProjectEx : ProjectHierarchy
                      if(changed&EditMaterial.CHANGED_LIGHT)             mtrlCreateLightTexture (edit);
                   }
 
+                  if(adjust_params)edit.adjustParams(old_base_tex, new_base_tex, old_light_map);
                   edit.copyTo(*game, T);
-                  if(adjust_params)AdjustMaterialParams(edit, *game, old_base_tex, new_base_tex, old_light_map);
 
                   // save
                   if(ElmMaterial *data=elm.mtrlData()){data.newVer(); data.from(edit);}

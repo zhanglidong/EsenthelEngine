@@ -408,6 +408,53 @@ class EditMaterial
       }
       return changed;
    }
+   void adjustParams(uint old_base_tex, uint new_base_tex, bool old_light_map)
+   {
+      TimeStamp time; time.getUTC();
+      uint changed=(old_base_tex^new_base_tex);
+      if(changed&BT_BUMP)
+      {
+         if(!(new_base_tex&BT_BUMP)){bump=0   ; bump_time=time;}else
+         if(bump<=EPS_MATERIAL_BUMP){bump=0.03; bump_time=time;}
+      }
+      if(changed&(BT_BUMP|BT_NORMAL))
+      {
+         if(!(new_base_tex&(BT_BUMP|BT_NORMAL))){normal=0; normal_time=time;}else
+         if(normal<=EPS_COL8                   ){normal=1; normal_time=time;}
+      }
+
+      if(changed&BT_SMOOTH)
+         if(!(new_base_tex&BT_SMOOTH)){smooth=0; smooth_time=time;} // no  texture -> no smooth/fully rough
+         else                         {smooth=0; smooth_time=time;} // has texture -> use it
+
+    /*Not needed because current setup will work well with or without texture
+      if(changed&BT_METAL)
+         if(!(new_base_tex&BT_METAL)          ){reflect=MATERIAL_REFLECT; reflect_time=time;}else
+         if(reflect<=MATERIAL_REFLECT+EPS_COL8){reflect=               1; reflect_time=time;}*/
+
+      if(changed&BT_GLOW)
+         if(!(new_base_tex&BT_GLOW)){glow=0; glow_time=time;}else
+         if(glow<=EPS_COL8         ){glow=1; glow_time=time;}
+
+      if(changed&BT_ALPHA)
+      {
+         if(new_base_tex&BT_ALPHA)
+         {
+            if(!HasAlphaBlend(tech) && color_s.w>=1-EPS_COL8){color_s.w=0.5; color_time=time;}
+            if(!HasAlpha     (tech)                         ){tech=MTECH_ALPHA_TEST; tech_time=time;}
+         }else
+         {
+            if(HasAlpha(tech)){tech=MTECH_DEFAULT; tech_time=time;} // disable alpha technique if alpha map is not available
+         }
+      }
+
+      bool new_light_map=hasLightMap(); if(old_light_map!=new_light_map)
+      {
+         if(!new_light_map          ){emissive=0; emissive_time=time;}else
+         if(emissive.min()<=EPS_COL8){emissive=1; emissive_time=time;}
+      }
+   }
+
    static void FixOldFileParams(Str &name)
    {
       name=Replace(name, "<color>"  , "|color|" );

@@ -1130,9 +1130,9 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
             new_base_tex=Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y, changed_smooth_is_rough); // set precise
             Time.skipUpdate(); // compressing textures can be slow
          }else new_base_tex=edit.baseTex(); // set approximate
+         if(adjust_params)edit.adjustParams(old_base_tex, new_base_tex, edit.hasLightMap());
 
          setChanged();
-         if(adjust_params)AdjustMaterialParams(edit, *game, old_base_tex, new_base_tex, edit.hasLightMap());
          Proj.mtrlTexChanged();
          D.setShader(game());
          toGui();
@@ -1175,11 +1175,11 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
       if(elm && game)
       {
          Proj.mtrlCreateLightTexture(edit);
+         if(adjust_params)edit.adjustParams(edit.baseTex(), edit.baseTex(), old_light_map);
          setChanged();
          Proj.mtrlTexChanged();
          Time.skipUpdate(); // compressing textures can be slow
 
-         if(adjust_params)AdjustMaterialParams(edit, *game, edit.baseTex(), edit.baseTex(), old_light_map);
          D.setShader(game());
          toGui();
       }
