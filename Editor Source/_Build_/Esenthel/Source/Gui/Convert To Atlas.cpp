@@ -352,7 +352,7 @@ ConvertToAtlasClass ConvertToAtlas;
          atlas_images.createBaseTextures(atlas.base_0, atlas.base_1, atlas.base_2);
          atlas_images.Export("d:/", "bmp"); */
 
-         ImporterClass::Import::MaterialEx atlas;
+         XMaterialEx atlas;
          atlas.adjust_params=false; // don't adjust params because EE Materials are OK
          atlas.name="Atlas";
          atlas.cull=true;

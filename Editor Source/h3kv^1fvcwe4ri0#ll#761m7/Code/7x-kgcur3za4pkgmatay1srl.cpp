@@ -143,7 +143,7 @@ class EditMaterial
       cull_time++; tech_time++; downsize_tex_mobile_time++;
       color_time++; emissive_time++; smooth_time++; reflect_time++; normal_time++; bump_time++; glow_time++; uv_scale_time++; detail_time++;
    }
-   void create(C ImporterClass.Import.MaterialEx &src, C TimeStamp &time=TimeStamp().getUTC()) // used when importing models from 'XMaterial' and also when creating atlases from 'EditMaterial'
+   void create(C XMaterialEx &src, C TimeStamp &time=TimeStamp().getUTC()) // used when importing models from 'XMaterial' and also when creating atlases from 'EditMaterial'
    {
       flip_normal_y=src.flip_normal_y; flip_normal_y_time=time;
       cull=src.cull; cull_time=time;

@@ -1041,7 +1041,7 @@ class ProjectEx : ProjectHierarchy
       }
       return null;
    }
-   void setMtrl(Elm &mtrl, ImporterClass.Import.MaterialEx &src, C Str &src_file=S)
+   void setMtrl(Elm &mtrl, XMaterialEx &src, C Str &src_file=S)
    {
       if(ElmMaterial *data=mtrl.mtrlData())
       {
@@ -1064,7 +1064,7 @@ class ProjectEx : ProjectHierarchy
          elmChanged(mtrl);
       }
    }
-   Elm& newMtrl(ImporterClass.Import.MaterialEx &src, C UID parent_id=UIDZero, C Str &src_file=S) // create new material from 'src' !! this doesn't set elm list and doesn't send to the server !!
+   Elm& newMtrl(XMaterialEx &src, C UID parent_id=UIDZero, C Str &src_file=S) // create new material from 'src' !! this doesn't set elm list and doesn't send to the server !!
    {
       Elm &mtrl=super.newElm(src.name, parent_id, ELM_MTRL); mtrl.mtrlData().newData();
       setMtrl(mtrl, src, src_file);

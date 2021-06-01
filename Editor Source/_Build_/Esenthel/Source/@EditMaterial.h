@@ -55,7 +55,7 @@ class EditMaterial
    void expandMaps();
 
    void newData();
-   void create(C ImporterClass::Import::MaterialEx &src, C TimeStamp &time=TimeStamp().getUTC()); // used when importing models from 'XMaterial' and also when creating atlases from 'EditMaterial'
+   void create(C XMaterialEx &src, C TimeStamp &time=TimeStamp().getUTC()); // used when importing models from 'XMaterial' and also when creating atlases from 'EditMaterial'
    void copyTo(Material &dest, C Project &proj)C;
    void copyTo(Edit::Material &dest)C;
    enum

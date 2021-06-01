@@ -2459,6 +2459,8 @@ force_src_resize:
    return ok;
 }
 /******************************************************************************/
+// MATERIAL
+/******************************************************************************/
 // TEXT
 /******************************************************************************/
 bool ValidChar(char c) {return c>=32 && c<128;}
@@ -3535,7 +3537,14 @@ Mems<FileParams> _DecodeFileParams(C Str &str)
       T.type=type;
       if(image.cube())T.flags|=1;
    }
+   void XMaterialEx::create(C Material &src)
+   {
+      super::create(src);
+      adjust_params=false; // don't adjust params because EE Materials are OK
+   }
    Rename& Rename::set(C Str &src, C Str &dest) {T.src=src; T.dest=dest; return T;}
    bool Rename::operator==(C Rename &rename)C {return Equal(src, rename.src, true) && Equal(dest, rename.dest, true);}
    bool Rename::operator!=(C Rename &rename)C {return !(T==rename);}
+XMaterialEx::XMaterialEx() : base_0_id(UIDZero), base_1_id(UIDZero), base_2_id(UIDZero), detail_id(UIDZero), macro_id(UIDZero), emissive_id(UIDZero), adjust_params(true), textures(TEXF_NONE) {}
+
 /******************************************************************************/

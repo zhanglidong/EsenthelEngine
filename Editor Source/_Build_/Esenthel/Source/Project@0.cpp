@@ -1067,7 +1067,7 @@ void DrawProject()
       }
       return null;
    }
-   void ProjectEx::setMtrl(Elm &mtrl, ImporterClass::Import::MaterialEx &src, C Str &src_file)
+   void ProjectEx::setMtrl(Elm &mtrl, XMaterialEx &src, C Str &src_file)
    {
       if(ElmMaterial *data=mtrl.mtrlData())
       {
@@ -1090,7 +1090,7 @@ void DrawProject()
          elmChanged(mtrl);
       }
    }
-   Elm& ProjectEx::newMtrl(ImporterClass::Import::MaterialEx &src, C UID parent_id, C Str &src_file) // create new material from 'src' !! this doesn't set elm list and doesn't send to the server !!
+   Elm& ProjectEx::newMtrl(XMaterialEx &src, C UID parent_id, C Str &src_file) // create new material from 'src' !! this doesn't set elm list and doesn't send to the server !!
    {
       Elm &mtrl=super::newElm(src.name, parent_id, ELM_MTRL); mtrl.mtrlData()->newData();
       setMtrl(mtrl, src, src_file);

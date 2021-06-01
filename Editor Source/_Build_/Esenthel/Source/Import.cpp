@@ -5,11 +5,6 @@ ImporterClass Importer;
 /******************************************************************************/
 
 /******************************************************************************/
-         void ImporterClass::Import::MaterialEx::create(C Material &src)
-         {
-            super::create(src);
-            adjust_params=false; // don't adjust params because EE Materials are OK
-         }
          void ImporterClass::Import::MaterialEx::check(C Str &path, Str &tex)
          {
             Mems<FileParams> texs=FileParams::Decode(tex);
@@ -1477,8 +1472,6 @@ ImporterClass Importer;
 ImporterClass::ImporterClass() : import_results(Compare), import_target(UIDZero), import_mode(UPDATE) {}
 
 ImporterClass::Import::Import() : status(-1), has_loop(false), cancel(false), remember_result(false), has_color(true), has_alpha(true), ignore_anims(false), type(ELM_NONE), mode(UPDATE), elm_id(UIDZero), parent_id(UIDZero) {}
-
-ImporterClass::Import::MaterialEx::MaterialEx() : base_0_id(UIDZero), base_1_id(UIDZero), base_2_id(UIDZero), detail_id(UIDZero), macro_id(UIDZero), emissive_id(UIDZero), adjust_params(true), textures(TEXF_NONE) {}
 
 ImporterClass::Import::ImageEx::ImageEx() : cube(false) {}
 

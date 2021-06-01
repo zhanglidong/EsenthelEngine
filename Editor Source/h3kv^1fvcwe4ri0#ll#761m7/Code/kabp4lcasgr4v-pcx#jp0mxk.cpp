@@ -475,7 +475,7 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
             Material game; if(game.load(file))
             {
                Elm &elm=Proj.Project.newElm(name, Proj.getPathID(path), ELM_MTRL);
-               ImporterClass.Import.MaterialEx mtrl_ex; mtrl_ex.create(game);
+               XMaterialEx mtrl_ex; mtrl_ex.create(game);
                EditMaterial edit; edit.create(mtrl_ex); // create from material
 
                // set textures
