@@ -433,46 +433,64 @@ class EditMaterial
       TEX_FLAG  new_textures=textures(); // textures() after making any change
       TEX_FLAG  changed_presence=(old_textures^new_textures);
 
-      if(!(new_textures&(TEXF_COLOR|TEXF_ALPHA)))
+      // ALPHA
+      if(!(new_textures&(TEXF_COLOR|TEXF_ALPHA))) // there are no color/alpha maps specified
       {
-         if(HasAlpha(tech)){tech=MTECH_DEFAULT; tech_time=time;} // disable alpha technique if alpha map is not available
+         disable_alpha: if(HasAlpha(tech)){tech=MTECH_DEFAULT; tech_time=time;} // disable alpha technique
       }else
       if(known_textures&TEXF_ALPHA)
       {
          if(has_textures&TEXF_ALPHA)
          {
-            if(changed&(TEXF_COLOR|TEXF_ALPHA)) // enable alpha only if we've changed color/alpha textures (this is to allow having multiple materials with same textures with alpha channel, but some materials not using alpha)
+            if(changed&(TEXF_COLOR|TEXF_ALPHA)) // enable alpha only if we've changed color/alpha textures (this is to allow having multiple materials with same textures with alpha, but some materials not using alpha)
             {
+            enable_alpha:
                if(!HasAlphaBlend(tech) && color_s.w>=1-EPS_COL8){color_s.w=0.5; color_time=time;}
                if(!HasAlpha     (tech)                         ){tech=MTECH_ALPHA_TEST; tech_time=time;}
             }
-         }else
-         {
-            if(HasAlpha(tech)){tech=MTECH_DEFAULT; tech_time=time;} // disable alpha technique if alpha map is not available
-         }
-      }
+         }else goto disable_alpha; // alpha map not available
+      }else
+      if(!(old_textures&TEXF_ALPHA) && new_textures&TEXF_ALPHA)goto enable_alpha; // if there was no alpha, but now is specifically enabled
 
+      // NORMAL
+      if(!(new_textures&(TEXF_BUMP|TEXF_NORMAL))) // there are no bump/normal maps specified
+      {
+         disable_normal: normal=0; normal_time=time; // disable normal
+      }else
+      if(known_textures&(TEXF_BUMP|TEXF_NORMAL))
+      {
+         if(has_textures&(TEXF_BUMP|TEXF_NORMAL))
+         {
+            if(changed&(TEXF_BUMP|TEXF_NORMAL)) // enable normal only if we've changed bump/normal textures (this is to allow having multiple materials with same textures with normal, but some materials not using normal)
+            {
+               enable_normal: if(normal<=EPS_COL8){normal=1; normal_time=time;}
+            }
+         }else goto disable_normal; // normal map not available
+      }else
+      if(!(old_textures&(TEXF_BUMP|TEXF_NORMAL)) && new_textures&(TEXF_BUMP|TEXF_NORMAL))goto enable_normal; // if there was no bump/normal, but now they are
+
+      // BUMP
       if(changed_presence&TEXF_BUMP)
          if(!(new_textures&TEXF_BUMP)){bump=0   ; bump_time=time;}else
          if(bump<=EPS_MATERIAL_BUMP  ){bump=0.03; bump_time=time;}
 
-      if(changed_presence&(TEXF_BUMP|TEXF_NORMAL))
-         if(!(new_textures&(TEXF_BUMP|TEXF_NORMAL))){normal=0; normal_time=time;}else
-         if(normal<=EPS_COL8                       ){normal=1; normal_time=time;}
-
+      // SMOOTH
       if(changed_presence&TEXF_SMOOTH)
          if(!(new_textures&TEXF_SMOOTH)){smooth=0; smooth_time=time;} // no  texture -> smooth  0..1, 0=no smooth/fully rough
          else                           {smooth=0; smooth_time=time;} // has texture -> smooth -1..1, 0=use it
 
+      // REFLECT/METAL
     /*Not needed because current setup will work well with or without texture
       if(changed_presence&TEXF_METAL)
          if(!(new_textures&TEXF_METAL)        ){reflect=MATERIAL_REFLECT; reflect_time=time;}else
          if(reflect<=MATERIAL_REFLECT+EPS_COL8){reflect=               1; reflect_time=time;}*/
 
+      // GLOW
       if(changed_presence&TEXF_GLOW)
          if(!(new_textures&TEXF_GLOW)){glow=0; glow_time=time;}else
          if(glow<=EPS_COL8           ){glow=1; glow_time=time;}
 
+      // EMISSIVE
       if(changed_presence&TEXF_EMISSIVE)
          if(!(new_textures&TEXF_EMISSIVE)){emissive=0; emissive_time=time;}else
          if(emissive.min()<=EPS_COL8     ){emissive=1; emissive_time=time;}
