@@ -710,6 +710,7 @@ bool HighPrecTransform(C Str &name)
 {
    return ResizeTransform(name)
        || name=="mulRGB" || name=="addRGB" || name=="setRGB" || name=="mulAddRGB" || name=="addMulRGB" || name=="mulA"
+       || name=="mulRGBbyA"
        || name=="mulRGBS" || name=="mulRGBH" || name=="mulRGBHS"
        || name=="normalize"
        || name=="scale" || name=="scaleXY"
@@ -1322,6 +1323,17 @@ void TransformImage(Image &image, TextParam param, bool clamp, C Color &backgrou
          // x=x*m+a, x=(x+A)*M
          case 2: {flt add=TextFlt(c[0]), mul=TextFlt(c[1]);                                                                                                       image.mulAdd(Vec4(Vec(mul), 1), Vec4(Vec(add*mul), 0), &box);} break;
          case 6: {Vec add(TextFlt(c[0]), TextFlt(c[1]), TextFlt(c[2])), mul(TextFlt(c[3]), TextFlt(c[4]), TextFlt(c[5])); AdjustImage(image, true, false, false); image.mulAdd(Vec4(    mul , 1), Vec4(    add*mul , 0), &box);} break;
+      }
+   }else
+   if(param.name=="mulRGBbyA")
+   {
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         c.xyz*=c.w;
+         image.color3DF(x, y, z, c);
       }
    }else
    if(param.name=="mulRGBS")
@@ -2158,6 +2170,7 @@ force_src_resize:
          if(p->value=="addSat"                                                                 )mode=APPLY_ADD_SAT;else
          if(p->value=="addHue"                                                                 )mode=APPLY_ADD_HUE;else
          if(p->value=="addHuePhoto"                                                            )mode=APPLY_ADD_HUE_PHOTO;else
+         if(p->value=="setAfromRGB"                                                            )mode=APPLY_SET_A_FROM_RGB;else
          if(p->value=="setHue"                                                                 )mode=APPLY_SET_HUE;else
          if(p->value=="setHuePhoto"                                                            )mode=APPLY_SET_HUE_PHOTO;else
          if(p->value=="sub"                                                                    )mode=APPLY_SUB;else
@@ -2244,6 +2257,7 @@ force_src_resize:
                            case APPLY_MUL_RGB       : c.set(base.xyz*l.xyz, base.w); break;
                            case APPLY_MUL_RGB_LIN   : c.set(LinearToSRGB(SRGBToLinear(base.xyz)*l.xyz), base.w); break; // this treats 'l' as already linear
                            case APPLY_MUL_A         : c.set(base.xyz, base.w*l.w); break;
+                           case APPLY_SET_A_FROM_RGB: c.set(base.xyz, l.xyz.max()); break;
                            case APPLY_MUL_LUM       : c.set(base.xyz*l.xyz.max(), base.w); break;
                            case APPLY_MUL_SAT       : c.xyz=RgbToHsb(base.xyz); c.y*=l.xyz.max(); c.set(HsbToRgb(c.xyz), base.w); break;
                            case APPLY_ADD_SAT       : c.xyz=RgbToHsb(base.xyz); c.y+=l.xyz.max(); c.set(HsbToRgb(c.xyz), base.w); break;

@@ -314,7 +314,7 @@ public:
    virtual   bool          water      ()C;
 
    void setBottom(C Rect &prop_rect);
-   void setSmoothRange();
+   void setSmoothParam();
    void create();
 
    // operations

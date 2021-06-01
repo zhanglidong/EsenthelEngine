@@ -488,7 +488,7 @@
    }
    void EditMaterial::fixOldSmooth()
    {
-      if(smooth_map.is())smooth-=1; // old smooth was always 0..1 and final smooth was SmoothTexture*SmoothValue, new smooth is -1..1 when having 'smooth_map', see 'roughMul/roughAdd' (-1 force rough, 0=use texture, +1=force smooth)
+      if(smooth_map.is())smooth-=1; // old smooth was 0..1 and final smooth was SmoothTexture*SmoothValue, new smooth is -1..1 when having 'smooth_map', see 'roughMul/roughAdd' (-1 force rough, 0=use texture, +1=force smooth)
    }
    bool EditMaterial::save(File &f)C
    {

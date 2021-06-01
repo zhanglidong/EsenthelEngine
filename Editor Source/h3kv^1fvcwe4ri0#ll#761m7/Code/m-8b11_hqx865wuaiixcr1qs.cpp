@@ -137,7 +137,7 @@ class MaterialRegion : Region
                }
             }
 
-            if(type==TEX_SMOOTH)mr.setSmoothRange();
+            if(type==TEX_SMOOTH)mr.setSmoothParam();
 
             // rebuild methods already call 'setChanged'
             if(type>=TEX_BASE_BEGIN && type<=TEX_BASE_END)mr.rebuildBase    (textures);else
@@ -415,8 +415,13 @@ class MaterialRegion : Region
       mr.undos.set("brightness");
       Vec2 d=0; int on=0, pd=0; REPA(MT)if(MT.b(i) && MT.guiObj(i)==&mr.brightness){d+=MT.ad(i); if(!MT.touch(i))Ms.freeze(); if(MT.bp(i))pd++;else on++;}
       Vec &rgb=mr.edit.color_s.xyz; if(pd && !on){mr.mouse_edit_value=rgb; mr.mouse_edit_delta=0;} flt d_sum=d.sum(); if(mr.red)d_sum*=mr.red.mouse_edit_speed; mr.mouse_edit_delta+=d_sum;
-      flt  max=mr.mouse_edit_value.max(), lum=max+mr.mouse_edit_delta; if(lum<0){mr.mouse_edit_delta-=lum; lum=0;}
-      Vec  v  =mr.mouse_edit_value; if(max)v/=max;else v=1; v*=lum;
+      flt  max=mr.mouse_edit_value.max(), lum=max+mr.mouse_edit_delta;
+      if(mr.red)
+      {
+         if(mr.red.min_use){flt min=mr.red.min_value; if(lum<min){mr.mouse_edit_delta-=lum-min; lum=min;}}
+         if(mr.red.max_use){flt max=mr.red.max_value; if(lum>max){mr.mouse_edit_delta-=lum-max; lum=max;}}
+      }
+      Vec v=mr.mouse_edit_value; if(max)v/=max;else v=1; v*=lum;
       if(mr.red  ){mr.red  .set(v.x, QUIET); rgb.x=mr.red  .asFlt();}
       if(mr.green){mr.green.set(v.y, QUIET); rgb.y=mr.green.asFlt();}
       if(mr.blue ){mr.blue .set(v.z, QUIET); rgb.z=mr.blue .asFlt();}
@@ -427,7 +432,12 @@ class MaterialRegion : Region
       mr.undos.set("Emissive");
       Vec2 d=0; int on=0, pd=0; REPA(MT)if(MT.b(i) && MT.guiObj(i)==&mr.emissive){d+=MT.ad(i); if(!MT.touch(i))Ms.freeze(); if(MT.bp(i))pd++;else on++;}
       Vec &rgb=mr.edit.emissive; if(pd && !on){mr.mouse_edit_value=rgb; mr.mouse_edit_delta=0;} flt d_sum=d.sum(); if(mr.emit_red)d_sum*=mr.emit_red.mouse_edit_speed; mr.mouse_edit_delta+=d_sum;
-      flt  max=mr.mouse_edit_value.max(), lum=max+mr.mouse_edit_delta; if(lum<0){mr.mouse_edit_delta-=lum; lum=0;}
+      flt  max=mr.mouse_edit_value.max(), lum=max+mr.mouse_edit_delta;
+      if(mr.emit_red)
+      {
+         if(mr.emit_red.min_use){flt min=mr.emit_red.min_value; if(lum<min){mr.mouse_edit_delta-=lum-min; lum=min;}}
+         if(mr.emit_red.max_use){flt max=mr.emit_red.max_value; if(lum>max){mr.mouse_edit_delta-=lum-max; lum=max;}}
+      }
       Vec  v  =mr.mouse_edit_value; if(max)v/=max;else v=1; v*=lum;
       if(mr.emit_red  ){mr.emit_red  .set(v.x, QUIET); rgb.x=mr.emit_red  .asFlt();}
       if(mr.emit_green){mr.emit_green.set(v.y, QUIET); rgb.y=mr.emit_green.asFlt();}
@@ -759,12 +769,12 @@ class MaterialRegion : Region
       reload_base_textures.rect(Rect_LU(0.10, prop_rect.min.y-0.05, 0.42, 0.053));
            texture_options.rect(Rect_LU(reload_base_textures.rect().ru(), reload_base_textures.rect().h()));
    }
-   void setSmoothRange()
+   void setSmoothParam()
    {
       if(smooth)
       {
-         if(edit.smooth_map.is())smooth.range(-1, 1);
-         else                    smooth.range( 0, 1);
+         if(edit.smooth_map.is()){smooth.name.set("Smooth Tweak"); smooth.range(-1, 1);}
+         else                    {smooth.name.set("Smoothness"  ); smooth.range( 0, 1);}
       }
    }
    void create()
@@ -1030,7 +1040,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
    }
    void toGui()
    {
-      setSmoothRange(); // call this first, in case it affects 'toGui'
+      setSmoothParam(); // call this first, in case it affects 'toGui'
       REPAO(props).toGui();
       REPAO(texs ).toGui();
    }
