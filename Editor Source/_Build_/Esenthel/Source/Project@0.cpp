@@ -1967,17 +1967,17 @@ void DrawProject()
                {
                   MaterialPtr game=gamePath(elm_id); if(!game)return false;
                   bool        want_tan_bin=game->needTanBin();
-                  TEX_FLAG    new_textures=edit.textures(); // set approximate
+                  TEX_FLAG    has_textures=TEXF_NONE, known_textures=TEXF_NONE;
 
                   if(reload_textures)
                   {
-                     if(changed&EditMaterial::CHANGED_BASE    )FlagCopy(new_textures, mtrlCreateBaseTextures   (edit, FlagTest(changed, EditMaterial::CHANGED_FNY), FlagTest(changed, EditMaterial::CHANGED_SIR)), TEXF_BASE); // get precise
-                     if(changed&EditMaterial::CHANGED_DET     )FlagCopy(new_textures, mtrlCreateDetailTexture  (edit), TEXF_DET);
-                     if(changed&EditMaterial::CHANGED_MACRO   )FlagCopy(new_textures, mtrlCreateMacroTexture   (edit), TEXF_MACRO);
-                     if(changed&EditMaterial::CHANGED_EMISSIVE)FlagCopy(new_textures, mtrlCreateEmissiveTexture(edit), TEXF_EMISSIVE);
+                     if(changed&EditMaterial::CHANGED_BASE    ){known_textures|=TEXF_BASE    ; has_textures|=mtrlCreateBaseTextures   (edit, FlagTest(changed, EditMaterial::CHANGED_FNY), FlagTest(changed, EditMaterial::CHANGED_SIR));}
+                     if(changed&EditMaterial::CHANGED_DET     ){known_textures|=TEXF_DET     ; has_textures|=mtrlCreateDetailTexture  (edit                                                                                          );}
+                     if(changed&EditMaterial::CHANGED_MACRO   ){known_textures|=TEXF_MACRO   ; has_textures|=mtrlCreateMacroTexture   (edit                                                                                          );}
+                     if(changed&EditMaterial::CHANGED_EMISSIVE){known_textures|=TEXF_EMISSIVE; has_textures|=mtrlCreateEmissiveTexture(edit                                                                                          );}
                   }
 
-                  if(adjust_params)edit.adjustParams(old_textures, new_textures);
+                  if(adjust_params)edit.adjustParams(old_textures, has_textures, known_textures);
                   edit.copyTo(*game, T);
 
                   // save
@@ -2001,17 +2001,17 @@ void DrawProject()
                {
                   WaterMtrlPtr game=gamePath(elm_id); if(!game)return false;
                 //bool         want_tan_bin=game->needTanBin();
-                  TEX_FLAG     new_textures=edit.textures(); // set approximate
+                  TEX_FLAG     has_textures=TEXF_NONE, known_textures=TEXF_NONE;
 
                   if(reload_textures)
                   {
-                     if(changed&EditMaterial::CHANGED_BASE    )FlagCopy(new_textures, mtrlCreateBaseTextures   (edit, FlagTest(changed, EditMaterial::CHANGED_FNY), FlagTest(changed, EditMaterial::CHANGED_SIR)), TEXF_BASE); // get precise
-                     if(changed&EditMaterial::CHANGED_DET     )FlagCopy(new_textures, mtrlCreateDetailTexture  (edit), TEXF_DET);
-                     if(changed&EditMaterial::CHANGED_MACRO   )FlagCopy(new_textures, mtrlCreateMacroTexture   (edit), TEXF_MACRO);
-                     if(changed&EditMaterial::CHANGED_EMISSIVE)FlagCopy(new_textures, mtrlCreateEmissiveTexture(edit), TEXF_EMISSIVE);
+                     if(changed&EditMaterial::CHANGED_BASE    ){known_textures|=TEXF_BASE    ; has_textures|=mtrlCreateBaseTextures   (edit, FlagTest(changed, EditMaterial::CHANGED_FNY), FlagTest(changed, EditMaterial::CHANGED_SIR));}
+                     if(changed&EditMaterial::CHANGED_DET     ){known_textures|=TEXF_DET     ; has_textures|=mtrlCreateDetailTexture  (edit                                                                                          );}
+                     if(changed&EditMaterial::CHANGED_MACRO   ){known_textures|=TEXF_MACRO   ; has_textures|=mtrlCreateMacroTexture   (edit                                                                                          );}
+                     if(changed&EditMaterial::CHANGED_EMISSIVE){known_textures|=TEXF_EMISSIVE; has_textures|=mtrlCreateEmissiveTexture(edit                                                                                          );}
                   }
 
-                  if(adjust_params)edit.adjustParams(old_textures, new_textures);
+                  if(adjust_params)edit.adjustParams(old_textures, has_textures, known_textures);
                   edit.copyTo(*game, T);
 
                   // save
@@ -2042,13 +2042,13 @@ void DrawProject()
             {
                if(reload_textures)
                {
-                  if(changed&EditWaterMtrl::CHANGED_BASE    )WaterMtrlEdit.rebuildBase    (textures, FlagTest(changed, EditWaterMtrl::CHANGED_FNY), FlagTest(changed, EditWaterMtrl::CHANGED_SIR), adjust_params, true);
-                  if(changed&EditWaterMtrl::CHANGED_DET     )WaterMtrlEdit.rebuildDetail  ();
-                  if(changed&EditWaterMtrl::CHANGED_MACRO   )WaterMtrlEdit.rebuildMacro   ();
-                  if(changed&EditWaterMtrl::CHANGED_EMISSIVE)WaterMtrlEdit.rebuildEmissive(textures, adjust_params);
+                  if(changed&EditMaterial::CHANGED_BASE    )WaterMtrlEdit.rebuildBase    (textures, FlagTest(changed, EditMaterial::CHANGED_FNY), FlagTest(changed, EditMaterial::CHANGED_SIR), adjust_params, true);
+                  if(changed&EditMaterial::CHANGED_DET     )WaterMtrlEdit.rebuildDetail  ();
+                  if(changed&EditMaterial::CHANGED_MACRO   )WaterMtrlEdit.rebuildMacro   ();
+                  if(changed&EditMaterial::CHANGED_EMISSIVE)WaterMtrlEdit.rebuildEmissive(textures, adjust_params);
                }else
                {
-                  if(changed&(EditWaterMtrl::CHANGED_BASE|EditWaterMtrl::CHANGED_DET|EditWaterMtrl::CHANGED_MACRO|EditWaterMtrl::CHANGED_EMISSIVE))mtrlTexChanged();
+                  if(changed&(EditMaterial::CHANGED_BASE|EditMaterial::CHANGED_DET|EditMaterial::CHANGED_MACRO|EditMaterial::CHANGED_EMISSIVE))mtrlTexChanged();
                }
                WaterMtrlEdit.toGui();
                WaterMtrlEdit.setChanged();
@@ -2063,17 +2063,17 @@ void DrawProject()
          {
             WaterMtrlPtr game=gamePath(elm_id); if(!game)return false;
           //bool         want_tan_bin=game->needTanBin();
-            TEX_FLAG     new_textures=edit.textures(); // set approximate
+            TEX_FLAG     has_textures=TEXF_NONE, known_textures=TEXF_NONE;
 
             if(reload_textures)
             {
-               if(changed&EditWaterMtrl::CHANGED_BASE    )FlagCopy(new_textures, mtrlCreateBaseTextures   (edit, FlagTest(changed, EditWaterMtrl::CHANGED_FNY), FlagTest(changed, EditWaterMtrl::CHANGED_SIR)), TEXF_BASE); // get precise
-               if(changed&EditWaterMtrl::CHANGED_DET     )FlagCopy(new_textures, mtrlCreateDetailTexture  (edit), TEXF_DET);
-               if(changed&EditWaterMtrl::CHANGED_MACRO   )FlagCopy(new_textures, mtrlCreateMacroTexture   (edit), TEXF_MACRO);
-               if(changed&EditWaterMtrl::CHANGED_EMISSIVE)FlagCopy(new_textures, mtrlCreateEmissiveTexture(edit), TEXF_EMISSIVE);
+               if(changed&EditMaterial::CHANGED_BASE    ){known_textures|=TEXF_BASE    ; has_textures|=mtrlCreateBaseTextures   (edit, FlagTest(changed, EditMaterial::CHANGED_FNY), FlagTest(changed, EditMaterial::CHANGED_SIR));}
+               if(changed&EditMaterial::CHANGED_DET     ){known_textures|=TEXF_DET     ; has_textures|=mtrlCreateDetailTexture  (edit                                                                                          );}
+               if(changed&EditMaterial::CHANGED_MACRO   ){known_textures|=TEXF_MACRO   ; has_textures|=mtrlCreateMacroTexture   (edit                                                                                          );}
+               if(changed&EditMaterial::CHANGED_EMISSIVE){known_textures|=TEXF_EMISSIVE; has_textures|=mtrlCreateEmissiveTexture(edit                                                                                          );}
             }
 
-            if(adjust_params)edit.adjustParams(old_textures, new_textures);
+            if(adjust_params)edit.adjustParams(old_textures, has_textures, known_textures);
             edit.copyTo(*game, T);
 
             // save
@@ -2084,7 +2084,7 @@ void DrawProject()
 
             // process dependencies
           //if(want_tan_bin!=game->needTanBin())mtrlSetAutoTanBin(elm_id);
-            if(changed&(EditWaterMtrl::CHANGED_BASE|EditWaterMtrl::CHANGED_DET|EditWaterMtrl::CHANGED_MACRO|EditWaterMtrl::CHANGED_EMISSIVE))mtrlTexChanged();
+            if(changed&(EditMaterial::CHANGED_BASE|EditMaterial::CHANGED_DET|EditMaterial::CHANGED_MACRO|EditMaterial::CHANGED_EMISSIVE))mtrlTexChanged();
           //D.setShader(game());
          }
          return true;
@@ -2125,17 +2125,17 @@ void DrawProject()
                {
                   MaterialPtr game=gamePath(elm_id); if(!game)return false;
                   bool        want_tan_bin=game->needTanBin();
-                  TEX_FLAG    new_textures=edit.textures(); // set approximate
+                  TEX_FLAG    has_textures=TEXF_NONE, known_textures=TEXF_NONE;
 
                   if(reload_textures)
                   {
-                     if(changed&EditMaterial::CHANGED_BASE    )FlagCopy(new_textures, mtrlCreateBaseTextures   (edit, FlagTest(changed, EditMaterial::CHANGED_FNY), FlagTest(changed, EditMaterial::CHANGED_SIR)), TEXF_BASE); // get precise
-                     if(changed&EditMaterial::CHANGED_DET     )FlagCopy(new_textures, mtrlCreateDetailTexture  (edit), TEXF_DET);
-                     if(changed&EditMaterial::CHANGED_MACRO   )FlagCopy(new_textures, mtrlCreateMacroTexture   (edit), TEXF_MACRO);
-                     if(changed&EditMaterial::CHANGED_EMISSIVE)FlagCopy(new_textures, mtrlCreateEmissiveTexture(edit), TEXF_EMISSIVE);
+                     if(changed&EditMaterial::CHANGED_BASE    ){known_textures|=TEXF_BASE    ; has_textures|=mtrlCreateBaseTextures   (edit, FlagTest(changed, EditMaterial::CHANGED_FNY), FlagTest(changed, EditMaterial::CHANGED_SIR));}
+                     if(changed&EditMaterial::CHANGED_DET     ){known_textures|=TEXF_DET     ; has_textures|=mtrlCreateDetailTexture  (edit                                                                                          );}
+                     if(changed&EditMaterial::CHANGED_MACRO   ){known_textures|=TEXF_MACRO   ; has_textures|=mtrlCreateMacroTexture   (edit                                                                                          );}
+                     if(changed&EditMaterial::CHANGED_EMISSIVE){known_textures|=TEXF_EMISSIVE; has_textures|=mtrlCreateEmissiveTexture(edit                                                                                          );}
                   }
 
-                  if(adjust_params)edit.adjustParams(old_textures, new_textures);
+                  if(adjust_params)edit.adjustParams(old_textures, has_textures, known_textures);
                   edit.copyTo(*game, T);
 
                   // save

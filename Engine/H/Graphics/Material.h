@@ -229,6 +229,7 @@ enum TEX_TYPE // Material Texture Type
    TEX_DET_SMOOTH,
    TEX_MACRO     ,
    TEX_EMISSIVE  ,
+   TEX_NUM       ,
       
    TEX_BASE_BEGIN=TEX_COLOR,
    TEX_BASE_END  =TEX_GLOW ,

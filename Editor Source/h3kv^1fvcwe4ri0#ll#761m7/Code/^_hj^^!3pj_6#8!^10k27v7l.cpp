@@ -142,20 +142,19 @@ class EditWaterMtrl : EditMaterial
       }
       return changed;
    }
-   void adjustParams(TEX_FLAG old_textures, TEX_FLAG new_textures)
+   void adjustParams(TEX_FLAG old_textures, TEX_FLAG has_textures, TEX_FLAG known_textures) // 'old_textures'=textures() before making any change, 'has_textures'=used textures based on per-pixel data (if known), 'known_textures'=what textures in 'has_textures' are known
    {
       TimeStamp time; time.getUTC();
+      TEX_FLAG  new_textures=textures(); // textures() after making any change
       TEX_FLAG  changed=(old_textures^new_textures);
+
       if(changed&TEXF_BUMP)
-      {
          if(!(new_textures&TEXF_BUMP)    ){wave_scale=0  ; wave_scale_time=time;}else
          if(wave_scale<=EPS_MATERIAL_BUMP){wave_scale=0.1; wave_scale_time=time;}
-      }
+
       if(changed&(TEXF_BUMP|TEXF_NORMAL))
-      {
          if(!(new_textures&TEXF_BUMP) && !(new_textures&TEXF_NORMAL)){normal=0; normal_time=time;}else
          if(normal<=EPS_COL8                                        ){normal=1; normal_time=time;}
-      }
    }
 
    // io

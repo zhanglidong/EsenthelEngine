@@ -162,7 +162,7 @@
         detail_normal=src.detail_normal_map;
         detail_smooth=src.detail_smooth_map;
 
-      if(src.adjust_params)adjustParams(~src.textures, src.textures);
+      if(src.adjust_params)adjustParams(TEXF_NONE, src.has_textures, src.known_textures);
    }
    void EditMaterial::copyTo(Material &dest, C Project &proj)C
    {
@@ -392,14 +392,15 @@
       }
       return changed;
    }
-   void EditMaterial::adjustParams(TEX_FLAG old_textures, TEX_FLAG new_textures)
+   void EditMaterial::adjustParams(TEX_FLAG old_textures, TEX_FLAG has_textures, TEX_FLAG known_textures) // 'old_textures'=textures() before making any change, 'has_textures'=used textures based on per-pixel data (if known), 'known_textures'=what textures in 'has_textures' are known
    {
       TimeStamp time; time.getUTC();
-      TEX_FLAG changed=(old_textures^new_textures);
+      TEX_FLAG  new_textures=textures(); // textures() after making any change
+      TEX_FLAG  changed=(old_textures^new_textures);
 
-      if(changed&TEXF_ALPHA)
+      if(known_textures&TEXF_ALPHA)
       {
-         if(new_textures&TEXF_ALPHA)
+         if(has_textures&TEXF_ALPHA)
          {
             if(!HasAlphaBlend(tech) && color_s.w>=1-EPS_COL8){color_s.w=0.5f; color_time=time;}
             if(!HasAlpha     (tech)                         ){tech=MTECH_ALPHA_TEST; tech_time=time;}
@@ -407,6 +408,10 @@
          {
             if(HasAlpha(tech)){tech=MTECH_DEFAULT; tech_time=time;} // disable alpha technique if alpha map is not available
          }
+      }else
+      if(!(new_textures&(TEXF_COLOR|TEXF_ALPHA)))
+      {
+         if(HasAlpha(tech)){tech=MTECH_DEFAULT; tech_time=time;} // disable alpha technique if alpha map is not available
       }
 
       if(changed&TEXF_BUMP)

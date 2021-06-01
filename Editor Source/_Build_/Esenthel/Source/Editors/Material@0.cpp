@@ -1133,13 +1133,13 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
       {
          bool want_tan_bin=game->needTanBin();
 
-         TEX_FLAG new_textures=edit.textures(); // set approximate
+         TEX_FLAG has_textures=TEXF_NONE, known_textures=TEXF_NONE;
          if(auto_reload || always)
          {
-            FlagCopy(new_textures, Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y, changed_smooth_is_rough), TEXF_BASE); // set precise
+            known_textures|=TEXF_BASE; has_textures|=Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y, changed_smooth_is_rough);
             Time.skipUpdate(); // compressing textures can be slow
          }
-         if(adjust_params)edit.adjustParams(old_textures, new_textures);
+         if(adjust_params)edit.adjustParams(old_textures, has_textures, known_textures);
 
          setChanged();
          Proj.mtrlTexChanged();
@@ -1183,9 +1183,9 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
    {
       if(elm && game)
       {
-         TEX_FLAG new_textures=edit.textures(); // set approximate
-         FlagCopy(new_textures, Proj.mtrlCreateEmissiveTexture(edit), TEXF_EMISSIVE); // set precise
-         if(adjust_params)edit.adjustParams(old_textures, new_textures);
+         TEX_FLAG has_textures=TEXF_NONE, known_textures=TEXF_NONE;
+         known_textures|=TEXF_EMISSIVE; has_textures|=Proj.mtrlCreateEmissiveTexture(edit);
+         if(adjust_params)edit.adjustParams(old_textures, has_textures, known_textures);
          setChanged();
          Proj.mtrlTexChanged();
          Time.skipUpdate(); // compressing textures can be slow

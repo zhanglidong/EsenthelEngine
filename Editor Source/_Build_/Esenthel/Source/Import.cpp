@@ -90,13 +90,11 @@ ImporterClass Importer;
                ImportImage(    glow    ,     glow_map);
                ImportImage(emissive_img, emissive_map);
 
+                                    has_textures =CreateBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, metal, glow, true, flip_normal_y);
+               if(emissive_img.is())has_textures|=TEXF_EMISSIVE;
+                                  known_textures =TEXF_BASE|TEXF_EMISSIVE;
+
                // process textures only if they're added for the first time, otherwise delete them so they won't be saved
-               textures=CreateBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, metal, glow, true, flip_normal_y);
-               // enable if are specified but either failed to load or empty, because without it, for example normal value gets zero, and when reapplying correct image path, then when loading new image, normal value doesn't get changed
-               if(  bump_map.is())textures|=TEXF_BUMP|TEXF_NORMAL;
-               if(normal_map.is())textures|=TEXF_NORMAL;
-               if(smooth_map.is())textures|=TEXF_SMOOTH;
-               if( metal_map.is())textures|=TEXF_METAL;
                IMAGE_TYPE ct; ImageProps(      base_0, &  base_0_id, &ct, MTRL_BASE_0  ); if(Importer.includeTex(  base_0_id))                                 base_0      .copyTry(base_0      , -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else   base_0    .del();
                               ImageProps(      base_1, &  base_1_id, &ct, MTRL_BASE_1  ); if(Importer.includeTex(  base_1_id))                                 base_1      .copyTry(base_1      , -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else   base_1    .del();
                               ImageProps(      base_2, &  base_2_id, &ct, MTRL_BASE_2  ); if(Importer.includeTex(  base_2_id))                                 base_2      .copyTry(base_2      , -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else   base_2    .del();

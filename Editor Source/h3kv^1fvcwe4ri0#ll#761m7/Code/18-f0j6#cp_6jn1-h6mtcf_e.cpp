@@ -321,13 +321,13 @@ class WaterMtrlRegion : MaterialRegion
    {
       if(elm && game)
       {
-         TEX_FLAG new_textures=edit.textures(); // set approximate
+         TEX_FLAG has_textures=TEXF_NONE, known_textures=TEXF_NONE;
          if(auto_reload || always)
          {
-            FlagCopy(new_textures, Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y, changed_smooth_is_rough), TEXF_BASE); // set precise
+            known_textures|=TEXF_BASE; has_textures|=Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y, changed_smooth_is_rough);
             Time.skipUpdate(); // compressing textures can be slow
          }
-         if(adjust_params)edit.adjustParams(old_textures, new_textures);
+         if(adjust_params)edit.adjustParams(old_textures, has_textures, known_textures);
 
          setChanged();
          Proj.mtrlTexChanged();
