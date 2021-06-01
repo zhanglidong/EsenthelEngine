@@ -10,7 +10,7 @@ class EditMaterial
    Vec                       emissive;
    flt                       smooth, // 0..1 without 'smooth_map', and -1..1 with 'smooth_map'
                              reflect_min, reflect_max, glow, normal, bump,
-                             uv_scale, det_scale, det_power;
+                             uv_scale, det_uv_scale, det_power;
    UID                       base_0_tex, base_1_tex, base_2_tex, detail_tex, macro_tex, emissive_tex;
    Str                       color_map, alpha_map, bump_map, normal_map, smooth_map, metal_map, glow_map,
                              detail_color, detail_bump, detail_normal, detail_smooth,

@@ -132,7 +132,7 @@
       normal=src.normal; normal_time=time;
       bump=src.bump; bump_time=time;
        uv_scale=src. uv_scale; uv_scale_time=time;
-      det_scale=src.det_scale; detail_time=time;
+      det_uv_scale=src.det_uv_scale; detail_time=time;
       det_power=src.det_power; detail_time=time;
 
       if(src.smooth_map.is()) // here 'smooth' is -1..1
@@ -176,9 +176,9 @@
       dest.glow=glow;
       dest.normal=normal;
       dest.bump=bump;
-      dest. uv_scale= uv_scale;
-      dest.det_scale=det_scale;
-      dest.det_power=det_power;
+      dest.    uv_scale=    uv_scale;
+      dest.det_uv_scale=det_uv_scale;
+      dest.det_power   =det_power;
       dest.base_0      =proj.texPath(  base_0_tex);
       dest.base_1      =proj.texPath(  base_1_tex);
       dest.base_2      =proj.texPath(  base_2_tex);
@@ -319,8 +319,8 @@
       if(Sync(detail_time, src.detail_time))
       {
          changed|=CHANGED_PARAM;
-         det_scale=src.det_scale;
-         det_power=src.det_power;
+         det_uv_scale=src.det_uv_scale;
+         det_power   =src.det_power;
       }
       return changed;
    }
@@ -387,8 +387,8 @@
       if(Undo(detail_time, src.detail_time))
       {
          changed|=CHANGED_PARAM;
-         det_scale=src.det_scale;
-         det_power=src.det_power;
+         det_uv_scale=src.det_uv_scale;
+         det_power   =src.det_power;
       }
       return changed;
    }
@@ -494,7 +494,7 @@
    {
       f.cmpUIntV(15);
       f<<flip_normal_y<<smooth_is_rough<<cull<<tex_quality<<tech<<downsize_tex_mobile;
-      f<<color_s<<emissive<<smooth<<reflect_min<<reflect_max<<glow<<normal<<bump<<uv_scale<<det_scale<<det_power;
+      f<<color_s<<emissive<<smooth<<reflect_min<<reflect_max<<glow<<normal<<bump<<uv_scale<<det_uv_scale<<det_power;
       f<<base_0_tex<<base_1_tex<<base_2_tex<<detail_tex<<macro_tex<<emissive_tex;
 
       f<<color_map<<alpha_map<<bump_map<<normal_map<<smooth_map<<metal_map<<glow_map
@@ -517,7 +517,7 @@
          case 15:
          {
             f>>flip_normal_y>>smooth_is_rough>>cull>>tex_quality>>tech>>downsize_tex_mobile;
-            f>>color_s>>emissive>>smooth>>reflect_min>>reflect_max>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power;
+            f>>color_s>>emissive>>smooth>>reflect_min>>reflect_max>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power;
             f>>base_0_tex>>base_1_tex>>base_2_tex>>detail_tex>>macro_tex>>emissive_tex;
 
             f>>color_map>>alpha_map>>bump_map>>normal_map>>smooth_map>>metal_map>>glow_map
@@ -535,7 +535,7 @@
          case 14:
          {
             f>>flip_normal_y>>cull>>tex_quality>>tech>>downsize_tex_mobile;
-            f>>color_s>>emissive>>smooth>>reflect_min>>reflect_max>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power;
+            f>>color_s>>emissive>>smooth>>reflect_min>>reflect_max>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power;
             f>>base_0_tex>>base_1_tex>>base_2_tex>>detail_tex>>macro_tex>>emissive_tex;
 
             f>>color_map>>alpha_map>>bump_map>>normal_map>>smooth_map>>metal_map>>glow_map
@@ -554,7 +554,7 @@
          case 13:
          {
             f>>flip_normal_y>>cull>>tex_quality>>tech>>downsize_tex_mobile;
-            f>>color_s>>emissive>>smooth>>reflect>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power;
+            f>>color_s>>emissive>>smooth>>reflect>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power;
             f>>base_0_tex>>base_1_tex>>base_2_tex>>detail_tex>>macro_tex>>emissive_tex;
 
             f>>color_map>>alpha_map>>bump_map>>normal_map>>smooth_map>>metal_map>>glow_map
@@ -573,7 +573,7 @@
          case 12:
          {
             f>>flip_normal_y>>cull>>tex_quality>>tech>>downsize_tex_mobile;
-            f>>color_s>>emissive>>smooth>>reflect>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power;
+            f>>color_s>>emissive>>smooth>>reflect>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power;
             f>>base_0_tex>>base_1_tex>>base_2_tex>>detail_tex>>macro_tex>>emissive_tex;
 
             f>>color_map>>alpha_map>>bump_map>>normal_map>>smooth_map>>metal_map>>glow_map
@@ -592,7 +592,7 @@
          case 11:
          {
             f>>flip_normal_y>>cull>>tex_quality>>tech>>downsize_tex_mobile;
-            f>>color_s>>emissive>>smooth>>reflect>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power;
+            f>>color_s>>emissive>>smooth>>reflect>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power;
             f>>base_0_tex>>base_1_tex>>base_2_tex>>detail_tex>>macro_tex>>emissive_tex;
 
             f>>color_map>>alpha_map>>bump_map>>normal_map>>smooth_map>>metal_map>>glow_map
@@ -611,7 +611,7 @@
          case 10:
          {
             f>>flip_normal_y>>cull>>tex_quality>>tech>>downsize_tex_mobile;
-            f>>color_s>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect;
+            f>>color_s>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>emissive_tex;
 
             f>>color_map>>alpha_map>>bump_map>>normal_map>>smooth_map>>glow_map
@@ -631,7 +631,7 @@
          case 9:
          {
             f>>flip_normal_y>>cull>>tex_quality>>tech>>downsize_tex_mobile;
-            f>>color_s>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect;
+            f>>color_s>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>emissive_tex;
 
             GetStr2(f, color_map); GetStr2(f, alpha_map); GetStr2(f, bump_map); GetStr2(f, normal_map); GetStr2(f, smooth_map); GetStr2(f, glow_map);
@@ -651,7 +651,7 @@
          case 8:
          {
             f>>bump_from_color>>flip_normal_y>>cull>>tex_quality>>tech>>downsize_tex_mobile;
-            f>>color_s>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect;
+            f>>color_s>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>emissive_tex;
 
             GetStr2(f, color_map); GetStr2(f, alpha_map); GetStr2(f, bump_map); GetStr2(f, normal_map); GetStr2(f, smooth_map); GetStr2(f, glow_map);
@@ -671,7 +671,7 @@
          case 7:
          {
             f>>bump_from_color>>flip_normal_y>>cull>>tex_quality>>tech>>downsize_tex_mobile>>mip_map_blur;
-            f>>color_s>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect;
+            f>>color_s>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>emissive_tex;
 
             GetStr2(f, color_map); GetStr2(f, alpha_map); GetStr2(f, bump_map); GetStr2(f, normal_map); GetStr2(f, smooth_map); GetStr2(f, glow_map);
@@ -691,7 +691,7 @@
          case 6:
          {
             f>>bump_from_color>>flip_normal_y>>cull>>tech>>downsize_tex_mobile>>mip_map_blur;
-            f>>color_s>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect;
+            f>>color_s>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>emissive_tex;
 
             GetStr2(f, color_map); GetStr2(f, alpha_map); GetStr2(f, bump_map); GetStr2(f, normal_map); GetStr2(f, smooth_map); GetStr2(f, glow_map);
@@ -711,7 +711,7 @@
          case 5:
          {
             byte max_tex_size; f>>bump_from_color>>flip_normal_y>>cull>>tech>>max_tex_size>>mip_map_blur; downsize_tex_mobile=(max_tex_size>=1 && max_tex_size<=10);
-            f>>color_s>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect;
+            f>>color_s>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>emissive_tex;
 
             GetStr2(f, color_map); GetStr2(f, alpha_map); GetStr2(f, bump_map); GetStr2(f, normal_map); GetStr2(f, smooth_map); GetStr2(f, glow_map);
@@ -731,7 +731,7 @@
          case 4:
          {
             byte max_tex_size; f>>bump_from_color>>flip_normal_y>>cull>>tech>>max_tex_size>>mip_map_blur; downsize_tex_mobile=(max_tex_size>=1 && max_tex_size<=10);
-            f>>color_s>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect;
+            f>>color_s>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>emissive_tex;
             GetStr(f, color_map); GetStr(f, alpha_map); GetStr(f, bump_map); GetStr(f, normal_map); GetStr(f, smooth_map); GetStr(f, glow_map);
             GetStr(f, detail_color); GetStr(f, detail_bump); GetStr(f, detail_normal);
@@ -750,7 +750,7 @@
          case 3:
          {
             f>>bump_from_color>>flip_normal_y>>cull>>tech>>mip_map_blur;
-            f>>color_s>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect;
+            f>>color_s>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>emissive_tex;
             GetStr(f, color_map); GetStr(f, alpha_map); GetStr(f, bump_map); GetStr(f, normal_map); GetStr(f, smooth_map); GetStr(f, glow_map);
             GetStr(f, detail_color); GetStr(f, detail_bump); GetStr(f, detail_normal);
@@ -769,7 +769,7 @@
          case 2:
          {
             f>>bump_from_color>>flip_normal_y>>cull>>tech;
-            f>>color_s>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect;
+            f>>color_s>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>emissive_tex;
             GetStr(f, color_map); GetStr(f, alpha_map); GetStr(f, bump_map); GetStr(f, normal_map); GetStr(f, smooth_map); GetStr(f, glow_map);
             GetStr(f, detail_color); GetStr(f, detail_bump); GetStr(f, detail_normal);
@@ -788,7 +788,7 @@
          case 1:
          {
             f>>bump_from_color>>flip_normal_y>>cull>>tech;
-            f>>color_s>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_scale>>det_power>>reflect;
+            f>>color_s>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex;
             GetStr(f, color_map); GetStr(f, alpha_map); GetStr(f, bump_map); GetStr(f, normal_map); GetStr(f, smooth_map); GetStr(f, glow_map);
             GetStr(f, detail_color); GetStr(f, detail_bump); GetStr(f, detail_normal);
@@ -820,6 +820,6 @@
       File f; if(f.readTry(name))return load(f);
       reset(); return false;
    }
-EditMaterial::EditMaterial() : tech(MTECH_DEFAULT), tex_quality(Edit::Material::MEDIUM), flip_normal_y(false), smooth_is_rough(false), cull(true), downsize_tex_mobile(0), color_s(1, 1, 1, 1), emissive(0, 0, 0), smooth(0), reflect_min(MATERIAL_REFLECT), reflect_max(1), glow(0), normal(0), bump(0), uv_scale(1), det_scale(4), det_power(0.3f), base_0_tex(UIDZero), base_1_tex(UIDZero), base_2_tex(UIDZero), detail_tex(UIDZero), macro_tex(UIDZero), emissive_tex(UIDZero) {}
+EditMaterial::EditMaterial() : tech(MTECH_DEFAULT), tex_quality(Edit::Material::MEDIUM), flip_normal_y(false), smooth_is_rough(false), cull(true), downsize_tex_mobile(0), color_s(1, 1, 1, 1), emissive(0, 0, 0), smooth(0), reflect_min(MATERIAL_REFLECT), reflect_max(1), glow(0), normal(0), bump(0), uv_scale(1), det_uv_scale(4), det_power(0.3f), base_0_tex(UIDZero), base_1_tex(UIDZero), base_2_tex(UIDZero), detail_tex(UIDZero), macro_tex(UIDZero), emissive_tex(UIDZero) {}
 
 /******************************************************************************/

@@ -33,18 +33,18 @@ Bool HasLeaf            (MATERIAL_TECHNIQUE technique); // if 'technique' involv
 /******************************************************************************/
 struct MaterialParams // Material Parameters
 {
-   Vec4 color_l    ; // color Linear Gamma      (0,0,0,0) .. (1,1,1,1), default=(1,1,1,1)
-   Vec  emissive   ; // emissive                  (0,0,0) .. (1,1,1)  , default=(0,0,0)
-   Flt    rough_mul, // roughness    from       texture 0 .. 1        , default=0
-          rough_add, // roughness    base               0 .. 1        , default=1
-        reflect_mul, // reflectivity from metal texture 0 .. 1        , default=1-MATERIAL_REFLECT
-        reflect_add, // reflectivity base               0 .. 1        , default=  MATERIAL_REFLECT
-        glow       , // glow amount                     0 .. 1        , default=0
-        normal     , // normal map sharpness            0 .. 1        , default=0
-        bump       , // bumpiness                       0 .. 1        , default=0
-        det_power  , // detail     power                0 .. 1        , default=0.3
-        det_scale  , // detail  UV scale                0 .. Inf      , default=4
-         uv_scale  ; // texture UV scale                0 .. Inf      , default=1, this is used mainly for World terrain textures UV scaling
+   Vec4 color_l     ; // color Linear Gamma      (0,0,0,0) .. (1,1,1,1), default=(1,1,1,1)
+   Vec  emissive    ; // emissive                  (0,0,0) .. (1,1,1)  , default=(0,0,0)
+   Flt    rough_mul , // roughness    from       texture 0 .. 1        , default=0
+          rough_add , // roughness    base               0 .. 1        , default=1
+        reflect_mul , // reflectivity from metal texture 0 .. 1        , default=1-MATERIAL_REFLECT
+        reflect_add , // reflectivity base               0 .. 1        , default=  MATERIAL_REFLECT
+        glow        , // glow amount                     0 .. 1        , default=0
+        normal      , // normal map sharpness            0 .. 1        , default=0
+        bump        , // bumpiness                       0 .. 1        , default=0
+        det_power   , // detail     power                0 .. 1        , default=0.3
+        det_uv_scale, // detail  UV scale                0 .. Inf      , default=4
+            uv_scale; // texture UV scale                0 .. Inf      , default=1, this is used mainly for World terrain textures UV scaling
 
  C Vec4& colorL()C {return color_l;}   void colorL(C Vec4 &color_l) {T.color_l=color_l;} // get/set Linear Gamma color
    Vec4  colorS()C;                    void colorS(C Vec4 &color_s);                     // get/set sRGB   Gamma color
@@ -133,7 +133,7 @@ private:
       Vec4 color;
       Vec  refl_rogh_glow_mul, refl_rogh_glow_add;
       Flt  normal, bump, det_mul, det_add, det_inv, macro, // medium prec
-           uv_scale, det_scale; // high prec
+           uv_scale, det_uv_scale; // high prec
    }_multi;
    struct MaterialShader // Material->Shader link
    {

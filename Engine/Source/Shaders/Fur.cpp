@@ -71,7 +71,7 @@ void Base_PS
    out DeferredSolidOutput output
 )
 {
-   Half fur=Tex(FurCol, I.tex*Material.det_scale).r;
+   Half fur=Tex(FurCol, I.tex*Material.det_uv_scale).r;
 #if SIZE
    VecH col=Sat(I.len*-fur+1); // I.len*-fur+step+1 : fur*FACTOR+step+1, here step=0
 #else
@@ -141,7 +141,7 @@ VecH4 Soft_PS
 , out Half outAlpha:TARGET2 // #RTOutput.Blend
 ):TARGET
 {
-   Half fur=Tex(FurCol, inTex*Material.det_scale).r;
+   Half fur=Tex(FurCol, inTex*Material.det_uv_scale).r;
 
    VecH4 color;
 #if SIZE

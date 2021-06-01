@@ -18,7 +18,7 @@ struct XMaterial // Material stored in external formats
                       normal   , // normal map sharpness            0 .. 1        , default=0
                       bump     , // bumpiness                       0 .. 1        , default=0
                       det_power, // detail     power                0 .. 1        , default=0.3
-                      det_scale, // detail  UV scale                0 .. Inf      , default=4
+                   det_uv_scale, // detail  UV scale                0 .. Inf      , default=4
                        uv_scale; // texture UV scale                0 .. Inf      , default=1, this is used mainly for World terrain textures scaling
    Str                color_map, // color         texture file name
                       alpha_map, // alpha         texture file name

@@ -421,10 +421,10 @@ MaterialTech mtrl_techs[]=
    void MaterialRegion::ReflectMax(  MaterialRegion &mr, C Str &t) {       mr.edit.reflect_max=TextFlt(t); mr.edit.reflect_time.getUTC();}
    Str  MaterialRegion::Glow(C MaterialRegion &mr          ) {return mr.edit.glow;}
    void MaterialRegion::Glow(  MaterialRegion &mr, C Str &t) {       mr.edit.glow=TextFlt(t); mr.edit.glow_time.getUTC();}
-   Str  MaterialRegion::DetScale(C MaterialRegion &mr          ) {return mr.edit.det_scale;}
-   void MaterialRegion::DetScale(  MaterialRegion &mr, C Str &t) {       mr.edit.det_scale=TextFlt(t); mr.edit.detail_time.getUTC();}
+   Str  MaterialRegion::DetUVScale(C MaterialRegion &mr          ) {return mr.edit.det_uv_scale;}
+   void MaterialRegion::DetUVScale(  MaterialRegion &mr, C Str &t) {       mr.edit.det_uv_scale=TextFlt(t); mr.edit.detail_time.getUTC();}
    Str  MaterialRegion::DetPower(C MaterialRegion &mr          ) {return mr.edit.det_power;}
-   void MaterialRegion::DetPower(  MaterialRegion &mr, C Str &t) {       mr.edit.det_power=TextFlt(t); mr.edit.detail_time.getUTC();}
+   void MaterialRegion::DetPower(  MaterialRegion &mr, C Str &t) {       mr.edit.det_power=TextFlt(t); mr.edit.detail_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
    Str  MaterialRegion::Cull(C MaterialRegion &mr          ) {return mr.edit.cull;}
    void MaterialRegion::Cull(  MaterialRegion &mr, C Str &t) {       mr.edit.cull=TextBool(t); mr.edit.cull_time.now();}
    Str  MaterialRegion::EmissiveR(C MaterialRegion &mr          ) {return mr.edit.emissive.x;}
@@ -746,8 +746,8 @@ emit_green=&props.New().create("Emit Green", MemberDesc(DATA_REAL).setFunc(Emiss
 emit_blue =&props.New().create("Emit Blue" , MemberDesc(DATA_REAL).setFunc(EmissiveB, EmissiveB)).range(0, 4).mouseEditSpeed(0.4f);
     //props.New();
     //props.New().create("Subsurf Scatter", MemberDesc(DATA_REAL).setFunc(SSS , SSS )).range(0, 1);
-      props.New().create("Detail Scale"   , MemberDesc(DATA_REAL).setFunc(DetScale, DetScale)).range(0.01f, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
-      props.New().create("Detail Power"   , MemberDesc(DATA_REAL).setFunc(DetPower, DetPower)).range(0, 1);
+      props.New().create("Detail UV Scale", MemberDesc(DATA_REAL).setFunc(DetUVScale, DetUVScale)).range(0.01f, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
+      props.New().create("Detail Power"   , MemberDesc(DATA_REAL).setFunc(DetPower  , DetPower  )).range(0, 1);
       props.New();
 
       props.New().create("Cull"         , MemberDesc(DATA_BOOL).setFunc(Cull   , Cull   ));

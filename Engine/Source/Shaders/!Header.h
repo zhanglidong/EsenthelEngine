@@ -406,8 +406,8 @@ struct MaterialClass // this is used when a MeshPart has only one material
          normal,
          bump,
          det_power;
-   Flt   det_scale,
-          uv_scale;
+   Flt   det_uv_scale,
+             uv_scale;
 };
 BUFFER_I(Material, SBI_MATERIAL)
    MaterialClass Material;
@@ -418,7 +418,7 @@ struct MultiMaterialClass // this is used when a MeshPart has multiple materials
    VecH4 color;
    VecH  refl_rogh_glow_mul, refl_rogh_glow_add;
    Half  normal, bump, det_mul, det_add, det_inv, macro;
-   Flt   uv_scale, det_scale;
+   Flt   uv_scale, det_uv_scale;
 };
 BUFFER(MultiMaterial0) MultiMaterialClass MultiMaterial0; BUFFER_END
 BUFFER(MultiMaterial1) MultiMaterialClass MultiMaterial1; BUFFER_END
@@ -1575,7 +1575,7 @@ Half DepthWeight(Flt delta, Vec2 dw_mad)
 /******************************************************************************/
 VecH4 GetDetail(Vec2 tex) // XY=nrm.xy -1..1 delta, Z=rough -1..1 delta, W=color 0..2 scale
 {
-   VecH4 det=Tex(Det, tex*Material.det_scale); // XY=nrm.xy 0..1, Z=rough 0..1, W=color 0..1 #MaterialTextureLayoutDetail
+   VecH4 det=Tex(Det, tex*Material.det_uv_scale); // XY=nrm.xy 0..1, Z=rough 0..1, W=color 0..1 #MaterialTextureLayoutDetail
 
    /* unoptimized
    det.xyz                 =(det.xyz            -0.5)*2*Material.det_power;
@@ -1587,10 +1587,10 @@ VecH4 GetDetail(Vec2 tex) // XY=nrm.xy -1..1 delta, Z=rough -1..1 delta, W=color
 
    return det;
 }
-VecH4 GetDetail0(Vec2 tex) {VecH4 det=Tex(Det , tex*MultiMaterial0.det_scale); det.xyz=det.xyz*MultiMaterial0.det_mul+MultiMaterial0.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial0.det_mul+MultiMaterial0.det_inv; return det;}
-VecH4 GetDetail1(Vec2 tex) {VecH4 det=Tex(Det1, tex*MultiMaterial1.det_scale); det.xyz=det.xyz*MultiMaterial1.det_mul+MultiMaterial1.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial1.det_mul+MultiMaterial1.det_inv; return det;}
-VecH4 GetDetail2(Vec2 tex) {VecH4 det=Tex(Det2, tex*MultiMaterial2.det_scale); det.xyz=det.xyz*MultiMaterial2.det_mul+MultiMaterial2.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial2.det_mul+MultiMaterial2.det_inv; return det;}
-VecH4 GetDetail3(Vec2 tex) {VecH4 det=Tex(Det3, tex*MultiMaterial3.det_scale); det.xyz=det.xyz*MultiMaterial3.det_mul+MultiMaterial3.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial3.det_mul+MultiMaterial3.det_inv; return det;}
+VecH4 GetDetail0(Vec2 tex) {VecH4 det=Tex(Det , tex*MultiMaterial0.det_uv_scale); det.xyz=det.xyz*MultiMaterial0.det_mul+MultiMaterial0.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial0.det_mul+MultiMaterial0.det_inv; return det;}
+VecH4 GetDetail1(Vec2 tex) {VecH4 det=Tex(Det1, tex*MultiMaterial1.det_uv_scale); det.xyz=det.xyz*MultiMaterial1.det_mul+MultiMaterial1.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial1.det_mul+MultiMaterial1.det_inv; return det;}
+VecH4 GetDetail2(Vec2 tex) {VecH4 det=Tex(Det2, tex*MultiMaterial2.det_uv_scale); det.xyz=det.xyz*MultiMaterial2.det_mul+MultiMaterial2.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial2.det_mul+MultiMaterial2.det_inv; return det;}
+VecH4 GetDetail3(Vec2 tex) {VecH4 det=Tex(Det3, tex*MultiMaterial3.det_uv_scale); det.xyz=det.xyz*MultiMaterial3.det_mul+MultiMaterial3.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial3.det_mul+MultiMaterial3.det_inv; return det;}
 /******************************************************************************/
 // FACE NORMAL HANDLING
 /******************************************************************************/

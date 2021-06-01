@@ -142,10 +142,10 @@ public:
    static Str  Glow      (C MaterialRegion &mr          );
    static void Glow      (  MaterialRegion &mr, C Str &t);
 
-   static Str  DetScale(C MaterialRegion &mr          );
-   static void DetScale(  MaterialRegion &mr, C Str &t);
-   static Str  DetPower(C MaterialRegion &mr          );
-   static void DetPower(  MaterialRegion &mr, C Str &t);
+   static Str  DetUVScale(C MaterialRegion &mr          );
+   static void DetUVScale(  MaterialRegion &mr, C Str &t);
+   static Str  DetPower  (C MaterialRegion &mr          );
+   static void DetPower  (  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
 
    static Str  Cull(C MaterialRegion &mr          );
    static void Cull(  MaterialRegion &mr, C Str &t);
