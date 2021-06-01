@@ -162,7 +162,7 @@
         detail_normal=src.detail_normal_map;
         detail_smooth=src.detail_smooth_map;
 
-      if(src.adjust_params)adjustParams(TEXF_NONE, src.has_textures, src.known_textures);
+      if(src.adjust_params)adjustParams(~0, TEXF_NONE, src.has_textures, src.known_textures);
    }
    void EditMaterial::copyTo(Material &dest, C Project &proj)C
    {
@@ -223,12 +223,12 @@
       TimeStamp time; time.getUTC();
       uint changed=0;
 
-      changed|=CHANGED_PARAM*SyncByValue(               tech_time, time, tech               , src.technique          );
-      changed|=CHANGED_PARAM*SyncByValue(               cull_time, time, cull               , src.cull               );
-      changed|=              SyncByValue(      flip_normal_y_time, time, flip_normal_y      , src.flip_normal_y      )*(CHANGED_PARAM|CHANGED_BASE|CHANGED_FNY); // set CHANGED_BASE too because this should trigger reloading base textures
-      changed|=              SyncByValue(    smooth_is_rough_time, time, smooth_is_rough    , src.smooth_is_rough    )*(CHANGED_PARAM|CHANGED_BASE|CHANGED_SIR); // set CHANGED_BASE too because this should trigger reloading base textures
-      changed|=              SyncByValue(        tex_quality_time, time, tex_quality        , src.tex_quality        )*(CHANGED_PARAM|CHANGED_BASE            ); // set CHANGED_BASE too because this should trigger reloading base textures
-      changed|=CHANGED_PARAM*SyncByValue(downsize_tex_mobile_time, time, downsize_tex_mobile, src.downsize_tex_mobile);
+      changed|=SyncByValue(               tech_time, time, tech               , src.technique          )* CHANGED_PARAM;
+      changed|=SyncByValue(               cull_time, time, cull               , src.cull               )* CHANGED_PARAM;
+      changed|=SyncByValue(      flip_normal_y_time, time, flip_normal_y      , src.flip_normal_y      )*(CHANGED_PARAM|CHANGED_FLIP_NRM_Y);
+      changed|=SyncByValue(    smooth_is_rough_time, time, smooth_is_rough    , src.smooth_is_rough    )*(CHANGED_PARAM|CHANGED_SMOOTH_IS_ROUGH);
+      changed|=SyncByValue(        tex_quality_time, time, tex_quality        , src.tex_quality        )*(CHANGED_PARAM|CHANGED_TEX_QUALITY);
+      changed|=SyncByValue(downsize_tex_mobile_time, time, downsize_tex_mobile, src.downsize_tex_mobile)* CHANGED_PARAM;
 
       changed|=CHANGED_PARAM*SyncByValueEqual(   color_time, time,     color_s, src.    color_s);
       changed|=CHANGED_PARAM*SyncByValueEqual(emissive_time, time,    emissive, src.   emissive);
@@ -240,19 +240,19 @@
       changed|=CHANGED_PARAM*SyncByValueEqual(    bump_time, time,        bump, src.       bump);
       changed|=CHANGED_PARAM*SyncByValueEqual(uv_scale_time, time,    uv_scale, src.   uv_scale);
 
-      changed|=CHANGED_BASE    *SyncByValue(   color_map_time, time,    color_map   , FileParams::Encode(ConstCast(src.   color_map   )));
-      changed|=CHANGED_BASE    *SyncByValue(   alpha_map_time, time,    alpha_map   , FileParams::Encode(ConstCast(src.   alpha_map   )));
-      changed|=CHANGED_BASE    *SyncByValue(    bump_map_time, time,     bump_map   , FileParams::Encode(ConstCast(src.    bump_map   )));
-      changed|=CHANGED_BASE    *SyncByValue(  normal_map_time, time,   normal_map   , FileParams::Encode(ConstCast(src.  normal_map   )));
-      changed|=CHANGED_BASE    *SyncByValue(  smooth_map_time, time,   smooth_map   , FileParams::Encode(ConstCast(src.  smooth_map   )));
-      changed|=CHANGED_BASE    *SyncByValue(   metal_map_time, time,    metal_map   , FileParams::Encode(ConstCast(src.   metal_map   )));
-      changed|=CHANGED_BASE    *SyncByValue(    glow_map_time, time,     glow_map   , FileParams::Encode(ConstCast(src.    glow_map   )));
-      changed|=CHANGED_DET     *SyncByValue(  detail_map_time, time,   detail_color , FileParams::Encode(ConstCast(src.  detail_color )));
-      changed|=CHANGED_DET     *SyncByValue(  detail_map_time, time,   detail_bump  , FileParams::Encode(ConstCast(src.  detail_bump  )));
-      changed|=CHANGED_DET     *SyncByValue(  detail_map_time, time,   detail_normal, FileParams::Encode(ConstCast(src.  detail_normal)));
-      changed|=CHANGED_DET     *SyncByValue(  detail_map_time, time,   detail_smooth, FileParams::Encode(ConstCast(src.  detail_smooth)));
-      changed|=CHANGED_MACRO   *SyncByValue(   macro_map_time, time,    macro_map   , FileParams::Encode(ConstCast(src.   macro_map   )));
-      changed|=CHANGED_EMISSIVE*SyncByValue(emissive_map_time, time, emissive_map   , FileParams::Encode(ConstCast(src.emissive_map   )));
+      changed|=TEXF_COLOR     *SyncByValue(   color_map_time, time,    color_map   , FileParams::Encode(ConstCast(src.   color_map   )));
+      changed|=TEXF_ALPHA     *SyncByValue(   alpha_map_time, time,    alpha_map   , FileParams::Encode(ConstCast(src.   alpha_map   )));
+      changed|=TEXF_BUMP      *SyncByValue(    bump_map_time, time,     bump_map   , FileParams::Encode(ConstCast(src.    bump_map   )));
+      changed|=TEXF_NORMAL    *SyncByValue(  normal_map_time, time,   normal_map   , FileParams::Encode(ConstCast(src.  normal_map   )));
+      changed|=TEXF_SMOOTH    *SyncByValue(  smooth_map_time, time,   smooth_map   , FileParams::Encode(ConstCast(src.  smooth_map   )));
+      changed|=TEXF_METAL     *SyncByValue(   metal_map_time, time,    metal_map   , FileParams::Encode(ConstCast(src.   metal_map   )));
+      changed|=TEXF_GLOW      *SyncByValue(    glow_map_time, time,     glow_map   , FileParams::Encode(ConstCast(src.    glow_map   )));
+      changed|=TEXF_DET_COLOR *SyncByValue(  detail_map_time, time,   detail_color , FileParams::Encode(ConstCast(src.  detail_color )));
+      changed|=TEXF_DET_BUMP  *SyncByValue(  detail_map_time, time,   detail_bump  , FileParams::Encode(ConstCast(src.  detail_bump  )));
+      changed|=TEXF_DET_NORMAL*SyncByValue(  detail_map_time, time,   detail_normal, FileParams::Encode(ConstCast(src.  detail_normal)));
+      changed|=TEXF_DET_SMOOTH*SyncByValue(  detail_map_time, time,   detail_smooth, FileParams::Encode(ConstCast(src.  detail_smooth)));
+      changed|=TEXF_MACRO     *SyncByValue(   macro_map_time, time,    macro_map   , FileParams::Encode(ConstCast(src.   macro_map   )));
+      changed|=TEXF_EMISSIVE  *SyncByValue(emissive_map_time, time, emissive_map   , FileParams::Encode(ConstCast(src.emissive_map   )));
 
       return changed;
    }
@@ -260,47 +260,11 @@
    {
       uint changed=0;
 
-      changed|=Sync(  flip_normal_y_time, src.  flip_normal_y_time, flip_normal_y  , src.flip_normal_y  )*(CHANGED_PARAM|CHANGED_BASE|CHANGED_FNY); // set CHANGED_BASE too because this should trigger reloading base textures
-      changed|=Sync(smooth_is_rough_time, src.smooth_is_rough_time, smooth_is_rough, src.smooth_is_rough)*(CHANGED_PARAM|CHANGED_BASE|CHANGED_SIR); // set CHANGED_BASE too because this should trigger reloading base textures
-
-      changed|=Sync( color_map_time, src. color_map_time,  color_map, src. color_map)*CHANGED_BASE;
-      changed|=Sync( alpha_map_time, src. alpha_map_time,  alpha_map, src. alpha_map)*CHANGED_BASE;
-      changed|=Sync(  bump_map_time, src.  bump_map_time,   bump_map, src.  bump_map)*CHANGED_BASE;
-      changed|=Sync(normal_map_time, src.normal_map_time, normal_map, src.normal_map)*CHANGED_BASE;
-      changed|=Sync(smooth_map_time, src.smooth_map_time, smooth_map, src.smooth_map)*CHANGED_BASE;
-      changed|=Sync( metal_map_time, src. metal_map_time,  metal_map, src. metal_map)*CHANGED_BASE;
-      changed|=Sync(  glow_map_time, src.  glow_map_time,   glow_map, src.  glow_map)*CHANGED_BASE;
-
-      if(changed&CHANGED_BASE)
-      {
-         base_0_tex=src.base_0_tex;
-         base_1_tex=src.base_1_tex;
-         base_2_tex=src.base_2_tex;
-      }
-      if(Sync(detail_map_time, src.detail_map_time))
-      {
-         changed|=CHANGED_DET;
-         detail_color =src.detail_color;
-         detail_bump  =src.detail_bump;
-         detail_normal=src.detail_normal;
-         detail_smooth=src.detail_smooth;
-         detail_tex   =src.detail_tex;
-      }
-      if(Sync(macro_map_time, src.macro_map_time))
-      {
-         changed|=CHANGED_MACRO;
-         macro_map=src.macro_map;
-         macro_tex=src.macro_tex;
-      }
-      if(Sync(emissive_map_time, src.emissive_map_time))
-      {
-         changed|=CHANGED_EMISSIVE;
-         emissive_map=src.emissive_map;
-         emissive_tex=src.emissive_tex;
-      }
-      changed|=Sync(               cull_time, src.               cull_time,                cull, src.               cull)* CHANGED_PARAM;
-      changed|=Sync(               tech_time, src.               tech_time,                tech, src.               tech)* CHANGED_PARAM;
-      changed|=Sync(        tex_quality_time, src.        tex_quality_time,         tex_quality, src.        tex_quality)*(CHANGED_PARAM|CHANGED_BASE);
+      changed|=Sync(               tech_time, src.               tech_time, tech               , src.tech               )* CHANGED_PARAM;
+      changed|=Sync(               cull_time, src.               cull_time, cull               , src.cull               )* CHANGED_PARAM;
+      changed|=Sync(      flip_normal_y_time, src.      flip_normal_y_time, flip_normal_y      , src.flip_normal_y      )*(CHANGED_PARAM|CHANGED_FLIP_NRM_Y);
+      changed|=Sync(    smooth_is_rough_time, src.    smooth_is_rough_time, smooth_is_rough    , src.smooth_is_rough    )*(CHANGED_PARAM|CHANGED_SMOOTH_IS_ROUGH);
+      changed|=Sync(        tex_quality_time, src.        tex_quality_time, tex_quality        , src.tex_quality        )*(CHANGED_PARAM|CHANGED_TEX_QUALITY);
       changed|=Sync(downsize_tex_mobile_time, src.downsize_tex_mobile_time, downsize_tex_mobile, src.downsize_tex_mobile)* CHANGED_PARAM;
 
       changed|=Sync(   color_time, src.   color_time, color_s , src.color_s )*CHANGED_PARAM;
@@ -322,22 +286,36 @@
          det_uv_scale=src.det_uv_scale;
          det_power   =src.det_power;
       }
-      return changed;
-   }
-   uint EditMaterial::undo(C EditMaterial &src)
-   {
-      uint changed=0;
 
-      changed|=Undo(  flip_normal_y_time, src.  flip_normal_y_time, flip_normal_y  , src.flip_normal_y  )*(CHANGED_PARAM|CHANGED_BASE|CHANGED_FNY); // set CHANGED_BASE too because this should trigger reloading base textures
-      changed|=Undo(smooth_is_rough_time, src.smooth_is_rough_time, smooth_is_rough, src.smooth_is_rough)*(CHANGED_PARAM|CHANGED_BASE|CHANGED_SIR); // set CHANGED_BASE too because this should trigger reloading base textures
+      changed|=Sync( color_map_time, src. color_map_time,  color_map, src. color_map)*TEXF_COLOR;
+      changed|=Sync( alpha_map_time, src. alpha_map_time,  alpha_map, src. alpha_map)*TEXF_ALPHA;
+      changed|=Sync(  bump_map_time, src.  bump_map_time,   bump_map, src.  bump_map)*TEXF_BUMP;
+      changed|=Sync(normal_map_time, src.normal_map_time, normal_map, src.normal_map)*TEXF_NORMAL;
+      changed|=Sync(smooth_map_time, src.smooth_map_time, smooth_map, src.smooth_map)*TEXF_SMOOTH;
+      changed|=Sync( metal_map_time, src. metal_map_time,  metal_map, src. metal_map)*TEXF_METAL;
+      changed|=Sync(  glow_map_time, src.  glow_map_time,   glow_map, src.  glow_map)*TEXF_GLOW;
 
-      changed|=Undo( color_map_time, src. color_map_time,  color_map, src. color_map)*CHANGED_BASE;
-      changed|=Undo( alpha_map_time, src. alpha_map_time,  alpha_map, src. alpha_map)*CHANGED_BASE;
-      changed|=Undo(  bump_map_time, src.  bump_map_time,   bump_map, src.  bump_map)*CHANGED_BASE;
-      changed|=Undo(normal_map_time, src.normal_map_time, normal_map, src.normal_map)*CHANGED_BASE;
-      changed|=Undo(smooth_map_time, src.smooth_map_time, smooth_map, src.smooth_map)*CHANGED_BASE;
-      changed|=Undo( metal_map_time, src. metal_map_time,  metal_map, src. metal_map)*CHANGED_BASE;
-      changed|=Undo(  glow_map_time, src.  glow_map_time,   glow_map, src.  glow_map)*CHANGED_BASE;
+      if(Sync(detail_map_time, src.detail_map_time))
+      {
+         changed|=TEXF_DET;
+         detail_color =src.detail_color;
+         detail_bump  =src.detail_bump;
+         detail_normal=src.detail_normal;
+         detail_smooth=src.detail_smooth;
+         detail_tex   =src.detail_tex;
+      }
+      if(Sync(macro_map_time, src.macro_map_time))
+      {
+         changed|=TEXF_MACRO;
+         macro_map=src.macro_map;
+         macro_tex=src.macro_tex;
+      }
+      if(Sync(emissive_map_time, src.emissive_map_time))
+      {
+         changed|=TEXF_EMISSIVE;
+         emissive_map=src.emissive_map;
+         emissive_tex=src.emissive_tex;
+      }
 
       if(changed&CHANGED_BASE)
       {
@@ -345,30 +323,17 @@
          base_1_tex=src.base_1_tex;
          base_2_tex=src.base_2_tex;
       }
-      if(Undo(detail_map_time, src.detail_map_time))
-      {
-         changed|=CHANGED_DET;
-         detail_color =src.detail_color;
-         detail_bump  =src.detail_bump;
-         detail_normal=src.detail_normal;
-         detail_smooth=src.detail_smooth;
-         detail_tex   =src.detail_tex;
-      }
-      if(Undo(macro_map_time, src.macro_map_time))
-      {
-         changed|=CHANGED_MACRO;
-         macro_map=src.macro_map;
-         macro_tex=src.macro_tex;
-      }
-      if(Undo(emissive_map_time, src.emissive_map_time))
-      {
-         changed|=CHANGED_EMISSIVE;
-         emissive_map=src.emissive_map;
-         emissive_tex=src.emissive_tex;
-      }
-      changed|=Undo(               cull_time, src.               cull_time,                cull, src.               cull)* CHANGED_PARAM;
-      changed|=Undo(               tech_time, src.               tech_time,                tech, src.               tech)* CHANGED_PARAM;
-      changed|=Undo(        tex_quality_time, src.        tex_quality_time,         tex_quality, src.        tex_quality)*(CHANGED_PARAM|CHANGED_BASE);
+      return changed;
+   }
+   uint EditMaterial::undo(C EditMaterial &src)
+   {
+      uint changed=0;
+
+      changed|=Undo(               tech_time, src.               tech_time, tech               , src.tech               )* CHANGED_PARAM;
+      changed|=Undo(               cull_time, src.               cull_time, cull               , src.cull               )* CHANGED_PARAM;
+      changed|=Undo(      flip_normal_y_time, src.      flip_normal_y_time, flip_normal_y      , src.flip_normal_y      )*(CHANGED_PARAM|CHANGED_FLIP_NRM_Y);
+      changed|=Undo(    smooth_is_rough_time, src.    smooth_is_rough_time, smooth_is_rough    , src.smooth_is_rough    )*(CHANGED_PARAM|CHANGED_SMOOTH_IS_ROUGH);
+      changed|=Undo(        tex_quality_time, src.        tex_quality_time, tex_quality        , src.tex_quality        )*(CHANGED_PARAM|CHANGED_TEX_QUALITY);
       changed|=Undo(downsize_tex_mobile_time, src.downsize_tex_mobile_time, downsize_tex_mobile, src.downsize_tex_mobile)* CHANGED_PARAM;
 
       changed|=Undo(   color_time, src.   color_time, color_s , src.color_s )*CHANGED_PARAM;
@@ -390,52 +355,92 @@
          det_uv_scale=src.det_uv_scale;
          det_power   =src.det_power;
       }
+
+      changed|=Undo( color_map_time, src. color_map_time,  color_map, src. color_map)*TEXF_COLOR;
+      changed|=Undo( alpha_map_time, src. alpha_map_time,  alpha_map, src. alpha_map)*TEXF_ALPHA;
+      changed|=Undo(  bump_map_time, src.  bump_map_time,   bump_map, src.  bump_map)*TEXF_BUMP;
+      changed|=Undo(normal_map_time, src.normal_map_time, normal_map, src.normal_map)*TEXF_NORMAL;
+      changed|=Undo(smooth_map_time, src.smooth_map_time, smooth_map, src.smooth_map)*TEXF_SMOOTH;
+      changed|=Undo( metal_map_time, src. metal_map_time,  metal_map, src. metal_map)*TEXF_METAL;
+      changed|=Undo(  glow_map_time, src.  glow_map_time,   glow_map, src.  glow_map)*TEXF_GLOW;
+
+      if(Undo(detail_map_time, src.detail_map_time))
+      {
+         changed|=TEXF_DET;
+         detail_color =src.detail_color;
+         detail_bump  =src.detail_bump;
+         detail_normal=src.detail_normal;
+         detail_smooth=src.detail_smooth;
+         detail_tex   =src.detail_tex;
+      }
+      if(Undo(macro_map_time, src.macro_map_time))
+      {
+         changed|=TEXF_MACRO;
+         macro_map=src.macro_map;
+         macro_tex=src.macro_tex;
+      }
+      if(Undo(emissive_map_time, src.emissive_map_time))
+      {
+         changed|=TEXF_EMISSIVE;
+         emissive_map=src.emissive_map;
+         emissive_tex=src.emissive_tex;
+      }
+
+      if(changed&CHANGED_BASE)
+      {
+         base_0_tex=src.base_0_tex;
+         base_1_tex=src.base_1_tex;
+         base_2_tex=src.base_2_tex;
+      }
       return changed;
    }
-   void EditMaterial::adjustParams(TEX_FLAG old_textures, TEX_FLAG has_textures, TEX_FLAG known_textures) // 'old_textures'=textures() before making any change, 'has_textures'=used textures based on per-pixel data (if known), 'known_textures'=what textures in 'has_textures' are known
+   void EditMaterial::adjustParams(uint changed, TEX_FLAG old_textures, TEX_FLAG has_textures, TEX_FLAG known_textures) // 'old_textures'=textures() before making any change, 'has_textures'=used textures based on per-pixel data (if known), 'known_textures'=what textures in 'has_textures' are known
    {
       TimeStamp time; time.getUTC();
       TEX_FLAG  new_textures=textures(); // textures() after making any change
-      TEX_FLAG  changed=(old_textures^new_textures);
+      TEX_FLAG  changed_presence=(old_textures^new_textures);
 
+      if(!(new_textures&(TEXF_COLOR|TEXF_ALPHA)))
+      {
+         if(HasAlpha(tech)){tech=MTECH_DEFAULT; tech_time=time;} // disable alpha technique if alpha map is not available
+      }else
       if(known_textures&TEXF_ALPHA)
       {
          if(has_textures&TEXF_ALPHA)
          {
-            if(!HasAlphaBlend(tech) && color_s.w>=1-EPS_COL8){color_s.w=0.5f; color_time=time;}
-            if(!HasAlpha     (tech)                         ){tech=MTECH_ALPHA_TEST; tech_time=time;}
+            if(changed&(TEXF_COLOR|TEXF_ALPHA)) // enable alpha only if we've changed color/alpha textures (this is to allow having multiple materials with same textures with alpha channel, but some materials not using alpha)
+            {
+               if(!HasAlphaBlend(tech) && color_s.w>=1-EPS_COL8){color_s.w=0.5f; color_time=time;}
+               if(!HasAlpha     (tech)                         ){tech=MTECH_ALPHA_TEST; tech_time=time;}
+            }
          }else
          {
             if(HasAlpha(tech)){tech=MTECH_DEFAULT; tech_time=time;} // disable alpha technique if alpha map is not available
          }
-      }else
-      if(!(new_textures&(TEXF_COLOR|TEXF_ALPHA)))
-      {
-         if(HasAlpha(tech)){tech=MTECH_DEFAULT; tech_time=time;} // disable alpha technique if alpha map is not available
       }
 
-      if(changed&TEXF_BUMP)
+      if(changed_presence&TEXF_BUMP)
          if(!(new_textures&TEXF_BUMP)){bump=0   ; bump_time=time;}else
          if(bump<=EPS_MATERIAL_BUMP  ){bump=0.03f; bump_time=time;}
 
-      if(changed&(TEXF_BUMP|TEXF_NORMAL))
+      if(changed_presence&(TEXF_BUMP|TEXF_NORMAL))
          if(!(new_textures&(TEXF_BUMP|TEXF_NORMAL))){normal=0; normal_time=time;}else
          if(normal<=EPS_COL8                       ){normal=1; normal_time=time;}
 
-      if(changed&TEXF_SMOOTH)
+      if(changed_presence&TEXF_SMOOTH)
          if(!(new_textures&TEXF_SMOOTH)){smooth=0; smooth_time=time;} // no  texture -> smooth  0..1, 0=no smooth/fully rough
          else                           {smooth=0; smooth_time=time;} // has texture -> smooth -1..1, 0=use it
 
     /*Not needed because current setup will work well with or without texture
-      if(changed&TEXF_METAL)
+      if(changed_presence&TEXF_METAL)
          if(!(new_textures&TEXF_METAL)        ){reflect=MATERIAL_REFLECT; reflect_time=time;}else
          if(reflect<=MATERIAL_REFLECT+EPS_COL8){reflect=               1; reflect_time=time;}*/
 
-      if(changed&TEXF_GLOW)
+      if(changed_presence&TEXF_GLOW)
          if(!(new_textures&TEXF_GLOW)){glow=0; glow_time=time;}else
          if(glow<=EPS_COL8           ){glow=1; glow_time=time;}
 
-      if(changed&TEXF_EMISSIVE)
+      if(changed_presence&TEXF_EMISSIVE)
          if(!(new_textures&TEXF_EMISSIVE)){emissive=0; emissive_time=time;}else
          if(emissive.min()<=EPS_COL8     ){emissive=1; emissive_time=time;}
    }

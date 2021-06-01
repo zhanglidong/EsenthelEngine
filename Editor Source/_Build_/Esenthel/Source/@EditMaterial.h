@@ -60,18 +60,18 @@ class EditMaterial
    void copyTo(Edit::Material &dest)C;
    enum
    {
-      CHANGED_PARAM   =1<<0,
-      CHANGED_BASE    =1<<1,
-      CHANGED_DET     =1<<2,
-      CHANGED_MACRO   =1<<3,
-      CHANGED_EMISSIVE=1<<4,
-      CHANGED_FNY     =1<<5,
-      CHANGED_SIR     =1<<6,
+    //TEXF_COLOR.. this includes all TEXF_ enums
+      CHANGED_PARAM          =1<<(TEX_NUM  ),
+      CHANGED_TEX_QUALITY    =1<<(TEX_NUM+1),
+      CHANGED_FLIP_NRM_Y     =1<<(TEX_NUM+2),
+      CHANGED_SMOOTH_IS_ROUGH=1<<(TEX_NUM+3),
+
+      CHANGED_BASE=TEXF_BASE|CHANGED_TEX_QUALITY|CHANGED_FLIP_NRM_Y|CHANGED_SMOOTH_IS_ROUGH, // any of these parameters should trigger rebuild base texture
    };
    uint sync(C Edit::Material &src);
    uint sync(C EditMaterial &src);
    uint undo(C EditMaterial &src);
-   void adjustParams(TEX_FLAG old_textures, TEX_FLAG has_textures, TEX_FLAG known_textures); // 'old_textures'=textures() before making any change, 'has_textures'=used textures based on per-pixel data (if known), 'known_textures'=what textures in 'has_textures' are known
+   void adjustParams(uint changed, TEX_FLAG old_textures, TEX_FLAG has_textures, TEX_FLAG known_textures); // 'old_textures'=textures() before making any change, 'has_textures'=used textures based on per-pixel data (if known), 'known_textures'=what textures in 'has_textures' are known
 
    static void FixOldFileParams(Str &name);
    static void ChangeMulToSet(Mems<FileParams> &fps);

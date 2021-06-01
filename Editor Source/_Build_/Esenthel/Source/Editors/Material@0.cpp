@@ -51,7 +51,7 @@ MaterialTech mtrl_techs[]=
          MtrlEdit.toGui();
          D.setShader(MtrlEdit.game());
          MtrlEdit.undoVis();
-         if(changed&(EditMaterial::CHANGED_BASE|EditMaterial::CHANGED_DET|EditMaterial::CHANGED_MACRO|EditMaterial::CHANGED_EMISSIVE))Proj.mtrlTexChanged();
+         if(changed&(EditMaterial::CHANGED_BASE|TEXF_DET|TEXF_MACRO|TEXF_EMISSIVE))Proj.mtrlTexChanged();
       }
       void MaterialRegion::Texture::Load(C Str &name, Texture &texture) {texture.setFile(name);}
       void MaterialRegion::Texture::Remove(             Texture &texture) {texture.setFile(S);}
@@ -162,7 +162,7 @@ MaterialTech mtrl_techs[]=
             if(type==TEX_SMOOTH)mr->setSmoothParam();
 
             // rebuild methods already call 'setChanged'
-            if(type>=TEX_BASE_BEGIN && type<=TEX_BASE_END)mr->rebuildBase    (textures);else
+            if(type>=TEX_BASE_BEGIN && type<=TEX_BASE_END)mr->rebuildBase    (textures, 1<<type);else
             if(type>=TEX_DET_BEGIN  && type<=TEX_DET_END )mr->rebuildDetail  ();else
             if(type==TEX_MACRO                           )mr->rebuildMacro   ();else
             if(type==TEX_EMISSIVE                        )mr->rebuildEmissive(textures);else
@@ -410,9 +410,9 @@ MaterialTech mtrl_techs[]=
    Str  MaterialRegion::NrmScale(C MaterialRegion &mr          ) {return mr.edit.normal;}
    void MaterialRegion::NrmScale(  MaterialRegion &mr, C Str &t) {       mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
    Str  MaterialRegion::FNY(C MaterialRegion &mr          ) {return mr.edit.flip_normal_y;}
-   void MaterialRegion::FNY(  MaterialRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(textures, true, false, false);}
+   void MaterialRegion::FNY(  MaterialRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(textures, EditMaterial::CHANGED_FLIP_NRM_Y, false);}
    Str  MaterialRegion::SmtIsRgh(C MaterialRegion &mr          ) {return mr.edit.smooth_is_rough;}
-   void MaterialRegion::SmtIsRgh(  MaterialRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.smooth_is_rough=TextBool(t); mr.edit.smooth_is_rough_time.getUTC(); mr.rebuildBase(textures, false, true, false);}
+   void MaterialRegion::SmtIsRgh(  MaterialRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.smooth_is_rough=TextBool(t); mr.edit.smooth_is_rough_time.getUTC(); mr.rebuildBase(textures, EditMaterial::CHANGED_SMOOTH_IS_ROUGH, false);}
    Str  MaterialRegion::Smooth(C MaterialRegion &mr          ) {return mr.edit.smooth;}
    void MaterialRegion::Smooth(  MaterialRegion &mr, C Str &t) {       mr.edit.smooth=TextFlt(t); mr.edit.smooth_time.getUTC();}
    Str  MaterialRegion::ReflectMin(C MaterialRegion &mr          ) {return mr.edit.reflect_min;}
@@ -441,7 +441,7 @@ MaterialTech mtrl_techs[]=
    void MaterialRegion::Hide(MaterialRegion &editor) {editor.set(null);}
    void MaterialRegion::SetMtrl(MaterialRegion &editor) {SetObjOp(editor.set_mtrl() ? OP_OBJ_SET_MTRL : OP_OBJ_NONE);}
    void MaterialRegion::AutoReload(MaterialRegion &editor) {editor.auto_reload=editor.texture_options.menu(auto_reload_name);}
-   void MaterialRegion::ReloadBaseTextures(MaterialRegion &editor) {editor.undos.set("rebuildBase"); editor.rebuildBase(editor.getEditMtrl().textures(), false, false, false, true);}
+   void MaterialRegion::ReloadBaseTextures(MaterialRegion &editor) {editor.undos.set("rebuildBase"); editor.rebuildBase(editor.getEditMtrl().textures(), 0, false, true);}
    void MaterialRegion::ResizeBase128(MaterialRegion &editor) {editor.resizeBase(128);}
    void MaterialRegion::ResizeBase256(MaterialRegion &editor) {editor.resizeBase(256);}
    void MaterialRegion::ResizeBase512(MaterialRegion &editor) {editor.resizeBase(512);}
@@ -543,10 +543,10 @@ MaterialTech mtrl_techs[]=
    void   MaterialRegion::setReflect(flt reflect_min, flt reflect_max           ) {if(edit.reflect_min!=reflect_min || edit.reflect_max!=reflect_max){        undos.set("reflect"   ); edit.reflect_min=reflect_min; edit.reflect_max=reflect_max; edit.            reflect_time.getUTC(); setChanged(); toGui();}}
    void MaterialRegion::resetAlpha(                                           ) {                                                                           undos.set("alpha"     ); edit.resetAlpha()                                         ;                                         setChanged(); toGui(); }
    void MaterialRegion::cull(bool                      on               ) {if(edit.cull               !=on                                  ){        undos.set("cull"      ); edit.cull               =on                               ; edit.               cull_time.getUTC(); setChanged(); toGui();}}
-   void MaterialRegion::flipNrmY(bool                      on               ) {if(edit.flip_normal_y      !=on                                  ){        undos.set("fny"       ); edit.flip_normal_y      =on                               ; edit.      flip_normal_y_time.getUTC(); rebuildBase(edit.textures(), true , false, false);}}
-   void MaterialRegion::smoothIsRough(bool                      on               ) {if(edit.smooth_is_rough    !=on                                  ){        undos.set("sir"       ); edit.smooth_is_rough    =on                               ; edit.    smooth_is_rough_time.getUTC(); rebuildBase(edit.textures(), false, true , false);}}
+   void MaterialRegion::flipNrmY(bool                      on               ) {if(edit.flip_normal_y      !=on                                  ){        undos.set("fny"       ); edit.flip_normal_y      =on                               ; edit.      flip_normal_y_time.getUTC(); rebuildBase(edit.textures(), EditMaterial::CHANGED_FLIP_NRM_Y     , false);}}
+   void MaterialRegion::smoothIsRough(bool                      on               ) {if(edit.smooth_is_rough    !=on                                  ){        undos.set("sir"       ); edit.smooth_is_rough    =on                               ; edit.    smooth_is_rough_time.getUTC(); rebuildBase(edit.textures(), EditMaterial::CHANGED_SMOOTH_IS_ROUGH, false);}}
    void MaterialRegion::downsizeTexMobile(byte                      ds               ) {if(edit.downsize_tex_mobile!=ds                                  ){        undos.set("dtm"       ); edit.downsize_tex_mobile=ds                               ; edit.downsize_tex_mobile_time.getUTC(); setChanged(); toGui();}}
-   void MaterialRegion::texQuality(Edit::Material::TEX_QUALITY q, bool undo) {if(edit.tex_quality        !=q                                   ){if(undo)undos.set("texQuality"); edit.tex_quality        =q                                ; edit.        tex_quality_time.getUTC(); rebuildBase(edit.textures(), false, false, false);}}
+   void MaterialRegion::texQuality(Edit::Material::TEX_QUALITY q, bool undo) {if(edit.tex_quality        !=q                                   ){if(undo)undos.set("texQuality"); edit.tex_quality        =q                                ; edit.        tex_quality_time.getUTC(); rebuildBase(edit.textures(), 0, false);}}
    void MaterialRegion::resizeBase(C VecI2 &size, bool relative)
    {
       undos.set("resizeBase");
@@ -670,7 +670,7 @@ MaterialTech mtrl_techs[]=
       EditMaterial &edit=getEditMtrl();
       TEX_FLAG textures=edit.textures(); // get current state of textures before making any change
       edit.bump_map=BumpFromColTransform(edit.color_map, blur); edit.bump_map_time.now();
-      rebuildBase(textures);
+      rebuildBase(textures, TEXF_BUMP);
    }
    EditMaterial& MaterialRegion::getEditMtrl() {return edit;}
    C ImagePtr    & MaterialRegion::getBase0() {return game->base_0;}
@@ -1127,7 +1127,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
          break;
       }
    }
-   void MaterialRegion::rebuildBase(TEX_FLAG old_textures, bool changed_flip_normal_y, bool changed_smooth_is_rough, bool adjust_params, bool always)
+   void MaterialRegion::rebuildBase(TEX_FLAG old_textures, uint changed_in_mtrl, bool adjust_params, bool always)
    {
       if(elm && game)
       {
@@ -1136,10 +1136,10 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
          TEX_FLAG has_textures=TEXF_NONE, known_textures=TEXF_NONE;
          if(auto_reload || always)
          {
-            known_textures|=TEXF_BASE; has_textures|=Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y, changed_smooth_is_rough);
+            known_textures|=TEXF_BASE; has_textures|=Proj.mtrlCreateBaseTextures(edit, changed_in_mtrl);
             Time.skipUpdate(); // compressing textures can be slow
          }
-         if(adjust_params)edit.adjustParams(old_textures, has_textures, known_textures);
+         if(adjust_params)edit.adjustParams(changed_in_mtrl, old_textures, has_textures, known_textures);
 
          setChanged();
          Proj.mtrlTexChanged();
@@ -1185,7 +1185,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
       {
          TEX_FLAG has_textures=TEXF_NONE, known_textures=TEXF_NONE;
          known_textures|=TEXF_EMISSIVE; has_textures|=Proj.mtrlCreateEmissiveTexture(edit);
-         if(adjust_params)edit.adjustParams(old_textures, has_textures, known_textures);
+         if(adjust_params)edit.adjustParams(0, old_textures, has_textures, known_textures);
          setChanged();
          Proj.mtrlTexChanged();
          Time.skipUpdate(); // compressing textures can be slow

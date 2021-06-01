@@ -85,7 +85,7 @@ class WaterMtrlRegion : MaterialRegion
    virtual void resizeBase1(C VecI2 &size, bool relative=false)override;
    virtual void resizeBase2(C VecI2 &size, bool relative=false)override;
 
-   virtual void rebuildBase(TEX_FLAG old_textures, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false, bool adjust_params=true, bool always=false)override;
+   virtual void rebuildBase(TEX_FLAG old_textures, uint changed_in_mtrl=0, bool adjust_params=true, bool always=false)override;
    virtual void rebuildDetail()override;
    virtual void rebuildMacro()override;
    virtual void rebuildEmissive(TEX_FLAG old_textures, bool adjust_params=true)override;

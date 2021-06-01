@@ -1902,13 +1902,13 @@ class ProjectEx : ProjectHierarchy
             {
                if(reload_textures)
                {
-                  if(changed&EditMaterial.CHANGED_BASE    )MtrlEdit.rebuildBase    (textures, FlagTest(changed, EditMaterial.CHANGED_FNY), FlagTest(changed, EditMaterial.CHANGED_SIR), adjust_params, true);
-                  if(changed&EditMaterial.CHANGED_DET     )MtrlEdit.rebuildDetail  ();
-                  if(changed&EditMaterial.CHANGED_MACRO   )MtrlEdit.rebuildMacro   ();
-                  if(changed&EditMaterial.CHANGED_EMISSIVE)MtrlEdit.rebuildEmissive(textures, adjust_params);
+                  if(changed&EditMaterial.CHANGED_BASE)MtrlEdit.rebuildBase    (textures, changed, adjust_params, true);
+                  if(changed&TEXF_DET                 )MtrlEdit.rebuildDetail  ();
+                  if(changed&TEXF_MACRO               )MtrlEdit.rebuildMacro   ();
+                  if(changed&TEXF_EMISSIVE            )MtrlEdit.rebuildEmissive(textures, adjust_params);
                }else
                {
-                  if(changed&(EditMaterial.CHANGED_BASE|EditMaterial.CHANGED_DET|EditMaterial.CHANGED_MACRO|EditMaterial.CHANGED_EMISSIVE))mtrlTexChanged();
+                  if(changed&(EditMaterial.CHANGED_BASE|TEXF_DET|TEXF_MACRO|TEXF_EMISSIVE))mtrlTexChanged();
                }
                MtrlEdit.toGui();
                MtrlEdit.setChanged();
@@ -1924,13 +1924,13 @@ class ProjectEx : ProjectHierarchy
             {
                if(reload_textures)
                {
-                  if(changed&EditMaterial.CHANGED_BASE    )WaterMtrlEdit.rebuildBase    (textures, FlagTest(changed, EditMaterial.CHANGED_FNY), FlagTest(changed, EditMaterial.CHANGED_SIR), adjust_params, true);
-                  if(changed&EditMaterial.CHANGED_DET     )WaterMtrlEdit.rebuildDetail  ();
-                  if(changed&EditMaterial.CHANGED_MACRO   )WaterMtrlEdit.rebuildMacro   ();
-                  if(changed&EditMaterial.CHANGED_EMISSIVE)WaterMtrlEdit.rebuildEmissive(textures, adjust_params);
+                  if(changed&EditMaterial.CHANGED_BASE)WaterMtrlEdit.rebuildBase    (textures, changed, adjust_params, true);
+                  if(changed&TEXF_DET                 )WaterMtrlEdit.rebuildDetail  ();
+                  if(changed&TEXF_MACRO               )WaterMtrlEdit.rebuildMacro   ();
+                  if(changed&TEXF_EMISSIVE            )WaterMtrlEdit.rebuildEmissive(textures, adjust_params);
                }else
                {
-                  if(changed&(EditMaterial.CHANGED_BASE|EditMaterial.CHANGED_DET|EditMaterial.CHANGED_MACRO|EditMaterial.CHANGED_EMISSIVE))mtrlTexChanged();
+                  if(changed&(EditMaterial.CHANGED_BASE|TEXF_DET|TEXF_MACRO|TEXF_EMISSIVE))mtrlTexChanged();
                }
                WaterMtrlEdit.toGui();
                WaterMtrlEdit.setChanged();
@@ -1952,13 +1952,13 @@ class ProjectEx : ProjectHierarchy
 
                   if(reload_textures)
                   {
-                     if(changed&EditMaterial.CHANGED_BASE    ){known_textures|=TEXF_BASE    ; has_textures|=mtrlCreateBaseTextures   (edit, FlagTest(changed, EditMaterial.CHANGED_FNY), FlagTest(changed, EditMaterial.CHANGED_SIR));}
-                     if(changed&EditMaterial.CHANGED_DET     ){known_textures|=TEXF_DET     ; has_textures|=mtrlCreateDetailTexture  (edit                                                                                          );}
-                     if(changed&EditMaterial.CHANGED_MACRO   ){known_textures|=TEXF_MACRO   ; has_textures|=mtrlCreateMacroTexture   (edit                                                                                          );}
-                     if(changed&EditMaterial.CHANGED_EMISSIVE){known_textures|=TEXF_EMISSIVE; has_textures|=mtrlCreateEmissiveTexture(edit                                                                                          );}
+                     if(changed&EditMaterial.CHANGED_BASE){known_textures|=TEXF_BASE    ; has_textures|=mtrlCreateBaseTextures   (edit, changed);}
+                     if(changed&TEXF_DET                 ){known_textures|=TEXF_DET     ; has_textures|=mtrlCreateDetailTexture  (edit);}
+                     if(changed&TEXF_MACRO               ){known_textures|=TEXF_MACRO   ; has_textures|=mtrlCreateMacroTexture   (edit);}
+                     if(changed&TEXF_EMISSIVE            ){known_textures|=TEXF_EMISSIVE; has_textures|=mtrlCreateEmissiveTexture(edit);}
                   }
 
-                  if(adjust_params)edit.adjustParams(old_textures, has_textures, known_textures);
+                  if(adjust_params)edit.adjustParams(changed, old_textures, has_textures, known_textures);
                   edit.copyTo(*game, T);
 
                   // save
@@ -1969,7 +1969,7 @@ class ProjectEx : ProjectHierarchy
 
                   // process dependencies
                   if(want_tan_bin!=game->needTanBin())mtrlSetAutoTanBin(elm_id);
-                  if(changed&(EditMaterial.CHANGED_BASE|EditMaterial.CHANGED_DET|EditMaterial.CHANGED_MACRO|EditMaterial.CHANGED_EMISSIVE))mtrlTexChanged();
+                  if(changed&(EditMaterial.CHANGED_BASE|TEXF_DET|TEXF_MACRO|TEXF_EMISSIVE))mtrlTexChanged();
                   D.setShader(game());
                }
             }return true;
@@ -1986,13 +1986,13 @@ class ProjectEx : ProjectHierarchy
 
                   if(reload_textures)
                   {
-                     if(changed&EditMaterial.CHANGED_BASE    ){known_textures|=TEXF_BASE    ; has_textures|=mtrlCreateBaseTextures   (edit, FlagTest(changed, EditMaterial.CHANGED_FNY), FlagTest(changed, EditMaterial.CHANGED_SIR));}
-                     if(changed&EditMaterial.CHANGED_DET     ){known_textures|=TEXF_DET     ; has_textures|=mtrlCreateDetailTexture  (edit                                                                                          );}
-                     if(changed&EditMaterial.CHANGED_MACRO   ){known_textures|=TEXF_MACRO   ; has_textures|=mtrlCreateMacroTexture   (edit                                                                                          );}
-                     if(changed&EditMaterial.CHANGED_EMISSIVE){known_textures|=TEXF_EMISSIVE; has_textures|=mtrlCreateEmissiveTexture(edit                                                                                          );}
+                     if(changed&EditMaterial.CHANGED_BASE){known_textures|=TEXF_BASE    ; has_textures|=mtrlCreateBaseTextures   (edit, changed);}
+                     if(changed&TEXF_DET                 ){known_textures|=TEXF_DET     ; has_textures|=mtrlCreateDetailTexture  (edit);}
+                     if(changed&TEXF_MACRO               ){known_textures|=TEXF_MACRO   ; has_textures|=mtrlCreateMacroTexture   (edit);}
+                     if(changed&TEXF_EMISSIVE            ){known_textures|=TEXF_EMISSIVE; has_textures|=mtrlCreateEmissiveTexture(edit);}
                   }
 
-                  if(adjust_params)edit.adjustParams(old_textures, has_textures, known_textures);
+                  if(adjust_params)edit.adjustParams(changed, old_textures, has_textures, known_textures);
                   edit.copyTo(*game, T);
 
                   // save
@@ -2003,7 +2003,7 @@ class ProjectEx : ProjectHierarchy
 
                   // process dependencies
                 //if(want_tan_bin!=game->needTanBin())mtrlSetAutoTanBin(elm_id);
-                  if(changed&(EditMaterial.CHANGED_BASE|EditMaterial.CHANGED_DET|EditMaterial.CHANGED_MACRO|EditMaterial.CHANGED_EMISSIVE))mtrlTexChanged();
+                  if(changed&(EditMaterial.CHANGED_BASE|TEXF_DET|TEXF_MACRO|TEXF_EMISSIVE))mtrlTexChanged();
                 //D.setShader(game());
                }
             }return true;
@@ -2023,13 +2023,13 @@ class ProjectEx : ProjectHierarchy
             {
                if(reload_textures)
                {
-                  if(changed&EditMaterial.CHANGED_BASE    )WaterMtrlEdit.rebuildBase    (textures, FlagTest(changed, EditMaterial.CHANGED_FNY), FlagTest(changed, EditMaterial.CHANGED_SIR), adjust_params, true);
-                  if(changed&EditMaterial.CHANGED_DET     )WaterMtrlEdit.rebuildDetail  ();
-                  if(changed&EditMaterial.CHANGED_MACRO   )WaterMtrlEdit.rebuildMacro   ();
-                  if(changed&EditMaterial.CHANGED_EMISSIVE)WaterMtrlEdit.rebuildEmissive(textures, adjust_params);
+                  if(changed&EditMaterial.CHANGED_BASE)WaterMtrlEdit.rebuildBase    (textures, changed, adjust_params, true);
+                  if(changed&TEXF_DET                 )WaterMtrlEdit.rebuildDetail  ();
+                  if(changed&TEXF_MACRO               )WaterMtrlEdit.rebuildMacro   ();
+                  if(changed&TEXF_EMISSIVE            )WaterMtrlEdit.rebuildEmissive(textures, adjust_params);
                }else
                {
-                  if(changed&(EditMaterial.CHANGED_BASE|EditMaterial.CHANGED_DET|EditMaterial.CHANGED_MACRO|EditMaterial.CHANGED_EMISSIVE))mtrlTexChanged();
+                  if(changed&(EditMaterial.CHANGED_BASE|TEXF_DET|TEXF_MACRO|TEXF_EMISSIVE))mtrlTexChanged();
                }
                WaterMtrlEdit.toGui();
                WaterMtrlEdit.setChanged();
@@ -2048,13 +2048,13 @@ class ProjectEx : ProjectHierarchy
 
             if(reload_textures)
             {
-               if(changed&EditMaterial.CHANGED_BASE    ){known_textures|=TEXF_BASE    ; has_textures|=mtrlCreateBaseTextures   (edit, FlagTest(changed, EditMaterial.CHANGED_FNY), FlagTest(changed, EditMaterial.CHANGED_SIR));}
-               if(changed&EditMaterial.CHANGED_DET     ){known_textures|=TEXF_DET     ; has_textures|=mtrlCreateDetailTexture  (edit                                                                                          );}
-               if(changed&EditMaterial.CHANGED_MACRO   ){known_textures|=TEXF_MACRO   ; has_textures|=mtrlCreateMacroTexture   (edit                                                                                          );}
-               if(changed&EditMaterial.CHANGED_EMISSIVE){known_textures|=TEXF_EMISSIVE; has_textures|=mtrlCreateEmissiveTexture(edit                                                                                          );}
+               if(changed&EditMaterial.CHANGED_BASE){known_textures|=TEXF_BASE    ; has_textures|=mtrlCreateBaseTextures   (edit, changed);}
+               if(changed&TEXF_DET                 ){known_textures|=TEXF_DET     ; has_textures|=mtrlCreateDetailTexture  (edit);}
+               if(changed&TEXF_MACRO               ){known_textures|=TEXF_MACRO   ; has_textures|=mtrlCreateMacroTexture   (edit);}
+               if(changed&TEXF_EMISSIVE            ){known_textures|=TEXF_EMISSIVE; has_textures|=mtrlCreateEmissiveTexture(edit);}
             }
 
-            if(adjust_params)edit.adjustParams(old_textures, has_textures, known_textures);
+            if(adjust_params)edit.adjustParams(changed, old_textures, has_textures, known_textures);
             edit.copyTo(*game, T);
 
             // save
@@ -2065,7 +2065,7 @@ class ProjectEx : ProjectHierarchy
 
             // process dependencies
           //if(want_tan_bin!=game->needTanBin())mtrlSetAutoTanBin(elm_id);
-            if(changed&(EditMaterial.CHANGED_BASE|EditMaterial.CHANGED_DET|EditMaterial.CHANGED_MACRO|EditMaterial.CHANGED_EMISSIVE))mtrlTexChanged();
+            if(changed&(EditMaterial.CHANGED_BASE|TEXF_DET|TEXF_MACRO|TEXF_EMISSIVE))mtrlTexChanged();
           //D.setShader(game());
          }
          return true;
@@ -2084,10 +2084,10 @@ class ProjectEx : ProjectHierarchy
             {
                if(reload_textures)
                {
-                  if(changed&EditMaterial.CHANGED_BASE    )MtrlEdit.rebuildBase    (textures, FlagTest(changed, EditMaterial.CHANGED_FNY), FlagTest(changed, EditMaterial.CHANGED_SIR), adjust_params, true);
-                  if(changed&EditMaterial.CHANGED_DET     )MtrlEdit.rebuildDetail  ();
-                  if(changed&EditMaterial.CHANGED_MACRO   )MtrlEdit.rebuildMacro   ();
-                  if(changed&EditMaterial.CHANGED_EMISSIVE)MtrlEdit.rebuildEmissive(textures, adjust_params);
+                  if(changed&EditMaterial.CHANGED_BASE)MtrlEdit.rebuildBase    (textures, changed, adjust_params, true);
+                  if(changed&TEXF_DET                 )MtrlEdit.rebuildDetail  ();
+                  if(changed&TEXF_MACRO               )MtrlEdit.rebuildMacro   ();
+                  if(changed&TEXF_EMISSIVE            )MtrlEdit.rebuildEmissive(textures, adjust_params);
                }
                MtrlEdit.toGui();
                MtrlEdit.setChanged();
@@ -2110,13 +2110,13 @@ class ProjectEx : ProjectHierarchy
 
                   if(reload_textures)
                   {
-                     if(changed&EditMaterial.CHANGED_BASE    ){known_textures|=TEXF_BASE    ; has_textures|=mtrlCreateBaseTextures   (edit, FlagTest(changed, EditMaterial.CHANGED_FNY), FlagTest(changed, EditMaterial.CHANGED_SIR));}
-                     if(changed&EditMaterial.CHANGED_DET     ){known_textures|=TEXF_DET     ; has_textures|=mtrlCreateDetailTexture  (edit                                                                                          );}
-                     if(changed&EditMaterial.CHANGED_MACRO   ){known_textures|=TEXF_MACRO   ; has_textures|=mtrlCreateMacroTexture   (edit                                                                                          );}
-                     if(changed&EditMaterial.CHANGED_EMISSIVE){known_textures|=TEXF_EMISSIVE; has_textures|=mtrlCreateEmissiveTexture(edit                                                                                          );}
+                     if(changed&EditMaterial.CHANGED_BASE){known_textures|=TEXF_BASE    ; has_textures|=mtrlCreateBaseTextures   (edit, changed);}
+                     if(changed&TEXF_DET                 ){known_textures|=TEXF_DET     ; has_textures|=mtrlCreateDetailTexture  (edit);}
+                     if(changed&TEXF_MACRO               ){known_textures|=TEXF_MACRO   ; has_textures|=mtrlCreateMacroTexture   (edit);}
+                     if(changed&TEXF_EMISSIVE            ){known_textures|=TEXF_EMISSIVE; has_textures|=mtrlCreateEmissiveTexture(edit);}
                   }
 
-                  if(adjust_params)edit.adjustParams(old_textures, has_textures, known_textures);
+                  if(adjust_params)edit.adjustParams(changed, old_textures, has_textures, known_textures);
                   edit.copyTo(*game, T);
 
                   // save
@@ -2146,11 +2146,11 @@ class ProjectEx : ProjectHierarchy
              mtrl_images.fromMaterial(material, T, changed_flip_normal_y, changed_smooth_is_rough);
       return mtrl_images.createWaterBaseTextures(base_0, base_1, base_2);
    }
-   TEX_FLAG mtrlCreateBaseTextures(EditMaterial &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false)
+   TEX_FLAG mtrlCreateBaseTextures(EditMaterial &material, uint changed=0) // 'changed'=only CHANGED_FLIP_NRM_Y or CHANGED_SMOOTH_IS_ROUGH are valid
    {
       // TODO: generating textures when the sources were not found, will reuse existing images, but due to compression, the quality will be lost, and new textures will be generated even though images are the same, this is because BC7->RGBA->BC7 is not the same
       Image      base_0, base_1, base_2;
-      TEX_FLAG   textures=createBaseTextures(base_0, base_1, base_2, material, changed_flip_normal_y, changed_smooth_is_rough);
+      TEX_FLAG   textures=createBaseTextures(base_0, base_1, base_2, material, FlagTest(changed, EditMaterial.CHANGED_FLIP_NRM_Y), FlagTest(changed, EditMaterial.CHANGED_SMOOTH_IS_ROUGH));
       UID        old_tex_id;
       IMAGE_TYPE ct;
 
@@ -2195,11 +2195,11 @@ class ProjectEx : ProjectHierarchy
 
       return textures;
    }
-   TEX_FLAG mtrlCreateBaseTextures(EditWaterMtrl &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false)
+   TEX_FLAG mtrlCreateBaseTextures(EditWaterMtrl &material, uint changed=0) // 'changed'=only CHANGED_FLIP_NRM_Y or CHANGED_SMOOTH_IS_ROUGH are valid
    {
       // TODO: generating textures when the sources were not found, will reuse existing images, but due to compression, the quality will be lost, and new textures will be generated even though images are the same, this is because BC7->RGBA->BC7 is not the same
       Image      base_0, base_1, base_2;
-      TEX_FLAG   textures=createBaseTextures(base_0, base_1, base_2, material, changed_flip_normal_y, changed_smooth_is_rough);
+      TEX_FLAG   textures=createBaseTextures(base_0, base_1, base_2, material, FlagTest(changed, EditMaterial.CHANGED_FLIP_NRM_Y), FlagTest(changed, EditMaterial.CHANGED_SMOOTH_IS_ROUGH));
       UID        old_tex_id;
       IMAGE_TYPE ct;
 
@@ -2387,7 +2387,7 @@ class ProjectEx : ProjectHierarchy
          if(MtrlEdit.elm_id==elm_id)
          {
             MtrlEdit.undos.set("EI");
-            if(base    )MtrlEdit.rebuildBase    (TEXF_NONE, false, false, false, true);
+            if(base    )MtrlEdit.rebuildBase    (TEXF_NONE, 0, false, true);
             if(detail  )MtrlEdit.rebuildDetail  ();
             if(macro   )MtrlEdit.rebuildMacro   ();
             if(emissive)MtrlEdit.rebuildEmissive(TEXF_NONE, false);
@@ -2396,7 +2396,7 @@ class ProjectEx : ProjectHierarchy
          if(WaterMtrlEdit.elm_id==elm_id)
          {
             WaterMtrlEdit.undos.set("EI");
-            if(base    )WaterMtrlEdit.rebuildBase    (TEXF_NONE, false, false, false, true);
+            if(base    )WaterMtrlEdit.rebuildBase    (TEXF_NONE, 0, false, true);
             if(detail  )WaterMtrlEdit.rebuildDetail  ();
             if(macro   )WaterMtrlEdit.rebuildMacro   ();
             if(emissive)WaterMtrlEdit.rebuildEmissive(TEXF_NONE, false);

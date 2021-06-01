@@ -64,9 +64,9 @@ WaterMtrlRegion WaterMtrlEdit;
    Str  WaterMtrlRegion::NrmScale(C WaterMtrlRegion &mr          ) {return mr.edit.normal;}
    void WaterMtrlRegion::NrmScale(  WaterMtrlRegion &mr, C Str &t) {mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC();}
    Str  WaterMtrlRegion::FNY(C WaterMtrlRegion &mr          ) {return mr.edit.flip_normal_y;}
-   void WaterMtrlRegion::FNY(  WaterMtrlRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(textures, true, false, false);}
+   void WaterMtrlRegion::FNY(  WaterMtrlRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(textures, EditMaterial::CHANGED_FLIP_NRM_Y, false);}
    Str  WaterMtrlRegion::SmtIsRgh(C WaterMtrlRegion &mr          ) {return mr.edit.smooth_is_rough;}
-   void WaterMtrlRegion::SmtIsRgh(  WaterMtrlRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.smooth_is_rough=TextBool(t); mr.edit.smooth_is_rough_time.getUTC(); mr.rebuildBase(textures, false, true, false);}
+   void WaterMtrlRegion::SmtIsRgh(  WaterMtrlRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.smooth_is_rough=TextBool(t); mr.edit.smooth_is_rough_time.getUTC(); mr.rebuildBase(textures, EditMaterial::CHANGED_SMOOTH_IS_ROUGH, false);}
    Str  WaterMtrlRegion::WaveScale(C WaterMtrlRegion &mr          ) {return mr.edit.wave_scale;}
    void WaterMtrlRegion::WaveScale(  WaterMtrlRegion &mr, C Str &t) {mr.edit.wave_scale=TextFlt(t); mr.edit.wave_scale_time.getUTC();}
    Str  WaterMtrlRegion::ScaleColor(C WaterMtrlRegion &mr          ) {return 1/mr.edit.scale_color;}
@@ -293,17 +293,17 @@ WaterMtrlRegion WaterMtrlEdit;
          rebuildBase(edit.textures());
       }
    }
-   void WaterMtrlRegion::rebuildBase(TEX_FLAG old_textures, bool changed_flip_normal_y, bool changed_smooth_is_rough, bool adjust_params, bool always)
+   void WaterMtrlRegion::rebuildBase(TEX_FLAG old_textures, uint changed_in_mtrl, bool adjust_params, bool always)
 {
       if(elm && game)
       {
          TEX_FLAG has_textures=TEXF_NONE, known_textures=TEXF_NONE;
          if(auto_reload || always)
          {
-            known_textures|=TEXF_BASE; has_textures|=Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y, changed_smooth_is_rough);
+            known_textures|=TEXF_BASE; has_textures|=Proj.mtrlCreateBaseTextures(edit, changed_in_mtrl);
             Time.skipUpdate(); // compressing textures can be slow
          }
-         if(adjust_params)edit.adjustParams(old_textures, has_textures, known_textures);
+         if(adjust_params)edit.adjustParams(changed_in_mtrl, old_textures, has_textures, known_textures);
 
          setChanged();
          Proj.mtrlTexChanged();

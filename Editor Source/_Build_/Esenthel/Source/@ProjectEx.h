@@ -397,8 +397,8 @@ public:
    bool mtrlSync(C UID &elm_id, C Edit::Material &mtrl, bool reload_textures, bool adjust_params);
    TEX_FLAG createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditMaterial &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
    TEX_FLAG createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditWaterMtrl &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
-   TEX_FLAG mtrlCreateBaseTextures(EditMaterial &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
-   TEX_FLAG mtrlCreateBaseTextures(EditWaterMtrl &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
+   TEX_FLAG mtrlCreateBaseTextures(EditMaterial &material, uint changed=0); // 'changed'=only CHANGED_FLIP_NRM_Y or CHANGED_SMOOTH_IS_ROUGH are valid
+   TEX_FLAG mtrlCreateBaseTextures(EditWaterMtrl &material, uint changed=0); // 'changed'=only CHANGED_FLIP_NRM_Y or CHANGED_SMOOTH_IS_ROUGH are valid
    /*bool mtrlCreateReflectionTexture(Image &reflection, C EditMaterial &material)
    {
       bool loaded=false;

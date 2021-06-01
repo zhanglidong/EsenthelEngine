@@ -363,7 +363,7 @@ public:
    };
    void drop(Memc<Str> &names, GuiObj *focus_obj, C Vec2 &screen_pos);
 
-   virtual void rebuildBase(TEX_FLAG old_textures, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false, bool adjust_params=true, bool always=false);
+   virtual void rebuildBase(TEX_FLAG old_textures, uint changed_in_mtrl=0, bool adjust_params=true, bool always=false);
    virtual void rebuildDetail();
    virtual void rebuildMacro();
    virtual void rebuildEmissive(TEX_FLAG old_textures, bool adjust_params=true);

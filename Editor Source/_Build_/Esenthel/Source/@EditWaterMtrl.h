@@ -52,7 +52,7 @@ class EditWaterMtrl : EditMaterial
    uint sync(C EditMaterial  &src);           
    uint sync(C EditWaterMtrl &src);
    uint undo(C EditWaterMtrl &src);
-   void adjustParams(TEX_FLAG old_textures, TEX_FLAG has_textures, TEX_FLAG known_textures); // 'old_textures'=textures() before making any change, 'has_textures'=used textures based on per-pixel data (if known), 'known_textures'=what textures in 'has_textures' are known
+   void adjustParams(uint changed, TEX_FLAG old_textures, TEX_FLAG has_textures, TEX_FLAG known_textures); // 'old_textures'=textures() before making any change, 'has_textures'=used textures based on per-pixel data (if known), 'known_textures'=what textures in 'has_textures' are known
 
    // io
    bool save(File &f)C;
