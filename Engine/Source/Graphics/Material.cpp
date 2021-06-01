@@ -572,11 +572,10 @@ Bool Material::loadData(File &f, CChar *path)
          f.getMulti(cull, technique)>>color_l>>emissive>>smooth>>reflect_mul>>reflect_add>>glow>>normal>>bump>>det_power>>det_scale>>uv_scale;
          f.getStr(temp);       base_0.require(temp, path);
          f.getStr(temp);       base_1.require(temp, path);
-         f.getStr(temp);       base_2.require(temp, path);
+         f.getStr(temp);       base_2.require(temp, path); if(Is(temp)){T.rough_add=1; T.rough_mul=-smooth;}else{T.rough_add=1-smooth; T.rough_mul=0;}
          f.getStr(temp);   detail_map.require(temp, path);
          f.getStr(temp);    macro_map.require(temp, path);
          f.getStr(temp); emissive_map.require(temp, path);
-         T.rough_add=1; T.rough_mul=-smooth;
       }break;
 
       case 10:
@@ -584,11 +583,10 @@ Bool Material::loadData(File &f, CChar *path)
          f.getMulti(cull, technique)>>color_l>>emissive>>smooth>>reflect>>glow>>normal>>bump>>det_power>>det_scale>>uv_scale;
          f.getStr(temp);       base_0.require(temp, path);
          f.getStr(temp);       base_1.require(temp, path);
-         f.getStr(temp);       base_2.require(temp, path);
+         f.getStr(temp);       base_2.require(temp, path); if(Is(temp)){T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0; T.reflect_add=reflect; T.reflect_mul=0;}
          f.getStr(temp);   detail_map.require(temp, path);
          f.getStr(temp);    macro_map.require(temp, path);
          f.getStr(temp); emissive_map.require(temp, path);
-         T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;
       }break;
 
       case 9:
