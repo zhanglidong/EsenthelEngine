@@ -1223,7 +1223,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
                   Str base=GetBaseNoExt(image.name);
                   if(tex.type==TEX_COLOR && (                                               Contains(base, "ms", false, WHOLE_WORD_ALPHA) || Ends(base, "MS", true) || Contains(base, "metal"    )                              )){image.order=1; image.params.New().set("mode", "metal" );}else // metal, "ms"=metal smooth, this makes base image (diffuse) brighter (allow only for color textures)
                   if(                        Contains(base, "O", true, WHOLE_WORD_ALPHA) || Contains(base, "ao", false, WHOLE_WORD_ALPHA) || Ends(base, "AO", true) || Contains(base, "occlusion") || Contains(base, "cavity"  ) ){image.order=2; image.params.New().set("mode", "mulRGB");}else // AO
-                  if(                                                                       Contains(base, "illumination")                ||                           Contains(base, "glow"     ) || Contains(base, "emissive") ){image.order=3; image.params.New().set("mode", "blend" );}     // glow
+                  if(                                                                       Contains(base, "illumination")                ||                           Contains(base, "glow"     ) || Contains(base, "emissive") ){image.order=3; image.params.New().set("mode", "addRGB");}     // glow
                }
                images.sort(Compare); // sort by order
             }
