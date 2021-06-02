@@ -797,6 +797,7 @@ bool ChannelMonoTransform(C Str &value)
    || ChannelIndex(value[0])==ChannelIndex(value[1]) && ChannelIndex(value[0])==ChannelIndex(value[2]); // check that RGB channels are the same
 }
 bool PartialTransform   (C TextParam &p   ) {return Contains(p.value, '@');} // if transform is partial (affects only part of the image and not full), '@' means transform at position
+bool  LinearTransform   (C Str       &name) {return name=="mulRGB" || name=="addRGB" || name=="mulAddRGB";}
 bool  ResizeTransformAny(C Str       &name) {return Starts(name, "resize") || Starts(name, "maxSize");}
 bool  ResizeTransform   (C Str       &name) {return ResizeTransformAny(name) && !Contains(name, "NoStretch");} // skip "NoStretch" because it's more like "crop"
 bool    MonoTransform   (C TextParam &p   ) {return p.name=="grey" || p.name=="greyPhoto" || p.name=="bump" || p.name=="bumpClamp" || (p.name=="channel" && ChannelMonoTransform(p.value)) || p.name=="getSat";} // if result is always mono
@@ -931,6 +932,33 @@ bool ExtractResize(MemPtr<FileParams> files, TextParam &resize)
          if(SizeDependentTransform(p))return false; // if encountered a size dependent transform, it means we can't keep looking
       }
    }
+   return false;
+}
+bool ExtractLinearTransform(MemPtr<FileParams> files, Vec &mul, Vec &add)
+{
+   REPA(files) // go from end
+   {
+      FileParams &file=files[i];
+      if(i && (file.name.is() || file.nodes.elms()))break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
+      REPAD(pi, file.params) // go from end
+      {
+       C TextParam &p=file.params[pi];
+         if(PartialTransform(p))goto none;
+         if( LinearTransform(p.name))
+         {
+            if(p.name=="mulRGB"   ){mul=TextVecEx(p.value); add=0;}else
+            if(p.name=="addRGB"   ){add=TextVecEx(p.value); mul=1;}else
+            if(p.name=="mulAddRGB"){if(!TextVecVecEx(p.value, mul, add))goto none;}else
+               goto none;
+                    file.params.remove(pi, true); // remove it
+            if(!file.is())files.remove( i, true); // if nothing left then remove it
+            return true; // extracted
+         }
+         if(!ResizeTransform(p.name))goto none; // allow continue only on resize
+      }
+   }
+none:
+   mul=1; add=0;
    return false;
 }
 /******************************************************************************/
@@ -1403,20 +1431,18 @@ void TransformImage(Image &image, TextParam param, bool clamp, C Color &backgrou
    }else
    if(param.name=="lerpRGB")
    {
-      Memc<Str> c; Split(c, param.value, ',');
-      switch(c.elms())
+      Vec from, to; if(TextVecVecEx(param.value, from, to))
       {
-         case 2: {Vec2 ma=LerpToMad(TextFlt(c[0]), TextFlt(c[1])); image.mulAdd(Vec4(Vec(ma.x), 1), Vec4(Vec(ma.y), 0), &box);} break;
-         case 6: {Vec2 ma[3]={LerpToMad(TextFlt(c[0]), TextFlt(c[3])), LerpToMad(TextFlt(c[1]), TextFlt(c[4])), LerpToMad(TextFlt(c[2]), TextFlt(c[5]))}; AdjustImage(image, true, false, false); image.mulAdd(Vec4(ma[0].x, ma[1].x, ma[2].x, 1), Vec4(ma[0].y, ma[1].y, ma[2].y, 0), &box);} break;
+         Vec2 ma[3]={LerpToMad(from.x, to.x), LerpToMad(from.y, to.y), LerpToMad(from.z, to.z)};
+         AdjustImage(image, true, false, false); image.mulAdd(Vec4(ma[0].x, ma[1].x, ma[2].x, 1), Vec4(ma[0].y, ma[1].y, ma[2].y, 0), &box);
       }
    }else
    if(param.name=="iLerpRGB")
    {
-      Memc<Str> c; Split(c, param.value, ',');
-      switch(c.elms())
+      Vec from, to; if(TextVecVecEx(param.value, from, to))
       {
-         case 2: {Vec2 ma=ILerpToMad(TextFlt(c[0]), TextFlt(c[1])); image.mulAdd(Vec4(Vec(ma.x), 1), Vec4(Vec(ma.y), 0), &box);} break;
-         case 6: {Vec2 ma[3]={ILerpToMad(TextFlt(c[0]), TextFlt(c[3])), ILerpToMad(TextFlt(c[1]), TextFlt(c[4])), ILerpToMad(TextFlt(c[2]), TextFlt(c[5]))}; AdjustImage(image, true, false, false); image.mulAdd(Vec4(ma[0].x, ma[1].x, ma[2].x, 1), Vec4(ma[0].y, ma[1].y, ma[2].y, 0), &box);} break;
+         Vec2 ma[3]={ILerpToMad(from.x, to.x), ILerpToMad(from.y, to.y), ILerpToMad(from.z, to.z)};
+         AdjustImage(image, true, false, false); image.mulAdd(Vec4(ma[0].x, ma[1].x, ma[2].x, 1), Vec4(ma[0].y, ma[1].y, ma[2].y, 0), &box);
       }
    }else
    if(param.name=="mulA"  ){flt alpha=param.asFlt(); if(alpha!=1){AdjustImage(image, false, true, false); image.mulAdd(Vec4(1, 1, 1, alpha), 0, &box);}}else
@@ -1440,22 +1466,11 @@ void TransformImage(Image &image, TextParam param, bool clamp, C Color &backgrou
    }else
    if(param.name=="mulAddRGB")
    {
-      Memc<Str> c; Split(c, param.value, ',');
-      switch(c.elms())
-      {
-         case 2:                                         image.mulAdd(Vec4(Vec(TextFlt(c[0])), 1), Vec4(Vec(TextFlt(c[1])), 0), &box); break;
-         case 6: AdjustImage(image, true, false, false); image.mulAdd(Vec4(TextFlt(c[0]), TextFlt(c[1]), TextFlt(c[2]), 1), Vec4(TextFlt(c[3]), TextFlt(c[4]), TextFlt(c[5]), 0), &box); break;
-      }
+      Vec mul, add; if(TextVecVecEx(param.value, mul, add)){AdjustImage(image, true, false, false); image.mulAdd(Vec4(mul, 1), Vec4(add, 0), &box);}
    }else
    if(param.name=="addMulRGB")
-   {
-      Memc<Str> c; Split(c, param.value, ',');
-      switch(c.elms())
-      {
-         // x=x*m+a, x=(x+A)*M
-         case 2: {flt add=TextFlt(c[0]), mul=TextFlt(c[1]);                                                                                                       image.mulAdd(Vec4(Vec(mul), 1), Vec4(Vec(add*mul), 0), &box);} break;
-         case 6: {Vec add(TextFlt(c[0]), TextFlt(c[1]), TextFlt(c[2])), mul(TextFlt(c[3]), TextFlt(c[4]), TextFlt(c[5])); AdjustImage(image, true, false, false); image.mulAdd(Vec4(    mul , 1), Vec4(    add*mul , 0), &box);} break;
-      }
+   {  // x=x*m+a, x=(x+A)*M
+      Vec add, mul; if(TextVecVecEx(param.value, add, mul)){AdjustImage(image, true, false, false); image.mulAdd(Vec4(mul, 1), Vec4(add*mul, 0), &box);}
    }else
    if(param.name=="mulRGBbyA")
    {
@@ -2763,6 +2778,15 @@ Vec TextVecEx(cchar *t)
 Str TextVecEx(C Vec &v, int precision=-3)
 {
    return (Equal(v.x, v.y) && Equal(v.x, v.z)) ? TextReal(v.x, precision) : v.asText(precision);
+}
+bool TextVecVecEx(cchar *t, Vec &a, Vec &b)
+{
+   Memc<Str> c; Split(c, t, ','); switch(c.elms())
+   {
+      case 2: a=TextFlt(c[0]); b=TextFlt(c[1]); return true;
+      case 6: a.set(TextFlt(c[0]), TextFlt(c[1]), TextFlt(c[2])); b.set(TextFlt(c[3]), TextFlt(c[4]), TextFlt(c[5])); return true;
+   }
+   return false;
 }
 Str TextVecVecEx(C Vec &a, C Vec &b, int precision=-3)
 {

@@ -4,7 +4,7 @@ namespace EE{
 static Int Compare(C Edit::Elm &elm, C UID &id) {return Compare(elm.id, id);}
 namespace Edit{
 /******************************************************************************/
-#define EI_VER 46 // this needs to be increased every time a new command is added, existing one is changed, or some of engine class file formats get updated
+#define EI_VER 47 // this needs to be increased every time a new command is added, existing one is changed, or some of engine class file formats get updated
 #define EI_STR "Esenthel Editor Network Interface"
 #define CLIENT_WAIT_TIME         (   60*1000) //    60 seconds
 #define CLIENT_WAIT_TIME_LONG    (15*60*1000) // 15*60 seconds, some operations may take a long time to complete (reloading material textures with resizing, getting world objects, ..)
@@ -131,8 +131,8 @@ Material& Material::reset()
    flip_normal_y=false;
    smooth_is_rough=false;
    downsize_tex_mobile=0;
-   color_s=1;
-   emissive=0;
+      color_s=1;
+   emissive_s=0;
    smooth=0;
    reflect_min=MATERIAL_REFLECT;
    reflect_max=1;
@@ -155,7 +155,7 @@ Material& Material::reset()
 Bool Material::save(File &f)C
 {
    f.cmpUIntV(0);
-   f<<technique<<tex_quality<<cull<<flip_normal_y<<smooth_is_rough<<downsize_tex_mobile<<color_s<<emissive<<smooth<<reflect_min<<reflect_max<<glow<<normal<<bump<<uv_scale
+   f<<technique<<tex_quality<<cull<<flip_normal_y<<smooth_is_rough<<downsize_tex_mobile<<color_s<<emissive_s<<smooth<<reflect_min<<reflect_max<<glow<<normal<<bump<<uv_scale
     <<Encode(   color_map   )<<Encode( alpha_map)
     <<Encode(    bump_map   )<<Encode(normal_map)
     <<Encode(  smooth_map   )<<Encode( metal_map)
@@ -174,7 +174,7 @@ Bool Material::load(File &f)
    {
       case 0:
       {
-         f>>technique>>tex_quality>>cull>>flip_normal_y>>smooth_is_rough>>downsize_tex_mobile>>color_s>>emissive>>smooth>>reflect_min>>reflect_max>>glow>>normal>>bump>>uv_scale;
+         f>>technique>>tex_quality>>cull>>flip_normal_y>>smooth_is_rough>>downsize_tex_mobile>>color_s>>emissive_s>>smooth>>reflect_min>>reflect_max>>glow>>normal>>bump>>uv_scale;
          Decode(f,    color_map   ); Decode(f,  alpha_map);
          Decode(f,     bump_map   ); Decode(f, normal_map);
          Decode(f,   smooth_map   ); Decode(f,  metal_map);

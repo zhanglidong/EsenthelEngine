@@ -61,9 +61,9 @@ class MaterialRegion : Region
                case TEX_DET_SMOOTH: if(em.  detail_smooth.is()                       )return detail  ; break;
             }else switch(type) // #MaterialTextureLayoutWater
             {
-               case TEX_COLOR     : if(em.color_map.is()                           )return base_0; break;
-               case TEX_BUMP      : if(em.  hasBumpMap()                           )return base_2; break;
-               case TEX_NORMAL    : if(em.hasNormalMap()                           )return base_1; break;
+               case TEX_COLOR     : if(em.color_map.is())return base_0; break;
+               case TEX_BUMP      : if(em.  hasBumpMap())return base_2; break;
+               case TEX_NORMAL    : if(em.hasNormalMap())return base_1; break;
             }
          }
          return null;
@@ -154,7 +154,9 @@ class MaterialRegion : Region
       {
          if(mr)
          {
-            file=md_file.asText(&mr.getEditMtrl()); //if(type>=TEX_RFL_L && type<=TEX_RFL_U)file=GetCubeFile(file, type-TEX_RFL_L);
+            EditMaterial &mtrl=mr.getEditMtrl();
+            file=md_file.asText(&mtrl); //if(type>=TEX_RFL_L && type<=TEX_RFL_U)file=GetCubeFile(file, type-TEX_RFL_L);
+            if(type==TEX_SMOOTH)text=(mtrl.smooth_is_rough ? "Rough" : "Smooth");
             setDesc();
          }
       }
@@ -431,7 +433,7 @@ class MaterialRegion : Region
    {
       mr.undos.set("Emissive");
       Vec2 d=0; int on=0, pd=0; REPA(MT)if(MT.b(i) && MT.guiObj(i)==&mr.emissive){d+=MT.ad(i); if(!MT.touch(i))Ms.freeze(); if(MT.bp(i))pd++;else on++;}
-      Vec &rgb=mr.edit.emissive; if(pd && !on){mr.mouse_edit_value=rgb; mr.mouse_edit_delta=0;} flt d_sum=d.sum(); if(mr.emit_red)d_sum*=mr.emit_red.mouse_edit_speed; mr.mouse_edit_delta+=d_sum;
+      Vec &rgb=mr.edit.emissive_s; if(pd && !on){mr.mouse_edit_value=rgb; mr.mouse_edit_delta=0;} flt d_sum=d.sum(); if(mr.emit_red)d_sum*=mr.emit_red.mouse_edit_speed; mr.mouse_edit_delta+=d_sum;
       flt  max=mr.mouse_edit_value.max(), lum=max+mr.mouse_edit_delta;
       if(mr.emit_red)
       {
@@ -455,14 +457,14 @@ class MaterialRegion : Region
    static void Alpha(  MaterialRegion &mr, C Str &t) {       mr.edit.color_s.w=TextFlt(t); mr.edit.color_time.getUTC();}
 
    static const flt BumpScale=0.10;
-   static Str  Bump    (C MaterialRegion &mr          ) {return mr.edit.bump/BumpScale;}
-   static void Bump    (  MaterialRegion &mr, C Str &t) {       mr.edit.bump=TextFlt(t)*BumpScale; mr.edit.bump_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  NrmScale(C MaterialRegion &mr          ) {return mr.edit.normal;}
-   static void NrmScale(  MaterialRegion &mr, C Str &t) {       mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  FNY     (C MaterialRegion &mr          ) {return mr.edit.flip_normal_y;}
-   static void FNY     (  MaterialRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(textures, EditMaterial.CHANGED_FLIP_NRM_Y, false);}
-   static Str  SmtIsRgh(C MaterialRegion &mr          ) {return mr.edit.smooth_is_rough;}
-   static void SmtIsRgh(  MaterialRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.smooth_is_rough=TextBool(t); mr.edit.smooth_is_rough_time.getUTC(); mr.rebuildBase(textures, EditMaterial.CHANGED_SMOOTH_IS_ROUGH, false);}
+   static Str  Bump      (C MaterialRegion &mr          ) {return mr.edit.bump/BumpScale;}
+   static void Bump      (  MaterialRegion &mr, C Str &t) {       mr.edit.bump=TextFlt(t)*BumpScale; mr.edit.bump_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  NrmScale  (C MaterialRegion &mr          ) {return mr.edit.normal;}
+   static void NrmScale  (  MaterialRegion &mr, C Str &t) {       mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  FNY       (C MaterialRegion &mr          ) {return mr.edit.flip_normal_y;}
+   static void FNY       (  MaterialRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(textures, EditMaterial.CHANGED_FLIP_NRM_Y, false);}
+   static Str  RoughImage(C MaterialRegion &mr          ) {return mr.edit.smooth_is_rough;}
+   static void RoughImage(  MaterialRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.smooth_is_rough=TextBool(t); mr.edit.smooth_is_rough_time.getUTC(); mr.rebuildBase(textures, EditMaterial.CHANGED_SMOOTH_IS_ROUGH, false);}
 
    static Str  Smooth    (C MaterialRegion &mr          ) {return mr.edit.smooth;}
    static void Smooth    (  MaterialRegion &mr, C Str &t) {       mr.edit.smooth=TextFlt(t); mr.edit.smooth_time.getUTC();}
@@ -483,12 +485,12 @@ class MaterialRegion : Region
  //static Str  SSS (C MaterialRegion &mr          ) {return mr.edit.sss;}
  //static void SSS (  MaterialRegion &mr, C Str &t) {       mr.edit.sss=TextFlt(t); mr.edit.sss_time.getUTC();}
 
-   static Str  EmissiveR(C MaterialRegion &mr          ) {return mr.edit.emissive.x;}
-   static void EmissiveR(  MaterialRegion &mr, C Str &t) {       mr.edit.emissive.x=TextFlt(t); mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  EmissiveG(C MaterialRegion &mr          ) {return mr.edit.emissive.y;}
-   static void EmissiveG(  MaterialRegion &mr, C Str &t) {       mr.edit.emissive.y=TextFlt(t); mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  EmissiveB(C MaterialRegion &mr          ) {return mr.edit.emissive.z;}
-   static void EmissiveB(  MaterialRegion &mr, C Str &t) {       mr.edit.emissive.z=TextFlt(t); mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  EmissiveR(C MaterialRegion &mr          ) {return mr.edit.emissive_s.x;}
+   static void EmissiveR(  MaterialRegion &mr, C Str &t) {       mr.edit.emissive_s.x=TextFlt(t); mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  EmissiveG(C MaterialRegion &mr          ) {return mr.edit.emissive_s.y;}
+   static void EmissiveG(  MaterialRegion &mr, C Str &t) {       mr.edit.emissive_s.y=TextFlt(t); mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  EmissiveB(C MaterialRegion &mr          ) {return mr.edit.emissive_s.z;}
+   static void EmissiveB(  MaterialRegion &mr, C Str &t) {       mr.edit.emissive_s.z=TextFlt(t); mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
 
    static Str  UVScale(C MaterialRegion &mr          ) {return mr.edit.uv_scale;}
    static void UVScale(  MaterialRegion &mr, C Str &t) {       mr.edit.uv_scale=TextFlt(t); mr.edit.uv_scale_time.getUTC();}
@@ -773,8 +775,11 @@ class MaterialRegion : Region
    {
       if(smooth)
       {
-         if(edit.smooth_map.is()){smooth.name.set("Smooth Tweak"); smooth.range(-1, 1);}
-         else                    {smooth.name.set("Smoothness"  ); smooth.range( 0, 1);}
+         if(edit.smooth_map.is())
+         {
+          //if(tweak){smooth.name.set("Smooth Tweak"); smooth.range(-1, 1);}else
+                     {smooth.name.set("Smoothness"  ); smooth.range( 0, 4);}
+         }else       {smooth.name.set("Smoothness"  ); smooth.range( 0, 1);}
       }
    }
    void create()
@@ -820,6 +825,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       props.New().create("Flip Normal Y"  , MemberDesc(DATA_BOOL).setFunc(FNY     , FNY     ));
     //props.New();
 
+        props.New().create("Use Roughness"  , MemberDesc(DATA_BOOL).setFunc(RoughImage, RoughImage)).desc("If source Image is a Roughness Texture instead of Smoothness");
 smooth=&props.New().create("Smoothness"     , MemberDesc(DATA_REAL).setFunc(Smooth    , Smooth    )); // range depends on smooth texture presence
         props.New().create("Reflectivity"   , MemberDesc(DATA_REAL).setFunc(ReflectMin, ReflectMin)).range(0, 1).desc(S+"Base Reflectivity\nDefault="+MATERIAL_REFLECT);
         props.New().create("ReflectivityMax", MemberDesc(DATA_REAL).setFunc(ReflectMax, ReflectMax)).range(0, 1).desc("This value specifies the amount of Reflectivity that can be obtained from the Metal texture.\nIn most cases this value should be left at 1.");
@@ -832,7 +838,7 @@ emit_blue =&props.New().create("Emit Blue" , MemberDesc(DATA_REAL).setFunc(Emiss
     //props.New().create("Subsurf Scatter", MemberDesc(DATA_REAL).setFunc(SSS , SSS )).range(0, 1);
       props.New().create("Detail UV Scale", MemberDesc(DATA_REAL).setFunc(DetUVScale, DetUVScale)).range(0.01, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
       props.New().create("Detail Power"   , MemberDesc(DATA_REAL).setFunc(DetPower  , DetPower  )).range(0, 1);
-      props.New();
+    //props.New();
 
       props.New().create("Cull"         , MemberDesc(DATA_BOOL).setFunc(Cull   , Cull   ));
       props.New().create("UV Scale"     , MemberDesc(DATA_REAL).setFunc(UVScale, UVScale)).range(0.01, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);

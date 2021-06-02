@@ -430,7 +430,7 @@ class ConvertToAtlasClass : PropWin
             atlas.rough_mul+=mtrl.edit.roughMul(); atlas.rough_add+=mtrl.edit.roughAdd();
                 reflect_min+=mtrl.edit.reflect_min; reflect_max+=mtrl.edit.reflect_max;
             atlas.glow     +=mtrl.edit.glow;
-            atlas.emissive +=mtrl.edit.emissive;
+            atlas.emissive +=mtrl.edit.emissive_s;
 
             if(mtrl.edit.tech){alpha+=mtrl.edit.color_s.w; alpha_num++; tech=mtrl.edit.tech;}
 
@@ -468,10 +468,10 @@ class ConvertToAtlasClass : PropWin
             if(AddMap(forced, atlas.   alpha_map, mtrl.edit.   alpha_map, FlagTest(tex_used, TEXF_ALPHA   ), mtrl, TEXF_ALPHA                                                                       )){tex_mtrl|=TEXF_ALPHA   ; if(forced)tex_force_size|=TEXF_ALPHA   ;}
             if(AddMap(forced, atlas.    bump_map, mtrl.edit.    bump_map, FlagTest(tex_used, TEXF_BUMP    ), mtrl, TEXF_BUMP                                                                        )){tex_mtrl|=TEXF_BUMP    ; if(forced)tex_force_size|=TEXF_BUMP    ;}
             if(AddMap(forced, atlas.  normal_map, mtrl.edit.  normal_map, FlagTest(tex_used, TEXF_NORMAL  ), mtrl, TEXF_NORMAL  , mtrl.edit.normal                                                  )){tex_mtrl|=TEXF_NORMAL  ; if(forced)tex_force_size|=TEXF_NORMAL  ;}
-            if(AddMap(forced, atlas.  smooth_map, mtrl.edit.  smooth_map, FlagTest(tex_used, TEXF_SMOOTH  ), mtrl, TEXF_SMOOTH  , mtrl.edit.smooth                                                  )){tex_mtrl|=TEXF_SMOOTH  ; if(forced)tex_force_size|=TEXF_SMOOTH  ;}
+            if(AddMap(forced, atlas.  smooth_map, mtrl.edit.  smooth_map, FlagTest(tex_used, TEXF_SMOOTH  ), mtrl, TEXF_SMOOTH  , mtrl.edit.smoothMul(), mtrl.edit.smoothAdd()                      )){tex_mtrl|=TEXF_SMOOTH  ; if(forced)tex_force_size|=TEXF_SMOOTH  ;}
             if(AddMap(forced, atlas.   metal_map, mtrl.edit.   metal_map, FlagTest(tex_used, TEXF_METAL   ), mtrl, TEXF_METAL   , params.reflect_mul, params.reflect_add, 1-min_reflect, min_reflect)){tex_mtrl|=TEXF_METAL   ; if(forced)tex_force_size|=TEXF_METAL   ;} // 1-min_reflect because we will operate on min_reflect..1 range, so mul=1-min_reflect, add=min_reflect
             if(AddMap(forced, atlas.    glow_map, mtrl.edit.    glow_map, FlagTest(tex_used, TEXF_GLOW    ), mtrl, TEXF_GLOW    , mtrl.edit.glow                                                    )){tex_mtrl|=TEXF_GLOW    ; if(forced)tex_force_size|=TEXF_GLOW    ;}
-            if(AddMap(forced, atlas.emissive_map, mtrl.edit.emissive_map, FlagTest(tex_used, TEXF_EMISSIVE), mtrl, TEXF_EMISSIVE, mtrl.edit.emissive                                                )){tex_mtrl|=TEXF_EMISSIVE; if(forced)tex_force_size|=TEXF_EMISSIVE;}
+            if(AddMap(forced, atlas.emissive_map, mtrl.edit.emissive_map, FlagTest(tex_used, TEXF_EMISSIVE), mtrl, TEXF_EMISSIVE, mtrl.edit.emissive_s                                              )){tex_mtrl|=TEXF_EMISSIVE; if(forced)tex_force_size|=TEXF_EMISSIVE;}
 
             tex_wrote|=tex_mtrl;
 
@@ -505,10 +505,12 @@ class ConvertToAtlasClass : PropWin
 
          EditMaterial edit; edit.create(atlas);
          Proj.createBaseTextures(atlas.base_0, atlas.base_1, atlas.base_2, edit);
+         Proj.loadImages(atlas.emissive_img, null, edit.emissive_map, true);
          // copy images only if 'Importer.includeTex' which means this texture was encountered for the first time, don't check for 'Proj.includeTex' because with it we would have to also save the textures, which are done automatically in 'Proj.newMtrl'
-         IMAGE_TYPE ct; ImageProps(atlas.base_0, &atlas.base_0_id, &ct, MTRL_BASE_0, edit.tex_quality); if(Importer.includeTex(atlas.base_0_id))atlas.base_0.copyTry(atlas.base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
-                        ImageProps(atlas.base_1, &atlas.base_1_id, &ct, MTRL_BASE_1                  ); if(Importer.includeTex(atlas.base_1_id))atlas.base_1.copyTry(atlas.base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
-                        ImageProps(atlas.base_2, &atlas.base_2_id, &ct, MTRL_BASE_2                  ); if(Importer.includeTex(atlas.base_2_id))atlas.base_2.copyTry(atlas.base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
+         IMAGE_TYPE ct; ImageProps(atlas.base_0      , &atlas.  base_0_id, &ct, MTRL_BASE_0, edit.tex_quality); if(Importer.includeTex(atlas.  base_0_id))                                       atlas.      base_0.copyTry(atlas.      base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
+                        ImageProps(atlas.base_1      , &atlas.  base_1_id, &ct, MTRL_BASE_1                  ); if(Importer.includeTex(atlas.  base_1_id))                                       atlas.      base_1.copyTry(atlas.      base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
+                        ImageProps(atlas.base_2      , &atlas.  base_2_id, &ct, MTRL_BASE_2                  ); if(Importer.includeTex(atlas.  base_2_id))                                       atlas.      base_2.copyTry(atlas.      base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
+                        ImageProps(atlas.emissive_img, &atlas.emissive_id, &ct, MTRL_EMISSIVE                ); if(Importer.includeTex(atlas.emissive_id)){SetFullAlpha(atlas.emissive_img, ct); atlas.emissive_img.copyTry(atlas.emissive_img, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);}
 
          UID atlas_id=Proj.newMtrl(atlas, parent_id).id;
          Server.setElmFull(atlas_id);

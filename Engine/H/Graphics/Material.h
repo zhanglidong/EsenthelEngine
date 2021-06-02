@@ -33,8 +33,8 @@ Bool HasLeaf            (MATERIAL_TECHNIQUE technique); // if 'technique' involv
 /******************************************************************************/
 struct MaterialParams // Material Parameters
 {
-   Vec4 color_l     ; // color Linear Gamma      (0,0,0,0) .. (1,1,1,1), default=(1,1,1,1)
-   Vec  emissive    ; // emissive                  (0,0,0) .. (1,1,1)  , default=(0,0,0)
+   Vec4    color_l  ; // color    Linear Gamma   (0,0,0,0) .. (1,1,1,1), default=(1,1,1,1)
+   Vec  emissive_l  ; // emissive Linear Gamma     (0,0,0) .. (1,1,1)  , default=(0,0,0)
    Flt    rough_mul , // roughness    from       texture 0 .. 1        , default=0
           rough_add , // roughness    base               0 .. 1        , default=1
         reflect_mul , // reflectivity from metal texture 0 .. 1        , default=1-MATERIAL_REFLECT
@@ -48,6 +48,9 @@ struct MaterialParams // Material Parameters
 
  C Vec4& colorL()C {return color_l;}   void colorL(C Vec4 &color_l) {T.color_l=color_l;} // get/set Linear Gamma color
    Vec4  colorS()C;                    void colorS(C Vec4 &color_s);                     // get/set sRGB   Gamma color
+
+ C Vec& emissiveL()C {return emissive_l;}   void emissiveL(C Vec &emissive_l) {T.emissive_l=emissive_l;} // get/set Linear Gamma emissive
+   Vec  emissiveS()C;                       void emissiveS(C Vec &emissive_s);                           // get/set sRGB   Gamma emissive
 
    Flt reflect   ()C {return reflect_add;}   void reflect(Flt reflect     ); // get/set reflectivity, 0..1, default=MATERIAL_REFLECT
    Flt reflectMax()C;                        void reflect(Flt min, Flt max); // advanced

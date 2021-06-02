@@ -36,8 +36,8 @@ void XMaterial::create(C Material &src)
 {
      cull        =src.cull;
      technique   =src.technique;
-     color       =src.colorS();
-     emissive    =src.emissive;
+     color       =src.   colorS();
+     emissive    =src.emissiveS();
      rough_mul   =src.  rough_mul;   rough_add=src.  rough_add;
    reflect_mul   =src.reflect_mul; reflect_add=src.reflect_add;
      glow        =src.glow;

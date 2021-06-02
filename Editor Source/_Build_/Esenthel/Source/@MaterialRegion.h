@@ -124,14 +124,14 @@ public:
    static void Alpha(  MaterialRegion &mr, C Str &t);
 
    static const flt BumpScale;
-   static Str  Bump    (C MaterialRegion &mr          );
-   static void Bump    (  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  NrmScale(C MaterialRegion &mr          );
-   static void NrmScale(  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  FNY     (C MaterialRegion &mr          );
-   static void FNY     (  MaterialRegion &mr, C Str &t);
-   static Str  SmtIsRgh(C MaterialRegion &mr          );
-   static void SmtIsRgh(  MaterialRegion &mr, C Str &t);
+   static Str  Bump      (C MaterialRegion &mr          );
+   static void Bump      (  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  NrmScale  (C MaterialRegion &mr          );
+   static void NrmScale  (  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  FNY       (C MaterialRegion &mr          );
+   static void FNY       (  MaterialRegion &mr, C Str &t);
+   static Str  RoughImage(C MaterialRegion &mr          );
+   static void RoughImage(  MaterialRegion &mr, C Str &t);
 
    static Str  Smooth    (C MaterialRegion &mr          );
    static void Smooth    (  MaterialRegion &mr, C Str &t);

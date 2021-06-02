@@ -1860,12 +1860,24 @@ void DrawProject()
       REPA(elm_ids)
       {
          EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
-         if(!Equal(edit.smooth, 1) && edit.smooth_map.is())
+         if(edit.smooth_map.is())
+            if(!Equal(edit.smoothMul(), 1) || !Equal(edit.smoothAdd(), 0))
          {
             Mems<FileParams> fps=FileParams::Decode(edit.smooth_map);
-            flt mul=edit.smooth; if(C TextParam *p=FindTransform(fps, "mulRGB"))mul*=p->asFlt();
-            if(Equal(mul, 1))DelTransform(fps, "mulRGB");
-            else             SetTransform(fps, "mulRGB", TextReal(mul, -3));
+
+            Vec mul0, add0; ExtractLinearTransform(fps, mul0, add0);
+            flt mul1=(edit.smooth_is_rough ? edit.roughMul() : edit.smoothMul()),
+                add1=(edit.smooth_is_rough ? edit.roughAdd() : edit.smoothAdd());
+            // new=(img*mul0+add0)*mul1+add1
+            // new=img*mul0*mul1 + add0*mul1+add1
+            Vec mul=mul0*mul1, add=add0*mul1+add1;
+
+            bool need_mul=!Equal(mul, Vec(1)),
+                 need_add=!Equal(add, Vec(0));
+            if(need_mul && need_add)AddTransform(fps, "mulAddRGB", TextVecVecEx(mul, add));else
+            if(need_mul            )AddTransform(fps, "mulRGB"   , TextVecEx   (mul     ));else
+            if(            need_add)AddTransform(fps, "addRGB"   , TextVecEx   (     add));
+
             edit.smooth_map=FileParams::Encode(fps); edit.smooth_map_time.now();
             edit.smooth=1; edit.smooth_time.now();
             ok&=mtrlSync(elm_ids[i], edit, true, false, "mulTexSmooth");

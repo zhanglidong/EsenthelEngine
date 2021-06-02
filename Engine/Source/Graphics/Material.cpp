@@ -170,19 +170,21 @@ Bool HasLeaf(MATERIAL_TECHNIQUE technique)
    }
 }
 /******************************************************************************/
-Vec4  MaterialParams::colorS    (                )C {return        LinearToSRGB(color_l) ;}
-void  MaterialParams::colorS    (C Vec4 &color_s )  {return colorL(SRGBToLinear(color_s));}
-void  MaterialParams::reflect   (  Flt   reflect )  {reflect_add=reflect; reflect_mul= 1-reflect     ;}
-void XMaterial      ::reflect   (  Flt   reflect )  {reflect_add=reflect; reflect_mul= 1-reflect     ;}
-void  MaterialParams::reflect   (Flt min, Flt max)  {reflect_add=    min; reflect_mul=(1-min    )*max;}
-void XMaterial      ::reflect   (Flt min, Flt max)  {reflect_add=    min; reflect_mul=(1-min    )*max;}
-Flt   MaterialParams::reflectMax(                )C {Flt div=(1-reflect_add); return Equal(div, 0) ? 1 : reflect_mul/div;}
-Flt  XMaterial      ::reflectMax(                )C {Flt div=(1-reflect_add); return Equal(div, 0) ? 1 : reflect_mul/div;}
+Vec4  MaterialParams::colorS    (                  )C {return           LinearToSRGB(   color_l) ;}
+void  MaterialParams::colorS    (C Vec4 &color_s   )  {return    colorL(SRGBToLinear(   color_s));}
+Vec   MaterialParams::emissiveS (                  )C {return           LinearToSRGB(emissive_l) ;}
+void  MaterialParams::emissiveS (C Vec  &emissive_s)  {return emissiveL(SRGBToLinear(emissive_s));}
+void  MaterialParams::reflect   (  Flt   reflect   )  {reflect_add=reflect; reflect_mul= 1-reflect     ;}
+void XMaterial      ::reflect   (  Flt   reflect   )  {reflect_add=reflect; reflect_mul= 1-reflect     ;}
+void  MaterialParams::reflect   (  Flt min, Flt max)  {reflect_add=    min; reflect_mul=(1-min    )*max;}
+void XMaterial      ::reflect   (  Flt min, Flt max)  {reflect_add=    min; reflect_mul=(1-min    )*max;}
+Flt   MaterialParams::reflectMax(                  )C {Flt div=(1-reflect_add); return Equal(div, 0) ? 1 : reflect_mul/div;}
+Flt  XMaterial      ::reflectMax(                  )C {Flt div=(1-reflect_add); return Equal(div, 0) ? 1 : reflect_mul/div;}
 /******************************************************************************/
 Material::Material()
 {
-   color_l .set(1, 1, 1, 1);
-   emissive.set(0, 0, 0);
+      color_l.set(1, 1, 1, 1);
+   emissive_l.set(0, 0, 0);
    rough_mul   =0; rough_add=1;
    reflect     (MATERIAL_REFLECT);
    glow        =0;
@@ -569,7 +571,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 11:
       {
-         f.getMulti(cull, technique)>>color_l>>emissive>>smooth>>reflect_mul>>reflect_add>>glow>>normal>>bump>>det_power>>det_uv_scale>>uv_scale;
+         f.getMulti(cull, technique)>>color_l>>emissive_l>>smooth>>reflect_mul>>reflect_add>>glow>>normal>>bump>>det_power>>det_uv_scale>>uv_scale;
          f.getStr(temp);       base_0.require(temp, path); // base_0 is RGBA
          f.getStr(temp);       base_1.require(temp, path); // base_1 is NormalXY
          f.getStr(temp);       base_2.require(temp, path); if(Is(temp)){T.rough_add=1; T.rough_mul=-smooth;}else{T.rough_add=1-smooth; T.rough_mul=0;} // base_2 is Metal, Smooth, Bump, Glow
@@ -580,7 +582,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 10:
       {
-         f.getMulti(cull, technique)>>color_l>>emissive>>smooth>>reflect>>glow>>normal>>bump>>det_power>>det_uv_scale>>uv_scale;
+         f.getMulti(cull, technique)>>color_l>>emissive_l>>smooth>>reflect>>glow>>normal>>bump>>det_power>>det_uv_scale>>uv_scale;
          f.getStr(temp);       base_0.require(temp, path); // base_0 is RGBA
          f.getStr(temp);       base_1.require(temp, path); // base_1 is NormalXY
          f.getStr(temp);       base_2.require(temp, path); if(Is(temp)){T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0; T.reflect_add=reflect; T.reflect_mul=0;} // base_2 is Smooth, Reflectivity, Bump, Glow
@@ -591,7 +593,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 9:
       {
-         f.getMulti(cull, technique)>>color_l>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect; colorS(color_l);
+         f.getMulti(cull, technique)>>color_l>>emissive_l>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect; colorS(color_l);
          f.getStr(temp);       base_0.require(temp, path);
          f.getStr(temp);       base_1.require(temp, path); if(Is(temp)){T.rough_add=1; T.rough_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0;} // base_1 had normals and specular
                                base_2=null;
@@ -606,7 +608,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 8:
       {
-         f.getMulti(cull, technique)>>color_l>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect; colorS(color_l);
+         f.getMulti(cull, technique)>>color_l>>emissive_l>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect; colorS(color_l);
          f._getStr1(temp);       base_0.require(temp, path);
          f._getStr1(temp);       base_1.require(temp, path); if(Is(temp)){T.rough_add=1; T.rough_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0;} // base_1 had normals and specular
                                  base_2=null;
@@ -621,7 +623,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 7:
       {
-         f>>color_l>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
+         f>>color_l>>emissive_l>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
          f._getStr(temp);       base_0.require(temp, path);
          f._getStr(temp);       base_1.require(temp, path); if(Is(temp)){T.rough_add=1; T.rough_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0;} // base_1 had normals and specular
                                 base_2=null;
@@ -636,7 +638,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 6:
       {
-         f>>color_l>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
+         f>>color_l>>emissive_l>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
          f._getStr(temp);       base_0.require(temp, path);
          f._getStr(temp);       base_1.require(temp, path); if(Is(temp)){T.rough_add=1; T.rough_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0;} // base_1 had normals and specular
                                 base_2=null;
@@ -650,7 +652,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 5:
       {
-         f>>color_l>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
+         f>>color_l>>emissive_l>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
          f._getStr(temp);       base_0.require(temp, path);
          f._getStr(temp);       base_1.require(temp, path); if(Is(temp)){T.rough_add=1; T.rough_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0;} // base_1 had normals and specular
                                 base_2=null;
@@ -664,7 +666,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 4:
       {
-         f>>color_l>>emissive>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
+         f>>color_l>>emissive_l>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
          f._getStr(temp);       base_0.require(temp, path);
          f._getStr(temp);       base_1.require(temp, path); if(Is(temp)){T.rough_add=1; T.rough_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0;} // base_1 had normals and specular
                                 base_2=null;
@@ -677,7 +679,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 3:
       {
-         f>>color_l>>emissive>>smooth>>sss>>glow>>normal>>bump>>det_uv_scale>>det_power>>reflect>>cull>>technique; uv_scale=1; colorS(color_l);
+         f>>color_l>>emissive_l>>smooth>>sss>>glow>>normal>>bump>>det_uv_scale>>det_power>>reflect>>cull>>technique; uv_scale=1; colorS(color_l);
                 base_0.require(f._getStr8(), path);
                 base_1.require(f._getStr8(), path); if(Is(temp)){T.rough_add=1; T.rough_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0;} // base_1 had normals and specular
                 base_2=null;
@@ -691,7 +693,7 @@ Bool Material::loadData(File &f, CChar *path)
       case 2:
       {
          f.skip(1);
-         f>>color_l>>smooth>>sss>>glow>>normal>>bump>>det_uv_scale>>det_power>>reflect>>cull>>technique; emissive=0; uv_scale=1; colorS(color_l);
+         f>>color_l>>smooth>>sss>>glow>>normal>>bump>>det_uv_scale>>det_power>>reflect>>cull>>technique; emissive_l=0; uv_scale=1; colorS(color_l);
          if(technique==MTECH_FUR){det_power=color_l.w; color_l.w=1;}
              base_0.require(f._getStr8(), path);
              base_1.require(f._getStr8(), path); if(Is(temp)){T.rough_add=1; T.rough_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0;} // base_1 had normals and specular
@@ -706,7 +708,7 @@ Bool Material::loadData(File &f, CChar *path)
       case 1:
       {
          f.skip(1);
-         f>>color_l>>smooth>>glow>>normal>>bump>>det_uv_scale>>det_power>>reflect>>cull>>technique; sss=0; emissive=0; uv_scale=1; colorS(color_l);
+         f>>color_l>>smooth>>glow>>normal>>bump>>det_uv_scale>>det_power>>reflect>>cull>>technique; sss=0; emissive_l=0; uv_scale=1; colorS(color_l);
          if(technique==MTECH_FUR){det_power=color_l.w; color_l.w=1;}
              base_0.require(f._getStr8(), path);
              base_1.require(f._getStr8(), path); if(Is(temp)){T.rough_add=1; T.rough_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0;} // base_1 had normals and specular
@@ -721,7 +723,7 @@ Bool Material::loadData(File &f, CChar *path)
       case 0:
       {
          f.skip(1);
-         f>>color_l>>smooth>>glow>>normal>>bump>>det_uv_scale>>det_power>>reflect>>cull; sss=0; emissive=0; uv_scale=1; colorS(color_l);
+         f>>color_l>>smooth>>glow>>normal>>bump>>det_uv_scale>>det_power>>reflect>>cull; sss=0; emissive_l=0; uv_scale=1; colorS(color_l);
          switch(f.getByte())
          {
             default: technique=MTECH_DEFAULT   ; break;

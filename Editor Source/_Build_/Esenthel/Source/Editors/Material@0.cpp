@@ -83,9 +83,9 @@ MaterialTech mtrl_techs[]=
                case TEX_DET_SMOOTH: if(em.  detail_smooth.is()                       )return detail  ; break;
             }else switch(type) // #MaterialTextureLayoutWater
             {
-               case TEX_COLOR     : if(em.color_map.is()                           )return base_0; break;
-               case TEX_BUMP      : if(em.  hasBumpMap()                           )return base_2; break;
-               case TEX_NORMAL    : if(em.hasNormalMap()                           )return base_1; break;
+               case TEX_COLOR     : if(em.color_map.is())return base_0; break;
+               case TEX_BUMP      : if(em.  hasBumpMap())return base_2; break;
+               case TEX_NORMAL    : if(em.hasNormalMap())return base_1; break;
             }
          }
          return null;
@@ -176,7 +176,9 @@ MaterialTech mtrl_techs[]=
       {
          if(mr)
          {
-            file=md_file.asText(&mr->getEditMtrl()); //if(type>=TEX_RFL_L && type<=TEX_RFL_U)file=GetCubeFile(file, type-TEX_RFL_L);
+            EditMaterial &mtrl=mr->getEditMtrl();
+            file=md_file.asText(&mtrl); //if(type>=TEX_RFL_L && type<=TEX_RFL_U)file=GetCubeFile(file, type-TEX_RFL_L);
+            if(type==TEX_SMOOTH)text=(mtrl.smooth_is_rough ? "Rough" : "Smooth");
             setDesc();
          }
       }
@@ -384,7 +386,7 @@ MaterialTech mtrl_techs[]=
    {
       mr.undos.set("Emissive");
       Vec2 d=0; int on=0, pd=0; REPA(MT)if(MT.b(i) && MT.guiObj(i)==&mr.emissive){d+=MT.ad(i); if(!MT.touch(i))Ms.freeze(); if(MT.bp(i))pd++;else on++;}
-      Vec &rgb=mr.edit.emissive; if(pd && !on){mr.mouse_edit_value=rgb; mr.mouse_edit_delta=0;} flt d_sum=d.sum(); if(mr.emit_red)d_sum*=mr.emit_red->mouse_edit_speed; mr.mouse_edit_delta+=d_sum;
+      Vec &rgb=mr.edit.emissive_s; if(pd && !on){mr.mouse_edit_value=rgb; mr.mouse_edit_delta=0;} flt d_sum=d.sum(); if(mr.emit_red)d_sum*=mr.emit_red->mouse_edit_speed; mr.mouse_edit_delta+=d_sum;
       flt  max=mr.mouse_edit_value.max(), lum=max+mr.mouse_edit_delta;
       if(mr.emit_red)
       {
@@ -411,8 +413,8 @@ MaterialTech mtrl_techs[]=
    void MaterialRegion::NrmScale(  MaterialRegion &mr, C Str &t) {       mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
    Str  MaterialRegion::FNY(C MaterialRegion &mr          ) {return mr.edit.flip_normal_y;}
    void MaterialRegion::FNY(  MaterialRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(textures, EditMaterial::CHANGED_FLIP_NRM_Y, false);}
-   Str  MaterialRegion::SmtIsRgh(C MaterialRegion &mr          ) {return mr.edit.smooth_is_rough;}
-   void MaterialRegion::SmtIsRgh(  MaterialRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.smooth_is_rough=TextBool(t); mr.edit.smooth_is_rough_time.getUTC(); mr.rebuildBase(textures, EditMaterial::CHANGED_SMOOTH_IS_ROUGH, false);}
+   Str  MaterialRegion::RoughImage(C MaterialRegion &mr          ) {return mr.edit.smooth_is_rough;}
+   void MaterialRegion::RoughImage(  MaterialRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.smooth_is_rough=TextBool(t); mr.edit.smooth_is_rough_time.getUTC(); mr.rebuildBase(textures, EditMaterial::CHANGED_SMOOTH_IS_ROUGH, false);}
    Str  MaterialRegion::Smooth(C MaterialRegion &mr          ) {return mr.edit.smooth;}
    void MaterialRegion::Smooth(  MaterialRegion &mr, C Str &t) {       mr.edit.smooth=TextFlt(t); mr.edit.smooth_time.getUTC();}
    Str  MaterialRegion::ReflectMin(C MaterialRegion &mr          ) {return mr.edit.reflect_min;}
@@ -427,12 +429,12 @@ MaterialTech mtrl_techs[]=
    void MaterialRegion::DetPower(  MaterialRegion &mr, C Str &t) {       mr.edit.det_power=TextFlt(t); mr.edit.detail_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
    Str  MaterialRegion::Cull(C MaterialRegion &mr          ) {return mr.edit.cull;}
    void MaterialRegion::Cull(  MaterialRegion &mr, C Str &t) {       mr.edit.cull=TextBool(t); mr.edit.cull_time.now();}
-   Str  MaterialRegion::EmissiveR(C MaterialRegion &mr          ) {return mr.edit.emissive.x;}
-   void MaterialRegion::EmissiveR(  MaterialRegion &mr, C Str &t) {       mr.edit.emissive.x=TextFlt(t); mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
-   Str  MaterialRegion::EmissiveG(C MaterialRegion &mr          ) {return mr.edit.emissive.y;}
-   void MaterialRegion::EmissiveG(  MaterialRegion &mr, C Str &t) {       mr.edit.emissive.y=TextFlt(t); mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
-   Str  MaterialRegion::EmissiveB(C MaterialRegion &mr          ) {return mr.edit.emissive.z;}
-   void MaterialRegion::EmissiveB(  MaterialRegion &mr, C Str &t) {       mr.edit.emissive.z=TextFlt(t); mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
+   Str  MaterialRegion::EmissiveR(C MaterialRegion &mr          ) {return mr.edit.emissive_s.x;}
+   void MaterialRegion::EmissiveR(  MaterialRegion &mr, C Str &t) {       mr.edit.emissive_s.x=TextFlt(t); mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
+   Str  MaterialRegion::EmissiveG(C MaterialRegion &mr          ) {return mr.edit.emissive_s.y;}
+   void MaterialRegion::EmissiveG(  MaterialRegion &mr, C Str &t) {       mr.edit.emissive_s.y=TextFlt(t); mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
+   Str  MaterialRegion::EmissiveB(C MaterialRegion &mr          ) {return mr.edit.emissive_s.z;}
+   void MaterialRegion::EmissiveB(  MaterialRegion &mr, C Str &t) {       mr.edit.emissive_s.z=TextFlt(t); mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
    Str  MaterialRegion::UVScale(C MaterialRegion &mr          ) {return mr.edit.uv_scale;}
    void MaterialRegion::UVScale(  MaterialRegion &mr, C Str &t) {       mr.edit.uv_scale=TextFlt(t); mr.edit.uv_scale_time.getUTC();}
    void MaterialRegion::Undo(MaterialRegion &editor) {editor.undos.undo();}
@@ -689,8 +691,11 @@ MaterialTech mtrl_techs[]=
    {
       if(smooth)
       {
-         if(edit.smooth_map.is()){smooth->name.set("Smooth Tweak"); smooth->range(-1, 1);}
-         else                    {smooth->name.set("Smoothness"  ); smooth->range( 0, 1);}
+         if(edit.smooth_map.is())
+         {
+          //if(tweak){smooth.name.set("Smooth Tweak"); smooth.range(-1, 1);}else
+                     {smooth->name.set("Smoothness"  ); smooth->range( 0, 4);}
+         }else       {smooth->name.set("Smoothness"  ); smooth->range( 0, 1);}
       }
    }
    void MaterialRegion::create()
@@ -736,6 +741,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       props.New().create("Flip Normal Y"  , MemberDesc(DATA_BOOL).setFunc(FNY     , FNY     ));
     //props.New();
 
+        props.New().create("Use Roughness"  , MemberDesc(DATA_BOOL).setFunc(RoughImage, RoughImage)).desc("If source Image is a Roughness Texture instead of Smoothness");
 smooth=&props.New().create("Smoothness"     , MemberDesc(DATA_REAL).setFunc(Smooth    , Smooth    )); // range depends on smooth texture presence
         props.New().create("Reflectivity"   , MemberDesc(DATA_REAL).setFunc(ReflectMin, ReflectMin)).range(0, 1).desc(S+"Base Reflectivity\nDefault="+MATERIAL_REFLECT);
         props.New().create("ReflectivityMax", MemberDesc(DATA_REAL).setFunc(ReflectMax, ReflectMax)).range(0, 1).desc("This value specifies the amount of Reflectivity that can be obtained from the Metal texture.\nIn most cases this value should be left at 1.");
@@ -748,7 +754,7 @@ emit_blue =&props.New().create("Emit Blue" , MemberDesc(DATA_REAL).setFunc(Emiss
     //props.New().create("Subsurf Scatter", MemberDesc(DATA_REAL).setFunc(SSS , SSS )).range(0, 1);
       props.New().create("Detail UV Scale", MemberDesc(DATA_REAL).setFunc(DetUVScale, DetUVScale)).range(0.01f, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
       props.New().create("Detail Power"   , MemberDesc(DATA_REAL).setFunc(DetPower  , DetPower  )).range(0, 1);
-      props.New();
+    //props.New();
 
       props.New().create("Cull"         , MemberDesc(DATA_BOOL).setFunc(Cull   , Cull   ));
       props.New().create("UV Scale"     , MemberDesc(DATA_REAL).setFunc(UVScale, UVScale)).range(0.01f, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);

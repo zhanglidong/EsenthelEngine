@@ -7,9 +7,12 @@ class EditMaterial
    bool                      flip_normal_y, smooth_is_rough, cull;
    byte                      downsize_tex_mobile;
    Vec4                      color_s;
-   Vec                       emissive;
-   flt                       smooth, // 0..1 without 'smooth_map', and -1..1 with 'smooth_map'
-                             reflect_min, reflect_max, glow, normal, bump,
+   Vec                       emissive_s;
+   flt                       smooth, // 0..1
+                             reflect_min, reflect_max, // 0..1
+                             glow, // 0..1
+                             normal, // 0..1
+                             bump, // 0..1
                              uv_scale, det_uv_scale, det_power;
    UID                       base_0_tex, base_1_tex, base_2_tex, detail_tex, macro_tex, emissive_tex;
    Str                       color_map, alpha_map, bump_map, normal_map, smooth_map, metal_map, glow_map,
@@ -23,24 +26,36 @@ class EditMaterial
                              color_time, emissive_time, smooth_time, reflect_time, normal_time, bump_time, glow_time, uv_scale_time, detail_time;
 
    // get
+   // smooth_final = smooth_tex*smoothMul+smoothAdd
+   //  rough_final =  rough_tex* roughMul+ roughAdd
+   // rough_final = 1-smooth_final
+   // rough_tex*roughMul+roughAdd = 1-((1-rough_tex)*smoothMul+smoothAdd)
+   // (1-rough_tex)*-smoothMul-smoothAdd+1
+   // rough_tex*smoothMul-smoothMul-smoothAdd+1
+   // roughMul=smoothMul
+   // roughAdd=1-smoothMul-smoothAdd
+   flt smoothMul()C;
+   flt smoothAdd()C;
    flt roughMul()C;
    flt roughAdd()C;
-   bool     hasBumpMap     ()C;
-   bool     hasNormalMap   ()C;
-   bool     hasDetailMap   ()C;
-   bool     hasBase1Tex    ()C; // #MaterialTextureLayout
-   bool     hasBase2Tex    ()C; // #MaterialTextureLayout
-   TEX_FLAG textures       ()C;
-   TEX_FLAG texturesUsed   ()C;
-   bool     usesTexColAlpha()C; // alpha may come from color
-   bool     usesTexAlpha   ()C; // check only alpha
-   bool     usesTexBump    ()C; // always keep bump map because it can be used for multi-material per-pixel blending
-   bool     usesTexNormal  ()C;
-   bool     usesTexSmooth  ()C;
-   bool     usesTexMetal   ()C;
-   bool     usesTexGlow    ()C;
-   bool     usesTexDetail  ()C;
-   bool     usesTexEmissive()C;
+   void setAbsRough(flt rough); // without texture
+   void setRoughMulAdd(flt rough_mul, flt rough_add); // with texture
+   bool     hasBumpMap     ()C;                    
+   bool     hasNormalMap   ()C;                    
+   bool     hasDetailMap   ()C;                    
+   bool     hasBase1Tex    ()C;                    // #MaterialTextureLayout
+   bool     hasBase2Tex    ()C;                    // #MaterialTextureLayout
+   TEX_FLAG textures       ()C;                    
+   TEX_FLAG texturesUsed   ()C;                    
+   bool     usesTexColAlpha()C;                    // alpha may come from color
+   bool     usesTexAlpha   ()C;                    // check only alpha
+   bool     usesTexBump    ()C;                    // always keep bump map because it can be used for multi-material per-pixel blending
+   bool     usesTexNormal  ()C;                    
+   bool     usesTexSmooth  ()C;                    
+   bool     usesTexMetal   ()C;                    
+   bool     usesTexGlow    ()C;                    
+   bool     usesTexDetail  ()C;                    
+   bool     usesTexEmissive()C;                    
    bool     needTanBin     ()C;
 
    bool equal(C EditMaterial &src)C;
@@ -78,7 +93,6 @@ class EditMaterial
    static void ChangeMulToSet(Str &name);
    void fixOldFileParams();
    void fixOldReflect(flt reflect);
-   void fixOldSmooth();
 
    // io
    bool save(File &f)C;
