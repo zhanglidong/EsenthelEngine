@@ -65,9 +65,8 @@ VecH4 BloomDS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // "Max(0, " of the result 
       }
       if(GAMMA && !gamma_per_pixel)glow.rgb =(glow.a*(2.0/(res*res)))*LinearToSRGBFast(glow.rgb/Max(Max(glow.rgb), HALF_MIN));
       else                         glow.rgb*=(glow.a*(2.0/(res*res)))                          /Max(Max(glow.rgb), HALF_MIN) ; // NaN (increase by 2 because normally it's too small)
-      color=BloomColor(color, GAMMA && !gamma_per_pixel);
-      if(1)color=Max(color, glow.rgb);
-      else color=    color+ glow.rgb;
+      color =BloomColor(color, GAMMA && !gamma_per_pixel);
+      color+=glow.rgb; // alternative: color=Max(color, glow.rgb);
       return VecH4(color, 0);
    }else
    {
