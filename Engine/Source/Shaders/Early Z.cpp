@@ -12,7 +12,7 @@ void VS
 {
    if(!SKIN)
    {
-      O_vtx=Project(TransformPos(vtx.pos()));
+      O_vtx=Project(TransformPos(vtx.pos())); // #EarlyZInstancing vtx.instance()
    }else
    {
       O_vtx=Project(TransformPos(vtx.pos(), vtx.bone(), vtx.weight()));

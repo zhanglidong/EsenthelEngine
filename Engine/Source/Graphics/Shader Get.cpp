@@ -160,7 +160,7 @@ void DefaultShaders::init(C Material *material[4], MESH_FLAG mesh_flag, Int lod_
    fx               =(grass ? (m->hasGrass2D() ? FX_GRASS_2D : FX_GRASS_3D) : leaf ? (m->hasLeaf2D() ? (size ? FX_LEAFS_2D : FX_LEAF_2D) : (size ? FX_LEAFS_3D : FX_LEAF_3D)) : FX_NONE);
 
    if(bump==SBUMP_ZERO){/*materials=1; can't return same shader for multi/single*/ layout=0; alpha_test=detail=macro=mtrl_blend=heightmap=false; fx=FX_NONE; MIN(emissive, 1);} // shaders with SBUMP_ZERO currently are very limited
-   if(fx){detail=macro=tesselate=false; MIN(bump, SBUMP_NORMAL); emissive=0;} // shaders with effects currently don't support detail/macro/tesselate/fancy bump/emissive
+   if(fx){detail=macro=tesselate=false; MIN(bump, SBUMP_NORMAL);} // shaders with effects currently don't support detail/macro/tesselate/fancy bump
 }
 Shader* DefaultShaders::EarlyZ()C
 {
@@ -188,7 +188,7 @@ Shader* DefaultShaders::Overlay()C
 Shader* DefaultShaders::Emissive()C
 {
 #if SUPPORT_EMISSIVE
-   if(valid && !alpha_blend && emissive)return ShaderFiles("Emissive")->get(ShaderEmissive(skin, alpha_test, emissive-1)); // for alpha_blend emissive is in the blend shader, emissive_map=(emissive==2) ? 1 : 0
+   if(valid && !alpha_blend && emissive)return ShaderFiles("Emissive")->get(ShaderEmissive(skin, alpha_test, emissive-1, fx, tesselate)); // for alpha_blend emissive is in the blend shader, emissive_map=(emissive==2) ? 1 : 0
 #endif
    return null;
 }

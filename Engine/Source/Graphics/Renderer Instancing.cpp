@@ -175,7 +175,7 @@ void DrawEarlyZInstances()
    SetMatrixCount();
    DisableSkinning();
    Renderer._shader_early_z->start(); // this shader doesn't require any textures
-   // TODO: this could be optimized to group in state changes (mesh->instance) and allow instancing
+   // TODO: this could be optimized to group in state changes (mesh->instance) and allow instancing #EarlyZInstancing
    FREPA(EarlyZInstances)
    {
     C Memc<EarlyZInstance> &instances=EarlyZInstances[i];
@@ -473,7 +473,7 @@ void SortEmissiveInstances()
 #endif
 }
 void DrawEmissiveInstances() // !! this function should be safe to call 2 times in a row for both eyes, so can't do any clearing/unlinking that would break things !!
-{
+{ // TODO: add support for #EmissiveInstancing
 #if SUPPORT_EMISSIVE
    SetViewOffset();
    BeginPrecomputedViewMatrix();

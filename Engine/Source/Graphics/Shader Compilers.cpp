@@ -49,7 +49,7 @@ Str8 ShaderForward   (Int skin, Int materials, Int layout, Int bump_mode, Int al
 Str8 ShaderBehind    (Int skin, Int alpha_test) {return S8+skin+alpha_test;}
 Str8 ShaderBlend     (Int skin, Int color, Int layout, Int bump_mode, Int reflect, Int emissive_map) {return S8+skin+color+layout+bump_mode+reflect+emissive_map;}
 Str8 ShaderEarlyZ    (Int skin) {return S8+skin;}
-Str8 ShaderEmissive  (Int skin, Int alpha_test, Int emissive_map) {return S8+skin+alpha_test+emissive_map;}
+Str8 ShaderEmissive  (Int skin, Int alpha_test, Int emissive_map, Int fx, Int tesselate) {return S8+skin+alpha_test+emissive_map+fx+tesselate;}
 Str8 ShaderFurBase   (Int skin, Int size, Int diffuse) {return S8+"Base"+skin+size+diffuse;}
 Str8 ShaderFurSoft   (Int skin, Int size, Int diffuse) {return S8+"Soft"+skin+size+diffuse;}
 Str8 ShaderOverlay   (Int skin, Int normal, Int layout) {return S8+skin+normal+layout;}
@@ -501,7 +501,14 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    REPD(skin        , 2)
    REPD(alpha_test  , 2)
    REPD(emissive_map, 2)
-      src.New(S, "VS", "PS")("SKIN", skin, "ALPHA_TEST", alpha_test, "EMISSIVE_MAP", emissive_map);
+   REPD(tesselate   , tess ? 2 : 1)
+      src.New(S, "VS", "PS")("SKIN", skin, "ALPHA_TEST", alpha_test, "EMISSIVE_MAP", emissive_map, "FX", FX_NONE).tesselate(tesselate);
+
+   // grass + leaf
+   REPD (emissive_map, 2  )
+   REPAD(fx          , fxs)
+   REPD (tesselate   , tess ? 2 : 1)
+      src.New(S, "VS", "PS")("SKIN", false, "ALPHA_TEST", true, "EMISSIVE_MAP", emissive_map, "FX", fxs[fx]).tesselate(tesselate);
 }
 #endif
 
@@ -609,10 +616,9 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       src.New().position(skin, alpha_test, test_blend, FX_NONE, tesselate);
 
    // grass + leafs
-   for(Int alpha_test=1; alpha_test<=2; alpha_test++)
    REPD (test_blend, 2)
    REPAD(fx        , fxs)
-      src.New().position(0, alpha_test, test_blend, fxs[fx], 0);
+      src.New().position(0, true, test_blend, fxs[fx], 0);
 }
 #endif
 
@@ -749,10 +755,10 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 
       // grass+leaf, 1 material, 1-2 tex
       for(Int layout=1; layout<=2; layout++)
-      REPD (bump_mode , per_pixel ? 2 : 1)
-      REPD (alpha_test, layout    ? 2 : 1)
-      REPAD(fx        , fxs)
-         src.New().blendLight(false, color, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, reflect, false, fxs[fx], per_pixel, shadow_maps);
+      REPD (bump_mode   , per_pixel ? 2 : 1)
+      REPD (emissive_map, 2)
+      REPAD(fx          , fxs)
+         src.New().blendLight(false, color, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, true, true, reflect, emissive_map, fxs[fx], per_pixel, shadow_maps);
    }
 }
 #endif
@@ -783,11 +789,12 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 
       // grass + leaf, 1 material, 1-2 tex
       for(Int layout=1; layout<=2; layout++)
-      REPD (per_pixel, 2)
-      REPD (bump_mode, per_pixel ? 2 : 1)
-      REPD (reflect  , 2)
-      REPAD(fx       , fxs)
-         src.forwardLight(false, 1, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, true, reflect, false, false, color, false, false, fxs[fx], per_pixel, false);
+      REPD (per_pixel   , 2)
+      REPD (bump_mode   , per_pixel ? 2 : 1)
+      REPD (reflect     , 2)
+      REPD (emissive_map, 2)
+      REPAD(fx          , fxs)
+         src.forwardLight(false, 1, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, true, reflect, emissive_map, false, color, false, false, fxs[fx], per_pixel, false);
    }
 }
 #endif

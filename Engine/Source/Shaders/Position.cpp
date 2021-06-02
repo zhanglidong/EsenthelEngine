@@ -6,8 +6,8 @@ SKIN, ALPHA_TEST, TEST_BLEND, FX, TESSELATE
 struct VS_PS
 {
 #if TESSELATE
-   Vec  pos:POS   ,
-        nrm:NORMAL;
+   Vec pos:POS   ,
+       nrm:NORMAL;
 #endif
 #if ALPHA_TEST
    Vec2 tex:TEXCOORD;

@@ -507,7 +507,7 @@ Str8 ShaderBlend     (Int skin, Int color, Int layout, Int bump_mode, Int reflec
 Str8 ShaderSetColor  (Int skin, Int alpha_test, Int tesselate);
 Str8 ShaderBehind    (Int skin, Int alpha_test);
 Str8 ShaderEarlyZ    (Int skin);
-Str8 ShaderEmissive  (Int skin, Int alpha_test, Int emissive_map);
+Str8 ShaderEmissive  (Int skin, Int alpha_test, Int emissive_map, Int fx, Int tesselate);
 Str8 ShaderOverlay   (Int skin, Int normal, Int layout);
 Str8 ShaderFurBase   (Int skin, Int size, Int diffuse);
 Str8 ShaderFurSoft   (Int skin, Int size, Int diffuse);

@@ -56,7 +56,7 @@ void Base_VS
 #if SIZE
    O.len=vtx.size();
 #endif
-   CLIP_PLANE(view_pos); outVtx=Project(view_pos);
+   outVtx=Project(view_pos); CLIP_PLANE(view_pos);
 #if USE_VEL
    O.projected_prev_pos_xyw=ProjectPrevXYW(view_pos_prev);
 #endif
