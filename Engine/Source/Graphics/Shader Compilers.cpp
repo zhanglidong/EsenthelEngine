@@ -756,9 +756,10 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       // grass+leaf, 1 material, 1-2 tex
       for(Int layout=1; layout<=2; layout++)
       REPD (bump_mode   , per_pixel ? 2 : 1)
+      REPD (alpha_test  , layout    ? 2 : 1) // here 'alpha_test' options are needed because of MTECH_BLEND_LIGHT_GRASS/MTECH_TEST_BLEND_LIGHT_GRASS etc.
       REPD (emissive_map, 2)
       REPAD(fx          , fxs)
-         src.New().blendLight(false, color, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, true, true, reflect, emissive_map, fxs[fx], per_pixel, shadow_maps);
+         src.New().blendLight(false, color, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, reflect, emissive_map, fxs[fx], per_pixel, shadow_maps);
    }
 }
 #endif
