@@ -345,6 +345,7 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
    }else
    {
       rt0->clearViewport();
+      Sh.BloomParams->setConditional(D.bloomOriginal());
    }
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
    Sh.Img [1]->set( rt0  );
