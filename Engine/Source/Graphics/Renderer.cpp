@@ -309,10 +309,11 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
    // '_alpha' RT from 'processAlpha' can't be used/modified because Bloom works by ADDING blurred results on top of existing background, NOT BLENDING (which is used for applying renderer results onto existing background when combining), we could potentially use a secondary RT to store bloom and add it on top of render, however that uses more memory, slower, and problematic with Motion Blur and DoF
    Bool gamma=LINEAR_GAMMA, swap=(gamma && src.canSwapSRV() && dest.canSwapRTV()); if(swap){gamma=false; src.swapSRV(); dest.swapRTV();}
 
-   const Int     shift=(D.bloomHalf() ? 1 : 2);
-   ImageRTDesc   rt_desc(fxW()>>shift, fxH()>>shift, IMAGERT_RGB); // using IMAGERT_RGB will clip to 0..1 range !! using high precision would require clamping in the shader to make sure values don't go below 0 !!
-   ImageRTPtrRef rt0(D.bloomHalf() ? _h0 : _q0); rt0.get(rt_desc);
-   ImageRTPtrRef rt1(D.bloomHalf() ? _h1 : _q1); rt1.get(rt_desc); Bool discard=false; // we've already discarded in 'get' so no need to do it again
+   const Bool    half =true;
+   const Int     shift=(half ? 1 : 2);
+   ImageRTDesc   rt_desc(fxW()>>shift, fxH()>>shift, IMAGERT_SRGB); // using IMAGERT_SRGB will clip to 0..1 range !! using high precision would require clamping in the shader to make sure values don't go below 0 !!
+   ImageRTPtrRef rt0(half ? _h0 : _q0); rt0.get(rt_desc);
+   ImageRTPtrRef rt1(half ? _h1 : _q1); rt1.get(rt_desc); Bool discard=false; // we've already discarded in 'get' so no need to do it again
 
    D.alpha(ALPHA_NONE);
    if(_has_glow || D.bloomScale()) // if we have something there
@@ -320,7 +321,8 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
       set(rt0, null, false);
 
       Rect ext_rect, *rect=null; // set rect, after setting render target
-      if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(pixelToScreenSize((D.bloomMaximum()+D.bloomBlurs())*SHADER_BLUR_RANGE+1));} // when not rendering entire viewport, then extend the rectangle, add +1 because of texture filtering, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
+      const Int blurs=1;
+      if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(pixelToScreenSize(blurs*SHADER_BLUR_RANGE+1));} // when not rendering entire viewport, then extend the rectangle, add +1 because of texture filtering, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
 
       const Bool gamma_per_pixel=false, // !! must be the same as in shader !!
                  half_res=(Flt(src.h())/rt0->h() <= 2.5f); // half_res=scale 2, ..3.., quarter=scale 4, 2.5 was the biggest scale that didn't cause jittering when using half down-sampling
@@ -333,15 +335,11 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
                                                                          D.bloomGlow ()/(res*res)));
       Sh.imgSize( src); GetBloomDS(_has_glow, !D._view_main.full, half_res, !D._bloom_cut, gamma)->draw(src, rect); // we can enable saturation (which is faster) if cut is zero, because zero cut won't change saturation
     //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
-      if(D.bloomMaximum())
+
+      REP(blurs)
       { // 'discard' before 'set' because it already may have requested discard, and if we 'discard' manually after 'set' then we might discard 2 times
-                         set(rt1, null, false); Sh.MaxX->draw(rt0, rect); discard=true; // discard next time
-         rt0->discard(); set(rt0, null, false); Sh.MaxY->draw(rt1, rect);
-      }
-      REP(D.bloomBlurs())
-      { // 'discard' before 'set' because it already may have requested discard, and if we 'discard' manually after 'set' then we might discard 2 times
-         if(discard)rt1->discard(); set(rt1, null, false); Sh.BlurX[D.bloomSamples()]->draw(rt0, rect); discard=true; // discard next time
-                    rt0->discard(); set(rt0, null, false); Sh.BlurY[D.bloomSamples()]->draw(rt1, rect);
+         if(discard)rt1->discard(); set(rt1, null, false); Sh.BlurX[1]->draw(rt0, rect); discard=true; // discard next time
+                    rt0->discard(); set(rt0, null, false); Sh.BlurY[1]->draw(rt1, rect);
       }
    }else
    {
