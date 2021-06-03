@@ -28,7 +28,7 @@ struct Environment
    {
       Bool on      ; // if enabled     , true/false, default=true
       Flt  original, // original color ,    0..Inf , default=1.0
-           scale   , // bloom scale    ,    0..Inf , default=1.0
+           scale   , // bloom scale    ,    0..Inf , default=0.8
            cut     , // bloom cutoff   ,    0..Inf , default=0.3
            glow    ; // bloom glow     ,    0..Inf , default=1.0
 

@@ -50,7 +50,7 @@ void Environment::Bloom::get()
 }
 void Environment::Bloom::reset()
 {
-   on=true; original=1.0f; scale=1.0f; cut=0.3f; glow=1.0f;
+   on=true; original=1.0f; scale=0.8f; cut=0.3f; glow=1.0f;
 }
 
 Bool Environment::Bloom::save(File &f, CChar *path)C
@@ -72,25 +72,25 @@ Bool Environment::Bloom::load(File &f, CChar *path)
 
       case 3:
       {
-         f>>on>>half>>maximum>>blurs>>original>>scale>>cut; glow=1; scale*=2.5f;
+         f>>on>>half>>maximum>>blurs>>original>>scale>>cut; glow=1; scale*=2;
          if(f.ok())return true;
       }break;
 
       case 2:
       {
-         f>>on>>half>>saturate>>maximum>>blurs>>original>>scale>>cut; glow=1; scale*=2.5f;
+         f>>on>>half>>saturate>>maximum>>blurs>>original>>scale>>cut; glow=1; scale*=2;
          if(f.ok())return true;
       }break;
 
       case 1:
       {
-         f>>on>>half>>maximum>>blurs>>original>>scale>>cut>>contrast; glow=1; scale*=2.5f;
+         f>>on>>half>>maximum>>blurs>>original>>scale>>cut>>contrast; glow=1; scale*=2;
          if(f.ok())return true;
       }break;
 
       case 0:
       {
-         f>>on>>half>>maximum>>blurs>>original>>scale>>cut>>contrast; glow=1; scale*=5;
+         f>>on>>half>>maximum>>blurs>>original>>scale>>cut>>contrast; glow=1; scale*=4;
          if(f.ok())return true;
       }break;
    }

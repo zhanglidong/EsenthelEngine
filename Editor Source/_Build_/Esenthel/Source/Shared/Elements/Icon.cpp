@@ -114,7 +114,7 @@
              >>cam_angle_time>>cam_focus_time>>ambient_col_time>>ambient_occl_time>>ambient_range_time
              >>bloom_original_time>>bloom_scale_time>>bloom_cut_time
              >>light0_col_time>>light1_col_time>>light0_angle_time>>light1_angle_time;
-            bloom_scale*=2;
+            bloom_scale*=1.6f;
             if(f.ok())return true;
          }break;
 
@@ -127,7 +127,7 @@
              >>cam_angle_time>>cam_focus_time>>ambient_col_time>>ambient_occl_time>>ambient_range_time
              >>bloom_original_time>>bloom_scale_time>>bloom_cut_time>>bloom_contrast_time
              >>light0_col_time>>light1_col_time>>light0_angle_time>>light1_angle_time;
-            bloom_scale*=2;
+            bloom_scale*=1.6f;
             if(type>=1)type=ElmImage::TYPE(type+1); if(f.ok())return true;
          }break;
 
@@ -141,7 +141,7 @@
              >>bloom_original_time>>bloom_scale_time>>bloom_cut_time>>bloom_contrast_time
              >>light0_col_time>>light1_col_time>>light0_angle_time>>light1_angle_time;
              light1_shadow=light0_shadow; light1_shadow_time=light0_shadow_time;
-            bloom_scale*=2;
+            bloom_scale*=1.6f;
             if(type>=1)type=ElmImage::TYPE(type+1); if(f.ok())return true;
          }break;
 
@@ -154,6 +154,6 @@
       File f; if(f.readTry(name))return load(f);
       reset(); return false;
    }
-IconSettings::IconSettings() : mip_maps(false), auto_center(true), light0_shadow(true), light1_shadow(true), type(ElmImage::COMPRESSED), width(128), height(128), scale(1), fov(PI_6), ambient_occl(1.2f), ambient_range(0.1f), bloom_original(1.0f), bloom_scale(1.0f), bloom_cut(0.3f), bloom_glow(1.0f), cam_angle(0), cam_focus(0), ambient_col(0.4f), light0_col(0.7f), light1_col(0.0f), light0_angle( PI_4,  PI_4), light1_angle(-PI_4, -PI_4) {}
+IconSettings::IconSettings() : mip_maps(false), auto_center(true), light0_shadow(true), light1_shadow(true), type(ElmImage::COMPRESSED), width(128), height(128), scale(1), fov(PI_6), ambient_occl(1.2f), ambient_range(0.1f), bloom_original(1.0f), bloom_scale(0.8f), bloom_cut(0.3f), bloom_glow(1.0f), cam_angle(0), cam_focus(0), ambient_col(0.4f), light0_col(0.7f), light1_col(0.0f), light0_angle( PI_4,  PI_4), light1_angle(-PI_4, -PI_4) {}
 
 /******************************************************************************/

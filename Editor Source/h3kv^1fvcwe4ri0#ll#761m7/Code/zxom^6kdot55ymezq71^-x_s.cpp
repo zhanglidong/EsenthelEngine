@@ -13,7 +13,7 @@ class IconSettings
                  ambient_occl  =1.2,
                  ambient_range =0.1,
                  bloom_original=1.0,
-                 bloom_scale   =1.0,
+                 bloom_scale   =0.8,
                  bloom_cut     =0.3,
                  bloom_glow    =1.0;
    Vec           cam_angle     =0,
@@ -143,7 +143,7 @@ class IconSettings
              >>cam_angle_time>>cam_focus_time>>ambient_col_time>>ambient_occl_time>>ambient_range_time
              >>bloom_original_time>>bloom_scale_time>>bloom_cut_time
              >>light0_col_time>>light1_col_time>>light0_angle_time>>light1_angle_time;
-            bloom_scale*=2;
+            bloom_scale*=1.6;
             if(f.ok())return true;
          }break;
 
@@ -156,7 +156,7 @@ class IconSettings
              >>cam_angle_time>>cam_focus_time>>ambient_col_time>>ambient_occl_time>>ambient_range_time
              >>bloom_original_time>>bloom_scale_time>>bloom_cut_time>>bloom_contrast_time
              >>light0_col_time>>light1_col_time>>light0_angle_time>>light1_angle_time;
-            bloom_scale*=2;
+            bloom_scale*=1.6;
             if(type>=1)type=ElmImage.TYPE(type+1); if(f.ok())return true;
          }break;
 
@@ -170,7 +170,7 @@ class IconSettings
              >>bloom_original_time>>bloom_scale_time>>bloom_cut_time>>bloom_contrast_time
              >>light0_col_time>>light1_col_time>>light0_angle_time>>light1_angle_time;
              light1_shadow=light0_shadow; light1_shadow_time=light0_shadow_time;
-            bloom_scale*=2;
+            bloom_scale*=1.6;
             if(type>=1)type=ElmImage.TYPE(type+1); if(f.ok())return true;
          }break;
 
