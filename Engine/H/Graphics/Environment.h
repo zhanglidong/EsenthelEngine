@@ -26,13 +26,11 @@ struct Environment
 
    struct Bloom
    {
-      Bool on      , // if enabled     , true/false, default=true
-           half    , // half/quarter   , true/false, default=true, this specifies whether bloom should be calculated using half of quarter sized render targets (half is more precise but slower, quarter is more blurred)
-           maximum ; // maximum filter , true/false, default=false
-      Byte blurs   ; // number of blurs,    0..4   , default=1
+      Bool on      ; // if enabled     , true/false, default=true
       Flt  original, // original color ,    0..Inf , default=1.0
            scale   , // bloom scale    ,    0..Inf , default=0.4
-           cut     ; // bloom cutoff   ,    0..Inf , default=0.3
+           cut     , // bloom cutoff   ,    0..Inf , default=0.3
+           glow    ; // bloom glow     ,    0..Inf , default=1.0
 
       // set / get
       void set  ()C; // apply these settings to graphics

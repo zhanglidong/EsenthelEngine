@@ -227,8 +227,8 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       src.New("BlurX_X", "Draw_VS", "BlurX_X_PS");
       src.New("BlurY_X", "Draw_VS", "BlurY_X_PS");
 
-      src.New("MaxX", "Draw_VS", "MaxX_PS");
-      src.New("MaxY", "Draw_VS", "MaxY_PS");
+    //src.New("MaxX", "Draw_VS", "MaxX_PS");
+    //src.New("MaxY", "Draw_VS", "MaxY_PS");
    }
    { // CUBIC
       ShaderCompiler::Source &src=compiler.New(src_path+"Cubic.cpp");

@@ -41,29 +41,35 @@ Bool Environment::Ambient::load(File &f, CChar *path)
 /******************************************************************************/
 void Environment::Bloom::set()C
 {
-   D.bloomOriginal(on ? original : 1).bloomScale(on ? scale : 0).bloomCut(cut).bloomMaximum(maximum).bloomHalf(half).bloomBlurs(blurs);
+   D.bloomOriginal(on ? original : 1).bloomScale(on ? scale : 0).bloomCut(cut).bloomGlow(glow);
 }
 void Environment::Bloom::get()
 {
-   original=D.bloomOriginal(); scale=D.bloomScale(); cut=D.bloomCut(); maximum=D.bloomMaximum(); half=D.bloomHalf(); blurs=D.bloomBlurs();
+   original=D.bloomOriginal(); scale=D.bloomScale(); cut=D.bloomCut(); glow=D.bloomGlow();
    on=!(Equal(original, 1) && Equal(scale, 0));
 }
 void Environment::Bloom::reset()
 {
-   on=true; half=true; maximum=false; blurs=1; original=1.0f; scale=0.4f; cut=0.3f;
+   on=true; original=1.0f; scale=0.4f; cut=0.3f; glow=1.0f;
 }
 
 Bool Environment::Bloom::save(File &f, CChar *path)C
 {
-   f.cmpUIntV(3); // version
-   f<<on<<half<<maximum<<blurs<<original<<scale<<cut;
+   f.cmpUIntV(4); // version
+   f<<on<<original<<scale<<cut<<glow;
    return f.ok();
 }
 Bool Environment::Bloom::load(File &f, CChar *path)
 {
-   Bool saturate; Flt contrast;
+   Bool saturate, half, maximum; Byte blurs; Flt contrast;
    switch(f.decUIntV())
    {
+      case 4:
+      {
+         f>>on>>original>>scale>>cut>>glow;
+         if(f.ok())return true;
+      }break;
+
       case 3:
       {
          f>>on>>half>>maximum>>blurs>>original>>scale>>cut;

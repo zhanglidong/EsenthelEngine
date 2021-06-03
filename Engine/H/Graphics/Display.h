@@ -271,10 +271,6 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
    DisplayClass& bloomScale   (Flt  scale   );   Flt  bloomScale   ()C {return _bloom_scale   ;} // set/get Bloom Scale           (   0..Inf , default=0.4                     ), the change is instant, you can call it real-time
    DisplayClass& bloomCut     (Flt  cut     );   Flt  bloomCut     ()C {return _bloom_cut     ;} // set/get Bloom Cutoff          (   0..Inf , default=0.3                     ), the change is instant, you can call it real-time
    DisplayClass& bloomGlow    (Flt  glow    );   Flt  bloomGlow    ()C {return _bloom_glow    ;} // set/get Bloom from Glow       (   0..Inf , default=1.0                     ), the change is instant, you can call it real-time
-   DisplayClass& bloomMaximum (Bool on      );   Bool bloomMaximum ()C {return _bloom_max     ;} // set/get Bloom Maximum Filter  (true/false, default=false                   ), the change is instant, you can call it real-time
-   DisplayClass& bloomHalf    (Bool half    );   Bool bloomHalf    ()C {return _bloom_half    ;} // set/get Bloom Half/Quarter    (true/false, default=true  (false for Mobile)), this specifies whether bloom should be calculated using half or quarter sized render targets (half is more precise but slower, quarter is more blurred), the change is instant, you can call it real-time
-   DisplayClass& bloomBlurs   (Byte blurs   );   Byte bloomBlurs   ()C {return _bloom_blurs   ;} // set/get Bloom Number of Blurs (   0..4   , default=1                       ), the change is instant, you can call it real-time
-   DisplayClass& bloomSamples (Bool high    );   Bool bloomSamples ()C {return _bloom_samples ;} // set/get Bloom Sample Count    (true/false, default=true  (false for Mobile)), if set to true then 6 texture reads are performed in the shader, if set to false then 4 texture reads are performed, the change is instant, you can call it real-time
                                                  Bool bloomUsed    ()C;                          //     if  Bloom post process is going to be used
 
    // Ambient Light
@@ -544,7 +540,7 @@ private:
                      _hp_col_rt, _hp_nrm_rt, _hp_lum_rt,
                      _particles_soft, _particles_smooth,
                      _tex_mip_filter, _tex_macro, _tex_detail_lod,
-                     _bloom_allow, _bloom_max, _bloom_half, _bloom_samples,
+                     _bloom_allow,
                      _tesselation, _tesselation_heightmap, _tesselation_allow,
                      _ao_all, _amb_jitter, _amb_normal,
                      _shd_jitter, _shd_reduce,
@@ -553,7 +549,7 @@ private:
                      _taa, _taa_dual,
                      _glow_allow, _dither, _bend_leafs, _eye_adapt, _dof_foc_mode, _color_palette_allow, _gamma_all, _fade_get, _fade_auto_draw, _mtrl_blend, _draw_null_mtrl, _view_square_pixel, _allow_stereo, _max_lights_soft,
                      _initialized, _resetting, _no_gpu;
-   Byte              _density, _samples, _max_tex_filter, _bloom_blurs, _max_rt,
+   Byte              _density, _samples, _max_tex_filter, _max_rt,
                      _amb_soft, _amb_res,
                      _shd_soft, _shd_map_num,
                      _mtn_res,

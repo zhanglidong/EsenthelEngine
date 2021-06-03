@@ -28,10 +28,18 @@
 
 #define TEST_BLUR 0
 #if     TEST_BLUR
-   Flt Test, Samples, Mode;
+   Flt Mode=5, Samples, Test=1;
    Flt Weight(Int i, Int s)
    {
-      return Mode ? Gaussian(Mode*i/Flt(s+1)) : BlendSmoothSin(i/Flt(s+1));
+      Flt frac=i/Flt(s+1);
+      Int mode=Round(Mode);
+      if(mode==1)return Quart(1-frac);
+      if(mode==2)return Cube(1-frac);
+      if(mode==3)return Sqr(1-frac);
+      if(mode==4)return Gaussian(2*frac);
+      if(mode==5)return BlendSmoothSin(frac); // nearly identical to BlendSmoothCube
+      if(mode==6)return (1-frac);
+      return 1;
    }
 #endif
 

@@ -16,9 +16,6 @@ BUFFER_END
 #ifndef HALF_RES
    #define HALF_RES 0
 #endif
-#ifndef SATURATE
-   #define SATURATE 0
-#endif
 #ifndef GAMMA
    #define GAMMA 0
 #endif
@@ -36,14 +33,8 @@ void BloomDS_VS(VtxInput vtx,
 VecH BloomColor(VecH color, Bool gamma)
 {
    if(gamma)color=LinearToSRGBFast(color);
-   if(SATURATE)
-   {
-      return color*BloomParams.y+BloomParams.z;
-   }else
-   {
-      Half col_lum=Max(color), lum=col_lum*BloomParams.y+BloomParams.z;
-      return (lum>0) ? color*(lum/col_lum) : VecH(0, 0, 0);
-   }
+   Half col_lum=Max(color), lum=col_lum*BloomParams.y+BloomParams.z;
+   return (lum>0) ? color*(Sqr(lum)/col_lum) : VecH(0, 0, 0);
 }
 VecH4 BloomDS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // "Max(0, " of the result is not needed because we're rendering to 1 byte per channel RT
 {

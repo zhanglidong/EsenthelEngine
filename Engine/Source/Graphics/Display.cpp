@@ -957,10 +957,6 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _bloom_scale   =0.4f;
   _bloom_cut     =0.3f;
   _bloom_glow    =1.0f;
-  _bloom_blurs   =1;
-//_bloom_max     =false;
-  _bloom_half    =!MOBILE;
-  _bloom_samples =!MOBILE;
           _bloom_allow=!MOBILE;
            _glow_allow=!MOBILE;
   _color_palette_allow=!MOBILE;
@@ -1661,7 +1657,6 @@ _linear_gamma^=1; linearGamma(!_linear_gamma); // set after loading shaders
    // set default settings
    {Byte v=texFilter   (); _tex_filter    ^=1               ; texFilter   (v);}
    {Bool v=texMipFilter(); _tex_mip_filter^=1               ; texMipFilter(v);}
-   {Bool v=bloomMaximum(); _bloom_max      =false           ; bloomMaximum(v);} // resetting will load shaders
    {auto v=edgeSoften  (); _edge_soften    =EDGE_SOFTEN_NONE; edgeSoften  (v);} // resetting will load shaders
    {auto v=edgeDetect  (); _edge_detect    =EDGE_DETECT_NONE; edgeDetect  (v);} // resetting will load shaders
    {auto v=tAA         (); _taa            =false           ; tAA         (v);} // resetting will load shaders
@@ -3006,10 +3001,6 @@ DisplayClass& DisplayClass::bloomOriginal(Flt  original) {MAX  (original, 0);   
 DisplayClass& DisplayClass::bloomScale   (Flt  scale   ) {MAX  (scale   , 0);   _bloom_scale   =scale   ;              return T;}
 DisplayClass& DisplayClass::bloomCut     (Flt  cut     ) {MAX  (cut     , 0);   _bloom_cut     =cut     ;              return T;}
 DisplayClass& DisplayClass::bloomGlow    (Flt  glow    ) {MAX  (glow    , 0);   _bloom_glow    =glow    ;              return T;}
-DisplayClass& DisplayClass::bloomHalf    (Bool half    ) {                      _bloom_half    =half    ;              return T;}
-DisplayClass& DisplayClass::bloomBlurs   (Byte blurs   ) {Clamp(blurs, 0, 4);   _bloom_blurs   =blurs   ;              return T;}
-DisplayClass& DisplayClass::bloomSamples (Bool high    ) {                      _bloom_samples =high    ;              return T;}
-DisplayClass& DisplayClass::bloomMaximum (Bool on      ) {if(_bloom_max!=on){   _bloom_max     =on      ; if(!Sh.MaxX && on && created()){Sh.MaxX=Sh.get("MaxX"); Sh.MaxY=Sh.get("MaxY");}} return T;}
 Bool          DisplayClass::bloomUsed    (             )C{return bloomAllow() && (!Equal(bloomOriginal(), 1, EPS_COL) || !Equal(bloomScale(), 0, EPS_COL));}
 /******************************************************************************/
 DisplayClass& DisplayClass::volLight(Bool on ) {_vol_light=    on     ; return T;}
