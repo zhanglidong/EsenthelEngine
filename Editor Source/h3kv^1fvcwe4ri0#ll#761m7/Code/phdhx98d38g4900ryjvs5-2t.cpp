@@ -67,7 +67,6 @@ class MiniMapEditor : PropWin
          AMBIENT_MODE     ambient    =D.  ambientMode    (); D.ambientMode  (AMBIENT_ULTRA   );
          flt              ambient_res=D.   ambientRes    (); if(final)D.ambientRes   (1);
          flt              density    =D.      density    (); if(final)D.density      (1);
-         bool             bloom_half =D.    bloomHalf    (); D.bloomHalf    (true            );
          EDGE_SOFTEN_MODE edge       =D.   edgeSoften    (); D.edgeSoften   (EDGE_SOFTEN_SMAA);
          DOF_MODE         dof        =D.      dofMode    (); D.    dofMode  (DOF_NONE        );
          flt              lod_factor =D.    lodFactor    (); D.  lodFactor  (0               );
@@ -121,7 +120,6 @@ class MiniMapEditor : PropWin
          D. motionMode         (motion    );
          D.ambientMode         (ambient   ).ambientRes(ambient_res);
          D.density             (density   );
-         D.bloomHalf           (bloom_half);
          D.shadowSoft          (shd_soft  ).shadowMapNum(shd_num).shadowJitter(shd_jitter).shadow_step=shd_step;
          D.edgeSoften          (edge      );
          D.eyeAdaptation       (eye_adapt );

@@ -65,6 +65,8 @@ IconEditor IconEdit;
    Str  IconSettsEditor::BloomScale(C IconSettsEditor &ie          ) {return ie.edit.bloom_scale;}
    void IconSettsEditor::BloomCut(  IconSettsEditor &ie, C Str &t) {ie.edit.bloom_cut=TextFlt(t); ie.edit.bloom_cut_time.getUTC();}
    Str  IconSettsEditor::BloomCut(C IconSettsEditor &ie          ) {return ie.edit.bloom_cut;}
+   void IconSettsEditor::BloomGlow(  IconSettsEditor &ie, C Str &t) {ie.edit.bloom_glow=TextFlt(t); ie.edit.bloom_glow_time.getUTC();}
+   Str  IconSettsEditor::BloomGlow(C IconSettsEditor &ie          ) {return ie.edit.bloom_glow;}
    void IconSettsEditor::Light0Shadow(  IconSettsEditor &ie, C Str &t) {ie.edit.light0_shadow=TextBool(t); ie.edit.light0_shadow_time.getUTC();}
    Str  IconSettsEditor::Light0Shadow(C IconSettsEditor &ie          ) {return ie.edit.light0_shadow;}
    void IconSettsEditor::Light1Shadow(  IconSettsEditor &ie, C Str &t) {ie.edit.light1_shadow=TextBool(t); ie.edit.light1_shadow_time.getUTC();}
@@ -117,6 +119,7 @@ IconEditor IconEdit;
       add("Bloom Original", MemberDesc(DATA_REAL).setFunc(BloomOriginal, BloomOriginal)).range(0, 2);
       add("Bloom Scale"   , MemberDesc(DATA_REAL).setFunc(BloomScale   , BloomScale   )).range(0, 2);
       add("Bloom Cut"     , MemberDesc(DATA_REAL).setFunc(BloomCut     , BloomCut     )).range(0, 1);
+      add("Bloom Glow"    , MemberDesc(DATA_REAL).setFunc(BloomGlow    , BloomGlow    )).range(0, 2);
       add();
       add("Ambient"          , MemberDesc(DATA_VEC ).setFunc(AmbientCol   , AmbientCol   )).setColor();
       add("Ambient Occlusion", MemberDesc(DATA_REAL).setFunc(AmbientOccl  , AmbientOccl  )).range(0, 2);
@@ -264,9 +267,8 @@ IconEditor IconEdit;
       flt              density      =D.density          (); if(final)D.density        (1);
       flt              lod_factor   =D.lodFactor        (); D.lodFactor      (0);
       DOF_MODE         dof          =D.dofMode          (); D.dofMode        (DOF_NONE);
-      bool             bloom_max    =D.bloomMaximum     ();
-      bool             bloom_half   =D.bloomHalf        (), shadow_jitter=D.shadowJitter();
-      byte             bloom_blurs  =D.bloomBlurs       (), shadow_soft  =D.shadowSoft  (), shd_map_num=D.shadowMapNum();
+      bool             shadow_jitter=D.shadowJitter     ();
+      byte             shadow_soft  =D.shadowSoft       (), shd_map_num=D.shadowMapNum();
       bool             eye_adapt    =D.eyeAdaptation    (); D.eyeAdaptation(false);
       bool             null_mtrls   =D.drawNullMaterials(); if(final)D.drawNullMaterials(false);
       bool             astros       =AstrosDraw           ; AstrosDraw     =false;
@@ -275,8 +277,7 @@ IconEditor IconEdit;
       VecI2            view_size;
       Sky.clear();
 
-      D.bloomOriginal(settings.bloom_original).bloomScale(settings.bloom_scale).bloomCut(settings.bloom_cut);
-      D.bloomBlurs(0).bloomHalf(true).bloomMaximum(false);
+      D.bloomOriginal(settings.bloom_original).bloomScale(settings.bloom_scale).bloomCut(settings.bloom_cut).bloomGlow(settings.bloom_glow);
       D.shadowSoft(1).shadowJitter(true).shadowMapNum(6);
 
       // set object first
@@ -418,7 +419,6 @@ IconEditor IconEdit;
       Renderer.allow_taa=true;
 
       D.viewForceSquarePixel(false).viewFrom(view_from).viewRange(view_range).viewFov(view_fov);
-      D.       bloomBlurs(bloom_blurs).bloomHalf(bloom_half).bloomMaximum(bloom_max);
       D.       shadowMode(shadow    ).shadowSoft(shadow_soft).shadowJitter(shadow_jitter).shadowMapNum(shd_map_num);
       D.        lodFactor(lod_factor);
       D.          dofMode(dof       );

@@ -15,7 +15,8 @@ class IconSettings
                  ambient_range ,
                  bloom_original,
                  bloom_scale   ,
-                 bloom_cut     ;
+                 bloom_cut     ,
+                 bloom_glow    ;
    Vec           cam_angle     ,
                  cam_focus     ,
                  ambient_col   ,
@@ -26,7 +27,7 @@ class IconSettings
    TimeStamp     mip_maps_time, auto_center_time, light0_shadow_time, light1_shadow_time, type_time, width_time, height_time, scale_time, fov_time,
                  cam_angle_time, cam_focus_time,
                  ambient_col_time, ambient_occl_time, ambient_range_time,
-                 bloom_original_time, bloom_scale_time, bloom_cut_time,
+                 bloom_original_time, bloom_scale_time, bloom_cut_time, bloom_glow_time,
                  light0_col_time, light1_col_time, light0_angle_time, light1_angle_time;
 
    bool newer(C IconSettings &src)C;
