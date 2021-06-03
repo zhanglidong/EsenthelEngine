@@ -84,8 +84,7 @@ class MaterialRegion : Region
          if(type==TEX_MACRO)desc.line()+="Can be set for heightmap materials to decrease repetitiveness of textures.\nBecomes visible at distance of around 100 meters.";
          FREPA(files){desc+='\n'; desc+=files[i].encode();}
          desc+="\nUse Ctrl+Click to Explore";
-         if(type==TEX_SMOOTH)desc+="\nAppend \"?inverseRGB\" to file name when using a \"Roughness\" map,\nor hold Alt while drag and drop to auto append.";
-       //if(type==TEX_METAL )desc+="\nAppend \"?metalToReflect\" to file name when using a \"Metal\" map,\nor hold Shift while drag and drop to auto append.";
+         desc+="\nIf you have multiple data packed per-channel in one image, then you can hold Shift key while drag and drop to auto-detect,\nor specify manually which channel to use by appending \"?channel=X\" to file name where X is r, g, b, a.";
          T.desc(desc);
       }
       static void FixPath(Mems<FileParams> &fps)
@@ -97,7 +96,7 @@ class MaterialRegion : Region
             FixPath(fp.nodes);
          }
       }
-      void setFile(Str file)
+      void setFile(Str file, bool set_undo=true)
       {
          // fix |..| paths, such as "|color|" etc.
          Mems<FileParams> fps=FileParams.Decode(file);
@@ -107,7 +106,7 @@ class MaterialRegion : Region
          T.file=file; setDesc();
          if(mr)
          {
-            mr.undos.set(null, true);
+            if(set_undo)mr.undos.set(null, true);
             EditMaterial &mtrl=mr.getEditMtrl();
             TEX_FLAG  textures=mtrl.textures(); // get current state of textures before making any change
           //if(type>=TEX_RFL_L && type<=TEX_RFL_U)file=SetCubeFile(md_file.asText(&mtrl), type-TEX_RFL_L, file);
@@ -234,19 +233,19 @@ class MaterialRegion : Region
             ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
             if(!mr.water())switch(type) // #MaterialTextureLayout
             {
-               case TEX_COLOR     : if(em.   color_map   .is()                       )if(base_0  ){                                                      base_0  ->drawFit(rect); tex=true;} break;
-               case TEX_ALPHA     : if(em.   color_map   .is() || em.alpha_map.is()  )if(base_0  ){VI.shader(ShaderFiles("Main")->get("DrawTexWG"    )); base_0  ->drawFit(rect); tex=true;} break;
-               case TEX_BUMP      : if(em.  hasBumpMap      ()                       )if(base_2  ){VI.shader(ShaderFiles("Main")->get("DrawTexZG"    )); base_2  ->drawFit(rect); tex=true;} break;
-               case TEX_NORMAL    : if(em.hasNormalMap      ()                       )if(base_1  ){VI.shader(ShaderFiles("Main")->get("DrawTexNrm"   )); base_1  ->drawFit(rect); tex=true;} break;
-               case TEX_SMOOTH    : if(em.  smooth_map   .is()                       )if(base_2  ){VI.shader(ShaderFiles("Main")->get("DrawTexYIG"   )); base_2  ->drawFit(rect); tex=true;} break; // inverse because it's roughness
-               case TEX_METAL     : if(em.   metal_map   .is()                       )if(base_2  ){VI.shader(ShaderFiles("Main")->get("DrawTexXG"    )); base_2  ->drawFit(rect); tex=true;} break;
-               case TEX_GLOW      : if(em.    glow_map   .is()                       )if(base_2  ){VI.shader(ShaderFiles("Main")->get("DrawTexWG"    )); base_2  ->drawFit(rect); tex=true;} break;
-               case TEX_EMISSIVE  : if(em.emissive_map   .is()                       )if(emissive){                                                      emissive->drawFit(rect); tex=true;} break;
-               case TEX_MACRO     : if(em.   macro_map   .is()                       )if(macro   ){                                                      macro   ->drawFit(rect); tex=true;} break;
-               case TEX_DET_COLOR : if(em.  detail_color .is()                       )if(detail  ){VI.shader(ShaderFiles("Main")->get("DrawTexWG"    )); detail  ->drawFit(rect); tex=true;} break; // #MaterialTextureLayoutDetail
-               case TEX_DET_BUMP  : if(em.  detail_bump  .is()                       )if(detail  ){      if(Image *bump=mr.getDetailBump(em.detail_bump))bump    ->drawFit(rect); tex=true;} break; // Detail Bump is not stored in texture
-               case TEX_DET_NORMAL: if(em.  detail_normal.is() || em.detail_bump.is())if(detail  ){VI.shader(ShaderFiles("Main")->get("DrawTexDetNrm")); detail  ->drawFit(rect); tex=true;} break;
-               case TEX_DET_SMOOTH: if(em.  detail_smooth.is()                       )if(detail  ){VI.shader(ShaderFiles("Main")->get("DrawTexZIG"   )); detail  ->drawFit(rect); tex=true;} break; // inverse because it's roughness
+               case TEX_COLOR     : if(em.   color_map   .is()                       )if(base_0  ){                                                                                      base_0  ->drawFit(rect); tex=true;} break;
+               case TEX_ALPHA     : if(em.   color_map   .is() || em.alpha_map.is()  )if(base_0  ){VI.shader(ShaderFiles("Main")->get(                     "DrawTexWG"               )); base_0  ->drawFit(rect); tex=true;} break;
+               case TEX_BUMP      : if(em.  hasBumpMap      ()                       )if(base_2  ){VI.shader(ShaderFiles("Main")->get(                     "DrawTexZG"               )); base_2  ->drawFit(rect); tex=true;} break;
+               case TEX_NORMAL    : if(em.hasNormalMap      ()                       )if(base_1  ){VI.shader(ShaderFiles("Main")->get(                     "DrawTexNrm"              )); base_1  ->drawFit(rect); tex=true;} break;
+               case TEX_SMOOTH    : if(em.  smooth_map   .is()                       )if(base_2  ){VI.shader(ShaderFiles("Main")->get(em.smooth_is_rough ? "DrawTexYG" : "DrawTexYIG")); base_2  ->drawFit(rect); tex=true;} break;
+               case TEX_METAL     : if(em.   metal_map   .is()                       )if(base_2  ){VI.shader(ShaderFiles("Main")->get(                     "DrawTexXG"               )); base_2  ->drawFit(rect); tex=true;} break;
+               case TEX_GLOW      : if(em.    glow_map   .is()                       )if(base_2  ){VI.shader(ShaderFiles("Main")->get(                     "DrawTexWG"               )); base_2  ->drawFit(rect); tex=true;} break;
+               case TEX_EMISSIVE  : if(em.emissive_map   .is()                       )if(emissive){                                                                                      emissive->drawFit(rect); tex=true;} break;
+               case TEX_MACRO     : if(em.   macro_map   .is()                       )if(macro   ){                                                                                      macro   ->drawFit(rect); tex=true;} break;
+               case TEX_DET_COLOR : if(em.  detail_color .is()                       )if(detail  ){VI.shader(ShaderFiles("Main")->get(                     "DrawTexWG"               )); detail  ->drawFit(rect); tex=true;} break; // #MaterialTextureLayoutDetail
+               case TEX_DET_BUMP  : if(em.  detail_bump  .is()                       )if(detail  ){                                      if(Image *bump=mr.getDetailBump(em.detail_bump))bump    ->drawFit(rect); tex=true;} break; // Detail Bump is not stored in texture
+               case TEX_DET_NORMAL: if(em.  detail_normal.is() || em.detail_bump.is())if(detail  ){VI.shader(ShaderFiles("Main")->get(                     "DrawTexDetNrm"           )); detail  ->drawFit(rect); tex=true;} break;
+               case TEX_DET_SMOOTH: if(em.  detail_smooth.is()                       )if(detail  ){VI.shader(ShaderFiles("Main")->get(                     "DrawTexZIG"              )); detail  ->drawFit(rect); tex=true;} break; // inverse because it's roughness
              /*case TEX_RFL_L     : if(em. reflection_map.is()                       )if(reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_LEFT   ); tex=true;} break;
                case TEX_RFL_F     : if(em. reflection_map.is()                       )if(reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_FORWARD); tex=true;} break;
                case TEX_RFL_R     : if(em. reflection_map.is()                       )if(reflection){reflection->drawCubeFace(WHITE, TRANSPARENT, rect, DIR_RIGHT  ); tex=true;} break;
@@ -267,9 +266,9 @@ class MaterialRegion : Region
                }break;*/
             }else switch(type) // #MaterialTextureLayoutWater
             {
-               case TEX_COLOR     : if(em.    color_map.is()                       )if(base_0){                                                   base_0->drawFit(rect); tex=true;} break;
-               case TEX_BUMP      : if(em.      hasBumpMap()                       )if(base_2){VI.shader(ShaderFiles("Main")->get("DrawTexXSG")); base_2->drawFit(rect); tex=true;} break;
-               case TEX_NORMAL    : if(em.    hasNormalMap()                       )if(base_1){VI.shader(ShaderFiles("Main")->get("DrawTexNrm")); base_1->drawFit(rect); tex=true;} break;
+               case TEX_COLOR : if(em.color_map.is())if(base_0){                                                   base_0->drawFit(rect); tex=true;} break;
+               case TEX_BUMP  : if(em.  hasBumpMap())if(base_2){VI.shader(ShaderFiles("Main")->get("DrawTexXSG")); base_2->drawFit(rect); tex=true;} break;
+               case TEX_NORMAL: if(em.hasNormalMap())if(base_1){VI.shader(ShaderFiles("Main")->get("DrawTexNrm")); base_1->drawFit(rect); tex=true;} break;
             }
             D.alpha(alpha);
          }
@@ -1147,6 +1146,8 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
    class ImageSource : FileParams
    {
       int i, order=0;
+      
+      void set(C Str &name, int i) {T.name=name; T.i=i;}
    }
    static int Compare(C ImageSource &a, C ImageSource &b)
    {
@@ -1156,9 +1157,11 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
    enum TEX_CHANNEL_TYPE : byte
    {
       TC_ROUGH ,
+      TC_SMOOTH,
       TC_METAL ,
       TC_AO    ,
       TC_HEIGHT,
+      TC_GLOW  ,
       TC_NUM   ,
    }
    class TexChannel
@@ -1167,7 +1170,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
       int              pos;
 
       TexChannel& set (TEX_CHANNEL_TYPE type) {T.type=type; T.pos=-1; return T;}
-      TexChannel& find(C Str &name, C Str &text, bool case_sensitive=false) {if(pos<0)pos=TextPosI(name, text, case_sensitive); return T;}
+      TexChannel& find(C Str &name, C Str &text, bool case_sensitive=false, WHOLE_WORD whole_word=WHOLE_WORD_NO) {if(pos<0)pos=TextPosI(name, text, case_sensitive, whole_word); return T;}
       void fix() {if(pos<0)pos=INT_MAX;}
 
       static int Compare(C TexChannel &a, C TexChannel &b) {return .Compare(a.pos, b.pos);}
@@ -1177,65 +1180,115 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
       if(contains(focus_obj))REPA(texs)if(texs[i].contains(focus_obj))
       {
          Texture &tex=texs[i];
-         Memc<ImageSource> images; FREPA(names)if(ExtType(GetExt(names[i]))==EXT_IMAGE)images.New().name=CodeEdit.importPaths(names[i]);
-         bool append=(Kb.ctrl() && tex.file.is());
-         if(images.elms())
+         Memc<ImageSource> images; FREPA(names)if(ExtType(GetExt(names[i]))==EXT_IMAGE)images.New().set(CodeEdit.importPaths(names[i]), i);
+         bool append=(Kb.ctrl() && tex.file.is()),
+              multi_images=(images.elms()>1 || append); // multiple images
+
+         undos.set(null, true); // set undo manually because we might change some parameters
+         if(multi_images
+         || Kb.shift()) // auto detect
+            REPA(images)
          {
-            if(Kb.shift()) // Unity (Metal Smoothness)
+            ImageSource     &image =images[i];
+            Mems<TextParam> &params=image.params;
+            Str  base=GetBaseNoExt(image.name);
+            int  tc_channel[TC_NUM]; REPAO(tc_channel)=-1;
+            int  detected_channels=0;
+            bool multi_channel=false, need_metal_channel=true;
+
+            if(Contains(base, "RMA", true, WHOLE_WORD_ALPHA))
             {
-               if(tex.type==TEX_COLOR ) images[0].params.New().set("channel"  , "rgb"); // ignore alpha channel
-               if(tex.type==TEX_SMOOTH){images[0].params.New().set("channel"  , "a"  ); if(Kb.alt())images[0].params.New().set("inverseRGB");} // get smooth from alpha channel (Unity style), optionally treat it as roughness on Alt
-             //if(tex.type==TEX_METAL ) images[0].params.New().set("metalToReflect"  ); // convert from metal map
+               tc_channel[TC_ROUGH]=0;
+               tc_channel[TC_METAL]=1;
+               tc_channel[TC_AO   ]=2;
+               detected_channels=3; multi_channel=true;
             }else
-            if(Kb.alt()) // Unreal (Roughness Metal AO)
+            if(Contains(base, "ORM", true, WHOLE_WORD_ALPHA))
             {
-               bool multi_channel=false;
-               byte tc_channel[TC_NUM]; SetMem(tc_channel, 0xFF);
-             C Str &name=images[0].name;
-               if(Contains(name, "RMA", true, WHOLE_WORD_ALPHA))
-               {
-                  tc_channel[TC_ROUGH]=0;
-                  tc_channel[TC_METAL]=1;
-                  tc_channel[TC_AO   ]=2;
-                  multi_channel=true;
-               }else
-               if(Contains(name, "ORM", true, WHOLE_WORD_ALPHA))
-               {
-                  tc_channel[TC_AO   ]=0;
-                  tc_channel[TC_ROUGH]=1;
-                  tc_channel[TC_METAL]=2;
-                  multi_channel=true;
-               }else
-               {
-                  TexChannel tc[TC_NUM];
-                  tc[0].set(TC_ROUGH ).find(name, "roughness").find(name, "rough").find(name, "R", true);
-                  tc[1].set(TC_METAL ).find(name, "metalness").find(name, "metallic").find(name, "metal").find(name, "MT", true);
-                  tc[2].set(TC_AO    ).find(name, "occlusion").find(name, "occl").find(name, "AO", true);
-                  tc[3].set(TC_HEIGHT).find(name, "height"   );
-                  int channels=0; REPA(tc)if(tc[i].pos>=0)channels++; multi_channel=(channels>1);
-                  REPAO(tc).fix(); // fix for sorting, so unspecified channels are at the end
-                  Sort(tc, Elms(tc), TexChannel.Compare);
-                  REPA(tc)if(InRange(tc[i].pos, INT_MAX))tc_channel[tc[i].type]=i;
-               }
-               if(tex.type==TEX_COLOR ){Mems<TextParam> &params=images[0].params; if(multi_channel && InRange(tc_channel[TC_AO   ], 4))params.New().set("channel", IndexChannel(tc_channel[TC_AO   ])); params.New().set("mode", "mulLum"); append=true;} // AO
-               if(tex.type==TEX_SMOOTH){Mems<TextParam> &params=images[0].params; if(multi_channel && InRange(tc_channel[TC_ROUGH], 4))params.New().set("channel", IndexChannel(tc_channel[TC_ROUGH])); params.New().set("inverseRGB");                 } // roughness
-               if(tex.type==TEX_METAL ){Mems<TextParam> &params=images[0].params; if(multi_channel && InRange(tc_channel[TC_METAL], 4))params.New().set("channel", IndexChannel(tc_channel[TC_METAL])); /*params.New().set("metalToReflect");*/         } // metalness
+               tc_channel[TC_AO   ]=0;
+               tc_channel[TC_ROUGH]=1;
+               tc_channel[TC_METAL]=2;
+               detected_channels=3; multi_channel=true;
             }else
-            if(images.elms()>1 || append) // multiple images
+            if(ContainsAll(base, "metal smooth")) // Unity RGB=metal, A=smoothness
             {
-               REPA(images) // detect if there are any special maps
+               tc_channel[TC_METAL ]=0;
+               tc_channel[TC_SMOOTH]=3;
+               detected_channels=2; multi_channel=true;
+               need_metal_channel=false; // no need to specify channel for metal because it's in RGB slots
+            }else // auto-detect
+            {
+               TexChannel tc[TC_NUM];
+               tc[0].set(TC_ROUGH ).find(base, "roughness" ).find(base, "rough").find(base, "R", true, WHOLE_WORD_ALPHA);
+               tc[1].set(TC_SMOOTH).find(base, "smoothness").find(base, "smooth");
+               tc[2].set(TC_METAL ).find(base, "metalness" ).find(base, "metallic").find(base, "metal").find(base, "MT", true);
+               tc[3].set(TC_AO    ).find(base, "occlusion" ).find(base, "occl").find(base, "AO", true).find(base, "O", true, WHOLE_WORD_ALPHA).find(base, "ao", false, WHOLE_WORD_ALPHA).find(base, "cavity");
+               tc[4].set(TC_HEIGHT).find(base, "height"    );
+               tc[5].set(TC_GLOW  ).find(base, "illum"     ).find(base, "glow").find(base, "emissive");
+               REPA(tc)if(tc[i].pos>=0)detected_channels++; multi_channel=(detected_channels>1);
+               REPAO(tc).fix(); // fix for sorting, so unspecified channels are at the end
+               Sort(tc, Elms(tc), TexChannel.Compare);
+               REPA(tc)if(InRange(tc[i].pos, INT_MAX))tc_channel[tc[i].type]=i;
+            }
+
+            if(tc_channel[TC_AO   ]>=0)image.order=2;else // check AO first in case it's multi-channel because it's most popular
+            if(tc_channel[TC_GLOW ]>=0)image.order=3;else // then glow
+            if(tc_channel[TC_METAL]>=0)image.order=1;     // 
+
+            if(tex.type==TEX_COLOR)
+            {
+               if(InRange(tc_channel[TC_AO], 4))
                {
-                  ImageSource &image=images[i]; image.i=i;
-                  Str base=GetBaseNoExt(image.name);
-                  if(tex.type==TEX_COLOR && (                                               Contains(base, "ms", false, WHOLE_WORD_ALPHA) || Ends(base, "MS", true) || Contains(base, "metal"    )                              )){image.order=1; image.params.New().set("mode", "metal" );}else // metal, "ms"=metal smooth, this makes base image (diffuse) brighter (allow only for color textures)
-                  if(                        Contains(base, "O", true, WHOLE_WORD_ALPHA) || Contains(base, "ao", false, WHOLE_WORD_ALPHA) || Ends(base, "AO", true) || Contains(base, "occlusion") || Contains(base, "cavity"  ) ){image.order=2; image.params.New().set("mode", "mulRGB");}else // AO
-                  if(                                                                       Contains(base, "illumination")                ||                           Contains(base, "glow"     ) || Contains(base, "emissive") ){image.order=3; image.params.New().set("mode", "addRGB");}     // glow
+                  if(multi_channel)params.New().set("channel", IndexChannel(tc_channel[TC_AO]));
+                  params.New().set("mode", "mulRGB");
+               }else
+               if(InRange(tc_channel[TC_GLOW ], 4))params.New().set("mode", "addRGB");else
+               if(InRange(tc_channel[TC_METAL], 4))
+               {
+                  if(multi_channel && need_metal_channel)params.New().set("channel", IndexChannel(tc_channel[TC_METAL]));
+                  params.New().set("mode", "metal");
+               }else
+               if(!detected_channels && Kb.shift())params.New().set("channel", "rgb"); // didn't detect anything -> make shift to ignore alpha channel
+            }else
+            if(tex.type==TEX_SMOOTH)
+            {
+               if(InRange(tc_channel[TC_AO], 4) // has AO
+               && (append || (tc_channel[TC_SMOOTH]<0 && tc_channel[TC_ROUGH]<0))) // appending or don't have smooth/rough
+               {
+                  if(multi_channel)params.New().set("channel", IndexChannel(tc_channel[TC_AO]));
+                  params.New().set("mode", "mulRGB");
+               }else // check Smooth/Rough
+               {
+                  if(multi_channel)
+                  {
+                     if(InRange(tc_channel[TC_SMOOTH], 4))params.New().set("channel", IndexChannel(tc_channel[TC_SMOOTH]));else
+                     if(InRange(tc_channel[TC_ROUGH ], 4))params.New().set("channel", IndexChannel(tc_channel[TC_ROUGH ]));
+                  }
+                  if(multi_images)
+                  {
+                     if(InRange(tc_channel[TC_SMOOTH], 4) &&  edit.smooth_is_rough
+                     || InRange(tc_channel[TC_ROUGH ], 4) && !edit.smooth_is_rough)params.New().set("inverseRGB");
+                  }else // single image - adjust material 'smooth_is_rough'
+                  {
+                     if(InRange(tc_channel[TC_SMOOTH], 4)){edit.smooth_is_rough=false; edit.smooth_is_rough_time.getUTC();}else
+                     if(InRange(tc_channel[TC_ROUGH ], 4)){edit.smooth_is_rough=true ; edit.smooth_is_rough_time.getUTC();}
+                  }
                }
-               images.sort(Compare); // sort by order
+            }else
+            if(tex.type==TEX_METAL)
+            {
+               if(InRange(tc_channel[TC_AO], 4) // has AO
+               && (append || tc_channel[TC_METAL]<0)) // appending or don't have metal
+               {
+                  if(multi_channel)params.New().set("channel", IndexChannel(tc_channel[TC_AO]));
+                  params.New().set("mode", "mulRGB");
+               }else // check Metal
+               if(multi_channel && InRange(tc_channel[TC_METAL], 4) && need_metal_channel)params.New().set("channel", IndexChannel(tc_channel[TC_METAL]));
             }
          }
+         images.sort(Compare); // sort by order
          Str drop=FileParams.Encode(SCAST(Memc<FileParams>, images));
-         tex.setFile(append ? FileParams.Merge(tex.file, drop) : drop);
+         tex.setFile(append ? FileParams.Merge(tex.file, drop) : drop, false); // we've already set undo
          break;
       }
    }

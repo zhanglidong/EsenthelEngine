@@ -26,7 +26,7 @@ class MaterialRegion : Region
       static void ReplaceElmNames(Mems<FileParams> &files);
       void setDesc();
       static void FixPath(Mems<FileParams> &fps);
-      void setFile(Str file);
+      void setFile(Str file, bool set_undo=true);
       void toGui();
       Texture& create(TEX_TYPE type, C MemberDesc &md_file, C MemberDesc &md_time, Rect rect, C Str &text, MaterialRegion &mr);
 
@@ -337,6 +337,8 @@ public:
    class ImageSource : FileParams
    {
       int i, order;
+      
+      void set(C Str &name, int i);
 
 public:
    ImageSource();
@@ -345,9 +347,11 @@ public:
    enum TEX_CHANNEL_TYPE : byte
    {
       TC_ROUGH ,
+      TC_SMOOTH,
       TC_METAL ,
       TC_AO    ,
       TC_HEIGHT,
+      TC_GLOW  ,
       TC_NUM   ,
    };
    class TexChannel
@@ -355,8 +359,8 @@ public:
       TEX_CHANNEL_TYPE type;
       int              pos;
 
-      TexChannel&set (TEX_CHANNEL_TYPE type);                              
-      TexChannel&find(C Str &name, C Str &text, bool case_sensitive=false);
+      TexChannel&set (TEX_CHANNEL_TYPE type);                                  
+      TexChannel&find(C Str &name, C Str &text, bool case_sensitive=false, WHOLE_WORD whole_word=WHOLE_WORD_NO);
       void fix();                      
 
       static int Compare(C TexChannel &a, C TexChannel &b);
