@@ -956,6 +956,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _bloom_original=1.0f;
   _bloom_scale   =0.4f;
   _bloom_cut     =0.3f;
+  _bloom_glow    =1.0f;
   _bloom_blurs   =1;
 //_bloom_max     =false;
   _bloom_half    =!MOBILE;
@@ -3004,6 +3005,7 @@ DisplayClass& DisplayClass::bloomAllow   (Bool allow   ) {                      
 DisplayClass& DisplayClass::bloomOriginal(Flt  original) {MAX  (original, 0);   _bloom_original=original;              return T;}
 DisplayClass& DisplayClass::bloomScale   (Flt  scale   ) {MAX  (scale   , 0);   _bloom_scale   =scale   ;              return T;}
 DisplayClass& DisplayClass::bloomCut     (Flt  cut     ) {MAX  (cut     , 0);   _bloom_cut     =cut     ;              return T;}
+DisplayClass& DisplayClass::bloomGlow    (Flt  glow    ) {MAX  (glow    , 0);   _bloom_glow    =glow    ;              return T;}
 DisplayClass& DisplayClass::bloomHalf    (Bool half    ) {                      _bloom_half    =half    ;              return T;}
 DisplayClass& DisplayClass::bloomBlurs   (Byte blurs   ) {Clamp(blurs, 0, 4);   _bloom_blurs   =blurs   ;              return T;}
 DisplayClass& DisplayClass::bloomSamples (Bool high    ) {                      _bloom_samples =high    ;              return T;}

@@ -3,6 +3,8 @@
 #include "Light Apply.h"
 
 #define AO_ALL 1  // !! must be the same as 'D.aoAll()' !! if apply Ambient Occlusion to all lights (not just Ambient), this was disabled in the past, however in LINEAR_GAMMA the darkening was too strong in low light, enabling this option solves that problem
+#define GLOW_OCCLUSION 0 // glow should not be occluded, so remove occlusion from color and use maximized color
+#define GLOW_FOCUS     0 // focus on glow reducing 'lit_col' where glow is present
 
 // MULTI_SAMPLE, AO, CEL_SHADE, NIGHT_SHADE, GLOW, REFLECT
 // Img=Nrm, ImgMS=Nrm, Img1=Col, ImgMS1=Col, Img2=Lum, ImgMS2=Lum, Img3=Spec, ImgMS3=Spec, ImgXY=Ext, ImgXYMS=Ext, ImgX=AO, Img4=CelShade
@@ -11,18 +13,6 @@ Half CelShade(Half lum) {return TexLod(Img4, VecH2(lum, 0.5)).x;} // have to use
 /******************************************************************************/
 VecH LitCol(VecH4 color, Vec nrm, VecH2 ext, VecH lum, VecH spec, Half ao, VecH night_shade_col, Bool apply_ao, Vec eye_dir)
 {
-#if GLOW
-      // treat glow as if it's a light source, this will have 2 effects: 1) pixels will have color even without any lights 2) this will disable night shade effects and retain original color (not covered by night shade), this is because 'night_shade_intensity' is multiplied by "Sat(1-max_lum)"
-   #if 0 // simply adding doesn't provide good results
-      lum+=color.w;
-   #else // instead lerp to 1, to avoid glow pixels getting too bright, because if color is mostly red (255, 40, 20), but if too much light is applied, then it could become more white 10*(255, 40, 20)=(2550, 400, 200), and we want pixels to glow with exact color as on the texture
-      #if 0 // slower
-         lum=Lerp(lum, 1, color.w);
-      #else // faster
-         lum=lum*(1-color.w) + color.w;
-      #endif
-   #endif
-#endif
    Half max_lum=Max(lum);
    if(CEL_SHADE)
    {
@@ -49,6 +39,23 @@ VecH LitCol(VecH4 color, Vec nrm, VecH2 ext, VecH lum, VecH spec, Half ao, VecH 
    Half inv_metal=ReflectToInvMetal(reflect);
    lit_col=lit_col*Diffuse(inv_metal) + spec;
 #endif
+
+#if GLOW // apply glow after light, night shade and metal, treat it as emissive
+   if(GLOW_OCCLUSION)
+   {
+      if(GLOW_FOCUS)lit_col*=1-color.w;
+      lit_col+=color.rgb*(color.w*2); // boost glow by 2 because here we don't maximize color.rgb, so average color.rgb 0..1 is 0.5, so *2 makes it 1.0
+   }else
+   if(color.w>0)
+   {
+      Half max=Max(color.rgb); if(max>0)
+      {
+         if(GLOW_FOCUS)lit_col*=1-color.w;
+         lit_col+=color.rgb*(color.w/max); // NaN
+      }
+   }
+#endif
+
    return lit_col;
 }
 /******************************************************************************/

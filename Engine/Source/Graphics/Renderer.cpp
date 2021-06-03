@@ -326,10 +326,11 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
                  half_res=(Flt(src.h())/rt0->h() <= 2.5f); // half_res=scale 2, ..3.., quarter=scale 4, 2.5 was the biggest scale that didn't cause jittering when using half down-sampling
       const Int       res=(half_res ? 2 : 4);
 
-      Sh.BloomParams->setConditional(Vec(D.bloomOriginal(), _has_glow ? D.bloomScale()/((gamma && !gamma_per_pixel) ? res : Sqr(res)) // for "gamma && !gamma_per_pixel" use only res, because "LinearToSRGBFast(c.rgb/(res*res)) == LinearToSRGBFast(c.rgb)/Sqrt(res*res) == LinearToSRGBFast(c.rgb)/res"
-                                                           : half_res ? D.bloomScale()
-                                                                      : D.bloomScale()/(gamma ? 2 : 4),
-                                                                       -D.bloomCut()*D.bloomScale()));
+      Sh.BloomParams->setConditional(Vec4(D.bloomOriginal(), _has_glow ? D.bloomScale()/((gamma && !gamma_per_pixel) ? res : Sqr(res)) // for "gamma && !gamma_per_pixel" use only res, because "LinearToSRGBFast(c.rgb/(res*res)) == LinearToSRGBFast(c.rgb)/Sqrt(res*res) == LinearToSRGBFast(c.rgb)/res"
+                                                            : half_res ? D.bloomScale()
+                                                                       : D.bloomScale()/(gamma ? 2 : 4),
+                                                                        -D.bloomCut  ()*D.bloomScale(),
+                                                                         D.bloomGlow ()/(res*res)));
       Sh.imgSize( src); GetBloomDS(_has_glow, !D._view_main.full, half_res, !D._bloom_cut, gamma)->draw(src, rect); // we can enable saturation (which is faster) if cut is zero, because zero cut won't change saturation
     //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
       if(D.bloomMaximum())
@@ -1994,6 +1995,8 @@ void RendererClass::refract() // !! assumes that 'finalizeGlow' was called !!
 }
 void RendererClass::postProcess()
 {
+   if(_has_glow && D.bloomGlow()<=EPS_COL8)_has_glow=false; // at this point glow will be used only for bloom, so if it's not needed there, then disable
+
    Bool eye_adapt= hasEyeAdapt (),
         bloom    =(hasBloom    () || _has_glow),
         motion   = hasMotion   (),

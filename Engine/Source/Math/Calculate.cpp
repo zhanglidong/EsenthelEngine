@@ -1446,6 +1446,13 @@ static Bool CSRGBToLinear(CalcValue &x)
    return true;
 }
 /******************************************************************************/
+static Bool CGaussian(CalcValue &x)
+{
+   if(x.type==CVAL_INT )x.r=Gaussian(Dbl(x.i));else
+   if(x.type==CVAL_REAL)x.r=Gaussian(    x.r );else return false;
+   x.type=CVAL_REAL; return true;
+}
+/******************************************************************************/
 static struct CalcOpInfo
 {
    Byte    priority, args;
@@ -1585,6 +1592,7 @@ static struct CalcFuncInfo
    {2, "Ror"             , (Ptr)CRor             },
    {1, "LinearToSRGB"    , (Ptr)CLinearToSRGB    },
    {1, "SRGBToLinear"    , (Ptr)CSRGBToLinear    },
+   {1, "Gaussian"        , (Ptr)CGaussian        },
 };
 struct CalcFunc
 {

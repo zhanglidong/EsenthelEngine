@@ -270,6 +270,7 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
    DisplayClass& bloomOriginal(Flt  original);   Flt  bloomOriginal()C {return _bloom_original;} // set/get Bloom Original Color  (   0..Inf , default=1.0                     ), the change is instant, you can call it real-time
    DisplayClass& bloomScale   (Flt  scale   );   Flt  bloomScale   ()C {return _bloom_scale   ;} // set/get Bloom Scale           (   0..Inf , default=0.4                     ), the change is instant, you can call it real-time
    DisplayClass& bloomCut     (Flt  cut     );   Flt  bloomCut     ()C {return _bloom_cut     ;} // set/get Bloom Cutoff          (   0..Inf , default=0.3                     ), the change is instant, you can call it real-time
+   DisplayClass& bloomGlow    (Flt  glow    );   Flt  bloomGlow    ()C {return _bloom_glow    ;} // set/get Bloom from Glow       (   0..Inf , default=1.0                     ), the change is instant, you can call it real-time
    DisplayClass& bloomMaximum (Bool on      );   Bool bloomMaximum ()C {return _bloom_max     ;} // set/get Bloom Maximum Filter  (true/false, default=false                   ), the change is instant, you can call it real-time
    DisplayClass& bloomHalf    (Bool half    );   Bool bloomHalf    ()C {return _bloom_half    ;} // set/get Bloom Half/Quarter    (true/false, default=true  (false for Mobile)), this specifies whether bloom should be calculated using half or quarter sized render targets (half is more precise but slower, quarter is more blurred), the change is instant, you can call it real-time
    DisplayClass& bloomBlurs   (Byte blurs   );   Byte bloomBlurs   ()C {return _bloom_blurs   ;} // set/get Bloom Number of Blurs (   0..4   , default=1                       ), the change is instant, you can call it real-time
@@ -568,7 +569,7 @@ private:
                      _eye_adapt_brightness, _eye_adapt_exp, _eye_adapt_max_dark, _eye_adapt_max_bright, _eye_adapt_speed,
                      _eye_dist, _eye_dist_2,
                      _shd_frac, _shd_fade, _shd_range, _shd_map_size_l, _shd_map_size_c,
-                     _bloom_original, _bloom_scale, _bloom_cut,
+                     _bloom_original, _bloom_scale, _bloom_cut, _bloom_glow,
                      _mtn_scale,
                      _dof_focus, _dof_range, _dof_intensity,
                      _vol_max,

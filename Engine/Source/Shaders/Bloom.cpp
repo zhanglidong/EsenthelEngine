@@ -3,7 +3,7 @@
 
 #include "!Set Prec Struct.h"
 BUFFER(Bloom)
-   VecH BloomParams; // x=original, y=scale, z=cut
+   VecH4 BloomParams; // x=original, y=scale, z=cut, w=glow/(res*res)
 BUFFER_END
 #include "!Set Prec Default.h"
 
@@ -63,8 +63,8 @@ VecH4 BloomDS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // "Max(0, " of the result 
          glow.rgb+=c.rgb*c.a;
          glow.a  +=c.a;
       }
-      if(GAMMA && !gamma_per_pixel)glow.rgb =(glow.a*(2.0/(res*res)))*LinearToSRGBFast(glow.rgb/Max(Max(glow.rgb), HALF_MIN));
-      else                         glow.rgb*=(glow.a*(2.0/(res*res)))                          /Max(Max(glow.rgb), HALF_MIN) ; // NaN (increase by 2 because normally it's too small)
+      if(GAMMA && !gamma_per_pixel)glow.rgb =(glow.a*BloomParams.w)*LinearToSRGBFast(glow.rgb/Max(Max(glow.rgb), HALF_MIN));
+      else                         glow.rgb*=(glow.a*BloomParams.w)                          /Max(Max(glow.rgb), HALF_MIN) ;
       color =BloomColor(color, GAMMA && !gamma_per_pixel);
       color+=glow.rgb; // alternative: color=Max(color, glow.rgb);
       return VecH4(color, 0);
