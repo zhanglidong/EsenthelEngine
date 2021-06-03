@@ -953,8 +953,9 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
 //_grass_shadow =false;
 //_grass_mirror =false;
 
+   // !! IF CHANGING THIS THEN ALSO CHANGE 'Environment.Bloom' !!
   _bloom_original=1.0f;
-  _bloom_scale   =0.4f;
+  _bloom_scale   =1.0f;
   _bloom_cut     =0.3f;
   _bloom_glow    =1.0f;
           _bloom_allow=!MOBILE;

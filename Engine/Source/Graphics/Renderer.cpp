@@ -300,15 +300,12 @@ void RendererClass::adaptEye(ImageRT &src, ImageRT &dest)
    Sh.ImgXF[0]->set(temp); Sh.ImgXF[1]->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.HdrUpdate                                                      ->draw();
                            Sh.ImgX [0]->set(_eye_adapt_scale[_eye_adapt_scale_cur]);                                                                            set(&dest                                  , null, true ); Hdr.Hdr[D.dither() && src.highPrecision() && !dest.highPrecision()]->draw(src);
 }
-INLINE Shader* GetBloomDS(Bool glow, Bool uv_clamp, Bool half_res, Bool saturate, Bool gamma) {Shader* &s=Sh.BloomDS[glow][uv_clamp][half_res][saturate][gamma]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow, uv_clamp, half_res, saturate, gamma); return s;}
-INLINE Shader* GetBloom  (Bool dither, Bool gamma, Bool alpha                               ) {Shader* &s=Sh.Bloom  [dither][gamma][alpha]                     ; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloom  (dither, gamma, alpha                     ); return s;}
+INLINE Shader* GetBloomDS(Bool glow, Bool uv_clamp, Bool half_res) {Shader* &s=Sh.BloomDS[glow][uv_clamp][half_res]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow, uv_clamp, half_res); return s;}
+INLINE Shader* GetBloom  (Bool dither, Bool alpha                ) {Shader* &s=Sh.Bloom  [dither][alpha]           ; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloom  (dither, alpha           ); return s;}
 // !! Assumes that 'ImgClamp' was already set !!
 void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
 {
-   // process bloom in sRGB gamma, because it will provide sharper results
    // '_alpha' RT from 'processAlpha' can't be used/modified because Bloom works by ADDING blurred results on top of existing background, NOT BLENDING (which is used for applying renderer results onto existing background when combining), we could potentially use a secondary RT to store bloom and add it on top of render, however that uses more memory, slower, and problematic with Motion Blur and DoF
-   Bool gamma=LINEAR_GAMMA, swap=(gamma && src.canSwapSRV() && dest.canSwapRTV()); if(swap){gamma=false; src.swapSRV(); dest.swapRTV();}
-
    const Bool    half =true;
    const Int     shift=(half ? 1 : 2);
    ImageRTDesc   rt_desc(fxW()>>shift, fxH()>>shift, IMAGERT_SRGB); // using IMAGERT_SRGB will clip to 0..1 range !! using high precision would require clamping in the shader to make sure values don't go below 0 !!
@@ -324,16 +321,15 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
       const Int blurs=1;
       if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(pixelToScreenSize(blurs*SHADER_BLUR_RANGE+1));} // when not rendering entire viewport, then extend the rectangle, add +1 because of texture filtering, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
 
-      const Bool gamma_per_pixel=false, // !! must be the same as in shader !!
-                 half_res=(Flt(src.h())/rt0->h() <= 2.5f); // half_res=scale 2, ..3.., quarter=scale 4, 2.5 was the biggest scale that didn't cause jittering when using half down-sampling
+      const Bool half_res=(Flt(src.h())/rt0->h() <= 2.5f); // half_res=scale 2, ..3.., quarter=scale 4, 2.5 was the biggest scale that didn't cause jittering when using half down-sampling
       const Int       res=(half_res ? 2 : 4);
 
-      Sh.BloomParams->setConditional(Vec4(D.bloomOriginal(), _has_glow ? D.bloomScale()/((gamma && !gamma_per_pixel) ? res : Sqr(res)) // for "gamma && !gamma_per_pixel" use only res, because "LinearToSRGBFast(c.rgb/(res*res)) == LinearToSRGBFast(c.rgb)/Sqrt(res*res) == LinearToSRGBFast(c.rgb)/res"
+      Sh.BloomParams->setConditional(Vec4(D.bloomOriginal(), _has_glow ? D.bloomScale()/Sqr(res)
                                                             : half_res ? D.bloomScale()
-                                                                       : D.bloomScale()/(gamma ? 2 : 4),
-                                                                        -D.bloomCut  ()*D.bloomScale(),
-                                                                         D.bloomGlow ()/(res*res)));
-      Sh.imgSize( src); GetBloomDS(_has_glow, !D._view_main.full, half_res, !D._bloom_cut, gamma)->draw(src, rect); // we can enable saturation (which is faster) if cut is zero, because zero cut won't change saturation
+                                                                       : D.bloomScale()/4,
+                                                                        -D.bloomCutL ()*D.bloomScale(),
+                                                                         D.bloomGlow ()/Sqr(res)));
+      Sh.imgSize( src); GetBloomDS(_has_glow, !D._view_main.full, half_res)->draw(src, rect);
     //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
 
       REP(blurs)
@@ -349,9 +345,8 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
    Sh.Img [1]->set( rt0  );
    Sh.ImgX[0]->set(_alpha);
-   GetBloom(D.dither() /*&& (src.highPrecision() || rt0->highPrecision())*/ && !dest.highPrecision(), gamma, _alpha!=null)->draw(src); // merging 2 RT's ('src' and 'rt0') with some scaling factors will give us high precision
+   GetBloom(D.dither() /*&& (src.highPrecision() || rt0->highPrecision())*/ && !dest.highPrecision(), _alpha!=null)->draw(src); // merging 2 RT's ('src' and 'rt0') with some scaling factors will give us high precision
   _alpha.clear(); // already merged with '_col'
-   if(swap){src.swapSRV(); dest.swapRTV();} // restore
 }
 // !! Assumes that 'ImgClamp' was already set !!
 Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool alpha, Bool combine)

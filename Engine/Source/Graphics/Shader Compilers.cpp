@@ -208,14 +208,11 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       REPD(glow    , 2)
       REPD(clamp   , 2)
       REPD(half_res, 2)
-      REPD(saturate, 2)
-      REPD(gamma   , 2)
-         src.New("BloomDS", "BloomDS_VS", "BloomDS_PS")("GLOW", glow, "CLAMP", clamp, "HALF_RES", half_res, "SATURATE", saturate)("GAMMA", gamma);
+         src.New("BloomDS", "BloomDS_VS", "BloomDS_PS")("GLOW", glow, "CLAMP", clamp, "HALF_RES", half_res);
 
       REPD(dither, 2)
-      REPD(gamma , 2)
       REPD(alpha , 2)
-         src.New("Bloom", "Draw_VS", "Bloom_PS")("DITHER", dither, "GAMMA", gamma, "ALPHA", alpha);
+         src.New("Bloom", "Draw_VS", "Bloom_PS")("DITHER", dither, "ALPHA", alpha);
    }
    { // BLUR
       ShaderCompiler::Source &src=compiler.New(src_path+"Blur.cpp");

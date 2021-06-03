@@ -16,9 +16,6 @@ BUFFER_END
 #ifndef HALF_RES
    #define HALF_RES 0
 #endif
-#ifndef GAMMA
-   #define GAMMA 0
-#endif
 #ifndef DITHER
    #define DITHER 0
 #endif
@@ -30,9 +27,8 @@ void BloomDS_VS(VtxInput vtx,
    outTex=vtx.tex (); if(GLOW)outTex-=ImgSize.xy*Vec2(HALF_RES ? 0.5 : 1.5, HALF_RES ? 0.5 : 1.5);
    outVtx=vtx.pos4();
 }
-VecH BloomColor(VecH color, Bool gamma)
+VecH BloomColor(VecH color)
 {
-   if(gamma)color=LinearToSRGBFast(color);
    Half col_lum=Max(color), lum=col_lum*BloomParams.y+BloomParams.z;
    return (lum>0) ? color*(Sqr(lum)/col_lum) : VecH(0, 0, 0);
 }
@@ -40,8 +36,7 @@ VecH4 BloomDS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // "Max(0, " of the result 
 {
    if(GLOW)
    {
-      const Int  res=(HALF_RES ? 2 : 4);
-      const Bool gamma_per_pixel=false; // !! must be the same as in 'RendererClass::bloom' !!
+      const Int res=(HALF_RES ? 2 : 4);
 
       VecH  color=0;
       VecH4 glow =0;
@@ -49,21 +44,19 @@ VecH4 BloomDS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // "Max(0, " of the result 
       UNROLL for(Int x=0; x<res; x++)
       {
          VecH4 c=TexLod(Img, UVClamp(inTex+ImgSize.xy*Vec2(x, y), CLAMP)); // can't use 'TexPoint' because 'Img' can be supersampled
-         if(GAMMA && gamma_per_pixel)c.rgb=LinearToSRGBFast(c.rgb);
          color   +=c.rgb;
          glow.rgb+=c.rgb*c.a;
          glow.a  +=c.a;
       }
-      if(GAMMA && !gamma_per_pixel)glow.rgb =(glow.a*BloomParams.w)*LinearToSRGBFast(glow.rgb/Max(Max(glow.rgb), HALF_MIN));
-      else                         glow.rgb*=(glow.a*BloomParams.w)                          /Max(Max(glow.rgb), HALF_MIN) ;
-      color =BloomColor(color, GAMMA && !gamma_per_pixel);
+      glow.rgb*=(glow.a*BloomParams.w)/Max(Max(glow.rgb), HALF_MIN);
+      color =BloomColor(color);
       color+=glow.rgb; // alternative: color=Max(color, glow.rgb);
       return VecH4(color, 0);
    }else
    {
       if(HALF_RES)
       {
-         return VecH4(BloomColor(TexLod(Img, UVClamp(inTex, CLAMP)).rgb, GAMMA), 0);
+         return VecH4(BloomColor(TexLod(Img, UVClamp(inTex, CLAMP)).rgb), 0);
       }else
       {
          Vec2 tex_min=UVClamp(inTex-ImgSize.xy, CLAMP),
@@ -71,7 +64,7 @@ VecH4 BloomDS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // "Max(0, " of the result 
          return VecH4(BloomColor(TexLod(Img, Vec2(tex_min.x, tex_min.y)).rgb
                                 +TexLod(Img, Vec2(tex_max.x, tex_min.y)).rgb
                                 +TexLod(Img, Vec2(tex_min.x, tex_max.y)).rgb
-                                +TexLod(Img, Vec2(tex_max.x, tex_max.y)).rgb, GAMMA), 0);
+                                +TexLod(Img, Vec2(tex_max.x, tex_max.y)).rgb), 0);
       }
    }
 }
@@ -82,10 +75,8 @@ VecH4 Bloom_PS(NOPERSP Vec2 inTex:TEXCOORD,
    // final=src*original + Sat((src-cut)*scale)
    VecH4 col;
    col.rgb=TexLod(Img, inTex).rgb; // original, can't use 'TexPoint' because 'Img' can be supersampled
-   if(GAMMA)col.rgb=LinearToSRGBFast(col.rgb);
    col.rgb=col.rgb*BloomParams.x + TexLod(Img1, inTex).rgb; // bloom, can't use 'TexPoint' because 'Img1' can be smaller
-   if(DITHER)ApplyDither(col.rgb, pixel.xy, false); // here we always have sRGB gamma
-   if(GAMMA)col.rgb=SRGBToLinearFast(col.rgb);
+   if(DITHER)ApplyDither(col.rgb, pixel.xy);
 #if ALPHA
    col.a=TexLod(ImgX, inTex).r; // can't use 'TexPoint' because 'ImgX' can be supersampled
 #else
