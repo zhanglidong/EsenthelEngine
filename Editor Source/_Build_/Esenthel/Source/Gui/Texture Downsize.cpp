@@ -15,6 +15,7 @@ TextureDownsize TexDownsize;
       int TextureDownsize::Settings::base0()C {return global+base_0;}
       int TextureDownsize::Settings::base1()C {return global+base_1;}
       int TextureDownsize::Settings::base2()C {return global+base_2;}
+      int TextureDownsize::Settings::emissive()C {return        emiss ;}
       bool TextureDownsize::DownsizedMtrl::Create(DownsizedMtrl &mtrl, C UID &original_id, ptr user) {mtrl.create(original_id); return true;}
              void TextureDownsize::DownsizedMtrl::create(                     C UID &original_id          )
       {
@@ -25,9 +26,10 @@ TextureDownsize TexDownsize;
       {
          if(original)
          {
-            base_0=((TexDownsize.normal_base[0].valid() && TexDownsize.normal_base[0]==original->base_0.id() && TexDownsize.downsized_base[0].is()) ? ImagePtr(&TexDownsize.downsized_base[0]) : original->base_0);
-            base_1=((TexDownsize.normal_base[1].valid() && TexDownsize.normal_base[1]==original->base_1.id() && TexDownsize.downsized_base[1].is()) ? ImagePtr(&TexDownsize.downsized_base[1]) : original->base_1);
-            base_2=((TexDownsize.normal_base[2].valid() && TexDownsize.normal_base[2]==original->base_2.id() && TexDownsize.downsized_base[2].is()) ? ImagePtr(&TexDownsize.downsized_base[2]) : original->base_2);
+            base_0=((TexDownsize.normal_base[0].valid() && TexDownsize.normal_base[0]==original->      base_0.id() && TexDownsize.downsized_base[0].is()) ? ImagePtr(&TexDownsize.downsized_base[0]) : original->base_0);
+            base_1=((TexDownsize.normal_base[1].valid() && TexDownsize.normal_base[1]==original->      base_1.id() && TexDownsize.downsized_base[1].is()) ? ImagePtr(&TexDownsize.downsized_base[1]) : original->base_1);
+            base_2=((TexDownsize.normal_base[2].valid() && TexDownsize.normal_base[2]==original->      base_2.id() && TexDownsize.downsized_base[2].is()) ? ImagePtr(&TexDownsize.downsized_base[2]) : original->base_2);
+      emissive_map=((TexDownsize.normal_emis   .valid() && TexDownsize.normal_emis   ==original->emissive_map.id() && TexDownsize.downsized_emis   .is()) ? ImagePtr(&TexDownsize.downsized_emis   ) : original->emissive_map);
          }
       }
       void TextureDownsize::DownsizedMtrl::update()
@@ -35,14 +37,16 @@ TextureDownsize TexDownsize;
          // update all parameters from 'original' but keep changed textures
          if(original)
          {
-            ImagePtr base0, base1, base2;
+            ImagePtr base0, base1, base2, emis;
             Swap(base0, T.base_0);
             Swap(base1, T.base_1);
             Swap(base2, T.base_2);
+            Swap(emis , T.emissive_map);
             SCAST(Material, T)=*original;
             Swap(base0, T.base_0);
             Swap(base1, T.base_1);
             Swap(base2, T.base_2);
+            Swap(emis , T.emissive_map);
          }
       }
    Vec TextureDownsize::previewLight()C {return Matrix3().setRotateXY(light_angle.y-ActiveCam.pitch, light_angle.x-ActiveCam.yaw).z;}
@@ -134,6 +138,8 @@ TextureDownsize TexDownsize;
    void TextureDownsize::Base1(  TextureDownsize &td, C Str &text) {if(  Settings *s=td.curSettings())       s->base_1=TextInt(text);}
    Str  TextureDownsize::Base2(C TextureDownsize &td             ) {if(C Settings *s=td.curSettings())return s->base_2; return S;}
    void TextureDownsize::Base2(  TextureDownsize &td, C Str &text) {if(  Settings *s=td.curSettings())       s->base_2=TextInt(text);}
+   Str  TextureDownsize::Emissive(C TextureDownsize &td             ) {if(C Settings *s=td.curSettings())return s->emiss; return S;}
+   void TextureDownsize::Emissive(  TextureDownsize &td, C Str &text) {if(  Settings *s=td.curSettings())       s->emiss=TextInt(text);}
    void TextureDownsize::Prev(TextureDownsize &editor) {editor.Next(-1);}
    void TextureDownsize::Next(TextureDownsize &editor) {editor.Next(+1);}
    void TextureDownsize::PrevS(TextureDownsize &editor) {editor.nextSecondary(-1);}
@@ -142,29 +148,30 @@ TextureDownsize TexDownsize;
    {
       if(elm && elm->type==ELM_MTRL)setSecondary(secondary_i+dir);else Next(dir);
    }
-   bool TextureDownsize::nextSecondary(int dir, C UID (&old_base)[3])
+   bool TextureDownsize::nextSecondary(int dir, C UID (&old_base)[3], C UID &old_emis)
    {
       if(elm && elm->type==ELM_OBJ)
          for(; InRange(secondary_i+dir, secondary); )
       {
          setSecondary(secondary_i+dir);
-         if(normal_base[0]!=old_base[0] || normal_base[1]!=old_base[1] || normal_base[2]!=old_base[2])return true;
+         if(normal_base[0]!=old_base[0] || normal_base[1]!=old_base[1] || normal_base[2]!=old_base[2] || normal_emis!=old_emis)return true;
       }
       return false;
    }
    bool TextureDownsize::Next(int dir) // find next compatible element
    {
       setTexIDs(); // always get latest texture ID's in case they were changed in between
-      UID old_base[]={normal_base[0], normal_base[1], normal_base[2]};
-      if(nextSecondary(dir, old_base))return true; // iterate through OBJ materials first
+      UID old_base[]={normal_base[0], normal_base[1], normal_base[2]},
+          old_emis  = normal_emis;
+      if(nextSecondary(dir, old_base, old_emis))return true; // iterate through OBJ materials first
       int c=Proj.list.cur; REP(Proj.list.elms())
       {
          c=Mod(c+dir, Proj.list.elms());
          if(Elm *elm=Proj.list.visToElm(c))if(elm->type==ELM_MTRL || elm->type==ELM_OBJ)
          {
             setElm(elm, dir<0); // set secondary as first/last based on 'dir'
-            if(normal_base[0]!=old_base[0] || normal_base[1]!=old_base[1] || normal_base[2]!=old_base[2]
-            || nextSecondary(dir, old_base)){Proj.list.setCur(c).scrollTo(c, false, 0.5f); return true;}
+            if(normal_base[0]!=old_base[0] || normal_base[1]!=old_base[1] || normal_base[2]!=old_base[2] || normal_emis!=old_emis
+            || nextSecondary(dir, old_base, old_emis)){Proj.list.setCur(c).scrollTo(c, false, 0.5f); return true;}
          }
       }
       return false;
@@ -188,89 +195,101 @@ TextureDownsize TexDownsize;
       if(Settings *settings=curSettings())
       {
          bool relative=revert;
-         int  base0=settings->base0(),
-              base1=settings->base1(),
-              base2=settings->base2();
-         if(revert)base0=base1=base2=0;
-         if(base0 || base1 || base2 || relative) // if we want any change
+         int  base0=settings->base0   (),
+              base1=settings->base1   (),
+              base2=settings->base2   (),
+              emis =settings->emissive();
+         if(revert)base0=base1=base2=emis=0;
+         if(base0 || base1 || base2 || emis || relative) // if we want any change
          {
             EditMaterial original; if(!normal_mtrl || !Proj.mtrlGet(mtrl_id, original)){Gui.msgBox(S, "Can't access Material"); return;}
-            if(!original.base_0_tex.valid())base0=0; // if texture is not present, then we can't modify it
-            if(!original.base_1_tex.valid())base1=0; // if texture is not present, then we can't modify it
-            if(!original.base_2_tex.valid())base2=0; // if texture is not present, then we can't modify it
-            if(base0 || base1 || base2 || relative) // if we want any change
-               if(original.base_0_tex.valid() || original.base_1_tex.valid() || original.base_2_tex.valid()) // and we have any texture
+            if(!original.  base_0_tex.valid())base0=0; // if texture is not present, then we can't modify it
+            if(!original.  base_1_tex.valid())base1=0; // if texture is not present, then we can't modify it
+            if(!original.  base_2_tex.valid())base2=0; // if texture is not present, then we can't modify it
+            if(!original.emissive_tex.valid())emis =0;
+
+            if(base0 || base1 || base2 || emis || relative) // if we want any change
+               if(original.base_0_tex.valid() || original.base_1_tex.valid() || original.base_2_tex.valid() || original.emissive_tex.valid()) // and we have any texture
             {
                // check if all texture source files are present
                Str invalid;
-               if(Proj.invalidTexSrc(original. color_map, &invalid)
-               || Proj.invalidTexSrc(original. alpha_map, &invalid)
-               || Proj.invalidTexSrc(original.  bump_map, &invalid)
-               || Proj.invalidTexSrc(original.normal_map, &invalid)
-               || Proj.invalidTexSrc(original.smooth_map, &invalid)
-               || Proj.invalidTexSrc(original. metal_map, &invalid)
-               || Proj.invalidTexSrc(original.  glow_map, &invalid)
+               if(Proj.invalidTexSrc(original.   color_map, &invalid)
+               || Proj.invalidTexSrc(original.   alpha_map, &invalid)
+               || Proj.invalidTexSrc(original.    bump_map, &invalid)
+               || Proj.invalidTexSrc(original.  normal_map, &invalid)
+               || Proj.invalidTexSrc(original.  smooth_map, &invalid)
+               || Proj.invalidTexSrc(original.   metal_map, &invalid)
+               || Proj.invalidTexSrc(original.    glow_map, &invalid)
+               || Proj.invalidTexSrc(original.emissive_map, &invalid)
                ){Gui.msgBox(S, S+"Can't find:\n"+invalid.replace(' ', Nbsp)); return;}
 
                EditMaterial downsized=original;
                TimeStamp    time; time.getUTC();
 
-               VecI2 base0_size, base1_size, base2_size;
+               VecI2 base0_size, base1_size, base2_size, emis_size;
                if(relative)
                {
                   base0_size=base0;
                   base1_size=base1;
                   base2_size=base2;
+                   emis_size=emis ;
                }else
                {
-                  base0_size=ImageSize(normal_mtrl->base_0, base0);
-                  base1_size=ImageSize(normal_mtrl->base_1, base1);
-                  base2_size=ImageSize(normal_mtrl->base_2, base2);
+                  base0_size=ImageSize(normal_mtrl->base_0      , base0);
+                  base1_size=ImageSize(normal_mtrl->base_1      , base1);
+                  base2_size=ImageSize(normal_mtrl->base_2      , base2);
+                   emis_size=ImageSize(normal_mtrl->emissive_map, emis );
                }
                // #MaterialTextureLayout
                if(base1_size!=base2_size)downsized.separateNormalMap(time); // normal can be from bump
 
                // resize images, #MaterialTextureLayout
-               Proj.forceImageSize(downsized. color_map, base0_size, relative, downsized. color_map_time, time);
-               Proj.forceImageSize(downsized. alpha_map, base0_size, relative, downsized. alpha_map_time, time);
-               Proj.forceImageSize(downsized.  bump_map, base2_size, relative, downsized.  bump_map_time, time);
-               Proj.forceImageSize(downsized.normal_map, base1_size, relative, downsized.normal_map_time, time);
-               Proj.forceImageSize(downsized.smooth_map, base2_size, relative, downsized.smooth_map_time, time);
-               Proj.forceImageSize(downsized. metal_map, base2_size, relative, downsized. metal_map_time, time);
-               Proj.forceImageSize(downsized.  glow_map, base2_size, relative, downsized.  glow_map_time, time);
+               Proj.forceImageSize(downsized.   color_map, base0_size, relative, downsized.   color_map_time, time);
+               Proj.forceImageSize(downsized.   alpha_map, base0_size, relative, downsized.   alpha_map_time, time);
+               Proj.forceImageSize(downsized.    bump_map, base2_size, relative, downsized.    bump_map_time, time);
+               Proj.forceImageSize(downsized.  normal_map, base1_size, relative, downsized.  normal_map_time, time);
+               Proj.forceImageSize(downsized.  smooth_map, base2_size, relative, downsized.  smooth_map_time, time);
+               Proj.forceImageSize(downsized.   metal_map, base2_size, relative, downsized.   metal_map_time, time);
+               Proj.forceImageSize(downsized.    glow_map, base2_size, relative, downsized.    glow_map_time, time);
+               Proj.forceImageSize(downsized.emissive_map,  emis_size, relative, downsized.emissive_map_time, time);
                downsized.cleanupMaps();
 
                if(Proj.mtrlSync(mtrl_id, downsized, true, false))
                if(Proj.mtrlGet (mtrl_id, downsized)) // get after syncing, because of reload base textures, we should now have new Tex ID's
                {
                   // check which textures have been changed
-                  bool changed_base0=(original.base_0_tex!=downsized.base_0_tex),
-                       changed_base1=(original.base_1_tex!=downsized.base_1_tex),
-                       changed_base2=(original.base_2_tex!=downsized.base_2_tex);
+                  bool changed_base0=(original.  base_0_tex!=downsized.  base_0_tex),
+                       changed_base1=(original.  base_1_tex!=downsized.  base_1_tex),
+                       changed_base2=(original.  base_2_tex!=downsized.  base_2_tex),
+                       changed_emis =(original.emissive_tex!=downsized.emissive_tex);
                   upscaled=((changed_base0 && base0<0)
                          || (changed_base1 && base1<0)
-                         || (changed_base2 && base2<0));
+                         || (changed_base2 && base2<0)
+                         || (changed_emis  && emis <0));
                   // process all other materials, if they share the same original tex ID, then adjust their sources as well
                   EditMaterial test;
                   REPA(Proj.elms)
                   {
                    C Elm &elm=Proj.elms[i];
                      if(C ElmMaterial *mtrl_data=elm.mtrlData())if(elm.id!=mtrl_id)
-                        if(changed_base0 && mtrl_data->base_0_tex==original.base_0_tex  // first check if we're changing this texture, then compare if it's the same
-                        || changed_base1 && mtrl_data->base_1_tex==original.base_1_tex  // first check if we're changing this texture, then compare if it's the same
-                        || changed_base2 && mtrl_data->base_2_tex==original.base_2_tex) // first check if we're changing this texture, then compare if it's the same
+                        if(changed_base0 && mtrl_data->  base_0_tex==original.  base_0_tex  // first check if we're changing this texture, then compare if it's the same
+                        || changed_base1 && mtrl_data->  base_1_tex==original.  base_1_tex  // first check if we're changing this texture, then compare if it's the same
+                        || changed_base2 && mtrl_data->  base_2_tex==original.  base_2_tex  // first check if we're changing this texture, then compare if it's the same
+                        || changed_emis  && mtrl_data->emissive_tex==original.emissive_tex) // first check if we're changing this texture, then compare if it's the same
                            if(Proj.mtrlGet(elm.id, test))
-                              if(AdjustTexSrc(test. color_map, test. color_map_time, original. color_map, downsized. color_map, time) // !! use '|' and not '||' because we need to process all !!
-                              |  AdjustTexSrc(test. alpha_map, test. alpha_map_time, original. alpha_map, downsized. alpha_map, time)
-                              |  AdjustTexSrc(test.  bump_map, test.  bump_map_time, original.  bump_map, downsized.  bump_map, time)
-                              |  AdjustTexSrc(test.normal_map, test.normal_map_time, original.normal_map, downsized.normal_map, time)
-                              |  AdjustTexSrc(test.smooth_map, test.smooth_map_time, original.smooth_map, downsized.smooth_map, time)
-                              |  AdjustTexSrc(test. metal_map, test. metal_map_time, original. metal_map, downsized. metal_map, time)
-                              |  AdjustTexSrc(test.  glow_map, test.  glow_map_time, original.  glow_map, downsized.  glow_map, time))
+                              if(AdjustTexSrc(test.   color_map, test.   color_map_time, original.   color_map, downsized.   color_map, time) // !! use '|' and not '||' because we need to process all !!
+                              |  AdjustTexSrc(test.   alpha_map, test.   alpha_map_time, original.   alpha_map, downsized.   alpha_map, time)
+                              |  AdjustTexSrc(test.    bump_map, test.    bump_map_time, original.    bump_map, downsized.    bump_map, time)
+                              |  AdjustTexSrc(test.  normal_map, test.  normal_map_time, original.  normal_map, downsized.  normal_map, time)
+                              |  AdjustTexSrc(test.  smooth_map, test.  smooth_map_time, original.  smooth_map, downsized.  smooth_map, time)
+                              |  AdjustTexSrc(test.   metal_map, test.   metal_map_time, original.   metal_map, downsized.   metal_map, time)
+                              |  AdjustTexSrc(test.    glow_map, test.    glow_map_time, original.    glow_map, downsized.    glow_map, time)
+                              |  AdjustTexSrc(test.emissive_map, test.emissive_map_time, original.emissive_map, downsized.emissive_map, time))
                      {
-                        if(changed_base0 && test.base_0_tex==original.base_0_tex)test.base_0_tex=downsized.base_0_tex;
-                        if(changed_base1 && test.base_1_tex==original.base_1_tex)test.base_1_tex=downsized.base_1_tex;
-                        if(changed_base2 && test.base_2_tex==original.base_2_tex)test.base_2_tex=downsized.base_2_tex;
+                        if(changed_base0 && test.  base_0_tex==original.  base_0_tex)test.  base_0_tex=downsized.  base_0_tex;
+                        if(changed_base1 && test.  base_1_tex==original.  base_1_tex)test.  base_1_tex=downsized.  base_1_tex;
+                        if(changed_base2 && test.  base_2_tex==original.  base_2_tex)test.  base_2_tex=downsized.  base_2_tex;
+                        if(changed_emis  && test.emissive_tex==original.emissive_tex)test.emissive_tex=downsized.emissive_tex;
                         Proj.mtrlSync(elm.id, test, false, false); // we don't need to reload here, because since texture ID's are the same as 'original', then we can just re-use the generated texture ID's in the 'downsized'
                      }
                   }
@@ -395,10 +414,11 @@ TextureDownsize TexDownsize;
       T+=region    .create().removeSlideBars().skin(&TransparentSkin).hide(); region.kb_lit=false;
 
       prop_ts.reset(); prop_ts.align.set(1, 0); prop_ts.size=0.053f;
-      props.New().create("Global", MemberDesc(DATA_INT).setFunc(Global, Global)).desc("How much to Downsize all Material Base Textures.");
-      props.New().create("Color" , MemberDesc(DATA_INT).setFunc(Base0 , Base0 )).desc("How much to Downsize Material Base0 Texture, such as Color, Alpha."             ); // #MaterialTextureLayout
-      props.New().create("Normal", MemberDesc(DATA_INT).setFunc(Base1 , Base1 )).desc("How much to Downsize Material Base1 Texture, such as Normal."                   ); // #MaterialTextureLayout
-      props.New().create("Extra" , MemberDesc(DATA_INT).setFunc(Base2 , Base2 )).desc("How much to Downsize Material Base2 Texture, such as Smooth, Metal, Bump, Glow."); // #MaterialTextureLayout
+      props.New().create("Global"  , MemberDesc(DATA_INT).setFunc(Global  , Global  )).desc("How much to Downsize all Material Base Textures.");
+      props.New().create("Color"   , MemberDesc(DATA_INT).setFunc(Base0   , Base0   )).desc("How much to Downsize Material Base0 Texture, such as Color, Alpha."             ); // #MaterialTextureLayout
+      props.New().create("Normal"  , MemberDesc(DATA_INT).setFunc(Base1   , Base1   )).desc("How much to Downsize Material Base1 Texture, such as Normal."                   ); // #MaterialTextureLayout
+      props.New().create("Extra"   , MemberDesc(DATA_INT).setFunc(Base2   , Base2   )).desc("How much to Downsize Material Base2 Texture, such as Smooth, Metal, Bump, Glow."); // #MaterialTextureLayout
+      props.New().create("Emissive", MemberDesc(DATA_INT).setFunc(Emissive, Emissive)).desc("How much to Downsize Material Emissive Texture.");
       Rect r=AddProperties(props, region, Vec2(padd, -0.005f), prop_h, 0.18f, &prop_ts); REPAO(props).autoData(this).range(-1, 10).mouseEditSpeed(1).changed(SetTextures);
 
       Node<MenuElm> menu; Viewport4Region &v4=T;
@@ -422,9 +442,11 @@ TextureDownsize TexDownsize;
       menu.New().create("Inc Base 1"     , Inc       , props[2]).kbsc(KbSc(Kb.qwerty(KB_G))).kbsc2(KbSc(KB_RBR));
       menu.New().create("Dec Base 2"     , Dec       , props[3]).kbsc(KbSc(Kb.qwerty(KB_V))).kbsc2(KbSc(KB_SEMI));
       menu.New().create("Inc Base 2"     , Inc       , props[3]).kbsc(KbSc(Kb.qwerty(KB_B))).kbsc2(KbSc(KB_APO));
+      menu.New().create("Dec Emissive"   , Dec       , props[4]).kbsc(KbSc(Kb.qwerty(KB_N)));
+      menu.New().create("Inc Emissive"   , Inc       , props[4]).kbsc(KbSc(Kb.qwerty(KB_M)));
       Gui+=T.menu.create(menu);
 
-      REPD(p, 4)REP(2)
+      REPD(p, 5)REP(2)
       {
          MenuElm &elm=menu.children[kbsc+p*2+i];
          Str      desc=S+(i ? "Increase" : "Decrease")+"\nKeyboard Shortcut: "+elm.kbsc().asText(); if(elm.kbsc2().is())desc.space()+=elm.kbsc2().asText();
@@ -445,7 +467,7 @@ TextureDownsize TexDownsize;
 
       left_ts.reset().size=0.0475f; left_ts.align.set(-1, 0); right_ts=left_ts; right_ts.align.set(1, 0);
       Vec2 xs(r.min.x-0.05f, downsize[0][1].rect().max.x+0.05f);
-      REPD(p, 4)REP(2)region+=info[p][i].create(Vec2(xs.c[i], downsize[p][0].rect().centerY()), S, i ? &right_ts : &left_ts);
+      REPD(p, 5)REP(2)region+=info[p][i].create(Vec2(xs.c[i], downsize[p][0].rect().centerY()), S, i ? &right_ts : &left_ts);
 
       return T;
    }
@@ -497,27 +519,42 @@ TextureDownsize TexDownsize;
          normal_mtrl->base_2->copyTry(downsized_base[2], Max(1, normal_mtrl->base_2->w()>>d), Max(1, normal_mtrl->base_2->h()>>d), -1, -1, -1, normal_mtrl->base_2->mipMaps()-d, FILTER_BEST, IC_WRAP);
       }else downsized_base[2].del();
 
+      // emissive
+      d=((settings && normal_mtrl && normal_mtrl->emissive_map) ? settings->emissive() : 0);
+      different|=(d!=0);
+      if(d>0)
+      {
+         normal_mtrl->emissive_map->copyTry(downsized_emis, Max(1, normal_mtrl->emissive_map->w()>>d), Max(1, normal_mtrl->emissive_map->h()>>d), -1, -1, -1, normal_mtrl->emissive_map->mipMaps()-d, FILTER_BEST, IC_WRAP);
+      }else downsized_emis.del();
+
       int    size_original=0, size_downsized=0;
-    C Image *normal_image[]={normal_mtrl ? normal_mtrl->base_0() : null, normal_mtrl ? normal_mtrl->base_1() : null, normal_mtrl ? normal_mtrl->base_2() : null};
+    C Image *normal_image[]={normal_mtrl ? normal_mtrl->base_0() : null, normal_mtrl ? normal_mtrl->base_1() : null, normal_mtrl ? normal_mtrl->base_2() : null, normal_mtrl ? normal_mtrl->emissive_map() : null};
       info[1][0].set(ImageInfo(                                              normal_image[0], size_original , false));
       info[1][1].set(ImageInfo(downsized_base[0].is() ? &downsized_base[0] : normal_image[0], size_downsized, true ));
       info[2][0].set(ImageInfo(                                              normal_image[1], size_original , false));
       info[2][1].set(ImageInfo(downsized_base[1].is() ? &downsized_base[1] : normal_image[1], size_downsized, true ));
       info[3][0].set(ImageInfo(                                              normal_image[2], size_original , false));
       info[3][1].set(ImageInfo(downsized_base[2].is() ? &downsized_base[2] : normal_image[2], size_downsized, true ));
+      info[4][0].set(ImageInfo(                                              normal_image[3], size_original , false));
+      info[4][1].set(ImageInfo(downsized_emis   .is() ? &downsized_emis    : normal_image[3], size_downsized, true ));
       info[0][0].set(normal_mtrl ? S+"(Original)  "+FileSize(size_original)   : S);
       info[0][1].set(normal_mtrl ? S+FileSize(size_downsized)+"  (Downsized)" : S);
-      
+
       REPAO(downsized_mtrls).setTextures();
    }
    void TextureDownsize::setTexIDs()
    {
       if(normal_mtrl=Proj.gamePath(mtrl_id))
       {
-         normal_base[0]=normal_mtrl->base_0.id();
-         normal_base[1]=normal_mtrl->base_1.id();
-         normal_base[2]=normal_mtrl->base_2.id();
-      }else REPAO(normal_base).zero();
+         normal_base[0]=normal_mtrl->      base_0.id();
+         normal_base[1]=normal_mtrl->      base_1.id();
+         normal_base[2]=normal_mtrl->      base_2.id();
+         normal_emis   =normal_mtrl->emissive_map.id();
+      }else
+      {
+         REPAO(normal_base).zero();
+               normal_emis .zero();
+      }
    }
    void TextureDownsize::setMtrl()
    {
@@ -538,10 +575,11 @@ TextureDownsize TexDownsize;
             {
                MeshPart &part=downsized_lod.parts[i]; REP(part.variations())if(C MaterialPtr &mtrl=part.variation(i))
                {
-                  if(normal_base[0].valid() && normal_base[0]==mtrl->base_0.id()
-                  || normal_base[1].valid() && normal_base[1]==mtrl->base_1.id()
-                  || normal_base[2].valid() && normal_base[2]==mtrl->base_2.id())
-                     part.variation(i, downsized_mtrls(mtrl.id()));
+                  if(normal_base[0].valid() && normal_base[0]==mtrl->      base_0.id()
+                  || normal_base[1].valid() && normal_base[1]==mtrl->      base_1.id()
+                  || normal_base[2].valid() && normal_base[2]==mtrl->      base_2.id()
+                  || normal_emis   .valid() && normal_emis   ==mtrl->emissive_map.id()
+                  )part.variation(i, downsized_mtrls(mtrl.id()));
                }
             }
          }
@@ -568,12 +606,14 @@ TextureDownsize TexDownsize;
                bool allow_removed=elm->finalRemoved(); // if this material is removed, then allow listing removed objects
 
                // get material textures
-               UID  base0_id   =mtrl_data->base_0_tex,
-                    base1_id   =mtrl_data->base_1_tex,
-                    base2_id   =mtrl_data->base_2_tex;
+               UID  base0_id   =mtrl_data->  base_0_tex,
+                    base1_id   =mtrl_data->  base_1_tex,
+                    base2_id   =mtrl_data->  base_2_tex,
+                     emis_id   =mtrl_data->emissive_tex;
                bool base0_valid=base0_id.valid(),
                     base1_valid=base1_id.valid(),
-                    base2_valid=base2_id.valid();
+                    base2_valid=base2_id.valid(),
+                     emis_valid= emis_id.valid();
 
                // get materials using these textures
                Memt<UID> mtrls;
@@ -581,9 +621,11 @@ TextureDownsize TexDownsize;
                {
                   Elm &elm=Proj.elms[i];
                   if(ElmMaterial *mtrl_data=elm.mtrlData())
-                     if(base0_valid && base0_id==mtrl_data->base_0_tex
-                     || base1_valid && base1_id==mtrl_data->base_1_tex
-                     || base2_valid && base2_id==mtrl_data->base_2_tex)mtrls.add(elm.id);
+                     if(base0_valid && base0_id==mtrl_data->  base_0_tex
+                     || base1_valid && base1_id==mtrl_data->  base_1_tex
+                     || base2_valid && base2_id==mtrl_data->  base_2_tex
+                     ||  emis_valid &&  emis_id==mtrl_data->emissive_tex
+                     )mtrls.add(elm.id);
                }
                // get objects using these materials
                FREPA(Proj.elms)
@@ -684,6 +726,6 @@ TextureDownsize TexDownsize;
    }
 TextureDownsize::TextureDownsize() : settings(Compare), elm(null), mtrl_id(UIDZero), obj_id(UIDZero), secondary_i(0), downsized_mtrls(Compare, DownsizedMtrl::Create), draw_as_obj(true), different(false), light_angle(PI_4) {}
 
-TextureDownsize::Settings::Settings() : global(0), base_0(0), base_1(0), base_2(0) {}
+TextureDownsize::Settings::Settings() : global(0), base_0(0), base_1(0), base_2(0), emiss(0) {}
 
 /******************************************************************************/

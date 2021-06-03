@@ -15,11 +15,13 @@ class TextureDownsize : Viewport4Region
       int global,
           base_0,
           base_1,
-          base_2;
+          base_2,
+           emiss;
 
-      int base0()C;
-      int base1()C;
-      int base2()C;
+      int base0   ()C;
+      int base1   ()C;
+      int base2   ()C;
+      int emissive()C;
 
 public:
    Settings();
@@ -38,8 +40,8 @@ public:
    Tabs                    mode;
    GuiImage                mtrl_image;
    Region                  region;
-   Button                  light_dir, downsize[4][2], revert, apply, prev, next;
-   Text                    info[4][2];
+   Button                  light_dir, downsize[5][2], revert, apply, prev, next;
+   Text                    info[5][2];
    Memx<Property>          props;
    TextBlack               prop_ts, left_ts, right_ts;
    Map<UID, Settings>      settings; // key=Material ID, doesn't need to be thread-safe
@@ -48,10 +50,10 @@ public:
                             obj_id;
    Memc<UID>               secondary;
    int                     secondary_i;
-   UID                     normal_base[3];
+   UID                     normal_base[3], normal_emis;
    MaterialPtr             normal_mtrl;
    MeshPtr                 normal_mesh;
-   Image                   downsized_base[3];
+   Image                   downsized_base[3], downsized_emis;
    Map<UID, DownsizedMtrl> downsized_mtrls; // key=Material ID, doesn't need to be thread-safe
    Mesh                    downsized_mesh;
    bool                    draw_as_obj, different;
@@ -86,6 +88,9 @@ public:
    static Str  Base2(C TextureDownsize &td             );
    static void Base2(  TextureDownsize &td, C Str &text);
 
+   static Str  Emissive(C TextureDownsize &td             );
+   static void Emissive(  TextureDownsize &td, C Str &text);
+
    static void Prev(TextureDownsize &editor);
    static void Next(TextureDownsize &editor);
 
@@ -93,7 +98,7 @@ public:
    static void NextS(TextureDownsize &editor);
 
    void nextSecondary(int dir);
-   bool nextSecondary(int dir, C UID (&old_base)[3]);
+   bool nextSecondary(int dir, C UID (&old_base)[3], C UID &old_emis);
    bool Next(int dir=1); // find next compatible element
 
    static cchar8 *DialogID;
