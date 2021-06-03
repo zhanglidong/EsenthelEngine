@@ -1065,10 +1065,10 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
       {
          Str base=GetBaseNoExt(name);
 
-         if(Contains(base, "color") || Contains(base, "albedo") || Contains(base, "diffuse") || Contains(base, "col", false, WHOLE_WORD_ALPHA) || Contains(base, "BC", true, WHOLE_WORD_ALPHA))channel[TC_COLOR]=0;else
+         if(Contains(base, "color") || Contains(base, "albedo") || Contains(base, "diffuse") || Contains(base, "col", false, WHOLE_WORD_ALPHA) || Contains(base, "BC", true, WHOLE_WORD_ALPHA) || Contains(base, "alb", false, WHOLE_WORD_ALPHA))channel[TC_COLOR]=0;else
          if(Contains(base, "alpha"))channel[TC_ALPHA]=0;else
          if(Contains(base, "normal") || Contains(base, "nrm", false, WHOLE_WORD_ALPHA) || Contains(base, "N", true, WHOLE_WORD_ALPHA))channel[TC_NORMAL]=0;else
-         if(Contains(base, "emissive") || Contains(base, "illum") || Contains(base, "glow"))channel[TC_GLOW]=0;else
+         if(Contains(base, "emissive") || Contains(base, "emission") || Contains(base, "illum") || Contains(base, "glow") || Contains(base, "EMM", true, WHOLE_WORD_ALPHA))channel[TC_GLOW]=0;else
          if(Contains(base, "RMA", true, WHOLE_WORD_ALPHA))
          {
             channel[TC_ROUGH]=0;
