@@ -1438,6 +1438,78 @@ Bool ContainsAny(CChar *src, CChar *t, Bool case_sensitive, WHOLE_WORD whole_wor
    }
    return ok;
 }
+Bool ContainsAny(CChar *src, CChar8 *t, Bool case_sensitive, WHOLE_WORD whole_word) // always return true if 't' is null or has no words
+{
+   Bool ok=true; // assume ok at the start if there are no words to test
+   if(t)
+   {
+      Memt<Char8> word; for(CChar8 *start=t; ; )
+      {
+         Char8 c=*t++; if(c==' ' || c=='\0')
+         {
+            Int len_1=t-start; // this will include SPACE/NUL char
+            if( len_1>1)       // ignore empty words (in case 't' has "  ")
+            {
+               word.setNumDiscard(len_1);
+               Set(word.data(), start, word.elms());
+               if(Contains(src, word.data(), case_sensitive, whole_word))return true;
+               ok=false; // encountered a word to test, but it failed
+            }
+            if(c=='\0')break;
+            start=t;
+         }
+      }
+   }
+   return ok;
+}
+Bool ContainsAny(CChar8 *src, CChar *t, Bool case_sensitive, WHOLE_WORD whole_word) // always return true if 't' is null or has no words
+{
+   Bool ok=true; // assume ok at the start if there are no words to test
+   if(t)
+   {
+      Memt<Char> word; for(CChar *start=t; ; )
+      {
+         Char c=*t++; if(c==' ' || c=='\0')
+         {
+            Int len_1=t-start; // this will include SPACE/NUL char
+            if( len_1>1)       // ignore empty words (in case 't' has "  ")
+            {
+               word.setNumDiscard(len_1);
+               Set(word.data(), start, word.elms());
+               if(Contains(src, word.data(), case_sensitive, whole_word))return true;
+               ok=false; // encountered a word to test, but it failed
+            }
+            if(c=='\0')break;
+            start=t;
+         }
+      }
+   }
+   return ok;
+}
+Bool ContainsAny(CChar8 *src, CChar8 *t, Bool case_sensitive, WHOLE_WORD whole_word) // always return true if 't' is null or has no words
+{
+   Bool ok=true; // assume ok at the start if there are no words to test
+   if(t)
+   {
+      Memt<Char8> word; for(CChar8 *start=t; ; )
+      {
+         Char8 c=*t++; if(c==' ' || c=='\0')
+         {
+            Int len_1=t-start; // this will include SPACE/NUL char
+            if( len_1>1)       // ignore empty words (in case 't' has "  ")
+            {
+               word.setNumDiscard(len_1);
+               Set(word.data(), start, word.elms());
+               if(Contains(src, word.data(), case_sensitive, whole_word))return true;
+               ok=false; // encountered a word to test, but it failed
+            }
+            if(c=='\0')break;
+            start=t;
+         }
+      }
+   }
+   return ok;
+}
 /****************************************************************************/
 Bool ContainsAll(CChar *src, CChar *t, Bool case_sensitive, WHOLE_WORD whole_word) // always return true if 't' is null or has no words
 {

@@ -1143,153 +1143,221 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
          elms.clear(); // processed
       }
    }
+   enum TEX_CHANNEL_TYPE : byte
+   {
+      TC_COLOR ,
+      TC_ALPHA ,
+      TC_NORMAL,
+      TC_ROUGH ,
+      TC_SMOOTH,
+      TC_METAL ,
+      TC_SPEC  ,
+      TC_AO    ,
+      TC_BUMP  ,
+      TC_GLOW  ,
+      TC_NUM   ,
+   }
    class ImageSource : FileParams
    {
-      int i, order=0;
+      class TexChannel
+      {
+         TEX_CHANNEL_TYPE type;
+         int              pos=-1;
+
+         TexChannel& set (TEX_CHANNEL_TYPE type) {T.type=type; T.pos=-1; return T;}
+         TexChannel& find(C Str &name, C Str &text, bool case_sensitive=false, WHOLE_WORD whole_word=WHOLE_WORD_NO) {if(pos<0)pos=TextPosI(name, text, case_sensitive, whole_word); return T;}
+         void fix() {if(pos<0)pos=INT_MAX;}
+
+         static int Compare(C TexChannel &a, C TexChannel &b) {return .Compare(a.pos, b.pos);}
+      }
+
+      bool multi_channel=false, need_metal_channel=true;
+      int  index=0, order=0, detected_channels=0, channel[TC_NUM];
+
+      void set(C Str &name, int index) {T.name=name; T.index=index; REPAO(channel)=-1;}
       
-      void set(C Str &name, int i) {T.name=name; T.i=i;}
+      void process()
+      {
+         Str base=GetBaseNoExt(name);
+
+         if(Contains(base, "color") || Contains(base, "albedo") || Contains(base, "diffuse") || Contains(base, "col", false, WHOLE_WORD_ALPHA) || Contains(base, "BC", true, WHOLE_WORD_ALPHA))channel[TC_COLOR]=0;else
+         if(Contains(base, "alpha"))channel[TC_ALPHA]=0;else
+         if(Contains(base, "normal") || Contains(base, "nrm", false, WHOLE_WORD_ALPHA) || Contains(base, "N", true, WHOLE_WORD_ALPHA))channel[TC_NORMAL]=0;else
+         if(Contains(base, "emissive") || Contains(base, "illum") || Contains(base, "glow"))channel[TC_GLOW]=0;else
+         if(Contains(base, "RMA", true, WHOLE_WORD_ALPHA))
+         {
+            channel[TC_ROUGH]=0;
+            channel[TC_METAL]=1;
+            channel[TC_AO   ]=2;
+         }else
+         if(Contains(base, "ORM", true, WHOLE_WORD_ALPHA))
+         {
+            channel[TC_AO   ]=0;
+            channel[TC_ROUGH]=1;
+            channel[TC_METAL]=2;
+         }else
+         if(Contains(base, "metal") && ContainsAny(base, "smooth gloss")) // Unity RGB=metal, A=smoothness
+         {
+            channel[TC_METAL ]=0;
+            channel[TC_SMOOTH]=3;
+            need_metal_channel=false; // no need to specify channel for metal because it's in RGB slots
+         }else
+         if((Contains(base, "specular") || Contains(base, "spec", false, WHOLE_WORD_ALPHA)) && ContainsAny(base, "smooth gloss")) // Unity RGB=specular, A=smoothness
+         {
+            channel[TC_SPEC  ]=0;
+            channel[TC_SMOOTH]=3;
+         }else // auto-detect
+         {
+            TexChannel tc[TC_NUM];
+            tc[0].set(TC_ROUGH ).find(base, "roughness" ).find(base, "rough").find(base, "R", true, WHOLE_WORD_ALPHA);
+            tc[1].set(TC_SMOOTH).find(base, "smoothness").find(base, "smooth").find(base, "gloss");
+            tc[2].set(TC_METAL ).find(base, "metalness" ).find(base, "metallic").find(base, "metal").find(base, "MT", true);
+            tc[3].set(TC_SPEC  ).find(base, "specular"  ).find(base, "spec", false, WHOLE_WORD_ALPHA);
+            tc[4].set(TC_AO    ).find(base, "occlusion" ).find(base, "occl").find(base, "AO", true).find(base, "O", true, WHOLE_WORD_ALPHA).find(base, "ao", false, WHOLE_WORD_ALPHA).find(base, "cavity");
+            tc[5].set(TC_BUMP  ).find(base, "height"    ).find(base, "bump");
+            REPAO(tc).fix(); // fix for sorting, so unspecified channels are at the end
+            Sort(tc, Elms(tc), TexChannel.Compare);
+            REPA(tc)if(InRange(tc[i].pos, INT_MAX))channel[tc[i].type]=i;
+         }
+
+         if(channel[TC_AO   ]>=0)order=2;else // check AO first in case it's multi-channel because it's most popular
+         if(channel[TC_GLOW ]>=0)order=3;else // then glow
+         if(channel[TC_METAL]>=0)order=1;     // 
+
+         REPA(channel)if(channel[i]>=0)detected_channels++; multi_channel=(detected_channels>1);
+      }
+      void process(TEX_TYPE tex_type, EditMaterial &mtrl, bool append=false, bool multi_images=false)
+      {
+         if(tex_type==TEX_COLOR)
+         {
+            if(InRange(channel[TC_AO], 4))
+            {
+               if(multi_channel)params.New().set("channel", IndexChannel(channel[TC_AO]));
+               params.New().set("mode", "mulRGB");
+               params.New().set("alpha", "0.5");
+            }else
+            if(InRange(channel[TC_GLOW ], 4))params.New().set("mode", "addRGB");else
+            if(InRange(channel[TC_METAL], 4))
+            {
+               if(multi_channel && need_metal_channel)params.New().set("channel", IndexChannel(channel[TC_METAL]));
+               params.New().set("mode", "metal");
+            }else
+            if(Kb.shift())params.New().set("channel", "rgb"); // make shift to ignore alpha channel
+         }else
+         if(tex_type==TEX_SMOOTH)
+         {
+            if(InRange(channel[TC_AO], 4) // has AO
+            && (append || (channel[TC_SMOOTH]<0 && channel[TC_ROUGH]<0))) // appending or don't have smooth/rough
+            {
+               if(multi_channel)params.New().set("channel", IndexChannel(channel[TC_AO]));
+               params.New().set("mode", "mulRGB");
+            }else // check Smooth/Rough
+            {
+               if(multi_channel)
+               {
+                  if(InRange(channel[TC_SMOOTH], 4))params.New().set("channel", IndexChannel(channel[TC_SMOOTH]));else
+                  if(InRange(channel[TC_ROUGH ], 4))params.New().set("channel", IndexChannel(channel[TC_ROUGH ]));
+               }
+               if(multi_images)
+               {
+                  if(InRange(channel[TC_SMOOTH], 4) &&  mtrl.smooth_is_rough
+                  || InRange(channel[TC_ROUGH ], 4) && !mtrl.smooth_is_rough)params.New().set("inverseRGB");
+               }else // single image - adjust material 'smooth_is_rough'
+               {
+                  if(InRange(channel[TC_SMOOTH], 4)){mtrl.smooth_is_rough=false; mtrl.smooth_is_rough_time.getUTC();}else
+                  if(InRange(channel[TC_ROUGH ], 4)){mtrl.smooth_is_rough=true ; mtrl.smooth_is_rough_time.getUTC();}else
+                  if(Kb.shift()
+                //&& (channel[TC_METAL]>=0 || channel[TC_SPEC]>=0)  // and has metal/specular, this check is optional
+                  )params.New().set("channel", "a"); // make shift to use alpha channel (Unity RGB=metal/specular, A=smoothness)
+               }
+            }
+         }else
+         if(tex_type==TEX_METAL)
+         {
+            if(InRange(channel[TC_AO], 4) // has AO
+            && (append || channel[TC_METAL]<0)) // appending or don't have metal
+            {
+               if(multi_channel)params.New().set("channel", IndexChannel(channel[TC_AO]));
+               params.New().set("mode", "mulRGB");
+            }else // check Metal
+            if(multi_channel && InRange(channel[TC_METAL], 4) && need_metal_channel)params.New().set("channel", IndexChannel(channel[TC_METAL]));
+         }
+      }
    }
    static int Compare(C ImageSource &a, C ImageSource &b)
    {
       if(int c=.Compare(a.order, b.order))return c;
-      return   .Compare(a.i    , b.i    );
-   }
-   enum TEX_CHANNEL_TYPE : byte
-   {
-      TC_ROUGH ,
-      TC_SMOOTH,
-      TC_METAL ,
-      TC_AO    ,
-      TC_HEIGHT,
-      TC_GLOW  ,
-      TC_NUM   ,
-   }
-   class TexChannel
-   {
-      TEX_CHANNEL_TYPE type;
-      int              pos;
-
-      TexChannel& set (TEX_CHANNEL_TYPE type) {T.type=type; T.pos=-1; return T;}
-      TexChannel& find(C Str &name, C Str &text, bool case_sensitive=false, WHOLE_WORD whole_word=WHOLE_WORD_NO) {if(pos<0)pos=TextPosI(name, text, case_sensitive, whole_word); return T;}
-      void fix() {if(pos<0)pos=INT_MAX;}
-
-      static int Compare(C TexChannel &a, C TexChannel &b) {return .Compare(a.pos, b.pos);}
+      return   .Compare(a.index, b.index);
    }
    void drop(Memc<Str> &names, GuiObj *focus_obj, C Vec2 &screen_pos)
    {
-      if(contains(focus_obj))REPA(texs)if(texs[i].contains(focus_obj))
+      if(contains(focus_obj))
       {
-         Texture &tex=texs[i];
-         Memc<ImageSource> images; FREPA(names)if(ExtType(GetExt(names[i]))==EXT_IMAGE)images.New().set(CodeEdit.importPaths(names[i]), i);
-         bool append=(Kb.ctrl() && tex.file.is()),
-              multi_images=(images.elms()>1 || append); // multiple images
-
          undos.set(null, true); // set undo manually because we might change some parameters
+
+         Texture *tex=null;
+         REPA(texs)if(texs[i].contains(focus_obj)){tex=&texs[i]; break;}
+
+         Memc<ImageSource> images; FREPA(names)if(ExtType(GetExt(names[i]))==EXT_IMAGE)images.New().set(CodeEdit.importPaths(names[i]), i);
+         bool append=(Kb.ctrl() && tex && tex.file.is()),
+              multi_images=((images.elms()>1 || append) && tex); // multiple images
+
          if(multi_images
-         || Kb.shift()) // auto detect
-            REPA(images)
+         || Kb.shift()
+         || !tex
+         ) // auto detect
          {
-            ImageSource     &image =images[i];
-            Mems<TextParam> &params=image.params;
-            Str  base=GetBaseNoExt(image.name);
-            int  tc_channel[TC_NUM]; REPAO(tc_channel)=-1;
-            int  detected_channels=0;
-            bool multi_channel=false, need_metal_channel=true;
-
-            if(Contains(base, "RMA", true, WHOLE_WORD_ALPHA))
+            REPAO(images).process();
+            images.sort(Compare); // sort by order
+            if(tex)
             {
-               tc_channel[TC_ROUGH]=0;
-               tc_channel[TC_METAL]=1;
-               tc_channel[TC_AO   ]=2;
-               detected_channels=3; multi_channel=true;
+               REPAO(images).process(tex.type, edit, append, multi_images);
             }else
-            if(Contains(base, "ORM", true, WHOLE_WORD_ALPHA))
             {
-               tc_channel[TC_AO   ]=0;
-               tc_channel[TC_ROUGH]=1;
-               tc_channel[TC_METAL]=2;
-               detected_channels=3; multi_channel=true;
-            }else
-            if(ContainsAll(base, "metal smooth")) // Unity RGB=metal, A=smoothness
-            {
-               tc_channel[TC_METAL ]=0;
-               tc_channel[TC_SMOOTH]=3;
-               detected_channels=2; multi_channel=true;
-               need_metal_channel=false; // no need to specify channel for metal because it's in RGB slots
-            }else // auto-detect
-            {
-               TexChannel tc[TC_NUM];
-               tc[0].set(TC_ROUGH ).find(base, "roughness" ).find(base, "rough").find(base, "R", true, WHOLE_WORD_ALPHA);
-               tc[1].set(TC_SMOOTH).find(base, "smoothness").find(base, "smooth");
-               tc[2].set(TC_METAL ).find(base, "metalness" ).find(base, "metallic").find(base, "metal").find(base, "MT", true);
-               tc[3].set(TC_AO    ).find(base, "occlusion" ).find(base, "occl").find(base, "AO", true).find(base, "O", true, WHOLE_WORD_ALPHA).find(base, "ao", false, WHOLE_WORD_ALPHA).find(base, "cavity");
-               tc[4].set(TC_HEIGHT).find(base, "height"    );
-               tc[5].set(TC_GLOW  ).find(base, "illum"     ).find(base, "glow").find(base, "emissive");
-               REPA(tc)if(tc[i].pos>=0)detected_channels++; multi_channel=(detected_channels>1);
-               REPAO(tc).fix(); // fix for sorting, so unspecified channels are at the end
-               Sort(tc, Elms(tc), TexChannel.Compare);
-               REPA(tc)if(InRange(tc[i].pos, INT_MAX))tc_channel[tc[i].type]=i;
-            }
-
-            if(tc_channel[TC_AO   ]>=0)image.order=2;else // check AO first in case it's multi-channel because it's most popular
-            if(tc_channel[TC_GLOW ]>=0)image.order=3;else // then glow
-            if(tc_channel[TC_METAL]>=0)image.order=1;     // 
-
-            if(tex.type==TEX_COLOR)
-            {
-               if(InRange(tc_channel[TC_AO], 4))
+               Memc<ImageSource> tex_images[TEX_NUM];
+               TEX_FLAG old_textures=edit.textures();
+               FREPA(images) // process in order
                {
-                  if(multi_channel)params.New().set("channel", IndexChannel(tc_channel[TC_AO]));
-                  params.New().set("mode", "mulRGB");
-               }else
-               if(InRange(tc_channel[TC_GLOW ], 4))params.New().set("mode", "addRGB");else
-               if(InRange(tc_channel[TC_METAL], 4))
+                C ImageSource &image=images[i];
+                  if(image.channel[TC_COLOR ]>=0                               )tex_images[TEX_COLOR ].add(image);
+                  if(image.channel[TC_ALPHA ]>=0                               )tex_images[TEX_ALPHA ].add(image);
+                  if(image.channel[TC_AO    ]>=0                               )tex_images[TEX_COLOR ].add(image);
+                  if(image.channel[TC_NORMAL]>=0                               )tex_images[TEX_NORMAL].add(image);
+                  if(image.channel[TC_ROUGH ]>=0 || image.channel[TC_SMOOTH]>=0)tex_images[TEX_SMOOTH].add(image);
+                  if(image.channel[TC_METAL ]>=0                               )tex_images[TEX_METAL ].add(image);
+                  if(image.channel[TC_BUMP  ]>=0                               )tex_images[TEX_BUMP  ].add(image);
+                  if(image.channel[TC_GLOW  ]>=0                               )tex_images[TEX_GLOW  ].add(image);
+               }
+               bool auto_reload=T.auto_reload; T.auto_reload=false; // disable auto-reload, so we can reload textures all at one time at the end
+               TEX_FLAG changed=TEXF_NONE;
+               REPA(tex_images)
                {
-                  if(multi_channel && need_metal_channel)params.New().set("channel", IndexChannel(tc_channel[TC_METAL]));
-                  params.New().set("mode", "metal");
-               }else
-               if(!detected_channels && Kb.shift())params.New().set("channel", "rgb"); // didn't detect anything -> make shift to ignore alpha channel
-            }else
-            if(tex.type==TEX_SMOOTH)
-            {
-               if(InRange(tc_channel[TC_AO], 4) // has AO
-               && (append || (tc_channel[TC_SMOOTH]<0 && tc_channel[TC_ROUGH]<0))) // appending or don't have smooth/rough
-               {
-                  if(multi_channel)params.New().set("channel", IndexChannel(tc_channel[TC_AO]));
-                  params.New().set("mode", "mulRGB");
-               }else // check Smooth/Rough
-               {
-                  if(multi_channel)
+                  TEX_TYPE tex_type=(TEX_TYPE)i;
+                  Memc<ImageSource> &tex_image=tex_images[tex_type]; if(tex_image.elms())
                   {
-                     if(InRange(tc_channel[TC_SMOOTH], 4))params.New().set("channel", IndexChannel(tc_channel[TC_SMOOTH]));else
-                     if(InRange(tc_channel[TC_ROUGH ], 4))params.New().set("channel", IndexChannel(tc_channel[TC_ROUGH ]));
-                  }
-                  if(multi_images)
-                  {
-                     if(InRange(tc_channel[TC_SMOOTH], 4) &&  edit.smooth_is_rough
-                     || InRange(tc_channel[TC_ROUGH ], 4) && !edit.smooth_is_rough)params.New().set("inverseRGB");
-                  }else // single image - adjust material 'smooth_is_rough'
-                  {
-                     if(InRange(tc_channel[TC_SMOOTH], 4)){edit.smooth_is_rough=false; edit.smooth_is_rough_time.getUTC();}else
-                     if(InRange(tc_channel[TC_ROUGH ], 4)){edit.smooth_is_rough=true ; edit.smooth_is_rough_time.getUTC();}
+                     REPAO(tex_image).process(tex_type, edit);
+                     REPA(texs)if(texs[i].type==tex_type)
+                     {
+                        Str file=FileParams.Encode(SCAST(Memc<FileParams>, tex_image));
+                        texs[i].setFile(file, false); // we've already set undo
+                        changed|=TEX_FLAG(1<<tex_type);
+                        break;
+                     }
                   }
                }
-            }else
-            if(tex.type==TEX_METAL)
-            {
-               if(InRange(tc_channel[TC_AO], 4) // has AO
-               && (append || tc_channel[TC_METAL]<0)) // appending or don't have metal
+               T.auto_reload=auto_reload; // restore auto-reload
+               if(changed)
                {
-                  if(multi_channel)params.New().set("channel", IndexChannel(tc_channel[TC_AO]));
-                  params.New().set("mode", "mulRGB");
-               }else // check Metal
-               if(multi_channel && InRange(tc_channel[TC_METAL], 4) && need_metal_channel)params.New().set("channel", IndexChannel(tc_channel[TC_METAL]));
+                  if(changed&TEXF_BASE    )rebuildBase    (old_textures, changed);
+                  if(changed&TEXF_EMISSIVE)rebuildEmissive(old_textures);
+               }
             }
          }
-         images.sort(Compare); // sort by order
-         Str drop=FileParams.Encode(SCAST(Memc<FileParams>, images));
-         tex.setFile(append ? FileParams.Merge(tex.file, drop) : drop, false); // we've already set undo
-         break;
+         if(tex)
+         {
+            Str drop=FileParams.Encode(SCAST(Memc<FileParams>, images));
+            tex.setFile(append ? FileParams.Merge(tex.file, drop) : drop, false); // we've already set undo
+         }
       }
    }
 

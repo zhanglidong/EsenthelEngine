@@ -134,6 +134,9 @@ Bool Contains   (CChar  *src, CChar8 *t, Bool case_sensitive=false, WHOLE_WORD w
 Bool Contains   (CChar8 *src, CChar  *t, Bool case_sensitive=false, WHOLE_WORD whole_word=WHOLE_WORD_NO); // if 'src' contains 't' text
 Bool Contains   (CChar8 *src, CChar8 *t, Bool case_sensitive=false, WHOLE_WORD whole_word=WHOLE_WORD_NO); // if 'src' contains 't' text
 Bool ContainsAny(CChar  *src, CChar  *t, Bool case_sensitive=false, WHOLE_WORD whole_word=WHOLE_WORD_NO); // if 'src' contains any words from 't' (words are separated by spaces)
+Bool ContainsAny(CChar  *src, CChar8 *t, Bool case_sensitive=false, WHOLE_WORD whole_word=WHOLE_WORD_NO); // if 'src' contains any words from 't' (words are separated by spaces)
+Bool ContainsAny(CChar8 *src, CChar  *t, Bool case_sensitive=false, WHOLE_WORD whole_word=WHOLE_WORD_NO); // if 'src' contains any words from 't' (words are separated by spaces)
+Bool ContainsAny(CChar8 *src, CChar8 *t, Bool case_sensitive=false, WHOLE_WORD whole_word=WHOLE_WORD_NO); // if 'src' contains any words from 't' (words are separated by spaces)
 Bool ContainsAll(CChar  *src, CChar  *t, Bool case_sensitive=false, WHOLE_WORD whole_word=WHOLE_WORD_NO); // if 'src' contains all words from 't' (words are separated by spaces)
 Bool ContainsAll(CChar  *src, CChar8 *t, Bool case_sensitive=false, WHOLE_WORD whole_word=WHOLE_WORD_NO); // if 'src' contains all words from 't' (words are separated by spaces)
 Bool ContainsAll(CChar8 *src, CChar  *t, Bool case_sensitive=false, WHOLE_WORD whole_word=WHOLE_WORD_NO); // if 'src' contains all words from 't' (words are separated by spaces)

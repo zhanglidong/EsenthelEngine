@@ -334,37 +334,49 @@ public:
    void set(C MaterialPtr &mtrl);    
    void set(Memt<MaterialPtr> mtrls);
    void drag(Memc<UID> &elms, GuiObj *focus_obj, C Vec2 &screen_pos);
+   enum TEX_CHANNEL_TYPE : byte
+   {
+      TC_COLOR ,
+      TC_ALPHA ,
+      TC_NORMAL,
+      TC_ROUGH ,
+      TC_SMOOTH,
+      TC_METAL ,
+      TC_SPEC  ,
+      TC_AO    ,
+      TC_BUMP  ,
+      TC_GLOW  ,
+      TC_NUM   ,
+   };
    class ImageSource : FileParams
    {
-      int i, order;
+      class TexChannel
+      {
+         TEX_CHANNEL_TYPE type;
+         int              pos;
+
+         TexChannel&set (TEX_CHANNEL_TYPE type);                                  
+         TexChannel&find(C Str &name, C Str &text, bool case_sensitive=false, WHOLE_WORD whole_word=WHOLE_WORD_NO);
+         void fix();                      
+
+         static int Compare(C TexChannel &a, C TexChannel &b);
+
+public:
+   TexChannel();
+      };
+
+      bool multi_channel, need_metal_channel;
+      int  index, order, detected_channels, channel[TC_NUM];
+
+      void set(C Str &name, int index);
       
-      void set(C Str &name, int i);
+      void process();
+      void process(TEX_TYPE tex_type, EditMaterial &mtrl, bool append=false, bool multi_images=false);
 
 public:
    ImageSource();
    };
    static int Compare(C ImageSource &a, C ImageSource &b);
-   enum TEX_CHANNEL_TYPE : byte
-   {
-      TC_ROUGH ,
-      TC_SMOOTH,
-      TC_METAL ,
-      TC_AO    ,
-      TC_HEIGHT,
-      TC_GLOW  ,
-      TC_NUM   ,
-   };
-   class TexChannel
-   {
-      TEX_CHANNEL_TYPE type;
-      int              pos;
-
-      TexChannel&set (TEX_CHANNEL_TYPE type);                                  
-      TexChannel&find(C Str &name, C Str &text, bool case_sensitive=false, WHOLE_WORD whole_word=WHOLE_WORD_NO);
-      void fix();                      
-
-      static int Compare(C TexChannel &a, C TexChannel &b);
-   };
    void drop(Memc<Str> &names, GuiObj *focus_obj, C Vec2 &screen_pos);
 
    virtual void rebuildBase(TEX_FLAG old_textures, uint changed_in_mtrl=0, bool adjust_params=true, bool always=false);
