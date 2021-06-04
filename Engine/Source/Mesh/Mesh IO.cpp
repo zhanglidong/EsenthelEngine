@@ -19,6 +19,7 @@ XMaterial::XMaterial()
    technique    =MTECH_DEFAULT;
    color        =1;
    emissive     =0;
+   emissive_glow=0;
    rough_mul    =0; rough_add=1;
    reflect      (MATERIAL_REFLECT);
    glow         =0;
@@ -34,18 +35,19 @@ void XMaterial::del()
 }
 void XMaterial::create(C Material &src)
 {
-     cull        =src.cull;
-     technique   =src.technique;
-     color       =src.   colorS();
-     emissive    =src.emissiveS();
-     rough_mul   =src.  rough_mul;   rough_add=src.  rough_add;
-   reflect_mul   =src.reflect_mul; reflect_add=src.reflect_add;
-     glow        =src.glow;
-     normal      =src.normal;
-     bump        =src.bump;
-     det_power   =src.det_power;
-     det_uv_scale=src.det_uv_scale;
-         uv_scale=src.    uv_scale;
+     cull         =src.cull;
+     technique    =src.technique;
+     color        =src.   colorS();
+     emissive     =src.emissiveS();
+     emissive_glow=src.emissive_glow;
+     rough_mul    =src.  rough_mul;   rough_add=src.  rough_add;
+   reflect_mul    =src.reflect_mul; reflect_add=src.reflect_add;
+     glow         =src.glow;
+     normal       =src.normal;
+     bump         =src.bump;
+     det_power    =src.det_power;
+     det_uv_scale =src.det_uv_scale;
+         uv_scale =src.    uv_scale;
 
           color_map=src.      base_0.name();
          normal_map=src.      base_1.name();
@@ -87,7 +89,7 @@ void XMaterial::fixPath(Str path)
 Bool XMaterial::save(File &f)C
 {  // !! IF CHANGING THIS IN ANY WAY THEN RECOMPILE FBX DLL'S !!
    f.cmpUIntV(0); // version
-   f<<cull<<flip_normal_y<<technique<<color<<emissive<<rough_mul<<rough_add<<reflect_mul<<reflect_add<<glow<<normal<<bump<<det_power<<det_uv_scale<<uv_scale
+   f<<cull<<flip_normal_y<<technique<<color<<emissive<<emissive_glow<<rough_mul<<rough_add<<reflect_mul<<reflect_add<<glow<<normal<<bump<<det_power<<det_uv_scale<<uv_scale
     <<color_map<<alpha_map<<bump_map<<glow_map<<emissive_map<<normal_map<<smooth_map<<metal_map<<detail_color_map<<detail_bump_map<<detail_normal_map<<detail_smooth_map
     <<name;
    return f.ok();
@@ -98,7 +100,7 @@ Bool XMaterial::load(File &f)
    {
       case 0:
       {
-         f>>cull>>flip_normal_y>>technique>>color>>emissive>>rough_mul>>rough_add>>reflect_mul>>reflect_add>>glow>>normal>>bump>>det_power>>det_uv_scale>>uv_scale
+         f>>cull>>flip_normal_y>>technique>>color>>emissive>>emissive_glow>>rough_mul>>rough_add>>reflect_mul>>reflect_add>>glow>>normal>>bump>>det_power>>det_uv_scale>>uv_scale
           >>color_map>>alpha_map>>bump_map>>glow_map>>emissive_map>>normal_map>>smooth_map>>metal_map>>detail_color_map>>detail_bump_map>>detail_normal_map>>detail_smooth_map
           >>name;
          if(f.ok())return true;

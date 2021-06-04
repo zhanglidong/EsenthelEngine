@@ -636,9 +636,12 @@ VecH4 PS
    if(MATERIALS<=1 && FirstPass)
    {
    #if EMISSIVE_MAP
-      col+=Material.emissive*Tex(Lum, I.tex).rgb;
+      VecH emissive=Tex(Lum, I.tex).rgb;
+      col +=Material.emissive     *    emissive ;
+      glow+=Material.emissive_glow*Max(emissive);
    #else
-      col+=Material.emissive;
+      col +=Material.emissive;
+      glow+=Material.emissive_glow;
    #endif
    }
 

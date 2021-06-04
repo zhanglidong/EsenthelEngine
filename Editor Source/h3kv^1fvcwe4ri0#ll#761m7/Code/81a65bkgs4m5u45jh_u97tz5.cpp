@@ -1876,7 +1876,8 @@ class ProjectEx : ProjectHierarchy
          if(!Equal(edit.emissive_s, Vec(1)) && edit.emissive_map.is())
          {
             Mems<FileParams> fps=FileParams.Decode(edit.emissive_map);
-            Vec mul=edit.emissive_s; if(C TextParam *p=FindTransform(fps, "mulRGB"))mul*=TextVecEx(p.value);
+            Vec mul=edit.emissive_s; if(flt mul_f=mul.avg())edit.emissive_glow/=mul_f;
+            if(C TextParam *p=FindTransform(fps, "mulRGB"))mul*=TextVecEx(p.value);
             if(Equal(mul, Vec(1)))DelTransform(fps, "mulRGB");
             else                  SetTransform(fps, "mulRGB", TextVecEx(mul));
             edit.emissive_map=FileParams.Encode(fps); edit.emissive_map_time.now();

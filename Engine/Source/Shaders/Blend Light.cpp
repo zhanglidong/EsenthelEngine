@@ -366,7 +366,8 @@ void PS
    /*if(MATERIALS<=1 && FirstPass)*/
    {
    #if EMISSIVE_MAP
-      I.col.rgb+=Material.emissive*Tex(Lum, I.tex).rgb;
+      VecH emissive=Tex(Lum, I.tex).rgb;
+      I.col.rgb+=Material.emissive*emissive;
    #else
       I.col.rgb+=Material.emissive;
    #endif

@@ -82,9 +82,10 @@ VecH4 PS(VS_PS I):TARGET
 #endif
 
 #if EMISSIVE_MAP
-   return VecH4(Material.emissive*Tex(Lum, I.tex).rgb, 0);
+   VecH emissive=Tex(Lum, I.tex).rgb;
+   return VecH4(Material.emissive*emissive, Material.emissive_glow*Max(emissive));
 #else
-   return VecH4(Material.emissive, 0);
+   return VecH4(Material.emissive, Material.emissive_glow);
 #endif
 }
 /******************************************************************************/

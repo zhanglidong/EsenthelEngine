@@ -189,7 +189,8 @@ VecH4 PS
 #endif
 
 #if EMISSIVE_MAP
-   I.color.rgb+=Material.emissive*Tex(Lum, I.tex).rgb;
+   VecH emissive=Tex(Lum, I.tex).rgb;
+   I.color.rgb+=Material.emissive*emissive;
 #else
    I.color.rgb+=Material.emissive;
 #endif

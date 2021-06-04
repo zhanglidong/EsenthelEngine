@@ -490,6 +490,8 @@ class MaterialRegion : Region
    static void EmissiveG(  MaterialRegion &mr, C Str &t) {       mr.edit.emissive_s.y=TextFlt(t); mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
    static Str  EmissiveB(C MaterialRegion &mr          ) {return mr.edit.emissive_s.z;}
    static void EmissiveB(  MaterialRegion &mr, C Str &t) {       mr.edit.emissive_s.z=TextFlt(t); mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  EmissiveGlow(C MaterialRegion &mr          ) {return mr.edit.emissive_glow;}
+   static void EmissiveGlow(  MaterialRegion &mr, C Str &t) {       mr.edit.emissive_glow=TextFlt(t); mr.edit.emissive_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
 
    static Str  UVScale(C MaterialRegion &mr          ) {return mr.edit.uv_scale;}
    static void UVScale(  MaterialRegion &mr, C Str &t) {       mr.edit.uv_scale=TextFlt(t); mr.edit.uv_scale_time.getUTC();}
@@ -831,9 +833,10 @@ smooth=&props.New().create("Smoothness"     , MemberDesc(DATA_REAL).setFunc(Smoo
         props.New().create("ReflectivityMax", MemberDesc(DATA_REAL).setFunc(ReflectMax, ReflectMax)).range(0, 1).desc("This value specifies the amount of Reflectivity that can be obtained from the Metal texture.\nIn most cases this value should be left at 1.");
         props.New().create("Glow"           , MemberDesc(DATA_REAL).setFunc(Glow      , Glow      )).range(0, 1);
 
-emit_red  =&props.New().create("Emit Red"  , MemberDesc(DATA_REAL).setFunc(EmissiveR, EmissiveR)).range(0, 4).mouseEditSpeed(0.4);
-emit_green=&props.New().create("Emit Green", MemberDesc(DATA_REAL).setFunc(EmissiveG, EmissiveG)).range(0, 4).mouseEditSpeed(0.4);
-emit_blue =&props.New().create("Emit Blue" , MemberDesc(DATA_REAL).setFunc(EmissiveB, EmissiveB)).range(0, 4).mouseEditSpeed(0.4);
+emit_red  =&props.New().create("Emit Red"  , MemberDesc(DATA_REAL).setFunc(EmissiveR   , EmissiveR   )).range(0, 4).mouseEditSpeed(0.4);
+emit_green=&props.New().create("Emit Green", MemberDesc(DATA_REAL).setFunc(EmissiveG   , EmissiveG   )).range(0, 4).mouseEditSpeed(0.4);
+emit_blue =&props.New().create("Emit Blue" , MemberDesc(DATA_REAL).setFunc(EmissiveB   , EmissiveB   )).range(0, 4).mouseEditSpeed(0.4);
+            props.New().create("Emit Glow" , MemberDesc(DATA_REAL).setFunc(EmissiveGlow, EmissiveGlow)).range(0, 4).mouseEditSpeed(0.4);
     //props.New();
     //props.New().create("Subsurf Scatter", MemberDesc(DATA_REAL).setFunc(SSS , SSS )).range(0, 1);
       props.New().create("Detail UV Scale", MemberDesc(DATA_REAL).setFunc(DetUVScale, DetUVScale)).range(0.01, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);

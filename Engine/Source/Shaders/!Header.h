@@ -400,7 +400,8 @@ struct MaterialClass // this is used when a MeshPart has only one material
 {
    VecH4 color; // !! color must be listed first because ShaderParam handle for setting 'Material.color' is set from the entire Material object pointer !!
    VecH  emissive;
-   Half    rough_mul,   rough_add,
+   Half  emissive_glow,
+           rough_mul,   rough_add,
          reflect_mul, reflect_add,
          glow,
          normal,

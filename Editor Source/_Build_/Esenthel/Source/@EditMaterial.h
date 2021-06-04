@@ -8,7 +8,8 @@ class EditMaterial
    byte                      downsize_tex_mobile;
    Vec4                      color_s;
    Vec                       emissive_s;
-   flt                       smooth, // 0..1
+   flt                       emissive_glow,
+                             smooth, // 0..1
                              reflect_min, reflect_max, // 0..1
                              glow, // 0..1
                              normal, // 0..1

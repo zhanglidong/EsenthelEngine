@@ -478,8 +478,8 @@ struct FBX
             tex=TextureFile(*mtrl, FbxSurfaceMaterial::sShininess         ); if(tex.is())xm->smooth_map=tex;
             tex=TextureFile(*mtrl, FbxSurfaceMaterial::sSpecularFactor    ); if(tex.is())xm->smooth_map=tex;
             tex=TextureFile(*mtrl, FbxSurfaceMaterial::sSpecular          ); if(tex.is())xm->smooth_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sAmbientFactor     ); if(tex.is())xm-> light_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sAmbient           ); if(tex.is())xm-> light_map=tex;
+          //tex=TextureFile(*mtrl, FbxSurfaceMaterial::sAmbientFactor     ); if(tex.is())xm-> light_map=tex;
+          //tex=TextureFile(*mtrl, FbxSurfaceMaterial::sAmbient           ); if(tex.is())xm-> light_map=tex;
             tex=TextureFile(*mtrl, FbxSurfaceMaterial::sReflectionFactor  ); if(tex.is())xm-> metal_map=tex;
             tex=TextureFile(*mtrl, FbxSurfaceMaterial::sReflection        ); if(tex.is())xm-> metal_map=tex;
             tex=TextureFile(*mtrl, FbxSurfaceMaterial::sDisplacementFactor); if(tex.is())xm->  bump_map=tex;

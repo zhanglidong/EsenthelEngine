@@ -413,6 +413,7 @@ class ConvertToAtlasClass : PropWin
          atlas.reflect_mul=0; atlas.reflect_add=0;
          atlas.glow=0;
          atlas.emissive=0;
+         atlas.emissive_glow=0;
          flt      alpha=0; int alpha_num=0; MATERIAL_TECHNIQUE tech=MTECH_DEFAULT; // parameters for alpha materials
          flt      reflect_min=0, reflect_max=0;
          TEX_FLAG tex_wrote     =TEXF_NONE; // what textures we wrote to atlas
@@ -423,14 +424,15 @@ class ConvertToAtlasClass : PropWin
          FREPA(mtrls)
          {
             Mtrl &mtrl=mtrls[i];
-            atlas.cull     &=mtrl.edit.cull; // if at least one material requires cull disabled, then disable for all
-            atlas.color    +=mtrl.edit.color_s;
-            atlas.normal   +=mtrl.edit.normal;
-            atlas.bump     +=mtrl.edit.bump;
-            atlas.rough_mul+=mtrl.edit.roughMul(); atlas.rough_add+=mtrl.edit.roughAdd();
-                reflect_min+=mtrl.edit.reflect_min; reflect_max+=mtrl.edit.reflect_max;
-            atlas.glow     +=mtrl.edit.glow;
-            atlas.emissive +=mtrl.edit.emissive_s;
+            atlas.cull         &=mtrl.edit.cull; // if at least one material requires cull disabled, then disable for all
+            atlas.color        +=mtrl.edit.color_s;
+            atlas.normal       +=mtrl.edit.normal;
+            atlas.bump         +=mtrl.edit.bump;
+            atlas.rough_mul    +=mtrl.edit.roughMul(); atlas.rough_add+=mtrl.edit.roughAdd();
+                reflect_min    +=mtrl.edit.reflect_min; reflect_max+=mtrl.edit.reflect_max;
+            atlas.glow         +=mtrl.edit.glow;
+            atlas.emissive     +=mtrl.edit.emissive_s;
+            atlas.emissive_glow+=mtrl.edit.emissive_glow;
 
             if(mtrl.edit.tech){alpha+=mtrl.edit.color_s.w; alpha_num++; tech=mtrl.edit.tech;}
 
@@ -494,14 +496,15 @@ class ConvertToAtlasClass : PropWin
          checkSide(atlas.    glow_map, FlagTest(filled, TEXF_GLOW    ));
          checkSide(atlas.emissive_map, FlagTest(filled, TEXF_EMISSIVE));
 
-         if(tex_wrote& TEXF_COLOR            ){atlas.color.xyz=                                1;                      }else atlas.color.xyz/=mtrls.elms();                                       // if we ended up having color  map, then it means we've used the baked textures, for which we need to set the full color    multiplier
-         if(tex_wrote&(TEXF_COLOR|TEXF_ALPHA)){atlas.color.w  =(alpha_num ? alpha/alpha_num : 1); atlas.technique=tech;}else atlas.color.w  /=mtrls.elms();                                       // if we ended up having alpha  map, then set parameters from alpha materials only (check color map too because alpha can come from it)
-         if(tex_wrote& TEXF_BUMP             ){                                                                        }     atlas.bump     /=mtrls.elms();
-         if(tex_wrote& TEXF_NORMAL           ){atlas.normal  =1;                                                       }else atlas.normal   /=mtrls.elms();                                       // if we ended up having normal map, then it means we've used the baked textures, for which we need to set the full normal   multiplier
-         if(tex_wrote& TEXF_SMOOTH           ){atlas.rough_mul=1; atlas.rough_add=0;                                   }else{atlas.rough_mul/=mtrls.elms(); atlas.rough_add/=mtrls.elms();}       // if we ended up having smooth map, then it means we've used the baked textures, for which we need to set the full smooth   multiplier
-         if(tex_wrote& TEXF_METAL            ){atlas.reflect(min_reflect);                                             }else atlas.reflect  (reflect_min/mtrls.elms(), reflect_max/mtrls.elms()); // if we ended up having metal  map, then it means we've used the baked textures, for which we need to set the full reflect  multiplier
-         if(tex_wrote& TEXF_GLOW             ){atlas.glow    =1;                                                       }else atlas.glow     /=mtrls.elms();                                       // if we ended up having glow   map, then it means we've used the baked textures, for which we need to set the full glow     multiplier
-         if(tex_wrote& TEXF_EMISSIVE         ){atlas.emissive=1;                                                       }else atlas.emissive /=mtrls.elms();                                       // if we ended up having light  map, then it means we've used the baked textures, for which we need to set the full emissive multiplier
+         if(tex_wrote& TEXF_COLOR            ){atlas.color.xyz=                                1;                      }else atlas.color.xyz    /=mtrls.elms();                                       // if we ended up having color  map, then it means we've used the baked textures, for which we need to set the full color    multiplier
+         if(tex_wrote&(TEXF_COLOR|TEXF_ALPHA)){atlas.color.w  =(alpha_num ? alpha/alpha_num : 1); atlas.technique=tech;}else atlas.color.w      /=mtrls.elms();                                       // if we ended up having alpha  map, then set parameters from alpha materials only (check color map too because alpha can come from it)
+         if(tex_wrote& TEXF_BUMP             ){                                                                        }     atlas.bump         /=mtrls.elms();
+         if(tex_wrote& TEXF_NORMAL           ){atlas.normal  =1;                                                       }else atlas.normal       /=mtrls.elms();                                       // if we ended up having normal map, then it means we've used the baked textures, for which we need to set the full normal   multiplier
+         if(tex_wrote& TEXF_SMOOTH           ){atlas.rough_mul=1; atlas.rough_add=0;                                   }else{atlas.rough_mul    /=mtrls.elms(); atlas.rough_add/=mtrls.elms();}       // if we ended up having smooth map, then it means we've used the baked textures, for which we need to set the full smooth   multiplier
+         if(tex_wrote& TEXF_METAL            ){atlas.reflect(min_reflect);                                             }else atlas.reflect      (reflect_min/mtrls.elms(), reflect_max/mtrls.elms()); // if we ended up having metal  map, then it means we've used the baked textures, for which we need to set the full reflect  multiplier
+         if(tex_wrote& TEXF_GLOW             ){atlas.glow    =1;                                                       }else atlas.glow         /=mtrls.elms();                                       // if we ended up having glow   map, then it means we've used the baked textures, for which we need to set the full glow     multiplier
+         if(tex_wrote& TEXF_EMISSIVE         ){atlas.emissive=1;                                                       }else atlas.emissive     /=mtrls.elms();                                       // if we ended up having light  map, then it means we've used the baked textures, for which we need to set the full emissive multiplier
+                                                                                                                             atlas.emissive_glow/=mtrls.elms();
 
          EditMaterial edit; edit.create(atlas);
          Proj.createBaseTextures(atlas.base_0, atlas.base_1, atlas.base_2, edit);
