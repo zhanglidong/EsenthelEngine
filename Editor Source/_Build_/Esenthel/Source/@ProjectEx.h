@@ -250,6 +250,7 @@ public:
    static void MtrlMulTexCol           (ProjectEx &proj);
    static void MtrlMulTexNormal        (ProjectEx &proj);
    static void MtrlMulTexSmooth        (ProjectEx &proj);
+   static void MtrlMulTexEmissive      (ProjectEx &proj);
    static void MtrlMoveToObj           (ProjectEx &proj);
    static void MtrlMerge               (ProjectEx &proj);
    static void MtrlConvertToAtlas      (ProjectEx &proj);
@@ -389,6 +390,7 @@ public:
    bool mtrlMulTexCol(C MemPtr<UID> &elm_ids);
    bool mtrlMulTexNormal(C MemPtr<UID> &elm_ids);
    bool mtrlMulTexSmooth(C MemPtr<UID> &elm_ids);
+   bool mtrlMulTexEmissive(C MemPtr<UID> &elm_ids);
    void mtrlMoveToObj(C MemPtr<UID> &elm_ids);
    bool mtrlGet(C UID &elm_id, EditMaterial &mtrl);
    bool mtrlGet(C UID &elm_id, EditWaterMtrl &mtrl);

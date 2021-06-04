@@ -612,9 +612,10 @@ class MaterialRegion : Region
    static void BumpFromCol24(MaterialRegion &editor) {editor.bumpFromCol(24);}
    static void BumpFromCol32(MaterialRegion &editor) {editor.bumpFromCol(32);}
 
-   static void MulTexCol   (MaterialRegion &editor) {Proj.mtrlMulTexCol   (editor.elm_id);}
-   static void MulTexNormal(MaterialRegion &editor) {Proj.mtrlMulTexNormal(editor.elm_id);}
-   static void MulTexSmooth(MaterialRegion &editor) {Proj.mtrlMulTexSmooth(editor.elm_id);}
+   static void MulTexCol     (MaterialRegion &editor) {Proj.mtrlMulTexCol     (editor.elm_id);}
+   static void MulTexNormal  (MaterialRegion &editor) {Proj.mtrlMulTexNormal  (editor.elm_id);}
+   static void MulTexSmooth  (MaterialRegion &editor) {Proj.mtrlMulTexSmooth  (editor.elm_id);}
+   static void MulTexEmissive(MaterialRegion &editor) {Proj.mtrlMulTexEmissive(editor.elm_id);}
 
    bool bigVisible()C {return visible() && big();}
 
@@ -1008,9 +1009,10 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
       }
       {
          Node<MenuElm> &extra=(n+="Extra");
-         extra.New().create("Multiply Color Texture by Color Value"  , MulTexCol   , T);
-         extra.New().create("Multiply Normal Texture by Normal Value", MulTexNormal, T);
-         extra.New().create("Multiply Smooth Texture by Smooth Value", MulTexSmooth, T);
+         extra.New().create("Multiply Color Texture by Color Value"      , MulTexCol     , T);
+         extra.New().create("Multiply Normal Texture by Normal Value"    , MulTexNormal  , T);
+         extra.New().create("Multiply Smooth Texture by Smooth Value"    , MulTexSmooth  , T);
+         extra.New().create("Multiply Emissive Texture by Emissive Value", MulTexEmissive, T);
       }
       sub+=texture_options.create().setData(n); texture_options.flag|=COMBOBOX_CONST_TEXT;
 

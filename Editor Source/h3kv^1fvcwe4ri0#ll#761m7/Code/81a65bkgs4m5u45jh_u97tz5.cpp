@@ -382,9 +382,10 @@ class ProjectEx : ProjectHierarchy
    static void MtrlSetMetalTexCur      (ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexMetal    (proj.menu_list_sel, MtrlEdit.edit. metal_map);else Gui.msgBox(S, "There's no Material opened");}
    static void MtrlSetGlowTexCur       (ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexGlow     (proj.menu_list_sel, MtrlEdit.edit.  glow_map);else Gui.msgBox(S, "There's no Material opened");}
 
-   static void MtrlMulTexCol           (ProjectEx &proj) {                proj.mtrlMulTexCol      (proj.menu_list_sel);}
-   static void MtrlMulTexNormal        (ProjectEx &proj) {                proj.mtrlMulTexNormal   (proj.menu_list_sel);}
-   static void MtrlMulTexSmooth        (ProjectEx &proj) {                proj.mtrlMulTexSmooth   (proj.menu_list_sel);}
+   static void MtrlMulTexCol           (ProjectEx &proj) {                proj.mtrlMulTexCol     (proj.menu_list_sel);}
+   static void MtrlMulTexNormal        (ProjectEx &proj) {                proj.mtrlMulTexNormal  (proj.menu_list_sel);}
+   static void MtrlMulTexSmooth        (ProjectEx &proj) {                proj.mtrlMulTexSmooth  (proj.menu_list_sel);}
+   static void MtrlMulTexEmissive      (ProjectEx &proj) {                proj.mtrlMulTexEmissive(proj.menu_list_sel);}
    static void MtrlMoveToObj           (ProjectEx &proj) {proj.mtrlMoveToObj      (proj.menu_list_sel);}
    static void MtrlMerge               (ProjectEx &proj) {MSM             .display(proj.menu_list_sel);}
    static void MtrlConvertToAtlas      (ProjectEx &proj) {ConvertToAtlas  .setElms(proj.menu_list_sel);}
@@ -1862,6 +1863,25 @@ class ProjectEx : ProjectHierarchy
             edit.smooth_map=FileParams.Encode(fps); edit.smooth_map_time.now();
             edit.smooth=1; edit.smooth_time.now();
             ok&=mtrlSync(elm_ids[i], edit, true, false, "mulTexSmooth");
+         }
+      }
+      return ok;
+   }
+   bool mtrlMulTexEmissive(C MemPtr<UID> &elm_ids)
+   {
+      bool ok=true;
+      REPA(elm_ids)
+      {
+         EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
+         if(!Equal(edit.emissive_s, Vec(1)) && edit.emissive_map.is())
+         {
+            Mems<FileParams> fps=FileParams.Decode(edit.emissive_map);
+            Vec mul=edit.emissive_s; if(C TextParam *p=FindTransform(fps, "mulRGB"))mul*=TextVecEx(p.value);
+            if(Equal(mul, Vec(1)))DelTransform(fps, "mulRGB");
+            else                  SetTransform(fps, "mulRGB", TextVecEx(mul));
+            edit.emissive_map=FileParams.Encode(fps); edit.emissive_map_time.now();
+            edit.emissive_s=1; edit.emissive_time.now();
+            ok&=mtrlSync(elm_ids[i], edit, true, false, "mulTexEmissive");
          }
       }
       return ok;
@@ -4190,9 +4210,10 @@ class ProjectEx : ProjectHierarchy
                   m.New().create("Set Metal Texture to Edited Material"  , MtrlSetMetalTexCur , T);
                   m.New().create("Set Glow Texture to Edited Material"   , MtrlSetGlowTexCur  , T);
                   m++;
-                  m.New().create("Multiply Color Texture by Color Value"  , MtrlMulTexCol   , T);
-                  m.New().create("Multiply Normal Texture by Normal Value", MtrlMulTexNormal, T);
-                  m.New().create("Multiply Smooth Texture by Smooth Value", MtrlMulTexSmooth, T);
+                  m.New().create("Multiply Color Texture by Color Value"      , MtrlMulTexCol     , T);
+                  m.New().create("Multiply Normal Texture by Normal Value"    , MtrlMulTexNormal  , T);
+                  m.New().create("Multiply Smooth Texture by Smooth Value"    , MtrlMulTexSmooth  , T);
+                  m.New().create("Multiply Emissive Texture by Emissive Value", MtrlMulTexEmissive, T);
                   m++;
                   m.New().create("Move to its Object", MtrlMoveToObj, T).desc("This option will move the Material Element to the Object it belongs to");
                   m++;
