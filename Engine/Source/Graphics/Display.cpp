@@ -955,9 +955,8 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
 
    // !! IF CHANGING THIS THEN ALSO CHANGE 'Environment.Bloom' !!
   _bloom_original=1.0f;
-  _bloom_scale   =0.8f;
-  _bloom_cut     =0.3f;
   _bloom_glow    =1.0f;
+   bloomScaleCut (0.8f, 0.3f);
           _bloom_allow=!MOBILE;
            _glow_allow=!MOBILE;
   _color_palette_allow=!MOBILE;
@@ -2996,12 +2995,20 @@ DisplayClass& DisplayClass::bumpMode(BUMP_MODE mode)
    return T;
 }
 /******************************************************************************/
+void DisplayClass::bloomScaleCut(Flt scale, Flt cut)
+{
+   MAX(scale, 0);
+   MAX(cut  , 0);
+  _bloom_mul= scale;
+  _bloom_add=-scale*SRGBToLinear(cut);
+  _bloom_cut= cut; // keep as copy, because we can't reconstruct from '_bloom_add' if '_bloom_mul' is zero
+}
 DisplayClass& DisplayClass:: glowAllow   (Bool allow   ) {if(_glow_allow!=allow){_glow_allow   =allow   ; tAAReset();} return T;} // 'glowAllow' affects type of TAA RT's #RTOutput
 DisplayClass& DisplayClass::bloomAllow   (Bool allow   ) {                      _bloom_allow   =allow   ;              return T;}
-DisplayClass& DisplayClass::bloomOriginal(Flt  original) {MAX  (original, 0);   _bloom_original=original;              return T;}
-DisplayClass& DisplayClass::bloomScale   (Flt  scale   ) {MAX  (scale   , 0);   _bloom_scale   =scale   ;              return T;}
-DisplayClass& DisplayClass::bloomCut     (Flt  cut     ) {MAX  (cut     , 0);   _bloom_cut     =cut     ;              return T;}
-DisplayClass& DisplayClass::bloomGlow    (Flt  glow    ) {MAX  (glow    , 0);   _bloom_glow    =glow    ;              return T;}
+DisplayClass& DisplayClass::bloomOriginal(Flt  original) {MAX(original, 0);     _bloom_original=original;              return T;}
+DisplayClass& DisplayClass::bloomGlow    (Flt  glow    ) {MAX(glow    , 0);     _bloom_glow    =glow    ;              return T;}
+DisplayClass& DisplayClass::bloomScale   (Flt  scale   ) {bloomScaleCut(scale, bloomCut()); return T;}
+DisplayClass& DisplayClass::bloomCut     (Flt  cut     ) {bloomScaleCut(bloomScale(), cut); return T;}
 Bool          DisplayClass::bloomUsed    (             )C{return bloomAllow() && (!Equal(bloomOriginal(), 1, EPS_COL) || !Equal(bloomScale(), 0, EPS_COL));}
 /******************************************************************************/
 DisplayClass& DisplayClass::volLight(Bool on ) {_vol_light=    on     ; return T;}

@@ -263,12 +263,13 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
 
    // Bloom, setting 'original' value to 1 and 'scale' to 0 disables bloom and increases rendering performance, optionally you can disable it with "bloomAllow(false)"
 #if EE_PRIVATE
-   Flt bloomCutL()C {return SRGBToLinear(_bloom_cut);}
+   void bloomScaleCut(Flt scale, Flt cut);
+   Flt  bloomAdd     ()C {return _bloom_add;}
 #endif
    DisplayClass&  glowAllow   (Bool allow   );   Bool  glowAllow   ()C {return  _glow_allow   ;} // set/get Allow Glow Effect     (true/false, default=true  (false for Mobile)), this can work only if 'bloomAllow' is enabled, the change is instant, you can call it real-time
    DisplayClass& bloomAllow   (Bool allow   );   Bool bloomAllow   ()C {return _bloom_allow   ;} // set/get Allow Bloom           (true/false, default=true  (false for Mobile)), the change is instant, you can call it real-time
    DisplayClass& bloomOriginal(Flt  original);   Flt  bloomOriginal()C {return _bloom_original;} // set/get Bloom Original Color  (   0..Inf , default=1.0                     ), the change is instant, you can call it real-time
-   DisplayClass& bloomScale   (Flt  scale   );   Flt  bloomScale   ()C {return _bloom_scale   ;} // set/get Bloom Scale           (   0..Inf , default=0.8                     ), the change is instant, you can call it real-time
+   DisplayClass& bloomScale   (Flt  scale   );   Flt  bloomScale   ()C {return _bloom_mul     ;} // set/get Bloom Scale           (   0..Inf , default=0.8                     ), the change is instant, you can call it real-time
    DisplayClass& bloomCut     (Flt  cut     );   Flt  bloomCut     ()C {return _bloom_cut     ;} // set/get Bloom Cutoff          (   0..Inf , default=0.3                     ), the change is instant, you can call it real-time
    DisplayClass& bloomGlow    (Flt  glow    );   Flt  bloomGlow    ()C {return _bloom_glow    ;} // set/get Bloom from Glow       (   0..Inf , default=1.0                     ), the change is instant, you can call it real-time
                                                  Bool bloomUsed    ()C;                          //     if  Bloom post process is going to be used
@@ -565,7 +566,7 @@ private:
                      _eye_adapt_brightness, _eye_adapt_exp, _eye_adapt_max_dark, _eye_adapt_max_bright, _eye_adapt_speed,
                      _eye_dist, _eye_dist_2,
                      _shd_frac, _shd_fade, _shd_range, _shd_map_size_l, _shd_map_size_c,
-                     _bloom_original, _bloom_scale, _bloom_cut, _bloom_glow,
+                     _bloom_original, _bloom_mul, _bloom_add, _bloom_glow, _bloom_cut,
                      _mtn_scale,
                      _dof_focus, _dof_range, _dof_intensity,
                      _vol_max,
