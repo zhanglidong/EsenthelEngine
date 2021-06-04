@@ -1988,8 +1988,6 @@ void RendererClass::refract() // !! assumes that 'finalizeGlow' was called !!
 }
 void RendererClass::postProcess()
 {
-   if(_has_glow && D.bloomGlow()<=EPS_COL8)_has_glow=false; // at this point glow will be used only for bloom, so if it's not needed there, then disable
-
    Bool eye_adapt= hasEyeAdapt (),
         bloom    =(hasBloom    () || _has_glow),
         motion   = hasMotion   (),

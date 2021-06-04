@@ -635,7 +635,7 @@ Rect* RendererClass::setEyeParams()
 void RendererClass::     hasGlow() {_has_glow=true;}
 void RendererClass::finalizeGlow()
 {
-   if(!_col->typeInfo().a || !D.glowAllow() || !D.bloomAllow() || fastCombine())_has_glow=false; // glow can be done only if we have Alpha Channel in the RT, if we're allowing bloom processing (because it'd done together in the same shader), if we're allowing glow, and if 'fastCombine' is not active
+   if(!_col->typeInfo().a || !D.glowAllow() || !D.bloomAllow() || D.bloomGlow()<=EPS_COL8 || fastCombine())_has_glow=false; // glow can be done only if we have Alpha Channel in the RT, if we're allowing bloom processing (because it's done together in the same shader), if we're allowing glow, and if 'fastCombine' is not active
 }
 /******************************************************************************/
 Bool RendererClass::capture(Image &image, Int w, Int h, Int type, Int mode, Int mip_maps, Bool alpha)
