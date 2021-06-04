@@ -1446,7 +1446,15 @@ void RendererClass::light()
 
       D.alpha(ALPHA_NONE);
       set(_col, _ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
-      if((_col==src || Sky.isActual()) && stage!=RS_LIT_COLOR)D.depth2DOn(); // we can skip background only if we're applying to the same RT or if the background will be later overwritten by Sky
+      if(_col==src || Sky.isActual()) // we can skip background only if we're applying to the same RT or if the background will be later overwritten by Sky
+         switch(stage)
+      {
+         case RS_LIT_COLOR:
+         case RS_GLOW     :
+         case RS_EMISSIVE : break; // these stages need full background
+
+         default: D.depth2DOn(); break;
+      }
       if(!_col->multiSample())GetApplyLight(0, ao, cel_shade, night_shade, glow, env)->draw();else
       {
          Sh.ImgMS[0]->set(_nrm );
