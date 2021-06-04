@@ -429,6 +429,7 @@ void DrawProject()
    void ProjectEx::MtrlMulTexCol(ProjectEx &proj) {                proj.mtrlMulTexCol     (proj.menu_list_sel);}
    void ProjectEx::MtrlMulTexNormal(ProjectEx &proj) {                proj.mtrlMulTexNormal  (proj.menu_list_sel);}
    void ProjectEx::MtrlMulTexSmooth(ProjectEx &proj) {                proj.mtrlMulTexSmooth  (proj.menu_list_sel);}
+   void ProjectEx::MtrlMulTexGlow(ProjectEx &proj) {                proj.mtrlMulTexGlow    (proj.menu_list_sel);}
    void ProjectEx::MtrlMulTexEmissive(ProjectEx &proj) {                proj.mtrlMulTexEmissive(proj.menu_list_sel);}
    void ProjectEx::MtrlMoveToObj(ProjectEx &proj) {proj.mtrlMoveToObj      (proj.menu_list_sel);}
    void ProjectEx::MtrlMerge(ProjectEx &proj) {MSM             .display(proj.menu_list_sel);}
@@ -1882,6 +1883,25 @@ void DrawProject()
             edit.smooth_map=FileParams::Encode(fps); edit.smooth_map_time.now();
             edit.smooth=1; edit.smooth_time.now();
             ok&=mtrlSync(elm_ids[i], edit, true, false, "mulTexSmooth");
+         }
+      }
+      return ok;
+   }
+   bool ProjectEx::mtrlMulTexGlow(C MemPtr<UID> &elm_ids)
+   {
+      bool ok=true;
+      REPA(elm_ids)
+      {
+         EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
+         if(!Equal(edit.glow, 1) && edit.glow_map.is())
+         {
+            Mems<FileParams> fps=FileParams::Decode(edit.glow_map);
+            flt mul=edit.glow; if(C TextParam *p=FindTransform(fps, "mulRGB"))mul*=p->asFlt();
+            if(Equal(mul, 1))DelTransform(fps, "mulRGB");
+            else             SetTransform(fps, "mulRGB", TextReal(mul, -3));
+            edit.glow_map=FileParams::Encode(fps); edit.glow_map_time.now();
+            edit.glow=1; edit.glow_time.now();
+            ok&=mtrlSync(elm_ids[i], edit, true, false, "mulTexGlow");
          }
       }
       return ok;
@@ -4143,6 +4163,7 @@ void DrawProject()
                   m.New().create("Multiply Color Texture by Color Value"      , MtrlMulTexCol     , T);
                   m.New().create("Multiply Normal Texture by Normal Value"    , MtrlMulTexNormal  , T);
                   m.New().create("Multiply Smooth Texture by Smooth Value"    , MtrlMulTexSmooth  , T);
+                  m.New().create("Multiply Glow Texture by Glow Value"        , MtrlMulTexGlow    , T);
                   m.New().create("Multiply Emissive Texture by Emissive Value", MtrlMulTexEmissive, T);
                   m++;
                   m.New().create("Move to its Object", MtrlMoveToObj, T).desc("This option will move the Material Element to the Object it belongs to");

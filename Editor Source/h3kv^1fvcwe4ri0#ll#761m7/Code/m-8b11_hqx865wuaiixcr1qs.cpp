@@ -617,6 +617,7 @@ class MaterialRegion : Region
    static void MulTexCol     (MaterialRegion &editor) {Proj.mtrlMulTexCol     (editor.elm_id);}
    static void MulTexNormal  (MaterialRegion &editor) {Proj.mtrlMulTexNormal  (editor.elm_id);}
    static void MulTexSmooth  (MaterialRegion &editor) {Proj.mtrlMulTexSmooth  (editor.elm_id);}
+   static void MulTexGlow    (MaterialRegion &editor) {Proj.mtrlMulTexGlow    (editor.elm_id);}
    static void MulTexEmissive(MaterialRegion &editor) {Proj.mtrlMulTexEmissive(editor.elm_id);}
 
    bool bigVisible()C {return visible() && big();}
@@ -831,7 +832,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
 smooth=&props.New().create("Smoothness"     , MemberDesc(DATA_REAL).setFunc(Smooth    , Smooth    )); // range depends on smooth texture presence
         props.New().create("Reflectivity"   , MemberDesc(DATA_REAL).setFunc(ReflectMin, ReflectMin)).range(0, 1).desc(S+"Base Reflectivity\nDefault="+MATERIAL_REFLECT);
         props.New().create("ReflectivityMax", MemberDesc(DATA_REAL).setFunc(ReflectMax, ReflectMax)).range(0, 1).desc("This value specifies the amount of Reflectivity that can be obtained from the Metal texture.\nIn most cases this value should be left at 1.");
-        props.New().create("Glow"           , MemberDesc(DATA_REAL).setFunc(Glow      , Glow      )).range(0, 1);
+        props.New().create("Glow"           , MemberDesc(DATA_REAL).setFunc(Glow      , Glow      )).range(0, 4);
 
 emit_red  =&props.New().create("Emit Red"  , MemberDesc(DATA_REAL).setFunc(EmissiveR   , EmissiveR   )).range(0, 4).mouseEditSpeed(0.4);
 emit_green=&props.New().create("Emit Green", MemberDesc(DATA_REAL).setFunc(EmissiveG   , EmissiveG   )).range(0, 4).mouseEditSpeed(0.4);
@@ -1015,6 +1016,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
          extra.New().create("Multiply Color Texture by Color Value"      , MulTexCol     , T);
          extra.New().create("Multiply Normal Texture by Normal Value"    , MulTexNormal  , T);
          extra.New().create("Multiply Smooth Texture by Smooth Value"    , MulTexSmooth  , T);
+         extra.New().create("Multiply Glow Texture by Glow Value"        , MulTexGlow    , T);
          extra.New().create("Multiply Emissive Texture by Emissive Value", MulTexEmissive, T);
       }
       sub+=texture_options.create().setData(n); texture_options.flag|=COMBOBOX_CONST_TEXT;

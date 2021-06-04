@@ -285,6 +285,7 @@ public:
    static void MulTexCol     (MaterialRegion &editor);
    static void MulTexNormal  (MaterialRegion &editor);
    static void MulTexSmooth  (MaterialRegion &editor);
+   static void MulTexGlow    (MaterialRegion &editor);
    static void MulTexEmissive(MaterialRegion &editor);
 
    bool bigVisible()C;
