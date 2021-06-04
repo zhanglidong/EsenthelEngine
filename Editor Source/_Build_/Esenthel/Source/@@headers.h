@@ -293,6 +293,7 @@ enum APPLY_MODE
    APPLY_ADD,
    APPLY_ADD_RGB,
    APPLY_ADD_LUM,
+   APPLY_MUL_INV_LUM_ADD_RGB, // used for adding emissive on top of color and reducing color where emissive is added
    APPLY_ADD_SAT,
    APPLY_ADD_SAT_PHOTO,
    APPLY_ADD_HUE,

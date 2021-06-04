@@ -2182,6 +2182,7 @@ force_src_resize:
          if(p->value=="add"                                                                    )mode=APPLY_ADD;else
          if(p->value=="addRGB"                                                                 )mode=APPLY_ADD_RGB;else
          if(p->value=="addLum"                                                                 )mode=APPLY_ADD_LUM;else
+         if(p->value=="mulInvLumAddRGB"                                                        )mode=APPLY_MUL_INV_LUM_ADD_RGB;else
          if(p->value=="addSat"                                                                 )mode=APPLY_ADD_SAT;else
          if(p->value=="addHue"                                                                 )mode=APPLY_ADD_HUE;else
          if(p->value=="addHuePhoto"                                                            )mode=APPLY_ADD_HUE_PHOTO;else
@@ -2265,31 +2266,32 @@ force_src_resize:
                         Vec4 base=image.colorF(x+pos.x, y+pos.y), c;
                         switch(mode)
                         {
-                           default                  : c =l; break; // APPLY_SET
-                           case APPLY_BLEND         : c =             Blend(base, l); break;
-                           case APPLY_MERGE         : c =PremultipliedBlend(base, l); break;
-                           case APPLY_MUL           : c=base*l; break;
-                           case APPLY_MUL_RGB       : c.set(base.xyz*l.xyz, base.w); break;
-                           case APPLY_MUL_RGB_LIN   : c.set(LinearToSRGB(SRGBToLinear(base.xyz)*l.xyz), base.w); break; // this treats 'l' as already linear
-                           case APPLY_MUL_A         : c.set(base.xyz, base.w*l.w); break;
-                           case APPLY_SET_A_FROM_RGB: c.set(base.xyz, l.xyz.max()); break;
-                           case APPLY_MUL_LUM       : c.set(base.xyz*l.xyz.max(), base.w); break;
-                           case APPLY_MUL_SAT       : c.xyz=RgbToHsb(base.xyz); c.y*=l.xyz.max(); c.set(HsbToRgb(c.xyz), base.w); break;
-                           case APPLY_ADD_SAT       : c.xyz=RgbToHsb(base.xyz); c.y+=l.xyz.max(); c.set(HsbToRgb(c.xyz), base.w); break;
-                           case APPLY_DIV           : c=base/l; break;
-                           case APPLY_DIV_RGB       : c.set(base.xyz/l.xyz, base.w); break;
-                           case APPLY_ADD           : c=base+l; break;
-                           case APPLY_ADD_RGB       : c.set(base.xyz+l.xyz, base.w); break;
-                           case APPLY_ADD_LUM       : {flt old_lum=base.xyz.max(), new_lum=old_lum+l.xyz.max(); if(old_lum>0)c.xyz=base.xyz*(new_lum/old_lum);else c.xyz=new_lum; c.w=base.w;} break;
-                           case APPLY_SUB           : c=base-l; break;
-                           case APPLY_SUB_RGB       : c.set(base.xyz-l.xyz, base.w); break;
-                           case APPLY_GAMMA         : {flt gamma=l.xyz.max(); c.set(Pow(base.x, gamma), Pow(base.y, gamma), Pow(base.z, gamma), base.w);} break;
-                           case APPLY_AVG           : c=Avg(base, l); break;
-                           case APPLY_MIN           : c=Min(base, l); break;
-                           case APPLY_MAX           : c=Max(base, l); break;
-                           case APPLY_MAX_RGB       : c.set(Max(base.xyz, l.xyz), base.w); break;
-                           case APPLY_MAX_A         : c.set(base.xyz, Max(base.w, l.w)); break;
-                           case APPLY_METAL         : {flt metal=l.xyz.max(); c.set(Lerp(base.xyz, l.xyz, metal), base.w);} break; // this applies metal map onto diffuse map (by lerping from diffuse to metal based on metal intensity)
+                           default                       : c=l; break; // APPLY_SET
+                           case APPLY_BLEND              : c=     Blend(base, l); break;
+                           case APPLY_MERGE              : c=MergeBlend(base, l); break;
+                           case APPLY_MUL                : c=base*l; break;
+                           case APPLY_MUL_RGB            : c.set(base.xyz*l.xyz, base.w); break;
+                           case APPLY_MUL_RGB_LIN        : c.set(LinearToSRGB(SRGBToLinear(base.xyz)*l.xyz), base.w); break; // this treats 'l' as already linear
+                           case APPLY_MUL_A              : c.set(base.xyz, base.w*l.w); break;
+                           case APPLY_SET_A_FROM_RGB     : c.set(base.xyz, l.xyz.max()); break;
+                           case APPLY_MUL_LUM            : c.set(base.xyz*l.xyz.max(), base.w); break;
+                           case APPLY_MUL_INV_LUM_ADD_RGB: c.set(base.xyz*Sat(1-l.xyz.max())+l.xyz, base.w); break;
+                           case APPLY_MUL_SAT            : c.xyz=RgbToHsb(base.xyz); c.y*=l.xyz.max(); c.set(HsbToRgb(c.xyz), base.w); break;
+                           case APPLY_ADD_SAT            : c.xyz=RgbToHsb(base.xyz); c.y+=l.xyz.max(); c.set(HsbToRgb(c.xyz), base.w); break;
+                           case APPLY_DIV                : c=base/l; break;
+                           case APPLY_DIV_RGB            : c.set(base.xyz/l.xyz, base.w); break;
+                           case APPLY_ADD                : c=base+l; break;
+                           case APPLY_ADD_RGB            : c.set(base.xyz+l.xyz, base.w); break;
+                           case APPLY_ADD_LUM            : {flt old_lum=base.xyz.max(), new_lum=old_lum+l.xyz.max(); if(old_lum>0)c.xyz=base.xyz*(new_lum/old_lum);else c.xyz=new_lum; c.w=base.w;} break;
+                           case APPLY_SUB                : c=base-l; break;
+                           case APPLY_SUB_RGB            : c.set(base.xyz-l.xyz, base.w); break;
+                           case APPLY_GAMMA              : {flt gamma=l.xyz.max(); c.set(Pow(base.x, gamma), Pow(base.y, gamma), Pow(base.z, gamma), base.w);} break;
+                           case APPLY_AVG                : c=Avg(base, l); break;
+                           case APPLY_MIN                : c=Min(base, l); break;
+                           case APPLY_MAX                : c=Max(base, l); break;
+                           case APPLY_MAX_RGB            : c.set(Max(base.xyz, l.xyz), base.w); break;
+                           case APPLY_MAX_A              : c.set(base.xyz, Max(base.w, l.w)); break;
+                           case APPLY_METAL              : {flt metal=l.xyz.max(); c.set(Lerp(base.xyz, l.xyz, metal), base.w);} break; // this applies metal map onto diffuse map (by lerping from diffuse to metal based on metal intensity)
 
                            case APPLY_ADD_HUE:
                            case APPLY_ADD_HUE_PHOTO:

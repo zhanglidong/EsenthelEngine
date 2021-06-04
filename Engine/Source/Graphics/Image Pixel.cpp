@@ -1065,7 +1065,7 @@ void Image::blendF(Int x, Int y, C Vec4 &color)
       }
    }
 }*/
-static inline void ApplyMerge(Vec4 &src, C Vec4 &color) {src=PremultipliedBlend(src, color);}
+static inline void ApplyMerge(Vec4 &src, C Vec4 &color) {src=MergeBlend(src, color);}
 void Image::mergeF(Int x, Int y, C Vec4 &color)
 {
    if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available

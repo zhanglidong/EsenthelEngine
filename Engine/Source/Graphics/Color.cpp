@@ -379,12 +379,12 @@ Vec4 Blend(C Vec4 &base, C Vec4 &color)
    out.w=base.w+color.w*(1-base.w);
    return out;
 }
-Vec4 FastPremultipliedBlend(C Vec4 &base, C Vec4 &color)
+Vec4 FastMergeBlend(C Vec4 &base, C Vec4 &color)
 {
    return Vec4(base.xyz*(1-color.w) + color.xyz          ,
                base.w               + color.w*(1-base.w));
 }
-Vec4 PremultipliedBlend(C Vec4 &base, C Vec4 &color)
+Vec4 MergeBlend(C Vec4 &base, C Vec4 &color)
 {
    Vec4 out;
    Flt  base_w=(1-color.w)*base.w, // "1-color.w" because of standard 'Lerp' (to make base insignificant if new color is fully opaque and covers the base), mul by 'base.w' because if the 'base' is mostly transparent, then we want to make it even more insignificant - for example transparent red 'base' (1, 0, 0, 0) blended with half transparent black 'color' (0, 0, 0, 0.5) would normally blend into (0.5, 0, 0, 0.5)
