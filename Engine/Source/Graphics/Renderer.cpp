@@ -630,7 +630,6 @@ RendererClass& RendererClass::operator()(void (&render)())
          case RS_NORMAL : if(                          show(_nrm  , false, D.signedNrmRT()))goto finished; break;
          case RS_SMOOTH : if(                          show(_ext  , false, false, 0, true ))goto finished; break; // #RTOutput inverse because it's roughness
          case RS_REFLECT: if(                          show(_ext  , false, false, 1       ))goto finished; break; // #RTOutput
-         case RS_GLOW   : if(                          show(_col  , false, false, 3       ))goto finished; break; // #RTOutput
          case RS_DEPTH  : if(                          show(_ds_1s, false                 ))goto finished; break; // this may be affected by test blend materials later
       }
       waterPreLight(); MEASURE(water)
@@ -680,6 +679,11 @@ RendererClass& RendererClass::operator()(void (&render)())
       if(waterPostLight())goto finished; MEASURE(_t_water[1])if(_t_measure)_t_water[1]+=water;
 
       emissive  (); MEASURE(_t_emissive[1])
+      if(stage)switch(stage)
+      {
+         case RS_GLOW    : if(                          show(_col, false, false, 3))goto finished; break; // #RTOutput
+         case RS_EMISSIVE: if(_cur_type==RT_DEFERRED && show(_col, true           ))goto finished; break; // only on deferred renderer
+      }
       sky       (); MEASURE(_t_sky[1])
       edgeDetect(); MEASURE(_t_edge_detect[1])
       blend     (); MEASURE(_t_blend[1])
@@ -1041,7 +1045,7 @@ start:
    }
 #endif
 
-   const Bool clear_col=((!Sky.isActual() || stage==RS_COLOR || stage==RS_GLOW || stage==RS_LIT_COLOR || _col->multiSample()) && !fastCombine()); // performance tests suggested it's better don't clear unless necessary, instead 'Image.discard' is used and improves performance (at least on Mobile), always have to clear for multi-sampled to allow for proper detection of MSAA pixels using 'Sh.DetectMSCol' (this is needed for all renderers, not only Deferred, without this edges of sky/meshes may not get multi-sampled, especially when there's small variation in material color texture or no texture at all having just a single color) #RTOutput
+   const Bool clear_col=((!Sky.isActual() || stage==RS_COLOR || stage==RS_GLOW || stage==RS_EMISSIVE || stage==RS_LIT_COLOR || _col->multiSample()) && !fastCombine()); // performance tests suggested it's better don't clear unless necessary, instead 'Image.discard' is used and improves performance (at least on Mobile), always have to clear for multi-sampled to allow for proper detection of MSAA pixels using 'Sh.DetectMSCol' (this is needed for all renderers, not only Deferred, without this edges of sky/meshes may not get multi-sampled, especially when there's small variation in material color texture or no texture at all having just a single color) #RTOutput
    switch(_cur_type)
    {
       case RT_DEFERRED:
@@ -1424,6 +1428,13 @@ void RendererClass::light()
       Bool has_last_frag_color=false, // TODO: there would be no need to write to a new RT if we would use gl_LastFragColor/gl_LastFragData[0] using extensions - https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_shader_framebuffer_fetch.txt and https://www.khronos.org/registry/OpenGL/extensions/ARM/ARM_shader_framebuffer_fetch.txt
            use_last_frag_color=(has_last_frag_color && (D.highPrecColRT() ? IMAGE_PRECISION_10 : IMAGE_PRECISION_8)==D.litColRTPrecision());
       if( !use_last_frag_color)_col.get(ImageRTDesc(_col->w(), _col->h(), GetImageRTType(D.glowAllow(), D.litColRTPrecision()), _col->samples())); // glow requires alpha
+
+      if(stage==RS_EMISSIVE)
+      {
+         _lum_1s->clearViewport(); if(_lum != _lum_1s)_lum ->clearViewport();
+        _spec_1s->clearViewport(); if(_spec!=_spec_1s)_spec->clearViewport();
+         ao=env=cel_shade=night_shade=false;
+      }
 
       Sh.Img  [0]->set(_nrm                );
       Sh.Img  [1]->set( src                );
