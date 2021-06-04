@@ -312,6 +312,7 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
    ImageRTPtrRef rt0(half ? _h0 : _q0); rt0.get(rt_desc);
    ImageRTPtrRef rt1(half ? _h1 : _q1); rt1.get(rt_desc); Bool discard=false; // we've already discarded in 'get' so no need to do it again
 
+   #define BLOOM_GLOW_GAMMA_PER_PIXEL 0 // #BloomGlowGammaPerPixel
    D.alpha(ALPHA_NONE);
    if(_has_glow || D.bloomScale()) // if we have something there
    {
@@ -328,7 +329,7 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
                                                             : half_res ? D.bloomScale()
                                                                        : D.bloomScale()/4,
                                                                          D.bloomAdd  (),
-                                                                         D.bloomGlow ()/res2));
+                                                                         D.bloomGlow ()/(BLOOM_GLOW_GAMMA_PER_PIXEL ? res2 : Sqr(res2)))); // for !BLOOM_GLOW_GAMMA_PER_PIXEL we need to square res2 because of "glow.a=SRGBToLinearFast(glow.a)" in the shader which is before "glow.a/=res2;", so "SRGBToLinearFast(glow.a/res2)=SRGBToLinearFast(glow.a)/Sqr(res2)"
       Sh.imgSize( src); GetBloomDS(_has_glow, !D._view_main.full, half_res)->draw(src, rect);
     //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
 

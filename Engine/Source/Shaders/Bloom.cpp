@@ -19,6 +19,7 @@ BUFFER_END
 #ifndef DITHER
    #define DITHER 0
 #endif
+#define BLOOM_GLOW_GAMMA_PER_PIXEL 0 // #BloomGlowGammaPerPixel can be disabled because it will be faster but visual difference will be minimal
 /******************************************************************************/
 void BloomDS_VS(VtxInput vtx,
     NOPERSP out Vec2 outTex:TEXCOORD,
@@ -44,13 +45,15 @@ VecH4 BloomDS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // "Max(0, " of the result 
       UNROLL for(Int x=0; x<res; x++)
       {
          VecH4 c=TexLod(Img, UVClamp(inTex+ImgSize.xy*Vec2(x, y), CLAMP)); // can't use 'TexPoint' because 'Img' can be supersampled
+         if(BLOOM_GLOW_GAMMA_PER_PIXEL)c.a=SRGBToLinearFast(c.a); // have to convert to linear because small glow of 1/255 would give 12.7/255 sRGB (Glow was sampled from non-sRGB texture and stored in RT alpha channel without any gamma conversions)
          color   +=c.rgb;
          glow.rgb+=c.rgb*c.a;
          glow.a  +=c.a;
       }
+      if(!BLOOM_GLOW_GAMMA_PER_PIXEL)glow.a=SRGBToLinearFast(glow.a); // have to convert to linear because small glow of 1/255 would give 12.7/255 sRGB (Glow was sampled from non-sRGB texture and stored in RT alpha channel without any gamma conversions)
       glow.rgb*=(glow.a*BloomParams.w)/Max(Max(glow.rgb), HALF_MIN);
       color =BloomColor(color);
-      color+=glow.rgb; // alternative: color=Max(color, glow.rgb);
+      color+=glow.rgb;
       return VecH4(color, 0);
    }else
    {
