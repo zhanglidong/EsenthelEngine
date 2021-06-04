@@ -43,14 +43,16 @@ VecH LitCol(VecH4 color, Vec nrm, VecH2 ext, VecH lum, VecH spec, Half ao, VecH 
 #if GLOW // apply glow after light, night shade and metal, treat it as emissive
    if(GLOW_OCCLUSION)
    {
-      if(GLOW_FOCUS)lit_col*=1-color.w;
+      color.w=SRGBToLinearFast(color.w); // have to convert to linear because small glow of 1/255 would give 12.7/255 sRGB (Glow was sampled from non-sRGB texture and stored in RT alpha channel without any gamma conversions)
+      if(GLOW_FOCUS)lit_col*=Sat(1-color.w);
       lit_col+=color.rgb*(color.w*2); // boost glow by 2 because here we don't maximize color.rgb, so average color.rgb 0..1 is 0.5, so *2 makes it 1.0
    }else
    if(color.w>0)
    {
       Half max=Max(color.rgb); if(max>0)
       {
-         if(GLOW_FOCUS)lit_col*=1-color.w;
+         color.w=SRGBToLinearFast(color.w); // have to convert to linear because small glow of 1/255 would give 12.7/255 sRGB (Glow was sampled from non-sRGB texture and stored in RT alpha channel without any gamma conversions)
+         if(GLOW_FOCUS)lit_col*=Sat(1-color.w);
          lit_col+=color.rgb*(color.w/max); // NaN
       }
    }
