@@ -1940,8 +1940,9 @@ VecH ReflectTex(Vec reflect_dir, Half rough)
 {
    return TexCubeLodI(Env, reflect_dir, rough*EnvMipMaps).rgb;
 }
-void ApplyGlow(Half glow, inout Half diffuse)
+void ApplyGlow(Half glow, inout Half diffuse) // separate version for secondary passes where we just darken diffuse, this can't modify 'glow' as "inout" because original is still needed
 {
+   glow=SRGBToLinearFast(glow); // have to convert to linear because small glow of 1/255 would give 12.7/255 sRGB (Glow was sampled from non-sRGB texture and stored in RT alpha channel without any gamma conversions), this has to be done first before using glow and before adjusting 'diffuse' (if it's done after 'diffuse' then 'glow' could actually darken colors)
    diffuse*=Max(0, 1-glow); // focus on glow reducing 'lit_col' where glow is present, glowable pixels should not be affected by lighting (for example if glow light is half covered by shadow, and half not, then half will be darker and half brighter which will look bad)
 }
 void ApplyGlow(Half glow, VecH unlit_col, inout Half diffuse, inout VecH spec) // apply glow to 'spec' so it's treated as emissive and added to final result, unaffected by light, night shade and metal
@@ -1949,8 +1950,8 @@ void ApplyGlow(Half glow, VecH unlit_col, inout Half diffuse, inout VecH spec) /
    #define GLOW_OCCLUSION 0 // glow should not be occluded, so remove occlusion from color and use maximized color
    if(glow>0)
    {
-      ApplyGlow(glow, diffuse);
-      glow=SRGBToLinearFast(glow); // have to convert to linear because small glow of 1/255 would give 12.7/255 sRGB (Glow was sampled from non-sRGB texture and stored in RT alpha channel without any gamma conversions)
+      glow=SRGBToLinearFast(glow); // have to convert to linear because small glow of 1/255 would give 12.7/255 sRGB (Glow was sampled from non-sRGB texture and stored in RT alpha channel without any gamma conversions), this has to be done first before using glow and before adjusting 'diffuse' (if it's done after 'diffuse' then 'glow' could actually darken colors)
+      diffuse*=Max(0, 1-glow); // focus on glow reducing 'lit_col' where glow is present, glowable pixels should not be affected by lighting (for example if glow light is half covered by shadow, and half not, then half will be darker and half brighter which will look bad)
       if(GLOW_OCCLUSION)spec+=unlit_col*(glow*2); // boost glow by 2 because here we don't maximize unlit_col, so average unlit_col 0..1 is 0.5, so *2 makes it 1.0
       else {Half max=Max(unlit_col); if(max>0)spec+=unlit_col*(glow/max);} // NaN
    }
