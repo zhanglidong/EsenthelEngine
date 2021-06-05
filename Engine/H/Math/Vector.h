@@ -62,16 +62,20 @@
 #define EPS_NRM_AUTO      PI_3              // Normal Angle       Epsilon (used for calculating vertex normals)
 
 #if EE_PRIVATE
-#define EPS_COL8_LINEAR        (EPS_COL8/12.92f)                           // EPS_COL8 in linear Gamma, Warning: "/12.92f" is valid only for small values
-#define EPS_COL_LINEAR         (EPS_COL /12.92f)                           // EPS_COL  in linear Gamma, Warning: "/12.92f" is valid only for small values
-#define EPS_COL8_NATIVE        (LINEAR_GAMMA ? EPS_COL8_LINEAR : EPS_COL8)
-#define EPS_COL_NATIVE         (LINEAR_GAMMA ? EPS_COL_LINEAR  : EPS_COL )
-#define EPS_GPU                (MOBILE ? HALF_EPS : FLT_EPS)               // GPU             Epsilon (Mobile GPU's may have only half precision)
-#define EPS_ANIM_BLEND         (1.0f/4096)                                 // Animation Blend Epsilon (default value used for ignoring animations)
-#define EPS_SKY_MIN_LERP_DIST  (1.0f/8)                                    // 12.5 cm
-#define EPS_SKY_MIN_VIEW_RANGE 0.999f                                      // 0.999f was the biggest value that caused holes to disappear
-#define EPS_TAN_COS            EPS_COL_COS                                 // use strict eps to merge only if are the same, strict eps doesn't significantly increase the vertex count, on few test models vtx count was only 1% bigger when compared to 0 eps
-#define EPS_BIN_COS            0                                           // can use 0 for 'Dot' (to differentiate only if binormals are on the same side) because binormals are stored in MeshRender using 1-bit only and reconstructed as "Cross(nrm, tan)" or "-Cross(nrm, tan)"
+#define EPS_COL8_LINEAR        0.000151171f                                  // EPS_COL8 in linear Gamma, SRGBToLinear(0.5/ 256  )  , Warning: can be used only when comparing with 0
+#define EPS_COL_LINEAR         0.000037793f                                  // EPS_COL  in linear Gamma, SRGBToLinear(0.5/1024  )  , Warning: can be used only when comparing with 0
+#define EPS_COL8_NATIVE        (LINEAR_GAMMA ? EPS_COL8_LINEAR   : EPS_COL8) //                                                       Warning: can be used only when comparing with 0
+#define EPS_COL_NATIVE         (LINEAR_GAMMA ? EPS_COL_LINEAR    : EPS_COL ) //                                                       Warning: can be used only when comparing with 0
+#define EPS_COL8_1_LINEAR      0.004448891f                                  // EPS_COL8 in linear Gamma, SRGBToLinear(0.5/ 256+1)-1, Warning: can be used only when comparing with 1
+#define EPS_COL_1_LINEAR       0.001111269f                                  // EPS_COL  in linear Gamma, SRGBToLinear(0.5/1024+1)-1, Warning: can be used only when comparing with 1
+#define EPS_COL8_1_NATIVE      (LINEAR_GAMMA ? EPS_COL8_1_LINEAR : EPS_COL8) //                                                       Warning: can be used only when comparing with 1
+#define EPS_COL_1_NATIVE       (LINEAR_GAMMA ? EPS_COL_1_LINEAR  : EPS_COL ) //                                                       Warning: can be used only when comparing with 1
+#define EPS_GPU                (MOBILE ? HALF_EPS : FLT_EPS)                 // GPU             Epsilon (Mobile GPU's may have only half precision)
+#define EPS_ANIM_BLEND         (1.0f/4096)                                   // Animation Blend Epsilon (default value used for ignoring animations)
+#define EPS_SKY_MIN_LERP_DIST  (1.0f/8)                                      // 12.5 cm
+#define EPS_SKY_MIN_VIEW_RANGE 0.999f                                        // 0.999f was the biggest value that caused holes to disappear
+#define EPS_TAN_COS            EPS_COL_COS                                   // use strict eps to merge only if are the same, strict eps doesn't significantly increase the vertex count, on few test models vtx count was only 1% bigger when compared to 0 eps
+#define EPS_BIN_COS            0                                             // can use 0 for 'Dot' (to differentiate only if binormals are on the same side) because binormals are stored in MeshRender using 1-bit only and reconstructed as "Cross(nrm, tan)" or "-Cross(nrm, tan)"
 #endif
 /******************************************************************************/
 enum AXIS_TYPE
