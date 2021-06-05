@@ -87,14 +87,14 @@ VecH LightDir_PS
 
    // ext+col
 #if WATER
-   VecH2 ext      ={WaterMaterial.rough, WaterMaterial.reflect}; // #RTOutput Water doesn't have Ext Texture #WaterExt
-   Half  unlit_col= WaterMaterial.reflect; // this is used for calculation of final reflectivity, just copy from water reflectivity #WaterExt
+   VecH2 ext     ={WaterMaterial.rough, WaterMaterial.reflect}; // #RTOutput Water doesn't have Ext Texture #WaterExt
+   Half  base_col= WaterMaterial.reflect; // this is used for calculation of final reflectivity, just copy from water reflectivity #WaterExt
 #elif MULTI_SAMPLE
-   VecH2 ext      =GetExtMS (pixel.xy, index);
-   VecH  unlit_col=TexSample(ImgMS1, pixel.xy, index).rgb;
+   VecH2 ext     =GetExtMS (pixel.xy, index);
+   VecH  base_col=TexSample(ImgMS1, pixel.xy, index).rgb;
 #else
-   VecH2 ext      =GetExt  (inTex);
-   VecH  unlit_col=TexPoint(Img1, inTex).rgb;
+   VecH2 ext     =GetExt  (inTex);
+   VecH  base_col=TexPoint(Img1, inTex).rgb;
 #endif
 
    // light #1
@@ -102,8 +102,8 @@ VecH LightDir_PS
    lp.set(nrm.xyz, light_dir, eye_dir);
 
    VecH    lum_rgb=LightDir.color.rgb*lum;
-   outSpec=lum_rgb*lp.specular(ext.x, ext.y, ReflectCol(ext.y, unlit_col), true, LightDir.radius_frac); // specular #RTOutput
-   return  lum_rgb*lp.diffuse (ext.x                                                                 ); // diffuse  #RTOutput
+   outSpec=lum_rgb*lp.specular(ext.x, ext.y, ReflectCol(ext.y, base_col), true, LightDir.radius_frac); // specular #RTOutput
+   return  lum_rgb*lp.diffuse (ext.x                                                                ); // diffuse  #RTOutput
 }
 /******************************************************************************/
 VecH LightPoint_PS
@@ -162,14 +162,14 @@ VecH LightPoint_PS
 
    // ext+col
 #if WATER
-   VecH2 ext      ={WaterMaterial.rough, WaterMaterial.reflect}; // #RTOutput Water doesn't have Ext Texture #WaterExt
-   Half  unlit_col= WaterMaterial.reflect; // this is used for calculation of final reflectivity, just copy from water reflectivity #WaterExt
+   VecH2 ext     ={WaterMaterial.rough, WaterMaterial.reflect}; // #RTOutput Water doesn't have Ext Texture #WaterExt
+   Half  base_col= WaterMaterial.reflect; // this is used for calculation of final reflectivity, just copy from water reflectivity #WaterExt
 #elif MULTI_SAMPLE
-   VecH2 ext      =GetExtMS (pixel.xy, index);
-   VecH  unlit_col=TexSample(ImgMS1, pixel.xy, index).rgb;
+   VecH2 ext     =GetExtMS (pixel.xy, index);
+   VecH  base_col=TexSample(ImgMS1, pixel.xy, index).rgb;
 #else
-   VecH2 ext      =GetExt  (inTex);
-   VecH  unlit_col=TexPoint(Img1, inTex).rgb;
+   VecH2 ext     =GetExt  (inTex);
+   VecH  base_col=TexPoint(Img1, inTex).rgb;
 #endif
 
    // light #1
@@ -177,8 +177,8 @@ VecH LightPoint_PS
    lp.set(nrm.xyz, light_dir, eye_dir);
 
    VecH    lum_rgb=LightPoint.color.rgb*lum;
-   outSpec=lum_rgb*lp.specular(ext.x, ext.y, ReflectCol(ext.y, unlit_col), true); // specular #RTOutput
-   return  lum_rgb*lp.diffuse (ext.x                                           ); // diffuse  #RTOutput
+   outSpec=lum_rgb*lp.specular(ext.x, ext.y, ReflectCol(ext.y, base_col), true); // specular #RTOutput
+   return  lum_rgb*lp.diffuse (ext.x                                          ); // diffuse  #RTOutput
 }
 /******************************************************************************/
 VecH LightLinear_PS
@@ -237,14 +237,14 @@ VecH LightLinear_PS
 
    // ext+col
 #if WATER
-   VecH2 ext      ={WaterMaterial.rough, WaterMaterial.reflect}; // #RTOutput Water doesn't have Ext Texture #WaterExt
-   Half  unlit_col= WaterMaterial.reflect; // this is used for calculation of final reflectivity, just copy from water reflectivity #WaterExt
+   VecH2 ext     ={WaterMaterial.rough, WaterMaterial.reflect}; // #RTOutput Water doesn't have Ext Texture #WaterExt
+   Half  base_col= WaterMaterial.reflect; // this is used for calculation of final reflectivity, just copy from water reflectivity #WaterExt
 #elif MULTI_SAMPLE
-   VecH2 ext      =GetExtMS (pixel.xy, index);
-   VecH  unlit_col=TexSample(ImgMS1, pixel.xy, index).rgb;
+   VecH2 ext     =GetExtMS (pixel.xy, index);
+   VecH  base_col=TexSample(ImgMS1, pixel.xy, index).rgb;
 #else
-   VecH2 ext      =GetExt  (inTex);
-   VecH  unlit_col=TexPoint(Img1, inTex).rgb;
+   VecH2 ext     =GetExt  (inTex);
+   VecH  base_col=TexPoint(Img1, inTex).rgb;
 #endif
 
    // light #1
@@ -252,8 +252,8 @@ VecH LightLinear_PS
    lp.set(nrm.xyz, light_dir, eye_dir);
 
    VecH    lum_rgb=LightLinear.color.rgb*lum;
-   outSpec=lum_rgb*lp.specular(ext.x, ext.y, ReflectCol(ext.y, unlit_col), true); // specular #RTOutput
-   return  lum_rgb*lp.diffuse (ext.x                                           ); // diffuse  #RTOutput
+   outSpec=lum_rgb*lp.specular(ext.x, ext.y, ReflectCol(ext.y, base_col), true); // specular #RTOutput
+   return  lum_rgb*lp.diffuse (ext.x                                          ); // diffuse  #RTOutput
 }
 /******************************************************************************/
 VecH LightCone_PS
@@ -323,14 +323,14 @@ VecH LightCone_PS
 
    // ext+col
 #if WATER
-   VecH2 ext      ={WaterMaterial.rough, WaterMaterial.reflect}; // #RTOutput Water doesn't have Ext Texture #WaterExt
-   Half  unlit_col= WaterMaterial.reflect; // this is used for calculation of final reflectivity, just copy from water reflectivity #WaterExt
+   VecH2 ext     ={WaterMaterial.rough, WaterMaterial.reflect}; // #RTOutput Water doesn't have Ext Texture #WaterExt
+   Half  base_col= WaterMaterial.reflect; // this is used for calculation of final reflectivity, just copy from water reflectivity #WaterExt
 #elif MULTI_SAMPLE
-   VecH2 ext      =GetExtMS (pixel.xy, index);
-   VecH  unlit_col=TexSample(ImgMS1, pixel.xy, index).rgb;
+   VecH2 ext     =GetExtMS (pixel.xy, index);
+   VecH  base_col=TexSample(ImgMS1, pixel.xy, index).rgb;
 #else
-   VecH2 ext      =GetExt  (inTex);
-   VecH  unlit_col=TexPoint(Img1, inTex).rgb;
+   VecH2 ext     =GetExt  (inTex);
+   VecH  base_col=TexPoint(Img1, inTex).rgb;
 #endif
 
    // light #1
@@ -342,7 +342,7 @@ VecH LightCone_PS
    lum_rgb*=Tex(Img2, dir.xy*(LightMapScale*0.5)+0.5).rgb;
 #endif
 
-   outSpec=lum_rgb*lp.specular(ext.x, ext.y, ReflectCol(ext.y, unlit_col), true); // specular #RTOutput
-   return  lum_rgb*lp.diffuse (ext.x                                           ); // diffuse  #RTOutput
+   outSpec=lum_rgb*lp.specular(ext.x, ext.y, ReflectCol(ext.y, base_col), true); // specular #RTOutput
+   return  lum_rgb*lp.diffuse (ext.x                                          ); // diffuse  #RTOutput
 }
 /******************************************************************************/

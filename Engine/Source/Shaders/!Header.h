@@ -1732,13 +1732,13 @@ Half ReflectToInvMetal(Half reflectivity) // this returns "1-metal" to make 'Dif
    return LerpR(1.00, 0.04, reflectivity); // treat 0 .. 0.04 reflectivity as dielectrics (metal=0), after that go linearly to metal=1, because for dielectrics we want to preserve original texture fully (make 'Diffuse' return 1), and then go to 1.0 so we can get smooth transition to metal and slowly decrease 'Diffuse' and affect 'ReflectCol'
 }
 Half Diffuse(Half inv_metal) {return Min(1, inv_metal);}
-VecH ReflectCol(Half reflectivity, VecH unlit_col, Half inv_metal) // non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
+VecH ReflectCol(Half reflectivity, VecH base_col, Half inv_metal) // non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
 {
-   return (reflectivity<=0.04) ? reflectivity : Lerp(unlit_col, 0.04, inv_metal);
+   return (reflectivity<=0.04) ? reflectivity : Lerp(base_col, 0.04, inv_metal);
 }
-VecH ReflectCol(Half reflectivity, VecH unlit_col)
+VecH ReflectCol(Half reflectivity, VecH base_col)
 {
-   return ReflectCol(reflectivity, unlit_col, ReflectToInvMetal(reflectivity));
+   return ReflectCol(reflectivity, base_col, ReflectToInvMetal(reflectivity));
 }
 /******************************************************************************/
 struct LightParams
@@ -1940,36 +1940,26 @@ VecH ReflectTex(Vec reflect_dir, Half rough)
 {
    return TexCubeLodI(Env, reflect_dir, rough*EnvMipMaps).rgb;
 }
-void ApplyGlow(Half glow, inout Half diffuse) // separate version for secondary passes where we just darken diffuse, this can't modify 'glow' as "inout" because original is still needed
+/******************************************************************************/
+#define GLOW_OCCLUSION 0 // glow should not be occluded, so remove occlusion from color and use maximized color
+void ProcessGlow(inout Half glow, inout Half diffuse)
 {
- //if(glow>0)
-   {
-      glow=SRGBToLinearFast(glow); // have to convert to linear because small glow of 1/255 would give 12.7/255 sRGB (Glow was sampled from non-sRGB texture and stored in RT alpha channel without any gamma conversions), this has to be done first before using glow and before adjusting 'diffuse' (if it's done after 'diffuse' then 'glow' could actually darken colors)
-      diffuse*=Max(0, 1-glow); // focus on glow reducing 'lit_col' where glow is present, glowable pixels should not be affected by lighting (for example if glow light is half covered by shadow, and half not, then half will be darker and half brighter which will look bad)
-   }
+   glow=SRGBToLinearFast(glow); // have to convert to linear because small glow of 1/255 would give 12.7/255 sRGB (Glow was sampled from non-sRGB texture and stored in RT alpha channel without any gamma conversions), this has to be done first before using glow and before adjusting 'diffuse' (if it's done after 'diffuse' then 'glow' could actually darken colors)
+   diffuse*=Max(0, 1-glow); // focus on glow reducing 'lit_col' where glow is present, glowable pixels should not be affected by lighting (for example if glow light is half covered by shadow, and half not, then half will be darker and half brighter which will look bad)
 }
-void ApplyGlow(Half glow, VecH unlit_col, inout Half diffuse, inout VecH spec) // apply glow to 'spec' so it's treated as emissive and added to final result, unaffected by light, night shade and metal
+void ProcessGlow(Half glow, VecH base_col, inout VecH col)
 {
-   #define GLOW_OCCLUSION 0 // glow should not be occluded, so remove occlusion from color and use maximized color
+   if(GLOW_OCCLUSION)col+=base_col*(glow*2); // boost glow by 2 because here we don't maximize base_col, so average base_col 0..1 is 0.5, so *2 makes it 1.0
+   else {Half max=Max(base_col); if(max>0)col+=base_col*(glow/max);} // NaN
+}
+void ApplyGlow(Half glow, inout Half diffuse) {ProcessGlow(glow, diffuse);} // !! THIS CAN'T MODIFY 'glow' AS "inout" BECAUSE ORIGINAL IS STILL NEEDED !!
+void ApplyGlow(Half glow, VecH base_col, inout Half diffuse, inout VecH col) // !! THIS CAN'T MODIFY 'glow' AS "inout" BECAUSE ORIGINAL IS STILL NEEDED !!
+{
    if(glow>0)
    {
-      glow=SRGBToLinearFast(glow); // have to convert to linear because small glow of 1/255 would give 12.7/255 sRGB (Glow was sampled from non-sRGB texture and stored in RT alpha channel without any gamma conversions), this has to be done first before using glow and before adjusting 'diffuse' (if it's done after 'diffuse' then 'glow' could actually darken colors)
-      diffuse*=Max(0, 1-glow); // focus on glow reducing 'lit_col' where glow is present, glowable pixels should not be affected by lighting (for example if glow light is half covered by shadow, and half not, then half will be darker and half brighter which will look bad)
-      if(GLOW_OCCLUSION)spec+=unlit_col*(glow*2); // boost glow by 2 because here we don't maximize unlit_col, so average unlit_col 0..1 is 0.5, so *2 makes it 1.0
-      else {Half max=Max(unlit_col); if(max>0)spec+=unlit_col*(glow/max);} // NaN
+      ProcessGlow(glow, diffuse);
+      ProcessGlow(glow, base_col, col);
    }
-}
-VecH PBR(VecH unlit_col, VecH lit_col, Vec nrm, Half rough, Half reflectivity, Vec eye_dir, VecH spec, Half glow, Bool has_glow) // 'glow'=0..Inf
-{
-   Half NdotV      =-Dot(nrm, eye_dir);
-   Vec  reflect_dir=ReflectDir       (eye_dir, nrm);
-   Half inv_metal  =ReflectToInvMetal(reflectivity);
-   Half diffuse    =Diffuse(inv_metal);
-   if(has_glow)ApplyGlow(glow, unlit_col, diffuse, spec);
-   VecH reflect_col=ReflectCol(reflectivity, unlit_col, inv_metal);
-   return lit_col*diffuse
-         +spec
-         +ReflectTex(reflect_dir, rough)*EnvColor*ReflectEnv(rough, reflectivity, reflect_col, NdotV, true);
 }
 /******************************************************************************/
 // SHADOWS
