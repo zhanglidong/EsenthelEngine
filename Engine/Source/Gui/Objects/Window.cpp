@@ -596,7 +596,7 @@ void Window::draw(C GuiPC &gpc)
 {
    if(/*gpc.visible &&*/ visible())
    {
-      Bool  active=T.active(), transparent=(finalAlpha()<1-EPS_COL);
+      Bool  active=T.active(), transparent=(finalAlpha()<1-EPS_COL8_1);
       GuiPC gpc_this(gpc, T); // first calculate the GuiPC for children which sets the offset per pixel aligned exactly at client rect top left corner
       Vec2  aligned_offset=gpc_this.offset-_crect.lu(); // now based on that offset calculate the offset for the Window, which is just as 'gpc.offset' however compatible with 'gpc_this'
       Rect  r=rect()+aligned_offset, ext_rect;

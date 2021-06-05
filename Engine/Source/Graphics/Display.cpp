@@ -3009,7 +3009,7 @@ DisplayClass& DisplayClass::bloomOriginal(Flt  original) {MAX(original, 0);     
 DisplayClass& DisplayClass::bloomGlow    (Flt  glow    ) {MAX(glow    , 0);     _bloom_glow    =glow    ;              return T;}
 DisplayClass& DisplayClass::bloomScale   (Flt  scale   ) {bloomScaleCut(scale, bloomCut()); return T;}
 DisplayClass& DisplayClass::bloomCut     (Flt  cut     ) {bloomScaleCut(bloomScale(), cut); return T;}
-Bool          DisplayClass::bloomUsed    (             )C{return bloomAllow() && (!Equal(bloomOriginal(), 1, EPS_COL) || !Equal(bloomScale(), 0, EPS_COL));}
+Bool          DisplayClass::bloomUsed    (             )C{return bloomAllow() && (!Equal(bloomOriginal(), 1, EPS_COL8_1_NATIVE) || !Equal(bloomScale(), 0, EPS_COL8_NATIVE));}
 /******************************************************************************/
 DisplayClass& DisplayClass::volLight(Bool on ) {_vol_light=    on     ; return T;}
 DisplayClass& DisplayClass::volAdd  (Bool add) {_vol_add  =    add    ; return T;}

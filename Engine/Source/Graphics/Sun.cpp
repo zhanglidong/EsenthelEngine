@@ -134,7 +134,7 @@ void SunClass::drawRays(Image *coverage, Vec &color)
          if(Renderer._eye)sun.pos2.x+=0.5f;
       }
       Sh.Sun->set(sun);
-      Bool jitter=((rays_jitter<0) ? rays_color.max()>(LINEAR_GAMMA ? 0.15f : 0.1f)+EPS_COL : rays_jitter!=0); // for auto, enable jittering only if rays have a high brightness
+      Bool jitter=((rays_jitter<0) ? rays_color.max()>(LINEAR_GAMMA ? 0.15f : 0.1f)+EPS_COL8_NATIVE : rays_jitter!=0); // for auto, enable jittering only if rays have a high brightness
       switch(_actual_rays_mode)
       {
          case SUN_RAYS_HIGH: Sh.ImgX[0]->set(coverage); GetSunRays(true , dither, jitter, gamma)->draw(rect); break;

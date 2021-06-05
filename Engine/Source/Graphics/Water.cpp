@@ -273,13 +273,13 @@ void WaterClass::prepare() // this is called at the start
          #endif
 
             WS.load();
-            if(reflection_allow && reflect>EPS_COL8)Renderer.requestMirror(plane, 1, reflection_shadows, reflection_resolution);
+            if(reflection_allow && reflect>EPS_COL8_NATIVE)Renderer.requestMirror(plane, 1, reflection_shadows, reflection_resolution);
          }
       }
    }
 
    // test for lake reflections
-   if(reflection_allow && reflect>EPS_COL8 && !Renderer._mirror_want)
+   if(reflection_allow && reflect>EPS_COL8_NATIVE && !Renderer._mirror_want)
       if(!(_under_mtrl && _under_step>=1))
    {
      _mode=MODE_REFLECTION; Renderer.mode(RM_WATER); Renderer._render();
@@ -607,7 +607,7 @@ void WaterMesh::draw()C
 
       case WaterClass::MODE_REFLECTION:
       {
-         if(_box.h()<=0.01f /*&& mtrl->reflect>EPS_COL8*/) // for reflections accept only flat waters, 'reflect' is taken globally
+         if(_box.h()<=0.01f /*&& mtrl->reflect>EPS_COL8_NATIVE*/) // for reflections accept only flat waters, 'reflect' is taken globally
             if(CamMatrix.pos.y>=_box.min.y) // if camera is above surface
                if(Frustum(_box) && _mshr.is())
                   Renderer.requestMirror(PlaneM(VecD(0, _box.max.y, 0), Vec(0, 1, 0)), 0, Water.reflection_shadows, Water.reflection_resolution);
