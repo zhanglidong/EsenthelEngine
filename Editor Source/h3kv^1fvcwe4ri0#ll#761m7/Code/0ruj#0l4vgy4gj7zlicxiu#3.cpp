@@ -2115,6 +2115,22 @@ void TransformImage(Image &image, TextParam param, bool clamp, C Color &backgrou
          image.color3DF(x, y, z, c);
       }
    }else
+   if(param.name=="maxLum")
+   {
+      flt max=param.asFlt();
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         flt lum=c.xyz.max(); if(lum<max)
+         {
+            if(lum)c.xyz*=max/lum;
+            else   c.xyz =max;
+         }
+         image.color3DF(x, y, z, c);
+      }
+   }else
    /*if(param.name=="metalToReflect")
    {
       for(int z=box.min.z; z<box.max.z; z++)
