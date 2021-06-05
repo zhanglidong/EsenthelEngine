@@ -619,31 +619,50 @@ VecH4 PS
    }
    #endif
 
-   col=col*total_lum*Diffuse(inv_metal) + total_specular;
-
-#if REFLECT // reflection
-   if(FirstPass) // add reflection only for the fist pass
+   Half diffuse=Diffuse(inv_metal);
+   if(FirstPass) // add all below only to the first pass
    {
-   #if VTX_REFLECT
-      Vec reflect_dir=I.reflect_dir;
-   #else
-      Vec reflect_dir=ReflectDir(eye_dir, nrm);
-   #endif
-      col+=ReflectTex(reflect_dir, rough)*EnvColor*ReflectEnv(rough, reflect, reflect_col, -Dot(nrm, eye_dir), false);
-   }
-#endif
+      #if REFLECT // reflection
+      {
+      #if VTX_REFLECT
+         Vec reflect_dir=I.reflect_dir;
+      #else
+         Vec reflect_dir=ReflectDir(eye_dir, nrm);
+      #endif
+         total_specular+=ReflectTex(reflect_dir, rough)*EnvColor*ReflectEnv(rough, reflect, reflect_col, -Dot(nrm, eye_dir), false);
+      }
+      #endif
 
-   if(MATERIALS<=1 && FirstPass)
+      if(MATERIALS<=1) // emissive
+      {
+      #if EMISSIVE_MAP
+         VecH emissive=Tex(Lum, I.tex).rgb;
+         total_specular+=Material.emissive     *    emissive ;
+         glow          +=Material.emissive_glow*Max(emissive);
+      #else
+         total_specular+=Material.emissive;
+         glow          +=Material.emissive_glow;
+      #endif
+      }
+
+      // glow
+      ApplyGlow(glow, col, diffuse, total_specular);
+   }else
    {
-   #if EMISSIVE_MAP
-      VecH emissive=Tex(Lum, I.tex).rgb;
-      col +=Material.emissive     *    emissive ;
-      glow+=Material.emissive_glow*Max(emissive);
-   #else
-      col +=Material.emissive;
-      glow+=Material.emissive_glow;
-   #endif
+      if(MATERIALS<=1) // glow from emissive
+      {
+      #if EMISSIVE_MAP
+         VecH emissive=Tex(Lum, I.tex).rgb;
+         glow+=Material.emissive_glow*Max(emissive);
+      #else
+         glow+=Material.emissive_glow;
+      #endif
+      }
+
+      // glow
+      ApplyGlow(glow, diffuse);
    }
+   col=col*total_lum*diffuse + total_specular;
 
    return VecH4(col, glow);
 }

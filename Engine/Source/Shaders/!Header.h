@@ -366,7 +366,7 @@ BUFFER_I(Frame, SBI_FRAME) // once per-frame
    Vec4  ClipPlane=Vec4(0, 0, 0, 1); // clipping plane
    Vec2  GrassRangeMulAdd          ; // factors used for grass opacity calculation
    Flt   TesselationDensity        ; // tesselation density
-   Bool  FirstPass=true            ; // if first pass (apply Material Ambient)
+   Bool  FirstPass=true            ; // if first pass (apply Material Emissive and Light from Glow)
    VecH  AmbientNSColor            ; // ambient combined with night shade
    VecH  EnvColor                  ; // environment map color
    Half  EnvMipMaps                ; // environment map mip-maps
@@ -1459,7 +1459,7 @@ Half GrassFadeOut(UInt mtrx=0)
 {
    return Sat(Length2(ViewMatrixPos(mtrx))*GrassRangeMulAdd.x+GrassRangeMulAdd.y);
 }
-void BendGrass(Vec local_pos, in out Vec view_pos, UInt mtrx=0, Bool prev=false)
+void BendGrass(Vec local_pos, inout Vec view_pos, UInt mtrx=0, Bool prev=false)
 {
 #if 1 // slower but higher quality
    if(local_pos.y>0)
@@ -1503,7 +1503,7 @@ void BendGrass(Vec local_pos, in out Vec view_pos, UInt mtrx=0, Bool prev=false)
 #endif
 }
 /******************************************************************************/
-void BendLeaf(VecH center, in out Vec pos, Bool prev=false)
+void BendLeaf(VecH center, inout Vec pos, Bool prev=false)
 {
    VecH   delta=(VecH)pos-center;
    VecH2  cos_sin, bend=GetLeafBend(center, prev);
@@ -1511,7 +1511,7 @@ void BendLeaf(VecH center, in out Vec pos, Bool prev=false)
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin);
    pos=center+delta;
 }
-void BendLeaf(VecH center, in out Vec pos, in out VecH nrm, Bool prev=false)
+void BendLeaf(VecH center, inout Vec pos, inout VecH nrm, Bool prev=false)
 {
    VecH   delta=(VecH)pos-center;
    VecH2  cos_sin, bend=GetLeafBend(center, prev);
@@ -1519,7 +1519,7 @@ void BendLeaf(VecH center, in out Vec pos, in out VecH nrm, Bool prev=false)
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin);
    pos=center+delta;
 }
-void BendLeaf(VecH center, in out Vec pos, in out VecH nrm, in out VecH tan, Bool prev=false)
+void BendLeaf(VecH center, inout Vec pos, inout VecH nrm, inout VecH tan, Bool prev=false)
 {
    VecH   delta=(VecH)pos-center;
    VecH2  cos_sin, bend=GetLeafBend(center, prev);
@@ -1528,7 +1528,7 @@ void BendLeaf(VecH center, in out Vec pos, in out VecH nrm, in out VecH tan, Boo
    pos=center+delta;
 }
 /******************************************************************************/
-void BendLeafs(VecH center, Half offset, in out Vec pos, Bool prev=false)
+void BendLeafs(VecH center, Half offset, inout Vec pos, Bool prev=false)
 {
    VecH   delta=(VecH)pos-center;
    VecH2  cos_sin, bend=GetLeafsBend(center+offset, prev);
@@ -1536,7 +1536,7 @@ void BendLeafs(VecH center, Half offset, in out Vec pos, Bool prev=false)
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin);
    pos=center+delta;
 }
-void BendLeafs(VecH center, Half offset, in out Vec pos, in out VecH nrm, Bool prev=false)
+void BendLeafs(VecH center, Half offset, inout Vec pos, inout VecH nrm, Bool prev=false)
 {
    VecH   delta=(VecH)pos-center;
    VecH2  cos_sin, bend=GetLeafsBend(center+offset, prev);
@@ -1544,7 +1544,7 @@ void BendLeafs(VecH center, Half offset, in out Vec pos, in out VecH nrm, Bool p
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin);
    pos=center+delta;
 }
-void BendLeafs(VecH center, Half offset, in out Vec pos, in out VecH nrm, in out VecH tan, Bool prev=false)
+void BendLeafs(VecH center, Half offset, inout Vec pos, inout VecH nrm, inout VecH tan, Bool prev=false)
 {
    VecH   delta=(VecH)pos-center;
    VecH2  cos_sin, bend=GetLeafsBend(center+offset, prev);
@@ -1595,7 +1595,7 @@ VecH4 GetDetail3(Vec2 tex) {VecH4 det=Tex(Det3, tex*MultiMaterial3.det_uv_scale)
 /******************************************************************************/
 // FACE NORMAL HANDLING
 /******************************************************************************/
-void BackFlip(in out VecH dir, Bool front) {if(!front)dir=-dir;}
+void BackFlip(inout VecH dir, Bool front) {if(!front)dir=-dir;}
 /******************************************************************************/
 Half MultiMaterialWeight(Half weight, Half alpha) // 'weight'=weight of this material, 'alpha'=color texture alpha (opacity or bump)
 {
@@ -1727,7 +1727,7 @@ To achieve compatibility with a lot of assets for those engines, Esenthel uses a
    for reflectivities<=0.04 to make 'Diffuse' return 1 and 'ReflectCol' return 'reflectivity'
    for reflectivities> 0.04 there's a minor difference due to the fact that 'ReflectToInvMetal' is slightly modified however the difference is negligible (full compatibility would require a secondary 'Lerp')
 */
-Half ReflectToInvMetal(Half reflectivity) // this returns "1-metal" to make 'Diffuse' calculation faster
+Half ReflectToInvMetal(Half reflectivity) // this returns "1-metal" to make 'Diffuse' calculation faster, returned range is 0..1+ (slightly bigger than 1 for reflectivities <0.04) so result might need to be "Min(1, )"
 {
    return LerpR(1.00, 0.04, reflectivity); // treat 0 .. 0.04 reflectivity as dielectrics (metal=0), after that go linearly to metal=1, because for dielectrics we want to preserve original texture fully (make 'Diffuse' return 1), and then go to 1.0 so we can get smooth transition to metal and slowly decrease 'Diffuse' and affect 'ReflectCol'
 }
@@ -1940,13 +1940,30 @@ VecH ReflectTex(Vec reflect_dir, Half rough)
 {
    return TexCubeLodI(Env, reflect_dir, rough*EnvMipMaps).rgb;
 }
-VecH PBR(VecH unlit_col, VecH lit_col, Vec nrm, Half rough, Half reflectivity, Vec eye_dir, VecH spec)
+void ApplyGlow(Half glow, inout Half diffuse)
+{
+   diffuse*=Max(0, 1-glow); // focus on glow reducing 'lit_col' where glow is present, glowable pixels should not be affected by lighting (for example if glow light is half covered by shadow, and half not, then half will be darker and half brighter which will look bad)
+}
+void ApplyGlow(Half glow, VecH unlit_col, inout Half diffuse, inout VecH spec) // apply glow to 'spec' so it's treated as emissive and added to final result, unaffected by light, night shade and metal
+{
+   #define GLOW_OCCLUSION 0 // glow should not be occluded, so remove occlusion from color and use maximized color
+   if(glow>0)
+   {
+      ApplyGlow(glow, diffuse);
+      glow=SRGBToLinearFast(glow); // have to convert to linear because small glow of 1/255 would give 12.7/255 sRGB (Glow was sampled from non-sRGB texture and stored in RT alpha channel without any gamma conversions)
+      if(GLOW_OCCLUSION)spec+=unlit_col*(glow*2); // boost glow by 2 because here we don't maximize unlit_col, so average unlit_col 0..1 is 0.5, so *2 makes it 1.0
+      else {Half max=Max(unlit_col); if(max>0)spec+=unlit_col*(glow/max);} // NaN
+   }
+}
+VecH PBR(VecH unlit_col, VecH lit_col, Vec nrm, Half rough, Half reflectivity, Vec eye_dir, VecH spec, Half glow, Bool has_glow) // 'glow'=0..Inf
 {
    Half NdotV      =-Dot(nrm, eye_dir);
    Vec  reflect_dir=ReflectDir       (eye_dir, nrm);
    Half inv_metal  =ReflectToInvMetal(reflectivity);
-   VecH reflect_col=ReflectCol       (reflectivity, unlit_col, inv_metal);
-   return lit_col*Diffuse(inv_metal)
+   Half diffuse    =Diffuse(inv_metal);
+   if(has_glow)ApplyGlow(glow, unlit_col, diffuse, spec);
+   VecH reflect_col=ReflectCol(reflectivity, unlit_col, inv_metal);
+   return lit_col*diffuse
          +spec
          +ReflectTex(reflect_dir, rough)*EnvColor*ReflectEnv(rough, reflectivity, reflect_col, NdotV, true);
 }

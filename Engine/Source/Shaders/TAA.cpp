@@ -142,13 +142,13 @@ Half GetBlend(VecH4 old, VecH4 cur, VecH4 col_min, VecH4 col_max)
 	return Sat(Max(Min(min_step, max_step)));
 }
 /******************************************************************************/
-void TestVel(VecH2 vel, VecH2 test_vel, in out Half old_weight)
+void TestVel(VecH2 vel, VecH2 test_vel, inout Half old_weight)
 {
    VecH2 delta_vel=vel-test_vel;
    delta_vel.x*=TAAAspectRatio; // 'delta_vel' is in UV 0..1 for both XY so mul X by aspect ratio
    if(Length2(delta_vel)>Sqr(VEL_EPS))old_weight=0;
 }
-void TestDepth(in out Flt depth, Flt d, in out VecI2 ofs, Int x, Int y)
+void TestDepth(inout Flt depth, Flt d, inout VecI2 ofs, Int x, Int y)
 {
    if(DEPTH_SMALLER(d, depth)){depth=d; ofs.x=x; ofs.y=y;}
 }

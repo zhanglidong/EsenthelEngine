@@ -241,23 +241,26 @@ void PS
 , out Half  outAlpha:TARGET2 // #RTOutput.Blend
 ) // #RTOutput
 {
-   Half rough, reflect;
+   Half rough, reflect, glow;
 
    // #MaterialTextureLayout
 #if   LAYOUT==0
    rough  =Material.  rough_add;
    reflect=Material.reflect_add;
+   glow   =Material.       glow;
 #elif LAYOUT==1
    VecH4 tex_col=Tex(Col, I.tex); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
    if(ALPHA)I.col*=tex_col;else I.col.rgb*=tex_col.rgb;
    rough  =Material.  rough_add;
    reflect=Material.reflect_add;
+   glow   =Material.       glow;
 #elif LAYOUT==2
    VecH4 tex_col=Tex(Col, I.tex); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
    VecH4 tex_ext=Tex(Ext, I.tex);
    if(ALPHA)I.col*=tex_col;else I.col.rgb*=tex_col.rgb;
    rough  =Sat(tex_ext.BASE_CHANNEL_ROUGH*Material.  rough_mul+Material.  rough_add); // need to saturate to avoid invalid values
    reflect=    tex_ext.BASE_CHANNEL_METAL*Material.reflect_mul+Material.reflect_add ;
+   glow   =    tex_ext.BASE_CHANNEL_GLOW *Material.       glow;
 #endif
 
    // normal
@@ -351,27 +354,50 @@ void PS
    }
    #endif
 
-   I.col.rgb=I.col.rgb*total_lum*Diffuse(inv_metal) + total_specular;
-   #if REFLECT // reflection
+   Half diffuse=Diffuse(inv_metal);
+   if(/*FirstPass; Blend Light is always 1 pass only */1) // add all below only to the first pass
    {
-   #if VTX_REFLECT
-      Vec reflect_dir=I.reflect_dir;
-   #else
-      Vec reflect_dir=ReflectDir(eye_dir, nrm);
-   #endif
-      I.col.rgb+=ReflectTex(reflect_dir, rough)*EnvColor*ReflectEnv(rough, reflect, reflect_col, -Dot(nrm, eye_dir), false);
-   }
-   #endif
+      #if REFLECT // reflection
+      {
+      #if VTX_REFLECT
+         Vec reflect_dir=I.reflect_dir;
+      #else
+         Vec reflect_dir=ReflectDir(eye_dir, nrm);
+      #endif
+         total_specular+=ReflectTex(reflect_dir, rough)*EnvColor*ReflectEnv(rough, reflect, reflect_col, -Dot(nrm, eye_dir), false);
+      }
+      #endif
 
-   /*if(MATERIALS<=1 && FirstPass)*/
+    //if(MATERIALS<=1) // emissive
+      {
+      #if EMISSIVE_MAP
+         VecH emissive=Tex(Lum, I.tex).rgb;
+         total_specular+=Material.emissive     *    emissive ;
+         glow          +=Material.emissive_glow*Max(emissive);
+      #else
+         total_specular+=Material.emissive;
+         glow          +=Material.emissive_glow;
+      #endif
+      }
+
+      // glow
+      ApplyGlow(glow, I.col.rgb, diffuse, total_specular);
+   }else
    {
-   #if EMISSIVE_MAP
-      VecH emissive=Tex(Lum, I.tex).rgb;
-      I.col.rgb+=Material.emissive*emissive;
-   #else
-      I.col.rgb+=Material.emissive;
-   #endif
+    //if(MATERIALS<=1) glow from emissive
+      {
+      #if EMISSIVE_MAP
+         VecH emissive=Tex(Lum, I.tex).rgb;
+         glow+=Material.emissive_glow*Max(emissive);
+      #else
+         glow+=Material.emissive_glow;
+      #endif
+      }
+
+      // glow
+      ApplyGlow(glow, diffuse);
    }
+   I.col.rgb=I.col.rgb*total_lum*diffuse + total_specular;
 
 #if SET_FOG
    I.col.rgb*=I.fog_rev;
@@ -379,7 +405,7 @@ void PS
    I.col.rgb+=I.col_add; // add after lighting and reflection because this could have fog
 
    outCol  =I.col;
-   outAlpha=I.col.a;
+   outAlpha=I.col.a; // can't output glow because we use alpha-blending here
 
 #if USE_VEL
    outVel.xy=GetVelocityPixel(I.projected_prev_pos_xyw, pixel); outVel.z=0; outVel.w=I.col.a; // alpha needed because of blending, Z needed because have to write all channels

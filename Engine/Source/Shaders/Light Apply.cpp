@@ -3,8 +3,6 @@
 #include "Light Apply.h"
 
 #define AO_ALL 1  // !! must be the same as 'D.aoAll()' !! if apply Ambient Occlusion to all lights (not just Ambient), this was disabled in the past, however in LINEAR_GAMMA the darkening was too strong in low light, enabling this option solves that problem
-#define GLOW_OCCLUSION 0 // glow should not be occluded, so remove occlusion from color and use maximized color
-#define GLOW_FOCUS     0 // focus on glow reducing 'lit_col' where glow is present
 
 // MULTI_SAMPLE, AO, CEL_SHADE, NIGHT_SHADE, GLOW, REFLECT
 // Img=Nrm, ImgMS=Nrm, Img1=Col, ImgMS1=Col, Img2=Lum, ImgMS2=Lum, Img3=Spec, ImgMS3=Spec, ImgXY=Ext, ImgXYMS=Ext, ImgX=AO, Img4=CelShade
@@ -34,31 +32,12 @@ VecH LitCol(VecH4 color, Vec nrm, VecH2 ext, VecH lum, VecH spec, Half ao, VecH 
    }
    Half rough=ext.x, reflect=ext.y; // #RTOutput
 #if REFLECT
-   lit_col=PBR(color.rgb, lit_col, nrm, rough, reflect, eye_dir, spec);
+   return PBR(color.rgb, lit_col, nrm, rough, reflect, eye_dir, spec, color.w, GLOW);
 #else
-   Half inv_metal=ReflectToInvMetal(reflect);
-   lit_col=lit_col*Diffuse(inv_metal) + spec;
+   Half inv_metal=ReflectToInvMetal(reflect), diffuse=Diffuse(inv_metal);
+   if(GLOW)ApplyGlow(color.w, color.rgb, diffuse, spec);
+   return lit_col*diffuse+spec;
 #endif
-
-#if GLOW // apply glow after light, night shade and metal, treat it as emissive
-   if(GLOW_OCCLUSION)
-   {
-      color.w=SRGBToLinearFast(color.w); // have to convert to linear because small glow of 1/255 would give 12.7/255 sRGB (Glow was sampled from non-sRGB texture and stored in RT alpha channel without any gamma conversions)
-      if(GLOW_FOCUS)lit_col*=Sat(1-color.w);
-      lit_col+=color.rgb*(color.w*2); // boost glow by 2 because here we don't maximize color.rgb, so average color.rgb 0..1 is 0.5, so *2 makes it 1.0
-   }else
-   if(color.w>0)
-   {
-      Half max=Max(color.rgb); if(max>0)
-      {
-         color.w=SRGBToLinearFast(color.w); // have to convert to linear because small glow of 1/255 would give 12.7/255 sRGB (Glow was sampled from non-sRGB texture and stored in RT alpha channel without any gamma conversions)
-         if(GLOW_FOCUS)lit_col*=Sat(1-color.w);
-         lit_col+=color.rgb*(color.w/max); // NaN
-      }
-   }
-#endif
-
-   return lit_col;
 }
 /******************************************************************************/
 VecH4 ApplyLight_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
