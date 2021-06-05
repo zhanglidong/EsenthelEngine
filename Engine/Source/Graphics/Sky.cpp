@@ -151,7 +151,7 @@ void SkyClass::draw()
               density=(atmosphericDensityExponent()<1-EPS_GPU),
               dither =(D.dither() && !Renderer._col->highPrecision()),
               vertex = !_precision,
-              stars  =((_stars   !=null) && (_hor_col_l.w<1-EPS_COL || _sky_col_l.w<1-EPS_COL)),
+              stars  =((_stars   !=null) && (_hor_col_l.w<1-EPS_COL_1 || _sky_col_l.w<1-EPS_COL_1)),
               cloud  =(Clouds.draw && Clouds.layered.merge_with_sky && Clouds.layered.layers() && Clouds.layered.layer[0].image && Clouds.layered.layer[0].color_l.w && (Clouds.layered.draw_in_mirror || !Renderer.mirror()));
       Int     tex    =((_image[0]!=null) + (_image[1]!=null)),
               multi  =(Renderer._col->multiSample() ? ((Renderer._cur_type==RT_DEFERRED) ? 1 : 2) : 0);
