@@ -219,6 +219,7 @@ void ImageRT::clearFull(C Vec4 &color, Bool restore_rt)
       restore_viewport=!D._view_active.full;
    }
 
+   discard();
    Renderer.set(this, null, false); 
    D.clearCol(color);
 

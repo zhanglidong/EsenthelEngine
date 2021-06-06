@@ -2876,6 +2876,7 @@ void Image::copyHw(ImageRT &dest, Bool restore_rt, C RectI *rect_src, C RectI *r
 {
    if(this!=&dest)
    {
+      if(!rect_dest)dest.discard(); // if we set entire 'dest' then we can discard it
    #if GL
       if(this==&Renderer._main) // in OpenGL cannot directly copy from main
       {
