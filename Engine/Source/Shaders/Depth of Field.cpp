@@ -17,6 +17,7 @@
    #define OPT(non_alpha, alpha) alpha
 #endif
 /******************************************************************************
+TODO: add gaussian blur weight support instead of LerpCube
 TODO: add slow but high quality circular bokeh DoF
    -create small / quarter res (or maybe even smaller) RT containing info about biggest blur radius
    -in the blur function iterate "radius x radius" using BRANCH/LOOP and the small RT image (perhaps need to use 'SamplerPoint')
@@ -128,7 +129,7 @@ Flt Weight(Flt center_blur, Flt test_blur, Int dist, Int range) // center_blur=-
    if(!b)return 0; // this check is needed only for low precision devices, or when using high precision RT's. Low precision unsigned RT's don't have exact zero, however we scale 'b' above and zero could be reached?
 
    Flt x=f/b; // NaN
-   x=Sat(x); // x=Min(x, 1); to prevent for returning 'LerpCube' values outside 0..1 range
+   x=Sat(x); // x=Min(x, 1); to prevent for returning 'Weight' values outside 0..1 range
    return Weight(x)/b; // weight, divide by 'b' to make narrower ranges more intense to preserve total intensity
 }
 Flt FinalBlur(Flt blur, Flt blur_smooth) // 'blur'=-Inf .. Inf, 'blur_smooth'=0..1
