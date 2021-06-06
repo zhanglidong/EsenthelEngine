@@ -112,6 +112,10 @@ VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD
    return ret;
 }
 /******************************************************************************/
+Flt Weight(Flt x) {return 1-LerpCube(x);} // !! if changing from 'LerpCube' to another function then we need to change 'WeightSum' as well !!
+Flt WeightSum(Int range) {return range+1;} // Sum of all weights for all "-range..range" steps, calculated using "Flt weight=0; for(Int dist=-range; dist<=range; dist++)weight+=BlendSmoothCube(dist/Flt(range+1));"
+// for complex 'Weight' functions where 'WeightSum' can't be computed easily, modify 'Weight' below somehow to add summing 'Weight' into "out Flt weight_sum", carefully because 'Weight' is calculated from 'x', not always, and center weight not included
+/******************************************************************************/
 Flt Weight(Flt center_blur, Flt test_blur, Int dist, Int range) // center_blur=-1..1 (0=focus), test_blur=-1..1 (0=focus)
 {
    Flt f=dist/Flt(range+1),
@@ -125,8 +129,7 @@ Flt Weight(Flt center_blur, Flt test_blur, Int dist, Int range) // center_blur=-
 
    Flt x=f/b; // NaN
    x=Sat(x); // x=Min(x, 1); to prevent for returning 'LerpCube' values outside 0..1 range
-   return (1-LerpCube(x))/b; // weight, divide by 'b' to make narrower ranges more intense to preserve total intensity
-   // !! if changing from 'LerpCube' to another function then we need to change 'WeightSum' as well !!
+   return Weight(x)/b; // weight, divide by 'b' to make narrower ranges more intense to preserve total intensity
 }
 Flt FinalBlur(Flt blur, Flt blur_smooth) // 'blur'=-Inf .. Inf, 'blur_smooth'=0..1
 {
@@ -134,7 +137,6 @@ Flt FinalBlur(Flt blur, Flt blur_smooth) // 'blur'=-Inf .. Inf, 'blur_smooth'=0.
  //blur_smooth=(FINAL_MODE ? Sat(blur_smooth*-2+1) : Abs(blur_smooth*2-1)); already done in 'DofBlurY_PS'
    return Sat(Max(Abs(blur), blur_smooth)*FINAL_SCALE);
 }
-Flt WeightSum(Int range) {return range+1;} // Sum of all weights for all "-range..range" steps, calculated using "Flt weight=0; for(Int dist=-range; dist<=range; dist++)weight+=BlendSmoothCube(dist/Flt(range+1));"
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
 // Use HighPrec because we operate on lot of samples
@@ -147,7 +149,7 @@ VecH4 DofBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD
 ):TARGET
 {  //  INPUT: Img: RGB         , Blur
    // OUTPUT:      RGB BlurredX, BlurSmooth
-   Vec4 center     =TexPoint(Img, inTex);
+   Vec4 center     =TexPoint(Img, inTex); // 'center' will be added to 'color' later, based on remaining weight
    Flt  center_blur=OPT(center.a*2-1, TexPoint(ImgX, inTex).x),
         weight=0,
      #if ALPHA
@@ -194,7 +196,7 @@ VecH4 DofBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD
 ):TARGET
 {  //  INPUT: Img: RGB BlurredX , BlurSmooth
    // OUTPUT:      RGB BlurredXY, BlurSmooth
-   Vec4 center     =TexPoint(Img, inTex);
+   Vec4 center     =TexPoint(Img, inTex); // 'center' will be added to 'color' later, based on remaining weight
    Flt  center_blur=OPT(center.a*2-1, TexPoint(ImgX, inTex).x),
         weight=0,
      #if ALPHA
