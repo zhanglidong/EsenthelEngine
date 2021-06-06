@@ -28,15 +28,15 @@
 
 #define TEST_BLUR 0
 #if     TEST_BLUR
-   Flt Mode=5, Samples, Test=1;
-   Flt Weight(Int i, Int s)
+   Flt Mode=4, Range=5, Test=1;
+   Flt Weight(Int i, Int r)
    {
-      Flt frac=i/Flt(s+1);
+      Flt frac=i/Flt(r+1);
       Int mode=Round(Mode);
-      if(mode==1)return Quart(1-frac);
-      if(mode==2)return Cube(1-frac);
-      if(mode==3)return Sqr(1-frac);
-      if(mode==4)return Gaussian(2*frac);
+      if(mode==1)return Cube(1-frac);
+      if(mode==2)return Sqr(1-frac);
+      if(mode==3)return Gaussian(1.5*frac);
+      if(mode==4)return Gaussian(2*frac); // BEST
       if(mode==5)return BlendSmoothSin(frac); // nearly identical to BlendSmoothCube
       if(mode==6)return (1-frac);
       return 1;
@@ -51,7 +51,7 @@
 VecH4 BlurX_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
 #if TEST_BLUR
-   if(Test){Int s=Round(Samples); Vec4 color=0; Flt weight=0; for(Int i=-s; i<=s; i++){Flt w=Weight(Abs(i), s); weight+=w; color.rgb+=w*TexPoint(Img, inTex+RTSize.xy*Vec2(i, 0)).rgb;} color.rgb/=weight; return color;}
+   if(Test){Int r=Round(Range); Vec4 color=0; Flt weight=0; for(Int i=-r; i<=r; i++){Flt w=Weight(Abs(i), r); weight+=w; color.rgb+=w*TexPoint(Img, inTex+RTSize.xy*Vec2(i, 0)).rgb;} color.rgb/=weight; return color;}
 #endif
    // use linear filtering because texcoords aren't rounded
    if(SAMPLES==4) // -3 .. 3
@@ -78,7 +78,7 @@ VecH4 BlurX_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 VecH4 BlurY_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
 #if TEST_BLUR
-   if(Test){Int s=Round(Samples); Vec4 color=0; Flt weight=0; for(Int i=-s; i<=s; i++){Flt w=Weight(Abs(i), s); weight+=w; color.rgb+=w*TexPoint(Img, inTex+RTSize.xy*Vec2(0, i)).rgb;} color.rgb/=weight; return color;}
+   if(Test){Int r=Round(Range); Vec4 color=0; Flt weight=0; for(Int i=-r; i<=r; i++){Flt w=Weight(Abs(i), r); weight+=w; color.rgb+=w*TexPoint(Img, inTex+RTSize.xy*Vec2(0, i)).rgb;} color.rgb/=weight; return color;}
 #endif
    // use linear filtering because texcoords aren't rounded
    if(SAMPLES==4) // -3 .. 3
