@@ -246,10 +246,10 @@ void ImageRT::clearViewport(C Vec4 &color, Bool restore_rt)
    }
 }
 /******************************************************************************/
-void ImageRT:: zero   () {_srv_srgb=null; _rtv=_rtv_srgb=null; _dsv=_rdsv=null;} // don't zero '_ptr_num' here, because this is called in 'delThis', however ref count should be kept
-     ImageRT:: ImageRT() {_ptr_num=0; zero();}
+void ImageRT:: zero   () {_srv_srgb=null; _rtv=_rtv_srgb=null; _dsv=_rdsv=null;}
+     ImageRT:: ImageRT() {zero();}
      ImageRT::~ImageRT() {delThis();} // delete children first, 'super.del' already called automatically in '~Image'
-void ImageRT:: delThis() // delete only this class members without super and without '_ptr_num'
+void ImageRT:: delThis() // delete only this class members without super
 {
 #if DX11
    if(_srv_srgb || _rtv || _rtv_srgb || _dsv || _rdsv)
@@ -268,7 +268,7 @@ void ImageRT:: delThis() // delete only this class members without super and wit
 #endif
    zero();
 }
-void ImageRT::del() // this keeps '_ptr_num'
+void ImageRT::del()
 {
    delThis(); // delete children first
    super::del();
@@ -406,7 +406,7 @@ void ImageRT::swapRTV()
    Swap(_rtv, _rtv_srgb);
 #endif
 }
-static Int CompareDesc(C ImageRT &image, C ImageRTDesc &desc)
+static Int CompareDesc(C ImageRTC &image, C ImageRTDesc &desc)
 {
    if(Int c=Compare(image.w      (), desc.size.x ))return c;
    if(Int c=Compare(image.h      (), desc.size.y ))return c;
@@ -420,7 +420,7 @@ void ImageRT::swapSRGB()
    swapSRV(); swapRTV(); _hw_type=ImageTypeToggleSRGB(hwType()); // !! have to toggle 'hwType' and not 'type' because 'CompareDesc' and 'Set' expect that !!
 #endif
 }
-static void Set(ImageRTPtr &p, ImageRT &rt, Bool want_srgb) // this is called only when "_ptr_num==0"
+static void Set(ImageRTPtr &p, ImageRTC &rt, Bool want_srgb) // this is called only when "_ptr_num==0"
 {
 #if CAN_SWAP_SRGB
    if(want_srgb!=rt.sRGB())rt.swapSRGB();
@@ -432,7 +432,7 @@ ImageRTPtr& ImageRTPtr::clearNoDiscard()
 {
    if(_data)
    {
-      DEBUG_ASSERT(_data->_ptr_num, "ImageRT._ptr_num should be >0");
+      DEBUG_ASSERT(_data->_ptr_num, "ImageRTC._ptr_num should be >0");
      _data->_ptr_num--;
      _data=null;
    }
@@ -442,7 +442,7 @@ ImageRTPtr& ImageRTPtr::clear()
 {
    if(_data)
    {
-      DEBUG_ASSERT(_data->_ptr_num, "ImageRT._ptr_num should be >0");
+      DEBUG_ASSERT(_data->_ptr_num, "ImageRTC._ptr_num should be >0");
           _data->_ptr_num--;
       if(!_data->_ptr_num)_data->discard();
           _data=null;
@@ -458,7 +458,7 @@ ImageRTPtr& ImageRTPtr::operator=(C ImageRTPtr &p)
    }
    return T;
 }
-ImageRTPtr& ImageRTPtr::operator=(ImageRT *p)
+ImageRTPtr& ImageRTPtr::operator=(ImageRTC *p)
 {
    if(T!=p)
    {
@@ -471,7 +471,7 @@ ImageRTPtr::ImageRTPtr(C ImageRTPtr &p)
 {
    if(T._data=p._data){T._data->_ptr_num++; T._last_index=p._last_index;}else T._last_index=-1;
 }
-ImageRTPtr::ImageRTPtr(ImageRT *p)
+ImageRTPtr::ImageRTPtr(ImageRTC *p)
 {
    if(T._data=p)T._data->_ptr_num++;else T._last_index=-1;
 }
@@ -504,22 +504,22 @@ again:
    if(found)
    {
       // check '_last_index' first
-      ImageRT &rt=Renderer._rts[_last_index];
+      ImageRTC &rt=Renderer._rts[_last_index];
       if(rt.available()){Set(T, rt, want_srgb); return true;}
 
       // check all neighbors with the same desc
-      for(Int i=_last_index-1;         i>=0             ; i--) {ImageRT &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){T._last_index=i; Set(T, rt, want_srgb); return true;}}
-      for(Int i=_last_index+1; InRange(i, Renderer._rts); i++) {ImageRT &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){T._last_index=i; Set(T, rt, want_srgb); return true;}}
+      for(Int i=_last_index-1;         i>=0             ; i--) {ImageRTC &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){T._last_index=i; Set(T, rt, want_srgb); return true;}}
+      for(Int i=_last_index+1; InRange(i, Renderer._rts); i++) {ImageRTC &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){T._last_index=i; Set(T, rt, want_srgb); return true;}}
    }
 #if KNOWN_IMAGE_TYPE_USAGE
    if(desc._type) // check this after 'found' because in most cases we will already return from codes above
    { // since we have KNOWN_IMAGE_TYPE_USAGE, and a valid type, then we assume that this should always succeed
-      ImageRT &rt=Renderer._rts.NewAt(_last_index); if(rt.create(desc.size, desc._type, ImageTI[desc._type].d ? IMAGE_DS : IMAGE_RT, desc.samples)){Set(T, rt, want_srgb); return true;}
+      ImageRTC &rt=Renderer._rts.NewAt(_last_index); if(rt.create(desc.size, desc._type, ImageTI[desc._type].d ? IMAGE_DS : IMAGE_RT, desc.samples)){Set(T, rt, want_srgb); return true;}
       Exit(S+"Can't create Render Target "+desc.size.x+'x'+desc.size.y+' '+ImageRTName[desc.rt_type]+", samples:"+desc.samples);
    }
 #else
-   ImageRT temp; // try to create first as a standalone variable (not in 'Renderer._rts') in case it fails so we don't have to remove it
-   if(temp.create(desc.size, desc._type, ImageTI[desc._type].d ? IMAGE_DS : IMAGE_RT, desc.samples)){ImageRT &rt=Renderer._rts.NewAt(_last_index); Swap(rt, temp); Set(T, rt, want_srgb); return true;}
+   ImageRTC temp; // try to create first as a standalone variable (not in 'Renderer._rts') in case it fails so we don't have to remove it
+   if(temp.create(desc.size, desc._type, ImageTI[desc._type].d ? IMAGE_DS : IMAGE_RT, desc.samples)){ImageRTC &rt=Renderer._rts.NewAt(_last_index); Swap(rt, temp); Set(T, rt, want_srgb); return true;}
    // fail
    if(desc._type!=IMAGE_NONE) // try another type, and don't try this again
    {
@@ -541,7 +541,7 @@ ImageRTPtr& ImageRTPtr::getDS(Int w, Int h, Byte samples, Bool reuse_main)
    clear(); // clear first so we can find the same Image if possible
    if(reuse_main)
    {
-      ImageRT &ds=Renderer._main_ds, *cur_ds=Renderer._cur_main_ds;
+      ImageRTC &ds=Renderer._main_ds, *cur_ds=Renderer._cur_main_ds;
    #if !GL // can't reuse '_main_ds' on GL because it would trigger 'D.mainFBO' and different orientations
       if(                             /*ds .available() && */    ds .accessible() &&     ds .w()==w &&     ds .h()==h &&     ds .samples()==samples){T=   &ds; return T;} // if ds is not used (actually don't check this because an 'ImageRTPtr ds' handle can be set to it at the start of each frame), accessible and compatible then we can use it
    #endif

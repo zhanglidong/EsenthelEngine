@@ -62,7 +62,6 @@ struct ImageRT : Image // Image Render Target
    Bool         create(C VecI2 &size, IMAGE_TYPE type, IMAGE_MODE mode=IMAGE_RT, Byte samples=1); // create, false on fail
    ImageRT& mustCreate(C VecI2 &size, IMAGE_TYPE type, IMAGE_MODE mode=IMAGE_RT, Byte samples=1); // create, Exit  on fail
 #if EE_PRIVATE
-   Bool available()C {return _ptr_num==0;} // if this image is not currently used
    Bool depthTexture()C;
    constexpr INLINE Bool canSwapSRV()C
    {
@@ -109,7 +108,6 @@ struct ImageRT : Image // Image Render Target
 #if !EE_PRIVATE
 private:
 #endif
-   UInt _ptr_num;
 #if EE_PRIVATE && DX11
    ID3D11ShaderResourceView        *_srv_srgb;
    ID3D11RenderTargetView   *_rtv, *_rtv_srgb;
@@ -118,6 +116,17 @@ private:
    Ptr  _srv_srgb, _rtv, _rtv_srgb, _dsv, _rdsv;
 #endif
    NO_COPY_CONSTRUCTOR(ImageRT);
+};
+/******************************************************************************/
+struct ImageRTC : ImageRT // Image Render Target Counted
+{
+#if EE_PRIVATE
+   Bool available()C {return _ptr_num==0;} // if this image is not currently used
+#endif
+#if !EE_PRIVATE
+private:
+#endif
+   UInt _ptr_num=0; // this shouldn't be modified in any 'del', 'create' method
 };
 /******************************************************************************/
 struct ImageRTPtr // Render Target Pointer
@@ -130,28 +139,28 @@ struct ImageRTPtr // Render Target Pointer
    Bool       find(Int w, Int h, IMAGERT_TYPE rt_type, Byte samples=1); // find Render Target, false on fail, 'samples'=number of samples per-pixel (allows multi-sampling)
    ImageRTPtr& get(Int w, Int h, IMAGERT_TYPE rt_type, Byte samples=1); // find Render Target, Exit  on fail, 'samples'=number of samples per-pixel (allows multi-sampling)
 
-   ImageRT* operator ()      (               )C {return  T._data         ;} // access the data, you can use the returned reference as long as this 'ImageRTPtr' object exists and not modified
-   ImageRT* operator ->      (               )C {return  T._data         ;} // access the data, you can use the returned reference as long as this 'ImageRTPtr' object exists and not modified
-   ImageRT& operator *       (               )C {return *T._data         ;} // access the data, you can use the returned reference as long as this 'ImageRTPtr' object exists and not modified
-   Bool     operator ==      (  null_t       )C {return  T._data==null   ;} // if pointers are equal
-   Bool     operator !=      (  null_t       )C {return  T._data!=null   ;} // if pointers are different
-   Bool     operator ==      (  ImageRT    *p)C {return  T._data==p      ;} // if pointers are equal
-   Bool     operator !=      (  ImageRT    *p)C {return  T._data!=p      ;} // if pointers are different
-   Bool     operator ==      (C ImageRT    *p)C {return  T._data==p      ;} // if pointers are equal
-   Bool     operator !=      (C ImageRT    *p)C {return  T._data!=p      ;} // if pointers are different
-   Bool     operator ==      (C ImageRTPtr &p)C {return  T._data==p._data;} // if pointers are equal
-   Bool     operator !=      (C ImageRTPtr &p)C {return  T._data!=p._data;} // if pointers are different
-            operator Bool    (               )C {return  T._data!=null   ;} // if pointer  is  valid
-            operator ImageRT*(               )C {return  T._data         ;}
+   ImageRTC* operator ()       (               )C {return  T._data         ;} // access the data, you can use the returned reference as long as this 'ImageRTPtr' object exists and not modified
+   ImageRTC* operator ->       (               )C {return  T._data         ;} // access the data, you can use the returned reference as long as this 'ImageRTPtr' object exists and not modified
+   ImageRTC& operator *        (               )C {return *T._data         ;} // access the data, you can use the returned reference as long as this 'ImageRTPtr' object exists and not modified
+   Bool      operator ==       (  null_t       )C {return  T._data==null   ;} // if pointers are equal
+   Bool      operator !=       (  null_t       )C {return  T._data!=null   ;} // if pointers are different
+   Bool      operator ==       (  ImageRTC   *p)C {return  T._data==p      ;} // if pointers are equal
+   Bool      operator !=       (  ImageRTC   *p)C {return  T._data!=p      ;} // if pointers are different
+   Bool      operator ==       (C ImageRTC   *p)C {return  T._data==p      ;} // if pointers are equal
+   Bool      operator !=       (C ImageRTC   *p)C {return  T._data!=p      ;} // if pointers are different
+   Bool      operator ==       (C ImageRTPtr &p)C {return  T._data==p._data;} // if pointers are equal
+   Bool      operator !=       (C ImageRTPtr &p)C {return  T._data!=p._data;} // if pointers are different
+             operator Bool     (               )C {return  T._data!=null   ;} // if pointer  is  valid
+             operator ImageRTC*(               )C {return  T._data         ;}
 
    ImageRTPtr& clear    (               );                  // clear the pointer to null, this automatically decreases the reference count of current data
    ImageRTPtr& operator=(  null_t       ) {return clear();} // clear the pointer to null, this automatically decreases the reference count of current data
    ImageRTPtr& operator=(C ImageRTPtr &p);                  // set       pointer to 'p' , this automatically decreases the reference count of current data and increases the reference count of the new data
-   ImageRTPtr& operator=(  ImageRT    *p);                  // set       pointer to 'p' , this automatically decreases the reference count of current data and increases the reference count of the new data
+   ImageRTPtr& operator=(  ImageRTC   *p);                  // set       pointer to 'p' , this automatically decreases the reference count of current data and increases the reference count of the new data
 
    ImageRTPtr(  null_t=null  ) {_data=null; _last_index=-1;}
    ImageRTPtr(C ImageRTPtr &p);
-   ImageRTPtr(  ImageRT    *p);
+   ImageRTPtr(  ImageRTC   *p);
 #if EE_PRIVATE
    ImageRTPtr& clearNoDiscard(); // clear the pointer to null, this automatically decreases the reference count of current data, without discarding
    explicit ImageRTPtr(C ImageRTDesc &desc) {_data=null; _last_index=-1; get(desc);}
@@ -161,8 +170,8 @@ struct ImageRTPtr // Render Target Pointer
 #if !EE_PRIVATE
 private:
 #endif
-   ImageRT *_data;
-   Int      _last_index;
+   ImageRTC *_data;
+   Int       _last_index;
 };
 /******************************************************************************/
 #if EE_PRIVATE
@@ -172,11 +181,11 @@ struct ImageRTPtrRef
 
    ImageRTPtr& get(C ImageRTDesc &desc) {return ref.get(desc);}
 
-   ImageRT* operator() ()C {return  ref;}
-   ImageRT* operator-> ()C {return  ref;}
-   ImageRT& operator*  ()C {return *ref;}
-   operator ImageRTPtr&()C {return  ref;}
-   operator ImageRT   *()C {return  ref;}
+   ImageRTC* operator() ()C {return  ref;}
+   ImageRTC* operator-> ()C {return  ref;}
+   ImageRTC& operator*  ()C {return *ref;}
+   operator  ImageRTPtr&()C {return  ref;}
+   operator  ImageRTC  *()C {return  ref;}
 
    void clear() {ref.clear();}
 

@@ -30,8 +30,8 @@ static struct OpenVRApi : VirtualRealityApi
    virtual Bool     createUIImage ()override;
    virtual Bool createRenderImage ()override;
 
-   virtual ImageRT* getNewRender()override;
-   virtual ImageRT* getNewUI    ()override;
+   virtual ImageRTC* getNewRender()override;
+   virtual ImageRTC* getNewUI    ()override;
 
    OpenVRApi();
 
@@ -46,7 +46,7 @@ private:
    vr::IVROverlay       *_overlay;
    vr::VROverlayHandle_t _overlay_id;
    Bool                  _overlay_visible, _connected;
-   ImageRT               _render, _ui;
+   ImageRTC              _render, _ui;
 #endif
 }OpenVR;
 #if SUPPORT_OPEN_VR
@@ -352,14 +352,14 @@ Bool OpenVRApi::createRenderImage()
 #endif
    return false;
 }
-ImageRT* OpenVRApi::getNewRender()
+ImageRTC* OpenVRApi::getNewRender()
 {
 #if SUPPORT_OPEN_VR
    if(_render.is())return &_render;
 #endif
    return null;
 }
-ImageRT* OpenVRApi::getNewUI()
+ImageRTC* OpenVRApi::getNewUI()
 {
 #if SUPPORT_OPEN_VR
    if(_ui.is())return &_ui;

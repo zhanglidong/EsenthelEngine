@@ -279,26 +279,26 @@ ImageRTPtr RendererClass::getBackBuffer() // this may get called during renderin
    }
    return null;
 }
-void RendererClass::adaptEye(ImageRT &src, ImageRT &dest)
+void RendererClass::adaptEye(ImageRTC &src, ImageRT &dest)
 {
    Hdr.load();
    D.alpha(ALPHA_NONE);
-   ImageRTPtr temp=&src;
+   ImageRTPtr cur=&src;
    VecI2    size=RoundPos(fx()*(D.viewRect().size()/D.size2())); // calculate viewport size in pixels
    Int  max_size=size.min()/4;
    Int  s=1, num=1; for(;;){Int next_size=s*4; if(next_size>max_size)break; s=next_size; num++;} // go from 1 up to 'max_size', inrease *4 in each step
    FREP(num) // now go backward, from up to 'max_size' to 1 inclusive
    {
-      ImageRTPtr next=temp; next.get(ImageRTDesc(s, s, IMAGERT_F32)); s/=4; // we could use 16-bit as according to calculations, the max error for 1920x1080, starting with 256x256 as first step and going down to 1x1, with average luminance of 1.0 (255 byte) is 0.00244140625 at the final stage, which gives 410 possible colors, however we may use some special tricks in the shader that requires higher precision (for example BRIGHT with Sqr and Sqrt later, or use Linear/sRGB)
+      ImageRTPtr next=cur; next.get(ImageRTDesc(s, s, IMAGERT_F32)); s/=4; // we could use 16-bit as according to calculations, the max error for 1920x1080, starting with 256x256 as first step and going down to 1x1, with average luminance of 1.0 (255 byte) is 0.00244140625 at the final stage, which gives 410 possible colors, however we may use some special tricks in the shader that requires higher precision (for example BRIGHT with Sqr and Sqrt later, or use Linear/sRGB)
       set(next, null, false);
-      Sh.imgSize(*temp);
-      if(i){Sh.ImgXF[0]->set(temp); Hdr.HdrDS[1]->draw();}
-      else {Sh.Img  [0]->set(temp); Hdr.HdrDS[0]->draw(null, D.screenToUV(D.viewRect()));}
-      temp=next;
+      Sh.imgSize(*cur);
+      if(i){Sh.ImgXF[0]->set(cur); Hdr.HdrDS[1]->draw();}
+      else {Sh.Img  [0]->set(cur); Hdr.HdrDS[0]->draw(null, D.screenToUV(D.viewRect()));}
+      cur=next;
    }
    Sh.Step->set(Pow(Mid(1/D.eyeAdaptationSpeed(), EPS, 1.0f), Time.d())); // can use EPS and not EPS_GPU because we're using Pow here and not on GPU
-   Sh.ImgXF[0]->set(temp); Sh.ImgXF[1]->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.HdrUpdate                                                      ->draw();
-                           Sh.ImgX [0]->set(_eye_adapt_scale[_eye_adapt_scale_cur]);                                                                            set(&dest                                  , null, true ); Hdr.Hdr[D.dither() && src.highPrecision() && !dest.highPrecision()]->draw(src);
+   Sh.ImgXF[0]->set(cur); Sh.ImgXF[1]->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.HdrUpdate                                                      ->draw();
+                          Sh.ImgX [0]->set(_eye_adapt_scale[_eye_adapt_scale_cur]);                                                                            set(&dest                                  , null, true ); Hdr.Hdr[D.dither() && src.highPrecision() && !dest.highPrecision()]->draw(src);
 }
 INLINE Shader* GetBloomDS(Bool glow, Bool uv_clamp, Bool half_res) {Shader* &s=Sh.BloomDS[glow][uv_clamp][half_res]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow, uv_clamp, half_res); return s;}
 INLINE Shader* GetBloom  (Bool dither, Bool alpha                ) {Shader* &s=Sh.Bloom  [dither][alpha]           ; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloom  (dither, alpha           ); return s;}
@@ -576,7 +576,12 @@ RendererClass& RendererClass::operator()(void (&render)())
   _has_glow   =_has_fur=false;
   _mirror_want=false;
   _outline    =0;
-  _final      =(target ? target : _stereo ? VR.getRender() : _cur_main);
+   if(target)
+   {
+      target->_ptr_num++; // increase ptr count to make sure this won't be discarded in case user does not hold a pointer to the target. This will be decreased at the end of this function when rendering finished
+     _final=target;
+   }else
+  _final=(_stereo ? VR.getRender() : _cur_main);
 
   _ctx=_ctxs(taa_id);
   _ctx_sub=_ctx->subs(D._view_main.recti, _taa_reset); _ctx_sub->used=true; // find a unique sub-context based on main viewport rectangle, set '_taa_reset' as 'just_created' to force reset TAA when creating new sub, mark that it was used in this frame
@@ -739,6 +744,7 @@ RendererClass& RendererClass::operator()(void (&render)())
       }
    }
    if(_shader_param_changes)Exit("'LinkShaderParamChanges' was called without 'UnlinkShaderParamChanges'.");
+   if(target)target->_ptr_num--; // decrease ptr count without discarding
    return T;
 }
 ImageRTPtr RendererClass::get(void (&render)())
@@ -2197,14 +2203,14 @@ void SetFov(Vec2 &fov, FOV_MODE fov_mode, Flt aspect)
       }
    }
 }
-void RenderIcon(void (&render)(), C ViewSettings *view, ImageRT &image, C VecI2 &image_size, Int super_sample)
+void RenderIcon(void (&render)(), C ViewSettings *view, ImageRTC &image, C VecI2 &image_size, Int super_sample)
 {
    if(image_size.x>0 && image_size.y>0)
    {
       Int shift=((super_sample<=1) ? 0 : Log2Ceil(UInt(super_sample)));
       if(image.create(image_size, IMAGE_R8G8B8A8_SRGB))
       {
-         ImageRT temp;
+         ImageRTC temp;
       again:
          if(shift)
             if(!temp.create(VecI2(Min(image_size.x<<shift, D.maxTexSize()),
@@ -2221,9 +2227,7 @@ void RenderIcon(void (&render)(), C ViewSettings *view, ImageRT &image, C VecI2 
          auto  allow_taa=Renderer.allow_taa; Renderer.allow_taa=false;
 
          DisplayClass::ViewportSettings cur_view; cur_view.get();
-       //Bool                           view_force_square=D._view_square_pixel; not needed because FOV_XY is used
-
-       //D.viewForceSquarePixel(true);
+       //Bool                           view_force_square=D._view_square_pixel; D.viewForceSquarePixel(true); not needed because FOV_XY is used
          Vec2 fov_xy=(view ? view->fov : D.viewFov()); SetFov(fov_xy, view ? view->fov_mode : D.viewFovMode(), image.aspect());
          D.view(D.rect(), view ? view->from : D.viewFrom(), view ? view->range : D.viewRange(), fov_xy, FOV_XY);
 
@@ -2268,7 +2272,7 @@ void RenderIcon(void (&render)(), C ViewSettings *view, ImageRT &image, C VecI2 
 }
 void RenderIcon(void (&render)(), C ViewSettings *view, Image &image, C VecI2 &image_size, Int super_sample)
 {
-   ImageRT temp; Image &temp_image=temp;
+   ImageRTC temp; Image &temp_image=temp;
    Swap(image, temp_image); // Swap to try to reuse existing 'image' if it was already created #SwapImageRT
    RenderIcon(render, view, temp, image_size, super_sample);
    Swap(image, temp_image);

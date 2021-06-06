@@ -65,12 +65,12 @@ static struct VirtualRealityDummyApi : VirtualRealityApi
    virtual Bool     createUIImage ()override {return _ui    .create(VR.guiRes()     , LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8);}
    virtual Bool createRenderImage ()override {return _render.create(VecI2(1280, 720), LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8);}
 
-   virtual ImageRT* getNewRender()override {return _render.is() ? &_render : null;}
-   virtual ImageRT* getNewUI    ()override {return _ui    .is() ? &_ui     : null;}
+   virtual ImageRTC* getNewRender()override {return _render.is() ? &_render : null;}
+   virtual ImageRTC* getNewUI    ()override {return _ui    .is() ? &_ui     : null;}
 
 private:
-   Bool    _active;
-   ImageRT _render, _ui;
+   Bool     _active;
+   ImageRTC _render, _ui;
 }VirtualRealityDummy;
 /******************************************************************************/
        VirtualReality    VR;
@@ -291,8 +291,8 @@ Bool VirtualReality::createImages()
    return createRenderImage() && createUIImage();
 }
 
-ImageRT* VirtualReality::getRender() {if(!_render)_render=_api->getNewRender(); return _render;} // this will call 'discard', have to keep as 'ImageRTPtr' as long as we need it
-ImageRT* VirtualReality::getUI    () {if(!_ui    )_ui    =_api->getNewUI    (); return _ui    ;} // this will call 'discard', have to keep as 'ImageRTPtr' as long as we need it
+ImageRTC* VirtualReality::getRender() {if(!_render)_render=_api->getNewRender(); return _render;} // this will call 'discard', have to keep as 'ImageRTPtr' as long as we need it
+ImageRTC* VirtualReality::getUI    () {if(!_ui    )_ui    =_api->getNewUI    (); return _ui    ;} // this will call 'discard', have to keep as 'ImageRTPtr' as long as we need it
 /******************************************************************************/
 }
 /******************************************************************************/

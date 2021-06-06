@@ -99,7 +99,7 @@ private:
    Rect               _left_eye_tex_rect;
    Matrix             _matrix, _left, _right;
    U64                _adapter_id;
-   ImageRT            _ui_ds;
+   ImageRTC           _ui_ds;
    ImageRTPtr         _render, _ui;
    VirtualRealityApi *_api;
 
@@ -116,8 +116,8 @@ private:
    Bool     createUIImage ();
    Bool createRenderImage ();
 
-   ImageRT* getRender();
-   ImageRT* getUI    ();
+   ImageRTC* getRender();
+   ImageRTC* getUI    ();
 #endif
    VirtualReality();
    NO_COPY_CONSTRUCTOR(VirtualReality);
@@ -141,8 +141,8 @@ struct VirtualRealityApi
    virtual Bool     createUIImage () {return false;}
    virtual Bool createRenderImage () {return false;}
 
-   virtual ImageRT* getNewRender() {return null;}
-   virtual ImageRT* getNewUI    () {return null;}
+   virtual ImageRTC* getNewRender() {return null;}
+   virtual ImageRTC* getNewUI    () {return null;}
 
    virtual ~VirtualRealityApi() {shut();}
 }extern

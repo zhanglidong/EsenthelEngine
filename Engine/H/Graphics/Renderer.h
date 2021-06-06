@@ -81,7 +81,7 @@ struct RendererClass // handles rendering
    Color        clear_color         , // screen clearing color, default=BLACK, used only for RT_FORWARD renderer
                 ms_samples_color    ; // visualize multi-sampled pixels, default=TRANSPARENT (off)
    Dbl          lowest_visible_point; // Y coordinates of lowest visible point on the scene, by default=-DBL_MAX (which means full visibility), you can optionally set this to a custom value before the shadow rendering stage, the value should be world-space Y coordinate of the lowest visible point on the scene below which you don't expect any objects to be visible, for example if your scene has heightmaps and there won't be anything visible under the heightmaps, then you can set this value to the minimum of all heightmap mesh box Y coordinates, setting the value will improve shadow quality and rendering performance
-   ImageRT     *target              ; // render target destination, this can be set to a custom 'ImageRT' of IMAGE_RT mode, in that case the rendering will be performed onto the selected image, this image should have its aspect (proportions) the same as the screen (D.resW, D.resH), if set to null then rendering is performed to the screen, default=null
+   ImageRTC    *target              ; // render target destination, this can be set to a custom 'ImageRT' of IMAGE_RT mode, in that case the rendering will be performed onto the selected image, this image should have its aspect (proportions) the same as the screen (D.resW, D.resH), if set to null then rendering is performed to the screen, default=null
    ImagePtr     cel_shade_palette   ; // cel shading light palette, you can set this to custom texture in "Init()", if used then this should point to a palette of custom width and 1 pixel height, if set to null then usage of cel shading is disabled, used only in RT_DEFERRED renderer, default=null
    CPtr         taa_id              ; // TAA unique ID, you can use this to allow usage of separate render targets for TAA effect
 
@@ -182,10 +182,10 @@ struct RendererClass // handles rendering
    void linearizeDepth (ImageRT &dest, ImageRT &depth); // this reads from depth buffer and stores it to custom render target in linearized mode
    void   resolveDepth ();
    void   resolveDepth1();
-   void adaptEye       (ImageRT &src, ImageRT &dest);
-   void bloom          (ImageRT &src, ImageRT &dest, Bool combine);
-   Bool motionBlur     (ImageRT &src, ImageRT &dest, Bool alpha, Bool combine);
-   void dof            (ImageRT &src, ImageRT &dest, Bool alpha, Bool combine);
+   void adaptEye       (ImageRTC &src, ImageRT &dest);
+   void bloom          (ImageRT  &src, ImageRT &dest, Bool combine);
+   Bool motionBlur     (ImageRT  &src, ImageRT &dest, Bool alpha, Bool combine);
+   void dof            (ImageRT  &src, ImageRT &dest, Bool alpha, Bool combine);
 
    void setAlphaFromDepth      ();
    void setAlphaFromDepthAndCol();
@@ -305,13 +305,13 @@ private:
    Image                 _smaa_area, _smaa_search, _env_dfg;
    void                (*_render)();
  C Memc<ShaderParamChange> *_shader_param_changes;
-   ImageRT               _main, _main_ds,
-                         _main_temp, _main_temp_ds,
-                         _shd_map, _cld_map,
+   ImageRT               _shd_map, _cld_map,
                          _eye_adapt_scale[2],
+                        *_cur[4], *_cur_ds;
+   ImageRTC              _main, _main_ds,
+                         _main_temp, _main_temp_ds,
                         *_ptr_main, *_ptr_main_ds, // need if have to perform color management
                         *_cur_main, *_cur_main_ds,
-                        *_cur[4], *_cur_ds,
                         *_ui, *_ui_ds,
                         *_final;
    ImageRTPtr            _h0, _h1, _q0, _q1, // <- these members are to be used only temporarily
@@ -319,7 +319,7 @@ private:
                          _lum, _lum_1s, _spec, _spec_1s, _shd_1s, _shd_ms,
                          _water_col, _water_nrm, _water_ds, _water_lum, _water_spec,
                          _vol, _ao, _fade, _back, _back_ds, _mirror_rt, _outline_rt, _sky_coverage;
-   Memx<ImageRT>         _rts;
+   Memx<ImageRTC>        _rts;
    Map<CPtr, Context>    _ctxs;
    Context              *_ctx;
    Context::Sub          _ctx_sub_dummy, *_ctx_sub;
@@ -358,8 +358,8 @@ void SetBehindBias  (  Flt      distance                       ); // set bias to
 void SetBlendAlpha  (ALPHA_MODE alpha       =ALPHA_BLEND_FACTOR); // set custom alpha blending of rendered meshes   , this can be called before rendering       meshes in RM_BLEND               mode
 void SetEarlyZ      (  Bool     on          =false             ); // set early Z of rendered meshes                 , this can be called before rendering       meshes in RM_PREPARE             mode, default=false
 
-void RenderIcon(void (&render)(), C ViewSettings *view, ImageRT &image, C VecI2 &image_size, Int super_sample=1); // create icon by performing rendering into 'image', 'render'=rendering function, 'view'=view settings (optional, if null then current 'D.view' settings will be used), 'image'=image render target, 'image_size'=image size in pixels, 'super_sample'=super sampling to be used for rendering (1=disabled, 2=2x, 4=4x, ..), this function ignores 'D.density', 'D.maxLights', 'D.eyeAdaptation', 'D.lodFactor', 'D.motionMode', 'D.tAA', 'D.ambientRes'. This function can be called at any time (in State Update, Draw, Init, Shut) however only on the main thread.
-void RenderIcon(void (&render)(), C ViewSettings *view, Image   &image, C VecI2 &image_size, Int super_sample=1); // create icon by performing rendering into 'image', 'render'=rendering function, 'view'=view settings (optional, if null then current 'D.view' settings will be used), 'image'=image render target, 'image_size'=image size in pixels, 'super_sample'=super sampling to be used for rendering (1=disabled, 2=2x, 4=4x, ..), this function ignores 'D.density', 'D.maxLights', 'D.eyeAdaptation', 'D.lodFactor', 'D.motionMode', 'D.tAA', 'D.ambientRes'. This function can be called at any time (in State Update, Draw, Init, Shut) however only on the main thread.
+void RenderIcon(void (&render)(), C ViewSettings *view, ImageRTC &image, C VecI2 &image_size, Int super_sample=1); // create icon by performing rendering into 'image', 'render'=rendering function, 'view'=view settings (optional, if null then current 'D.view' settings will be used), 'image'=image render target, 'image_size'=image size in pixels, 'super_sample'=super sampling to be used for rendering (1=disabled, 2=2x, 4=4x, ..), this function ignores 'D.density', 'D.maxLights', 'D.eyeAdaptation', 'D.lodFactor', 'D.motionMode', 'D.tAA', 'D.ambientRes'. This function can be called at any time (in State Update, Draw, Init, Shut) however only on the main thread.
+void RenderIcon(void (&render)(), C ViewSettings *view, Image    &image, C VecI2 &image_size, Int super_sample=1); // create icon by performing rendering into 'image', 'render'=rendering function, 'view'=view settings (optional, if null then current 'D.view' settings will be used), 'image'=image render target, 'image_size'=image size in pixels, 'super_sample'=super sampling to be used for rendering (1=disabled, 2=2x, 4=4x, ..), this function ignores 'D.density', 'D.maxLights', 'D.eyeAdaptation', 'D.lodFactor', 'D.motionMode', 'D.tAA', 'D.ambientRes'. This function can be called at any time (in State Update, Draw, Init, Shut) however only on the main thread.
 /******************************************************************************
    Use following functions for setting Shader Parameter Changes for specific instances of meshes
    Call in following order: 1. link, 2. draw, 3. unlink, like this:

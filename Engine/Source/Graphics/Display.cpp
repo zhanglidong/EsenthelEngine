@@ -3537,7 +3537,7 @@ void DisplayClass::setFade(Flt seconds, Bool previous_frame, Bool auto_draw)
          if(created() && StateActive && StateActive->draw)
          {
             SyncLocker locker(_lock);
-            ImageRT *cur_main=Renderer._cur_main, *cur_main_ds=Renderer._cur_main_ds, *ui=Renderer._ui, *ui_ds=Renderer._ui_ds;
+            ImageRTC *cur_main=Renderer._cur_main, *cur_main_ds=Renderer._cur_main_ds, *ui=Renderer._ui, *ui_ds=Renderer._ui_ds;
             {
                ImageRTPtr temp(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha, use a temporary instead of 'Renderer._fade' because we might still need it
                ImageRTPtr ds; ds.getDS(temp->w(), temp->h(), temp->samples()); // this will call 'discard', this is needed to hold ref count until DS is no longer needed
