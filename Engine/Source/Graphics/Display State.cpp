@@ -701,7 +701,7 @@ void DisplayState::samplerShadow()
    sampler3D(); // we could potentially use a different sampler here with smaller anisotropic value, however quality does suffer (especially with filter=1, so don't go below 2), however performance difference is minimal, so for simplicity just use the default 3D sampler
 }
 void DisplayState::set2D() {                     D.clipPlane(false); D.wire(false        ); D.sampler2D();}
-void DisplayState::set3D() {if(Renderer.mirror())D.clipPlane(true ); D.wire(Renderer.wire); D.sampler3D();}
+void DisplayState::set3D() {if(Renderer.mirror())D.clipPlane(true ); D.wire(Renderer.wire); D.sampler3D(); D.depth(true);}
 /******************************************************************************/
 void DisplayState::linearGamma(Bool on)
 {

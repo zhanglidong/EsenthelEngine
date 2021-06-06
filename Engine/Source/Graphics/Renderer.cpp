@@ -1277,7 +1277,7 @@ void RendererClass::overlay()
    set(_col, D.bumpMode()>BUMP_FLAT ? _nrm() : null, _ext, null, _ds, true, WANT_DEPTH_READ); // #RTOutput
    setDSLookup(); // 'setDSLookup' after 'set'
    D.alpha(ALPHA_BLEND_FACTOR);
-   D.set3D(); D.depthWrite(false); D.depthBias(BIAS_OVERLAY); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_LESS_EQUAL); D.depth(true); mode(RM_OVERLAY); // overlay requires BIAS because we may use 'MeshOverlay' which generates triangles by clipping existing ones
+   D.set3D(); D.depthWrite(false); D.depthBias(BIAS_OVERLAY); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_LESS_EQUAL); mode(RM_OVERLAY); // overlay requires BIAS because we may use 'MeshOverlay' which generates triangles by clipping existing ones
    REPS(_eye, _eye_num)
    {
       setEyeViewportCam();
@@ -1580,7 +1580,7 @@ void RendererClass::emissive()
 #if SUPPORT_EMISSIVE
    set(_col, _ds, true);
    D.alpha(ALPHA_ADD);
-   D.set3D(); D.depthWrite(false); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_LESS_EQUAL); D.depth(true); mode(RM_EMISSIVE); // need to make sure we can apply meshes on existing depth
+   D.set3D(); D.depthWrite(false); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_LESS_EQUAL); mode(RM_EMISSIVE); // need to make sure we can apply meshes on existing depth
    SortEmissiveInstances();
    REPS(_eye, _eye_num)
    {
@@ -1737,8 +1737,8 @@ void RendererClass::blend()
 
    const Bool blend_affect_vel=true;
    set(_col,  blend_affect_vel ? _vel() : null, _alpha, null, _ds, true); setDSLookup(); // 'setDSLookup' after 'set' #RTOutput.Blend
-   D.alpha(ALPHA_BLEND_FACTOR);
-   D.set3D(); D.depthWrite(false); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_LESS_EQUAL); D.depth(true); mode(RM_BLEND); // use LESS_EQUAL for blend because we may want to draw blend graphics on top of existing pixels (for example world editor terrain highlight)
+   D.alpha(Renderer.fastCombine() ? ALPHA_BLEND : ALPHA_BLEND_FACTOR);
+   D.set3D(); D.depthWrite(false); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_LESS_EQUAL); mode(RM_BLEND); // use LESS_EQUAL for blend because we may want to draw blend graphics on top of existing pixels (for example world editor terrain highlight)
    SortBlendInstances();
    REPS(_eye, _eye_num)
    {
@@ -1804,7 +1804,7 @@ void RendererClass::behind()
 
       set(_col, _ds, true, NEED_DEPTH_READ); // we will read from the depth buffer
       D.alpha(ALPHA_BLEND_DEC);
-      D.set3D(); D.depthWrite(false); D.depthFunc(FUNC_GREATER); D.depth(true); mode(RM_BEHIND);
+      D.set3D(); D.depthWrite(false); D.depthFunc(FUNC_GREATER); mode(RM_BEHIND);
       REPS(_eye, _eye_num)
       {
          setEyeViewportCam();

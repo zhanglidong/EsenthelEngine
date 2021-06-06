@@ -171,7 +171,6 @@ void DrawEarlyZInstances()
 {
    SetViewOffset();
    BeginPrecomputedViewMatrix();
-   D.depth(true);
    SetMatrixCount();
    DisableSkinning();
    Renderer._shader_early_z->start(); // this shader doesn't require any textures
@@ -206,8 +205,6 @@ static INLINE void DrawSolidInstances(Bool forward) // !! this function should b
 {
    SetViewOffset();
    BeginPrecomputedViewMatrix();
-
-   D.depth(true);
 
    // solid
  //SetMatrixCount(); not needed since we always call this before drawing
@@ -699,10 +696,8 @@ void DrawBlendInstances() // !! this function should be safe to call 2 times in 
 {
    SetViewOffset();
    EyeCache ec;
-
-   const ALPHA_MODE alpha=(Renderer.fastCombine() ? ALPHA_BLEND : ALPHA_BLEND_FACTOR);
-   D.depth(true );
-   D.alpha(alpha);
+   ALPHA_MODE alpha=(Renderer.fastCombine() ? ALPHA_BLEND : ALPHA_BLEND_FACTOR); D.alpha(alpha);
+   D.depth(true);
    REPA(BlendInstances) // go from back to start
    {
       BlendInstance *object=&BlendInstances[i]; switch(object->type)
