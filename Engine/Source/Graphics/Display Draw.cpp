@@ -1084,9 +1084,7 @@ void Image::drawVolume(C Color &color, C Color &color_add, C OBox &obox, Flt vox
          MshrBoxR.set().draw();
       }else
       {
-         D .depth     (true );
-         D .depthWrite(false);
-         Sh.DrawVolume[0][LA]->begin(); MshrBox.set().draw();
+         D.depthOnWrite(true, false); Sh.DrawVolume[0][LA]->begin(); MshrBox.set().draw();
       }
    }
 }

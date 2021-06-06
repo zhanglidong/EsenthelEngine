@@ -1040,7 +1040,7 @@ start:
    {
       set(null, _ds, true);
       tAACheck(); D.clearDS(); clear_ds=false; // already cleared so no need anymore, 'tAACheck' and 'D.clearDS' are paired to make sure 'tAACheck' is called only once
-      D.set3D(); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthBias(BIAS_EARLY_Z); // one option is to write Z+1 values for EarlyZ using depth bias, so we can use FUNC_LESS for depth tests (better), another option is to don't use depth bias, but use FUNC_LESS_EQUAL for depth tests (potentially slower due to potential overdraw)
+      D.set3D(); D.depth(true); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthBias(BIAS_EARLY_Z); // one option is to write Z+1 values for EarlyZ using depth bias, so we can use FUNC_LESS for depth tests (better), another option is to don't use depth bias, but use FUNC_LESS_EQUAL for depth tests (potentially slower due to potential overdraw)
 
    early_z:
       setEyeViewportCam();
@@ -1142,7 +1142,7 @@ void RendererClass::solid()
    {
       case RT_DEFERRED:
       {
-         D.stencil(STENCIL_ALWAYS_SET, 0); D.set3D(); mode(RM_SOLID);
+         D.stencil(STENCIL_ALWAYS_SET, 0); D.set3D(); D.depth(true); mode(RM_SOLID);
          REPS(_eye, _eye_num)
          {
             setEyeViewportCam();
@@ -1184,7 +1184,7 @@ void RendererClass::solid()
             setForwardCol();
            _frst_light_offset=OFFSET(FRST, none);
             D.alpha(alpha);
-            D.stencil(STENCIL_ALWAYS_SET, 0); D.set3D(); mode(RM_SOLID);
+            D.stencil(STENCIL_ALWAYS_SET, 0); D.set3D(); D.depth(true); mode(RM_SOLID);
             REPS(_eye, _eye_num)
             {
                setEyeViewportCam();
@@ -1277,13 +1277,13 @@ void RendererClass::overlay()
    set(_col, D.bumpMode()>BUMP_FLAT ? _nrm() : null, _ext, null, _ds, true, WANT_DEPTH_READ); // #RTOutput
    setDSLookup(); // 'setDSLookup' after 'set'
    D.alpha(ALPHA_BLEND_FACTOR);
-   D.set3D(); D.depthWrite(false); D.depthBias(BIAS_OVERLAY); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_LESS_EQUAL); mode(RM_OVERLAY); // overlay requires BIAS because we may use 'MeshOverlay' which generates triangles by clipping existing ones
+   D.set3D(); D.depthOnWriteFunc(true, false, FUNC_LESS_EQUAL); D.depthBias(BIAS_OVERLAY); mode(RM_OVERLAY); // overlay requires BIAS because we may use 'MeshOverlay' which generates triangles by clipping existing ones
    REPS(_eye, _eye_num)
    {
       setEyeViewportCam();
       DrawOverlayObjects(); _render();
    }
-   D.set2D(); D.depthWrite(true); D.depthBias(BIAS_ZERO); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_DEFAULT);
+   D.set2D(); D.depthOnWriteFunc(false, true, FUNC_DEFAULT); D.depthBias(BIAS_ZERO);
 
    D.stencil(STENCIL_NONE); // disable any stencil that might have been enabled
    OverlayObjects.clear();
@@ -1580,7 +1580,7 @@ void RendererClass::emissive()
 #if SUPPORT_EMISSIVE
    set(_col, _ds, true);
    D.alpha(ALPHA_ADD);
-   D.set3D(); D.depthWrite(false); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_LESS_EQUAL); mode(RM_EMISSIVE); // need to make sure we can apply meshes on existing depth
+   D.set3D(); D.depthOnWriteFunc(true, false, FUNC_LESS_EQUAL); mode(RM_EMISSIVE); // need to make sure we can apply meshes on existing depth
    SortEmissiveInstances();
    REPS(_eye, _eye_num)
    {
@@ -1588,7 +1588,7 @@ void RendererClass::emissive()
       DrawEmissiveInstances(); _render();
    }
    ClearEmissiveInstances();
-   D.set2D(); D.depthWrite(true); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_DEFAULT);
+   D.set2D(); D.depthOnWriteFunc(false, true, FUNC_DEFAULT);
 #endif
 }
 void RendererClass::sky()
@@ -1736,9 +1736,9 @@ void RendererClass::blend()
    D.stencilRef(STENCIL_REF_TERRAIN); // set in case draw codes will use stencil
 
    const Bool blend_affect_vel=true;
-   set(_col,  blend_affect_vel ? _vel() : null, _alpha, null, _ds, true); setDSLookup(); // 'setDSLookup' after 'set' #RTOutput.Blend
+   set(_col,  blend_affect_vel ? _vel() : null, _alpha, null, _ds, true); setDSLookup(); // 'setDSLookup' after 'set' #RTOutput.Blend, needed for 'DrawBlendInstances'
    D.alpha(Renderer.fastCombine() ? ALPHA_BLEND : ALPHA_BLEND_FACTOR);
-   D.set3D(); D.depthWrite(false); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_LESS_EQUAL); mode(RM_BLEND); // use LESS_EQUAL for blend because we may want to draw blend graphics on top of existing pixels (for example world editor terrain highlight)
+   D.set3D(); D.depthOnWriteFunc(true, false, FUNC_LESS_EQUAL); mode(RM_BLEND); // use LESS_EQUAL for blend because we may want to draw blend graphics on top of existing pixels (for example world editor terrain highlight)
    SortBlendInstances();
    REPS(_eye, _eye_num)
    {
@@ -1751,7 +1751,7 @@ void RendererClass::blend()
    }
    ClearBlendInstances();
   _SetHighlight(TRANSPARENT);
-   D.set2D(); D.depthWrite(true); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_DEFAULT);
+   D.set2D(); D.depthOnWriteFunc(false, true, FUNC_DEFAULT);
 
    D.stencil(STENCIL_NONE); // disable any stencil that might have been enabled
 
@@ -1771,13 +1771,13 @@ void RendererClass::palette(Int index)
       set(intensity, &ds, true, WANT_DEPTH_READ); setDSLookup(); // we need depth-testing, but want depth-read for particle softing, 'setDSLookup' after 'set'
       D.clearCol();
       D.alpha(ALPHA_ADD);
-      D.set3D(); D.depthWrite(false); mode(index ? RM_PALETTE1 : RM_PALETTE);
+      D.set3D(); D.depthOnWriteFunc(true, false, FUNC_LESS_EQUAL); mode(index ? RM_PALETTE1 : RM_PALETTE);
       REPS(_eye, _eye_num)
       {
          setEyeViewportCam();
         _render(); if(index)DrawPalette1Objects();else DrawPaletteObjects();
       }
-      D.set2D(); D.depthWrite(true);
+      D.set2D(); D.depthOnWriteFunc(false, true, FUNC_DEFAULT);
 
       D.stencil(STENCIL_NONE); // disable any stencil that might have been enabled
 
@@ -1804,13 +1804,13 @@ void RendererClass::behind()
 
       set(_col, _ds, true, NEED_DEPTH_READ); // we will read from the depth buffer
       D.alpha(ALPHA_BLEND_DEC);
-      D.set3D(); D.depthWrite(false); D.depthFunc(FUNC_GREATER); mode(RM_BEHIND);
+      D.set3D(); D.depthOnWriteFunc(true, false, FUNC_GREATER); mode(RM_BEHIND);
       REPS(_eye, _eye_num)
       {
          setEyeViewportCam();
         _render(); DrawBehindObjects();
       }
-      D.set2D(); D.depthWrite(true); D.depthFunc(FUNC_DEFAULT);
+      D.set2D(); D.depthOnWriteFunc(false, true, FUNC_DEFAULT);
    }
    BehindObjects.clear();
 }
@@ -1825,9 +1825,8 @@ void RendererClass::setOutline(C Color &color)
       D.clearCol  ();
       D.alpha     (ALPHA_NONE);
       D.sampler3D ();
-      D.depthWrite(false);
-      if(FUNC_DEFAULT!=FUNC_LESS_EQUAL    )D.depthFunc(FUNC_LESS_EQUAL);
-      if(D.outlineMode()==EDGE_DETECT_THIN)D.stencil  (STENCIL_OUTLINE_SET, STENCIL_REF_OUTLINE);
+      D.depthOnWriteFunc(true, false, FUNC_LESS_EQUAL);
+      if(D.outlineMode()==EDGE_DETECT_THIN)D.stencil(STENCIL_OUTLINE_SET, STENCIL_REF_OUTLINE);
    }
    Int           outline_eye=(1<<_eye);
    if(!(_outline&outline_eye)) // not yet enabled for this eye
@@ -1842,8 +1841,7 @@ void RendererClass::applyOutline()
    {
      _SetHighlight(TRANSPARENT); // disable 'SetHighlight' which was called during mesh drawing
       D.sampler2D ();
-      D.depthWrite(true);
-      if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_DEFAULT); // restore default
+      D.depthOnWriteFunc(false, true, FUNC_DEFAULT); // restore default
 
       resolveMultiSample(); // don't do 'downSample' here because 'edgeSoften' will be called later and it requires to operate on full-sampled data
       ImageRT *ds=_ds_1s; // we've resolved multi-sample so have to use 1-sample

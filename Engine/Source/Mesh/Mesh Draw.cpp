@@ -1511,11 +1511,10 @@ void MeshPart::drawBlend(C Vec4 *color)C
       {
        C Material &material=variation.getMaterial();
          SetSkinning();
-         D.cull      (material.cull);
-         D.depth     (true);
-         D.depthWrite(material._depth_write); Renderer.needDepthTest(); // !! 'needDepthTest' after 'depthWrite' !!
-         D.alpha     (              Renderer._mesh_blend_alpha );
-         D.stencil   ((STENCIL_MODE)Renderer._mesh_stencil_mode);
+         D.cull        (material.cull);
+         D.depthOnWrite(true, material._depth_write); Renderer.needDepthTest(); // !! 'needDepthTest' after 'depthWrite' !!
+         D.alpha       (              Renderer._mesh_blend_alpha );
+         D.stencil     ((STENCIL_MODE)Renderer._mesh_stencil_mode);
          material.setBlendForce();
          Bool no_blend=!material.hasAlphaBlend(); // if there is no blending then it means it's ALPHA_NONE or ALPHA_TEST, in both cases we should ignore the material.color.a, and use 1.0
          if(color || no_blend)
@@ -1542,11 +1541,10 @@ void MeshPart::drawBlend(C Material &material, C Vec4 *color)C
       if(s)
       {
          SetSkinning();
-         D.cull      (material.cull);
-         D.depth     (true);
-         D.depthWrite(material._depth_write); Renderer.needDepthTest(); // !! 'needDepthTest' after 'depthWrite' !!
-         D.alpha     (              Renderer._mesh_blend_alpha );
-         D.stencil   ((STENCIL_MODE)Renderer._mesh_stencil_mode);
+         D.cull        (material.cull);
+         D.depthOnWrite(true, material._depth_write); Renderer.needDepthTest(); // !! 'needDepthTest' after 'depthWrite' !!
+         D.alpha       (              Renderer._mesh_blend_alpha );
+         D.stencil     ((STENCIL_MODE)Renderer._mesh_stencil_mode);
          material.setBlendForce();
          Bool no_blend=!material.hasAlphaBlend(); // if there is no blending then it means it's ALPHA_NONE or ALPHA_TEST, in both cases we should ignore the material.color.a, and use 1.0
          if(color || no_blend)
@@ -1577,10 +1575,9 @@ void MeshPart::drawBoneHighlight(Int bone)C
     C Variation &variation=          getVariation();
     C Material  &material =variation.getMaterial ();
       SetSkinning();
-      D.cull      (material.cull);
-      D.depth     (true);
-      D.depthWrite(true); Renderer.needDepthTest(); // !! 'needDepthTest' after 'depthWrite' !!
-      D.alpha     (ALPHA_NONE);
+      D.cull        (material.cull);
+      D.depthOnWrite(true, true); Renderer.needDepthTest(); // !! 'needDepthTest' after 'depthWrite' !!
+      D.alpha       (ALPHA_NONE);
       material.setBlendForce();
       s->begin(); render.set().drawBoneHighlight(bone, s);
    }

@@ -109,49 +109,51 @@ struct DisplayState // Display States Control, this class methods can be called 
    void del              ();
    void create           ();
 
-   static void depth        (Bool      on    );
-   static void depthAllow   (Bool      on    );
-   static void depthClip    (Bool      on    ); // !! not available on GL ES !!
-   static void depthFunc    (UInt      func  );
-   static void depthBias    (BIAS_MODE bias  );
-   static void    frontFace (Bool      ccw   );
-   static void setFrontFace (                );
-   static void wire         (Bool      on    );
-   static void cull         (Bool      on    );
-   static void alphaFactor  (C Color  &factor);
-   static void clipAllow    (C RectI  &rect  );
-   static void clipAllow    (Bool      on    );
-   static void clipPlane    (Bool      on    );
-   static void clipPlane    (C PlaneM &plane );
-   static void colWrite     (Byte      color_mask, Byte index=0);
-   static void colWriteAllow(Byte      color_mask);
-   static void sampleMask   (UInt      mask  );
-   static void viewport     (C RectI  &rect  );
-   static void vf           (GPU_API(ID3D11InputLayout, VtxFormatGL) *vf);
-   static void texVS        (Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex);
-   static void texHS        (Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex);
-   static void texDS        (Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex);
-   static void texPS        (Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex);
-   static void texClear     (           GPU_API(ID3D11ShaderResourceView*, UInt) tex);
-   static void texClearAll  (           GPU_API(ID3D11ShaderResourceView*, UInt) tex);
-   static void texBind      (UInt mode, UInt tex); // needs to be called on OpenGL instead of calling 'glBindTexture'
-   static void stencil      (STENCIL_MODE mode);
-   static void stencilRef   (Byte         ref );
-   static void stencil      (STENCIL_MODE mode, Byte ref);
-   static void depth2DOn    (UInt func=FUNC_FOREGROUND); // this enables processing pixels only in foreground or background (depending on depth buffer value)
-   static void depth2DOff   (                         ); //     disables processing pixels only in foreground or background
-   static void sampler2D    ();
-   static void sampler3D    ();
-   static void samplerShadow();
-   static void linearGamma  (Bool on);
-   static void primType     (UInt prim_type);
-   static void set2D        ();
-   static void set3D        ();
-   static void fbo          (UInt fbo);
+   static void depth           (Bool      on    );
+   static void depthAllow      (Bool      on    );
+   static void depthClip       (Bool      on    ); // !! not available on GL ES !!
+   static void depthFunc       (UInt      func  );
+   static void depthBias       (BIAS_MODE bias  );
+   static void depthOnWrite    (Bool      on, Bool write);
+   static void depthOnWriteFunc(Bool      on, Bool write, UInt func);
+   static void    frontFace    (Bool      ccw   );
+   static void setFrontFace    (                );
+   static void wire            (Bool      on    );
+   static void cull            (Bool      on    );
+   static void alphaFactor     (C Color  &factor);
+   static void clipAllow       (C RectI  &rect  );
+   static void clipAllow       (Bool      on    );
+   static void clipPlane       (Bool      on    );
+   static void clipPlane       (C PlaneM &plane );
+   static void colWrite        (Byte      color_mask, Byte index=0);
+   static void colWriteAllow   (Byte      color_mask);
+   static void sampleMask      (UInt      mask  );
+   static void viewport        (C RectI  &rect  );
+   static void vf              (GPU_API(ID3D11InputLayout, VtxFormatGL) *vf);
+   static void texVS           (Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex);
+   static void texHS           (Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex);
+   static void texDS           (Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex);
+   static void texPS           (Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex);
+   static void texClear        (           GPU_API(ID3D11ShaderResourceView*, UInt) tex);
+   static void texClearAll     (           GPU_API(ID3D11ShaderResourceView*, UInt) tex);
+   static void texBind         (UInt mode, UInt tex); // needs to be called on OpenGL instead of calling 'glBindTexture'
+   static void stencil         (STENCIL_MODE mode);
+   static void stencilRef      (Byte         ref );
+   static void stencil         (STENCIL_MODE mode, Byte ref);
+   static void depth2DOn       (UInt func=FUNC_FOREGROUND); // this enables processing pixels only in foreground or background (depending on depth buffer value)
+   static void depth2DOff      (                         ); //     disables processing pixels only in foreground or background
+   static void sampler2D       ();
+   static void sampler3D       ();
+   static void samplerShadow   ();
+   static void linearGamma     (Bool on);
+   static void primType        (UInt prim_type);
+   static void set2D           ();
+   static void set3D           ();
+   static void fbo             (UInt fbo);
    #if IOS
-          Bool mainFBO      ()C; // on iOS there's only one custom FBO used, so we have to check active targets manually
+          Bool mainFBO         ()C; // on iOS there's only one custom FBO used, so we have to check active targets manually
    #else
-          Bool mainFBO      ()C {return _fbo==0;}
+          Bool mainFBO         ()C {return _fbo==0;}
    #endif
 #endif
 

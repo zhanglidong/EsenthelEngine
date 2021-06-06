@@ -49,11 +49,11 @@ Bool DrawParticleBegin(C Image &image, Byte glow, Bool motion_affects_alpha)
       case RM_PALETTE :
       case RM_PALETTE1: shader=Sh.Particle[true ][soft][0][motion_affects_alpha]; ColorFunc=ColorMul  ; D.alpha(ALPHA_ADD                                                ); break;
    }
-   SetOneMatrix (       );
-   D .depthWrite( false );
-   VI.image     (&image );
-   VI.shader    ( shader);
-   VI.setFirst  ( VI_3D_BILB, VI_QUAD_IND);
+   SetOneMatrix   (       );
+   D .depthOnWrite(true, false); 
+   VI.image       (&image );
+   VI.shader      ( shader);
+   VI.setFirst    ( VI_3D_BILB, VI_QUAD_IND);
 #if GL // needed for iOS PVRTC Pow2 #ParticleImgPart
    Sh.ImgSize->setConditional(image._part.xy);
 #endif
@@ -90,11 +90,11 @@ Bool DrawAnimatedParticleBegin(C Image &image, Byte glow, Bool motion_affects_al
       case RM_PALETTE :
       case RM_PALETTE1: shader=Sh.Particle[true ][soft][1+D.particlesSmoothAnim()][motion_affects_alpha]; ColorFunc=ColorMul  ; D.alpha(ALPHA_ADD                                                ); break;
    }
-   SetOneMatrix (       );
-   D .depthWrite( false );
-   VI.image     (&image );
-   VI.shader    ( shader);
-   VI.setFirst  ( VI_3D_BILB_ANIM, VI_QUAD_IND);
+   SetOneMatrix   (       );
+   D .depthOnWrite(true, false); 
+   VI.image       (&image );
+   VI.shader      ( shader);
+   VI.setFirst    ( VI_3D_BILB_ANIM, VI_QUAD_IND);
    Sh.ParticleFrames->set(VecI2(x_frames, y_frames));
 #if GL // needed for iOS PVRTC Pow2 #ParticleImgPart
    Sh.ImgSize->setConditional(image._part.xy);
@@ -767,10 +767,9 @@ void RawParticles::draw()C
          case RM_PALETTE1: shader=Sh.Particle[true ][soft][0][motion_affects_alpha]; D.alpha(ALPHA_ADD                                                ); break;
       }
 
-      SetOneMatrix  (     );
-      D .depthWrite (false);
-      D .depth      (true );
-      D .cull       (false);
+      SetOneMatrix   (     );
+      D .depthOnWrite(true, false);
+      D .cull        (false);
       Sh.Img[0]->set(image());
    #if GL // needed for iOS PVRTC Pow2 #ParticleImgPart
       Sh.ImgSize->setConditional(image->_part.xy);

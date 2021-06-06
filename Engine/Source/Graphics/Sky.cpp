@@ -208,11 +208,10 @@ void SkyClass::draw()
       MIN(sky_ball_mesh_size, to*EPS_SKY_MIN_VIEW_RANGE); // alternatively we could try using D3DRS_CLIPPING, DepthClipEnable, GL_DEPTH_CLAMP
    #endif
       Renderer.set(Renderer._col, Renderer._ds, true, blend ? NEED_DEPTH_READ : NO_DEPTH_READ); // specify correct mode because without it the sky may cover everything completely
-      D.alpha     (blend ? ALPHA_BLEND_DEC : ALPHA_NONE);
-      D.depthWrite(false);
-      if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_LESS_EQUAL); // to make sure we draw at the end of viewRange
-    //D.cull      (true ); ignore changing culling, because we're inside the sky ball, so we will always see its faces, we could potentially set false (to ignore overhead on the GPU for cull testing if any) however we choose to just ignore it to reduce GPU state changes on the CPU which are probably more costly
-      D.sampler3D (     ); // set in case of drawing clouds
+      D.alpha           (blend ? ALPHA_BLEND_DEC : ALPHA_NONE);
+      D.depthOnWriteFunc(ds, false, FUNC_LESS_EQUAL); // to make sure we draw at the end of viewRange
+    //D.cull            (true); ignore changing culling, because we're inside the sky ball, so we will always see its faces, we could potentially set false (to ignore overhead on the GPU for cull testing if any) however we choose to just ignore it to reduce GPU state changes on the CPU which are probably more costly
+      D.sampler3D       (    ); // set in case of drawing clouds
       if(shader_multi)D.stencil(STENCIL_MSAA_TEST);
      _mshr.set();
       SetOneMatrix(MatrixM(sky_ball_mesh_size, CamMatrix.pos)); // normally we have to set matrixes after 'setEyeViewportCam', however since matrixes are always relative to the camera, and here we set exactly at the camera position, so the matrix will be the same for both eyes
@@ -222,10 +221,9 @@ void SkyClass::draw()
          if(shader_multi){D.depth((multi==1) ? false : ds); D.stencilRef(STENCIL_REF_MSAA); shader_multi->begin(); _mshr.draw(); D.stencilRef(0);} // MS edges for deferred must not use depth testing
                           D.depth(                     ds);                                 shader      ->begin(); _mshr.draw();
       }
-      D.sampler2D (    );
-      D.depthWrite(true);
-      if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_DEFAULT);
-      D.stencil   (STENCIL_NONE);
+      D.sampler2D       ();
+      D.depthOnWriteFunc(false, true, FUNC_DEFAULT);
+      D.stencil         (STENCIL_NONE);
    }
 }
 /******************************************************************************/

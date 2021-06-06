@@ -164,11 +164,13 @@ void DisplayState::depthLock  (Bool on) {depth(on); D._depth_lock=true ;}
 #if DX11
    #define D3D11_COMPARISON_FIRST D3D11_COMPARISON_NEVER
 static void SetDS() {DepthStates[D._stencil][D._depth][D._depth_write][D._depth_func-D3D11_COMPARISON_FIRST].set();}
-void DisplayState::depth     (Bool on  ) {                          if(D._depth      !=on && !D._depth_lock   ){D._depth      =on  ;                  SetDS();}}
-Bool DisplayState::depthWrite(Bool on  ) {Bool last=D._depth_write; if(D._depth_write!=on                     ){D._depth_write=on  ;                  SetDS();} return last;}
-void DisplayState::depthFunc (UInt func) {                          if(D._depth_func !=func                   ){D._depth_func =func;                  SetDS();}}
-void DisplayState::stencilRef(Byte ref ) {                          if(D._stencil_ref!=ref                    ){D._stencil_ref=ref ;                  SetDS();}}
-void DisplayState::stencil   (STENCIL_MODE mode, Byte ref) {        if(D._stencil_ref!=ref || D._stencil!=mode){D._stencil_ref=ref ; D._stencil=mode; SetDS();}}
+void DisplayState::depth           (Bool on                       ) {                          if(D._depth!=on && !D._depth_lock                              ){D._depth=on;                                           SetDS();}}
+Bool DisplayState::depthWrite      (         Bool write           ) {Bool last=D._depth_write; if(                D._depth_write!=write                       ){             D._depth_write=write;                     SetDS();} return last;}
+void DisplayState::depthFunc       (                     UInt func) {                          if(                                         D._depth_func!=func){                                   D._depth_func=func; SetDS();}}
+void DisplayState::depthOnWrite    (Bool on, Bool write           ) {                          if(D._depth!=on || D._depth_write!=write                       ){D._depth=on; D._depth_write=write;                     SetDS();}} // this ignores '_depth_lock'
+void DisplayState::depthOnWriteFunc(Bool on, Bool write, UInt func) {                          if(D._depth!=on || D._depth_write!=write || D._depth_func!=func){D._depth=on; D._depth_write=write; D._depth_func=func; SetDS();}} // this ignores '_depth_lock'
+void DisplayState::stencilRef      (                   Byte ref   ) {                          if(D._stencil_ref!=ref                                         ){D._stencil_ref=ref ;                                   SetDS();}}
+void DisplayState::stencil         (STENCIL_MODE mode, Byte ref   ) {                          if(D._stencil_ref!=ref || D._stencil!=mode                     ){D._stencil_ref=ref ; D._stencil=mode;                  SetDS();}}
 #elif GL
 Bool DisplayState::depthWrite(Bool on  ) {Bool last=D._depth_write; if(D._depth_write!=on  )glDepthMask  (             D._depth_write=on              ); return last;}
 void DisplayState::depthFunc (UInt func) {                          if(D._depth_func !=func)glDepthFunc  (             D._depth_func =func            );}
@@ -204,6 +206,8 @@ void DisplayState::depthAllow(Bool on)
       if(DepthReal!=on)if(DepthReal=on)glEnable(GL_DEPTH_TEST);else glDisable(GL_DEPTH_TEST);
    }
 }
+void DisplayState::depthOnWrite    (Bool on, Bool write           ) {D.depth(on); D.depthWrite(write);}
+void DisplayState::depthOnWriteFunc(Bool on, Bool write, UInt func) {D.depth(on); D.depthWrite(write); D.depthFunc(func);}
 #endif
 /******************************************************************************/
 void DisplayState::depth2DOn(UInt func)
@@ -701,7 +705,7 @@ void DisplayState::samplerShadow()
    sampler3D(); // we could potentially use a different sampler here with smaller anisotropic value, however quality does suffer (especially with filter=1, so don't go below 2), however performance difference is minimal, so for simplicity just use the default 3D sampler
 }
 void DisplayState::set2D() {                     D.clipPlane(false); D.wire(false        ); D.sampler2D();}
-void DisplayState::set3D() {if(Renderer.mirror())D.clipPlane(true ); D.wire(Renderer.wire); D.sampler3D(); D.depth(true);}
+void DisplayState::set3D() {if(Renderer.mirror())D.clipPlane(true ); D.wire(Renderer.wire); D.sampler3D();}
 /******************************************************************************/
 void DisplayState::linearGamma(Bool on)
 {

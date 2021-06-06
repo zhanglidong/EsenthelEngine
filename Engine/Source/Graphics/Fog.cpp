@@ -97,10 +97,7 @@ void FogDraw(C OBox &obox, Flt density, C Vec &color_l)
          else                                         Sh.FogBox0->draw();
       }else
       {
-         D .depth     (true );
-         D .depthWrite(false);
-         D .cull      (true );
-         Sh.FogBox->begin(); MshrBox.set().draw();
+         D.depthOnWrite(true, false); D.cull(true); Sh.FogBox->begin(); MshrBox.set().draw();
       }
    }
 }
@@ -134,10 +131,7 @@ void FogDraw(C Ball &ball, Flt density, C Vec &color_l)
          else           Sh.FogBall0->draw();
       }else
       {
-         D .depth     (true );
-         D .depthWrite(false);
-         D .cull      (true );
-         Sh.FogBall->begin(); MshrBall.set().draw();
+         D.depthOnWrite(true, false); D.cull(true); Sh.FogBall->begin(); MshrBall.set().draw();
       }
    }
 }
@@ -179,10 +173,7 @@ void HeightFogDraw(C OBox &obox, Flt density, C Vec &color_l)
          else                                         Sh.FogHeight0->draw();
       }else
       {
-         D .depth     (true );
-         D .depthWrite(false);
-         D .cull      (true );
-         Sh.FogHeight->begin(); MshrBox.set().draw();
+         D.depthOnWrite(true, false); D.cull(true); Sh.FogHeight->begin(); MshrBox.set().draw();
       }
    }
 }

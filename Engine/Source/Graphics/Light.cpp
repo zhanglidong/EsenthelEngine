@@ -1553,7 +1553,7 @@ void Light::drawForward(ALPHA_MODE alpha)
 
          Renderer.setForwardCol();
          D.alpha(alpha);
-         D.set3D();
+         D.set3D(); D.depth(true);
          if(!ALWAYS_RESTORE_FRUSTUM) // here use !ALWAYS_RESTORE_FRUSTUM because we have to set frustum only if it wasn't restored before, if it was then it means we already have 'FrustumMain'
             Frustum=FrustumMain; // directional lights always use original frustum
          if(Renderer.firstPass())
@@ -1620,7 +1620,7 @@ void Light::drawForward(ALPHA_MODE alpha)
 
          Renderer.setForwardCol();
          D.alpha(alpha);
-         D.set3D();
+         D.set3D(); D.depth(true);
          if(!ALWAYS_RESTORE_FRUSTUM) // here use !ALWAYS_RESTORE_FRUSTUM because we have to set frustum only if it wasn't restored before, if it was then it means we already have 'FrustumMain'
             Frustum=FrustumMain;
          if(Renderer.firstPass())
@@ -1697,7 +1697,7 @@ void Light::drawForward(ALPHA_MODE alpha)
 
          Renderer.setForwardCol();
          D.alpha(alpha);
-         D.set3D();
+         D.set3D(); D.depth(true);
          if(!ALWAYS_RESTORE_FRUSTUM) // here use !ALWAYS_RESTORE_FRUSTUM because we have to set frustum only if it wasn't restored before, if it was then it means we already have 'FrustumMain'
             Frustum=FrustumMain;
          if(Renderer.firstPass())
@@ -1772,7 +1772,7 @@ void Light::drawForward(ALPHA_MODE alpha)
 
          Renderer.setForwardCol();
          D.alpha(alpha);
-         D.set3D();
+         D.set3D(); D.depth(true);
          if(Renderer.firstPass())
          {
             D.stencil(STENCIL_ALWAYS_SET, 0);
