@@ -631,10 +631,12 @@ static Bool ShadowMap(LightDir &light)
 
    Bool cloud_shd=false,
         cloud_vol=false;
+   UInt flag     =0;
    if(Clouds.draw && Clouds.volumetric.drawable() && Renderer._cld_map.is())
    {
-      if(Clouds.volumetric.shadow>EPS_COL8)cloud_shd=true;
+      if(                    Clouds.volumetric.shadow>EPS_COL8       )cloud_shd=true;
       if(Renderer.hasVolLight() && CurrentLight.vol()>EPS_COL8_NATIVE)cloud_vol=true;
+      if(cloud_shd || cloud_vol){flag|=SM_CLOUDS; Renderer._cld_map.discard();}
    }
 
    // set light direction orientation
@@ -646,7 +648,6 @@ static Bool ShadowMap(LightDir &light)
    Int  steps        =D.shadowMapNumActual();
    Int  points=8, points_1=points-1;
    VecD point[8], point_temp[8*3], *point_ptr=(point_clip ? point_temp : point);
-   UInt flag         =((cloud_shd || cloud_vol) ? SM_CLOUDS : 0);
    Flt  bias         =GetBias(),
         range        =D._shd_range*SHADOW_MAP_DIR_RANGE_MUL, // view range of the shadow map render target (this needs to be increased in case there are shadow occluders located distant from the camera), TODO: make SHADOW_MAP_DIR_RANGE_MUL configurable?
         shd_from     =D.viewFromActual(),                    // where does the shadow start in the main render target
