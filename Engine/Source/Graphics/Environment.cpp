@@ -41,7 +41,7 @@ Bool Environment::Ambient::load(File &f, CChar *path)
 /******************************************************************************/
 void Environment::Bloom::set()C
 {
-   D.bloomOriginal(on ? original : 1).bloomScale(on ? scale : 0).bloomCut(cut).bloomGlow(glow);
+   D.bloomOriginal(on ? original : 1).bloomScale(on ? scale : 0).bloomCut(cut).bloomGlow(on ? glow : 0);
 }
 void Environment::Bloom::get()
 {
