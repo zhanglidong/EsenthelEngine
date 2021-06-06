@@ -16,7 +16,7 @@ void InitPre()
 void InitRT()
 {
    int tex_size=256;
-   rt.create(VecI2(tex_size, tex_size), IMAGE_R8G8B8A8_SRGB);
+   rt.mustCreate(VecI2(tex_size, tex_size), IMAGE_R8G8B8A8_SRGB);
    rtp=&rt; // assign a pointer to make sure render target will always have a reference and will not be discarded
 }
 bool Init()
