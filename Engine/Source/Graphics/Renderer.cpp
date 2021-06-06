@@ -623,7 +623,7 @@ RendererClass& RendererClass::operator()(void (&render)())
          {
             if(clear_vel)SetViewToViewPrev();
             D.alpha    (ALPHA_NONE);
-            D.depth2DOn(FUNC_BACKGROUND);
+            D.depth2DOn(FUNC_BACKGROUND); // this enables depth but disables 'D.depthWrite'
             set(null, clear_nrm ? _nrm() : null, clear_ext ? _ext() : null, clear_vel ? _vel() : null, _ds, true); // use DS because we use it for 'D.depth2D' optimization #RTOutput
             Sh.ClearDeferred->draw();
             D.depth2DOff();
@@ -1129,7 +1129,7 @@ void RendererClass::aoApply()
       {
          set(_col, _ds, true); // restore rendering RT's after calculating AO
          D .alpha(ALPHA_MUL);
-         D .depth2DOn();
+         D .depth2DOn(); // this enables depth but disables 'D.depthWrite'
          Sh.ImgX[0]->set(_ao);
          Sh.DrawX->draw();
          D .depth2DOff();
@@ -1324,7 +1324,7 @@ void RendererClass::ao()
    if(_col->multiSample())foreground&=Sky.isActual(); // when having multi-sampling, then allow this optimization only if we're rendering Sky, this is related to smooth edges between solid and sky pixels
    if(stage)if(stage==RS_AO || stage==RS_LIGHT_AO)foreground=false; // if we will display AO then set fully
 
-   if(foreground)D.depth2DOn();
+   if(foreground)D.depth2DOn(); // this enables depth but disables 'D.depthWrite'
    ImageRT *depth=(foreground ? _ds_1s() : null);
    set(_ao, depth, true, NEED_DEPTH_READ); // use DS for 'D.depth2D'
    REPS(_eye, _eye_num)ao->draw(setEyeParams()); // calculate occlusion
@@ -1862,7 +1862,7 @@ void RendererClass::applyOutline()
          case EDGE_DETECT_THIN: if(Sh.OutlineClip)
          {
             set(_col, (ds && ds->compatible(*_col)) ? ds : null, true);
-            D.depth2DOn ();
+            D.depth2DOn (); // this enables depth but disables 'D.depthWrite'
             D.stencil   ((_cur_ds==_ds) ? STENCIL_OUTLINE_TEST : STENCIL_NONE); // we can use the stencil optimization only if we will use the DS to which we've written stencil to
             D.alpha     (ALPHA_BLEND_DEC);
             Sh.OutlineClip->draw(_outline_rt);
