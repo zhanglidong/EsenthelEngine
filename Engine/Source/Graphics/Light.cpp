@@ -626,7 +626,7 @@ static Bool ShadowMap(LightDir &light)
    RENDER_MODE mode=Renderer(); Renderer.mode(RM_SHADOW);
    D.alpha(ALPHA_NONE); // disable alpha
 
-   Renderer.set(null, &Renderer._shd_map, false);
+   Renderer._shd_map.discard(); Renderer.set(null, &Renderer._shd_map, false);
    D.clearDepth(); // clear all shadow map parts at once, because for directional lights we'll use them all anyway
 
    Bool cloud_shd=false,
@@ -886,7 +886,7 @@ static void ShadowMap(Flt range, VecD &pos)
 {
    RENDER_MODE mode=Renderer(); Renderer.mode(RM_SHADOW);
    D.alpha(ALPHA_NONE); // disable alpha
-   Renderer.set(null, &Renderer._shd_map, false);
+   Renderer._shd_map.discard(); Renderer.set(null, &Renderer._shd_map, false);
    D.clearDepth(); // clear all at once, must be done here because DX10+ and GL depth clear always clears full depth buffer
 
    Int border=0;
@@ -947,7 +947,7 @@ static void ShadowMap(LightCone &light)
 {
    RENDER_MODE mode=Renderer(); Renderer.mode(RM_SHADOW);
    D.alpha(ALPHA_NONE); // disable alpha
-   Renderer.set(null, &Renderer._shd_map, false);
+   Renderer._shd_map.discard(); Renderer.set(null, &Renderer._shd_map, false);
    D.clearDepth(); // clear all at once, must be done here because DX10+ and GL depth clear always clears full depth buffer
 
    Int map_size=D.shadowMapSizeActual(), border=0;

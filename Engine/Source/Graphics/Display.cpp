@@ -2248,7 +2248,7 @@ void DisplayClass::flip()
               dither   =(D.dither() && !dest.highPrecision()),
                in_gamma=LINEAR_GAMMA,  in_swap=( in_gamma && src .canSwapSRV() && !hdr); if( in_swap){ in_gamma=false; src .swapSRV();} // can't swap for 'hdr' because shader assumes that  input is Linear
          Bool out_gamma=LINEAR_GAMMA, out_swap=(out_gamma && dest.canSwapRTV() && !hdr); if(out_swap){out_gamma=false; dest.swapRTV();} // can't swap for 'hdr' because shader assumes that output is Linear
-         Renderer.set(&dest, null, false);
+         dest.discard(); Renderer.set(&dest, null, false);
          Sh.ColorLUT[hdr][dither][in_gamma][out_gamma]->draw(src);
          if( in_swap)src .swapSRV();
          if(out_swap)dest.swapRTV();
