@@ -800,7 +800,7 @@ bool PartialTransform   (C TextParam &p   ) {return Contains(p.value, '@');} // 
 bool  LinearTransform   (C Str       &name) {return name=="mulRGB" || name=="addRGB" || name=="mulAddRGB";}
 bool  ResizeTransformAny(C Str       &name) {return Starts(name, "resize") || Starts(name, "maxSize");}
 bool  ResizeTransform   (C Str       &name) {return ResizeTransformAny(name) && !Contains(name, "NoStretch");} // skip "NoStretch" because it's more like "crop"
-bool    MonoTransform   (C TextParam &p   ) {return p.name=="grey" || p.name=="greyPhoto" || p.name=="bump" || p.name=="bumpClamp" || (p.name=="channel" && ChannelMonoTransform(p.value)) || p.name=="getSat";} // if result is always mono
+bool    MonoTransform   (C TextParam &p   ) {return p.name=="grey" || p.name=="greyPhoto" || p.name=="bump" || p.name=="bumpClamp" || (p.name=="channel" && ChannelMonoTransform(p.value)) || p.name=="getSat" || p.name=="getHue";} // if result is always mono
 bool NonMonoTransform   (C TextParam &p   ) // if can change a mono image to non-mono, this is NOT the same as "!MonoTransform"
 {
    int values=Occurrences(p.value, ',');
@@ -1528,6 +1528,18 @@ void TransformImage(Image &image, TextParam param, bool clamp, C Color &backgrou
          Vec4 c=image.color3DF(x, y, z);
          flt  sat=RgbToHsb(c.xyz).y;
          c.xyz=sat; c.w=1;
+         image.color3DF(x, y, z, c);
+      }
+   }else
+   if(param.name=="getHue")
+   {
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         flt  hue=RgbToHsb(c.xyz).x;
+         c.xyz=hue; c.w=1;
          image.color3DF(x, y, z, c);
       }
    }else
