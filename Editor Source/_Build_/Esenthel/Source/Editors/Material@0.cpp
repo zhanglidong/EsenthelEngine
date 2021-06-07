@@ -19,7 +19,8 @@ MaterialTech mtrl_techs[]=
    {"Test Blend Light Leaf" , u"Works like Blend Light Leaf technique with additional Alpha-Testing and Depth-Writing which enables correct Depth-Sorting."},
    {"Grass 3D"              , u"Mesh vertexes will bend on the wind like grass,\nbending intensity is determined by mesh vertex source Y position,\nwhich should be in the range from 0 to 1.\nGrass is made out of 3D geometric Mesh instead of billboard."},
    {"Leaf 2D"               , u"Mesh vertexes will bend on the wind like tree leafs,\nto use this technique mesh must also contain leaf attachment positions,\nwhich can be generated in the Model Editor tool through menu options.\nLeafs are made out of 2D billboards instead 3D geometric Mesh."},
-};                                                                                                                                                                                                                                                                                                     
+   {"Depth Blend"           , u"Works like Blend technique with additional Depth-Writing which enables correct Depth-Sorting."},
+};                                                                                                                              
 /******************************************************************************/
 
 /******************************************************************************/
