@@ -814,6 +814,7 @@ bool NonMonoTransform   (C TextParam &p   ) // if can change a mono image to non
        || p.name=="setRGB" && TextVecEx(p.value).anyDifferent()
        || p.name=="mulAddRGB" && values>2
        || p.name=="addMulRGB" && values>2
+       || p.name=="mulRGBIS" && TextVecEx(p.value).anyDifferent()
        || p.name=="mulRGBS" && TextVecEx(p.value).anyDifferent()
        || p.name=="mulRGBH" && values>1
        || p.name=="mulRGBHS" && values>1
@@ -844,7 +845,7 @@ bool HighPrecTransform(C Str &name)
    return ResizeTransform(name)
        || name=="mulRGB" || name=="addRGB" || name=="setRGB" || name=="mulAddRGB" || name=="addMulRGB" || name=="mulA"
        || name=="mulRGBbyA"
-       || name=="mulRGBS" || name=="mulRGBH" || name=="mulRGBHS"
+       || name=="mulRGBS" || name=="mulRGBIS" || name=="mulRGBH" || name=="mulRGBHS"
        || name=="normalize"
        || name=="scale" || name=="scaleXY"
        || name=="lerpRGB" || name=="iLerpRGB"
@@ -1496,6 +1497,22 @@ void TransformImage(Image &image, TextParam param, bool clamp, C Color &backgrou
          c.x=Lerp(c.x, c.x*mul.x, sat); // red
          c.y=Lerp(c.y, c.y*mul.y, sat); // green
          c.z=Lerp(c.z, c.z*mul.z, sat); // blue
+         image.color3DF(x, y, z, c);
+      }
+   }else
+   if(param.name=="mulRGBIS")
+   {
+      Vec mul=TextVecEx(param.value);
+      if( mul!=VecOne)
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         flt  sat=RgbToHsb(c.xyz).y;
+         c.x=Lerp(c.x*mul.x, c.x, sat); // red
+         c.y=Lerp(c.y*mul.y, c.y, sat); // green
+         c.z=Lerp(c.z*mul.z, c.z, sat); // blue
          image.color3DF(x, y, z, c);
       }
    }else
@@ -2305,6 +2322,7 @@ enum APPLY_MODE
    APPLY_MUL,
    APPLY_MUL_RGB,
    APPLY_MUL_RGB_SAT,
+   APPLY_MUL_RGB_INV_SAT,
    APPLY_MUL_RGB_LIN,
    APPLY_MUL_A,
    APPLY_MUL_LUM,
@@ -2382,6 +2400,7 @@ force_src_resize:
          if(p.value=="mul"                                                                    )mode=APPLY_MUL;else
          if(p.value=="mulRGB"                                                                 )mode=APPLY_MUL_RGB;else
          if(p.value=="mulRGBS"                                                                )mode=APPLY_MUL_RGB_SAT;else
+         if(p.value=="mulRGBIS"                                                               )mode=APPLY_MUL_RGB_INV_SAT;else
          if(p.value=="mulRGBLin"                                                              )mode=APPLY_MUL_RGB_LIN;else
          if(p.value=="mulA"                                                                   )mode=APPLY_MUL_A;else
          if(p.value=="mulLum"                                                                 )mode=APPLY_MUL_LUM;else
@@ -2547,6 +2566,15 @@ force_src_resize:
                               c.x=Lerp(base.x, base.x*l.x, sat); // red
                               c.y=Lerp(base.y, base.y*l.y, sat); // green
                               c.z=Lerp(base.z, base.z*l.z, sat); // blue
+                              c.w=base.w;
+                           }break;
+
+                           case APPLY_MUL_RGB_INV_SAT:
+                           {
+                              flt sat=RgbToHsb(base.xyz).y;
+                              c.x=Lerp(base.x*l.x, base.x, sat); // red
+                              c.y=Lerp(base.y*l.y, base.y, sat); // green
+                              c.z=Lerp(base.z*l.z, base.z, sat); // blue
                               c.w=base.w;
                            }break;
 
