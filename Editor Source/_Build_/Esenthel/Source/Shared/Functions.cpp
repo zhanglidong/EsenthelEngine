@@ -2198,6 +2198,7 @@ force_src_resize:
          if(p->value=="add"                                                                    )mode=APPLY_ADD;else
          if(p->value=="addRGB"                                                                 )mode=APPLY_ADD_RGB;else
          if(p->value=="addLum"                                                                 )mode=APPLY_ADD_LUM;else
+         if(p->value=="mulInvLum"                                                              )mode=APPLY_MUL_INV_LUM;else
          if(p->value=="mulInvLumAddRGB"                                                        )mode=APPLY_MUL_INV_LUM_ADD_RGB;else
          if(p->value=="addSat"                                                                 )mode=APPLY_ADD_SAT;else
          if(p->value=="addHue"                                                                 )mode=APPLY_ADD_HUE;else
@@ -2291,6 +2292,7 @@ force_src_resize:
                            case APPLY_MUL_A              : c.set(base.xyz, base.w*l.w); break;
                            case APPLY_SET_A_FROM_RGB     : c.set(base.xyz, l.xyz.max()); break;
                            case APPLY_MUL_LUM            : c.set(base.xyz*l.xyz.max(), base.w); break;
+                           case APPLY_MUL_INV_LUM        : c.set(base.xyz*Sat(1-l.xyz.max())      , base.w); break;
                            case APPLY_MUL_INV_LUM_ADD_RGB: c.set(base.xyz*Sat(1-l.xyz.max())+l.xyz, base.w); break;
                            case APPLY_MUL_SAT            : c.xyz=RgbToHsb(base.xyz); c.y*=l.xyz.max(); c.set(HsbToRgb(c.xyz), base.w); break;
                            case APPLY_ADD_SAT            : c.xyz=RgbToHsb(base.xyz); c.y+=l.xyz.max(); c.set(HsbToRgb(c.xyz), base.w); break;

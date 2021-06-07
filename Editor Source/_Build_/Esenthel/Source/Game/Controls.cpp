@@ -9,7 +9,7 @@ Button               ExitButton;
 /******************************************************************************/
 void InitGameButtons()
 {
-   if(SupportedTouches())
+   if(0) //SupportedTouches())
    {
       Gui+=ExitButton.create(Rect_LU(-D.w(), D.h(), 0.15f, 0.07f), "Exit").func(ExitGame).focusable(false);
       flt y=Lerp(-D.h(), D.h(), 0.4f);
