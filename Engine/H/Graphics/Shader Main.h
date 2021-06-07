@@ -520,8 +520,8 @@ struct DefaultShaders
         mtrl_blend,
         heightmap,
         tex, normal, color, size,
-        fur, blend, grass, leaf,
-        alpha, alpha_test, alpha_blend, alpha_blend_light,
+        fur, grass, leaf,
+        alpha, alpha_test, alpha_blend, alpha_blend_no_light, alpha_blend_light,
         skin,
         tesselate;
    Byte materials, layout, bump, emissive, fx;

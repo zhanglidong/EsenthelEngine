@@ -146,18 +146,18 @@ void DefaultShaders::init(C Material *material[4], MESH_FLAG mesh_flag, Int lod_
    if(materials>1                                            )MAX(layout, 1); // multi-materials currently don't support 0 textures
    if(materials>1 || heightmap                               )emissive=0; // multi-materials and heightmaps currently don't support emissive
 
-   skin             =(FlagAll(mesh_flag, VTX_SKIN)           && materials==1 &&              !heightmap                             );
-   fur              =(normal && tex                          && materials==1 &&              !heightmap && m->technique==MTECH_FUR  ); // this requires tex coordinates, but not a material texture, we can do fur with just material color and 'FurCol'
-   blend            =(                                          materials==1 &&              !heightmap && m->technique==MTECH_BLEND); // this shouldn't require a texture, we can do alpha blending with just material color
-   grass            =(normal                        && !skin && materials==1 && layout>=1 && !heightmap && m->hasGrass            ());
-   leaf             =(normal && (mesh_flag&VTX_HLP) && !skin && materials==1 && layout>=1 && !heightmap && m->hasLeaf             () && D.bendLeafs());
-   alpha            =(                                          materials==1 && layout>=1 && !heightmap && m->hasAlpha            ()); // this is about having alpha channel in material textures so we need a texture
-   alpha_test       =(                                          materials==1 && layout>=1 && !heightmap && m->hasAlphaTest        ());
-   alpha_blend      =(                                          materials==1 &&              !heightmap && m->hasAlphaBlend       ()); // this shouldn't require a texture, we can do alpha blending with just material color
-   alpha_blend_light=(                                          materials==1 &&              !heightmap && m->hasAlphaBlendLight  ()); // this shouldn't require a texture, we can do alpha blending with just material color
-    mtrl_blend      =(                                          materials> 1 && layout>=2 && D.materialBlend()                      ); // this is per-pixel multi-material blending (blending between multiple materials)
-   tesselate        =(normal && (lod_index<=0) && D.shaderModel()>=SM_5 && D.tesselation() && (!heightmap || D.tesselationHeightmap()));
-   fx               =(grass ? (m->hasGrass2D() ? FX_GRASS_2D : FX_GRASS_3D) : leaf ? (m->hasLeaf2D() ? (size ? FX_LEAFS_2D : FX_LEAF_2D) : (size ? FX_LEAFS_3D : FX_LEAF_3D)) : FX_NONE);
+   skin                =(FlagAll(mesh_flag, VTX_SKIN)           && materials==1 &&              !heightmap                             );
+   fur                 =(normal && tex                          && materials==1 &&              !heightmap && m->technique==MTECH_FUR  ); // this requires tex coordinates, but not a material texture, we can do fur with just material color and 'FurCol'
+   grass               =(normal                        && !skin && materials==1 && layout>=1 && !heightmap && m->hasGrass            ());
+   leaf                =(normal && (mesh_flag&VTX_HLP) && !skin && materials==1 && layout>=1 && !heightmap && m->hasLeaf             () && D.bendLeafs());
+   alpha               =(                                          materials==1 && layout>=1 && !heightmap && m->hasAlpha            ()); // this is about having alpha channel in material textures so we need a texture
+   alpha_test          =(                                          materials==1 && layout>=1 && !heightmap && m->hasAlphaTest        ());
+   alpha_blend         =(                                          materials==1 &&              !heightmap && m->hasAlphaBlend       ()); // this shouldn't require a texture, we can do alpha blending with just material color
+   alpha_blend_no_light=(                                          materials==1 &&              !heightmap && m->hasAlphaBlendNoLight()); // this shouldn't require a texture, we can do alpha blending with just material color
+   alpha_blend_light   =(                                          materials==1 &&              !heightmap && m->hasAlphaBlendLight  ()); // this shouldn't require a texture, we can do alpha blending with just material color
+    mtrl_blend         =(                                          materials> 1 && layout>=2 && D.materialBlend()                      ); // this is per-pixel multi-material blending (blending between multiple materials)
+   tesselate           =(normal && (lod_index<=0) && D.shaderModel()>=SM_5 && D.tesselation() && (!heightmap || D.tesselationHeightmap()));
+   fx                  =(grass ? (m->hasGrass2D() ? FX_GRASS_2D : FX_GRASS_3D) : leaf ? (m->hasLeaf2D() ? (size ? FX_LEAFS_2D : FX_LEAF_2D) : (size ? FX_LEAFS_3D : FX_LEAF_3D)) : FX_NONE);
 
    if(bump==SBUMP_ZERO){/*materials=1; can't return same shader for multi/single*/ layout=0; alpha_test=detail=macro=mtrl_blend=heightmap=false; fx=FX_NONE; MIN(emissive, 1);} // shaders with SBUMP_ZERO currently are very limited
    if(fx){detail=macro=tesselate=false; MIN(bump, SBUMP_NORMAL);} // shaders with effects currently don't support detail/macro/tesselate/fancy bump
@@ -214,7 +214,7 @@ Shader* DefaultShaders::Shadow()C
 }
 Shader* DefaultShaders::Blend()C
 {
-   if(valid && blend) // "!blend" here will return null so BLST can be used in 'drawBlend'
+   if(valid && alpha_blend_no_light) // "!alpha_blend_no_light" here will return null so BLST can be used in 'drawBlend'
       return ShaderFiles("Blend")->get(ShaderBlend(skin, color, layout, Min(bump, SBUMP_NORMAL), reflect, emissive>1)); // blend currently supports only up to normal mapping
    return null;
 }

@@ -2299,7 +2299,7 @@ force_src_resize:
 
                 C ImageTypeInfo &layer_ti=layer.typeInfo();
                   bool expand_r_gb=(layer_ti.r && !layer_ti.g && !layer_ti.b); // if have R but no GB then expand R into GB
-                  AdjustImage(image, layer_ti.g>0 || layer_ti.b>0, layer_ti.a>0, layer.highPrecision());
+                  AdjustImage(image, layer_ti.g>0 || layer_ti.b>0, layer_ti.a>0 || mode==APPLY_SET_A_FROM_RGB, layer.highPrecision());
                   REPD(y, layer.h())
                   REPD(x, layer.w())
                   {

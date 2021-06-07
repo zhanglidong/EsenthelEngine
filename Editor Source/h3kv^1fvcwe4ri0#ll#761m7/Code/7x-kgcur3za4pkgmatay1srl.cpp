@@ -495,7 +495,7 @@ class EditMaterial
       // ALPHA
       if(!(new_textures&(TEXF_COLOR|TEXF_ALPHA))) // there are no color/alpha maps specified
       {
-         disable_alpha: if(HasAlpha(tech)){tech=MTECH_DEFAULT; tech_time=time;} // disable alpha technique
+         disable_alpha: if(HasAlphaTest(tech) || HasAlphaBlend(tech) && color_s.w>=1-EPS_COL8){tech=MTECH_DEFAULT; tech_time=time;} // disable alpha technique if alpha-test, or alpha-blend with full alpha
       }else
       if(known_textures&TEXF_ALPHA)
       {

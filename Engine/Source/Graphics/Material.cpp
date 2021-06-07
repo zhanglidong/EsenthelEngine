@@ -91,6 +91,7 @@ Bool HasAlpha(MATERIAL_TECHNIQUE technique)
       case MTECH_TEST_BLEND_LIGHT:
       case MTECH_TEST_BLEND_LIGHT_GRASS:
       case MTECH_TEST_BLEND_LIGHT_LEAF:
+      case MTECH_DEPTH_BLEND:
          return true;
 
       default: return false;
@@ -138,6 +139,7 @@ Bool HasAlphaBlend(MATERIAL_TECHNIQUE technique)
       case MTECH_TEST_BLEND_LIGHT:
       case MTECH_TEST_BLEND_LIGHT_GRASS:
       case MTECH_TEST_BLEND_LIGHT_LEAF:
+      case MTECH_DEPTH_BLEND:
          return true;
 
       default: return false;
@@ -151,6 +153,7 @@ Bool HasAlphaBlendNoTest(MATERIAL_TECHNIQUE technique)
       case MTECH_BLEND_LIGHT:
       case MTECH_BLEND_LIGHT_GRASS:
       case MTECH_BLEND_LIGHT_LEAF:
+      case MTECH_DEPTH_BLEND:
          return true;
 
       default: return false;
@@ -166,6 +169,25 @@ Bool HasLeaf(MATERIAL_TECHNIQUE technique)
       case MTECH_TEST_BLEND_LIGHT_LEAF:
          return true;
 
+      default: return false;
+   }
+}
+Bool HasDepthWrite(MATERIAL_TECHNIQUE technique)
+{
+   switch(technique)
+   {
+      case MTECH_DEFAULT               :
+      case MTECH_ALPHA_TEST            :
+      case MTECH_FUR                   :
+      case MTECH_GRASS                 :
+      case MTECH_LEAF                  :
+      case MTECH_TEST_BLEND_LIGHT      :
+      case MTECH_TEST_BLEND_LIGHT_GRASS:
+      case MTECH_TEST_BLEND_LIGHT_LEAF :
+      case MTECH_GRASS_3D              :
+      case MTECH_LEAF_2D               :
+      case MTECH_DEPTH_BLEND           :
+         return true;
       default: return false;
    }
 }
@@ -212,6 +234,17 @@ Material::~Material()
    }
 }
 /******************************************************************************/
+Bool Material::hasAlphaBlendNoLight()C
+{
+   switch(technique)
+   {
+      case MTECH_BLEND:
+      case MTECH_DEPTH_BLEND:
+         return true;
+
+      default: return false;
+   }
+}
 Bool Material::hasAlphaBlendLight()C
 {
    switch(technique)
@@ -299,9 +332,9 @@ Material& Material::validate() // #MaterialTextureLayout
                       if(this==MaterialLast    )MaterialLast    =null;
    REPA(MaterialLast4)if(this==MaterialLast4[i])MaterialLast4[i]=null;
 
-  _has_alpha_test= HasAlphaTest(technique); // !! set this first, because codes below rely on this, call 'HasAlphaTest' instead of 'hasAlphaTest' because that one just uses '_has_alpha_test' which we're setting here !!
-  _depth_write   =!hasAlphaBlendNoTest();
-//_coverage      = hasAlphaTestNoBlend();
+  _has_alpha_test=HasAlphaTest       (technique); // !! call 'HasAlphaTest'  instead of 'hasAlphaTest'  because that one just uses '_has_alpha_test' which we're setting here !!
+  _depth_write   =HasDepthWrite      (technique); // !! call 'HasDepthWrite' instead of 'hasDepthWrite' because that one just uses '_depth_write'    which we're setting here !!
+//_coverage      =HasAlphaTestNoBlend(technique);
   _alpha_factor.set(0, 0, 0, FltToByte(T.glow));
   _has_glow      =(_alpha_factor.a || emissive_glow>EPS_COL8);
 
