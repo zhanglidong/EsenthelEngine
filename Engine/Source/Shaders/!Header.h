@@ -1949,7 +1949,7 @@ void ProcessGlow(inout Half glow, inout Half diffuse)
 }
 void ProcessGlow(Half glow, VecH base_col, inout VecH col)
 {
-   if(GLOW_OCCLUSION)col+=base_col*(glow*2); // boost glow by 2 because here we don't maximize base_col, so average base_col 0..1 is 0.5, so *2 makes it 1.0
+   if(GLOW_OCCLUSION)col+=base_col*(glow*2); // boost glow by 2 because here we don't maximize 'base_col', so average 'base_col' 0..1 is 0.5, so *2 makes it 1.0
    else {Half max=Max(Max(base_col), 1.0/32); col+=base_col*(glow/max);} // use a decent max value (1/32 was the smallest value that prevented artifacts) to have 2 effects: prevent division by zero, and another very important is for colors close to black (0,0,0) like (1/255, 2/255, 0/255) where color can't be extracted precisely due to low precision and texture compression artifacts, this will make those colors remain very dark and don't affect glow much, thus preventing from showing artifacts
 }
 void ApplyGlow(Half glow, inout Half diffuse) {ProcessGlow(glow, diffuse);} // !! THIS CAN'T MODIFY 'glow' AS "inout" BECAUSE ORIGINAL IS STILL NEEDED !!
