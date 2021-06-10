@@ -5,7 +5,7 @@
 // !! If changing number of samples then change also SHADER_BLUR_RANGE !!
 // !!
 /******************************************************************************/
-#if 1 // Gaussian(2*x)
+#if 1 // Gaussian(2*x) is used because from all functions when using 2 blurs (1X + 1Y) it gives results closest to a circle blur
    #define WEIGHT4_0 0.285375185
    #define WEIGHT4_1 0.222250419
    #define WEIGHT4_2 0.104983666
@@ -59,7 +59,7 @@
       if(mode==1)return Cube(1-frac);
       if(mode==2)return Sqr(1-frac);
       if(mode==3)return Gaussian(1.5*frac);
-      if(mode==4)return Gaussian(2*frac); // BEST
+      if(mode==4)return Gaussian(2*frac); // BEST - results closest to a circle blur
       if(mode==5)return BlendSmoothSin(frac); // nearly identical to BlendSmoothCube
       if(mode==6)return (1-frac);
       return 1;
