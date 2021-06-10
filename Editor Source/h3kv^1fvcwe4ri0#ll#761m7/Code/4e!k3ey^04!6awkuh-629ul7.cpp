@@ -769,7 +769,7 @@ void ObjView.meshSeparate1()
       }
       Elm        & obj_elm =Proj.Project.newElm(name, obj_id, ELM_OBJ); Proj.list_sel.add(obj_elm.id);
       EditObject   obj_edit; obj_edit.newData(); Save(obj_edit, Proj.editPath(obj_elm.id));
-      if(ElmObj  * obj_data=obj_elm.objData()){obj_data.newData(); obj_data.from(obj_edit);}
+      if(ElmObj  * obj_data=obj_elm.objData()){obj_data.newData(); obj_data.from(obj_edit); if(T.obj_elm)obj_data.setSrcFile(T.obj_elm.srcFile());}
       if(Elm     *mesh_elm =Proj.getObjMeshElm(obj_elm.id, false, false)) // don't send to server yet, it will be sent below
       if(ElmMesh *mesh_data=mesh_elm.meshData())
       {
@@ -823,7 +823,7 @@ void ObjView.meshSeparateN()
        C MeshPart   &     part=lod.parts[parts[p]];
          Elm        & obj_elm =Proj.Project.newElm(Is(part.name) ? Str(part.name) : T.obj_elm.name, obj_id, ELM_OBJ); Proj.list_sel.add(obj_elm.id);
          EditObject   obj_edit; obj_edit.newData(); Save(obj_edit, Proj.editPath(obj_elm.id));
-         if(ElmObj  * obj_data=obj_elm.objData()){obj_data.newData(); obj_data.from(obj_edit);}
+         if(ElmObj  * obj_data=obj_elm.objData()){obj_data.newData(); obj_data.from(obj_edit); obj_data.setSrcFile(T.obj_elm.srcFile());}
          if(Elm     *mesh_elm =Proj.getObjMeshElm(obj_elm.id, false, false)) // don't send to server yet, it will be sent below
          if(ElmMesh *mesh_data=mesh_elm.meshData())
          {
