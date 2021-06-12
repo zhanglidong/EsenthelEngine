@@ -2234,6 +2234,7 @@ force_src_resize:
             if(p->value=="mulInvLum"                                                              )mode=APPLY_MUL_INV_LUM;else
             if(p->value=="mulInvLumAddRGB"                                                        )mode=APPLY_MUL_INV_LUM_ADD_RGB;else
             if(p->value=="addSat"                                                                 )mode=APPLY_ADD_SAT;else
+            if(p->value=="addSatPhoto"                                                            )mode=APPLY_ADD_SAT_PHOTO;else
             if(p->value=="addHue"                                                                 )mode=APPLY_ADD_HUE;else
             if(p->value=="addHuePhoto"                                                            )mode=APPLY_ADD_HUE_PHOTO;else
             if(p->value=="setAfromRGB"                                                            )mode=APPLY_SET_A_FROM_RGB;else

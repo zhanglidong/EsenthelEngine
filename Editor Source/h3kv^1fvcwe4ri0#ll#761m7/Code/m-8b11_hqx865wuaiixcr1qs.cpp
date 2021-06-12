@@ -1323,17 +1323,18 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
             {
                Memc<ImageSource> tex_images[TEX_NUM];
                TEX_FLAG old_textures=edit.textures();
+               bool has_color=false;
                FREPA(images) // process in order
                {
                 C ImageSource &image=images[i];
-                  if(image.channel[TC_COLOR ]>=0                               )tex_images[TEX_COLOR ].add(image);
-                  if(image.channel[TC_ALPHA ]>=0                               )tex_images[TEX_ALPHA ].add(image);
-                  if(image.channel[TC_AO    ]>=0                               )tex_images[TEX_COLOR ].add(image);
-                  if(image.channel[TC_NORMAL]>=0                               )tex_images[TEX_NORMAL].add(image);
-                  if(image.channel[TC_ROUGH ]>=0 || image.channel[TC_SMOOTH]>=0)tex_images[TEX_SMOOTH].add(image);
-                  if(image.channel[TC_METAL ]>=0                               )tex_images[TEX_METAL ].add(image);
-                  if(image.channel[TC_BUMP  ]>=0                               )tex_images[TEX_BUMP  ].add(image);
-                  if(image.channel[TC_GLOW  ]>=0                               )tex_images[TEX_GLOW  ].add(image);
+                  if(image.channel[TC_COLOR ]>=0                               ){tex_images[TEX_COLOR ].add(image); has_color=true;}
+                  if(image.channel[TC_ALPHA ]>=0                               ) tex_images[TEX_ALPHA ].add(image);
+                  if(image.channel[TC_AO    ]>=0                               ) tex_images[TEX_COLOR ].add(image);
+                  if(image.channel[TC_NORMAL]>=0                               ) tex_images[TEX_NORMAL].add(image);
+                  if(image.channel[TC_ROUGH ]>=0 || image.channel[TC_SMOOTH]>=0) tex_images[TEX_SMOOTH].add(image);
+                  if(image.channel[TC_METAL ]>=0                               ) tex_images[TEX_METAL ].add(image);
+                  if(image.channel[TC_BUMP  ]>=0                               ) tex_images[TEX_BUMP  ].add(image);
+                  if(image.channel[TC_GLOW  ]>=0                               ) tex_images[TEX_GLOW  ].add(image);
                }
                bool auto_reload=T.auto_reload; T.auto_reload=false; // disable auto-reload, so we can reload textures all at one time at the end
                TEX_FLAG changed=TEXF_NONE;
@@ -1343,12 +1344,18 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
                   Memc<ImageSource> &tex_image=tex_images[tex_type]; if(tex_image.elms())
                   {
                      REPAO(tex_image).process(tex_type, edit);
-                     REPA(texs)if(texs[i].type==tex_type)
+                     REPA(texs)
                      {
-                        Str file=FileParams.Encode(SCAST(Memc<FileParams>, tex_image));
-                        texs[i].setFile(file, false); // we've already set undo
-                        changed|=TEX_FLAG(1<<tex_type);
-                        break;
+                        Texture &tex=texs[i];
+                        if(tex.type==tex_type)
+                        {
+                           bool append=false;
+                           if(tex_type==TEX_COLOR && !has_color)append=true; // if we're applying to Color Slot (AO or Emissive) without Color Texture, then force append to apply on existing
+                           Str file=FileParams.Encode(SCAST(Memc<FileParams>, tex_image));
+                           tex.setFile(append ? FileParams.Merge(tex.file, file) : file, false); // we've already set undo
+                           changed|=TEX_FLAG(1<<tex_type);
+                           break;
+                        }
                      }
                   }
                }
@@ -1362,8 +1369,8 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
          }
          if(tex)
          {
-            Str drop=FileParams.Encode(SCAST(Memc<FileParams>, images));
-            tex.setFile(append ? FileParams.Merge(tex.file, drop) : drop, false); // we've already set undo
+            Str file=FileParams.Encode(SCAST(Memc<FileParams>, images));
+            tex.setFile(append ? FileParams.Merge(tex.file, file) : file, false); // we've already set undo
          }
       }
    }
