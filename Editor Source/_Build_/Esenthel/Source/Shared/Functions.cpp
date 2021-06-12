@@ -717,6 +717,7 @@ bool HighPrecTransform(C Str &name)
        || name=="normalize"
        || name=="scale" || name=="scaleXY"
        || name=="lerpRGB" || name=="iLerpRGB"
+       || name=="lerpLum" || name=="iLerpLum"
        || name=="blur" || name=="sharpen"
        || name=="bump" || name=="bumpClamp"
        || name=="contrast" || name=="contrastLum" || name=="contrastAlphaWeight" || name=="contrastLumAlphaWeight"
@@ -1312,6 +1313,34 @@ void TransformImage(Image &image, TextParam param, bool clamp, C Color &backgrou
       {
          Vec2 ma[3]={ILerpToMad(from.x, to.x), ILerpToMad(from.y, to.y), ILerpToMad(from.z, to.z)};
          AdjustImage(image, true, false, false); image.mulAdd(Vec4(ma[0].x, ma[1].x, ma[2].x, 1), Vec4(ma[0].y, ma[1].y, ma[2].y, 0), &box);
+      }
+   }else
+   if(param.name=="lerpLum")
+   {
+      Vec2 range=param.asVec2();
+      Vec2 ma=LerpToMad(range.x, range.y);
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         flt lum=c.xyz.max()*ma.x+ma.y;
+         c.xyz*=lum;
+         image.color3DF(x, y, z, c);
+      }
+   }else
+   if(param.name=="iLerpLum")
+   {
+      Vec2 range=param.asVec2();
+      Vec2 ma=ILerpToMad(range.x, range.y);
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         flt lum=c.xyz.max()*ma.x+ma.y;
+         c.xyz*=lum;
+         image.color3DF(x, y, z, c);
       }
    }else
    if(param.name=="mulA"  ){flt alpha=param.asFlt(); if(alpha!=1){AdjustImage(image, false, true, false); image.mulAdd(Vec4(1, 1, 1, alpha), 0, &box);}}else

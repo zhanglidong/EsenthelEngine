@@ -188,7 +188,8 @@ class Pane
       parent+=region.create();
       parent+=progress.create().hide();
       region+=list.create(lc, Elms(lc)).selChanged(SelChanged, T);
-      list.flag|=LIST_RESIZABLE_COLUMNS|LIST_SORTABLE|LIST_SEARCHABLE|LIST_MULTI_SEL|LIST_TYPE_SORT;
+      list.flag|=LIST_RESIZABLE_COLUMNS|LIST_SORTABLE|LIST_SEARCHABLE|LIST_MULTI_SEL|LIST_TYPE_SORT|LIST_SCALABLE;
+      list.textSize(0, 1);
       list.setElmType(MEMBER(Elm, list_type));
       list.sort_column[0]=1;
       parent+=up  .create("Up").func(Up, T, true).focusable(false);
