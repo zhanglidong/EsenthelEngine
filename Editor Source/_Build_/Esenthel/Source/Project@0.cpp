@@ -420,12 +420,12 @@ void DrawProject()
    void ProjectEx::MtrlFlipNrmYOn(ProjectEx &proj) {                proj.mtrlFlipNrmY       (proj.menu_list_sel, true );}
    void ProjectEx::MtrlFlipNrmYOff(ProjectEx &proj) {                proj.mtrlFlipNrmY       (proj.menu_list_sel, false);}
    void ProjectEx::MtrlReloadBaseTex(ProjectEx &proj) {                proj.mtrlReloadTextures (proj.menu_list_sel, true, false, false, false);}
-   void ProjectEx::MtrlSetColorTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexColor    (proj.menu_list_sel, MtrlEdit.edit. color_map);else Gui.msgBox(S, "There's no Material opened");}
-   void ProjectEx::MtrlSetBumpTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexBump     (proj.menu_list_sel, MtrlEdit.edit.  bump_map);else Gui.msgBox(S, "There's no Material opened");}
-   void ProjectEx::MtrlSetNormalTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexNormal   (proj.menu_list_sel, MtrlEdit.edit.normal_map);else Gui.msgBox(S, "There's no Material opened");}
-   void ProjectEx::MtrlSetSmoothTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexSmooth   (proj.menu_list_sel, MtrlEdit.edit.smooth_map);else Gui.msgBox(S, "There's no Material opened");}
-   void ProjectEx::MtrlSetMetalTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexMetal    (proj.menu_list_sel, MtrlEdit.edit. metal_map);else Gui.msgBox(S, "There's no Material opened");}
-   void ProjectEx::MtrlSetGlowTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexGlow     (proj.menu_list_sel, MtrlEdit.edit.  glow_map);else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetColorTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexColor    (proj.menu_list_sel, MtrlEdit.edit. color_map                               );else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetBumpTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexBump     (proj.menu_list_sel, MtrlEdit.edit.  bump_map                               );else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetNormalTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexNormal   (proj.menu_list_sel, MtrlEdit.edit.normal_map, MtrlEdit.edit.flip_normal_y  );else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetSmoothTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexSmooth   (proj.menu_list_sel, MtrlEdit.edit.smooth_map, MtrlEdit.edit.smooth_is_rough);else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetMetalTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexMetal    (proj.menu_list_sel, MtrlEdit.edit. metal_map                               );else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlSetGlowTexCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetTexGlow     (proj.menu_list_sel, MtrlEdit.edit.  glow_map                               );else Gui.msgBox(S, "There's no Material opened");}
    void ProjectEx::MtrlMulTexCol(ProjectEx &proj) {                proj.mtrlMulTexCol     (proj.menu_list_sel);}
    void ProjectEx::MtrlMulTexNormal(ProjectEx &proj) {                proj.mtrlMulTexNormal  (proj.menu_list_sel);}
    void ProjectEx::MtrlMulTexSmooth(ProjectEx &proj) {                proj.mtrlMulTexSmooth  (proj.menu_list_sel);}
@@ -1613,29 +1613,33 @@ void DrawProject()
       }
       return ok;
    }
-   bool ProjectEx::mtrlSetTexNormal(C MemPtr<UID> &elm_ids, C Str &normal_map)
+   bool ProjectEx::mtrlSetTexNormal(C MemPtr<UID> &elm_ids, C Str &normal_map, bool flip_normal_y)
    {
       bool ok=true;
       REPA(elm_ids)
       {
          EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
-         if(!Equal(edit.normal_map, normal_map, true))
+         if(!Equal(edit.normal_map, normal_map, true)
+         ||        edit.flip_normal_y!=flip_normal_y)
          {
             edit.normal_map=normal_map; edit.normal_map_time.now();
+            edit.flip_normal_y=flip_normal_y; edit.flip_normal_y_time=edit.normal_map_time;
             ok&=mtrlSync(elm_ids[i], edit, true, true, "setTexNrm");
          }
       }
       return ok;
    }
-   bool ProjectEx::mtrlSetTexSmooth(C MemPtr<UID> &elm_ids, C Str &smooth_map)
+   bool ProjectEx::mtrlSetTexSmooth(C MemPtr<UID> &elm_ids, C Str &smooth_map, bool smooth_is_rough)
    {
       bool ok=true;
       REPA(elm_ids)
       {
          EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
-         if(!Equal(edit.smooth_map, smooth_map, true))
+         if(!Equal(edit.smooth_map, smooth_map, true)
+         ||        edit.smooth_is_rough!=smooth_is_rough)
          {
             edit.smooth_map=smooth_map; edit.smooth_map_time.now();
+            edit.smooth_is_rough=smooth_is_rough; edit.smooth_is_rough_time=edit.smooth_map_time;
             ok&=mtrlSync(elm_ids[i], edit, true, true, "setTexSmooth");
          }
       }

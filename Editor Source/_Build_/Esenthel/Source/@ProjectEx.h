@@ -379,8 +379,8 @@ public:
    bool mtrlSetGlow(C MemPtr<UID> &elm_ids, flt glow, bool mul=false);
    bool mtrlSetTexColor(C MemPtr<UID> &elm_ids, C Str &color_map);
    bool mtrlSetTexBump(C MemPtr<UID> &elm_ids, C Str &bump_map);
-   bool mtrlSetTexNormal(C MemPtr<UID> &elm_ids, C Str &normal_map);
-   bool mtrlSetTexSmooth(C MemPtr<UID> &elm_ids, C Str &smooth_map);
+   bool mtrlSetTexNormal(C MemPtr<UID> &elm_ids, C Str &normal_map, bool flip_normal_y);
+   bool mtrlSetTexSmooth(C MemPtr<UID> &elm_ids, C Str &smooth_map, bool smooth_is_rough);
    bool mtrlSetTexMetal(C MemPtr<UID> &elm_ids, C Str &metal_map);
    bool mtrlSetTexGlow(C MemPtr<UID> &elm_ids, C Str &glow_map);
    void mtrlCull(C MemPtr<UID> &elm_ids, bool on);
