@@ -165,6 +165,7 @@ WorldView WorldEdit;
 
       Environment *env=EnvEdit.cur(); if(!env)env=environment(); if(!env)env=&DefaultEnvironment; env->set();
       view.camera.set();
+      D.dofFocus(ActiveCam.dist);
 
       // set shadowing distance
       Rect rect(areaToWorld(visible_area.min), areaToWorld(visible_area.max+1));

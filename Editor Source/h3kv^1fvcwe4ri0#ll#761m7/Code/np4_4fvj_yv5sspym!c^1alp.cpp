@@ -152,6 +152,10 @@ class VideoOptions : PropWin
       static void AOContrast   (  Advanced &adv, C Str &text) {       D.ambientContrast(TextFlt(text));}
       static Str  AORange      (C Advanced &adv             ) {return D.ambientRange();}
       static void AORange      (  Advanced &adv, C Str &text) {       D.ambientRange(TextFlt(text));}
+      static Str  DOF          (C Advanced &adv             ) {return D.dofMode()!=DOF_NONE;}
+      static void DOF          (  Advanced &adv, C Str &text) {       D.dofMode(TextBool(text) ? DOF_GAUSSIAN : DOF_NONE);}
+      static Str  DOFIntensity (C Advanced &adv             ) {return D.dofIntensity();}
+      static void DOFIntensity (  Advanced &adv, C Str &text) {       D.dofIntensity(TextFlt(text));}
       static Str  ShadowFlicker(C Advanced &adv             ) {return D.shadowReduceFlicker();}
       static void ShadowFlicker(  Advanced &adv, C Str &text) {       D.shadowReduceFlicker(TextInt(text));}
       static Str  ShadowFrac   (C Advanced &adv             ) {return D.shadowFrac();}
@@ -285,6 +289,8 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
          props.New().create("Ambient Light"              , MemberDesc(DATA_REAL).setFunc(AmbLight     , AmbLight     )).range(0, 1);
          props.New().create("Ambient Occlusion Contrast" , MemberDesc(DATA_REAL).setFunc(AOContrast   , AOContrast   )).range(0, 8);
          props.New().create("Ambient Occlusion Range"    , MemberDesc(DATA_REAL).setFunc(AORange      , AORange      )).range(0, 2);
+         props.New().create("Depth of Field"             , MemberDesc(DATA_BOOL).setFunc(DOF          , DOF          ));
+         props.New().create("Depth of Field Intensity"   , MemberDesc(DATA_REAL).setFunc(DOFIntensity , DOFIntensity )).range(0, 1).setSlider();
          props.New().create("Allow Glow"                 , MemberDesc(DATA_BOOL).setFunc(AllowGlow    , AllowGlow    )).desc("If allow glow effect on the scene when detected.");
          props.New().create("Material Blend Per Pixel"   , MemberDesc(DATA_BOOL).setFunc(MaterialBlend, MaterialBlend)).desc("If Multiple Materials should be blended with per-pixel precision.\nFor this effect to work, your Materials should have a bump map.");
          props.New().create("Forward Renderer Per Pixel" , MemberDesc(DATA_BOOL).setFunc(ForwardPrec  , ForwardPrec  )).desc("If Forward renderer should use per-pixel precision,\nper-vertex precision is used otherwise.");

@@ -568,6 +568,7 @@ AnimEditor AnimEdit;
    {
       setAnimSkel();
       view.camera.set();
+      D.dofFocus(ActiveCam.dist);
       CurrentEnvironment().set();
       bool astros=AstrosDraw; AstrosDraw=false;
       bool ocean =Water.draw; Water.draw=false;

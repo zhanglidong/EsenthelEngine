@@ -559,6 +559,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       int view_type=v4.getViewType(&view);
       mesh_matrix_prev_ptr=(InRange(view_type, mesh_matrix_prev) ? &mesh_matrix_prev[view_type] : null);
       view.camera.set();
+      D.dofFocus(ActiveCam.dist);
       if(mode()==BODY)
       {
          UID body_id=UIDZero; if(mesh_elm)if(ElmMesh *mesh_data=mesh_elm.meshData())body_id=mesh_data.body_id;

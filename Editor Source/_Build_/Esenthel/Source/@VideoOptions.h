@@ -88,6 +88,10 @@ class VideoOptions : PropWin
       static void AOContrast   (  Advanced &adv, C Str &text);        
       static Str  AORange      (C Advanced &adv             );        
       static void AORange      (  Advanced &adv, C Str &text);        
+      static Str  DOF          (C Advanced &adv             );        
+      static void DOF          (  Advanced &adv, C Str &text);        
+      static Str  DOFIntensity (C Advanced &adv             );        
+      static void DOFIntensity (  Advanced &adv, C Str &text);        
       static Str  ShadowFlicker(C Advanced &adv             );        
       static void ShadowFlicker(  Advanced &adv, C Str &text);        
       static Str  ShadowFrac   (C Advanced &adv             );        

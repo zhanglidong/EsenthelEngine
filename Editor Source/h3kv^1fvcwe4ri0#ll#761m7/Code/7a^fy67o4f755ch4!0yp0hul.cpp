@@ -18,6 +18,7 @@ void SetCam(Camera &cam, C Box &box, flt yaw, flt pitch=0, flt zoom=1) // requir
    cam.dist=GetDist(box)*zoom;
    cam.at=box.center();
    cam.setSpherical().updateEnd().set();
+   D.dofFocus(cam.dist);
 }
 /******************************************************************************/
 class PreviewClass : Window // create as window so it will be above other windows in the editor

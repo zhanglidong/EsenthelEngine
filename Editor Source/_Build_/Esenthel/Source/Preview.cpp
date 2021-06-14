@@ -20,6 +20,7 @@ void SetCam(Camera &cam, C Box &box, flt yaw, flt pitch, flt zoom) // require cu
    cam.dist=GetDist(box)*zoom;
    cam.at=box.center();
    cam.setSpherical().updateEnd().set();
+   D.dofFocus(cam.dist);
 }
 /******************************************************************************/
 PreviewClass Preview;

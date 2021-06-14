@@ -92,6 +92,7 @@ void UpdateGameCam()
    Cam.pitch+=Rot.delta.y;
    Cam.dist *=ScaleFactor(Zoom.zoom);
    Cam.transformByMouse(0.1, 1000, CAMH_ZOOM | (((Ms.b(0) || Ms.b(MS_MAXIMIZE)) && (!Gui.ms() || Gui.ms()==Gui.desktop())) ? CAMH_MOVE_XZ : (Ms.b(1) ? CAMH_MOVE : CAMH_ROT)));
+   D.dofFocus(Cam.dist);
 }
 bool UpdateGame()
 {

@@ -169,6 +169,7 @@ void InitPre()
       App.resumed=Resumed;
       D.secondaryOpenGLContexts(Cpu.threads()*3); // worker threads + importer threads + manually called threads
       D.drawNullMaterials(true);
+      D.dofFocusMode(true);
       D.set_shader=SetShader;
       D.mode(App.desktopW()*0.8f, App.desktopH()*0.8f);
    #if !DEBUG
