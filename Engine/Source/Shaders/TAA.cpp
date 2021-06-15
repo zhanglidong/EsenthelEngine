@@ -1,7 +1,9 @@
 /******************************************************************************/
 #include "!Header.h"
 /******************************************************************************
-CLAMP, ALPHA, DUAL_HISTORY, GATHER
+CLAMP, ALPHA, DUAL_HISTORY, GATHER, FILTER_MIN_MAX
+
+Img=Cur, Img1=Old, ImgXY=CurVel, ImgXY1=OldVel
 
 ALPHA=0
    ImgX=Weight
@@ -10,8 +12,6 @@ ALPHA=1
    
 DUAL_HISTORY=1
    Img2=Old1
-
-Img=Cur, Img1=Old, ImgXY=CurVel, ImgXY1=OldVel
 /******************************************************************************/
 #define CUR_WEIGHT (1.0/8)
 
@@ -325,7 +325,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       }
    }*/
    cur=Max(VecH4(0,0,0,0), cur); // use Max(0) because of cubic sharpening potentially giving negative values
-#else // this version uses 5 tex reads for CUBIC and 9 tex reads for MIN MAX (14 total), because it has only 9 samples for MIN MAX the flickering is a bit stronger
+#else // this version uses 5 tex reads for CUBIC and 8 (or 9 if FILTER_MIN_MAX unavailable) tex reads for MIN MAX (13 total)
    #if CUBIC
       cur=Max(VecH4(0,0,0,0), cs.tex(Img)); // use Max(0) because of cubic sharpening potentially giving negative values
    #else
@@ -333,10 +333,44 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    #endif
 
    // MIN MAX
+   #if FILTER_MIN_MAX // check 3x3 samples by using 2x2 tex reads using Min/Max filtering (where each tex read gives minimum/maximum out of 2x2 samples)
+   {
+      Vec2 uv[2];
+   #if CLAMP
+      uv[0]=Vec2(Max(inTex.x-ImgSize.x/2, ImgClamp.x), Max(inTex.y-ImgSize.y/2, ImgClamp.y));
+      uv[1]=Vec2(Min(inTex.x+ImgSize.x/2, ImgClamp.z), Min(inTex.y+ImgSize.y/2, ImgClamp.w));
+   #else
+      uv[0]=inTex-ImgSize/2;
+      uv[1]=inTex+ImgSize/2;
+   #endif
+      UNROLL for(Int y=0; y<=1; y++)
+      UNROLL for(Int x=0; x<=1; x++)
+      {
+         VecH4 min=TexMin(Img, Vec2(uv[x].x, uv[y].y));
+         VecH4 max=TexMax(Img, Vec2(uv[x].x, uv[y].y));
+         VecH  ycocg_lo, ycocg_hi; if(YCOCG){ycocg_lo=RGBToYCoCg4(min.rgb); ycocg_hi=RGBToYCoCg4(max.rgb);}
+         if(y==0 && x==0) // first
+         {
+                        col_min=     min;   col_max=     max;
+            if(YCOCG){ycocg_min=ycocg_lo; ycocg_max=ycocg_hi;}
+         }else
+         {
+            col_min=Min(col_min, min);
+            col_max=Max(col_max, max);
+            if(YCOCG)
+            {
+               ycocg_min=Min(ycocg_min, ycocg_lo);
+               ycocg_max=Max(ycocg_max, ycocg_hi);
+            }
+         }
+      }
+   }
+   #else // check all 3x3 samples individually
+   {
    #if CLAMP
       Vec2 tex_clamp[3];
       tex_clamp[0]=Vec2(Max(inTex.x-ImgSize.x, ImgClamp.x), Max(inTex.y-ImgSize.y, ImgClamp.y)); tex_clamp[1]=inTex;
-      tex_clamp[2]=Vec2(Min(inTex.x+ImgSize.x, ImgClamp.z), Min(inTex.y+ImgSize.y, ImgClamp.w)); 
+      tex_clamp[2]=Vec2(Min(inTex.x+ImgSize.x, ImgClamp.z), Min(inTex.y+ImgSize.y, ImgClamp.w));
    #endif
       UNROLL for(Int y=-1; y<=1; y++)
       UNROLL for(Int x=-1; x<=1; x++)
@@ -348,7 +382,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          col=TexPoint(Img, Vec2(tex_clamp[x+1].x, tex_clamp[y+1].y));
       #endif
          VecH ycocg; if(YCOCG)ycocg=RGBToYCoCg4(col.rgb);
-         if(y==-1 && x==-1)
+         if(y==-1 && x==-1) // first
          {
                        col_min=  col_max=col;
             if(YCOCG)ycocg_min=ycocg_max=ycocg;
@@ -363,6 +397,8 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
             }
          }
       }
+   }
+   #endif
 #endif
 
    // NEIGHBOR CLAMP

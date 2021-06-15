@@ -185,11 +185,11 @@
 #define TexPoint(   image, uv     )   image.SampleLevel(SamplerPoint, uv, 0)
 #define TexPointOfs(image, uv, ofs)   image.SampleLevel(SamplerPoint, uv, 0, ofs)
 
-#define TexMin(   image, uv     )   image.SampleLevel(SamplerMinimum, uv, 0)
-#define TexMinOfs(image, uv, ofs)   image.SampleLevel(SamplerMinimum, uv, 0, ofs)
+#define TexMin(   image, uv     )   image.SampleLevel(SamplerMinimum, uv, 0)      // returns minimum out of all samples
+#define TexMinOfs(image, uv, ofs)   image.SampleLevel(SamplerMinimum, uv, 0, ofs) // returns minimum out of all samples
 
-#define TexMax(   image, uv     )   image.SampleLevel(SamplerMaximum, uv, 0)
-#define TexMaxOfs(image, uv, ofs)   image.SampleLevel(SamplerMaximum, uv, 0, ofs)
+#define TexMax(   image, uv     )   image.SampleLevel(SamplerMaximum, uv, 0)      // returns maximum out of all samples
+#define TexMaxOfs(image, uv, ofs)   image.SampleLevel(SamplerMaximum, uv, 0, ofs) // returns maximum out of all samples
 
 #define TexGather(   image, uv     )   image.Gather(SamplerPoint, uv     ) // gather available since SM_4_1, GL 4.0, GL ES 3.1
 #define TexGatherOfs(image, uv, ofs)   image.Gather(SamplerPoint, uv, ofs) // gather available since SM_4_1, GL 4.0, GL ES 3.1

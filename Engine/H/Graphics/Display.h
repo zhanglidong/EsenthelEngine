@@ -639,6 +639,7 @@ private:
 #endif
    Bool gatherAvailable          ()C;
    Bool gatherChannelAvailable   ()C;
+   Bool filterMinMaxAvailable    ()C;
    Bool independentBlendAvailable()C;
    Bool deferredUnavailable      ()C;
    Bool deferredMSUnavailable    ()C;

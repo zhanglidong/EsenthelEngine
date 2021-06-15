@@ -598,6 +598,7 @@ Bool DisplayClass::gatherChannelAvailable()C
    return shaderModel()>=SM_GL_4; // 4.0+ GL required
 #endif
 }
+Bool DisplayClass::filterMinMaxAvailable()C {return SamplerMinimum.is();}
 Bool DisplayClass::independentBlendAvailable()C
 {
 #if DX11
@@ -2739,7 +2740,7 @@ DisplayClass& DisplayClass::tAA(Bool on)
          REPD(clamp, 2)
          REPD(alpha, 2)
          REPD(dual , 2)
-            Sh.TAA[clamp][alpha][dual]=Sh.get(S+"TAA"+clamp+alpha+dual+D.gatherChannelAvailable());
+            Sh.TAA[clamp][alpha][dual]=Sh.get(S+"TAA"+clamp+alpha+dual+D.gatherChannelAvailable()+D.filterMinMaxAvailable());
       tAAReset(); // clear RT's and make sure enabling will start from zero 'frame' index
    }
    return T;
