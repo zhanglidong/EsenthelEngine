@@ -19,7 +19,7 @@ DUAL_HISTORY=1
 
 #define NEAREST_DEPTH_VEL 1
 
-#define VEL_EPS 0.003h
+#define VEL_EPS 0.003
 
 #define CUBIC 1
 #if     CUBIC
@@ -131,7 +131,7 @@ Half GetBlend(VecH old, VecH cur, VecH col_min, VecH col_max)
     inv_dir=rcp(dir),
    min_step=(col_min-old)*inv_dir,
    max_step=(col_max-old)*inv_dir;
-   return Sat(Max(Min(min_step, max_step)));
+   return Max(Min(min_step, max_step)); // don't 'Sat' to allow reporting high >1 differences (Warning: <0 can also be reported)
 }
 Half GetBlend(VecH4 old, VecH4 cur, VecH4 col_min, VecH4 col_max)
 {
@@ -139,14 +139,15 @@ Half GetBlend(VecH4 old, VecH4 cur, VecH4 col_min, VecH4 col_max)
      inv_dir=rcp(dir),
     min_step=(col_min-old)*inv_dir,
     max_step=(col_max-old)*inv_dir;
-   return Sat(Max(Min(min_step, max_step)));
+   return Max(Min(min_step, max_step)); // don't 'Sat' to allow reporting high >1 differences (Warning: <0 can also be reported)
 }
 /******************************************************************************/
-void TestVel(VecH2 vel, VecH2 test_vel, inout Half old_weight)
+void TestVel(VecH2 vel, VecH2 test_vel, inout Half max_delta_vel_len2)
 {
    VecH2 delta_vel=vel-test_vel;
    delta_vel.x*=TAAAspectRatio; // 'delta_vel' is in UV 0..1 for both XY so mul X by aspect ratio
-   if(Length2(delta_vel)>Sqr(VEL_EPS))old_weight=0;
+   Half delta_vel_len2=Length2(delta_vel);
+   if(  delta_vel_len2>max_delta_vel_len2)max_delta_vel_len2=delta_vel_len2;
 }
 void TestDepth(inout Flt depth, Flt d, inout VecI2 ofs, Int x, Int y)
 {
@@ -172,12 +173,13 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 {
    VecI2 ofs=0;
 
+   Flt depth;
    // NEAREST_DEPTH_VEL - get velocity for depth nearest to camera
    if(NEAREST_DEPTH_VEL) // !! TODO: Warning: this ignores CLAMP, if this is fixed then 'UVClamp' below for 'vel' can be removed !!
    {
    #if GATHER
-      ofs=VecI2(-1, 1); Flt depth=TexDepthRawPointOfs(inTex, ofs         );              // -1,  1,  left-top
-                 TestDepth(depth, TexDepthRawPointOfs(inTex, VecI2(1, -1)), ofs, 1, -1); //  1, -1, right-bottom
+      ofs=VecI2(-1, 1); depth=TexDepthRawPointOfs(inTex, ofs         );              // -1,  1,  left-top
+              TestDepth(depth,TexDepthRawPointOfs(inTex, VecI2(1, -1)), ofs, 1, -1); //  1, -1, right-bottom
       Vec2 tex=inTex-ImgSize.xy*0.5; // move to center between -1,-1 and 0,0 texels
       Vec4 d=TexDepthGather(tex); // get -1,-1 to 0,0 texels
       TestDepth(depth, d.x, ofs, -1,  0);
@@ -190,10 +192,13 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       TestDepth(depth, d.z, ofs,  1,  0);
     //TestDepth(depth, d.w, ofs,  0,  0); already processed
    #else
-      Flt depth=TexDepthRawPoint(inTex);
+      depth=TexDepthRawPoint(inTex);
       UNROLL for(Int y=-1; y<=1; y++)
       UNROLL for(Int x=-1; x<=1; x++)if(x || y)TestDepth(depth, TexDepthRawPointOfs(inTex, VecI2(x, y)), ofs, x, y);
    #endif
+   }else
+   {
+      depth=TexDepthRawPoint(inTex);
    }
 
    // GET VEL
@@ -221,33 +226,34 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    // OLD VEL TEST
 #if TAA_OLD_VEL // if old velocity is different then ignore old, !! TODO: Warning: this ignores CLAMP !!
    Vec2 old_tex_vel=old_tex+TAAOffsetCurToPrev;
+   Half max_delta_vel_len2=0;
    #if GATHER
-      TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2(-1,  1)).xy, old_weight); // -1,  1,  left-top
-      TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2( 1, -1)).xy, old_weight); //  1, -1, right-bottom
+      TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2(-1,  1)).xy, max_delta_vel_len2); // -1,  1,  left-top
+      TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2( 1, -1)).xy, max_delta_vel_len2); //  1, -1, right-bottom
       old_tex_vel-=ImgSize.xy*0.5; // move to center between -1,-1 and 0,0 texels
       VecH4 r=ImgXY1.GatherRed  (SamplerPoint, old_tex_vel); // get -1,-1 to 0,0 texels
       VecH4 g=ImgXY1.GatherGreen(SamplerPoint, old_tex_vel); // get -1,-1 to 0,0 texels
-      TestVel(vel, VecH2(r.x, g.x), old_weight);
-      TestVel(vel, VecH2(r.y, g.y), old_weight);
-      TestVel(vel, VecH2(r.z, g.z), old_weight);
-      TestVel(vel, VecH2(r.w, g.w), old_weight);
+      TestVel(vel, VecH2(r.x, g.x), max_delta_vel_len2);
+      TestVel(vel, VecH2(r.y, g.y), max_delta_vel_len2);
+      TestVel(vel, VecH2(r.z, g.z), max_delta_vel_len2);
+      TestVel(vel, VecH2(r.w, g.w), max_delta_vel_len2);
       r=ImgXY1.GatherRed  (SamplerPoint, old_tex_vel, VecI2(1, 1)); // get 0,0 to 1,1 texels
       g=ImgXY1.GatherGreen(SamplerPoint, old_tex_vel, VecI2(1, 1)); // get 0,0 to 1,1 texels
-      TestVel(vel, VecH2(r.x, g.x), old_weight);
-      TestVel(vel, VecH2(r.y, g.y), old_weight);
-      TestVel(vel, VecH2(r.z, g.z), old_weight);
-    //TestVel(vel, VecH2(r.w, g.w), old_weight); already processed
+      TestVel(vel, VecH2(r.x, g.x), max_delta_vel_len2);
+      TestVel(vel, VecH2(r.y, g.y), max_delta_vel_len2);
+      TestVel(vel, VecH2(r.z, g.z), max_delta_vel_len2);
+    //TestVel(vel, VecH2(r.w, g.w), max_delta_vel_len2); already processed
    #else
       UNROLL for(Int y=-1; y<=1; y++)
       UNROLL for(Int x=-1; x<=1; x++)
-         TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2(x, y)).xy, old_weight);
+         TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2(x, y)).xy, max_delta_vel_len2);
    #endif
 #endif
 
  /* test current velocities, skip because didn't help
    UNROLL for(Int y=-1; y<=1; y++)
    UNROLL for(Int x=-1; x<=1; x++)if(x || y)
-      TestVel(vel, TexPointOfs(ImgXY, inTex, VecI2(x, y)).xy, old_weight);*/
+      TestVel(vel, TexPointOfs(ImgXY, inTex, VecI2(x, y)).xy, max_delta_vel_len2);*/
 
    // OLD COLOR
 #if CUBIC
@@ -406,7 +412,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    {
                   old.rgb=RGBToYCoCg4(old.rgb);
       VecH4 ycocg_cur    =RGBToYCoCg4(cur);
-      old=Lerp(old, ycocg_cur, GetBlend(old.rgb, ycocg_cur.rgb, ycocg_min.rgb, ycocg_max.rgb));
+      old=Lerp(old, ycocg_cur, Sat(GetBlend(old.rgb, ycocg_cur.rgb, ycocg_min.rgb, ycocg_max.rgb)));
       old.rgb=YCoCg4ToRGB(old.rgb);
    }
 
@@ -416,20 +422,24 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    Half blend=GetBlend(old.rgb, cur.rgb, col_min.rgb, col_max.rgb);
 #endif
 
-#if 1
+   if(DEPTH_FOREGROUND(depth)) // make sky unaffected by movement, because when cam zoom in/out or cam move then sky doesn't change, it only has some values when rotating camera. In tests it was better to use nearest 'depth' instead of depth at 'inTex'.
+   {
+      Half max_delta_vel_len=Sqrt(max_delta_vel_len2),
+           blend_move=max_delta_vel_len/VEL_EPS,
+           blend_min=1.0/32; // make sure there's some blend even for static pixels, this will increase flickering but will help boost lighting changes and potential material/texture animations. 1/32 was chosen, 1/16 and 1/8 allowed faster changes but had bigger flickering.
+      blend*=blend_move+blend_min; // works better than "blend*=Sat(blend_move+blend_min);"
+    //old_weight*=1-Sat(blend_move); // optional boost based on movement, currently not needed because the main formula is good enough
+   }
+
+   blend=Sat(blend);
+
+#if 1 // better
    old=Lerp(old, cur, blend);
    #if ALPHA
       old_alpha=Lerp(old_alpha, cur_alpha, blend);
    #endif
-#else // this increases flickering, since 'old_weight' gets smaller
-   /* instead of adjusting 'old', adjust 'old_weight'
-      (old*old_weight + cur*cur_weight)/total_weight
-      (Lerp(old, cur, blend)*old_weight + cur*cur_weight)/total_weight
-      ((old*(1-blend) + cur*blend)*old_weight + cur*cur_weight)/total_weight
-      (old*(1-blend)*old_weight + cur*blend*old_weight + cur*cur_weight)/total_weight
-      (old*(1-blend)*old_weight + cur*(blend*old_weight + cur_weight))/total_weight */
-   old_weight*=(1-blend) // 'old_weight' gets smaller, multiplied by "1-blend"
-              *CUR_WEIGHT/(CUR_WEIGHT+blend*old_weight); // 'cur_weight' gets bigger, starting from 'CUR_WEIGHT' adding "blend*old_weight" = "CUR_WEIGHT+blend*old_weight". However we want 'cur_weight' below to be always CUR_WEIGHT, so scale down both 'old_weight' and 'cur_weight' so that 'cur_weight' gets to be CUR_WEIGHT. scaling factor is just "CUR_WEIGHT/cur_weight" which is "CUR_WEIGHT/(CUR_WEIGHT+blend*old_weight)"
+#else // don't do this, because it will cause jittered ghosting (some pixels will look brighter and some look darker, depending on the color difference between old and new), above code works much better
+   old_weight*=(1-blend); // 'old_weight' gets smaller, multiplied by "1-blend"
 #endif
 
 #if !DUAL_HISTORY
