@@ -23,7 +23,7 @@ Img=Cur, Img1=Old, ImgXY=CurVel, ImgXY1=OldVel
 
 #define CUBIC 1
 #if     CUBIC
-#include "Cubic.h"
+   #include "Cubic.h"
 #endif
 
 #if ALPHA
@@ -43,103 +43,103 @@ BUFFER_END
 VecH RGBToYCoCg(VecH col)
 {
    return VecH(Dot(col, VecH( 0.25, 0.50,  0.25)),
-	            Dot(col, VecH( 0.50, 0.00, -0.50)),
-	            Dot(col, VecH(-0.25, 0.50, -0.25)));
+               Dot(col, VecH( 0.50, 0.00, -0.50)),
+               Dot(col, VecH(-0.25, 0.50, -0.25)));
 }
 VecH4 RGBToYCoCg(VecH4 col)
 {
    return VecH4(Dot(col.rgb, VecH( 0.25, 0.50,  0.25)),
-	             Dot(col.rgb, VecH( 0.50, 0.00, -0.50)),
-	             Dot(col.rgb, VecH(-0.25, 0.50, -0.25)),
+                Dot(col.rgb, VecH( 0.50, 0.00, -0.50)),
+                Dot(col.rgb, VecH(-0.25, 0.50, -0.25)),
                     col.a                            );
 }
 VecH RGBToYCoCg4(VecH col) // faster but scales *4
 {
 #if 0
    return VecH(Dot(col, VecH( 1, 2,  1)),
-	            Dot(col, VecH( 2, 0, -2)),
-	            Dot(col, VecH(-1, 2, -1)));
+               Dot(col, VecH( 2, 0, -2)),
+               Dot(col, VecH(-1, 2, -1)));
 #else
    return VecH(col.r   + col.g*2 + col.b  ,
-	            col.r*2           - col.b*2,
-	           -col.r   + col.g*2 - col.b );
+               col.r*2           - col.b*2,
+              -col.r   + col.g*2 - col.b );
 #endif
 }
 VecH4 RGBToYCoCg4(VecH4 col) // faster but scales *4
 {
 #if 0
    return VecH4(Dot(col.rgb, VecH( 1, 2,  1)),
-	             Dot(col.rgb, VecH( 2, 0, -2)),
-	             Dot(col.rgb, VecH(-1, 2, -1)),
+                Dot(col.rgb, VecH( 2, 0, -2)),
+                Dot(col.rgb, VecH(-1, 2, -1)),
                     col.a);
 #else
    return VecH4(col.r   + col.g*2 + col.b  ,
-	             col.r*2           - col.b*2,
-	            -col.r   + col.g*2 - col.b  ,
+                col.r*2           - col.b*2,
+               -col.r   + col.g*2 - col.b  ,
                 col.a                     );
 #endif
 }
 /******************************************************************************/
 VecH YCoCgToRGB(VecH YCoCg)
 {
-	Half Y =YCoCg.x,
-	     Co=YCoCg.y,
-	     Cg=YCoCg.z;
+   Half Y =YCoCg.x,
+        Co=YCoCg.y,
+        Cg=YCoCg.z;
 
-	return VecH(Y+Co-Cg ,
-	            Y+Cg    ,
-	            Y-Co-Cg);
+   return VecH(Y+Co-Cg ,
+               Y+Cg    ,
+               Y-Co-Cg);
 }
 VecH4 YCoCgToRGB(VecH4 YCoCg)
 {
-	Half Y =YCoCg.x,
-	     Co=YCoCg.y,
-	     Cg=YCoCg.z,
+   Half Y =YCoCg.x,
+        Co=YCoCg.y,
+        Cg=YCoCg.z,
         A =YCoCg.a;
 
-	return VecH4(Y+Co-Cg,
-	             Y+Cg   ,
-	             Y-Co-Cg,
+   return VecH4(Y+Co-Cg,
+                Y+Cg   ,
+                Y-Co-Cg,
                 A     );
 }
 VecH YCoCg4ToRGB(VecH YCoCg4)
 {
-	Half Y =YCoCg4.x*0.25,
-	     Co=YCoCg4.y*0.25,
-	     Cg=YCoCg4.z*0.25;
+   Half Y =YCoCg4.x*0.25,
+        Co=YCoCg4.y*0.25,
+        Cg=YCoCg4.z*0.25;
 
-	return VecH(Y+Co-Cg ,
-	            Y+Cg    ,
-	            Y-Co-Cg);
+   return VecH(Y+Co-Cg ,
+               Y+Cg    ,
+               Y-Co-Cg);
 }
 VecH4 YCoCg4ToRGB(VecH4 YCoCg4)
 {
-	Half Y =YCoCg4.x*0.25,
-	     Co=YCoCg4.y*0.25,
-	     Cg=YCoCg4.z*0.25,
+   Half Y =YCoCg4.x*0.25,
+        Co=YCoCg4.y*0.25,
+        Cg=YCoCg4.z*0.25,
         A =YCoCg4.a     ;
 
-	return VecH4(Y+Co-Cg,
-	             Y+Cg   ,
-	             Y-Co-Cg,
+   return VecH4(Y+Co-Cg,
+                Y+Cg   ,
+                Y-Co-Cg,
                 A     );
 }
 /******************************************************************************/
 Half GetBlend(VecH old, VecH cur, VecH col_min, VecH col_max)
 {
-	VecH dir=cur-old,
+   VecH dir=cur-old,
     inv_dir=rcp(dir),
-	min_step=(col_min-old)*inv_dir,
-	max_step=(col_max-old)*inv_dir;
-	return Sat(Max(Min(min_step, max_step)));
+   min_step=(col_min-old)*inv_dir,
+   max_step=(col_max-old)*inv_dir;
+   return Sat(Max(Min(min_step, max_step)));
 }
 Half GetBlend(VecH4 old, VecH4 cur, VecH4 col_min, VecH4 col_max)
 {
-	VecH4 dir=cur-old,
+   VecH4 dir=cur-old,
      inv_dir=rcp(dir),
-	 min_step=(col_min-old)*inv_dir,
-	 max_step=(col_max-old)*inv_dir;
-	return Sat(Max(Min(min_step, max_step)));
+    min_step=(col_min-old)*inv_dir,
+    max_step=(col_max-old)*inv_dir;
+   return Sat(Max(Min(min_step, max_step)));
 }
 /******************************************************************************/
 void TestVel(VecH2 vel, VecH2 test_vel, inout Half old_weight)
