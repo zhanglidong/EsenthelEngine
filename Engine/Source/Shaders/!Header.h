@@ -185,6 +185,12 @@
 #define TexPoint(   image, uv     )   image.SampleLevel(SamplerPoint, uv, 0)
 #define TexPointOfs(image, uv, ofs)   image.SampleLevel(SamplerPoint, uv, 0, ofs)
 
+#define TexMin(   image, uv     )   image.SampleLevel(SamplerMinimum, uv, 0)
+#define TexMinOfs(image, uv, ofs)   image.SampleLevel(SamplerMinimum, uv, 0, ofs)
+
+#define TexMax(   image, uv     )   image.SampleLevel(SamplerMaximum, uv, 0)
+#define TexMaxOfs(image, uv, ofs)   image.SampleLevel(SamplerMaximum, uv, 0, ofs)
+
 #define TexGather(   image, uv     )   image.Gather(SamplerPoint, uv     ) // gather available since SM_4_1, GL 4.0, GL ES 3.1
 #define TexGatherOfs(image, uv, ofs)   image.Gather(SamplerPoint, uv, ofs) // gather available since SM_4_1, GL 4.0, GL ES 3.1
 
@@ -466,6 +472,8 @@ Texture2DMS<Flt  , MS_SAMPLES> DepthMS;
        SAMPLER(SamplerLinearCWW  , SSI_LINEAR_CWW  );
 SHADOW_SAMPLER(SamplerShadowMap  , SSI_SHADOW      );
        SAMPLER(SamplerFont       , SSI_FONT        );
+       SAMPLER(SamplerMinimum    , SSI_MINIMUM     );
+       SAMPLER(SamplerMaximum    , SSI_MAXIMUM     );
 /******************************************************************************/
 // force convert to Half (can be used for testing Precisions)
 Half  HALF(Flt  x) {return f16tof32(f32tof16(x));}

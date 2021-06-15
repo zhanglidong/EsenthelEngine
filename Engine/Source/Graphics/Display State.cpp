@@ -750,6 +750,8 @@ void DisplayState::setDeviceSettings()
    SamplerLinearCWW  .set(SSI_LINEAR_CWW);
    SamplerShadowMap  .set(SSI_SHADOW);
    SamplerFont       .set(SSI_FONT);
+   SamplerMinimum    .set(SSI_MINIMUM);
+   SamplerMaximum    .set(SSI_MAXIMUM);
  //SPSet("AllowAlphaToCoverage", D.multiSample() || D.densityByte()==255);
 
 #if GL

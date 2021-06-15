@@ -493,7 +493,7 @@ struct WaterShader
 }extern
    WS;
 
-extern ShaderSampler SamplerPoint, SamplerLinearWrap, SamplerLinearWCC, SamplerLinearCWC, SamplerLinearCWW, SamplerLinearClamp, SamplerFont, SamplerAnisotropic, SamplerAnisotropicClamp, SamplerShadowMap;
+extern ShaderSampler SamplerPoint, SamplerLinearWrap, SamplerLinearWCC, SamplerLinearCWC, SamplerLinearCWW, SamplerLinearClamp, SamplerMinimum, SamplerMaximum, SamplerFont, SamplerAnisotropic, SamplerAnisotropicClamp, SamplerShadowMap;
 
 void Create2DSampler         ();
 void CreateFontSampler       ();

@@ -1885,7 +1885,9 @@ Int GetSamplerIndex(CChar8 *name)
    if(Equal(name, "SamplerLinearCWW"  ))return SSI_LINEAR_CWW;
    if(Equal(name, "SamplerShadowMap"  ))return SSI_SHADOW;
    if(Equal(name, "SamplerFont"       ))return SSI_FONT;
-                                        ASSERT(SSI_NUM==7);
+   if(Equal(name, "SamplerMinimum"    ))return SSI_MINIMUM;
+   if(Equal(name, "SamplerMaximum"    ))return SSI_MAXIMUM;
+                                        ASSERT(SSI_NUM==9);
                                         return -1;
 }
 static void TestBuffer(C Str8 &name, Int bind_slot)

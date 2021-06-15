@@ -61,7 +61,9 @@
 #define SSI_SHADOW       4
 #define SSI_FONT         5
 #define SSI_LINEAR_CWW   6
-#define SSI_NUM          7
+#define SSI_MINIMUM      7
+#define SSI_MAXIMUM      8
+#define SSI_NUM          9
 
 // Material Textures
 #define TEX_IS_ROUGH 1 // if texture has roughness (if 0 then it has smoothness)

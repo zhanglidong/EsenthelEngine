@@ -12,7 +12,7 @@ MotionBlur         Mtn;
 DepthOfField       Dof;
 WaterShader        WS;
 
-ShaderSampler SamplerPoint, SamplerLinearWrap, SamplerLinearWCC, SamplerLinearCWC, SamplerLinearCWW, SamplerLinearClamp, SamplerFont, SamplerAnisotropic, SamplerAnisotropicClamp, SamplerShadowMap;
+ShaderSampler SamplerPoint, SamplerLinearWrap, SamplerLinearWCC, SamplerLinearCWC, SamplerLinearCWW, SamplerLinearClamp, SamplerMinimum, SamplerMaximum, SamplerFont, SamplerAnisotropic, SamplerAnisotropicClamp, SamplerShadowMap;
 /******************************************************************************/
 // MAIN SHADER
 /******************************************************************************/
@@ -148,6 +148,8 @@ void MainShaderClass::del()
    SamplerLinearCWC       .del();
    SamplerLinearCWW       .del();
    SamplerLinearClamp     .del();
+   SamplerMinimum         .del();
+   SamplerMaximum         .del();
    SamplerFont            .del();
    SamplerAnisotropic     .del();
    SamplerAnisotropicClamp.del();
@@ -187,6 +189,19 @@ void MainShaderClass::createSamplers()
    sd.AddressW=D3D11_TEXTURE_ADDRESS_WRAP;
    SamplerLinearCWW.create(sd);
 
+   sd.Filter  =D3D11_FILTER_MINIMUM_MIN_MAG_MIP_LINEAR; // this must be LINEAR to take Min from multiple texels, POINT would work as 'SamplerPoint'
+   sd.AddressU=D3D11_TEXTURE_ADDRESS_CLAMP;
+   sd.AddressV=D3D11_TEXTURE_ADDRESS_CLAMP;
+   sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
+   SamplerMinimum.createTry(sd); // optional because not supported everywhere - https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_filter
+
+   sd.Filter  =D3D11_FILTER_MAXIMUM_MIN_MAG_MIP_LINEAR; // this must be LINEAR to take Max from multiple texels, POINT would work as 'SamplerPoint'
+   sd.AddressU=D3D11_TEXTURE_ADDRESS_CLAMP;
+   sd.AddressV=D3D11_TEXTURE_ADDRESS_CLAMP;
+   sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
+   SamplerMaximum.createTry(sd); // optional because not supported everywhere - https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_filter
+
+   // !! THIS AT THE END BECAUSE IT MODIFIES 'ComparisonFunc' !!
    sd.Filter  =D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
    sd.AddressU=D3D11_TEXTURE_ADDRESS_CLAMP;
    sd.AddressV=D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -223,6 +238,36 @@ void MainShaderClass::createSamplers()
          SamplerLinearClamp.filter_mag=GL_LINEAR;
    REPAO(SamplerLinearClamp.address)=GL_CLAMP_TO_EDGE;
          SamplerLinearClamp.create();
+
+// these are optional because not supported everywhere - https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_texture_filter_minmax.txt
+#ifdef GL_TEXTURE_REDUCTION_MODE_EXT
+         SamplerMinimum.filter_min=GL_LINEAR; // this must be GL_LINEAR to take Min from multiple texels, GL_NEAREST would work as 'SamplerPoint'
+         SamplerMinimum.filter_mag=GL_LINEAR; // this must be GL_LINEAR to take Min from multiple texels, GL_NEAREST would work as 'SamplerPoint'
+   REPAO(SamplerMinimum.address)=GL_CLAMP_TO_EDGE;
+         SamplerMinimum.create();
+
+         SamplerMaximum.filter_min=GL_LINEAR; // this must be GL_LINEAR to take Max from multiple texels, GL_NEAREST would work as 'SamplerPoint'
+         SamplerMaximum.filter_mag=GL_LINEAR; // this must be GL_LINEAR to take Max from multiple texels, GL_NEAREST would work as 'SamplerPoint'
+   REPAO(SamplerMaximum.address)=GL_CLAMP_TO_EDGE;
+         SamplerMaximum.create();
+
+   if(SamplerMinimum.is())
+   {
+      glGetError(); // clear any previous errors
+      glSamplerParameteri(SamplerMinimum.sampler, GL_TEXTURE_REDUCTION_MODE_EXT, GL_MIN);
+      if(glGetError()!=GL_NO_ERROR)SamplerMinimum.del(); // delete on error
+   }
+   if(SamplerMaximum.is())
+   {
+      glGetError(); // clear any previous errors
+      glSamplerParameteri(SamplerMaximum.sampler, GL_TEXTURE_REDUCTION_MODE_EXT, GL_MAX);
+      if(glGetError()!=GL_NO_ERROR)SamplerMaximum.del(); // delete on error
+   }
+   #if GL_ES
+      if(SamplerMinimum.sampler_no_filter)glSamplerParameteri(SamplerMinimum.sampler_no_filter, GL_TEXTURE_REDUCTION_MODE_EXT, GL_MIN);
+      if(SamplerMaximum.sampler_no_filter)glSamplerParameteri(SamplerMaximum.sampler_no_filter, GL_TEXTURE_REDUCTION_MODE_EXT, GL_MAX);
+   #endif
+#endif
 
          SamplerFont.filter_min=GL_LINEAR_MIPMAP_LINEAR;
          SamplerFont.filter_mag=GL_LINEAR;

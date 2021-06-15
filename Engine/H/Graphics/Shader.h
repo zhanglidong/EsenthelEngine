@@ -21,6 +21,8 @@ struct ShaderSampler
    UInt filter_min, filter_mag;
    UInt address[3];
 
+   Bool is()C {return sampler!=0;}
+
           void create();
    inline void setPS(Int index)C {set(index);}
 #endif
