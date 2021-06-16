@@ -1606,7 +1606,7 @@ void RendererClass::tAA()
       resolveMultiSample(); // process MSAA but not 'downSample' (Super-Sampling) because quality will suffer
 
       /*
-      by default 1 1 previous frame of color RT is used that continously gets updated with new data, simplified:
+      by default 1 previous frame of color RT is used that continously gets updated with new data, simplified:
          old=Lerp(old, cur, 1.0/8) which is make 'old' look more like 'cur'
       So even after 100 frames, it still contains some tiny amount of data from the first frame
 
