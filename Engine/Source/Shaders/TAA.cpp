@@ -32,7 +32,7 @@ DUAL_HISTORY=1
 
 #define MERGE_CUBIC_MIN_MAX 0 // Actually disable since it causes ghosting (visible when rotating camera around a character in the dungeons, perhaps range for MIN MAX can't be big), enable since this version is slightly better because: uses 12 tex reads (4*4 -4 corners), uses 12 samples for MIN/MAX which reduces flickering a bit, however has a lot more arithmetic calculations because of min/max x12 and each sample color is multiplied by weight separately
 
-#define DUAL_ADJUST_OLD 0 // disable because didn't make any significant difference
+#define DUAL_ADJUST_OLD 0 // disable because didn't make any significant difference (in some tests it increased flickering)
 /******************************************************************************/
 BUFFER(TAA)
    Vec2 TAAOffset,
@@ -416,8 +416,6 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       old.rgb=YCoCg4ToRGB(old.rgb);
    }else
    {
-      // FIXME: what about 'old1' for DUAL_HISTORY
-
    #if 1 // alpha used for glow #RTOutput
       Half blend=GetBlend(old, cur, col_min, col_max);
    #else
@@ -439,6 +437,9 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       old=Lerp(old, cur, blend);
       #if ALPHA
          old_alpha=Lerp(old_alpha, cur_alpha, blend);
+      #endif
+      #if DUAL_HISTORY
+         old1=Lerp(old1, cur, blend);
       #endif
    #else // don't do this, because it will cause jittered ghosting (some pixels will look brighter and some look darker, depending on the color difference between old and new), above code works much better
       old_weight*=(1-blend); // 'old_weight' gets smaller, multiplied by "1-blend"
