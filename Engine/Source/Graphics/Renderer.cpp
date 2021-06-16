@@ -1610,7 +1610,7 @@ void RendererClass::tAA()
          old=Lerp(old, cur, 1.0/8) which is make 'old' look more like 'cur'
       So even after 100 frames, it still contains some tiny amount of data from the first frame
 
-      D.tAADualHistory works by using 2 color RT history, both get updated like this:
+      'D.tAADualHistory' works by using 2 color RT history, both get updated like this:
       old =Lerp(old , cur, 1.0/8)
       old1=Lerp(old1, cur, 1.0/8)
       and weight is increased (weight+=1/8) to know how much data we have for those RT's
