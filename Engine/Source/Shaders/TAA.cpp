@@ -19,7 +19,7 @@ DUAL_HISTORY=1
 
 #define NEAREST_DEPTH_VEL 1
 
-#define VEL_EPS 0.003
+#define VEL_EPS 0.006
 
 #define CUBIC 1
 #if     CUBIC
@@ -422,13 +422,51 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       Half blend=GetBlend(old.rgb, cur.rgb, col_min.rgb, col_max.rgb);
    #endif
 
+      /*if(Q)
+      {
+         // to get average value closer to median, values should be Sqrt before adding, and Sqr after average:
+         // Sqr ((Sqrt(2)+Sqrt(2)+Sqrt(2)+Sqrt(10))/4)=3.42
+         //     ((     2 +     2 +     2 +     10 )/4)=4
+         // Sqrt((Sqr (2)+Sqr (2)+Sqr (2)+Sqr (10))/4)=5.29
+         Half dist_sum=0;
+         UNROLL for(Int y=-1; y<=1; y++)
+         UNROLL for(Int x=-1; x<=1; x++)if(x || y)
+         {
+            Vec2 ofs=Vec2(x, y)*ImgSize.xy;
+            VecH cur=TexLod(Img , cur_tex+ofs).rgb;
+            VecH old=TexLod(Img1, old_tex+ofs).rgb;
+            if(E)
+            {
+               cur=LinearToSRGBFast(cur);
+               old=LinearToSRGBFast(old);
+            }
+            Half dist=Dist(cur, old);
+            if(W)dist=Sqrt(dist);
+            dist_sum+=dist;
+         }
+         Half dist=dist_sum/(3*3-1);
+         if(W)dist=Sqr(dist);
+
+         //  low distance = move blend to 0
+         // high distance = keep blend
+         blend*=Sat(dist*X*100-Y*100);
+      }else
+      if(W)
+      {
+      }else
+      if(E)
+      {
+         blend=0;
+      }else*/
       if(DEPTH_FOREGROUND(depth)) // make sky unaffected by movement, because when cam zoom in/out or cam move then sky doesn't change, it only has some values when rotating camera. In tests it was better to use nearest 'depth' instead of depth at 'inTex'.
       {
          Half max_delta_vel_len=Sqrt(max_delta_vel_len2),
-              blend_move=max_delta_vel_len/VEL_EPS,
-              blend_min=1.0/32; // make sure there's some blend even for static pixels, this will increase flickering but will help boost lighting changes and potential material/texture animations. 1/32 was chosen, 1/16 and 1/8 allowed faster changes but had bigger flickering.
-         blend*=blend_move+blend_min; // works better than "blend*=Sat(blend_move+blend_min);"
+              blend_move=max_delta_vel_len/VEL_EPS;
+         //Half blend_min=1.0/32; // make sure there's some blend even for static pixels, this will increase flickering but will help boost lighting changes and potential material/texture animations. 1/32 was chosen, 1/16 and 1/8 allowed faster changes but had bigger flickering.
+         //blend*=blend_move+blend_min; // works better than "blend*=Sat(blend_move+blend_min);"
+      #if !DUAL_HISTORY
          old_weight*=1-Sat(blend_move); // optional boost based on movement FIXME: broken for DUAL_HISTORY
+      #endif
       }
 
       blend=Sat(blend);
