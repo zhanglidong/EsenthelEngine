@@ -414,33 +414,34 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       VecH4 ycocg_cur    =RGBToYCoCg4(cur);
       old=Lerp(old, ycocg_cur, Sat(GetBlend(old.rgb, ycocg_cur.rgb, ycocg_min.rgb, ycocg_max.rgb)));
       old.rgb=YCoCg4ToRGB(old.rgb);
-   }
-
-#if 1 // alpha used for glow #RTOutput
-   Half blend=GetBlend(old, cur, col_min, col_max);
-#else
-   Half blend=GetBlend(old.rgb, cur.rgb, col_min.rgb, col_max.rgb);
-#endif
-
-   if(DEPTH_FOREGROUND(depth)) // make sky unaffected by movement, because when cam zoom in/out or cam move then sky doesn't change, it only has some values when rotating camera. In tests it was better to use nearest 'depth' instead of depth at 'inTex'.
+   }else
    {
-      Half max_delta_vel_len=Sqrt(max_delta_vel_len2),
-           blend_move=max_delta_vel_len/VEL_EPS,
-           blend_min=1.0/32; // make sure there's some blend even for static pixels, this will increase flickering but will help boost lighting changes and potential material/texture animations. 1/32 was chosen, 1/16 and 1/8 allowed faster changes but had bigger flickering.
-      blend*=blend_move+blend_min; // works better than "blend*=Sat(blend_move+blend_min);"
-    //old_weight*=1-Sat(blend_move); // optional boost based on movement, currently not needed because the main formula is good enough
-   }
-
-   blend=Sat(blend);
-
-#if 1 // better
-   old=Lerp(old, cur, blend);
-   #if ALPHA
-      old_alpha=Lerp(old_alpha, cur_alpha, blend);
+   #if 1 // alpha used for glow #RTOutput
+      Half blend=GetBlend(old, cur, col_min, col_max);
+   #else
+      Half blend=GetBlend(old.rgb, cur.rgb, col_min.rgb, col_max.rgb);
    #endif
-#else // don't do this, because it will cause jittered ghosting (some pixels will look brighter and some look darker, depending on the color difference between old and new), above code works much better
-   old_weight*=(1-blend); // 'old_weight' gets smaller, multiplied by "1-blend"
-#endif
+
+      if(DEPTH_FOREGROUND(depth)) // make sky unaffected by movement, because when cam zoom in/out or cam move then sky doesn't change, it only has some values when rotating camera. In tests it was better to use nearest 'depth' instead of depth at 'inTex'.
+      {
+         Half max_delta_vel_len=Sqrt(max_delta_vel_len2),
+              blend_move=max_delta_vel_len/VEL_EPS,
+              blend_min=1.0/32; // make sure there's some blend even for static pixels, this will increase flickering but will help boost lighting changes and potential material/texture animations. 1/32 was chosen, 1/16 and 1/8 allowed faster changes but had bigger flickering.
+         blend*=blend_move+blend_min; // works better than "blend*=Sat(blend_move+blend_min);"
+         old_weight*=1-Sat(blend_move); // optional boost based on movement
+      }
+
+      blend=Sat(blend);
+
+   #if 1 // better
+      old=Lerp(old, cur, blend);
+      #if ALPHA
+         old_alpha=Lerp(old_alpha, cur_alpha, blend);
+      #endif
+   #else // don't do this, because it will cause jittered ghosting (some pixels will look brighter and some look darker, depending on the color difference between old and new), above code works much better
+      old_weight*=(1-blend); // 'old_weight' gets smaller, multiplied by "1-blend"
+   #endif
+   }
 
 #if !DUAL_HISTORY
       Half cur_weight=CUR_WEIGHT, total_weight=old_weight+cur_weight;
