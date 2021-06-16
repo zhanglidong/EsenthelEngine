@@ -1605,6 +1605,18 @@ void RendererClass::tAA()
    {
       resolveMultiSample(); // process MSAA but not 'downSample' (Super-Sampling) because quality will suffer
 
+      /*
+      by default 1 1 previous frame of color RT is used that continously gets updated with new data, simplified:
+         old=Lerp(old, cur, 1.0/8) which is make 'old' look more like 'cur'
+      So even after 100 frames, it still contains some tiny amount of data from the first frame
+
+      D.tAADualHistory works by using 2 color RT history, both get updated like this:
+      old =Lerp(old , cur, 1.0/8)
+      old1=Lerp(old1, cur, 1.0/8)
+      and weight is increased (weight+=1/8) to know how much data we have for those RT's
+      once both RT's get full, then we can completely discard 'old', treat it as empty, and use data from 'old1' (this actually works by moving 'old1' into 'old': "old=old1" and treating 'old1' as empty, by settings its weight=0)
+      This way we're sure that the RT's contain only 8 last frames of data.
+      */
       ImageRTDesc  rt_desc(_col->w(), _col->h(), IMAGERT_ONE);
       Bool         alpha=processAlpha(), dual=(!alpha && D.tAADualHistory()); // dual incompatible with alpha #TAADualAlpha
       IMAGERT_TYPE weight_type=(alpha ? IMAGERT_TWO : IMAGERT_ONE), // alpha ? (X=alpha, Y=weight) : (X=weight); !! store alpha in X so it can be used for '_alpha' RT !!

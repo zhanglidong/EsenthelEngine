@@ -416,6 +416,8 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       old.rgb=YCoCg4ToRGB(old.rgb);
    }else
    {
+      // FIXME: what about 'old1' for DUAL_HISTORY
+
    #if 1 // alpha used for glow #RTOutput
       Half blend=GetBlend(old, cur, col_min, col_max);
    #else
@@ -428,7 +430,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
               blend_move=max_delta_vel_len/VEL_EPS,
               blend_min=1.0/32; // make sure there's some blend even for static pixels, this will increase flickering but will help boost lighting changes and potential material/texture animations. 1/32 was chosen, 1/16 and 1/8 allowed faster changes but had bigger flickering.
          blend*=blend_move+blend_min; // works better than "blend*=Sat(blend_move+blend_min);"
-         old_weight*=1-Sat(blend_move); // optional boost based on movement
+         old_weight*=1-Sat(blend_move); // optional boost based on movement FIXME: broken for DUAL_HISTORY
       }
 
       blend=Sat(blend);
@@ -459,26 +461,28 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    #endif
 #else
    // #TAADualAlpha
-   Half cur_weight=CUR_WEIGHT/2, total_weight=old_weight+cur_weight;
-   if(old_weight<0.5 - cur_weight/2) // fill 1st history RT
+   // old_weight<0.5 means 'old' is being filled from 0 (empty) .. 0.5 (full) and 'old1' is empty, old_weight>0.5 means 'old' is full and 'old1' is being filled from 0.5 (empty) .. 1 (full)
+   Half cur_weight=CUR_WEIGHT/2, // since we operate on 0 (empty) .. 0.5 (full) we need to make cur weight 2x smaller
+      total_weight=old_weight+cur_weight;
+   outWeight=total_weight;
+   if(old_weight<0.5 - cur_weight/2) // fill 1st history RT (since 'old_weight' is stored in 8-bit RT, then it won't be exactly 0.5, so we must use some epsilon, the best choice is half of 'cur_weight' step which is "cur_weight/2")
    {
-      outWeight=total_weight;
       outOld1=outOld=outNext=old*(old_weight/total_weight) + cur*(cur_weight/total_weight);
-   }else // fill 2nd history RT
+   }else // old_weight>0.5 = 1st history RT is full, fill 2nd history RT
    {
-      outWeight=total_weight;
       if(DUAL_ADJUST_OLD)
       {
-            Half ow=1, cw=CUR_WEIGHT, tw=ow+cw;
-            outOld=old*(ow/tw) + cur*(cw/tw);
+            Half ow=1, cw=CUR_WEIGHT, tw=ow+cw; // here we know 1st history RT is full, so we can use constants to make calculations faster
+            outOld=old*(ow/tw) + cur*(cw/tw); // apply new color onto 'old'
       }else outOld=old;
 
-      Half old_weight1=old_weight-0.5, total=old_weight1+cur_weight;
-      outOld1=old1*(old_weight1/total) + cur*(cur_weight/total);
+      Half old_weight1=old_weight-0.5, // weight of the 2nd history RT calculated from 'old_weight', gives range 0 .. 0.5
+         total_weight1=old_weight1+cur_weight; // 'total_weight1' means 'old_weight1' after applying new data, in range 0 .. 0.5
+      outOld1=old1*(old_weight1/total_weight1) + cur*(cur_weight/total_weight1); // apply new color onto 'old1'
 
-      outNext=Lerp(outOld, outOld1, DUAL_ADJUST_OLD ? Sqr(total*2) : total*2);
+      outNext=Lerp(outOld, outOld1, DUAL_ADJUST_OLD ? Sqr(total_weight1*2) : total_weight1*2); // 'old1' is more recent, but may not be fully set yet, so use it based on its weight and remaining values take from 'old'. If we're adjusting DUAL_ADJUST_OLD then 'old' gets updated with latest color, so we can make 'old1' less significant. *2 because here range is 0 .. 0.5
 
-      if(total>=0.5 - cur_weight/2) // filled all RT's
+      if(total_weight1>=0.5 - cur_weight/2) // filled all history RT's (1st history RT is full, 2nd history RT is full)
       {
          outOld=outOld1; // move Old1 to Old
          outWeight=0.5; // mark Old1 as empty
