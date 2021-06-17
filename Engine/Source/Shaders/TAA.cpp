@@ -281,6 +281,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       Half cur_alpha=Sat(cs.texX(ImgX)); // use Sat because of cubic sharpening potentially giving negative values
    #endif
 #else
+   if(CLAMP)cur_tex=UVClamp(cur_tex);
    #if ALPHA
       Half cur_alpha=TexLod(ImgX, cur_tex);
    #endif
