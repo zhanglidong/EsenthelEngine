@@ -486,7 +486,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    Half max_delta_vel_len=Sqrt(max_delta_vel_len2),
         blend_move=Sat(1-max_delta_vel_len/VEL_EPS);
 #if DUAL_HISTORY
-   if(blend_move>=0.99)old_weight=0; // for DUAL_HISTORY 'old_weight' affects 'old' and 'old1' in a special way, so can't just modify it easily
+   if(blend_move<=0)old_weight=0; // for DUAL_HISTORY 'old_weight' affects 'old' and 'old1' in a special way, so can't just modify it easily
 #else
    old_weight*=blend_move;
 #endif
