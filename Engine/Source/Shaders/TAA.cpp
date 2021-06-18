@@ -80,6 +80,8 @@ ALPHA=1
 
 #define MERGE_CUBIC_MIN_MAX 0 // Actually disable since it causes ghosting (visible when rotating camera around a character in the dungeons, perhaps range for MIN MAX can't be big), enable since this version is slightly better because: uses 12 tex reads (4*4 -4 corners), uses 12 samples for MIN/MAX which reduces flickering a bit, however has a lot more arithmetic calculations because of min/max x12 and each sample color is multiplied by weight separately
 
+#define MERGE_ADJUST_OLD 1 // 1=faster
+
 #define DUAL_ADJUST_OLD 1
 /******************************************************************************/
 BUFFER(TAA)
@@ -101,7 +103,7 @@ VecH4 RGBToYCoCg(VecH4 col)
                 Dot(col.rgb, VecH(-0.25, 0.50, -0.25)),
                     col.a                            );
 }
-VecH RGBToYCoCg4(VecH col) // faster but scales *4
+VecH RGBToYCoCg4(VecH col) // faster but scales RGB *4
 {
 #if 0
    return VecH(Dot(col, VecH( 1, 2,  1)),
@@ -113,7 +115,7 @@ VecH RGBToYCoCg4(VecH col) // faster but scales *4
               -col.r   + col.g*2 - col.b );
 #endif
 }
-VecH4 RGBToYCoCg4(VecH4 col) // faster but scales *4
+VecH4 RGBToYCoCg4(VecH4 col) // faster but scales RGB *4
 {
 #if 0
    return VecH4(Dot(col.rgb, VecH( 1, 2,  1)),
@@ -496,14 +498,16 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
    // NEIGHBOR CLAMP
 #if YCOCG
-   VecH4 ycocg_old=RGBToYCoCg4(old);
-   VecH4 ycocg_cur=RGBToYCoCg4(cur);
-   Half      blend=GetBlend(ycocg_old, ycocg_cur, ycocg_min, ycocg_max); // alpha used for glow #RTOutput
+      VecH ycocg_old=RGBToYCoCg4(old.rgb);
+      VecH ycocg_cur=RGBToYCoCg4(cur.rgb);
+      Half     blend=GetBlend(ycocg_old, ycocg_cur, ycocg_min.rgb, ycocg_max.rgb);
+   #if !MERGE_ADJUST_OLD
+      Half glow_clamp=Mid(old.a, ycocg_min.a, ycocg_max.a); // glow in Alpha Channel #RTOutput
+   #endif
 #else
-   #if 1 // alpha used for glow #RTOutput
-      Half blend=GetBlend(old, cur, col_min, col_max);
-   #else
       Half blend=GetBlend(old.rgb, cur.rgb, col_min.rgb, col_max.rgb);
+   #if !MERGE_ADJUST_OLD
+      Half glow_clamp=Mid(old.a, col_min.a, col_max.a); // glow in Alpha Channel #RTOutput
    #endif
 #endif
 
@@ -517,53 +521,61 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
     /*{ no because results are too sharp
          new_flicker=old_flicker + Lerp(-CUR_WEIGHT, CUR_WEIGHT, difference);
-         Half is_flicker=                                    new_flicker  ; // too sharp
-         Half is_flicker=Sat(LerpR(CUR_WEIGHT,            1, new_flicker)); // too sharp!
-         Half is_flicker=Sat(LerpR(CUR_WEIGHT, CUR_WEIGHT*2, new_flicker)); // too sharp!!
+         Half flicker=                                    new_flicker  ; // too sharp
+         Half flicker=Sat(LerpR(CUR_WEIGHT,            1, new_flicker)); // too sharp!
+         Half flicker=Sat(LerpR(CUR_WEIGHT, CUR_WEIGHT*2, new_flicker)); // too sharp!!
       }
       {
          new_flicker=old_flicker + Lerp(-FLICKER_STEP, 0.5, difference);
-         Half is_flicker=                                 new_flicker  ; // too sharp
-         Half is_flicker=Sat(LerpR(0.5, 1               , new_flicker)); // too sharp!
-         Half is_flicker=Sat(LerpR(0.5, 0.5+FLICKER_STEP, new_flicker)); // too sharp!!
+         Half flicker=                                 new_flicker  ; // too sharp
+         Half flicker=Sat(LerpR(0.5, 1               , new_flicker)); // too sharp!
+         Half flicker=Sat(LerpR(0.5, 0.5+FLICKER_STEP, new_flicker)); // too sharp!!
       }*/
    #if FLICKER_WEIGHT
-      new_flicker=old_flicker*old_weight_1 + difference*cur_weight_1;
+      new_flicker=old_flicker*old_weight_1 + difference*cur_weight_1; // always 0..1
    #else
-      new_flicker=Lerp(old_flicker, difference, CUR_WEIGHT);
+      new_flicker=Lerp(old_flicker, difference, CUR_WEIGHT); // always 0..1
    #endif
 
-    //Half is_flicker=Sat(LerpR(CUR_WEIGHT, 1, new_flicker)); // cut-off small differences
-      Half is_flicker=new_flicker; // faster
+    //Half     flicker=Sat(LerpR(CUR_WEIGHT, 1, new_flicker)); // cut-off small differences
+      Half     flicker=new_flicker; // faster
+      Half not_flicker=1-Sqr(flicker); // use Sqr to consider only big flickering
 
-      blend*=1-Sqr(is_flicker); // use Sqr to consider only big flickering
+   #if !MERGE_ADJUST_OLD
+      old.a=Lerp(old.a, glow_clamp, not_flicker); // glow in Alpha Channel #RTOutput
+   #endif
+      blend*=not_flicker;
    }else
    {
       new_flicker=0; // always disable flickering for sky because on cam zoom in/out the sky motion vectors don't change, and it could retain some flicker from another object that wouldn't get cleared
+   #if !MERGE_ADJUST_OLD
+      old.a=glow_clamp; // glow in Alpha Channel #RTOutput
+   #endif
    }
 
    blend=Sat(blend);
 
-#if YCOCG
-   old=YCoCg4ToRGB(Lerp(ycocg_old, ycocg_cur, blend));
-#else
-   #if 1 // better
-      old=Lerp(old, cur, blend);
+#if !DUAL_HISTORY
+   Half cur_weight=CUR_WEIGHT, new_weight=old_weight+cur_weight,
+        old_weight_1=old_weight/new_weight, // old_weight_1+cur_weight_1=1
+        cur_weight_1;
+
+   // adjust 'old' towards 'cur'
+   #if MERGE_ADJUST_OLD // instead of adjusting 'old' we can just tweak its weight because it gets combined later with 'cur' anyway
+      // this needs to modify 'old_weight_1' and not ('old_weight' and 'new_weight') because that would increase flickering and in some tests it caused jittered ghosting (some pixels will look brighter and some look darker, depending on the color difference between old and new)
+      old_weight_1*=1-blend;
+      cur_weight_1 =1-old_weight_1;
+   #else
+      cur_weight_1=cur_weight/new_weight; // could be "1-old_weight_1" but then it won't be calculated in parallel
+      #if YCOCG
+         old.rgb=YCoCg4ToRGB(Lerp(ycocg_old, ycocg_cur, blend));
+      #else
+         old.rgb=Lerp(old.rgb, cur.rgb, blend); // old=Max(Min(old, col_max), col_min) is not enough because it can distort colors, what needs to be done is interpolation from 'old' to 'cur'
+      #endif
       #if ALPHA
          old_alpha=Lerp(old_alpha, cur_alpha, blend);
       #endif
-   #else // don't do this, because it will cause jittered ghosting (some pixels will look brighter and some look darker, depending on the color difference between old and new), above code works much better
-      old_weight*=(1-blend); // 'old_weight' gets smaller, multiplied by "1-blend"
    #endif
-#endif
-#if DUAL_HISTORY
-   old1=Lerp(old1, cur, blend); // TODO: for better precision this could use a separately calculated/processed 'blend1'
-#endif
-
-#if !DUAL_HISTORY
-   Half cur_weight=CUR_WEIGHT, new_weight=old_weight+cur_weight,
-        cur_weight_1=cur_weight/new_weight, // cur_weight_1+old_weight_1=1
-        old_weight_1=old_weight/new_weight; // could be "1-cur_weight_1" but then it won't be calculated in parallel
 
       outCol=outScreen=old      *old_weight_1 + cur      *cur_weight_1;
    #if ALPHA
@@ -582,6 +594,17 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    #endif
    //if(T)outScreen=VecH4(SRGBToLinearFast(new_flicker).xxx, 0); // visualize flicker
 #else
+   #if YCOCG
+      old.rgb=YCoCg4ToRGB(Lerp(ycocg_old, ycocg_cur, blend));
+   #else
+      old.rgb=Lerp(old.rgb, cur.rgb, blend); // old=Max(Min(old, col_max), col_min) is not enough because it can distort colors, what needs to be done is interpolation from 'old' to 'cur'
+   #endif
+   #if ALPHA
+      old_alpha=Lerp(old_alpha, cur_alpha, blend);
+   #endif
+
+   old1=Lerp(old1, cur, blend); // TODO: for better precision this could use a separately calculated/processed 'blend1', and 'old1.a' glow could be processed separately too
+
    // #TAADualAlpha
    // old_weight<0.5 means 'old' is being filled from 0 (empty) .. 0.5 (full) and 'old1' is empty, old_weight>0.5 means 'old' is full and 'old1' is being filled from 0.5 (empty) .. 1 (full)
    Half cur_weight=CUR_WEIGHT/2, // since we operate on 0 (empty) .. 0.5 (full) we need to make cur weight 2x smaller
