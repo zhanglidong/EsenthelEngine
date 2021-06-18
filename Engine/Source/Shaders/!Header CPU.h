@@ -39,7 +39,7 @@
 #define MOTION_BLUR_PREDICTIVE 1 // 1=assumes movement will continue along velocity and blur future movements too, enable because even though this mode is not correct (it blurs both ways, including the future) it helps prevent "leaking" when rotating camera around an object, where one side doesn't get blurred because it wants to get samples behind the object however they're not avaialble since the object covers them, so when blurring in both ways, we can just use samples from the other side
 
 // Temporal Anti-Aliasing
-#define TAA_SEPARATE_ALPHA 0 // 0=is faster and uses less memory however 'Renderer._alpha' may point to 'taa_new_weight' (X=alpha, Y=weight), 1=will create a separate Alpha RT just for '_alpha'
+#define TAA_SEPARATE_ALPHA 1 // if store alpha in a separate TAA RT, if 0 then it's stored in TAA Data RT
 #define TAA_OLD_VEL        1
 
 // Buffer Indexes

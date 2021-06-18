@@ -137,6 +137,14 @@ struct CubicFastSampler
             +TexLod(img, r).x*wr  // sample right edge (2 texels), both weights are negative
             +TexLod(img, d).x*wd; // sample lower edge (2 texels), both weights are negative
    }
+   Half texXY(ImageH2 img)
+   {
+      return TexLod(img, u).xy*wu  // sample upper edge (2 texels), both weights are negative
+            +TexLod(img, l).xy*wl  // sample left  edge (2 texels), both weights are negative
+            +TexLod(img, c).xy*wc  // sample center     (4 texels), all  weights are positive
+            +TexLod(img, r).xy*wr  // sample right edge (2 texels), both weights are negative
+            +TexLod(img, d).xy*wd; // sample lower edge (2 texels), both weights are negative
+   }
 };
 /******************************************************************************/
 VecH4 TexCubicFast   (Image img, Vec2 uv) {CubicFastSampler cs; cs.set(uv); return cs.tex   (img);}

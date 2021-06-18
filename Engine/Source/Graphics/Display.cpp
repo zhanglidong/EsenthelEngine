@@ -3360,8 +3360,8 @@ Rect ImgClamp(C Rect &screen, C VecI2 &size)
    Rect r((screen.min.x+D.w())*size.x/D.w2(), (D.h()-screen.max.y)*size.y/D.h2(),
           (screen.max.x+D.w())*size.x/D.w2(), (D.h()-screen.min.y)*size.y/D.h2());
    RectI ri=RoundGPU(r);
-   r.min=(ri.min+0.5f)/size; // yes +0.5 is needed
-   r.max=(ri.max-0.5f)/size; // yes -0.5 is needed
+   r.min=(ri.min + 0.5f + 1.0f/256)/size; // yes +0.5 is needed due to texture filtering, also add 1/256 of a texel size to make sure we won't be reading neighbors at all in case they are huge or NaN/Inf
+   r.max=(ri.max - 0.5f - 1.0f/256)/size; // yes -0.5 is needed due to texture filtering, also add 1/256 of a texel size to make sure we won't be reading neighbors at all in case they are huge or NaN/Inf
    return r;
 }
 
