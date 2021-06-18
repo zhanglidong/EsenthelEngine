@@ -1,3 +1,5 @@
+![Logo](https://esenthel.com/site/images/logo/GitHub%20Logo.jpg)
+
 ### About
 Full Source of Esenthel Engine and its Tools (http://esenthel.com) - a super optimized, high performance, minimal memory usage, rock solid stable, cross platform Game Engine (software to create Games and Applications).<br/>
 Esenthel strives to be pure perfection!<br/>
