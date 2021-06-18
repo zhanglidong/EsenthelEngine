@@ -47,28 +47,12 @@ class ListElm
       }
       return CompareIndex(a, b); // compare by index instead of returning 0, because only shared parents were checked, if 'a' is child of 'b' then we need to make sure that 'a' is listed after
    }
-   static int CompareTexSharp(C ListElm &a, C ListElm &b)
-   {
-      MemtN<C ListElm*, 128> as, bs;
-      for(C ListElm *p=&a; ; ){as.add(p); p=p.vis_parent; if(!p)break;}
-      for(C ListElm *p=&b; ; ){bs.add(p); p=p.vis_parent; if(!p)break;}
-      int  shared_parents=Min(as.elms(), bs.elms());
-      FREP(shared_parents)
-      {
-       C ListElm &a=*as[as.elms()-1-i],
-                 &b=*bs[bs.elms()-1-i];
-         if(int c=Compare     (a.texSharpness(), b.texSharpness()))return c;
-         if(int c=CompareIndex(a               , b               ))return c;
-      }
-      return CompareIndex(a, b); // compare by index instead of returning 0, because only shared parents were checked, if 'a' is child of 'b' then we need to make sure that 'a' is listed after
-   }
    static Str Size(C ListElm &data)
    {
       long size=data.fileSize(); if(!size)return S;
       Str    s=FileSize(size); if(!data.size_known)s+='+';
       return s;
    }
-   static Str TexSharp(C ListElm &data) {flt sharpness=data.texSharpness(); if(sharpness<2)return sharpness; return S;}
 
    static void IncludeTex(Memt<UID> &texs, C UID &tex_id) {if(tex_id.valid())texs.binaryInclude(tex_id);}
    static void IncludeTex(Memt<UID> &texs, C Elm &elm)
@@ -120,18 +104,6 @@ class ListElm
       }
    }
    long fileSize()C {ConstCast(T).calcTexSize(); return size;}
-
-   flt texSharpness()C
-   {
-      flt sharpness=3;
-      if(elm)if(C ElmMaterial *mtrl_data=elm.mtrlData())
-      {
-         if(mtrl_data.base_0_tex.valid())if(C TextureInfo *tex_info=TexInfos.find(mtrl_data.base_0_tex))MIN(sharpness, tex_info.sharpness);
-       //if(mtrl_data.base_1_tex.valid())if(C TextureInfo *tex_info=TexInfos.find(mtrl_data.base_1_tex))MIN(sharpness, tex_info.sharpness); ignore base1
-       //if(mtrl_data.base_2_tex.valid())if(C TextureInfo *tex_info=TexInfos.find(mtrl_data.base_2_tex))MIN(sharpness, tex_info.sharpness); ignore base2
-      }
-      return sharpness;
-   }
 
    void resetColor() {color=color_temp;}
    void highlight () {color.g=255;}
@@ -245,7 +217,7 @@ void  InitElmOrder()
    FREP(ELM_NUM)elms.include(ELM_TYPE(i)); // include elements that were not listed above (just in case)
    ElmOrderArray.setNum(elms.elms()); REPA(elms)ElmOrderArray(elms[i])=i;
 }
-/******************************************************************************/
+/******************************************************************************
 class TexInfoGetter
 {
    int       got_new_data=false;

@@ -4227,9 +4227,7 @@ class Elm
 class TextureInfo
 {
    int file_size=-1;
-   flt sharpness= 3; // 0..1
 
-   bool knownFileSize ()C {return file_size>=0;}
-   bool knownSharpness()C {return sharpness< 2;}
+   bool knownFileSize()C {return file_size>=0;}
 }
 /******************************************************************************/

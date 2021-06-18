@@ -65,14 +65,13 @@ public:
                             show_only_anim  ,
                             show_only_sound ,
                             file_size,
-                            tex_sharpness,
                             include_texture_size_in_object,
                             include_unpublished_elm_size,
                             flat_is,
                             flat_want,
                             list_all_children,
                             tapped_open;
-      int                   tapped_vis, icon_col, name_col, size_col, tex_sharp_col;
+      int                   tapped_vis, icon_col, name_col, size_col;
       flt                   tapped_time;
       UID                   lit_elm_id;
       Memc<ListElm>         data;
@@ -291,8 +290,6 @@ public:
 
    static void ShowFileSize(ProjectEx &proj);
           void showFileSize();
-   static void ShowTexSharp(ProjectEx &proj);
-          void showTexSharp();
    static void IncludeUnpublishedElmSize(ProjectEx &proj);
           void includeUnpublishedElmSize(bool on);
    static void IncludeTextureSizeInObject(ProjectEx &proj);

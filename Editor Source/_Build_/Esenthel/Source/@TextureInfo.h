@@ -3,10 +3,8 @@
 class TextureInfo
 {
    int file_size;
-   flt sharpness; // 0..1
 
-   bool knownFileSize ()C;
-   bool knownSharpness()C;
+   bool knownFileSize()C;
 
 public:
    TextureInfo();

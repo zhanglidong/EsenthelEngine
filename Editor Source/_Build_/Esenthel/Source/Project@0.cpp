@@ -3,7 +3,7 @@
 /******************************************************************************/
 ProjectEx Proj;
 /******************************************************************************/
-ThreadSafeMap<UID, TextureInfo> TexInfos(Compare); // since Textures are generated from Hash, they will be the same for all projects, so we can keep it outside of 'Project' class
+ThreadSafeMap<UID, TextureInfo> TexInfos; // since Textures are generated from Hash, they will be the same for all projects, so we can keep it outside of 'Project' class
 State StateProject(UpdateProject, DrawProject, InitProject, ShutProject);
 /******************************************************************************/
 int CompareProjPath(C UID &a, C UID &b) {return ComparePathNumber(Proj.elmFullName(a), Proj.elmFullName(b));}
@@ -464,7 +464,7 @@ void DrawProject()
    void ProjectEx::columnVisible(int column, bool visible)
    {
       flt col_width=list.columnWidth(column); // get column width before it's hidden, because after it's hidden, its width may be unavailable
-      list.columnsHidden(!list.file_size && !list.tex_sharpness);
+      list.columnsHidden(!list.file_size);
       setListPadding();
       list.columnVisible(column, visible);
       flt region_width=rect().w();
@@ -478,13 +478,6 @@ void DrawProject()
       list.file_size^=1;
       getFileSizes();
       columnVisible(list.size_col, list.file_size);
-   }
-   void ProjectEx::ShowTexSharp(ProjectEx &proj) {proj.showTexSharp();}
-          void ProjectEx::showTexSharp()
-   {
-      list.tex_sharpness^=1;
-      TIG.getTexSharpnessFromProject();
-      columnVisible(list.tex_sharp_col, list.tex_sharpness);
    }
    void ProjectEx::IncludeUnpublishedElmSize(ProjectEx &proj) {proj.includeUnpublishedElmSize(!proj.list.include_unpublished_elm_size);}
           void ProjectEx::includeUnpublishedElmSize(bool on)
@@ -755,7 +748,6 @@ void DrawProject()
          texture++;
          texture.New().create("In Objects", IncludeTextureSizeInObject, T).flag(MENU_TOGGLABLE).desc("Normally Texture File Sizes are included only in Material Elements.\nThis option will include Texture File Sizes additionally in Objects that reference them.");
          n.New().create("Include Unpublished Element Size", IncludeUnpublishedElmSize, T).flag(MENU_TOGGLABLE).desc("If include file size of elements that have Disabled Publishing");
-         n.New().create("Show Texture Sharpness", ShowTexSharp, T).flag(MENU_TOGGLABLE).desc("Sharpness is calculated by comparing first and second mip-maps of a Material Texture");
          n++;
          n.New().create("List Only Folders"   , ListOnlyFolder, T).flag(MENU_TOGGLABLE);
          n.New().create("List Only Objects"   , ListOnlyObj   , T).flag(MENU_TOGGLABLE);
@@ -777,17 +769,15 @@ void DrawProject()
 
       ListColumn lc[]=
       {
-         ListColumn(MEMBER(ListElm, opened_icon), 0       , S                  ), // 0 "Opened"
-         ListColumn(MEMBER(ListElm, icon       ), 0       , S                  ), // 1 "Icon"
-         ListColumn(MEMBER(ListElm, name       ), LCW_DATA, "Name"             ), // 2 Name
-         ListColumn(       ListElm:: Size        , 0.2f     , "Size"             ), // 3 File Size, don't use LCW_DATA because that could be slow because ListElm tex size calculation is slow
-         ListColumn(       ListElm:: TexSharp    , LCW_DATA, "Texture Sharpness"), // 4 Texture Sharpness
-      }; list.icon_col=1; list.name_col=2; list.size_col=3; list.tex_sharp_col=4;
-      lc[0].md.setCompareFunc(ListElm::CompareIndex   );
-      lc[1].md.setCompareFunc(ListElm::CompareIndex   );
-      lc[2].md.setCompareFunc(ListElm::CompareName    );
-      lc[3].md.setCompareFunc(ListElm::CompareSize    );
-      lc[4].md.setCompareFunc(ListElm::CompareTexSharp);
+         ListColumn(MEMBER(ListElm, opened_icon), 0       , S     ), // 0 "Opened"
+         ListColumn(MEMBER(ListElm, icon       ), 0       , S     ), // 1 "Icon"
+         ListColumn(MEMBER(ListElm, name       ), LCW_DATA, "Name"), // 2 Name
+         ListColumn(       ListElm:: Size        , 0.2f     , "Size"), // 3 File Size, don't use LCW_DATA because that could be slow because ListElm tex size calculation is slow
+      }; list.icon_col=1; list.name_col=2; list.size_col=3;
+      lc[0].md.setCompareFunc(ListElm::CompareIndex);
+      lc[1].md.setCompareFunc(ListElm::CompareIndex);
+      lc[2].md.setCompareFunc(ListElm::CompareName );
+      lc[3].md.setCompareFunc(ListElm::CompareSize );
       region+=list.create(lc, Elms(lc), true);
       for(int i=list.name_col+1; i<list.columns(); i++)list.columnVisible(i, false);
       list.flag|=LIST_MULTI_SEL; list.draw_column=-1;
@@ -3288,11 +3278,13 @@ void DrawProject()
    void ProjectEx::mtrlTexChanged()
    {
       if(list.file_size && list.its!=ElmList::ITS_ELM) // mtrl tex file size have changed
+      {
       #if 1 // delayed
-         AtomicSet(TIG.got_new_data, true);
+         //AtomicSet(TIG.got_new_data, true);
       #else // immediate
          refresh(false, false);
       #endif
+      }
    }
    void ProjectEx::DragElmsStart(ProjectEx &proj)
    {
@@ -3380,11 +3372,11 @@ void DrawProject()
          }
 
          // texture info
-         if(TIG.got_new_data)
+         /*if(TIG.got_new_data)
          {
             AtomicSet(TIG.got_new_data, false);
             refresh=true;
-         }
+         }*/
 
          if(refresh)T.refresh(false, false);
       }
@@ -5049,7 +5041,7 @@ void DrawProject()
    {
       if(list.file_size && !file_size_getter.created())file_size_getter.get(game_path);
    }
-   void ProjectEx::savedTex(C UID &tex_id, int size) {TexInfos(tex_id)->file_size=size; TIG.savedTex(tex_id);}
+   void ProjectEx::savedTex(C UID &tex_id, int size) {TexInfos(tex_id)->file_size=size; /*TIG.savedTex(tex_id);*/}
    bool  ProjectEx::saveTex(C Image &img, C UID &tex_id)
    {
       File f; img.save(f.writeMem()); f.pos(0);
@@ -5089,7 +5081,7 @@ void DrawProject()
          // load all world versions so builder knows what to process
          FREPA(elms){Elm &elm=elms[i]; if(elm.type==ELM_WORLD)worldVerGet(elm.id);}
          getFileSizes();
-         if(list.tex_sharpness)TIG.getTexSharpnessFromProject();
+         //if(list.tex_sharpness)TIG.getTexSharpnessFromProject();
       }
       ProjSettings.toGui();
       return result;
@@ -5102,7 +5094,7 @@ void DrawProject()
    ProjectEx& ProjectEx::del()
 {
       file_size_getter.stop();
-      TIG.stop();
+      //TIG.stop();
       HideProject();
 
       elm_undos.del();
@@ -5205,7 +5197,7 @@ ProjectEx::ProjectEx() : filter_is_id(false), filter_id(UIDZero), lit_elm_id(UID
 
 ProjectEx::OuterRegion::OuterRegion() : resize_on(false) {}
 
-ProjectEx::ElmList::ElmList() : ics(ICS_ALWAYS), its(ITS_ELM), show_all_elms(true), show_all_elm_types(true), show_only_folder(false), show_only_obj(false), show_only_mtrl(false), show_only_anim(false), show_only_sound(false), file_size(false), tex_sharpness(false), include_texture_size_in_object(false), include_unpublished_elm_size(false), flat_is(false), flat_want(false), list_all_children(false), tapped_open(false), tapped_vis(-1), icon_col(0), name_col(0), size_col(0), tex_sharp_col(0), tapped_time(0), lit_elm_id(UIDZero) {}
+ProjectEx::ElmList::ElmList() : ics(ICS_ALWAYS), its(ITS_ELM), show_all_elms(true), show_all_elm_types(true), show_only_folder(false), show_only_obj(false), show_only_mtrl(false), show_only_anim(false), show_only_sound(false), file_size(false), include_texture_size_in_object(false), include_unpublished_elm_size(false), flat_is(false), flat_want(false), list_all_children(false), tapped_open(false), tapped_vis(-1), icon_col(0), name_col(0), size_col(0), tapped_time(0), lit_elm_id(UIDZero) {}
 
 ProjectEx::ElmList::SoundPlay::SoundPlay() : lit_id(UIDZero), play_id(UIDZero) {}
 

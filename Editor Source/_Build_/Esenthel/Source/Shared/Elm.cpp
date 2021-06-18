@@ -3694,7 +3694,6 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       return false;
    }
    bool TextureInfo::knownFileSize()C {return file_size>=0;}
-   bool TextureInfo::knownSharpness()C {return sharpness< 2;}
 ElmObjClass::ElmObjClass() : flag(0) {}
 
 ElmObj::ElmObj() : mesh_id(UIDZero), base_id(UIDZero) {}
@@ -3735,6 +3734,6 @@ ElmMiniMap::ElmMiniMap() : areas_per_image(4), image_size(256), world_id(UIDZero
 
 Elm::Elm() : type(ELM_NONE), flag(0), file_size(-1), id(UID().randomizeValid()), parent_id(UIDZero), data(null) {}
 
-TextureInfo::TextureInfo() : file_size(-1), sharpness( 3) {}
+TextureInfo::TextureInfo() : file_size(-1) {}
 
 /******************************************************************************/
