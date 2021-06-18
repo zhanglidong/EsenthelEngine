@@ -1152,6 +1152,7 @@ Bool Application::create1()
    if(!D           .create())return false;
 #if WINDOWS_OLD
    if(!(flag&APP_HIDDEN) && hidden())show(true); // if we don't want window hidden, but it is (for example due to WS_EX_NOREDIRECTIONBITMAP) then show it
+   window().activate(); // manually activate because on Windows if application is loading for a long time, then it might lose focus
 #endif
 #if ANDROID
    if(_stay_awake){AWAKE_MODE temp=_stay_awake; _stay_awake=AWAKE_OFF; stayAwake(temp);} // on Android we need to apply this after window was created

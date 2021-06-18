@@ -3,19 +3,67 @@
 /******************************************************************************
 CLAMP, ALPHA, DUAL_HISTORY, GATHER, FILTER_MIN_MAX
 
-Img=Cur, Img1=Old, ImgXY=CurVel, ImgXY1=OldVel
+Img=Cur, Img1=Old, ImgXY=CurVel
 
-ALPHA=0
-   ImgX=Weight
-ALPHA=1
-   ImgXY2=AlphaWeight, ImgX=CurAlpha
-   
+TAA_OLD_VEL=1
+   ImgXY1=OldVel
+
 DUAL_HISTORY=1
    Img2=Old1
-/******************************************************************************/
-#define CUR_WEIGHT (1.0/8)
 
-#define YCOCG 0 // didn't improve quality much
+ALPHA=0
+   ImgXY2=Weight, Flicker
+ALPHA=1
+   ImgX=CurAlpha
+      MERGED_ALPHA=1
+         Img3=Alpha, Weight, Flicker
+      SEPARATE_ALPHA=1
+         ImgXY2=Weight, Flicker
+         ImgX1=Old Alpha
+
+
+   Following code is used for flicker detection (assuming at least 2 big changes are needed in a cycle)
+   Flt old=0, flicker=0;
+   Int cycle=8;
+   const Flt add_step=1.0f/(cycle*2-2);
+   const Flt mul_step=1.0f/cycle;
+   FREP(1000)
+   {
+      Int jitter=i%cycle;
+      Flt cur=(jitter==0);
+      //Flt cur=(jitter==1);
+      //Flt cur=(jitter<cycle/2);
+      //Flt cur=(i==0);
+      Flt difference=(old!=cur);
+      if(0) // this is correct however it produces sharp results which may produce artifacts on the screen (sharp transitions/artifacts)
+      {
+         if( difference)flicker+=1.0f/2;
+         else           flicker-=add_step;
+         Bool is_flicker=(flicker>0.5f+add_step/2);
+         Flt  is_flicker_f=LerpR(0.5f, 0.5f+add_step, flicker);
+      }else // instead use smooth version
+      {
+         flicker=Lerp(flicker, difference, mul_step);
+         Flt is_flicker_f=LerpR(mul_step, Lerp(mul_step, 1, mul_step), flicker);
+      }
+      flicker=Sat(flicker);
+      old=cur;
+   }
+/******************************************************************************/
+#define SEPARATE_ALPHA ( TAA_SEPARATE_ALPHA && ALPHA)
+#define   MERGED_ALPHA (!TAA_SEPARATE_ALPHA && ALPHA)
+
+#define CYCLE 8
+#define CUR_WEIGHT   (1.0/ CYCLE)
+#define FLICKER_STEP (1.0/(CYCLE*2-2))
+
+#define FLICKER_WEIGHT 0 // if flicker should be affected by weight (disable because if enabled then a lot of pixels at the screen edge get marked as flickering when rotating the camera)
+#define FLICKER_EPS    0.2 // this is value for color distance ~0..1 in sRGB gamma (lower numbers increase detection of flicker, higher numbers decrease detection of flicker), 0.2 was the smallest value that didn't cause noticable artifacts/blurriness on a particle fire effect
+
+#define YCOCG 0 // disable because didn't improve quality much and it also prevents FILTER_MIN_MAX
+#if     YCOCG
+   #define FILTER_MIN_MAX 0 // can't use FILTER_MIN_MAX with YCOCG
+#endif
 
 #define NEAREST_DEPTH_VEL 1
 
@@ -32,7 +80,7 @@ DUAL_HISTORY=1
 
 #define MERGE_CUBIC_MIN_MAX 0 // Actually disable since it causes ghosting (visible when rotating camera around a character in the dungeons, perhaps range for MIN MAX can't be big), enable since this version is slightly better because: uses 12 tex reads (4*4 -4 corners), uses 12 samples for MIN/MAX which reduces flickering a bit, however has a lot more arithmetic calculations because of min/max x12 and each sample color is multiplied by weight separately
 
-#define DUAL_ADJUST_OLD 0 // disable because didn't make any significant difference (in some tests it increased flickering)
+#define DUAL_ADJUST_OLD 1
 /******************************************************************************/
 BUFFER(TAA)
    Vec2 TAAOffset,
@@ -125,20 +173,21 @@ VecH4 YCoCg4ToRGB(VecH4 YCoCg4)
                 A     );
 }
 /******************************************************************************/
-Half GetBlend(VecH old, VecH cur, VecH col_min, VecH col_max)
+// these functions return how much we have to travel (0..1) from 'old' to 'cur' to be inside 'min', 'max'
+Half GetBlend(VecH old, VecH cur, VecH min, VecH max) // 'cur' should be somewhere within 'min', 'max' (however due to cubic filtering it can be outside)
 {
    VecH dir=cur-old,
-    inv_dir=rcp(dir),
-   min_step=(col_min-old)*inv_dir,
-   max_step=(col_max-old)*inv_dir;
+    inv_dir=rcp(dir), // NaN
+   min_step=(min-old)*inv_dir, // how much travel needed to reach 'min' boundary
+   max_step=(max-old)*inv_dir; // how much travel needed to reach 'max' boundary
    return Max(Min(min_step, max_step)); // don't 'Sat' to allow reporting high >1 differences (Warning: <0 can also be reported)
 }
-Half GetBlend(VecH4 old, VecH4 cur, VecH4 col_min, VecH4 col_max)
+Half GetBlend(VecH4 old, VecH4 cur, VecH4 min, VecH4 max) // 'cur' should be somewhere within 'min', 'max' (however due to cubic filtering it can be outside)
 {
    VecH4 dir=cur-old,
-     inv_dir=rcp(dir),
-    min_step=(col_min-old)*inv_dir,
-    max_step=(col_max-old)*inv_dir;
+     inv_dir=rcp(dir), // NaN
+    min_step=(min-old)*inv_dir, // how much travel needed to reach 'min' boundary
+    max_step=(max-old)*inv_dir; // how much travel needed to reach 'max' boundary
    return Max(Min(min_step, max_step)); // don't 'Sat' to allow reporting high >1 differences (Warning: <0 can also be reported)
 }
 /******************************************************************************/
@@ -156,18 +205,18 @@ void TestDepth(inout Flt depth, Flt d, inout VecI2 ofs, Int x, Int y)
 void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
           //NOPERSP Vec2 inPosXY:TEXCOORD1,
           //NOPERSP PIXEL                 ,
-             #if ALPHA
-                out VecH2 outWeight   :TARGET0,
+             #if MERGED_ALPHA
+                out VecH  outData  :TARGET0,
              #else
-                out Half  outWeight   :TARGET0,
+                out VecH2 outData  :TARGET0,
              #endif
-                out VecH4 outNext     :TARGET1,
-                out VecH4 outOld      :TARGET2
-             #if ALPHA && TAA_SEPARATE_ALPHA
-              , out Half  outNextAlpha:TARGET3 // #TAADualAlpha
+                out VecH4 outScreen:TARGET1,
+                out VecH4 outCol   :TARGET2
+             #if SEPARATE_ALPHA
+              , out Half  outAlpha :TARGET3 // #TAADualAlpha
              #endif
              #if DUAL_HISTORY
-              , out VecH4 outOld1     :TARGET3
+              , out VecH4 outCol1  :TARGET3
              #endif
             )
 {
@@ -207,21 +256,26 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    Vec2 cur_tex=inTex+TAAOffset,
         old_tex=inTex+vel;
 
-   // OLD WEIGHT + OLD ALPHA
+   // OLD DATA (WEIGHT + FLICKER + ALPHA)
+#if MERGED_ALPHA
+   VecH  old_data=TexLod(Img3, old_tex).xyz;
+   Half  old_alpha=old_data.x, old_weight=old_data.y, old_flicker=old_data.z;
+#else
+   VecH2 old_data=TexLod(ImgXY2, old_tex).xy;
+   Half  old_weight=old_data.x, old_flicker=old_data.y;
 #if ALPHA
-   VecH2 tex=TexLod(ImgXY2, old_tex).xy;
-#else
-   Half  tex=TexLod(ImgX  , old_tex).x;
+   Half  old_alpha=TexLod(ImgX1, old_tex).x;
 #endif
-
-#if !ALPHA
-   Half old_weight=tex.x;
-#else
-   Half old_weight=tex.y, old_alpha=tex.x;
 #endif
 
    // VIEWPORT TEST - if 'old_tex' is outside viewport then ignore it
-   if(any(old_tex!=UVClamp(old_tex)))old_weight=0; // if(any(old_tex<ImgClamp.xy || old_tex>ImgClamp.zw))old_weight=0;
+   if(any(old_tex!=UVClamp(old_tex))) // if(any(old_tex<ImgClamp.xy || old_tex>ImgClamp.zw))
+   {
+      old_weight=0;
+   #if !FLICKER_WEIGHT
+      old_flicker=0;
+   #endif
+   }
 
    // OLD VEL TEST
 #if TAA_OLD_VEL // if old velocity is different then ignore old, !! TODO: Warning: this ignores CLAMP !!
@@ -256,23 +310,28 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       TestVel(vel, TexPointOfs(ImgXY, inTex, VecI2(x, y)).xy, max_delta_vel_len2);*/
 
    // OLD COLOR
-#if CUBIC
       CubicFastSampler cs;
+      VecH4 old, old1;
+#if CUBIC
       cs.set(old_tex); if(CLAMP)cs.UVClamp(ImgClamp.xy, ImgClamp.zw); // here do clamping because for CUBIC we check many samples around texcoord
-      VecH4 old =Max(VecH4(0,0,0,0), cs.tex(Img1)); // use Max(0) because of cubic sharpening potentially giving negative values
+      old =Max(VecH4(0,0,0,0), cs.tex(Img1)); // use Max(0) because of cubic sharpening potentially giving negative values
    #if DUAL_HISTORY
-      VecH4 old1=Max(VecH4(0,0,0,0), cs.tex(Img2)); // use Max(0) because of cubic sharpening potentially giving negative values
+      old1=Max(VecH4(0,0,0,0), cs.tex(Img2)); // use Max(0) because of cubic sharpening potentially giving negative values
    #endif
 #else
    // clamping 'old_tex' shouldn't be done, because we already detect if 'old_tex' is outside viewport and zero 'old_weight'
-      VecH4 old =TexLod(Img1, old_tex);
+      old =TexLod(Img1, old_tex);
    #if DUAL_HISTORY
-      VecH4 old1=TexLod(Img2, old_tex);
+      old1=TexLod(Img2, old_tex);
    #endif
 #endif
 
-   VecH4 col_min, col_max, cur;
-   VecH  ycocg_min, ycocg_max;
+#if YCOCG
+   VecH4 ycocg_min, ycocg_max;
+#else
+   VecH4 col_min, col_max;
+#endif
+   VecH4 cur;
 
    // CUR COLOR + CUR ALPHA
 #if CUBIC
@@ -297,23 +356,28 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    #else
       VecH4 col=TexPoint(Img, cs.uv(x, y));
    #endif
-      VecH ycocg; if(YCOCG)ycocg=RGBToYCoCg4(col.rgb);
+   #if YCOCG
+      VecH4 ycocg=RGBToYCoCg4(col);
+   #endif
       Half weight=cs.weight(x, y);
       if(x==1 && y==0) // first is (1,0) because corners are skipped
       {
          cur=col*weight;
-                    col_min=  col_max=col;
-         if(YCOCG)ycocg_min=ycocg_max=ycocg;
+      #if YCOCG
+         ycocg_min=ycocg_max=ycocg;
+      #else
+         col_min=col_max=col;
+      #endif
       }else
       {
          cur+=col*weight;
+      #if YCOCG
+         ycocg_min=Min(ycocg_min, ycocg);
+         ycocg_max=Max(ycocg_max, ycocg);
+      #else
          col_min=Min(col_min, col);
          col_max=Max(col_max, col);
-         if(YCOCG)
-         {
-            ycocg_min=Min(ycocg_min, ycocg);
-            ycocg_max=Max(ycocg_max, ycocg);
-         }
+      #endif
       }
    }
    cur/=1-cs.weight(0,0)-cs.weight(3,0)-cs.weight(0,3)-cs.weight(3,3); // we've skipped corners, so adjust by their weight (TotalWeight-CornerWeight)
@@ -355,20 +419,25 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       {
          VecH4 min=TexMin(Img, Vec2(uv[x].x, uv[y].y));
          VecH4 max=TexMax(Img, Vec2(uv[x].x, uv[y].y));
-         VecH  ycocg_lo, ycocg_hi; if(YCOCG){ycocg_lo=RGBToYCoCg4(min.rgb); ycocg_hi=RGBToYCoCg4(max.rgb);}
+      #if YCOCG
+         VecH4 ycocg_lo=RGBToYCoCg4(min), ycocg_hi=RGBToYCoCg4(max);
+      #endif
          if(y==0 && x==0) // first
          {
-                        col_min=     min;   col_max=     max;
-            if(YCOCG){ycocg_min=ycocg_lo; ycocg_max=ycocg_hi;}
+         #if YCOCG
+            ycocg_min=ycocg_lo; ycocg_max=ycocg_hi;
+         #else
+            col_min=min; col_max=max;
+         #endif
          }else
          {
+         #if YCOCG
+            ycocg_min=Min(ycocg_min, ycocg_lo);
+            ycocg_max=Max(ycocg_max, ycocg_hi);
+         #else
             col_min=Min(col_min, min);
             col_max=Max(col_max, max);
-            if(YCOCG)
-            {
-               ycocg_min=Min(ycocg_min, ycocg_lo);
-               ycocg_max=Max(ycocg_max, ycocg_hi);
-            }
+         #endif
          }
       }
    }
@@ -388,144 +457,167 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       #else
          col=TexPoint(Img, Vec2(tex_clamp[x+1].x, tex_clamp[y+1].y));
       #endif
-         VecH ycocg; if(YCOCG)ycocg=RGBToYCoCg4(col.rgb);
+      #if YCOCG
+         VecH4 ycocg=RGBToYCoCg4(col);
+      #endif
          if(y==-1 && x==-1) // first
          {
-                       col_min=  col_max=col;
-            if(YCOCG)ycocg_min=ycocg_max=ycocg;
+         #if YCOCG
+            ycocg_min=ycocg_max=ycocg;
+         #else
+            col_min=col_max=col;
+         #endif
          }else
          {
+         #if YCOCG
+            ycocg_min=Min(ycocg_min, ycocg);
+            ycocg_max=Max(ycocg_max, ycocg);
+         #else
             col_min=Min(col_min, col);
             col_max=Max(col_max, col);
-            if(YCOCG)
-            {
-               ycocg_min=Min(ycocg_min, ycocg);
-               ycocg_max=Max(ycocg_max, ycocg);
-            }
+         #endif
          }
       }
    }
    #endif
 #endif
 
+   // when there are pixels moving in different directions fast, then restart TAA
+   Half max_delta_vel_len=Sqrt(max_delta_vel_len2),
+        blend_move=Sat(1-max_delta_vel_len/VEL_EPS);
+#if DUAL_HISTORY
+   if(blend_move>=0.99)old_weight=0; // for DUAL_HISTORY 'old_weight' affects 'old' and 'old1' in a special way, so can't just modify it easily
+#else
+   old_weight*=blend_move;
+#endif
+#if !FLICKER_WEIGHT
+   old_flicker*=blend_move;
+#endif
+
    // NEIGHBOR CLAMP
-   if(YCOCG)
-   {
-                  old.rgb=RGBToYCoCg4(old.rgb);
-      VecH4 ycocg_cur    =RGBToYCoCg4(cur);
-      old=Lerp(old, ycocg_cur, Sat(GetBlend(old.rgb, ycocg_cur.rgb, ycocg_min.rgb, ycocg_max.rgb)));
-      old.rgb=YCoCg4ToRGB(old.rgb);
-   }else
-   {
+#if YCOCG
+   VecH4 ycocg_old=RGBToYCoCg4(old);
+   VecH4 ycocg_cur=RGBToYCoCg4(cur);
+   Half      blend=GetBlend(ycocg_old, ycocg_cur, ycocg_min, ycocg_max); // alpha used for glow #RTOutput
+#else
    #if 1 // alpha used for glow #RTOutput
       Half blend=GetBlend(old, cur, col_min, col_max);
    #else
       Half blend=GetBlend(old.rgb, cur.rgb, col_min.rgb, col_max.rgb);
    #endif
+#endif
 
-      /*if(Q)
-      {
-         // to get average value closer to median, values should be Sqrt before adding, and Sqr after average:
-         // Sqr ((Sqrt(2)+Sqrt(2)+Sqrt(2)+Sqrt(10))/4)=3.42
-         //     ((     2 +     2 +     2 +     10 )/4)=4
-         // Sqrt((Sqr (2)+Sqr (2)+Sqr (2)+Sqr (10))/4)=5.29
-         Half dist_sum=0;
-         UNROLL for(Int y=-1; y<=1; y++)
-         UNROLL for(Int x=-1; x<=1; x++)if(x || y)
-         {
-            Vec2 ofs=Vec2(x, y)*ImgSize.xy;
-            VecH cur=TexLod(Img , cur_tex+ofs).rgb;
-            VecH old=TexLod(Img1, old_tex+ofs).rgb;
-            if(E)
-            {
-               cur=LinearToSRGBFast(cur);
-               old=LinearToSRGBFast(old);
-            }
-            Half dist=Dist(cur, old);
-            if(W)dist=Sqrt(dist);
-            dist_sum+=dist;
-         }
-         Half dist=dist_sum/(3*3-1);
-         if(W)dist=Sqr(dist);
+   // update flicker
+   Half new_flicker;
+   if(DEPTH_FOREGROUND(depth))
+   {
+      // calculate difference between 'old' and 'cur'
+      Half difference=Dist(LinearToSRGBFast(old.rgb), LinearToSRGBFast(cur.rgb)); // it's better to use 'Dist' rather than 'Dist2', because it will prevent smooth changes from particles (like fire effect) being reported as flickering (if fire is reported as flickering then it will look very blurry)
+           difference=Sat(difference/FLICKER_EPS);
 
-         //  low distance = move blend to 0
-         // high distance = keep blend
-         blend*=Sat(dist*X*100-Y*100);
-      }else
-      if(W)
-      {
-      }else
-      if(E)
-      {
-         blend=0;
-      }else*/
-      if(DEPTH_FOREGROUND(depth)) // make sky unaffected by movement, because when cam zoom in/out or cam move then sky doesn't change, it only has some values when rotating camera. In tests it was better to use nearest 'depth' instead of depth at 'inTex'.
-      {
-         Half max_delta_vel_len=Sqrt(max_delta_vel_len2),
-              blend_move=max_delta_vel_len/VEL_EPS;
-         //Half blend_min=1.0/32; // make sure there's some blend even for static pixels, this will increase flickering but will help boost lighting changes and potential material/texture animations. 1/32 was chosen, 1/16 and 1/8 allowed faster changes but had bigger flickering.
-         //blend*=blend_move+blend_min; // works better than "blend*=Sat(blend_move+blend_min);"
-      #if !DUAL_HISTORY
-         old_weight*=1-Sat(blend_move); // optional boost based on movement FIXME: broken for DUAL_HISTORY
-      #endif
+    /*{ no because results are too sharp
+         new_flicker=old_flicker + Lerp(-CUR_WEIGHT, CUR_WEIGHT, difference);
+         Half is_flicker=                                    new_flicker  ; // too sharp
+         Half is_flicker=Sat(LerpR(CUR_WEIGHT,            1, new_flicker)); // too sharp!
+         Half is_flicker=Sat(LerpR(CUR_WEIGHT, CUR_WEIGHT*2, new_flicker)); // too sharp!!
       }
+      {
+         new_flicker=old_flicker + Lerp(-FLICKER_STEP, 0.5, difference);
+         Half is_flicker=                                 new_flicker  ; // too sharp
+         Half is_flicker=Sat(LerpR(0.5, 1               , new_flicker)); // too sharp!
+         Half is_flicker=Sat(LerpR(0.5, 0.5+FLICKER_STEP, new_flicker)); // too sharp!!
+      }*/
+   #if FLICKER_WEIGHT
+      new_flicker=old_flicker*old_weight_1 + difference*cur_weight_1;
+   #else
+      new_flicker=Lerp(old_flicker, difference, CUR_WEIGHT);
+   #endif
 
-      blend=Sat(blend);
+    //Half is_flicker=Sat(LerpR(CUR_WEIGHT, 1, new_flicker)); // cut-off small differences
+      Half is_flicker=new_flicker; // faster
 
+      blend*=1-Sqr(is_flicker); // use Sqr to consider only big flickering
+   }else
+   {
+      new_flicker=0; // always disable flickering for sky because on cam zoom in/out the sky motion vectors don't change, and it could retain some flicker from another object that wouldn't get cleared
+   }
+
+   blend=Sat(blend);
+
+#if YCOCG
+   old=YCoCg4ToRGB(Lerp(ycocg_old, ycocg_cur, blend));
+#else
    #if 1 // better
       old=Lerp(old, cur, blend);
       #if ALPHA
          old_alpha=Lerp(old_alpha, cur_alpha, blend);
       #endif
-      #if DUAL_HISTORY
-         old1=Lerp(old1, cur, blend);
-      #endif
    #else // don't do this, because it will cause jittered ghosting (some pixels will look brighter and some look darker, depending on the color difference between old and new), above code works much better
       old_weight*=(1-blend); // 'old_weight' gets smaller, multiplied by "1-blend"
    #endif
-   }
+#endif
+#if DUAL_HISTORY
+   old1=Lerp(old1, cur, blend); // TODO: for better precision this could use a separately calculated/processed 'blend1'
+#endif
 
 #if !DUAL_HISTORY
-      Half cur_weight=CUR_WEIGHT, total_weight=old_weight+cur_weight;
-      old_weight/=total_weight;
-      cur_weight/=total_weight;
-      outOld=outNext=old*old_weight + cur*cur_weight;
-   #if !ALPHA
-      outWeight=total_weight;
-   #else
-      outWeight.y=total_weight;
-      outWeight.x=old_alpha*old_weight + cur_alpha*cur_weight; // !! store alpha in X so it can be used for '_alpha' RT !!
-      #if TAA_SEPARATE_ALPHA
-         outNextAlpha=outWeight.x;
-      #endif
+   Half cur_weight=CUR_WEIGHT, new_weight=old_weight+cur_weight,
+        cur_weight_1=cur_weight/new_weight, // cur_weight_1+old_weight_1=1
+        old_weight_1=old_weight/new_weight; // could be "1-cur_weight_1" but then it won't be calculated in parallel
+
+      outCol=outScreen=old      *old_weight_1 + cur      *cur_weight_1;
+   #if ALPHA
+      Half   new_alpha=old_alpha*old_weight_1 + cur_alpha*cur_weight_1;
    #endif
+   #if MERGED_ALPHA
+      outData.x=new_alpha; // !! STORE ALPHA IN X CHANNEL SO IT CAN BE USED FOR '_alpha' RT !!
+      outData.y=new_weight;
+      outData.z=new_flicker;
+   #else
+      outData.x=new_weight;
+      outData.y=new_flicker;
+   #if ALPHA
+      outAlpha=new_alpha;
+   #endif
+   #endif
+   //if(T)outScreen=VecH4(SRGBToLinearFast(new_flicker).xxx, 0); // visualize flicker
 #else
    // #TAADualAlpha
    // old_weight<0.5 means 'old' is being filled from 0 (empty) .. 0.5 (full) and 'old1' is empty, old_weight>0.5 means 'old' is full and 'old1' is being filled from 0.5 (empty) .. 1 (full)
    Half cur_weight=CUR_WEIGHT/2, // since we operate on 0 (empty) .. 0.5 (full) we need to make cur weight 2x smaller
-      total_weight=old_weight+cur_weight;
-   outWeight=total_weight;
+        new_weight=old_weight+cur_weight;
+#if MERGED_ALPHA
+   outData.y=new_weight;
+   outData.z=new_flicker;
+#else
+   outData.x=new_weight;
+   outData.y=new_flicker;
+#endif
    if(old_weight<0.5 - cur_weight/2) // fill 1st history RT (since 'old_weight' is stored in 8-bit RT, then it won't be exactly 0.5, so we must use some epsilon, the best choice is half of 'cur_weight' step which is "cur_weight/2")
    {
-      outOld1=outOld=outNext=old*(old_weight/total_weight) + cur*(cur_weight/total_weight);
+      outCol1=outCol=outScreen=old*(old_weight/new_weight) + cur*(cur_weight/new_weight);
    }else // old_weight>0.5 = 1st history RT is full, fill 2nd history RT
    {
       if(DUAL_ADJUST_OLD)
       {
             Half ow=1, cw=CUR_WEIGHT, tw=ow+cw; // here we know 1st history RT is full, so we can use constants to make calculations faster
-            outOld=old*(ow/tw) + cur*(cw/tw); // apply new color onto 'old'
-      }else outOld=old;
+            outCol=old*(ow/tw) + cur*(cw/tw); // apply new color onto 'old'
+      }else outCol=old;
 
-      Half old_weight1=old_weight-0.5, // weight of the 2nd history RT calculated from 'old_weight', gives range 0 .. 0.5
-         total_weight1=old_weight1+cur_weight; // 'total_weight1' means 'old_weight1' after applying new data, in range 0 .. 0.5
-      outOld1=old1*(old_weight1/total_weight1) + cur*(cur_weight/total_weight1); // apply new color onto 'old1'
+      Half old1_weight=old_weight-0.5, // weight of the 2nd history RT calculated from 'old_weight', gives range 0 .. 0.5
+           new1_weight=old1_weight+cur_weight; // 'new1_weight' means 'old1_weight' after applying new data, in range 0 .. 0.5
+      outCol1=old1*(old1_weight/new1_weight) + cur*(cur_weight/new1_weight); // apply new color onto 'old1'
 
-      outNext=Lerp(outOld, outOld1, DUAL_ADJUST_OLD ? Sqr(total_weight1*2) : total_weight1*2); // 'old1' is more recent, but may not be fully set yet, so use it based on its weight and remaining values take from 'old'. If we're adjusting DUAL_ADJUST_OLD then 'old' gets updated with latest color, so we can make 'old1' less significant. *2 because here range is 0 .. 0.5
+      outScreen=Lerp(outCol, outCol1, DUAL_ADJUST_OLD ? Sqr(new1_weight*2) : new1_weight*2); // 'old1' is more recent, but may not be fully set yet, so use it based on its weight and remaining values take from 'old'. If we're adjusting DUAL_ADJUST_OLD then 'old' gets updated with latest color, so we can make 'old1' less significant. *2 because here range is 0 .. 0.5
 
-      if(total_weight1>=0.5 - cur_weight/2) // filled all history RT's (1st history RT is full, 2nd history RT is full)
+      if(new1_weight>=0.5 - cur_weight/2) // filled all history RT's (1st history RT is full, 2nd history RT is full)
       {
-         outOld=outOld1; // move Old1 to Old
-         outWeight=0.5; // mark Old1 as empty
+         outCol=outCol1; // move Old1 to Old
+      #if MERGED_ALPHA
+         outData.y=0.5; // mark Old1 as empty
+      #else
+         outData.x=0.5; // mark Old1 as empty
+      #endif
       }
    }
 #endif

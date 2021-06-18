@@ -532,11 +532,14 @@ void RendererClass::cleanup1()
    REPA(_ctxs)
    {
       Context &ctx=_ctxs[i];
-      ctx.taa_old_weight=ctx.taa_new_weight; ctx.taa_new_weight.clear();
-      ctx.taa_old_col   =ctx.taa_new_col   ; ctx.taa_new_col   .clear();
-      ctx.taa_old_col1  =ctx.taa_new_col1  ; ctx.taa_new_col1  .clear();
+      ctx.taa_old_data =ctx.taa_new_data ; ctx.taa_new_data .clear();
+   #if TAA_SEPARATE_ALPHA
+      ctx.taa_old_alpha=ctx.taa_new_alpha; ctx.taa_new_alpha.clear();
+   #endif
+      ctx.taa_old_col  =ctx.taa_new_col  ; ctx.taa_new_col  .clear();
+      ctx.taa_old_col1 =ctx.taa_new_col1 ; ctx.taa_new_col1 .clear();
    #if TAA_OLD_VEL
-      ctx.taa_old_vel   =ctx.taa_new_vel   ; ctx.taa_new_vel   .clear();
+      ctx.taa_old_vel  =ctx.taa_new_vel  ; ctx.taa_new_vel  .clear();
    #endif
       REPA(ctx.subs)
       {
@@ -1618,52 +1621,72 @@ void RendererClass::tAA()
       This way we're sure that the RT's contain only 8 last frames of data.
       */
       ImageRTDesc  rt_desc(_col->w(), _col->h(), IMAGERT_ONE);
-      Bool         alpha=processAlpha(), dual=(!alpha && D.tAADualHistory()); // dual incompatible with alpha #TAADualAlpha
-      IMAGERT_TYPE weight_type=(alpha ? IMAGERT_TWO : IMAGERT_ONE), // alpha ? (X=alpha, Y=weight) : (X=weight); !! store alpha in X so it can be used for '_alpha' RT !!
-                      col_type=GetImageRTType(D.glowAllow(), D.litColRTPrecision()); // #RTOutput
-      if(!_ctx->taa_new_weight) // doesn't have new RT's yet
+      Bool         alpha=processAlpha(),
+            merged_alpha=(!TAA_SEPARATE_ALPHA && alpha),
+          separate_alpha=( TAA_SEPARATE_ALPHA && alpha),
+                    dual=(!alpha && D.tAADualHistory()); // dual incompatible with alpha #TAADualAlpha
+      IMAGERT_TYPE col_type=GetImageRTType(D.glowAllow(), D.litColRTPrecision()); // #RTOutput
+      if(!_ctx->taa_new_data) // doesn't have new RT's yet
       {
-         if(!_ctx->taa_old_weight) // doesn't have a previous frame yet
+         IMAGERT_TYPE data_type=(merged_alpha ? IMAGERT_RGB : IMAGERT_TWO); // merged_alpha ? (X=alpha, Y=weight, Z=flicker) : (X=weight, Y=flicker); !! STORE ALPHA IN X SO IT CAN BE USED FOR '_alpha' RT !!
+         if(!_ctx->taa_old_data) // doesn't have a previous frame yet
          {
-                   _ctx->taa_old_weight.get(rt_desc.type(weight_type))->clearViewport();
-                   _ctx->taa_old_col   .get(rt_desc.type(   col_type))->clearViewport();
-           if(dual)_ctx->taa_old_col1  .get(rt_desc                  )->clearViewport();
+           _ctx->taa_old_data.get(rt_desc.type(data_type))->clearViewport();
+           _ctx->taa_old_col .get(rt_desc.type( col_type))->clearViewport(); if(dual)_ctx->taa_old_col1.get(rt_desc)->clearViewport(); // !! HERE 'col1' REUSES 'rt_desc.type' !!
          }else
-         if((_ctx->taa_old_weight->typeChannels()>=2)!=alpha) // format doesn't match
+         if((_ctx->taa_old_data->typeChannels()>=3)!=merged_alpha) // format doesn't match
          {
-           _ctx->taa_old_weight.get(rt_desc.type(weight_type))->clearViewport();
+           _ctx->taa_old_data.get(rt_desc.type(data_type))->clearViewport();
          }else
          if(_taa_reset) // want to reset
          {
-           _ctx->taa_old_weight->clearViewport(); // here clear only for current viewport
+           _ctx->taa_old_data->clearViewport(); // here clear only for current viewport
          }
-                 _ctx->taa_new_weight.get(rt_desc.type(weight_type));
-                 _ctx->taa_new_col   .get(rt_desc.type(   col_type));
-         if(dual)_ctx->taa_new_col1  .get(rt_desc                  );
+        _ctx->taa_new_data.get(rt_desc.type(data_type));
+        _ctx->taa_new_col .get(rt_desc.type( col_type)); if(dual)_ctx->taa_new_col1.get(rt_desc); // !! HERE 'col1' REUSES 'rt_desc.type' !!
       }else
       if(_taa_reset)
       {
-        _ctx->taa_old_weight->clearViewport();
+        _ctx->taa_old_data->clearViewport(); // here clear only for current viewport
       }
-      ImageRTPtr next(rt_desc.type(col_type));
-      ImageRTPtr next_alpha; if(TAA_SEPARATE_ALPHA && alpha)next_alpha.get(rt_desc.type(IMAGERT_ONE));
-      set(_ctx->taa_new_weight, next, _ctx->taa_new_col, (TAA_SEPARATE_ALPHA && alpha) ? next_alpha : _ctx->taa_new_col1, null, true); // #TAADualAlpha
+      if(separate_alpha)
+      {
+         if(!_ctx->taa_new_alpha) // doesn't have new RT's yet
+         {
+            if(!_ctx->taa_old_alpha) // doesn't have a previous frame yet
+            {
+              _ctx->taa_old_alpha.get(rt_desc.type(IMAGERT_ONE))->clearViewport();
+            }else
+            if(_taa_reset) // want to reset
+            {
+              _ctx->taa_old_alpha->clearViewport(); // here clear only for current viewport
+            }
+           _ctx->taa_new_alpha.get(rt_desc.type(IMAGERT_ONE));
+         }else
+         if(_taa_reset)
+         {
+           _ctx->taa_old_alpha->clearViewport(); // here clear only for current viewport
+         }
+      }
+      ImageRTPtr screen(rt_desc.type(col_type)); // TAA needs to output color results into 2 RT's: 'screen' and 'taa_new_col', this is because 'taa_new_col' is needed for the next frame as 'taa_old_col' to compare the results, and 'screen' is used to add post process, UI and display on the screen
+      set(_ctx->taa_new_data, screen, _ctx->taa_new_col, separate_alpha ? _ctx->taa_new_alpha : _ctx->taa_new_col1, null, true); // #TAADualAlpha
       D.alpha(ALPHA_NONE);
 
-      if(alpha)
+      if(merged_alpha)
       {
-         Sh.ImgXY[2]->set(_ctx->taa_old_weight); // old alpha weight
-         Sh.ImgX [0]->set(_alpha              ); // cur alpha
+         Sh.Img  [3]->set(_ctx->taa_old_data ); // old data with alpha
       }else
       {
-         Sh.ImgX [0]->set(_ctx->taa_old_weight); // old weight
+         Sh.ImgXY[2]->set(_ctx->taa_old_data ); // old data
+         Sh.ImgX [1]->set(_ctx->taa_old_alpha); // old alpha
       }
-         Sh.Img  [0]->set(_col                ); // cur
-         Sh.Img  [1]->set(_ctx->taa_old_col   ); // old
-         Sh.Img  [2]->set(_ctx->taa_old_col1  ); // old1
-         Sh.ImgXY[0]->set(_vel                ); // velocity
+         Sh.Img  [0]->set(_col               ); // cur
+         Sh.ImgX [0]->set(_alpha             ); // cur alpha
+         Sh.Img  [1]->set(_ctx->taa_old_col  ); // old
+         Sh.Img  [2]->set(_ctx->taa_old_col1 ); // old1
+         Sh.ImgXY[0]->set(_vel               ); // velocity
       #if TAA_OLD_VEL
-         Sh.ImgXY[1]->set(_ctx->taa_old_vel   ); // old velocity
+         Sh.ImgXY[1]->set(_ctx->taa_old_vel  ); // old velocity
       #endif
 
       Sh.imgSize(*_col);
@@ -1673,8 +1696,8 @@ void RendererClass::tAA()
          Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), rt_desc.size));
          shader->draw(_stereo ? &D._view_eye_rect[_eye] : null);
       }
-      Swap(next, _col);
-      if(alpha){if(TAA_SEPARATE_ALPHA)Swap(next_alpha, _alpha);else _alpha=_ctx->taa_new_weight;} // !! Warning: for TAA_SEPARATE_ALPHA=0 '_alpha' may point to 2 channel "Alpha, Weight", this assumes that '_alpha' will not be further modified, we can't do the same for '_col' because we may modify it !!
+      Swap(screen, _col);
+      if(alpha)_alpha=(TAA_SEPARATE_ALPHA ? _ctx->taa_new_alpha : _ctx->taa_new_data); // !! Warning: for TAA_SEPARATE_ALPHA=0 '_alpha' may point to multi-channel "Alpha, Weight, Flicker", this assumes that '_alpha' will not be further modified, we can't do the same for '_col' because we may modify it !!
 
       tAAFinish();
    }
