@@ -168,8 +168,8 @@ void Viewport4::Cube::draw(C GuiPC &gpc)
       ALPHA_MODE alpha=D.alpha();
       DisplayClass::ViewportSettings view; Camera camera; MatrixM matrix;
       setView(gpc, view, camera, matrix);
-      D.sampler3D(); D.depthLock  (false); mesh->drawBlend(matrix); if(Gui.ms()==this && InRange(part, *mesh))mesh->parts[part].drawBlend(&NoTemp(Vec4(2)));
-      D.sampler2D(); D.depthUnlock(     ); D.depthWrite(true); D.alpha(alpha); // reset 'depthWrite' and 'alpha' because they can be modified by 'drawBlend'
+      D.sampler3D(); D.depthLock  (false); D.depthOnWriteFunc(false, false, FUNC_ALWAYS ); mesh->drawBlend(matrix); if(Gui.ms()==this && InRange(part, *mesh))mesh->parts[part].drawBlend(&NoTemp(Vec4(2))); // set func in case 'depthLock' is ignored for performance reasons
+      D.sampler2D(); D.depthUnlock(     ); D.depthOnWriteFunc(false, true , FUNC_DEFAULT); D.alpha(alpha); // reset 'depthWrite' and 'alpha' because they can be modified by 'drawBlend'
       resetView(view, camera);
    }
 }
