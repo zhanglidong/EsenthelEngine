@@ -464,6 +464,8 @@ VecB4 Lerp(C VecB4 &a   , C VecB4 &b , C VecB4 &c, C Vec &blend); // linear inte
 // linear interpolation reverse, get interpolation step from value, these functions return 0 if "value==from" and 1 if "value==to", in other cases returned value is interpolated between 0..1
 inline Flt LerpR(  Int    from,   Int    to,   Int    value) {return Flt(value-from)/(to-from);}
 inline Flt LerpR(  Int    from,   Int    to,   Flt    value) {return    (value-from)/(to-from);}
+inline Flt LerpR(  Int    from,   Flt    to,   Flt    value) {return    (value-from)/(to-from);}
+inline Flt LerpR(  Flt    from,   Int    to,   Flt    value) {return    (value-from)/(to-from);}
 inline Flt LerpR(  Flt    from,   Flt    to,   Flt    value) {return    (value-from)/(to-from);}
 inline Dbl LerpR(  Dbl    from,   Dbl    to,   Dbl    value) {return    (value-from)/(to-from);}
        Flt LerpR(C Vec2  &from, C Vec2  &to, C Vec2  &value);
@@ -476,6 +478,8 @@ inline Dbl LerpR(  Dbl    from,   Dbl    to,   Dbl    value) {return    (value-f
 // linear interpolation reverse saturated, get saturated interpolation step from value, these functions return 0 if "value==from" and 1 if "value==to", in other cases returned value is interpolated between 0..1 and clamped to 0..1 range
 inline Flt LerpRS(  Int    from,   Int    to,   Int    value) {return Sat(LerpR(from, to, value));}
 inline Flt LerpRS(  Int    from,   Int    to,   Flt    value) {return Sat(LerpR(from, to, value));}
+inline Flt LerpRS(  Int    from,   Flt    to,   Flt    value) {return Sat(LerpR(from, to, value));}
+inline Flt LerpRS(  Flt    from,   Int    to,   Flt    value) {return Sat(LerpR(from, to, value));}
 inline Flt LerpRS(  Flt    from,   Flt    to,   Flt    value) {return Sat(LerpR(from, to, value));}
 inline Dbl LerpRS(  Dbl    from,   Dbl    to,   Dbl    value) {return Sat(LerpR(from, to, value));}
 inline Flt LerpRS(C Vec2  &from, C Vec2  &to, C Vec2  &value) {return Sat(LerpR(from, to, value));}
