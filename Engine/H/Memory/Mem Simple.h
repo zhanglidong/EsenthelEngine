@@ -150,6 +150,7 @@ T1(const_mem_addr TYPE) struct FixedMems : private Mems<TYPE> // Unresizable Mem
    Int     elms    ()C {return super::elms    ();} // number of elements
    UInt    elmSize ()C {return super::elmSize ();} // size   of element
    UIntPtr memUsage()C {return super::memUsage();} // memory usage
+   UIntPtr elmsMem ()C {return super::elmsMem ();}
 
    TYPE* data      (     )  {return super::data      ( );} // get pointer to the start of the elements
  C TYPE* data      (     )C {return super::data      ( );} // get pointer to the start of the elements

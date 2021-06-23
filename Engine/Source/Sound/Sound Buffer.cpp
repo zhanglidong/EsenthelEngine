@@ -54,7 +54,6 @@ static SyncLock          AudioLock;
                          AudioOutputFrameSamples, // number of samples to set in a single frame
                          AudioOutputFrameSize; // number of samples to set in a single frame
        Ptr               AudioOutputFrameData; // place to output audio frame data
-#define SUPPORT_SAMPLE_OFFSET 1 // at slightly more calculations will offer correct offsets/speeds when resampling
 #endif
 
 Bool          SoundAPI, SoundFunc;
@@ -921,154 +920,24 @@ static UInt GetSpeakerConfig()
 #pragma runtime_checks("", restore)
 /******************************************************************************/
 #if ESENTHEL_AUDIO
-static inline void Add(I16 &sample, Flt value)
-{
-   Int v=Round(value);
-   sample=Mid(sample+v, SHORT_MIN, SHORT_MAX);
-}
-struct Stereo
-{
-   I16 l, r;
-};
 void AudioVoice::update()
 {
    if(play && queued)
    {
-    C Flt          speed   =T.speed; // !! must be copied to a temporary because it might get changed on a secondary thread !!
-    C Int     dest_channels=2,
-              dest_block   =SIZE(I16)*dest_channels,
-               src_channels=channels,
-               src_block   =block;
-      Int     dest_samples =AudioOutputFrameSamples;
-      Stereo *dest_data    =(Stereo*)AudioOutputFrameData;
+      SoundResampler resampler(speed, volume, 2, AudioOutputFrameSamples, AudioOutputFrameData, channels, sample_offset);
    again:
-    C I16    *src_mono   =(I16*)(buffer[buffer_i]->data+buffer_raw);
-    C Stereo *src_stereo =(Stereo*)src_mono;
-      Int     src_size   =buffer_size-buffer_raw,
-              src_samples=src_size/src_block;
-
-      // copy from 'src' to 'dest'
-      if(speed==1) // no resample needed
-      {
-         Int samples=Min(src_samples, dest_samples);
-         dest_samples-=samples;
-         buffer_raw  +=samples*src_block;
-         switch(src_channels)
-         {
-            case 1:
-         #if 1
-            REP(samples>>2)
-            {
-               I16 sample=src_mono[0]; Add(dest_data[0].l, sample*volume[0]); Add(dest_data[0].r, sample*volume[1]);
-                   sample=src_mono[1]; Add(dest_data[1].l, sample*volume[0]); Add(dest_data[1].r, sample*volume[1]);
-                   sample=src_mono[2]; Add(dest_data[2].l, sample*volume[0]); Add(dest_data[2].r, sample*volume[1]);
-                   sample=src_mono[3]; Add(dest_data[3].l, sample*volume[0]); Add(dest_data[3].r, sample*volume[1]);
-               src_mono+=4; dest_data+=4;
-            }
-            samples&=3;
-         #endif
-            REP(samples)
-            {
-               I16 sample=*src_mono++;
-               Add(dest_data->l, sample*volume[0]);
-               Add(dest_data->r, sample*volume[1]);
-               dest_data++;
-            }break;
-
-            case 2:
-         #if 1
-            REP(samples>>2)
-            {
-               Add(dest_data[0].l, src_stereo[0].l*volume[0]); Add(dest_data[0].r, src_stereo[0].r*volume[1]);
-               Add(dest_data[1].l, src_stereo[1].l*volume[0]); Add(dest_data[1].r, src_stereo[1].r*volume[1]);
-               Add(dest_data[2].l, src_stereo[2].l*volume[0]); Add(dest_data[2].r, src_stereo[2].r*volume[1]);
-               Add(dest_data[3].l, src_stereo[3].l*volume[0]); Add(dest_data[3].r, src_stereo[3].r*volume[1]);
-               src_stereo+=4; dest_data+=4;
-            }
-            samples&=3;
-         #endif
-            REP(samples)
-            {
-               Add(dest_data->l, src_stereo->l*volume[0]);
-               Add(dest_data->r, src_stereo->r*volume[1]);
-               src_stereo++; dest_data++;
-            }break;
-         }
-      }else // resample
-      {
-         Int dest_sample_pos=0,
-              src_sample_pos;
-         for(; ; dest_sample_pos++)
-         {
-            Flt src_sample_posf=dest_sample_pos*speed ; if( SUPPORT_SAMPLE_OFFSET)src_sample_posf+=sample_offset; // add leftover offset from previous operations
-                src_sample_pos =Trunc(src_sample_posf); if(!SUPPORT_SAMPLE_OFFSET && (src_sample_pos>=src_samples || dest_sample_pos>=dest_samples))break; // if reached the end of any buffer then stop !! this has to be done after calculating 'src_sample_pos' which is used later !!
-            Flt frac=src_sample_posf-src_sample_pos; // calculate sample position fraction
-            if(SUPPORT_SAMPLE_OFFSET && (src_sample_pos>=src_samples || dest_sample_pos>=dest_samples)){sample_offset=frac; break;} // if reached the end of any buffer then stop and remember current 'sample_offset' for future operations !! this has to be done after calculating 'src_sample_pos' which is used later !!
-
-            if(speed<1)
-            { // cubic
-               Int src_sample_posP=Max(src_sample_pos-1, 0);
-               Int src_sample_pos1=Min(src_sample_pos+1, src_samples-1);
-               Int src_sample_pos2=Min(src_sample_pos+2, src_samples-1);
-               Vec4 w; Lerp4Weights(w, frac);
-               switch(src_channels)
-               {
-                  case 1:
-                  {
-                     Flt sample=src_mono[src_sample_posP]*w.x + src_mono[src_sample_pos]*w.y + src_mono[src_sample_pos1]*w.z + src_mono[src_sample_pos2]*w.w;
-                     Add(dest_data->l, sample*volume[0]);
-                     Add(dest_data->r, sample*volume[1]);
-                     dest_data++;
-                  }break;
-
-                  case 2:
-                  {
-                   C Stereo &sP=src_stereo[src_sample_posP],
-                            &s0=src_stereo[src_sample_pos ],
-                            &s1=src_stereo[src_sample_pos1],
-                            &s2=src_stereo[src_sample_pos2];
-                     Add(dest_data->l, (sP.l*w.x + s0.l*w.y + s1.l*w.z + s2.l*w.w)*volume[0]); // Lerp(s0.l, s1.l, frac)
-                     Add(dest_data->r, (sP.r*w.x + s0.r*w.y + s1.r*w.z + s2.r*w.w)*volume[1]); // Lerp(s0.r, s1.r, frac)
-                     dest_data++;
-                  }break;
-               }
-            }else // speed>1
-            { // linear
-               Int src_sample_pos1=Min(src_sample_pos+1, src_samples-1);
-               Flt frac1=1-frac;
-               switch(src_channels)
-               {
-                  case 1:
-                  {
-                     Flt sample=src_mono[src_sample_pos]*frac1 + src_mono[src_sample_pos1]*frac; // Lerp(src_mono[src_sample_pos], src_mono[src_sample_pos1], frac)
-                     Add(dest_data->l, sample*volume[0]);
-                     Add(dest_data->r, sample*volume[1]);
-                     dest_data++;
-                  }break;
-
-                  case 2:
-                  {
-                   C Stereo &s0=src_stereo[src_sample_pos ],
-                            &s1=src_stereo[src_sample_pos1];
-                     Add(dest_data->l, (s0.l*frac1 + s1.l*frac)*volume[0]); // Lerp(s0.l, s1.l, frac)
-                     Add(dest_data->r, (s0.r*frac1 + s1.r*frac)*volume[1]); // Lerp(s0.r, s1.r, frac)
-                     dest_data++;
-                  }break;
-               }
-            }
-         }
-         dest_samples-=dest_sample_pos;
-         buffer_raw  += src_sample_pos*src_block;
-      }
-
+      Int src_size=buffer_size-buffer_raw;
+      resampler.setSrc(src_size/resampler.src_block, buffer[buffer_i]->data+buffer_raw);
+         buffer_raw+=resampler.add()*resampler.src_block;
       if(buffer_raw>=buffer_size) // proceed to the next buffer
       {
          buffer_raw=0;
          buffer_i=(buffer_i+1)%buffers;
          if(AtomicDec(queued)>1 // decrease number of queued buffers, if still have some available
-         && dest_samples>0)goto again; // process next buffer
+         && resampler.dest_samples>0)goto again; // process next buffer
       }
       total_raw=buffer_i*buffer_size+buffer_raw;
+      sample_offset=resampler.src_sample_offset;
    }
 }
 static Bool AudioUpdate(Thread &thread)

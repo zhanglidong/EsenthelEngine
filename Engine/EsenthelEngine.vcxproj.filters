@@ -2180,6 +2180,9 @@
     <ClCompile Include="..\NintendoSwitch\Switch.cpp">
       <Filter>Source\Platforms\Switch</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Sound\Sound Resample.cpp">
+      <Filter>Source\Sound</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Source\Platforms\Mac\MyApplication.mm">

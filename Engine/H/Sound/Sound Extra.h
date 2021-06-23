@@ -344,6 +344,47 @@ private:
 };
 /******************************************************************************/
 #if EE_PRIVATE
+#define SUPPORT_SAMPLE_OFFSET 1 // at slightly more calculations will offer correct offsets/speeds when resampling
+struct SoundResampler
+{
+   struct Stereo
+   {
+      I16 l, r;
+   };
+    C Flt          speed   , // !! must be copied to a temporary because it might get changed on a secondary thread !!
+                  volume[2];
+    C Int     dest_channels,
+              dest_block   ,
+               src_channels,
+               src_block   ;
+      Int     dest_samples ,
+               src_samples ;
+      Flt      src_sample_offset;
+   union
+   {
+      Ptr     dest_data;
+      I16    *dest_mono;
+      Stereo *dest_stereo;
+   };
+   union
+   {
+     CPtr     src_data;
+    C I16    *src_mono;
+    C Stereo *src_stereo;
+   };
+
+   SoundResampler(Flt speed, Flt volume[2], Int dest_channels, Int dest_samples, Ptr dest_data, Int src_channels, Flt src_sample_offset=0) :
+      speed(speed), volume{volume[0], volume[1]},
+      dest_channels(dest_channels), dest_block(SIZE(I16)*dest_channels), dest_samples(dest_samples), dest_data(dest_data),
+       src_channels( src_channels),  src_block(SIZE(I16)* src_channels), src_sample_offset(src_sample_offset) {}
+   void setSrc(Int src_samples, Ptr src_data) {T.src_samples=src_samples; T.src_data=src_data;}
+   Int set(); // dest =src
+   Int add(); // dest+=src
+};
+#endif
+Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16> dest_data, Flt speed, C Flt *volume=null); // resample 'src' sound into 'dest_data', this operates on 16-bit samples only, false on fail
+/******************************************************************************/
+#if EE_PRIVATE
 extern Memc<SoundRecord*> SoundRecords;
 #endif
 /******************************************************************************/

@@ -9,6 +9,7 @@ T1(const_mem_addr TYPE) struct MemcThreadSafe : _MemcThreadSafe // Thread-Safe C
    Int     elms    ()C; // number of elements
    UInt    elmSize ()C; // size   of element
    UIntPtr memUsage()C; // memory usage
+   UIntPtr elmsMem ()C;
 
    TYPE* lockedData (     ) ; // get    pointer to the start of the elements, container must be locked first using the 'lock' method before using this method
  C TYPE* lockedData (     )C; // get    pointer to the start of the elements, container must be locked first using the 'lock' method before using this method

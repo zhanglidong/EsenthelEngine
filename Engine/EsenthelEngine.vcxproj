@@ -3825,6 +3825,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|NX64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Source\Sound\Sound Resample.cpp" />
     <ClCompile Include="Source\Sound\Spectrometer.cpp" />
     <ClCompile Include="Source\Sound\VorbisEncoder.cpp" />
     <ClCompile Include="stdafx.cpp">

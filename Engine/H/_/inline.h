@@ -453,6 +453,7 @@ T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::del  () {super::del  (); return T;}
 T1(TYPE)  Int      Memc<TYPE>::elms    ()C {return super::elms    ();}
 T1(TYPE)  UInt     Memc<TYPE>::elmSize ()C {return super::elmSize ();}
 T1(TYPE)  UIntPtr  Memc<TYPE>::memUsage()C {return super::memUsage();}
+T1(TYPE)  UIntPtr  Memc<TYPE>::elmsMem ()C {return super::elmsMem ();}
 
 T1(TYPE)  TYPE*  Memc<TYPE>::data      (     ) {DEBUG_ASSERT(elmSize()==SIZE(TYPE) || elms()<=1, "'Memc.data' Can't cast to C++ pointer after using 'replaceClass'."); return (TYPE*)super::data();}
 T1(TYPE)  TYPE*  Memc<TYPE>::addr      (Int i) {return  (TYPE*)super::addr      (i);}
@@ -548,6 +549,7 @@ T1(TYPE)  MemcAbstract<TYPE>&  MemcAbstract<TYPE>::del  () {super::del  (); retu
 T1(TYPE)  Int      MemcAbstract<TYPE>::elms    ()C {return super::elms    ();}
 T1(TYPE)  UInt     MemcAbstract<TYPE>::elmSize ()C {return super::elmSize ();}
 T1(TYPE)  UIntPtr  MemcAbstract<TYPE>::memUsage()C {return super::memUsage();}
+T1(TYPE)  UIntPtr  MemcAbstract<TYPE>::elmsMem ()C {return super::elmsMem ();}
 
 T1(TYPE)  TYPE*  MemcAbstract<TYPE>::data      (     ) {DEBUG_ASSERT(elmSize()==SIZE(TYPE) || elms()<=1, "'MemcAbstract.data' Can't cast to C++ pointer after using 'replaceClass'."); return (TYPE*)super::data();}
 T1(TYPE)  TYPE*  MemcAbstract<TYPE>::addr      (Int i) {return  (TYPE*)super::addr      (i);}
@@ -589,6 +591,7 @@ T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::del  () {super::del  (); 
 T1(TYPE)  Int      MemcThreadSafe<TYPE>::elms    ()C {return super::elms    ();}
 T1(TYPE)  UInt     MemcThreadSafe<TYPE>::elmSize ()C {return super::elmSize ();}
 T1(TYPE)  UIntPtr  MemcThreadSafe<TYPE>::memUsage()C {return super::memUsage();}
+T1(TYPE)  UIntPtr  MemcThreadSafe<TYPE>::elmsMem ()C {return super::elmsMem ();}
 
 T1(TYPE)  TYPE*  MemcThreadSafe<TYPE>::lockedData (     ) {DEBUG_ASSERT(elmSize()==SIZE(TYPE) || elms()<=1, "'MemcThreadSafe.data' Can't cast to C++ pointer after using 'replaceClass'."); return (TYPE*)super::lockedData();}
 T1(TYPE)  TYPE*  MemcThreadSafe<TYPE>::lockedAddr (Int i) {return  (TYPE*)super::lockedAddr (i);}
