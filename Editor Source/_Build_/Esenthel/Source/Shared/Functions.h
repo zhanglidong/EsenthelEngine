@@ -190,6 +190,7 @@ void Crop(Image &image, int x, int y, int w, int h, C Color &background, bool hp
 void TransformImage(Image &image, TextParam param, bool clamp, C Color &background=TRANSPARENT);
 void TransformImage(Image &image, C MemPtr<TextParam> &params, bool clamp, C Color &background=TRANSPARENT);
 bool LoadImage(C Project *proj, Image &image, TextParam *image_resize, C FileParams &fp, bool srgb, bool clamp=false, C Color &background=TRANSPARENT, C Image *color=null, C TextParam *color_resize=null, C Image *smooth=null, C TextParam *smooth_resize=null, C Image *bump=null, C TextParam *bump_resize=null);
+bool HighPrecTransform(APPLY_MODE mode);
 bool LoadImages(C Project *proj, Image &image, TextParam *image_resize, C Str &src, bool srgb=true, bool clamp=false, C Color &background=TRANSPARENT, C Image *color=null, C TextParam *color_resize=null, C Image *smooth=null, C TextParam *smooth_resize=null, C Image *bump=null, C TextParam *bump_resize=null);
 bool ValidChar(char c);
 bool ValidText(C Str &text, int min=1, int max=-1);

@@ -1378,6 +1378,39 @@ void TransformImage(Image &image, TextParam param, bool clamp, C Color &backgrou
    if(param.name=="mirrorY" || param.name=="flipY" )image.mirrorY ();else
    if(param.name=="mirrorXY"|| param.name=="flipXY")image.mirrorXY();else
    if(param.name=="normalize")image.normalize(true, true, true, true, &box);else
+   if(param.name=="absRGB")
+   {
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         c.xyz.abs();
+         image.color3DF(x, y, z, c);
+      }
+   }else
+   if(param.name=="abs")
+   {
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         c.abs();
+         image.color3DF(x, y, z, c);
+      }
+   }else
+   if(param.name=="satRGB")
+   {
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         c.xyz.sat();
+         image.color3DF(x, y, z, c);
+      }
+   }else
    if(param.name=="sat")
    {
       for(int z=box.min.z; z<box.max.z; z++)
@@ -2389,6 +2422,19 @@ enum APPLY_MODE
    APPLY_FIRE,
    APPLY_SKIP,
 }
+bool HighPrecTransform(APPLY_MODE mode)
+{
+   switch(mode)
+   {
+      case APPLY_SET:
+      case APPLY_MIN:
+      case APPLY_MAX:
+      case APPLY_MAX_RGB:
+      case APPLY_MAX_A:
+         return false;
+      default: return true;
+   }
+}
 class Palette
 {
    flt lum;
@@ -2514,7 +2560,7 @@ force_src_resize:
 
                    C ImageTypeInfo &layer_ti=layer.typeInfo();
                      bool expand_r_gb=(layer_ti.r && !layer_ti.g && !layer_ti.b); // if have R but no GB then expand R into GB
-                     AdjustImage(image, layer_ti.g>0 || layer_ti.b>0, layer_ti.a>0 || mode==APPLY_SET_A_FROM_RGB, layer.highPrecision());
+                     AdjustImage(image, layer_ti.g>0 || layer_ti.b>0, layer_ti.a>0 || mode==APPLY_SET_A_FROM_RGB, layer.highPrecision() || HighPrecTransform(mode));
                      REPD(y, layer.h())
                      REPD(x, layer.w())
                      {
