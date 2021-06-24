@@ -484,17 +484,20 @@ Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16>
                src_data   +=read*src_channels;
             }
             src_delete(resampler);
-            ZeroFastN(dest_data.data()+dest_data_pos, dest_data.elms()-dest_data_pos); // zero unwritten
-            return ok;
+            if(ok)
+            {
+               ZeroFastN(dest_data.data()+dest_data_pos, dest_data.elms()-dest_data_pos); // zero unwritten
+               return true;
+            }
          }
-      #else
+         // if failed then fall back to Esenthel Resampler
+      #endif
          SoundResampler resampler(speed, vol, dest_channels, dest_samples, dest_data.data(), src_channels);
          resampler.setSrc(src_samples, src_data);
          resampler.set();
          Int unwritten=resampler.dest_channels*resampler.dest_samples;
          ZeroFastN(dest_data.data()+(dest_data.elms()-unwritten), unwritten); // zero unwritten
          return true;
-      #endif
       }
    }
    dest_data.clear(); return false;
