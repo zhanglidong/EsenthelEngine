@@ -502,7 +502,7 @@ Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16>
          // Int si=16384; Flt sf=si; Flt sf1=sf; IncRealByBit(sf1); sf1=16384.0020
          // Int si=32768; Flt sf=si; Flt sf1=sf; IncRealByBit(sf1); sf1=32768.0039
          // Int si=65536; Flt sf=si; Flt sf1=sf; IncRealByBit(sf1); sf1=65536.0078
-      #if 0 // process all in one go, not good because Flt sample positions will lose precision for large data
+      #if 0 // process all in one go, not good because Flt sample positions will lose precision for large data (minor precision loss at few second sounds and very noticeable for 2 minute sounds)
          resampler.setSrc(src_samples, src_data);
          resampler.set();
       #elif 0 // limit per src (not good because will introduce clamping for src data when interpolating)
