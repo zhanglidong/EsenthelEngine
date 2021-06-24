@@ -219,6 +219,7 @@ Int SoundResampler::set()
       return         src_sample_pos;
    }
 }
+/******************************************************************************/
 static inline void Add(I16 &sample, Flt value)
 {
    Int v=Round(value);
