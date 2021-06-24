@@ -429,17 +429,18 @@ Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16>
       Int dest_samples=Round(src_samples/speed);
       if( dest_samples>=0 && Abs(RoundL(dest_samples*speed)-src_samples)<=65536) // check for overflow
       {
+         Int dest_channels=src_channels;
          Flt vol[2];
          if(volume)
          {
             vol[0]=volume[0];
-            vol[1]=volume[Min(1, src_channels-1)];
+            vol[1]=volume[Min(1, dest_channels-1)];
          }else
          {
             vol[0]=vol[1]=1;
          }
-         dest_data.setNum(dest_samples*src_channels);
-         SoundResampler resampler(speed, vol, src_channels, dest_samples, dest_data.data(), src_channels);
+         dest_data.setNum(dest_samples*dest_channels);
+         SoundResampler resampler(speed, vol, dest_channels, dest_samples, dest_data.data(), src_channels);
          resampler.setSrc(src_samples, src_data);
          resampler.set();
          Int unwritten=resampler.dest_channels*resampler.dest_samples;
