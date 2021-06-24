@@ -323,6 +323,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/9f051e0a/Music.o \
 	${OBJECTDIR}/_ext/9f051e0a/Sound_Buffer.o \
 	${OBJECTDIR}/_ext/9f051e0a/Sound_Record.o \
+	${OBJECTDIR}/_ext/9f051e0a/Sound_Resample.o \
 	${OBJECTDIR}/_ext/9f051e0a/Sound_Stream.o \
 	${OBJECTDIR}/_ext/9f051e0a/Sound.o \
 	${OBJECTDIR}/_ext/9f051e0a/Spectrometer.o \
@@ -1795,6 +1796,11 @@ ${OBJECTDIR}/_ext/9f051e0a/Sound_Record.o: ../Source/Sound/Sound\ Record.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/9f051e0a
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -DDEBUG=0 -I.. -I../H/_ -I../../ThirdPartyLibs -I../../ThirdPartyLibs/Bullet/lib/src -I../../ThirdPartyLibs/FBX -I../../ThirdPartyLibs/FreeType/lib/include -I../../ThirdPartyLibs/Ogg/include -I../../ThirdPartyLibs/Opus/lib/include -I../../ThirdPartyLibs/Opus/file/include -I../../ThirdPartyLibs/Theora/include -I../../ThirdPartyLibs/Vorbis/include -I../../ThirdPartyLibs/VP/libvpx/third_party/libwebm -I../../ThirdPartyLibs/FDK-AAC/lib/libAACdec/include -I../../ThirdPartyLibs/FDK-AAC/lib/libAACenc/include -I../../ThirdPartyLibs/FDK-AAC/lib/libFDK/include -I../../ThirdPartyLibs/FDK-AAC/lib/libMpegTPDec/include -I../../ThirdPartyLibs/FDK-AAC/lib/libMpegTPEnc/include -I../../ThirdPartyLibs/FDK-AAC/lib/libPCMutils/include -I../../ThirdPartyLibs/FDK-AAC/lib/libSBRdec/include -I../../ThirdPartyLibs/FDK-AAC/lib/libSBRenc/include -I../../ThirdPartyLibs/FDK-AAC/lib/libSYS/include -I../../ThirdPartyLibs/PhysX/physx/include -I../../ThirdPartyLibs/PhysX/pxshared/include -I../../ThirdPartyLibs/PhysX/physx/source/common/src -I../../ThirdPartyLibs/PhysX/physx/source/foundation/include -I../../ThirdPartyLibs/PhysX/physx/source/geomutils/src -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/9f051e0a/Sound_Record.o ../Source/Sound/Sound\ Record.cpp
+
+${OBJECTDIR}/_ext/9f051e0a/Sound_Resample.o: ../Source/Sound/Sound\ Resample.cpp
+	${MKDIR} -p ${OBJECTDIR}/_ext/9f051e0a
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -DDEBUG=0 -I.. -I../H/_ -I../../ThirdPartyLibs -I../../ThirdPartyLibs/Bullet/lib/src -I../../ThirdPartyLibs/FBX -I../../ThirdPartyLibs/FreeType/lib/include -I../../ThirdPartyLibs/Ogg/include -I../../ThirdPartyLibs/Opus/lib/include -I../../ThirdPartyLibs/Opus/file/include -I../../ThirdPartyLibs/Theora/include -I../../ThirdPartyLibs/Vorbis/include -I../../ThirdPartyLibs/VP/libvpx/third_party/libwebm -I../../ThirdPartyLibs/FDK-AAC/lib/libAACdec/include -I../../ThirdPartyLibs/FDK-AAC/lib/libAACenc/include -I../../ThirdPartyLibs/FDK-AAC/lib/libFDK/include -I../../ThirdPartyLibs/FDK-AAC/lib/libMpegTPDec/include -I../../ThirdPartyLibs/FDK-AAC/lib/libMpegTPEnc/include -I../../ThirdPartyLibs/FDK-AAC/lib/libPCMutils/include -I../../ThirdPartyLibs/FDK-AAC/lib/libSBRdec/include -I../../ThirdPartyLibs/FDK-AAC/lib/libSBRenc/include -I../../ThirdPartyLibs/FDK-AAC/lib/libSYS/include -I../../ThirdPartyLibs/PhysX/physx/include -I../../ThirdPartyLibs/PhysX/pxshared/include -I../../ThirdPartyLibs/PhysX/physx/source/common/src -I../../ThirdPartyLibs/PhysX/physx/source/foundation/include -I../../ThirdPartyLibs/PhysX/physx/source/geomutils/src -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/9f051e0a/Sound_Resample.o ../Source/Sound/Sound\ Resample.cpp
 
 ${OBJECTDIR}/_ext/9f051e0a/Sound_Stream.o: ../Source/Sound/Sound\ Stream.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/9f051e0a

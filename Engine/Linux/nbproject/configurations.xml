@@ -645,6 +645,7 @@
         <itemPath>../Source/Sound/Music.cpp</itemPath>
         <itemPath>../Source/Sound/Sound Buffer.cpp</itemPath>
         <itemPath>../Source/Sound/Sound Record.cpp</itemPath>
+        <itemPath>../Source/Sound/Sound Resample.cpp</itemPath>
         <itemPath>../Source/Sound/Sound Stream.cpp</itemPath>
         <itemPath>../Source/Sound/Sound.cpp</itemPath>
         <itemPath>../Source/Sound/Spectrometer.cpp</itemPath>
@@ -2051,6 +2052,8 @@
       <item path="../Source/Sound/Sound Buffer.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../Source/Sound/Sound Record.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../Source/Sound/Sound Resample.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../Source/Sound/Sound Stream.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -3459,6 +3462,8 @@
       <item path="../Source/Sound/Sound Buffer.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../Source/Sound/Sound Record.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../Source/Sound/Sound Resample.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../Source/Sound/Sound Stream.cpp" ex="false" tool="1" flavor2="0">
       </item>

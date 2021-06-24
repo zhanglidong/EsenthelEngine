@@ -866,6 +866,9 @@
 		3754C3111A5B700B00F5ED3C /* Animated Skeleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3754C3101A5B700B00F5ED3C /* Animated Skeleton.cpp */; };
 		3754C3121A5B700B00F5ED3C /* Animated Skeleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3754C3101A5B700B00F5ED3C /* Animated Skeleton.cpp */; };
 		3754C3131A5B700B00F5ED3C /* Animated Skeleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3754C3101A5B700B00F5ED3C /* Animated Skeleton.cpp */; };
+		3764B5CA2684429100BE7F56 /* Sound Resample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3764B5C92684429100BE7F56 /* Sound Resample.cpp */; };
+		3764B5CB2684429100BE7F56 /* Sound Resample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3764B5C92684429100BE7F56 /* Sound Resample.cpp */; };
+		3764B5CC2684429100BE7F56 /* Sound Resample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3764B5C92684429100BE7F56 /* Sound Resample.cpp */; };
 		377360091B1822D30026D698 /* AdMob.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 377360071B1822D30026D698 /* AdMob.cpp */; };
 		3773600A1B1822D30026D698 /* AdMob.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 377360071B1822D30026D698 /* AdMob.cpp */; };
 		3773600B1B1822D30026D698 /* AdMob.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 377360071B1822D30026D698 /* AdMob.cpp */; };
@@ -1607,6 +1610,7 @@
 		3747E0AB21AE44640001AFC5 /* libGameAnalytics.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libGameAnalytics.a; path = ../ThirdPartyLibs/GameAnalytics/iOS/libGameAnalytics.a; sourceTree = "<group>"; };
 		374B09E7250B736700F37C7B /* HEIF.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HEIF.cpp; sourceTree = "<group>"; };
 		3754C3101A5B700B00F5ED3C /* Animated Skeleton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Animated Skeleton.cpp"; sourceTree = "<group>"; };
+		3764B5C92684429100BE7F56 /* Sound Resample.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Sound Resample.cpp"; sourceTree = "<group>"; };
 		377360071B1822D30026D698 /* AdMob.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AdMob.cpp; sourceTree = "<group>"; };
 		377360081B1822D30026D698 /* Chartboost.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Chartboost.cpp; sourceTree = "<group>"; };
 		3778B76621F71213001D764E /* FBSDKLoginKit.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = FBSDKLoginKit.a; path = ../ThirdPartyLibs/Facebook/iOS/FBSDKLoginKit.a; sourceTree = "<group>"; };
@@ -2694,6 +2698,7 @@
 				0B9D586C12009BA700821211 /* Music.cpp */,
 				0B9D586D12009BA700821211 /* Sound Buffer.cpp */,
 				0B96AD99180A4E680056691D /* Sound Record.cpp */,
+				3764B5C92684429100BE7F56 /* Sound Resample.cpp */,
 				0B9D586F12009BA700821211 /* Sound Stream.cpp */,
 				0B9D587012009BA700821211 /* Sound.cpp */,
 				3781B0361D9CB38700A1765A /* Spectrometer.cpp */,
@@ -3274,6 +3279,7 @@
 				0B189BC812DA3FED00499CA9 /* Mesh Part.cpp in Sources */,
 				0B189BC912DA3FED00499CA9 /* Mesh Render.cpp in Sources */,
 				378307AE1A071037002383BF /* MenuBar.cpp in Sources */,
+				3764B5CC2684429100BE7F56 /* Sound Resample.cpp in Sources */,
 				0B189BCA12DA3FED00499CA9 /* Mshb Add Remove.cpp in Sources */,
 				37ABC66618BD3E6500F9F630 /* Store.cpp in Sources */,
 				0B189BCB12DA3FED00499CA9 /* Mshb Convert.cpp in Sources */,
@@ -3523,6 +3529,7 @@
 				0B1899D112DA3FD300499CA9 /* Touch.cpp in Sources */,
 				0B1899D212DA3FD300499CA9 /* Calculate.cpp in Sources */,
 				0B1899D312DA3FD300499CA9 /* Camera.cpp in Sources */,
+				3764B5CA2684429100BE7F56 /* Sound Resample.cpp in Sources */,
 				0B1899D412DA3FD300499CA9 /* Frustum.cpp in Sources */,
 				0B1899D512DA3FD300499CA9 /* Math.cpp in Sources */,
 				0B1899D612DA3FD300499CA9 /* Matrix.cpp in Sources */,
@@ -3880,6 +3887,7 @@
 				0B189B8512DA3FED00499CA9 /* Mesh Lod.cpp in Sources */,
 				0B189B8612DA3FED00499CA9 /* Mesh Mesh.cpp in Sources */,
 				0B189B8712DA3FED00499CA9 /* Mesh Overlay.cpp in Sources */,
+				3764B5CB2684429100BE7F56 /* Sound Resample.cpp in Sources */,
 				0B189B8812DA3FED00499CA9 /* Mesh Part.cpp in Sources */,
 				0B189B8912DA3FED00499CA9 /* Mesh Render.cpp in Sources */,
 				378307AD1A071036002383BF /* MenuBar.cpp in Sources */,
