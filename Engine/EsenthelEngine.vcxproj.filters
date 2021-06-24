@@ -2706,6 +2706,9 @@
     <Library Include="..\ThirdPartyLibs\Zlib\Windows\x64\Release\Zlib.lib">
       <Filter>H\_\Libs\64</Filter>
     </Library>
+    <Library Include="..\ThirdPartyLibs\SampleRate\Windows\x64\Release\SampleRate\SampleRate.lib">
+      <Filter>H\_\Libs\64</Filter>
+    </Library>
   </ItemGroup>
   <ItemGroup>
     <Object Include="..\NintendoSwitch\ThirdPartyLibs\Zstd\zstd_common.o">

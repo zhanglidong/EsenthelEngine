@@ -7,6 +7,11 @@
 
 /******************************************************************************/
 #include "stdafx.h"
+#if SUPPORT_SAMPLERATE
+   #include "../../../ThirdPartyLibs/begin.h"
+   #include "../../../ThirdPartyLibs/SampleRate/lib/src/samplerate.h"
+   #include "../../../ThirdPartyLibs/end.h"
+#endif
 namespace EE{
 /******************************************************************************/
 static inline void Set(I16 &sample, Flt value)
@@ -440,12 +445,56 @@ Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16>
             vol[0]=vol[1]=1;
          }
          dest_data.setNum(dest_samples*dest_channels);
+      #if SUPPORT_SAMPLERATE
+         if(SRC_STATE *resampler=src_new(SRC_SINC_BEST_QUALITY, src_channels, null))
+         {
+            Bool      use_vol=(!Equal(vol[0], 1) || !Equal(vol[1], 1));
+            Flt       src_flt[16384];
+            Int       src_flt_samples=Elms(src_flt)/src_channels;
+            Memt<Flt> dest_flt; dest_flt.setNum(Round((Elms(src_flt)+16)/speed)); Flt *dest_flt_data=dest_flt.data();
+            Int       dest_flt_samples=dest_flt.elms()/dest_channels;
+            Int       dest_data_pos=0;
+            SRC_DATA  data;
+            data.src_ratio=1/speed;
+            Bool ok=true;
+            for(; src_samples>0; )
+            {
+               Int       read=Min(src_samples, src_flt_samples);
+               data.end_of_input=(src_samples<=src_flt_samples);
+               data.  data_in = src_flt;
+               data.  data_out=dest_flt_data;
+               data. input_frames=read;
+               data.output_frames=dest_flt_samples;
+               Int n=read*src_channels; FREP(n)src_flt[i]=ShortToSFlt(src_data[i]);
+               if(src_process(resampler, &data)){ok=false; break;}
+               Int write=Min(data.output_frames_gen*dest_channels, dest_data.elms()-dest_data_pos);
+               if(use_vol)switch(dest_channels)
+               {
+                  case 1: FREP(data.output_frames_gen)dest_flt_data[i]*=vol[0]; break;
+                  case 2: FREP(data.output_frames_gen)
+                  {
+                     dest_flt_data[i*2+0]*=vol[0];
+                     dest_flt_data[i*2+1]*=vol[1];
+                  }break;
+               }
+               FREP(write)dest_data[dest_data_pos+i]=SFltToShort(dest_flt_data[i]);
+               dest_data_pos+=write;
+               read=data.input_frames_used;
+               src_samples-=read;
+               src_data   +=read*src_channels;
+            }
+            src_delete(resampler);
+            ZeroFastN(dest_data.data()+dest_data_pos, dest_data.elms()-dest_data_pos); // zero unwritten
+            return ok;
+         }
+      #else
          SoundResampler resampler(speed, vol, dest_channels, dest_samples, dest_data.data(), src_channels);
          resampler.setSrc(src_samples, src_data);
          resampler.set();
          Int unwritten=resampler.dest_channels*resampler.dest_samples;
          ZeroFastN(dest_data.data()+(dest_data.elms()-unwritten), unwritten); // zero unwritten
          return true;
+      #endif
       }
    }
    dest_data.clear(); return false;
