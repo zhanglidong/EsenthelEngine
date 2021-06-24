@@ -309,7 +309,7 @@ class MaterialRegion : Region
    Vec               mouse_edit_value=0;
    Vec2              light_angle=PI_4;
    Region            sub;
-   Button            brightness, emissive, rgb_1;
+   Button            brightness, rgb_1, emissive;
    Property         *red=null, *green=null, *blue=null, *alpha=null, *emit_red=null, *emit_green=null, *emit_blue=null, *smooth=null;
    Memx<Property>    props;
    Memx<Texture>     texs;

@@ -55,7 +55,7 @@ public:
    Vec               mouse_edit_value;
    Vec2              light_angle;
    Region            sub;
-   Button            brightness, emissive, rgb_1;
+   Button            brightness, rgb_1, emissive;
    Property         *red, *green, *blue, *alpha, *emit_red, *emit_green, *emit_blue, *smooth;
    Memx<Property>    props;
    Memx<Texture>     texs;

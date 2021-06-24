@@ -7,7 +7,7 @@
 
 /******************************************************************************/
 #include "stdafx.h"
-#if SUPPORT_SAMPLERATE
+#if SUPPORT_SAMPLERATE // TODO: add support on all platforms
    #include "../../../ThirdPartyLibs/begin.h"
    #include "../../../ThirdPartyLibs/SampleRate/lib/src/samplerate.h"
    #include "../../../ThirdPartyLibs/end.h"

@@ -116,7 +116,7 @@ class WaterMtrlRegion : MaterialRegion
    void create()
    {
       undos.replaceClass<Change>();
-      super.create(); elm_type=ELM_WATER_MTRL; max_zoom=50; preview_cam.dist=15; preview_cam.pitch=-PI_6; preview_cam.setSpherical(); set_mtrl.del(); brightness.del(); preview_mode.del(); preview_big.range=preview.range=200;
+      super.create(); elm_type=ELM_WATER_MTRL; max_zoom=50; preview_cam.dist=15; preview_cam.pitch=-PI_6; preview_cam.setSpherical(); set_mtrl.del(); brightness.del(); rgb_1.del(); emissive.del(); preview_mode.del(); preview_big.range=preview.range=200;
 
       flt e=0.01, prop_height=0.044;
       props.clear();
