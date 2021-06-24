@@ -495,8 +495,35 @@ Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16>
          // if failed then fall back to Esenthel Resampler
       #endif
          SoundResampler resampler(speed, vol, dest_channels, dest_samples, dest_data.data(), src_channels);
+         const Int samples_step=16384; // process up to this many samples in one step, because we need Flt precision to be reasonable for interpolation
+         // Int si= 4096; Flt sf=si; Flt sf1=sf; IncRealByBit(sf1); sf1= 4096.00049
+         // Int si= 8192; Flt sf=si; Flt sf1=sf; IncRealByBit(sf1); sf1= 8192.00098
+         // Int si=16384; Flt sf=si; Flt sf1=sf; IncRealByBit(sf1); sf1=16384.0020
+         // Int si=32768; Flt sf=si; Flt sf1=sf; IncRealByBit(sf1); sf1=32768.0039
+         // Int si=65536; Flt sf=si; Flt sf1=sf; IncRealByBit(sf1); sf1=65536.0078
+      #if 0 // process all in one go, not good because Flt sample positions will lose precision for large data
          resampler.setSrc(src_samples, src_data);
          resampler.set();
+      #elif 0 // limit per src (not good because will introduce clamping for src data when interpolating)
+         for(; src_samples>0; )
+         {
+            Int samples=Min(src_samples, samples_step);
+            resampler.setSrc(samples, src_data);
+            resampler.set();
+            src_samples-=samples;
+            src_data   +=samples*src_channels;
+         }
+      #else // limit per dest (best)
+         resampler.setSrc(src_samples, src_data);
+         for(; resampler.dest_samples>0 && resampler.src_samples>0; )
+         {
+            Int dest_samples=resampler.dest_samples; MIN(resampler.dest_samples, samples_step); dest_samples-=resampler.dest_samples;
+            Int  src_samples=resampler.set();
+            resampler.dest_samples+=dest_samples;
+            resampler. src_samples-= src_samples;
+            resampler. src_mono   += src_samples*src_channels;
+         }
+      #endif
          Int unwritten=resampler.dest_channels*resampler.dest_samples;
          ZeroFastN(dest_data.data()+(dest_data.elms()-unwritten), unwritten); // zero unwritten
          return true;
