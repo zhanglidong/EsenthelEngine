@@ -429,6 +429,7 @@ Int SoundResampler::add()
 Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16> dest_data, Flt speed, C Flt *volume)
 {
    if(speed>EPS
+   &&  src_samples>0
    && (src_channels==1 || src_channels==2)
    && dest_data.continuous())
    {
@@ -468,7 +469,6 @@ Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16>
                data.output_frames=dest_flt_samples;
                Int n=read*src_channels; FREP(n)src_flt[i]=ShortToSFlt(src_data[i]);
                if(src_process(resampler, &data)){ok=false; break;}
-               Int write=Min(data.output_frames_gen*dest_channels, dest_data.elms()-dest_data_pos);
                if(use_vol)switch(dest_channels)
                {
                   case 1: FREP(data.output_frames_gen)dest_flt_data[i]*=vol[0]; break;
@@ -478,6 +478,7 @@ Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16>
                      dest_flt_data[i*2+1]*=vol[1];
                   }break;
                }
+               Int  write=Min(data.output_frames_gen*dest_channels, dest_data.elms()-dest_data_pos);
                FREP(write)dest_data[dest_data_pos+i]=SFltToShort(dest_flt_data[i]);
                dest_data_pos+=write;
                read=data.input_frames_used;
@@ -501,7 +502,7 @@ Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16>
          return true;
       }
    }
-   dest_data.clear(); return false;
+   dest_data.clear(); return src_samples==0;
 }
 /******************************************************************************/
 } // namespace EE
