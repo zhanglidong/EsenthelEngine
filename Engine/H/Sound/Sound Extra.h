@@ -351,8 +351,8 @@ struct SoundResampler
    {
       I16 l, r;
    };
-    C Flt          speed   , // !! must be copied to a temporary because it might get changed on a secondary thread !!
-                  volume[2];
+    C Flt          speed   ; // !! must be copied to a temporary because it might get changed on a secondary thread !!
+      Flt         volume[2];
     C Int     dest_channels,
               dest_block   ,
                src_channels,
@@ -376,7 +376,10 @@ struct SoundResampler
    SoundResampler(Flt speed, Flt volume[2], Int dest_channels, Int dest_samples, Ptr dest_data, Int src_channels, Flt src_sample_offset=0) :
       speed(speed), volume{volume[0], volume[1]},
       dest_channels(dest_channels), dest_block(SIZE(I16)*dest_channels), dest_samples(dest_samples), dest_data(dest_data),
-       src_channels( src_channels),  src_block(SIZE(I16)* src_channels), src_sample_offset(src_sample_offset) {}
+       src_channels( src_channels),  src_block(SIZE(I16)* src_channels), src_sample_offset(src_sample_offset)
+   {
+      if(src_channels==2 && dest_channels==1)REPAO(T.volume)/=2;
+   }
    void setSrc(Int src_samples, Ptr src_data) {T.src_samples=src_samples; T.src_data=src_data;}
    Int set(); // dest =src
    Int add(); // dest+=src
