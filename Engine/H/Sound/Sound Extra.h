@@ -375,8 +375,9 @@ struct SoundResampler
 
    SoundResampler(Flt speed, Flt volume[2], Int dest_channels, Int dest_samples, Ptr dest_data, Int src_channels, Flt src_sample_offset=0) :
       speed(speed), volume{volume[0], volume[1]},
-      dest_channels(dest_channels), dest_block(SIZE(I16)*dest_channels), dest_samples(dest_samples), dest_data(dest_data),
-       src_channels( src_channels),  src_block(SIZE(I16)* src_channels), src_sample_offset(src_sample_offset)
+      dest_channels(dest_channels), dest_block(SIZE(I16)*dest_channels),
+       src_channels( src_channels),  src_block(SIZE(I16)* src_channels),
+       dest_samples(dest_samples ),  src_sample_offset(src_sample_offset), dest_data(dest_data)
    {
       if(src_channels==2 && dest_channels==1)REPAO(T.volume)/=2;
    }
