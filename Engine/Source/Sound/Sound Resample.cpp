@@ -426,7 +426,7 @@ Int SoundResampler::add()
    }
 }
 /******************************************************************************/
-Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16> dest_data, Flt speed, C Flt *volume)
+Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16> dest_data, Flt speed, Bool hi_quality, C Flt *volume)
 {
    if(speed>EPS
    &&  src_samples>0
@@ -448,7 +448,8 @@ Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16>
          }
          dest_data.setNum(dest_samples*dest_channels);
       #if SUPPORT_SAMPLERATE
-         if(SRC_STATE *resampler=src_new(SRC_SINC_BEST_QUALITY, src_channels, null))
+         if(hi_quality)
+            if(SRC_STATE *resampler=src_new(SRC_SINC_BEST_QUALITY, src_channels, null))
          {
             Bool      use_vol=(!Equal(vol[0], 1) || !Equal(vol[1], 1));
             Flt       src_flt[16384];
