@@ -448,7 +448,7 @@ Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16>
          }
          dest_data.setNum(dest_samples*dest_channels);
       #if SUPPORT_SAMPLERATE
-         if(hi_quality)
+         if(hi_quality && speed!=1)
             if(SRC_STATE *resampler=src_new(SRC_SINC_BEST_QUALITY, src_channels, null))
          {
             Bool      use_vol=(!Equal(vol[0], 1) || !Equal(vol[1], 1));
