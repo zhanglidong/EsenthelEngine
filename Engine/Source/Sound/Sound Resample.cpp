@@ -451,9 +451,9 @@ Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16>
          if(hi_quality && speed!=1)
             if(SRC_STATE *resampler=src_new(SRC_SINC_BEST_QUALITY, src_channels, null))
          {
-            Bool      use_vol=(!Equal(vol[0], 1) || !Equal(vol[1], 1));
-            Flt       src_flt[16384];
-            Int       src_flt_samples=Elms(src_flt)/src_channels;
+            Bool       use_vol=(!Equal(vol[0], 1) || !Equal(vol[1], 1));
+            Flt        src_flt[16384];
+            Int        src_flt_samples=Elms(src_flt)/src_channels;
             Memt<Flt> dest_flt; dest_flt.setNum(Round((Elms(src_flt)+16)/speed)); Flt *dest_flt_data=dest_flt.data();
             Int       dest_flt_samples=dest_flt.elms()/dest_channels;
             Int       dest_data_pos=0;
