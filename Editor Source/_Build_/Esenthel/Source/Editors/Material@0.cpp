@@ -707,7 +707,7 @@ MaterialTech mtrl_techs[]=
       Gui+=super::create(Rect_LU(0, 0, 0.73f, 1)).skin(&LightSkin, false).hide();
       flt w=rect().w()-slidebarSize(), e=0.01f, we=w-e*2, p=0.007f, h=0.05f, prop_height=0.044f;
         T+=big         .create(Rect_LU(e, 0, h*1.6f, h), "<<").focusable(false); big.mode=BUTTON_TOGGLE;
-        T+=set_mtrl    .create(Rect_LU(big.rect().max.x+p, big.rect().max.y, h, h)).func(SetMtrl, T).focusable(false).desc("Enable this and click on the screen to set material at that location"); set_mtrl.mode=BUTTON_TOGGLE; set_mtrl.image="Gui/Misc/set.img";
+        T+=set_mtrl    .create(Rect_LU(big.rect().max.x+p, big.rect().max.y, h, h)).func(SetMtrl, T).focusable(false).desc("Enable this and click on the screen to set material at that location.\nOptionally hold Shift key to completely replace target material on all parts that use it."); set_mtrl.mode=BUTTON_TOGGLE; set_mtrl.image="Gui/Misc/set.img";
         T+=undo        .create(Rect_LU(set_mtrl.rect().ru()+Vec2(p, 0), 0.05f, 0.05f )).func(Undo, T).focusable(false).desc("Undo"); undo.image="Gui/Misc/undo.img";
         T+=redo        .create(Rect_LU(undo.rect().ru()               , 0.05f, 0.05f )).func(Redo, T).focusable(false).desc("Redo"); redo.image="Gui/Misc/redo.img";
         T+=locate      .create(Rect_L (redo.rect().right() +Vec2(p, 0), 0.11f, 0.043f), "Locate").func(Locate, T).focusable(false).desc("Locate this element in the Project");
