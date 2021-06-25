@@ -304,9 +304,9 @@ struct Image // Image (Texture)
 #if EE_PRIVATE
    Bool createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Byte samples=1, CPtr src_data=null, C Image *src=null
       #if GL_ES
-                   , Bool can_del_src=false // 'can_del_src'=if allow deleting 'src' (always enable if possible, to allow faster creation of images on GL_ES)
+               , Bool can_del_src=false // 'can_del_src'=if allow deleting 'src' (always enable if possible, to allow faster creation of images on GL_ES)
       #endif
-                   );
+                );
 #endif
    Image& del(); // delete
 
