@@ -164,13 +164,47 @@ static Bool Load(Image &image, File &f, C ImageHeader &header, C Str &name)
    }
 
    const Bool create_from_soft=DX11|GL; // if want to load into SOFT and then create HW from it, to avoid locking 'D._lock', only DX11, GL support this
+   const Bool file_cube =IsCube    (header.mode);
+   const Int  file_faces=ImageFaces(header.mode);
+
+   // try to create directly from file memory
+   if(create_from_soft // can create from soft
+   &&  f._type==FILE_MEM // file data is already available and in continuous memory
+   && !f._cipher         // no cipher
+   && IsHW        (want.mode) // want HW mode
+   && CanDoRawCopy(want.type, header.type) // type is the same
+   && IsCube      (want.mode)==file_cube   // cube is the same
+   )
+      FREPD(file_mip, header.mip_maps) // iterate all mip maps in the file
+   {
+      VecI file_mip_size(Max(1, header.size.x>>file_mip), Max(1, header.size.y>>file_mip), Max(1, header.size.z>>file_mip));
+      if(  file_mip_size==want.size) // found exact match
+      {
+         if(header.mip_maps-file_mip>=want.mip_maps) // if have all mip maps that we want
+         {
+            Byte *f_data=(Byte*)f.memFast();
+            FREPD(i, file_mip)f_data+=ImageMipSize(header.size.x, header.size.y, header.size.z, i, header.type)*file_faces; // skip data that we don't want
+            if(image.createEx(want.size.x, want.size.y, want.size.z, want.type, want.mode, want.mip_maps, 1, f_data))
+            {
+               for(; file_mip<header.mip_maps; file_mip++)f_data+=ImageMipSize(header.size.x, header.size.y, header.size.z, file_mip, header.type)*file_faces; // skip remaining mip maps
+               f.skip(f_data-(Byte*)f.memFast()); // skip to the end of the image
+               return true;
+            }
+         }
+         break;
+      }else
+      if(file_mip_size.x<want.size.x
+      || file_mip_size.y<want.size.y
+      || file_mip_size.z<want.size.z)break; // if any dimension of processed file mip is smaller than what we want then stop
+   }
+
+   // create
    if(image.createTry(want.size.x, want.size.y, want.size.z, want.type, create_from_soft ? (IsCube(want.mode) ? IMAGE_SOFT_CUBE : IMAGE_SOFT) : want.mode, want.mip_maps)) // don't use 'want' after this call, instead operate on 'image' members
    {
 const FILTER_TYPE filter=FILTER_BEST;
       Image       soft; // store outside the loop to avoid overhead
-const Bool        file_cube =IsCube(header.mode), fast_load=(image.soft() && CanDoRawCopy(image.hwType(), header.type) && image.cube()==file_cube);
-const Int         file_faces=(file_cube ? 6 : 1);
-      Int         image_mip  =0; // how many mip-maps have already been set in the image
+const Bool        fast_load=(image.soft() && CanDoRawCopy(image.hwType(), header.type) && image.cube()==file_cube);
+      Int         image_mip=0; // how many mip-maps have already been set in the image
       FREPD(file_mip, header.mip_maps) // iterate all mip maps in the file
       {
          VecI file_mip_size(Max(1, header.size.x>>file_mip), Max(1, header.size.y>>file_mip), Max(1, header.size.z>>file_mip));
@@ -302,7 +336,7 @@ const Int         file_faces=(file_cube ? 6 : 1);
       if(image.mode()!=want.mode) // if created as SOFT, then convert to HW
       {
          Swap(soft, image); // can't create from self
-         if(!image.createEx(soft.w(), soft.h(), soft.d(), soft.type(), want.mode, soft.mipMaps(), soft.samples(), &soft
+         if(!image.createEx(soft.w(), soft.h(), soft.d(), soft.type(), want.mode, soft.mipMaps(), soft.samples(), null, &soft
             #if GL_ES
                , true // allow deleting 'soft' src
             #endif
@@ -315,7 +349,7 @@ const Int         file_faces=(file_cube ? 6 : 1);
                alt_type=ImageTypeOnFail(alt_type); if(!alt_type)return false;
                if(ImageSupported (alt_type, want.mode, soft.samples()) // do a quick check before 'copyTry' to avoid it if we know creation will fail
                && soft .  copyTry(soft, -1, -1, -1, alt_type, -1, -1, FILTER_BEST, IC_CONVERT_GAMMA) // we have to keep depth, soft mode, mip maps, make sure gamma conversion is performed
-               && image.createEx (soft.w(), soft.h(), soft.d(), soft.type(), want.mode, soft.mipMaps(), soft.samples(), &soft
+               && image.createEx (soft.w(), soft.h(), soft.d(), soft.type(), want.mode, soft.mipMaps(), soft.samples(), null, &soft
                   #if GL_ES
                      , true // allow deleting 'soft' src
                   #endif

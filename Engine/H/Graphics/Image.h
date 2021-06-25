@@ -302,7 +302,7 @@ struct Image // Image (Texture)
 
    // manage
 #if EE_PRIVATE
-   Bool createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Byte samples=1, C Image *src=null
+   Bool createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Byte samples=1, CPtr src_data=null, C Image *src=null
       #if GL_ES
                    , Bool can_del_src=false // 'can_del_src'=if allow deleting 'src' (always enable if possible, to allow faster creation of images on GL_ES)
       #endif
@@ -805,6 +805,7 @@ PtrImageColor     GetImageColorF   (FILTER_TYPE filter);
 PtrImageColor3D   GetImageColor3DF (FILTER_TYPE filter);
 PtrImageAreaColor GetImageAreaColor(FILTER_TYPE filter, Bool &linear_gamma);
 
+Int                        ImageFaces       (IMAGE_MODE mode);
 Int                        PaddedWidth      (Int w, Int h,        Int mip, IMAGE_TYPE type);
 Int                        PaddedHeight     (Int w, Int h,        Int mip, IMAGE_TYPE type);
 Int                        ImagePitch       (Int w, Int h,        Int mip, IMAGE_TYPE type);

@@ -611,6 +611,7 @@ Bool IsCube(IMAGE_MODE mode)
    }
 }
 /******************************************************************************/
+Int ImageFaces(IMAGE_MODE mode) {return IsCube(mode) ? 6 : 1;}
 Int PaddedWidth(Int w, Int h, Int mip, IMAGE_TYPE type)
 {
    if(type==IMAGE_PVRTC1_2 || type==IMAGE_PVRTC1_4 || type==IMAGE_PVRTC1_2_SRGB || type==IMAGE_PVRTC1_4_SRGB)w=h=CeilPow2(Max(w, h)); // PVRTC1 must be square and power of 2
@@ -1110,7 +1111,7 @@ void Image::setGLParams()
 #endif
 }
 /******************************************************************************/
-Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Byte samples, C Image *src
+Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Byte samples, CPtr src_data, C Image *src
    #if GL_ES
       , Bool can_del_src
    #endif
@@ -1131,7 +1132,7 @@ Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
       else       MIN(mip_maps,total_mip_maps); // don't use more than maximum allowed
 
       // check if already matches what we want
-      if(T.w()==w && T.h()==h && T.d()==d && T.type()==type && T.mode()==mode && T.mipMaps()==mip_maps && T.samples()==samples && !src)
+      if(T.w()==w && T.h()==h && T.d()==d && T.type()==type && T.mode()==mode && T.mipMaps()==mip_maps && T.samples()==samples && !src_data && !src)
       {
          unlock(); // unlock if was locked
          return true;
@@ -1146,9 +1147,6 @@ Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
    #endif
       // hardware size (do after calculating mip-maps)
       VecI hw_size(PaddedWidth(w, h, 0, type), PaddedHeight(w, h, 0, type), d);
-   #if DX11
-      D3D11_SUBRESOURCE_DATA *initial_data=null; MemtN<D3D11_SUBRESOURCE_DATA, 32*6> res_data; // 32 mip maps * 6 faces
-   #endif
       if(src) // if 'src' specified
       {
       #if DX11 || GL // !! if adding more API's here, then allow them in 'Load' "Image IO.cpp" too !! only DX11, GL support this
@@ -1156,15 +1154,19 @@ Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
          || src->hwType()!=type || src->hwSize3()!=hw_size || src->mipMaps()!=mip_maps || !src->soft() || src->cube()!=IsCube(mode)) // 'src' must match exactly what was requested
       #endif
             goto error;
-
-      #if DX11
-       C Byte *data=src->softData(); Int faces=src->faces();
+         src_data=src->softData();
+      }
+   #if DX11
+      D3D11_SUBRESOURCE_DATA *initial_data=null; MemtN<D3D11_SUBRESOURCE_DATA, 32*6> res_data; // 32 mip maps * 6 faces
+      if(src_data) // always assumed to exactly match
+      {
+       C Byte *data=(Byte*)src_data; Int faces=ImageFaces(mode);
          initial_data=res_data.setNum(mip_maps*faces).data();
          FREPD(m, mip_maps)
-         { // have to specify HW sizes, because all images (HW and SOFT) are stored like that
-            Int mip_pitch =src->softPitch(m)                                                , // X
-                mip_pitch2=ImageBlocksY(src->hwW(), src->hwH(), m, src->hwType())*mip_pitch , // X*Y
-                mip_size  =                  Max(1, src->hwD()>>m               )*mip_pitch2; // X*Y*Z
+         { // have to specify HW sizes, because all images (HW and SOFT) are stored like that. Need to use 'hw_size' and not T.hwSize (because 1-it's not yet available, 2-it may be bigger, but we need the 'src' hw size which is always smallest)
+            Int mip_pitch =ImagePitch  (hw_size.x, hw_size.y, m, type)           , // X
+                mip_pitch2=ImageBlocksY(hw_size.x, hw_size.y, m, type)*mip_pitch , // X*Y
+                mip_size  =                 Max(1, hw_size.z>>m      )*mip_pitch2; // X*Y*Z
             FREPD(f, faces)
             {
                D3D11_SUBRESOURCE_DATA &srd=initial_data[D3D11CalcSubresource(m, f, mip_maps)];
@@ -1174,8 +1176,8 @@ Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
                data+=mip_size;
             }
          }
-      #endif
       }
+   #endif
 
    #if GL_LOCK
       SyncLockerEx locker(D._lock, IsHW(mode)); // lock not needed for DX11 'D3D'
@@ -1339,12 +1341,12 @@ Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
                setGLParams(); // call this first to bind the texture
 
                UInt format=hwTypeInfo().format, gl_format=SourceGLFormat(hwType()), gl_type=SourceGLType(hwType());
-               if(src)
+               if(src_data)
                {
                #if GL_ES
-                  if(mode!=IMAGE_RT && !(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && !can_del_src)Alloc(_data_all, CeilGL(src->memUsage())); Byte *dest=_data_all; // create a software copy only if we want it and we're not going to take it from 'src'
+                  if(mode!=IMAGE_RT && !(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && !can_del_src)Alloc(_data_all, CeilGL(memUsage())); Byte *dest=_data_all; // create a software copy only if we want it and we're not going to take it from 'src'
                #endif
-                C Byte *data=src->softData(); FREPD(m, mipMaps()) // order important
+                C Byte *data=(Byte*)src_data; FREPD(m, mipMaps()) // order important
                   {
                      if(m==1) // check at the start of mip-map #1, to skip this when there's only one mip-map
                         if(glGetError()!=GL_NO_ERROR)goto error; // if first mip failed, then fail
@@ -1375,10 +1377,11 @@ Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
                #if GL_ES
                   if(mode!=IMAGE_RT)
                   {
-                     if(src)
+                     if(src_data)
                      {
                         if(!(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && can_del_src) // take software copy from 'src', but only if we want it, and only on success (so if failed, then we can still use 'src', this is needed for 'Load' loading)
                         {
+                           DYNAMIC_ASSERT(src, "'can_del_src' without 'src' is not implemented");
                            Image &s=ConstCast(*src); _data_all=s._data_all; s._data_all=null; s.del();
                         }
                      }else Alloc(_data_all, CeilGL(memUsage()));
@@ -1400,12 +1403,12 @@ Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
                setGLParams(); // call this first to bind the texture
 
                UInt format=hwTypeInfo().format, gl_format=SourceGLFormat(hwType()), gl_type=SourceGLType(hwType());
-               if(src)
+               if(src_data)
                {
                #if GL_ES
-                  if(!(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && !can_del_src)Alloc(_data_all, CeilGL(src->memUsage())); Byte *dest=_data_all; // create a software copy only if we want it and we're not going to take it from 'src'
+                  if(!(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && !can_del_src)Alloc(_data_all, CeilGL(memUsage())); Byte *dest=_data_all; // create a software copy only if we want it and we're not going to take it from 'src'
                #endif
-                C Byte *data=src->softData(); FREPD(m, mipMaps()) // order important
+                C Byte *data=(Byte*)src_data; FREPD(m, mipMaps()) // order important
                   {
                      if(m==1) // check at the start of mip-map #1, to skip this when there's only one mip-map
                         if(glGetError()!=GL_NO_ERROR)goto error; // if first mip failed, then fail
@@ -1426,10 +1429,11 @@ Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
                {
                   glFlush(); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
                #if GL_ES
-                  if(src)
+                  if(src_data)
                   {
                      if(!(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && can_del_src) // take software copy from 'src', but only if we want it, and only on success (so if failed, then we can still use 'src', this is needed for 'Load' loading)
                      {
+                        DYNAMIC_ASSERT(src, "'can_del_src' without 'src' is not implemented");
                         Image &s=ConstCast(*src); _data_all=s._data_all; s._data_all=null; s.del();
                      }
                   }else Alloc(_data_all, CeilGL(memUsage()));
@@ -1455,15 +1459,16 @@ Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
             #if GL_ES
-               if(src && mode!=IMAGE_RT_CUBE && !(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && !can_del_src)Alloc(_data_all, CeilGL(src->memUsage())); Byte *dest=_data_all; // create a software copy only if we want it and we're not going to take it from 'src'
+               if(src_data && mode!=IMAGE_RT_CUBE && !(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && !can_del_src)Alloc(_data_all, CeilGL(memUsage())); Byte *dest=_data_all; // create a software copy only if we want it and we're not going to take it from 'src'
             #endif
 
                UInt format=hwTypeInfo().format, gl_format=SourceGLFormat(hwType()), gl_type=SourceGLType(hwType());
-             C Byte *data=(src ? src->softData() : null); Int mip_maps=(src ? mipMaps() : 1); FREPD(m, mip_maps) // order important
+             C Byte *data=(Byte*)src_data; Int mip_maps=(src_data ? mipMaps() : 1); // when have src we need to initialize all mip-maps, without src we can just try 1 mip-map to see if it succeeds
+               FREPD(m, mip_maps) // order important
                {
                   VecI2 size(Max(1, hwW()>>m), Max(1, hwH()>>m));
                   Int   mip_size=ImageMipSize(size.x, size.y, 0, hwType());
-                  if(!m && !src)
+                  if(!m && !src_data)
                      if(mode==IMAGE_RT_CUBE || WEB && compressed())data=temp.setNumZero(CeilGL(mip_size)).dataNull(); // clear render targets to zero at start (especially important for floating point RT's), for WEB null can't be specified in 'glCompressedTexImage'
                   FREPD(f, 6) // faces, order important
                   {
@@ -1472,7 +1477,7 @@ Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
 
                      if(!m && !f && glGetError()!=GL_NO_ERROR)goto error; // check for error only on the first mip and face
                      
-                     if(src)
+                     if(src_data)
                      {
                      #if GL_ES
                         if(dest){CopyFast(dest, data, mip_size); dest+=mip_size;}
@@ -1488,10 +1493,11 @@ Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
                #if GL_ES
                   if(mode!=IMAGE_RT_CUBE)
                   {
-                     if(src)
+                     if(src_data)
                      {
                         if(!(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && can_del_src) // take software copy from 'src', but only if we want it, and only on success (so if failed, then we can still use 'src', this is needed for 'Load' loading)
                         {
+                           DYNAMIC_ASSERT(src, "'can_del_src' without 'src' is not implemented");
                            Image &s=ConstCast(*src); _data_all=s._data_all; s._data_all=null; s.del();
                         }
                      }else Alloc(_data_all, CeilGL(memUsage()));
@@ -2801,7 +2807,7 @@ Image& Image::updateMipMaps(FILTER_TYPE filter, UInt flags, Int mip_start)
 /******************************************************************************/
 // GET
 /******************************************************************************/
-Int Image::faces()C {return is() ? cube() ? 6 : 1 : 0;}
+Int Image::faces()C {return is() ? ImageFaces(mode()) : 0;}
 /******************************************************************************/
 UInt Image::    memUsage()C {return ImageSize(hwW(), hwH(), hwD(), hwType(), mode(), mipMaps());}
 UInt Image::typeMemUsage()C {return ImageSize(hwW(), hwH(), hwD(),   type(), mode(), mipMaps());}

@@ -72,7 +72,7 @@ struct File
    Bool      posAbs   (Long abs)  {return pos( abs -       _offset);} // set absolute position, false on fail
    Long      posAbs   (        )C {return     _pos +       _offset ;} // get absolute position in file
    Int       posCipher(        )C {return Int(_pos)+_cipher_offset ;} // get offset to be used in cipher, can be Int (instead Long) because Cipher operates on Int offset only
-   Ptr       memFast  (        )  {return (Byte*)_mem+posAbs();}
+   Ptr       memFast  (        )  {return (Byte*)_mem+posAbs();} // can be used only if type is known to be FILE_MEM
    Ptr       mem      (        ) ; // get raw memory pointer for FILE_MEM
    UInt      memUsage (        )C; // get memory usage
    FSTD_TYPE stdType  (        )C; // get FSTD_TYPE
