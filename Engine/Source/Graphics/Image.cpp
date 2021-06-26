@@ -1149,10 +1149,8 @@ Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
       VecI hw_size(PaddedWidth(w, h, 0, type), PaddedHeight(w, h, 0, type), d);
       if(src) // if 'src' specified
       {
-      #if DX11 || GL // !! if adding more API's here, then allow them in 'Load' "Image IO.cpp" too !! only DX11, GL support this
          if(src==this // can't be created from self
          || src->hwType()!=type || src->hwSize3()!=hw_size || src->mipMaps()!=mip_maps || !src->soft() || src->cube()!=IsCube(mode)) // 'src' must match exactly what was requested
-      #endif
             goto error;
          src_data=src->softData();
       }

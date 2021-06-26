@@ -163,7 +163,7 @@ static Bool Load(Image &image, File &f, C ImageHeader &header, C Str &name)
       want.mip_maps=Max(1, want.mip_maps-1);
    }
 
-   const Bool create_from_soft=DX11|GL; // if want to load into SOFT and then create HW from it, to avoid locking 'D._lock', only DX11, GL support this
+   const Bool create_from_soft=true; // if want to load into SOFT and then create HW from it, to avoid locking 'D._lock', use this because it's much faster
    const Bool file_cube =IsCube    (header.mode);
    const Int  file_faces=ImageFaces(header.mode);
 
