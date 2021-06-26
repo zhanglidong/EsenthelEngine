@@ -615,34 +615,34 @@ Int ImageFaces(IMAGE_MODE mode) {return IsCube(mode) ? 6 : 1;}
 Int PaddedWidth(Int w, Int h, Int mip, IMAGE_TYPE type)
 {
    if(type==IMAGE_PVRTC1_2 || type==IMAGE_PVRTC1_4 || type==IMAGE_PVRTC1_2_SRGB || type==IMAGE_PVRTC1_4_SRGB)w=h=CeilPow2(Max(w, h)); // PVRTC1 must be square and power of 2
-   Int mw=Max(1, w>>mip);
+   Int mip_w=Max(1, w>>mip);
    if(ImageTI[type].compressed)switch(type)
    {
-      case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB: return Max(Ceil8(mw), 16); // blocks are sized 8x4 pixels, min texture size is 16x8
-      case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB: return Max(Ceil4(mw),  8); // blocks are sized 4x4 pixels, min texture size is  8x8
-      default                                      : return     Ceil4(mw)     ; // blocks are sized 4x4 pixels, min texture size is  4x4
-   }                                                 return           mw      ;
+      case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB: return Max(Ceil8(mip_w), 16); // blocks are sized 8x4 pixels, min texture size is 16x8
+      case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB: return Max(Ceil4(mip_w),  8); // blocks are sized 4x4 pixels, min texture size is  8x8
+      default                                      : return     Ceil4(mip_w)     ; // blocks are sized 4x4 pixels, min texture size is  4x4
+   }                                                 return           mip_w      ;
 }
 Int PaddedHeight(Int w, Int h, Int mip, IMAGE_TYPE type)
 {
    if(type==IMAGE_PVRTC1_2 || type==IMAGE_PVRTC1_4 || type==IMAGE_PVRTC1_2_SRGB || type==IMAGE_PVRTC1_4_SRGB)w=h=CeilPow2(Max(w, h)); // PVRTC1 must be square and power of 2
-   Int mh=Max(1, h>>mip);
+   Int mip_h=Max(1, h>>mip);
    if(ImageTI[type].compressed)switch(type)
    {
-      case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB: return Max(Ceil4(mh), 8); // blocks are sized 8x4 pixels, min texture size is 16x8
-      case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB: return Max(Ceil4(mh), 8); // blocks are sized 4x4 pixels, min texture size is  8x8
-      default                                      : return     Ceil4(mh)    ; // blocks are sized 4x4 pixels, min texture size is  4x4
-   }                                                 return           mh     ;
+      case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB: return Max(Ceil4(mip_h), 8); // blocks are sized 8x4 pixels, min texture size is 16x8
+      case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB: return Max(Ceil4(mip_h), 8); // blocks are sized 4x4 pixels, min texture size is  8x8
+      default                                      : return     Ceil4(mip_h)    ; // blocks are sized 4x4 pixels, min texture size is  4x4
+   }                                                 return           mip_h     ;
 }
 Int ImagePitch(Int w, Int h, Int mip, IMAGE_TYPE type)
 {
-   w=PaddedWidth(w, h, mip, type);
-   return ImageTI[type].compressed ? w*ImageTI[type].bit_pp/2 : w*ImageTI[type].byte_pp; // all compressed formats use 4 rows per block (4*bit_pp/8 == bit_pp/2)
+   Int mip_w=PaddedWidth(w, h, mip, type);
+   return ImageTI[type].compressed ? mip_w*ImageTI[type].bit_pp/2 : mip_w*ImageTI[type].byte_pp; // all compressed formats use 4 rows per block (4*bit_pp/8 == bit_pp/2)
 }
 Int ImageBlocksY(Int w, Int h, Int mip, IMAGE_TYPE type)
 {
-   h=PaddedHeight(w, h, mip, type);
-   return ImageTI[type].compressed ? h/4 : h; // all compressed formats use 4 rows per block
+   Int mip_h=PaddedHeight(w, h, mip, type);
+   return ImageTI[type].compressed ? mip_h/4 : mip_h; // all compressed formats use 4 rows per block
 }
 Int ImageMipSize(Int w, Int h, Int mip, IMAGE_TYPE type)
 {
