@@ -305,6 +305,7 @@ public:
    static void MeshMergeCopFaces(ObjView &editor);          void meshMergeCoplanarFaces(bool all);
    static void MeshRotQuads     (ObjView &editor);void meshRotQuads     ();
    static void MeshQuadToTri    (ObjView &editor);void meshQuadToTri    ();
+   static void MeshTriToQuad    (ObjView &editor);void meshTriToQuad    ();
    static void MeshTesselate    (ObjView &editor);void meshTesselate    ();
    static void MeshSubdivide    (ObjView &editor);void meshSubdivide    ();
    static void MeshColorBrghtn  (ObjView &editor);void meshColorBrghtn  ();

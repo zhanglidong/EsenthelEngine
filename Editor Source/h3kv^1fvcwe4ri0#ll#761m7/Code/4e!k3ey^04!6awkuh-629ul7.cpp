@@ -577,6 +577,23 @@ void ObjView.meshQuadToTri()
       setChangedMesh(true, false);
    }
 }
+void ObjView.meshTriToQuad()
+{
+   bool changed=false;
+   mesh_undos.set("meshTriToQuad");
+   MeshLod &lod=getLod();
+   if(mesh_parts.edit_selected())
+   {
+   }else
+   {
+      REPA(lod)if(partOp(i)){MeshPart &part=lod.parts[i]; part.base.triToQuad(0.7); part.setRender(); changed=true;}
+   }
+   if(changed)
+   {
+      litSelVFClear();
+      setChangedMesh(true, false);
+   }
+}
 void ObjView.meshSubdivide()
 {
    bool changed=false;

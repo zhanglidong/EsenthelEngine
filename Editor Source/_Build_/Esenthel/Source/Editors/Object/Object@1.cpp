@@ -850,6 +850,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void ObjView::MeshMergeCopFaces(ObjView &editor) {editor.meshMergeCoplanarFaces(false);}
    void ObjView::MeshRotQuads(ObjView &editor) {editor.meshRotQuads     ();}
    void ObjView::MeshQuadToTri(ObjView &editor) {editor.meshQuadToTri    ();}
+   void ObjView::MeshTriToQuad(ObjView &editor) {editor.meshTriToQuad    ();}
    void ObjView::MeshTesselate(ObjView &editor) {editor.meshTesselate    ();}
    void ObjView::MeshSubdivide(ObjView &editor) {editor.meshSubdivide    ();}
    void ObjView::MeshColorBrghtn(ObjView &editor) {editor.meshColorBrghtn  ();}
@@ -1472,6 +1473,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          n.New().create("Merge Coplanar Faces"          , MeshMergeCopFaces, T).kbsc(KbSc(KB_M, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will merge all coplanar faces");
          n.New().create("Rotate Quads"                  , MeshRotQuads     , T).kbsc(KbSc(KB_Q, KBSC_CTRL_CMD|KBSC_ALT           ));
          n.New().create("Convert Quads To Tris"         , MeshQuadToTri    , T);
+         n.New().create("Convert Tris To Quads"         , MeshTriToQuad    , T);
          n.New().create("Tesselate"                     , MeshTesselate    , T).kbsc(KbSc(KB_T, KBSC_CTRL_CMD|           KBSC_ALT)).desc("This option will smoothen the mesh, keeping original vertexes in place");
          n.New().create("Subdivide"                     , MeshSubdivide    , T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD|           KBSC_ALT)).desc("This option will smoothen the mesh, repositioning original vertexes");
          n.New().create("Delete Double Side Faces"      , MeshDelDblSide   , T).desc("This option will remove double sided faces");
