@@ -180,8 +180,8 @@ static Bool Load(Image &image, File &f, C ImageHeader &header, C Str &name)
    && IsHW        (want.mode) // want HW mode
    && CanDoRawCopy(want.type, header.type) // type is the same
    && IsCube      (want.mode)==file_cube   // cube is the same
-   && want.size.x==PaddedWidth (want.size.x, want.size.y, 0, want.type) // can do this only if size is same as hwSize
-   && want.size.y==PaddedHeight(want.size.x, want.size.y, 0, want.type) // can do this only if size is same as hwSize
+   && want.size.x==PaddedWidth (want.size.x, want.size.y, 0, want.type) // can do this only if size is same as hwSize (if not same, then it means HW image has some gaps between lines/blocks that are not present in file data, and we must insert them and zero before create)
+   && want.size.y==PaddedHeight(want.size.x, want.size.y, 0, want.type) // can do this only if size is same as hwSize (if not same, then it means HW image has some gaps between lines/blocks that are not present in file data, and we must insert them and zero before create)
    )
       FREPD(file_mip, header.mip_maps) // iterate all mip maps in the file
    {
