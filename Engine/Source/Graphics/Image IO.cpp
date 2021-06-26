@@ -150,17 +150,23 @@ static Bool Load(Image &image, File &f, C ImageHeader &header, C Str &name)
    if(!f.ok())return false;
 
    ImageHeader want=header;
-   Int         shrink=0;
    if(Int (*image_load_shrink)(ImageHeader &image_header, C Str &name)=D.image_load_shrink) // copy to temp variable to avoid multi-threading issues
-      shrink=image_load_shrink(want, name);
-
-   // shrink
-   for(; --shrink>=0 || (IsHW(want.mode) && want.size.max()>D.maxTexSize() && D.maxTexSize()>0); ) // apply 'D.maxTexSize' only for hardware textures (not for software images)
    {
-      want.size.x  =Max(1, want.size.x >>1);
-      want.size.y  =Max(1, want.size.y >>1);
-      want.size.z  =Max(1, want.size.z >>1);
-      want.mip_maps=Max(1, want.mip_maps-1);
+      Int shrink=image_load_shrink(want, name);
+
+      // adjust mip-maps, we will need this for load from file memory
+      Int total_mip_maps=TotalMipMaps(want.size.x, want.size.y, want.size.z, want.type); // don't use hardware texture size hwW(), hwH(), hwD(), so that number of mip-maps will always be the same (and not dependant on hardware capabilities like TexPow2 sizes), also because 1x1 image has just 1 mip map, but if we use padding then 4x4 block would generate 3 mip maps
+      if(want.mip_maps<=0)want.mip_maps=total_mip_maps ; // if mip maps not specified (or we want multiple mip maps with type that requires full chain) then use full chain
+      else            MIN(want.mip_maps,total_mip_maps); // don't use more than maximum allowed
+
+      // shrink
+      for(; --shrink>=0 || (IsHW(want.mode) && want.size.max()>D.maxTexSize() && D.maxTexSize()>0); ) // apply 'D.maxTexSize' only for hardware textures (not for software images)
+      {
+         want.size.x  =Max(1, want.size.x >>1);
+         want.size.y  =Max(1, want.size.y >>1);
+         want.size.z  =Max(1, want.size.z >>1);
+         want.mip_maps=Max(1, want.mip_maps-1);
+      }
    }
 
    const Bool create_from_soft=true; // if want to load into SOFT and then create HW from it, to avoid locking 'D._lock', use this because it's much faster
@@ -174,6 +180,8 @@ static Bool Load(Image &image, File &f, C ImageHeader &header, C Str &name)
    && IsHW        (want.mode) // want HW mode
    && CanDoRawCopy(want.type, header.type) // type is the same
    && IsCube      (want.mode)==file_cube   // cube is the same
+   && want.size.x==PaddedWidth (want.size.x, want.size.y, 0, want.type) // can do this only if size is same as hwSize
+   && want.size.y==PaddedHeight(want.size.x, want.size.y, 0, want.type) // can do this only if size is same as hwSize
    )
       FREPD(file_mip, header.mip_maps) // iterate all mip maps in the file
    {
