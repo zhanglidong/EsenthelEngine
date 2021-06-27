@@ -206,6 +206,8 @@ inline Long  AvgI(Long  x, Long  y                ) {return DivRound(x+y    , 2l
 inline ULong AvgI(ULong x, ULong y                ) {return DivRound(x+y    , 2ull)      ;}
 inline Flt   AvgF(Int   x, Int   y                ) {return         (x+y          )*0.5f ;}
 inline Flt   Avg (Int   x, Int   y                ) {return         (x+y          )*0.5f ;}
+inline Flt   Avg (Int   x, Flt   y                ) {return         (x+y          )*0.5f ;}
+inline Flt   Avg (Flt   x, Int   y                ) {return         (x+y          )*0.5f ;}
 inline Flt   Avg (Flt   x, Flt   y                ) {return         (x+y          )*0.5f ;}
 inline Dbl   Avg (Dbl   x, Dbl   y                ) {return         (x+y          )*0.5  ;}
 inline Int   AvgI(Int   x, Int   y, Int  z        ) {return DivRound(x+y+z  , 3   )      ;}
