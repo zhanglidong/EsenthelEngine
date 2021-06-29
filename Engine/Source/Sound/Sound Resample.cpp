@@ -126,7 +126,7 @@ INLINE void SoundResampler::process(void Process(I16 &sample, Flt value))
       // read to buffer
       const Int buffer_max=Elms(buffer_mono);
       const Int buffer_max1=buffer_max-1;
-      if(buffer_samples<buffer_max1) // at the start copy 1 less, to make src[src_sample_posP] always zero, and first sample directly mapped to src[src_sample_pos0]
+      if(buffer_samples<buffer_max1) // at the start copy 1 less, to make src[src_sample_posP] always empty/zero, and first dest sample directly mapped to src[src_sample_pos0]
       {
          Int copy_samples=Min(src_samples, buffer_max1-buffer_samples);
          Int copy_samples_channels=copy_samples*src_channels;
