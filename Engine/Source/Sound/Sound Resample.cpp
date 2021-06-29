@@ -126,7 +126,7 @@ INLINE void SoundResampler::process(void Process(I16 &sample, Flt value))
       // read to buffer
       const Int buffer_max=Elms(buffer_mono);
       const Int buffer_max1=buffer_max-1;
-      if(buffer_samples<buffer_max1)
+      if(buffer_samples<buffer_max1) // at the start copy 1 less, to make src[src_sample_posP] always zero, and first sample directly mapped to src[src_sample_pos0]
       {
          Int copy_samples=Min(src_samples, buffer_max1-buffer_samples);
          Int copy_samples_channels=copy_samples*src_channels;
@@ -442,7 +442,7 @@ Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16>
       #if 0 // process all in one go, not good because Flt sample positions will lose precision for large data (minor precision loss at few second sounds and very noticeable for 2 minute sounds)
          resampler.setSrc(src_samples, src_data);
          resampler.set();
-      #elif 0 // limit per src (not good because will introduce clamping for src data when interpolating)
+      #elif 1 // limit per src (best)
          resampler.setSrc(src_samples, src_data);
          for(; resampler.dest_samples>0 && resampler.src_samples>0; )
          {
@@ -450,7 +450,7 @@ Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16>
             resampler.set();
             resampler.src_samples+=src_samples;
          }
-      #else // limit per dest (best)
+      #else // limit per dest (good, but precision depends on 'speed')
          resampler.setSrc(src_samples, src_data);
          for(; resampler.dest_samples>0 && resampler.src_samples>0; )
          {
