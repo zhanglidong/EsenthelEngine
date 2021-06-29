@@ -18,13 +18,13 @@ static SoundResampler::Stereo StereoZero={0, 0};
 I16 SoundResampler::srcMono(Int pos)C
 {
                         if(InRange(pos,    src_samples))return    src_mono[pos];
-   pos+=buffer_samples; if(InRange(pos, buffer_mono   ))return buffer_mono[pos];
+   pos+=buffer_samples; if(InRange(pos, buffer_samples))return buffer_mono[pos];
                                                         return                0;
 }
 C SoundResampler::Stereo& SoundResampler::srcStereo(Int pos)C
 {
                         if(InRange(pos,    src_samples))return    src_stereo[pos];
-   pos+=buffer_samples; if(InRange(pos, buffer_stereo ))return buffer_stereo[pos];
+   pos+=buffer_samples; if(InRange(pos, buffer_samples))return buffer_stereo[pos];
                                                         return        StereoZero ;
 }
 /******************************************************************************/
@@ -343,8 +343,8 @@ INLINE void SoundResampler::process(void Process(I16 &sample, Flt value))
             buffer_samples-=remove;
             MoveFastN(buffer_mono, buffer_mono+remove*src_channels, buffer_samples*src_channels);
          }
-         Int copy_samples_channels=samples*src_channels;
-         CopyFastN(buffer_mono+buffer_samples*src_channels, src_mono-copy_samples_channels, copy_samples_channels);
+         Int samples_channels=samples*src_channels;
+         CopyFastN(buffer_mono+buffer_samples*src_channels, src_mono-samples_channels, samples_channels);
          buffer_samples+=samples;
       }
    }
