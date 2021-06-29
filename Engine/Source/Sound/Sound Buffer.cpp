@@ -88,7 +88,7 @@ AudioVoice::AudioVoice()
    buffer_size=0;
    buffer_raw=0;
     total_raw=0;
-   sample_offset=0;
+   resample_buf.init();
    speed=1;
    REPAO(volume)=1;
    Zero(buffer);
@@ -318,18 +318,18 @@ Bool SoundBuffer::create(Int frequency, Int bits, Int channels, Int samples, Boo
               _voice=&AudioVoices.New(); // !! After creating voice it must be added to the list !!
                FREP(buffers)_voice->buffer[i]=&AudioBuffers.New(); // allocate in order
             }
-           _voice->play         =false;
-           _voice->remove       =false;
-           _voice->channels     =_par.channels;
-           _voice->block        =_par.block;
-           _voice->buffers      =buffers;
-           _voice->queued       =0;
-           _voice->buffer_i     =0;
-           _voice->samples      =buffer_samples;
-           _voice->buffer_size  =_par.size; // single buffer size
-           _voice->buffer_raw   =0;
-           _voice-> total_raw   =0;
-           _voice->sample_offset=0;
+           _voice->play        =false;
+           _voice->remove      =false;
+           _voice->channels    =_par.channels;
+           _voice->block       =_par.block;
+           _voice->buffers     =buffers;
+           _voice->queued      =0;
+           _voice->buffer_i    =0;
+           _voice->samples     =buffer_samples;
+           _voice->buffer_size =_par.size; // single buffer size
+           _voice->buffer_raw  =0;
+           _voice-> total_raw  =0;
+           _voice->resample_buf.init();
      REPAO(_voice->volume      )=1;
             speed(1); // always call speed because it depends on sound frequency and 'AudioOutputFreq'
            _par.size*=buffers; // now adjust by all buffers
@@ -920,7 +920,7 @@ void AudioVoice::update()
 {
    if(play && queued)
    {
-      SoundResampler resampler(speed, volume, 2, AudioOutputFrameSamples, AudioOutputFrameData, channels, sample_offset);
+      SoundResampler resampler(speed, volume, 2, AudioOutputFrameSamples, AudioOutputFrameData, channels, &resample_buf);
    again:
       Int src_size=buffer_size-buffer_raw;
       resampler.setSrc(src_size/resampler.src_block, buffer[buffer_i]->data+buffer_raw);
@@ -936,7 +936,7 @@ void AudioVoice::update()
          && resampler.dest_samples>0)goto again; // process next buffer
       }
       total_raw=buffer_i*buffer_size+buffer_raw;
-      sample_offset=resampler.src_sample_offset;
+      resample_buf=resampler.buffer;
    }
 }
 static Bool AudioUpdate(Thread &thread)

@@ -246,10 +246,10 @@ namespace EE // Esenthel Engine namespace
    /******************************************************************************/
    // SOUND
    /******************************************************************************/
-   #include "Sound/Sound Extra.h"
    #include "Sound/Sound Stream.h"
    #include "Sound/Sound Buffer.h"
    #include "Sound/Sound.h"
+   #include "Sound/Sound Extra.h"
    #include "Sound/Music.h"
    /******************************************************************************/
    // MESH

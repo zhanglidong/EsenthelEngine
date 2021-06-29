@@ -14,37 +14,37 @@
 #endif
 namespace EE{
 /******************************************************************************/
-static SoundResampler::Stereo StereoZero={0, 0};
+static Stereo StereoZero={0, 0};
 I16 SoundResampler::srcMono(Int pos)C
 {
                         if(InRange(pos,    src_samples))return    src_mono[pos];
-   pos+=buffer_samples; if(InRange(pos, buffer_samples))return buffer_mono[pos];
+   pos+=buffer.samples; if(InRange(pos, buffer.samples))return buffer.mono[pos];
                                                         return                0;
 }
-C SoundResampler::Stereo& SoundResampler::srcStereo(Int pos)C
+C Stereo& SoundResampler::srcStereo(Int pos)C
 {
                         if(InRange(pos,    src_samples))return    src_stereo[pos];
-   pos+=buffer_samples; if(InRange(pos, buffer_samples))return buffer_stereo[pos];
+   pos+=buffer.samples; if(InRange(pos, buffer.samples))return buffer.stereo[pos];
                                                         return        StereoZero ;
 }
 /******************************************************************************/
 INLINE void SoundResampler::process(void Process(I16 &sample, Flt value))
 {
-   const Int buffer_max=Elms(buffer_mono);
+   const Int buffer_max=Elms(buffer.mono);
    const Int buffer_max1=buffer_max-1;
    if(speed==1) // no resample needed
    {
-      if(buffer_samples) // has anything in the buffer
+      if(buffer.samples) // has anything in the buffer
       {
-         Int copy_start=((buffer_samples<buffer_max) ? 0                            // didn't finish filling up the buffer = use all its samples
-                                                     : 1+(src_sample_offset>0.5f)), // skip src_sample_posP previous sample, and if sample offset crossed half, then skip src_sample_pos0 sample too
-             copy_samples=Min(buffer_samples-copy_start, dest_samples);
+         Int copy_start=((buffer.samples<buffer_max) ? 0                        // didn't finish filling up the buffer = use all its samples
+                                                     : 1+(buffer.offset>0.5f)), // skip src_sample_posP previous sample, and if sample offset crossed half, then skip src_sample_pos0 sample too
+             copy_samples=Min(buffer.samples-copy_start, dest_samples);
          dest_samples-=copy_samples;
          switch(src_channels)
          {
             case 1: // SRC MONO
             {
-             C I16 *src_mono=buffer_mono+copy_start;
+             C I16 *src_mono=buffer.mono+copy_start;
                switch(dest_channels)
                {
                   case 1: REP(copy_samples)Process(*dest_mono++, *src_mono++ * volume[0]); break; // DEST MONO
@@ -56,13 +56,13 @@ INLINE void SoundResampler::process(void Process(I16 &sample, Flt value))
                      dest_stereo++;
                   }break;
                }
-               buffer_samples-=copy_samples+copy_start;
-               MoveFastN(buffer_mono, src_mono, buffer_samples);
+               buffer.samples-=copy_samples+copy_start;
+               MoveFastN(buffer.mono, src_mono, buffer.samples);
             }break;
 
             case 2: // SRC STEREO
             {
-             C Stereo *src_stereo=buffer_stereo+copy_start;
+             C Stereo *src_stereo=buffer.stereo+copy_start;
                switch(dest_channels)
                {
                   case 1: REP(copy_samples) // DEST MONO
@@ -77,8 +77,8 @@ INLINE void SoundResampler::process(void Process(I16 &sample, Flt value))
                      src_stereo++; dest_stereo++;
                   }break;
                }
-               buffer_samples-=copy_samples+copy_start;
-               MoveFastN(buffer_stereo, src_stereo, buffer_samples);
+               buffer.samples-=copy_samples+copy_start;
+               MoveFastN(buffer.stereo, src_stereo, buffer.samples);
             }break;
          }
       }
@@ -174,12 +174,12 @@ INLINE void SoundResampler::process(void Process(I16 &sample, Flt value))
    }else // resample
    {
       // read to buffer
-      if(buffer_samples<buffer_max1) // at the start copy 1 less, to make src[src_sample_posP] always empty/zero, and first dest sample directly mapped to src[src_sample_pos0]
+      if(buffer.samples<buffer_max1) // at the start copy 1 less, to make src[src_sample_posP] always empty/zero, and first dest sample directly mapped to src[src_sample_pos0]
       {
-         Int copy_samples=Min(src_samples, buffer_max1-buffer_samples);
+         Int copy_samples=Min(src_samples, buffer_max1-buffer.samples);
          Int copy_samples_channels=copy_samples*src_channels;
-         CopyFastN(buffer_mono+buffer_samples*src_channels, src_mono, copy_samples_channels);
-         buffer_samples+=copy_samples;
+         CopyFastN(buffer.mono+buffer.samples*src_channels, src_mono, copy_samples_channels);
+         buffer.samples+=copy_samples;
             src_samples-=copy_samples;
             src_mono   +=copy_samples_channels;
       }
@@ -188,10 +188,10 @@ INLINE void SoundResampler::process(void Process(I16 &sample, Flt value))
            src_sample_pos;
       for(; ; dest_sample_pos++)
       {
-         Flt src_sample_posf=dest_sample_pos*speed+src_sample_offset; // add leftover offset from previous operations
+         Flt src_sample_posf=dest_sample_pos*speed+buffer.offset; // add leftover offset from previous operations
              src_sample_pos =Trunc(src_sample_posf);
          Flt frac=src_sample_posf-src_sample_pos; // calculate sample position fraction
-         if( src_sample_pos>=src_samples && !end || dest_sample_pos>=dest_samples){src_sample_offset=frac; break;} // if reached the end of any buffer then stop and remember current 'src_sample_offset' for future operations !! this has to be done after calculating 'src_sample_pos' which is used later !!
+         if( src_sample_pos>=src_samples && !end || dest_sample_pos>=dest_samples){buffer.offset=frac; break;} // if reached the end of any buffer then stop and remember current 'buffer.offset' for future operations !! this has to be done after calculating 'src_sample_pos' which is used later !!
 
          if(speed<1)
          { // cubic
@@ -379,21 +379,21 @@ INLINE void SoundResampler::process(void Process(I16 &sample, Flt value))
       Int samples=src_sample_pos; // read samples
       if( samples>=buffer_max) // put all into buffer and discard old
       {
-         buffer_samples=buffer_max;
-         Int buffer_samples_channels=buffer_samples*src_channels;
-         CopyFastN(buffer_mono, src_mono-buffer_samples_channels, buffer_samples_channels);
+         buffer.samples=buffer_max;
+         Int buffer_samples_channels=buffer.samples*src_channels;
+         CopyFastN(buffer.mono, src_mono-buffer_samples_channels, buffer_samples_channels);
       }else
       {
-         Int new_buffer_samples=buffer_samples+samples;
+         Int new_buffer_samples=buffer.samples+samples;
          if( new_buffer_samples>buffer_max) // remove some
          {
             Int remove=new_buffer_samples-buffer_max;
-            buffer_samples-=remove;
-            MoveFastN(buffer_mono, buffer_mono+remove*src_channels, buffer_samples*src_channels);
+            buffer.samples-=remove;
+            MoveFastN(buffer.mono, buffer.mono+remove*src_channels, buffer.samples*src_channels);
          }
          Int samples_channels=samples*src_channels;
-         CopyFastN(buffer_mono+buffer_samples*src_channels, src_mono-samples_channels, samples_channels);
-         buffer_samples+=samples;
+         CopyFastN(buffer.mono+buffer.samples*src_channels, src_mono-samples_channels, samples_channels);
+         buffer.samples+=samples;
       }
    }
 }
@@ -498,7 +498,7 @@ Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16>
             resampler.end=(resampler.src_samples<=0);
             resampler.set();
             resampler.src_samples+=src_samples;
-            if(resampler.dest_samples<=0 || resampler.end && !resampler.buffer_samples)break;
+            if(resampler.dest_samples<=0 || resampler.end && !resampler.buffer.samples)break;
          }
       #else // limit per dest (good, but precision depends on 'speed')
          resampler.setSrc(src_samples, src_data);
@@ -508,7 +508,7 @@ Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16>
             resampler.end=(resampler.src_samples<=0);
             resampler.set();
             resampler.dest_samples+=dest_samples;
-            if(resampler.dest_samples<=0 || resampler.end && !resampler.buffer_samples)break;
+            if(resampler.dest_samples<=0 || resampler.end && !resampler.buffer.samples)break;
          }
       #endif
          Int unwritten=resampler.dest_channels*resampler.dest_samples;
