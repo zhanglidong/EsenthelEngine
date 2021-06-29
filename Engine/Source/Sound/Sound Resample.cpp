@@ -57,6 +57,8 @@ INLINE void SoundResampler::process(void Process(I16 &sample, Flt value))
                      dest_stereo++;
                   }break;
                }
+               buffer_samples-=copy_samples+copy_start;
+               MoveFastN(buffer_mono, src_mono, buffer_samples);
             }break;
 
             case 2: // SRC STEREO
@@ -76,9 +78,10 @@ INLINE void SoundResampler::process(void Process(I16 &sample, Flt value))
                      src_stereo++; dest_stereo++;
                   }break;
                }
+               buffer_samples-=copy_samples+copy_start;
+               MoveFastN(buffer_stereo, src_stereo, buffer_samples);
             }break;
          }
-         buffer_samples=0; // FIXME
       }
       Int samples=Min(src_samples, dest_samples);
       dest_samples-=samples;
