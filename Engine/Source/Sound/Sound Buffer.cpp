@@ -928,7 +928,10 @@ void AudioVoice::update()
    again:
       Int src_size=buffer_size-buffer_raw;
       resampler.setSrc(src_size/resampler.src_block, buffer[buffer_i]->data+buffer_raw);
-         buffer_raw+=resampler.add()*resampler.src_block;
+      Int src_samples=resampler.src_samples;
+      resampler.add();
+      Int src_samples_read=src_samples-resampler.src_samples;
+         buffer_raw+=src_samples_read*resampler.src_block;
       if(buffer_raw>=buffer_size) // proceed to the next buffer
       {
          buffer_raw=0;

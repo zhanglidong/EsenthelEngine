@@ -14,19 +14,34 @@
 #endif
 namespace EE{
 /******************************************************************************/
-INLINE Int SoundResampler::process(void Process(I16 &sample, Flt value))
+static SoundResampler::Stereo StereoZero={0, 0};
+I16 SoundResampler::srcMono(Int pos)C
+{
+                        if(InRange(pos,    src_samples))return    src_mono[pos];
+   pos+=buffer_samples; if(InRange(pos, buffer_mono   ))return buffer_mono[pos];
+                                                        return                0;
+}
+C SoundResampler::Stereo& SoundResampler::srcStereo(Int pos)C
+{
+                        if(InRange(pos,    src_samples))return    src_stereo[pos];
+   pos+=buffer_samples; if(InRange(pos, buffer_stereo ))return buffer_stereo[pos];
+                                                        return        StereoZero ;
+}
+/******************************************************************************/
+INLINE void SoundResampler::process(void Process(I16 &sample, Flt value))
 {
    if(speed==1) // no resample needed
    {
-      Int samples=Min(src_samples, dest_samples), samples_left=samples;
+      Int samples=Min(src_samples, dest_samples);
       dest_samples-=samples;
+       src_samples-=samples;
       switch(dest_channels)
       {
          case 1: switch(src_channels) // DEST MONO
          {
             case 1: // SRC MONO
          #if 1
-            REP(samples_left>>2)
+            REP(samples>>2)
             {
                Process(dest_mono[0], src_mono[0]*volume[0]);
                Process(dest_mono[1], src_mono[1]*volume[0]);
@@ -34,9 +49,9 @@ INLINE Int SoundResampler::process(void Process(I16 &sample, Flt value))
                Process(dest_mono[3], src_mono[3]*volume[0]);
                src_mono+=4; dest_mono+=4;
             }
-            samples_left&=3;
+            samples&=3;
          #endif
-            REP(samples_left)
+            REP(samples)
             {
                Process(*dest_mono++, *src_mono++ * volume[0]);
             }
@@ -44,7 +59,7 @@ INLINE Int SoundResampler::process(void Process(I16 &sample, Flt value))
 
             case 2: // SRC STEREO
          #if 1
-            REP(samples_left>>2)
+            REP(samples>>2)
             {
                Process(dest_mono[0], src_stereo[0].l*volume[0] + src_stereo[0].r*volume[1]);
                Process(dest_mono[1], src_stereo[1].l*volume[0] + src_stereo[1].r*volume[1]);
@@ -52,9 +67,9 @@ INLINE Int SoundResampler::process(void Process(I16 &sample, Flt value))
                Process(dest_mono[3], src_stereo[3].l*volume[0] + src_stereo[3].r*volume[1]);
                src_stereo+=4; dest_mono+=4;
             }
-            samples_left&=3;
+            samples&=3;
          #endif
-            REP(samples_left)
+            REP(samples)
             {
                Process(*dest_mono++, src_stereo->l*volume[0] + src_stereo->r*volume[1]);
                src_stereo++;
@@ -66,7 +81,7 @@ INLINE Int SoundResampler::process(void Process(I16 &sample, Flt value))
          {
             case 1: // SRC MONO
          #if 1
-            REP(samples_left>>2)
+            REP(samples>>2)
             {
                I16 sample=src_mono[0]; Process(dest_stereo[0].l, sample*volume[0]); Process(dest_stereo[0].r, sample*volume[1]);
                    sample=src_mono[1]; Process(dest_stereo[1].l, sample*volume[0]); Process(dest_stereo[1].r, sample*volume[1]);
@@ -74,9 +89,9 @@ INLINE Int SoundResampler::process(void Process(I16 &sample, Flt value))
                    sample=src_mono[3]; Process(dest_stereo[3].l, sample*volume[0]); Process(dest_stereo[3].r, sample*volume[1]);
                src_mono+=4; dest_stereo+=4;
             }
-            samples_left&=3;
+            samples&=3;
          #endif
-            REP(samples_left)
+            REP(samples)
             {
                I16 sample=*src_mono++;
                Process(dest_stereo->l, sample*volume[0]);
@@ -87,7 +102,7 @@ INLINE Int SoundResampler::process(void Process(I16 &sample, Flt value))
 
             case 2: // SRC STEREO
          #if 1
-            REP(samples_left>>2)
+            REP(samples>>2)
             {
                Process(dest_stereo[0].l, src_stereo[0].l*volume[0]); Process(dest_stereo[0].r, src_stereo[0].r*volume[1]);
                Process(dest_stereo[1].l, src_stereo[1].l*volume[0]); Process(dest_stereo[1].r, src_stereo[1].r*volume[1]);
@@ -95,9 +110,9 @@ INLINE Int SoundResampler::process(void Process(I16 &sample, Flt value))
                Process(dest_stereo[3].l, src_stereo[3].l*volume[0]); Process(dest_stereo[3].r, src_stereo[3].r*volume[1]);
                src_stereo+=4; dest_stereo+=4;
             }
-            samples_left&=3;
+            samples&=3;
          #endif
-            REP(samples_left)
+            REP(samples)
             {
                Process(dest_stereo->l, src_stereo->l*volume[0]);
                Process(dest_stereo->r, src_stereo->r*volume[1]);
@@ -106,9 +121,21 @@ INLINE Int SoundResampler::process(void Process(I16 &sample, Flt value))
             break;
          }break;
       }
-      return samples;
    }else // resample
    {
+      // read to buffer
+      const Int buffer_max=Elms(buffer_mono);
+      const Int buffer_max1=buffer_max-1;
+      if(buffer_samples<buffer_max1)
+      {
+         Int copy_samples=Min(src_samples, buffer_max1-buffer_samples);
+         Int copy_samples_channels=copy_samples*src_channels;
+         CopyFastN(buffer_mono+buffer_samples*src_channels, src_mono, copy_samples_channels);
+         buffer_samples+=copy_samples;
+            src_samples-=copy_samples;
+            src_mono   +=copy_samples_channels;
+      }
+
       Int dest_sample_pos=0,
            src_sample_pos;
       for(; ; dest_sample_pos++)
@@ -120,98 +147,206 @@ INLINE Int SoundResampler::process(void Process(I16 &sample, Flt value))
 
          if(speed<1)
          { // cubic
-            Int src_sample_posP=Max(src_sample_pos-1, 0);
-            Int src_sample_pos1=Min(src_sample_pos+1, src_samples-1);
-            Int src_sample_pos2=Min(src_sample_pos+2, src_samples-1);
+            Int src_sample_posP=src_sample_pos-3;
+            Int src_sample_pos0=src_sample_pos-2;
+            Int src_sample_pos1=src_sample_pos-1;
+            Int src_sample_pos2=src_sample_pos;
             Vec4 w; Lerp4Weights(w, frac);
-            switch(dest_channels)
-            {
-               case 1: switch(src_channels) // DEST MONO
+            if(src_sample_posP>=0) // all samples in src range
+               switch(dest_channels)
                {
-                  case 1: // SRC MONO
+                  case 1: switch(src_channels) // DEST MONO
                   {
-                     Process(*dest_mono++, (src_mono[src_sample_posP]*w.x + src_mono[src_sample_pos]*w.y + src_mono[src_sample_pos1]*w.z + src_mono[src_sample_pos2]*w.w)*volume[0]);
+                     case 1: // SRC MONO
+                     {
+                        Process(*dest_mono++, (src_mono[src_sample_posP]*w.x + src_mono[src_sample_pos0]*w.y + src_mono[src_sample_pos1]*w.z + src_mono[src_sample_pos2]*w.w)*volume[0]);
+                     }break;
+
+                     case 2: // SRC STEREO
+                     {
+                      C Stereo &sP=src_stereo[src_sample_posP],
+                               &s0=src_stereo[src_sample_pos0],
+                               &s1=src_stereo[src_sample_pos1],
+                               &s2=src_stereo[src_sample_pos2];
+                        Process(*dest_mono++, (sP.l*w.x + s0.l*w.y + s1.l*w.z + s2.l*w.w)*volume[0]   // Lerp(s0.l, s1.l, frac)
+                                             +(sP.r*w.x + s0.r*w.y + s1.r*w.z + s2.r*w.w)*volume[1]); // Lerp(s0.r, s1.r, frac)
+                     }break;
                   }break;
 
-                  case 2: // SRC STEREO
+                  case 2: switch(src_channels) // DEST STEREO
                   {
-                   C Stereo &sP=src_stereo[src_sample_posP],
-                            &s0=src_stereo[src_sample_pos ],
-                            &s1=src_stereo[src_sample_pos1],
-                            &s2=src_stereo[src_sample_pos2];
-                     Process(*dest_mono++, (sP.l*w.x + s0.l*w.y + s1.l*w.z + s2.l*w.w)*volume[0]   // Lerp(s0.l, s1.l, frac)
-                                          +(sP.r*w.x + s0.r*w.y + s1.r*w.z + s2.r*w.w)*volume[1]); // Lerp(s0.r, s1.r, frac)
-                  }break;
-               }break;
+                     case 1: // SRC MONO
+                     {
+                        Flt sample=src_mono[src_sample_posP]*w.x + src_mono[src_sample_pos0]*w.y + src_mono[src_sample_pos1]*w.z + src_mono[src_sample_pos2]*w.w;
+                        Process(dest_stereo->l, sample*volume[0]);
+                        Process(dest_stereo->r, sample*volume[1]);
+                        dest_stereo++;
+                     }break;
 
-               case 2: switch(src_channels) // DEST STEREO
+                     case 2: // SRC STEREO
+                     {
+                      C Stereo &sP=src_stereo[src_sample_posP],
+                               &s0=src_stereo[src_sample_pos0],
+                               &s1=src_stereo[src_sample_pos1],
+                               &s2=src_stereo[src_sample_pos2];
+                        Process(dest_stereo->l, (sP.l*w.x + s0.l*w.y + s1.l*w.z + s2.l*w.w)*volume[0]); // Lerp(s0.l, s1.l, frac)
+                        Process(dest_stereo->r, (sP.r*w.x + s0.r*w.y + s1.r*w.z + s2.r*w.w)*volume[1]); // Lerp(s0.r, s1.r, frac)
+                        dest_stereo++;
+                     }break;
+                  }break;
+               }
+            else // some used from the buffer
+               switch(dest_channels)
                {
-                  case 1: // SRC MONO
+                  case 1: switch(src_channels) // DEST MONO
                   {
-                     Flt sample=src_mono[src_sample_posP]*w.x + src_mono[src_sample_pos]*w.y + src_mono[src_sample_pos1]*w.z + src_mono[src_sample_pos2]*w.w;
-                     Process(dest_stereo->l, sample*volume[0]);
-                     Process(dest_stereo->r, sample*volume[1]);
-                     dest_stereo++;
+                     case 1: // SRC MONO
+                     {
+                        Process(*dest_mono++, (srcMono(src_sample_posP)*w.x + srcMono(src_sample_pos0)*w.y + srcMono(src_sample_pos1)*w.z + srcMono(src_sample_pos2)*w.w)*volume[0]);
+                     }break;
+
+                     case 2: // SRC STEREO
+                     {
+                      C Stereo &sP=srcStereo(src_sample_posP),
+                               &s0=srcStereo(src_sample_pos0),
+                               &s1=srcStereo(src_sample_pos1),
+                               &s2=srcStereo(src_sample_pos2);
+                        Process(*dest_mono++, (sP.l*w.x + s0.l*w.y + s1.l*w.z + s2.l*w.w)*volume[0]   // Lerp(s0.l, s1.l, frac)
+                                             +(sP.r*w.x + s0.r*w.y + s1.r*w.z + s2.r*w.w)*volume[1]); // Lerp(s0.r, s1.r, frac)
+                     }break;
                   }break;
 
-                  case 2: // SRC STEREO
+                  case 2: switch(src_channels) // DEST STEREO
                   {
-                   C Stereo &sP=src_stereo[src_sample_posP],
-                            &s0=src_stereo[src_sample_pos ],
-                            &s1=src_stereo[src_sample_pos1],
-                            &s2=src_stereo[src_sample_pos2];
-                     Process(dest_stereo->l, (sP.l*w.x + s0.l*w.y + s1.l*w.z + s2.l*w.w)*volume[0]); // Lerp(s0.l, s1.l, frac)
-                     Process(dest_stereo->r, (sP.r*w.x + s0.r*w.y + s1.r*w.z + s2.r*w.w)*volume[1]); // Lerp(s0.r, s1.r, frac)
-                     dest_stereo++;
+                     case 1: // SRC MONO
+                     {
+                        Flt sample=srcMono(src_sample_posP)*w.x + srcMono(src_sample_pos0)*w.y + srcMono(src_sample_pos1)*w.z + srcMono(src_sample_pos2)*w.w;
+                        Process(dest_stereo->l, sample*volume[0]);
+                        Process(dest_stereo->r, sample*volume[1]);
+                        dest_stereo++;
+                     }break;
+
+                     case 2: // SRC STEREO
+                     {
+                      C Stereo &sP=srcStereo(src_sample_posP),
+                               &s0=srcStereo(src_sample_pos0),
+                               &s1=srcStereo(src_sample_pos1),
+                               &s2=srcStereo(src_sample_pos2);
+                        Process(dest_stereo->l, (sP.l*w.x + s0.l*w.y + s1.l*w.z + s2.l*w.w)*volume[0]); // Lerp(s0.l, s1.l, frac)
+                        Process(dest_stereo->r, (sP.r*w.x + s0.r*w.y + s1.r*w.z + s2.r*w.w)*volume[1]); // Lerp(s0.r, s1.r, frac)
+                        dest_stereo++;
+                     }break;
                   }break;
-               }break;
-            }
+               }
          }else // speed>1
          { // linear
-            Int src_sample_pos1=Min(src_sample_pos+1, src_samples-1);
+            Int src_sample_pos0=src_sample_pos-2;
+            Int src_sample_pos1=src_sample_pos-1;
             Flt frac1=1-frac;
-            switch(dest_channels)
-            {
-               case 1: switch(src_channels) // DEST MONO
+            if(src_sample_pos0>=0) // all samples in src range
+               switch(dest_channels)
                {
-                  case 1: // SRC MONO
+                  case 1: switch(src_channels) // DEST MONO
                   {
-                     Process(*dest_mono++, (src_mono[src_sample_pos]*frac1 + src_mono[src_sample_pos1]*frac)*volume[0]); // Lerp(src_mono[src_sample_pos], src_mono[src_sample_pos1], frac)
+                     case 1: // SRC MONO
+                     {
+                        Process(*dest_mono++, (src_mono[src_sample_pos0]*frac1 + src_mono[src_sample_pos1]*frac)*volume[0]); // Lerp(src_mono[src_sample_pos0], src_mono[src_sample_pos1], frac)
+                     }break;
+
+                     case 2: // SRC STEREO
+                     {
+                      C Stereo &s0=src_stereo[src_sample_pos0],
+                               &s1=src_stereo[src_sample_pos1];
+                        Process(*dest_mono++, (s0.l*frac1 + s1.l*frac)*volume[0]   // Lerp(s0.l, s1.l, frac)
+                                             +(s0.r*frac1 + s1.r*frac)*volume[1]); // Lerp(s0.r, s1.r, frac)
+                     }break;
                   }break;
 
-                  case 2: // SRC STEREO
+                  case 2: switch(src_channels) // DEST STEREO
                   {
-                   C Stereo &s0=src_stereo[src_sample_pos ],
-                            &s1=src_stereo[src_sample_pos1];
-                     Process(*dest_mono++, (s0.l*frac1 + s1.l*frac)*volume[0]   // Lerp(s0.l, s1.l, frac)
-                                          +(s0.r*frac1 + s1.r*frac)*volume[1]); // Lerp(s0.r, s1.r, frac)
-                  }break;
-               }break;
+                     case 1: // SRC MONO
+                     {
+                        Flt sample=src_mono[src_sample_pos0]*frac1 + src_mono[src_sample_pos1]*frac; // Lerp(src_mono[src_sample_pos0], src_mono[src_sample_pos1], frac)
+                        Process(dest_stereo->l, sample*volume[0]);
+                        Process(dest_stereo->r, sample*volume[1]);
+                        dest_stereo++;
+                     }break;
 
-               case 2: switch(src_channels) // DEST STEREO
+                     case 2: // SRC STEREO
+                     {
+                      C Stereo &s0=src_stereo[src_sample_pos0],
+                               &s1=src_stereo[src_sample_pos1];
+                        Process(dest_stereo->l, (s0.l*frac1 + s1.l*frac)*volume[0]); // Lerp(s0.l, s1.l, frac)
+                        Process(dest_stereo->r, (s0.r*frac1 + s1.r*frac)*volume[1]); // Lerp(s0.r, s1.r, frac)
+                        dest_stereo++;
+                     }break;
+                  }break;
+               }
+            else // some used from the buffer
+               switch(dest_channels)
                {
-                  case 1: // SRC MONO
+                  case 1: switch(src_channels) // DEST MONO
                   {
-                     Flt sample=src_mono[src_sample_pos]*frac1 + src_mono[src_sample_pos1]*frac; // Lerp(src_mono[src_sample_pos], src_mono[src_sample_pos1], frac)
-                     Process(dest_stereo->l, sample*volume[0]);
-                     Process(dest_stereo->r, sample*volume[1]);
-                     dest_stereo++;
+                     case 1: // SRC MONO
+                     {
+                        Process(*dest_mono++, (srcMono(src_sample_pos0)*frac1 + srcMono(src_sample_pos1)*frac)*volume[0]); // Lerp(srcMono(src_sample_pos0], srcMono(src_sample_pos1], frac)
+                     }break;
+
+                     case 2: // SRC STEREO
+                     {
+                      C Stereo &s0=srcStereo(src_sample_pos0),
+                               &s1=srcStereo(src_sample_pos1);
+                        Process(*dest_mono++, (s0.l*frac1 + s1.l*frac)*volume[0]   // Lerp(s0.l, s1.l, frac)
+                                             +(s0.r*frac1 + s1.r*frac)*volume[1]); // Lerp(s0.r, s1.r, frac)
+                     }break;
                   }break;
 
-                  case 2: // SRC STEREO
+                  case 2: switch(src_channels) // DEST STEREO
                   {
-                   C Stereo &s0=src_stereo[src_sample_pos ],
-                            &s1=src_stereo[src_sample_pos1];
-                     Process(dest_stereo->l, (s0.l*frac1 + s1.l*frac)*volume[0]); // Lerp(s0.l, s1.l, frac)
-                     Process(dest_stereo->r, (s0.r*frac1 + s1.r*frac)*volume[1]); // Lerp(s0.r, s1.r, frac)
-                     dest_stereo++;
+                     case 1: // SRC MONO
+                     {
+                        Flt sample=srcMono(src_sample_pos0)*frac1 + srcMono(src_sample_pos1)*frac; // Lerp(srcMono(src_sample_pos0], srcMono(src_sample_pos1], frac)
+                        Process(dest_stereo->l, sample*volume[0]);
+                        Process(dest_stereo->r, sample*volume[1]);
+                        dest_stereo++;
+                     }break;
+
+                     case 2: // SRC STEREO
+                     {
+                      C Stereo &s0=srcStereo(src_sample_pos0),
+                               &s1=srcStereo(src_sample_pos1);
+                        Process(dest_stereo->l, (s0.l*frac1 + s1.l*frac)*volume[0]); // Lerp(s0.l, s1.l, frac)
+                        Process(dest_stereo->r, (s0.r*frac1 + s1.r*frac)*volume[1]); // Lerp(s0.r, s1.r, frac)
+                        dest_stereo++;
+                     }break;
                   }break;
-               }break;
-            }
+               }
          }
       }
       dest_samples-=dest_sample_pos;
-      return         src_sample_pos;
+       src_samples-= src_sample_pos;
+       src_mono   += src_sample_pos*src_channels;
+
+      // copy last samples into buffer
+      Int samples=src_sample_pos; // read samples
+      if( samples>=buffer_max) // put all into buffer and discard old
+      {
+         buffer_samples=buffer_max;
+         Int buffer_samples_channels=buffer_samples*src_channels;
+         CopyFastN(buffer_mono, src_mono-buffer_samples_channels, buffer_samples_channels);
+      }else
+      {
+         Int new_buffer_samples=buffer_samples+samples;
+         if( new_buffer_samples>buffer_max) // remove some
+         {
+            Int remove=new_buffer_samples-buffer_max;
+            buffer_samples-=remove;
+            MoveFastN(buffer_mono, buffer_mono+remove*src_channels, buffer_samples*src_channels);
+         }
+         Int copy_samples_channels=samples*src_channels;
+         CopyFastN(buffer_mono+buffer_samples*src_channels, src_mono-copy_samples_channels, copy_samples_channels);
+         buffer_samples+=samples;
+      }
    }
 }
 /******************************************************************************/
@@ -225,8 +360,8 @@ static inline void Add(I16 &sample, Flt value)
    Int v=Round(value);
    sample=Mid(sample+v, SHORT_MIN, SHORT_MAX);
 }
-Int SoundResampler::set() {return process(Set);}
-Int SoundResampler::add() {return process(Add);}
+void SoundResampler::set() {return process(Set);}
+void SoundResampler::add() {return process(Add);}
 /******************************************************************************/
 Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16> dest_data, Flt speed, Bool hi_quality, C Flt *volume)
 {
@@ -308,23 +443,20 @@ Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16>
          resampler.setSrc(src_samples, src_data);
          resampler.set();
       #elif 0 // limit per src (not good because will introduce clamping for src data when interpolating)
-         for(; src_samples>0; )
+         resampler.setSrc(src_samples, src_data);
+         for(; resampler.dest_samples>0 && resampler.src_samples>0; )
          {
-            Int samples=Min(src_samples, samples_step);
-            resampler.setSrc(samples, src_data);
+            Int src_samples=resampler.src_samples; MIN(resampler.src_samples, samples_step); src_samples-=resampler.src_samples;
             resampler.set();
-            src_samples-=samples;
-            src_data   +=samples*src_channels;
+            resampler.src_samples+=src_samples;
          }
       #else // limit per dest (best)
          resampler.setSrc(src_samples, src_data);
          for(; resampler.dest_samples>0 && resampler.src_samples>0; )
          {
             Int dest_samples=resampler.dest_samples; MIN(resampler.dest_samples, samples_step); dest_samples-=resampler.dest_samples;
-            Int  src_samples=resampler.set();
+            resampler.set();
             resampler.dest_samples+=dest_samples;
-            resampler. src_samples-= src_samples;
-            resampler. src_mono   += src_samples*src_channels;
          }
       #endif
          Int unwritten=resampler.dest_channels*resampler.dest_samples;

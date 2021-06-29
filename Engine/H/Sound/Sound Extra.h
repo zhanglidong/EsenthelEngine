@@ -358,7 +358,8 @@ struct SoundResampler
                src_channels,
                src_block   ;
       Int     dest_samples ,
-               src_samples ;
+               src_samples ,
+            buffer_samples ;
       Flt      src_sample_offset;
    union
    {
@@ -372,19 +373,28 @@ struct SoundResampler
     C I16    *src_mono;
     C Stereo *src_stereo;
    };
+   union
+   {
+      I16    buffer_mono  [3];
+      Stereo buffer_stereo[3];
+   };
 
    SoundResampler(Flt speed, Flt volume[2], Int dest_channels, Int dest_samples, Ptr dest_data, Int src_channels, Flt src_sample_offset=0) :
       speed(speed), volume{volume[0], volume[1]},
       dest_channels(dest_channels), dest_block(SIZE(I16)*dest_channels),
        src_channels( src_channels),  src_block(SIZE(I16)* src_channels),
-       dest_samples(dest_samples ),  src_sample_offset(src_sample_offset), dest_data(dest_data)
+       dest_samples(dest_samples ),  buffer_samples(0), src_sample_offset(src_sample_offset), dest_data(dest_data)
    {
       if(src_channels==2 && dest_channels==1)REPAO(T.volume)/=2;
    }
    void setSrc(Int src_samples, Ptr src_data) {T.src_samples=src_samples; T.src_data=src_data;}
-   Int  process(void Process(I16 &sample, Flt value));
-   Int  set(); // dest =src
-   Int  add(); // dest+=src
+
+   I16     srcMono  (Int pos)C;
+ C Stereo& srcStereo(Int pos)C;
+
+   void process(void Process(I16 &sample, Flt value));
+   void set(); // dest =src
+   void add(); // dest+=src
 };
 #endif
 Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16> dest_data, Flt speed, Bool hi_quality, C Flt *volume=null); // resample source sound into 'dest_data', 'src_samples'=number of samples in source, 'src_channels'=number of channels in source, 'src_data'=source data, 'dest_data'=this container will get automatically resized, 'speed'=desired speed of source sound, 'hi_quality'=if use high quality but slow resampler, this operates on 16-bit samples only, false on fail
