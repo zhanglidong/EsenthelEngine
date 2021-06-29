@@ -36,10 +36,9 @@ INLINE void SoundResampler::process(void Process(I16 &sample, Flt value))
    {
       if(buffer_samples) // has anything in the buffer
       {
-         Int copy_start;
-         if(buffer_samples<buffer_max)copy_start=0                         ; // didn't finish filling up the buffer = use all its samples
-         else                         copy_start=1+(src_sample_offset>0.5f); // skip src_sample_posP previous sample, and if sample offset crossed half, then skip src_sample_pos0 sample too
-         Int copy_samples=Min(buffer_samples-copy_start, dest_samples);
+         Int copy_start=((buffer_samples<buffer_max) ? 0                            // didn't finish filling up the buffer = use all its samples
+                                                     : 1+(src_sample_offset>0.5f)), // skip src_sample_posP previous sample, and if sample offset crossed half, then skip src_sample_pos0 sample too
+             copy_samples=Min(buffer_samples-copy_start, dest_samples);
          dest_samples-=copy_samples;
          switch(src_channels)
          {
