@@ -370,8 +370,8 @@ Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16>
    && (src_channels==1 || src_channels==2)
    && dest_data.continuous())
    {
-      Int dest_samples=Round(src_samples/speed);
-      if( dest_samples>=0 && Abs(RoundL(dest_samples*speed)-src_samples)<=65536) // check for overflow
+      Int dest_samples=Round((src_samples-1)/speed)+1; // this is needed to exactly preserve first and last src samples at the start and end of dest
+      if( dest_samples>=0 && Abs(RoundL((dest_samples-1)*speed)+1-src_samples)<=65536) // check for overflow
       {
          Int dest_channels=src_channels;
          Flt vol[2];
