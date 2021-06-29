@@ -450,7 +450,7 @@ Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16>
             resampler.end=(resampler.src_samples<=0);
             resampler.set();
             resampler.src_samples+=src_samples;
-            if(resampler.dest_samples<=0 || resampler.end)break;
+            if(resampler.dest_samples<=0 || resampler.end && !resampler.buffer_samples)break;
          }
       #else // limit per dest (good, but precision depends on 'speed')
          resampler.setSrc(src_samples, src_data);
@@ -460,7 +460,7 @@ Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16>
             resampler.end=(resampler.src_samples<=0);
             resampler.set();
             resampler.dest_samples+=dest_samples;
-            if(resampler.dest_samples<=0 || resampler.end)break;
+            if(resampler.dest_samples<=0 || resampler.end && !resampler.buffer_samples)break;
          }
       #endif
          Int unwritten=resampler.dest_channels*resampler.dest_samples;
