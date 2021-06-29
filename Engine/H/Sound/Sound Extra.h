@@ -344,7 +344,6 @@ private:
 };
 /******************************************************************************/
 #if EE_PRIVATE
-#define SUPPORT_SAMPLE_OFFSET 1 // at slightly more calculations will offer correct offsets/speeds when resampling
 struct SoundResampler
 {
    struct Stereo

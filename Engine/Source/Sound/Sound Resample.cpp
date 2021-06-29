@@ -30,8 +30,56 @@ C SoundResampler::Stereo& SoundResampler::srcStereo(Int pos)C
 /******************************************************************************/
 INLINE void SoundResampler::process(void Process(I16 &sample, Flt value))
 {
+   const Int buffer_max=Elms(buffer_mono);
+   const Int buffer_max1=buffer_max-1;
    if(speed==1) // no resample needed
    {
+      if(buffer_samples) // has anything in the buffer
+      {
+         Int copy_start;
+         if(buffer_samples<buffer_max)copy_start=0                         ; // didn't finish filling up the buffer = use all its samples
+         else                         copy_start=1+(src_sample_offset>0.5f); // skip src_sample_posP previous sample, and if sample offset crossed half, then skip src_sample_pos0 sample too
+         Int copy_samples=Min(buffer_samples-copy_start, dest_samples);
+         dest_samples-=copy_samples;
+         switch(src_channels)
+         {
+            case 1: // SRC MONO
+            {
+             C I16 *src_mono=buffer_mono+copy_start;
+               switch(dest_channels)
+               {
+                  case 1: REP(copy_samples)Process(*dest_mono++, *src_mono++ * volume[0]); break; // DEST MONO
+                  case 2: REP(copy_samples) // DEST STEREO
+                  {
+                     I16 sample=*src_mono++;
+                     Process(dest_stereo->l, sample*volume[0]);
+                     Process(dest_stereo->r, sample*volume[1]);
+                     dest_stereo++;
+                  }break;
+               }
+            }break;
+
+            case 2: // SRC STEREO
+            {
+             C Stereo *src_stereo=buffer_stereo+copy_start;
+               switch(dest_channels)
+               {
+                  case 1: REP(copy_samples) // DEST MONO
+                  {
+                     Process(*dest_mono++, src_stereo->l*volume[0] + src_stereo->r*volume[1]);
+                     src_stereo++;
+                  }break;
+                  case 2: REP(copy_samples) // DEST STEREO
+                  {
+                     Process(dest_stereo->l, src_stereo->l*volume[0]);
+                     Process(dest_stereo->r, src_stereo->r*volume[1]);
+                     src_stereo++; dest_stereo++;
+                  }break;
+               }
+            }break;
+         }
+         buffer_samples=0; // FIXME
+      }
       Int samples=Min(src_samples, dest_samples);
       dest_samples-=samples;
        src_samples-=samples;
@@ -124,8 +172,6 @@ INLINE void SoundResampler::process(void Process(I16 &sample, Flt value))
    }else // resample
    {
       // read to buffer
-      const Int buffer_max=Elms(buffer_mono);
-      const Int buffer_max1=buffer_max-1;
       if(buffer_samples<buffer_max1) // at the start copy 1 less, to make src[src_sample_posP] always empty/zero, and first dest sample directly mapped to src[src_sample_pos0]
       {
          Int copy_samples=Min(src_samples, buffer_max1-buffer_samples);
@@ -140,10 +186,10 @@ INLINE void SoundResampler::process(void Process(I16 &sample, Flt value))
            src_sample_pos;
       for(; ; dest_sample_pos++)
       {
-         Flt src_sample_posf=dest_sample_pos*speed ; if( SUPPORT_SAMPLE_OFFSET)src_sample_posf+=src_sample_offset; // add leftover offset from previous operations
-             src_sample_pos =Trunc(src_sample_posf); if(!SUPPORT_SAMPLE_OFFSET && (src_sample_pos>=src_samples && !end || dest_sample_pos>=dest_samples))break; // if reached the end of any buffer then stop !! this has to be done after calculating 'src_sample_pos' which is used later !!
+         Flt src_sample_posf=dest_sample_pos*speed+src_sample_offset; // add leftover offset from previous operations
+             src_sample_pos =Trunc(src_sample_posf);
          Flt frac=src_sample_posf-src_sample_pos; // calculate sample position fraction
-         if(SUPPORT_SAMPLE_OFFSET && (src_sample_pos>=src_samples && !end || dest_sample_pos>=dest_samples)){src_sample_offset=frac; break;} // if reached the end of any buffer then stop and remember current 'src_sample_offset' for future operations !! this has to be done after calculating 'src_sample_pos' which is used later !!
+         if( src_sample_pos>=src_samples && !end || dest_sample_pos>=dest_samples){src_sample_offset=frac; break;} // if reached the end of any buffer then stop and remember current 'src_sample_offset' for future operations !! this has to be done after calculating 'src_sample_pos' which is used later !!
 
          if(speed<1)
          { // cubic

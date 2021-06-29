@@ -88,9 +88,7 @@ AudioVoice::AudioVoice()
    buffer_size=0;
    buffer_raw=0;
     total_raw=0;
-#if SUPPORT_SAMPLE_OFFSET
    sample_offset=0;
-#endif
    speed=1;
    REPAO(volume)=1;
    Zero(buffer);
@@ -320,21 +318,19 @@ Bool SoundBuffer::create(Int frequency, Int bits, Int channels, Int samples, Boo
               _voice=&AudioVoices.New(); // !! After creating voice it must be added to the list !!
                FREP(buffers)_voice->buffer[i]=&AudioBuffers.New(); // allocate in order
             }
-           _voice->play       =false;
-           _voice->remove     =false;
-           _voice->channels   =_par.channels;
-           _voice->block      =_par.block;
-           _voice->buffers    =buffers;
-           _voice->queued     =0;
-           _voice->buffer_i   =0;
-           _voice->samples    =buffer_samples;
-           _voice->buffer_size=_par.size; // single buffer size
-           _voice->buffer_raw =0;
-           _voice-> total_raw =0;
-         #if SUPPORT_SAMPLE_OFFSET
+           _voice->play         =false;
+           _voice->remove       =false;
+           _voice->channels     =_par.channels;
+           _voice->block        =_par.block;
+           _voice->buffers      =buffers;
+           _voice->queued       =0;
+           _voice->buffer_i     =0;
+           _voice->samples      =buffer_samples;
+           _voice->buffer_size  =_par.size; // single buffer size
+           _voice->buffer_raw   =0;
+           _voice-> total_raw   =0;
            _voice->sample_offset=0;
-         #endif
-     REPAO(_voice->volume    )=1;
+     REPAO(_voice->volume      )=1;
             speed(1); // always call speed because it depends on sound frequency and 'AudioOutputFreq'
            _par.size*=buffers; // now adjust by all buffers
 
