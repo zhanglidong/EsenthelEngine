@@ -141,9 +141,9 @@ INLINE void SoundResampler::process(void Process(I16 &sample, Flt value))
       for(; ; dest_sample_pos++)
       {
          Flt src_sample_posf=dest_sample_pos*speed ; if( SUPPORT_SAMPLE_OFFSET)src_sample_posf+=src_sample_offset; // add leftover offset from previous operations
-             src_sample_pos =Trunc(src_sample_posf); if(!SUPPORT_SAMPLE_OFFSET && (src_sample_pos>=src_samples || dest_sample_pos>=dest_samples))break; // if reached the end of any buffer then stop !! this has to be done after calculating 'src_sample_pos' which is used later !!
+             src_sample_pos =Trunc(src_sample_posf); if(!SUPPORT_SAMPLE_OFFSET && (src_sample_pos>=src_samples && !end || dest_sample_pos>=dest_samples))break; // if reached the end of any buffer then stop !! this has to be done after calculating 'src_sample_pos' which is used later !!
          Flt frac=src_sample_posf-src_sample_pos; // calculate sample position fraction
-         if(SUPPORT_SAMPLE_OFFSET && (src_sample_pos>=src_samples || dest_sample_pos>=dest_samples)){src_sample_offset=frac; break;} // if reached the end of any buffer then stop and remember current 'src_sample_offset' for future operations !! this has to be done after calculating 'src_sample_pos' which is used later !!
+         if(SUPPORT_SAMPLE_OFFSET && (src_sample_pos>=src_samples && !end || dest_sample_pos>=dest_samples)){src_sample_offset=frac; break;} // if reached the end of any buffer then stop and remember current 'src_sample_offset' for future operations !! this has to be done after calculating 'src_sample_pos' which is used later !!
 
          if(speed<1)
          { // cubic
@@ -152,7 +152,7 @@ INLINE void SoundResampler::process(void Process(I16 &sample, Flt value))
             Int src_sample_pos1=src_sample_pos-1;
             Int src_sample_pos2=src_sample_pos;
             Vec4 w; Lerp4Weights(w, frac);
-            if(src_sample_posP>=0) // all samples in src range
+            if(src_sample_posP>=0 && src_sample_pos2<src_samples) // all samples in src range
                switch(dest_channels)
                {
                   case 1: switch(src_channels) // DEST MONO
@@ -243,7 +243,7 @@ INLINE void SoundResampler::process(void Process(I16 &sample, Flt value))
             Int src_sample_pos0=src_sample_pos-2;
             Int src_sample_pos1=src_sample_pos-1;
             Flt frac1=1-frac;
-            if(src_sample_pos0>=0) // all samples in src range
+            if(src_sample_pos0>=0 && src_sample_pos1<src_samples) // all samples in src range
                switch(dest_channels)
                {
                   case 1: switch(src_channels) // DEST MONO
@@ -444,19 +444,23 @@ Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16>
          resampler.set();
       #elif 1 // limit per src (best)
          resampler.setSrc(src_samples, src_data);
-         for(; resampler.dest_samples>0 && resampler.src_samples>0; )
+         for(;;)
          {
             Int src_samples=resampler.src_samples; MIN(resampler.src_samples, samples_step); src_samples-=resampler.src_samples;
+            resampler.end=(resampler.src_samples<=0);
             resampler.set();
             resampler.src_samples+=src_samples;
+            if(resampler.dest_samples<=0 || resampler.end)break;
          }
       #else // limit per dest (good, but precision depends on 'speed')
          resampler.setSrc(src_samples, src_data);
-         for(; resampler.dest_samples>0 && resampler.src_samples>0; )
+         for(;;)
          {
             Int dest_samples=resampler.dest_samples; MIN(resampler.dest_samples, samples_step); dest_samples-=resampler.dest_samples;
+            resampler.end=(resampler.src_samples<=0);
             resampler.set();
             resampler.dest_samples+=dest_samples;
+            if(resampler.dest_samples<=0 || resampler.end)break;
          }
       #endif
          Int unwritten=resampler.dest_channels*resampler.dest_samples;
