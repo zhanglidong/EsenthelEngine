@@ -26,7 +26,7 @@ Property::~Property()
 }
 Property::Property()
 {
-   min_use  =max_use  =false;
+   min_use  =max_use  =mouse_edit_linked=false;
    min_value=max_value=0;
    mouse_edit_mode =PROP_MOUSE_EDIT_LINEAR;
    mouse_edit_speed=1.0f;
@@ -663,9 +663,9 @@ void Property::MouseEdit(Property &prop)
       d*=prop.mouse_edit_speed;
       Int  dim =((prop.md.type==DATA_VEC2 || prop.md.type==DATA_VECI2) ? 2 : 1);
       Bool dim2=(dim==2);
-      if((Kb.ctrlCmd() && Kb.shift()) || (Gui.ms()==&prop.button && Ms.b(1)))d.set(d.sum()   );else
-      if(                 Kb.shift()  &&  dim2                              )d.set(0, d.sum());else
-      if( Kb.ctrlCmd()                || !dim2                              )d.set(d.sum(), 0);
+      if( !dim2 || Kb.ctrlCmd() && !Kb.shift())d.set(d.sum(), 0);else
+      if(         !Kb.ctrlCmd() &&  Kb.shift())d.set(0, d.sum());else
+      if(         (Kb.ctrlCmd() &&  Kb.shift() || (Gui.ms()==&prop.button && Ms.b(1)))^prop.mouse_edit_linked)d.set(d.sum());
       switch(prop.md.type)
       {
          case DATA_INT  :

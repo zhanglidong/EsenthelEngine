@@ -12,7 +12,8 @@ enum PROP_MOUSE_EDIT_MODE : Byte // Property Mouse Edit Mode
 const_mem_addr struct Property // Class Member Gui Control !! must be stored in constant memory address !!
 {
    Dbl                  min_value, max_value; // -Inf..Inf , default=0
-   Bool                 min_use  , max_use  ; // true/false, default=false
+   Bool                 min_use  , max_use  , // true/false, default=false
+                        mouse_edit_linked   ; // true/false, default=false, if editing vectors with mouse should change all values together
    PROP_MOUSE_EDIT_MODE mouse_edit_mode     ; //             default=PROP_MOUSE_EDIT_LINEAR
    Flt                  mouse_edit_speed    ; //    0..Inf , default=1.0 (40 for Int's)
    Int                  real_precision      ; //             default=MAX_INT (auto-detect)
@@ -54,9 +55,10 @@ const_mem_addr struct Property // Class Member Gui Control !! must be stored in 
    Property& max  (Dbl value       ) {max_use=        true; max_value=value;              return T;} // set maximum allowed value
    Property& range(Dbl min, Dbl max) {min_use=max_use=true; min_value=min; max_value=max; return T;} // set         allowed value range
 
-   Property& mouseEditDel  (                          );                                    // disable ability of changing the value with a mouse
-   Property& mouseEditMode (PROP_MOUSE_EDIT_MODE mode ) {mouse_edit_mode =mode ; return T;} //         default=PROP_MOUSE_EDIT_LINEAR
-   Property& mouseEditSpeed(Flt                  speed) {mouse_edit_speed=speed; return T;} // 0..Inf, default=1.0 (40 for Int's)
+   Property& mouseEditDel   (                           );                                      // disable ability of changing the value with a mouse
+   Property& mouseEditLinked(Bool                 linked) {mouse_edit_linked=linked; return T;} //         default=false
+   Property& mouseEditMode  (PROP_MOUSE_EDIT_MODE mode  ) {mouse_edit_mode  =mode  ; return T;} //         default=PROP_MOUSE_EDIT_LINEAR
+   Property& mouseEditSpeed (Flt                  speed ) {mouse_edit_speed =speed ; return T;} // 0..Inf, default=1.0 (40 for Int's)
 
    Property& precision(Int precision) {real_precision=precision; return T;} // set real value precision
 

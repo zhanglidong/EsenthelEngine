@@ -511,11 +511,11 @@ Property &mode=add("Atlased Objects", MEMBER(ConvertToAtlasClass, mode)).setEnum
                add("Global Scale"   , MEMBER(ConvertToAtlasClass, scale)).range(1.0f/8, 8).mouseEditMode(PROP_MOUSE_EDIT_SCALAR).changed(ChangedScale);
       Rect r=super::create("Convert To Atlas"); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); mode.combobox.resize(Vec2(0.63f, 0));
       autoData(this);
-      T+=region.create(Rect_LU(0.02f, r.min.y-0.02f, 1.70f, 0.7f));
+      T+=region.create(Rect_LU(0.02f, r.min.y-0.02f, 1.8f, 0.7f));
       T+=preview.create(Rect_LU(region.rect().ru()+Vec2(0.02f, 0), 0.7f));
       Vec2 size(preview.rect().max.x, Max(-region.rect().min.y, -preview.rect().min.y));
       rect(Rect_C(0, size+0.02f+defaultInnerPaddingSize()));
-      T+=columns.create(Vec2(1.07f, region.rect().max.y+ts.size.y*0.8f), "Scale       Original Size      Scaled Size", &ts);
+      T+=columns.create(Vec2(1.12f, region.rect().max.y+ts.size.y*0.8f), "Scale           Original Size      Scaled Size", &ts);
       T+=t_tex_size.create(preview.rect().up()+Vec2(0, 0.04f));
       T+=convert.create(Rect_U(clientWidth()/2, -0.05f, 0.3f, 0.055f), "Convert").func(Convert, T);
    }
@@ -587,10 +587,10 @@ Property &mode=add("Atlased Objects", MEMBER(ConvertToAtlasClass, mode)).setEnum
             if(ElmMaterial *mtrl_data=elm->mtrlData())
                if(mtrl.base_0=Proj.texPath(mtrl_data->base_0_tex))
                   mtrl.original_size=mtrl.base_0->size();
-            mtrl.prop.create(S, MemberDesc(MEMBER(Mtrl, scale)).setFunc(Scale, Scale)).range(1.0f/8, 8).mouseEditMode(PROP_MOUSE_EDIT_SCALAR).autoData(&mtrl).name.text_style=&ts;
-            region+=mtrl.t_original_size.create(Vec2(mtrl.name.rect().max.x+0.33f, 0-h*0.5f), TexSize(mtrl.original_size));
-            region+=mtrl.t_scaled_size  .create(Vec2(mtrl.name.rect().max.x+0.56f, 0-h*0.5f));
-            mtrl.prop.addTo(region,             Vec2(mtrl.name.rect().max.x+0.04f, 0), 0, h, 0.15f);
+            mtrl.prop.create(S, MemberDesc(MEMBER(Mtrl, scale)).setFunc(Scale, Scale)).range(1.0f/8, 8).mouseEditLinked(true).mouseEditMode(PROP_MOUSE_EDIT_SCALAR).autoData(&mtrl).name.text_style=&ts;
+            region+=mtrl.t_original_size.create(Vec2(mtrl.name.rect().max.x+0.43f, 0-h*0.5f), TexSize(mtrl.original_size));
+            region+=mtrl.t_scaled_size  .create(Vec2(mtrl.name.rect().max.x+0.66f, 0-h*0.5f));
+            mtrl.prop.addTo(region,             Vec2(mtrl.name.rect().max.x+0.04f, 0), 0, h, 0.25f);
             mtrl.setScale();
          }
       skip:;
