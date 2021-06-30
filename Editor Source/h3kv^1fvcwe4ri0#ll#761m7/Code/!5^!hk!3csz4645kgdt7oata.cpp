@@ -10,14 +10,14 @@ class ConvertToAtlasClass : PropWin
       VecI2        original_size=0, scaled_size=0, pos=0;
       RectI        packed_rect=0; // not inclusive
       bool         rotated=false;
-      flt          scale=1;
+      Vec2         scale=1;
       Property     prop;
       ImagePtr     base_0;
       EditMaterial edit;
 
       void setScaleText(C VecI2 &size) {t_scaled_size.set(TexSize(size));}
       void setScale    (             ) {scaled_size=Round(original_size*scale*ConvertToAtlas.scale); setScaleText(scaled_size);}
-      void setScale    (flt scale    ) {T.scale=scale; setScale();}
+      void setScale    (C Vec2 &scale) {T.scale=scale; setScale();}
       void posY        (flt y        )
       {
          del .pos(Vec2(del .pos().x, y));
@@ -130,7 +130,8 @@ class ConvertToAtlasClass : PropWin
    Button      convert;
 
    static Str  TexSize(C VecI2 &size) {return S+size.x+'x'+size.y;}
-   static void Scale(Mtrl &mtrl, C Str &text) {mtrl.setScale(TextFlt(text)); ConvertToAtlas.refresh();}
+   static void Scale(Mtrl &mtrl, C Str &text) {mtrl.setScale(TextVec2Ex(text)); ConvertToAtlas.refresh();}
+   static Str  Scale(C Mtrl &mtrl) {return TextVec2Ex(mtrl.scale);}
    static void Del(Mtrl &mtrl) {ConvertToAtlas.mtrls.removeData(&mtrl, true); ConvertToAtlas.refresh();}
    static void Refresh(C Property &prop) {ConvertToAtlas.refresh();}
    static void ChangedScale(C Property &prop) {REPAO(ConvertToAtlas.mtrls).setScale(); ConvertToAtlas.refresh();}
@@ -348,7 +349,7 @@ class ConvertToAtlasClass : PropWin
                   if(            need_add)fp.params.New().set("addRGB"   , TextVecEx   (     add));
                }
             }
-                                          fp.params.New().set("resizeClamp", VecI2AsText(size));
+                                          fp.params.New().set("resizeClamp", TextVecI2Ex(size));
             if(mtrl.packed_rect.min.any())fp.params.New().set("position"   , S+mtrl.packed_rect.min.x+','+mtrl.packed_rect.min.y);
             added=true;
          }else // don't have source map
@@ -636,7 +637,7 @@ Property &mode=add("Atlased Objects", MEMBER(ConvertToAtlasClass, mode)).setEnum
             if(ElmMaterial *mtrl_data=elm.mtrlData())
                if(mtrl.base_0=Proj.texPath(mtrl_data.base_0_tex))
                   mtrl.original_size=mtrl.base_0->size();
-            mtrl.prop.create(S, MemberDesc(MEMBER(Mtrl, scale)).setTextToDataFunc(Scale)).range(1.0/8, 8).mouseEditMode(PROP_MOUSE_EDIT_SCALAR).autoData(&mtrl).name.text_style=&ts;
+            mtrl.prop.create(S, MemberDesc(MEMBER(Mtrl, scale)).setFunc(Scale, Scale)).range(1.0/8, 8).mouseEditMode(PROP_MOUSE_EDIT_SCALAR).autoData(&mtrl).name.text_style=&ts;
             region+=mtrl.t_original_size.create(Vec2(mtrl.name.rect().max.x+0.33, 0-h*0.5), TexSize(mtrl.original_size));
             region+=mtrl.t_scaled_size  .create(Vec2(mtrl.name.rect().max.x+0.56, 0-h*0.5));
             mtrl.prop.addTo(region,             Vec2(mtrl.name.rect().max.x+0.04, 0), 0, h, 0.15);

@@ -2899,24 +2899,20 @@ int Occurrences(C Str &s, char c)
    int o=0; REPA(s)if(s[i]==c)o++; return o;
 }
 /******************************************************************************/
-Str VecI2AsText(C VecI2 &v) // try to keep as one value if XY are the same
+inline VecI2 TextVecI2Ex(cchar *t) {return TextVecI2(t);} // Contains(t, ',') ? TextVecI2(t) : VecI2(TextInt(t));
+inline Vec2  TextVec2Ex (cchar *t) {return TextVec2 (t);} // Contains(t, ',') ? TextVec2 (t) : Vec2 (TextFlt(t));
+inline Vec   TextVecEx  (cchar *t) {return TextVec  (t);} // Contains(t, ',') ? TextVec  (t) : Vec  (TextFlt(t));
+Str TextVecI2Ex(C VecI2 &v) // try to keep as one value if XY are the same
 {
    Str s; s=v.x; if(v.y!=v.x)s+=S+","+v.y; 
    return s;
 }
-VecI2 TextVecI2Ex(cchar *t)
+Str TextVec2Ex(C Vec2 &v) // try to keep as one value if XY are the same
 {
-   return Contains(t, ',') ? TextVecI2(t) : VecI2(TextInt(t));
+   Str s; s=v.x; if(v.y!=v.x)s+=S+","+v.y; 
+   return s;
 }
-Vec2 TextVec2Ex(cchar *t)
-{
-   return Contains(t, ',') ? TextVec2(t) : Vec2(TextFlt(t));
-}
-Vec TextVecEx(cchar *t)
-{
-   return Contains(t, ',') ? TextVec(t) : Vec(TextFlt(t));
-}
-Str TextVecEx(C Vec &v, int precision=-3)
+Str TextVecEx(C Vec &v, int precision=-3) // try to keep as one value if XYZ are the same
 {
    return (Equal(v.x, v.y) && Equal(v.x, v.z)) ? TextReal(v.x, precision) : v.asText(precision);
 }

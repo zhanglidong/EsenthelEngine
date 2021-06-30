@@ -1402,7 +1402,7 @@ class ProjectEx : ProjectHierarchy
             }
 
             // set "resize" param into 'files'
-            if(specific_resize || s.any())SetResizeTransform(files, resize_name, s.any() ? VecI2AsText(s) : S); // only if any specified
+            if(specific_resize || s.any())SetResizeTransform(files, resize_name, s.any() ? TextVecI2Ex(s) : S); // only if any specified
          }
          file=FileParams.Encode(files);
          return true;

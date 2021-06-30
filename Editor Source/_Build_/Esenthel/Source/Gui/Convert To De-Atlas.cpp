@@ -160,7 +160,7 @@ ConvertToDeAtlasClass ConvertToDeAtlas;
                   files.last().params.New().set("crop", S+r.min.x+','+r.min.y+','+r.w()+','+r.h());
                }
             }
-            if(resize)files.last().params.New().set("resizeClamp", VecI2AsText(*resize)); // then resize
+            if(resize)files.last().params.New().set("resizeClamp", TextVecI2Ex(*resize)); // then resize
             return FileParams::Encode(files);
          }
       }

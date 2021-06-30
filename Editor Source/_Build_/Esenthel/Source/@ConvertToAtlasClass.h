@@ -11,14 +11,14 @@ class ConvertToAtlasClass : PropWin
       VecI2        original_size, scaled_size, pos;
       RectI        packed_rect; // not inclusive
       bool         rotated;
-      flt          scale;
+      Vec2         scale;
       Property     prop;
       ImagePtr     base_0;
       EditMaterial edit;
 
       void setScaleText(C VecI2 &size);
       void setScale    (             );
-      void setScale    (flt scale    );
+      void setScale    (C Vec2 &scale);
       void posY        (flt y        );
 
 public:
@@ -76,6 +76,7 @@ public:
 
    static Str  TexSize(C VecI2 &size);           
    static void Scale(Mtrl &mtrl, C Str &text);   
+   static Str  Scale(C Mtrl &mtrl);              
    static void Del(Mtrl &mtrl);                  
    static void Refresh(C Property &prop);        
    static void ChangedScale(C Property &prop);   
