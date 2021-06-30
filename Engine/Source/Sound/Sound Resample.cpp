@@ -1,10 +1,3 @@
-/******************************************************************************
-
-   'SoundRecord' methods on DirectSound always require usage of 'SoundAPILock' locks,
-      not because of the API thread-safety, but because of:
-      -objects are added/removed to 'SoundRecords' list
-      -objects can be processed on the main thread by the user, and on the sound thread by the engine
-
 /******************************************************************************/
 #include "stdafx.h"
 #if SUPPORT_SAMPLERATE // TODO: add support on all platforms
@@ -286,7 +279,7 @@ INLINE void SoundResampler::process(void Process(I16 &sample, Flt value))
                      }break;
                   }break;
                }
-         }else // speed>1
+         }else // speed>1 TODO: for speed>2 we could blend multiple samples however in tests results were unnoticable
          { // linear
             Int src_sample_pos0=src_sample_pos-2;
             Int src_sample_pos1=src_sample_pos-1;
