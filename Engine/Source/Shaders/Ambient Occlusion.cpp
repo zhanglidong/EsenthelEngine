@@ -17,9 +17,6 @@
 #endif
 
 #define LINEAR_FILTER 1 // this removes some vertical lines on distant terrain (because multiple samples are clamped together), however introduces extra shadowing under distant objects
-#define GEOM 1 // this is an alternative mode to AO formula which works on 3D space instead of 2D
-#define PRECISION 0 // 1=operate on delinearized depth which will give a little more precise position calculations for expected depth, disable beacuse not much noticable
-//#define THICKNESS 0.05 // assume all pixels are at least 5 cm thick, slightly improves quality
 /******************************************************************************/
 #include "!Set Prec Struct.h"
 BUFFER(AOConstants) // z=1/xy.length()
@@ -30,26 +27,28 @@ BUFFER(AOConstants) // z=1/xy.length()
 BUFFER_END
 #include "!Set Prec Default.h"
 /******************************************************************************
-static Flt ObstacleDotToLight(Flt dot) // calculate amount of received light based on obstacle dot product
+static Flt ObstacleSinToLight(Flt sin) // calculate amount of received light based on obstacle sine
 {
 #if 0 // test method
-   Flt  angle=Asin(dot); // angle relative to Vec2(1,0)
+   Flt  angle=Asin(sin); // angle relative to Vec2(1,0)
    Dbl  v=0, total=0;
    Vec2 n(0, 1);
    const Int res=1024; REP(res+1) // iterate light samples
    {
       Flt  a=i/Flt(res)*PI_2; // angle of this light sample
       Vec2 cs(Cos(a), Sin(a)); // position of this light sample
-      Flt  l, d=Dot(cs, n); l=d; // light amount (based on angle-dot), d == cs.y
+      Flt  l, d=Dot(cs, n); l=d; // light amount (based on angle-dot), d == cs.y == Sin(a)
       total+=l; // total light of all samples (needed for normalization to 0..1 range)
       // if sample is above obstacle, then contribute its light to received light, all 3 methods below are the same:
-      if(d   >=dot  )v+=l;
-    //if(cs.y>=dot  )v+=l;
-    //if(a   >=angle)v+=l;
+      if(d   >sin  )v+=l;
+    //if(cs.y>sin  )v+=l;
+    //if(a   >angle)v+=l;
    }
    return total ? v/total : 0;
 #else // optimized result based on test method
-   return CosSin(dot);
+   return CosSin(sin);
+ //return   Acos(sin)/PI_2; // if using 'l=1'
+ //return 1-Asin(sin)/PI_2; // if using 'l=1'
 #endif
 }
 Occlusion = 1-Light
@@ -60,7 +59,7 @@ void AO_VS
    VtxInput vtx,
    NOPERSP out Vec2 outTex   :TEXCOORD0,
    NOPERSP out Vec2 outPosXY :TEXCOORD1,
-#if (NORMALS && !GEOM) || (!NORMALS && GEOM)
+#if !NORMALS
    NOPERSP out Vec2 outPosXY1:TEXCOORD2,
 #endif
    NOPERSP out Vec4 outVtx   :POSITION
@@ -68,7 +67,7 @@ void AO_VS
 {
    outTex   =vtx.tex();
    outPosXY =UVToPosXY(outTex);
-#if (NORMALS && !GEOM) || (!NORMALS && GEOM)
+#if !NORMALS
    outPosXY1=UVToPosXY(outTex+RTSize.xy);
 #endif
    outVtx   =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
@@ -82,7 +81,7 @@ Flt ComputeAO(Vec P, Vec N, Vec S)
    Vec delta = S - P;
    Flt len2=Length2(delta);
    Flt NdotV = dot(N, delta) * rsqrt(len2);
-   return Sat(NdotV) * Sat(2 - len2 * AmbientRangeInvSqr);
+   return Sat(NdotV) * Sat(1 - len2 * AmbientRangeInvSqr);
 }
 Half HBAO(Vec2 uv, Vec nrm, Vec pos, Vec2 g_fRadiusToScreen)
 {
@@ -101,22 +100,24 @@ Half HBAO(Vec2 uv, Vec nrm, Vec pos, Vec2 g_fRadiusToScreen)
    return 1-AO*2;
 }*/
 
+Half GTAOIntegrateArc(VecH2 h, Half n)
+{
+   VecH2 Arc = -cos(2*h-n) + cos(n) + 2*h*sin(n); return 0.25*(Arc.x+Arc.y);
+}
+
 // Img=Nrm, Depth=depth
 Half AO_PS
 (
    NOPERSP Vec2 inTex   :TEXCOORD ,
    NOPERSP Vec2 inPosXY :TEXCOORD1,
-#if (NORMALS && !GEOM) || (!NORMALS && GEOM)
+#if !NORMALS
    NOPERSP Vec2 inPosXY1:TEXCOORD2,
 #endif
    NOPERSP PIXEL
 ):TARGET
 {
    Vec2 nrm2;
-   Vec  nrm, pos;
-
-   if(GEOM)pos  =GetPos(TexDepthRawPoint(inTex), inPosXY); // !! for AO shader depth is already linearized !!
-   else    pos.z=       TexDepthRawPoint(inTex);
+   Vec  nrm, pos=GetPos(TexDepthRawPoint(inTex), inPosXY); // !! for AO shader depth is already linearized !!
 
    #if NORMALS
    {
@@ -124,29 +125,6 @@ Half AO_PS
    #if !SIGNED_NRM_RT
       nrm-=0.5; // normally it should be "nrm=nrm*2-1", however since the normal doesn't need to be normalized, we can just do -0.5
    #endif
-      
-      #if !GEOM
-      {
-         // 'nrm' does not need to be normalized, because following codes don't require that
-      #if 0
-         Vec dir_right=Normalize(Vec(UVToPosXY(inTex+Vec2(RTSize.x, 0)), 1)), // get view space direction that points slightly to the right of 'pos'
-             dir_up   =Normalize(Vec(UVToPosXY(inTex+Vec2(0, RTSize.y)), 1)); // get view space direction that points slightly to the top   of 'pos'
-
-         Vec pr=PointOnPlaneRay(Vec(0, 0, 0), pos, nrm, dir_right), // get intersection point when casting ray from view space camera (0,0,0) to 'pos,nrm' plane using 'dir_right' ray
-             pu=PointOnPlaneRay(Vec(0, 0, 0), pos, nrm, dir_up   ); // get intersection point when casting ray from view space camera (0,0,0) to 'pos,nrm' plane using 'dir_up'    ray
-
-         nrm2=Vec2(pr.z-pos.z, pu.z-pos.z); // this gives the expected delta between depths (for right-center, and top-center pixels)
-      #else // optimized
-         Vec dir_right=Normalize(Vec(inPosXY1.x, inPosXY .y, 1)),
-             dir_up   =Normalize(Vec(inPosXY .x, inPosXY1.y, 1));
-
-         Flt pr_z=dir_right.z*Dot(pos, nrm)/Dot(dir_right, nrm),
-             pu_z=dir_up   .z*Dot(pos, nrm)/Dot(dir_up   , nrm);
-
-         nrm2=Vec2(pr_z-pos.z, pu_z-pos.z);
-      #endif
-      }
-      #endif
    }
    #else // NORMALS
    {
