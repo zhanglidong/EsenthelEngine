@@ -136,53 +136,25 @@ Half AO_PS
           dl=pos.z-zl, dr=zr-pos.z,
           dd=pos.z-zd, du=zu-pos.z;
 
-      #if GEOM
-      {
-         #if 0 // made no difference
-            Vec up=((Abs(dd)<Abs(du)) ? pos-GetPos(zd, Vec2(inPosXY.x                   , UVToPosXY(inTex-RTSize.xy).y)) : GetPos(zu, Vec2(inPosXY .x, inPosXY1.y))-pos),
-                rg=((Abs(dl)<Abs(dr)) ? pos-GetPos(zl, Vec2(UVToPosXY(inTex-RTSize.xy).x, inPosXY.y                   )) : GetPos(zr, Vec2(inPosXY1.x, inPosXY .y))-pos);
-            nrm=Cross(rg, up);
-         #else
-            Vec up=GetPos((Abs(dd)<Abs(du)) ? pos.z+dd : zu, Vec2(inPosXY .x, inPosXY1.y)),
-                rg=GetPos((Abs(dl)<Abs(dr)) ? pos.z+dl : zr, Vec2(inPosXY1.x, inPosXY .y));
-            nrm=Cross(rg-pos, up-pos);
-         #endif
-      }
+      #if 0 // made no difference
+         Vec up=((Abs(dd)<Abs(du)) ? pos-GetPos(zd, Vec2(inPosXY.x                   , UVToPosXY(inTex-RTSize.xy).y)) : GetPos(zu, Vec2(inPosXY .x, inPosXY1.y))-pos),
+             rg=((Abs(dl)<Abs(dr)) ? pos-GetPos(zl, Vec2(UVToPosXY(inTex-RTSize.xy).x, inPosXY.y                   )) : GetPos(zr, Vec2(inPosXY1.x, inPosXY .y))-pos);
+         nrm=Cross(rg, up);
       #else
-      {
-         nrm2=Vec2((Abs(dl)<Abs(dr)) ? dl : dr,
-                   (Abs(dd)<Abs(du)) ? dd : du);
-      }
+         Vec up=GetPos((Abs(dd)<Abs(du)) ? pos.z+dd : zu, Vec2(inPosXY .x, inPosXY1.y)),
+             rg=GetPos((Abs(dl)<Abs(dr)) ? pos.z+dl : zr, Vec2(inPosXY1.x, inPosXY .y));
+         nrm=Cross(rg-pos, up-pos);
       #endif
    }
    #endif // NORMALS
 
    // required for later optimizations
-   #if GEOM
    {
       nrm=Normalize(nrm);
       pos.z=DelinearizeDepth(pos.z);
       DEPTH_DEC(pos.z, 0.00000007); // value tested on fov 20 deg, 1000 view range
       pos.z=LinearizeDepth(pos.z); // convert back to linear
    }
-   #else
-   Flt pos_z_bias, pos_w_bias;
-   {
-      pos_z_bias=pos.z-AmbientBias;
-      // add some distance based bias, which reduces flickering for distant pixels
-      // must be in delinearized space, which will not affect much pixels close to camera, or when we have high precision depth (high fov, high view from).
-      pos_w_bias=DelinearizeDepth(pos_z_bias);
-      if(PRECISION)
-      {
-         Flt pos_wx=DelinearizeDepth(pos_z_bias+nrm2.x);
-         Flt pos_wy=DelinearizeDepth(pos_z_bias+nrm2.y);
-         nrm2=Vec2(pos_wx-pos_w_bias, pos_wy-pos_w_bias);
-      }
-      DEPTH_DEC(pos_w_bias, 0.00000007); // value tested on fov 20 deg, 1000 view range
-      if(!PRECISION)pos_z_bias=LinearizeDepth(pos_w_bias); // convert back to linear
-      nrm2*=RTSize.zw; // have to scale because we will multiply 'nrm2' by 'offs' below, and it operates on texture coordinates, so the next pixel uses 'RTSize.xy' offset, however we want 1 offset, so scale it by '1/RTSize.xy' which is 'RTSize.zw'
-   }
-   #endif
 
    Vec2 cos_sin;
    if(JITTER)
@@ -202,8 +174,7 @@ Half AO_PS
    if(MODE==1)elms=AO1Elms;else
    if(MODE==2)elms=AO2Elms;else
               elms=AO3Elms;
- //using UNROLL didn't make a performance difference, however it made shader file bigger and compilation slower
-   LOOP for(Int i=0; i<elms; i++)
+   LOOP for(Int i=0; i<elms; i++) // using UNROLL didn't make a performance difference, however it made shader file bigger and compilation slower
    {
       Vec        pattern;
       if(MODE==0)pattern=AO0Vec[i];else
@@ -222,60 +193,27 @@ Half AO_PS
       {
          // !! for AO shader depth is already linearized !!
          Flt test_z=(LINEAR_FILTER ? TexDepthRawLinear(t) : TexDepthRawPoint(t)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 't'
-         #if GEOM
-         {
-            Vec test_pos=GetPos(test_z, UVToPosXY(t)),
-                delta   =test_pos-pos;
+         Vec test_pos=GetPos(test_z, UVToPosXY(t)),
+             delta   =test_pos-pos;
+         Flt delta_len2=Length2(delta);
 
-         #ifdef THICKNESS
-            Vec d=delta; if(d.z<0)d.z=Min(0, d.z+THICKNESS); // move pixels in front closer to center, to simulate thickness
-            w=Sat(2-Length2(d)*AmbientRangeInvSqr); // alternative "Length2(delta)<=AmbientRangeSqr"
-         #else
-            w=Sat(2-Length2(delta)*AmbientRangeInvSqr); // alternative "Length2(delta)<=AmbientRangeSqr"
-         #endif
+         w=Sat(1-delta_len2*AmbientRangeInvSqr); // alternative "delta_len2<=AmbientRangeSqr"
 
-            Flt y=Dot(delta, nrm); if(y>0)
-            {
-               Flt dot=y/Length(delta);
-            #if 1 // precise, calculated based on 'ObstacleDotToLight'
-               o=1-CosSin(dot);
-            #else // faster approximation, requires AmbientContrast to be 1.25 smaller
-               o=Sqr(dot);
-            #endif
-               o*=w; // fix artifacts (occlusion can be strong only as weight)
-            }else o=0;
-            w=Max((delta.z>0) ? 1 : 0.25, w); // fix artifacts, fully brighten if test sample is behind us, but if in front then brighten only a little. this increases weight if it's small, which results in brightening because we don't touch occlusion
-         }
-         #else
+         Flt y=Dot(delta, nrm); if(y>0)
          {
-         #if 1 // Optimized
-            Flt expected=(PRECISION ? pos_w_bias : pos_z_bias)+Dot(nrm2, offs); if(PRECISION)expected=LinearizeDepth(expected); if(test_z<expected)
-            {
-               w=BlendSqr((pos.z-test_z)/AmbientRange);
-         #else // Unoptimized
-            Flt expected=pos.z-AmbientBias+Dot(nrm2, offs); if(test_z<expected)
-            {
-               w=BlendSqr((pos.z-test_z)/AmbientRange);
-         #endif
-               o=1;
-               if(w<=0)
-               {
-                  w=1.0/3;
-                  o=0;
-               }
-            }else
-            {
-               w=1;
-               o=0;
-            }
-         }
-         #endif
+            Flt sin=y*rsqrt(delta_len2); // "/Length(delta)" -> "/Sqrt(delta_len2)"
+            o=1-CosSin(sin); // precise, calculated based on 'ObstacleSinToLight'
+
+            if(1)o*=1-Sqr(1-w); // fix artifacts (occlusion can be strong only as weight) preserves AO intensity better
+            else o*=         w; // fix artifacts (occlusion can be strong only as weight)
+         }else o=0;
+         w=Max(0.5, w); // fix artifacts, this increases weight if it's small, which results in brightening because we don't touch occlusion
       }else // UV outside viewport
       {
-         o=0; w=0.25; // set as brightening but use small weight
+         o=0; w=0.5; // set as brightening but use small weight
       }
 
-    //w     *=pattern.z; // focus on samples near to the center
+      w     *=pattern.z; // focus on samples near to the center
       occl  +=w*o;
       weight+=w;
    }
