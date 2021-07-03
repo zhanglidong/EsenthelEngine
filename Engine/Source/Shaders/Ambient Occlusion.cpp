@@ -208,11 +208,13 @@ if(Q)
             Flt  y=Dot(delta0, nrm); Flt sin=y*rsqrt(delta0_len2); Flt x=Dot(delta0, dir); if(x<0 && y>0.5/255)sin=1; max_sin.x=Max(max_sin.x, sin*w0); // small bias needed for walls perpendicular to camera at a distance
                  y=Dot(delta1, nrm);     sin=y*rsqrt(delta1_len2);     x=Dot(delta1, dir); if(x>0 && y>0.5/255)sin=1; max_sin.y=Max(max_sin.y, sin*w1); // small bias needed for walls perpendicular to camera at a distance
          }
+      #if 0
          if(0) // GTAO
          {
             if(R){weight+=1; occl+=GTAOIntegrateArc(asin(max_sin), 0);}else
                  {weight+=2; occl+=Sqr(max_sin.x)+Sqr(max_sin.y);}
          }else
+      #endif
          {
             occl  +=2-CosSin(max_sin.x)-CosSin(max_sin.y); // (1-CosSin(max_sin.x)) + (1-CosSin(max_sin.y))
             weight+=2;
@@ -264,8 +266,7 @@ if(W)
    if(MODE==1){elms=AO1Elms; spacing=AO1Spacing;}else
    if(MODE==2){elms=AO2Elms; spacing=AO2Spacing;}else
               {elms=AO3Elms; spacing=AO3Spacing;}
-              // FIXME what angle range?
-   Vec2 jitter_offs; if(JITTER){CosSin(cos_sin.x, cos_sin.y, jitter_angle*Y*E); jitter_offs=(pix-1.5)*(spacing*0.4);}
+   Vec2 jitter_offs; if(JITTER){CosSin(cos_sin.x, cos_sin.y, jitter_angle*0.3); jitter_offs=(pix-1.5)*(spacing*0.4);} // using higher values may affect cache performance, so use smallest possible
    LOOP for(Int i=0; i<elms; i++) // using UNROLL didn't make a performance difference, however it made shader file bigger and compilation slower
    {
       Vec        pattern;
