@@ -726,6 +726,17 @@ Flt  AngleBetween  (Vec2  a   , Vec2  b ) {return AngleDelta(Angle(a), Angle(b))
 VecH2 Perp(VecH2 vec) {return VecH2(vec.y, -vec.x);} // get perpendicular vector
 Vec2  Perp(Vec2  vec) {return Vec2 (vec.y, -vec.x);} // get perpendicular vector
 
+VecH Perp(VecH v)
+{
+   if(Abs(v.x)<Abs(v.z))return VecH(0, v.z, -v.y); // Cross(v, VecH(1, 0,  0));
+   else                 return VecH(-v.y, v.x, 0); // Cross(v, VecH(0, 0, -1));
+}
+Vec Perp(Vec v)
+{
+   if(Abs(v.x)<Abs(v.z))return Vec(0, v.z, -v.y); // Cross(v, Vec(1, 0,  0));
+   else                 return Vec(-v.y, v.x, 0); // Cross(v, Vec(0, 0, -1));
+}
+
 VecH2 Rotate(VecH2 vec, VecH2 cos_sin) // rotate vector by cos and sin values obtained from a custom angle
 {
    return VecH2(vec.x*cos_sin.x - vec.y*cos_sin.y,

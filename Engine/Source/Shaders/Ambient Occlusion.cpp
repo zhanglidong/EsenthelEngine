@@ -11,6 +11,11 @@
 #define AO2Elms 48
 #define AO3Elms 80
 
+#define AO0Spacing (1.0/2)
+#define AO1Spacing (1.0/3)
+#define AO2Spacing (1.0/4)
+#define AO3Spacing (1.0/5)
+
 // input: MODE, JITTER, NORMALS
 #ifndef NORMALS
 #define NORMALS 1
@@ -89,10 +94,10 @@ Half HBAO(Vec2 uv, Vec nrm, Vec pos, Vec2 g_fRadiusToScreen)
    for(Int DirectionIndex=0; DirectionIndex<NUM_DIRECTIONS; DirectionIndex++)
    {
       Flt  Angle=DirectionIndex*(PI2/NUM_DIRECTIONS);
-      Vec2 dir  =Vec2(cos(Angle), sin(Angle))*g_fRadiusToScreen/NUM_STEPS;
+      Vec2 dir2 =Vec2(cos(Angle), sin(Angle))*g_fRadiusToScreen/NUM_STEPS;
       for(Int StepIndex=0; StepIndex<NUM_STEPS; StepIndex++)
       {
-         Vec S=FetchEyePos(uv + dir * (StepIndex+1));
+         Vec S=FetchEyePos(uv + dir2 * (StepIndex+1));
          AO+=ComputeAO(pos, nrm, S);
       }
    }
@@ -117,13 +122,13 @@ Half AO_PS
 ):TARGET
 {
    Vec2 nrm2;
-   Vec  nrm, pos=GetPos(TexDepthRawPoint(inTex), inPosXY); // !! for AO shader depth is already linearized !!
+   Vec  nrm, pos=GetPos(TexDepthRawPoint(inTex), inPosXY), eye_dir=Normalize(pos); // !! for AO shader depth is already linearized !!
 
    #if NORMALS
    {
       nrm=TexLod(Img, inTex).xyz; // use filtering because 'Img' may be bigger, especially important for pixels in the distance (there are some cases however when point filtering improves quality, although not always)
    #if !SIGNED_NRM_RT
-      nrm-=0.5; // normally it should be "nrm=nrm*2-1", however since the normal doesn't need to be normalized, we can just do -0.5
+      nrm-=0.5; // normally it should be "nrm=nrm*2-1", however we normalize it below, so we can just do -0.5
    #endif
    }
    #else // NORMALS
@@ -148,9 +153,11 @@ Half AO_PS
    }
    #endif // NORMALS
 
-   // required for later optimizations
+   nrm=Normalize(nrm);
+   Vec nrm_clamp=nrm; nrm_clamp.z=Min(nrm_clamp.z, -1.0/255); nrm_clamp=Normalize(nrm_clamp); // normal that's always facing the camera, this is needed for normals facing away from the camera
+
+   if(1)
    {
-      nrm=Normalize(nrm);
       pos.z=DelinearizeDepth(pos.z);
       DEPTH_DEC(pos.z, 0.00000007); // value tested on fov 20 deg, 1000 view range
       pos.z=LinearizeDepth(pos.z); // convert back to linear
@@ -159,9 +166,11 @@ Half AO_PS
    Vec2 cos_sin;
    if(JITTER)
    {
-      Flt a    =Dot(pixel.xy, Vec2(0.5, 0.25)),
-          angle=2.0/3; // good results were obtained with 0.666(2/3), 0.8, 1.0, however using smaller value increases performance because it affects texture cache
-      a=Frac(a)*angle - 0.5*angle; // (Frac(a)-0.5)*angle;
+      VecI2 p=pixel.xy; p&=3;
+      Flt a;
+      //a=p.x*(1.0/4*PI2) + p.y*(4.0/5*1.0/4*PI2);
+      a=((((p.x+p.y))<<2)+p.x)*(1.0/16);
+      //if(R)a=((((p.x+p.y))<<2)+p.x)*(1.0/16)*PI;
       CosSin(cos_sin.x, cos_sin.y, a);
    }
 
@@ -169,11 +178,11 @@ Half AO_PS
         weight=0;
    Vec2 offs_scale=Viewport.size_fov_tan*(AmbientRange_2/Max(1.0f, pos.z)); // use /2 because we're converting from -1..1 to 0..1 scale
 
-   Int        elms;
-   if(MODE==0)elms=AO0Elms;else
-   if(MODE==1)elms=AO1Elms;else
-   if(MODE==2)elms=AO2Elms;else
-              elms=AO3Elms;
+   Int         elms; Flt spacing;
+   if(MODE==0){elms=AO0Elms; spacing=AO0Spacing;}else
+   if(MODE==1){elms=AO1Elms; spacing=AO1Spacing;}else
+   if(MODE==2){elms=AO2Elms; spacing=AO2Spacing;}else
+              {elms=AO3Elms; spacing=AO3Spacing;}
    LOOP for(Int i=0; i<elms; i++) // using UNROLL didn't make a performance difference, however it made shader file bigger and compilation slower
    {
       Vec        pattern;
@@ -182,32 +191,35 @@ Half AO_PS
       if(MODE==2)pattern=AO2Vec[i];else
                  pattern=AO3Vec[i];
 
-      Vec2              offs=pattern.xy*offs_scale; // don't use 'VecH2' here because benefit looks small, and 'offs' has to be added to 'inTex' and multiplied by 'nrm2' which are 'Vec2' so probably there would be no performance benefits
-      if(JITTER        )offs=Rotate(offs, cos_sin);
-      if(!LINEAR_FILTER)offs=Round(offs*RTSize.zw)*RTSize.xy;
+      Vec2              dir2=pattern.xy; // don't use 'VecH2' here because benefit looks small, and 'dir2' has to be added to 'inTex' and multiplied by 'nrm2' which are 'Vec2' so probably there would be no performance benefits
+      if(JITTER        )dir2=Rotate(dir2, cos_sin);
+      Vec2              uv_delta=dir2*offs_scale;
+      if(!LINEAR_FILTER)uv_delta=Round(uv_delta*RTSize.zw)*RTSize.xy;
 
-      Vec2 t=inTex+offs;
+      Vec2 t=inTex+uv_delta;
       Flt  o, w;
 
       if(all(Abs(t-Viewport.center)<=Viewport.size/2)) // UV inside viewport
       {
          // !! for AO shader depth is already linearized !!
-         Flt test_z=(LINEAR_FILTER ? TexDepthRawLinear(t) : TexDepthRawPoint(t)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 't'
+         Flt test_z  =(LINEAR_FILTER ? TexDepthRawLinear(t) : TexDepthRawPoint(t)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 't'
          Vec test_pos=GetPos(test_z, UVToPosXY(t)),
              delta   =test_pos-pos;
          Flt delta_len2=Length2(delta);
 
-         w=Sat(1-delta_len2*AmbientRangeInvSqr); // alternative "delta_len2<=AmbientRangeSqr"
+         w=Sat(1-delta_len2*AmbientRangeInvSqr);
 
          Flt y=Dot(delta, nrm); if(y>0)
          {
             Flt sin=y*rsqrt(delta_len2); // "/Length(delta)" -> "/Sqrt(delta_len2)"
+            Vec dir=PointOnPlaneRay(Vec(dir2.x, -dir2.y, 0), nrm_clamp, eye_dir); // this is nrm tangent, doesn't need to be normalized
+            Flt x=Dot(delta, dir); if(x<0)sin=1;
             o=1-CosSin(sin); // precise, calculated based on 'ObstacleSinToLight'
-
-            if(1)o*=1-Sqr(1-w); // fix artifacts (occlusion can be strong only as weight) preserves AO intensity better
-            else o*=         w; // fix artifacts (occlusion can be strong only as weight)
+            o*=w; // fix artifacts (occlusion can be strong only as weight)
          }else o=0;
-         w=Max(0.5, w); // fix artifacts, this increases weight if it's small, which results in brightening because we don't touch occlusion
+         w=w*0.5+0.5;   // fix artifacts, this increases weight if it's small, which results in brightening because we don't touch occlusion
+       //w=Max(0.5, w); // fix artifacts, this increases weight if it's small, which results in brightening because we don't touch occlusion
+       //w=Max(1, 1/Sqrt(delta_len2));
       }else // UV outside viewport
       {
          o=0; w=0.5; // set as brightening but use small weight
