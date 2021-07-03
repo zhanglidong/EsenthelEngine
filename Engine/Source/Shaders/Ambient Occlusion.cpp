@@ -21,7 +21,8 @@
 #define NORMALS 1
 #endif
 
-#define LINEAR_FILTER 1 // this removes some vertical lines on distant terrain (because multiple samples are clamped together), however introduces extra shadowing under distant objects
+#define        LINEAR_FILTER 1 // this removes some vertical lines on distant terrain (because multiple samples are clamped together), however introduces extra shadowing under distant objects
+#define AO_MAX_LINEAR_FILTER 0 // max mode can't use linear filter
 /******************************************************************************/
 #include "!Set Prec Struct.h"
 BUFFER(AOConstants) // z=1/xy.length()
@@ -193,14 +194,11 @@ if(Q)
          LOOP for(Int s=1; s<=steps; s++) // start from 1 to skip this pixel
          {
             Vec2 d=dir2*((JITTER ? s-jitter_step : s)/Flt(steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
-   // FIXME
-         #undef LINEAR_FILTER
-         #define LINEAR_FILTER 0
-            if(!LINEAR_FILTER){d=Round(d*RTSize.zw)*RTSize.xy; if(!any(d))continue;}
+            if(!AO_MAX_LINEAR_FILTER){d=Round(d*RTSize.zw)*RTSize.xy; if(!any(d))continue;}
             Vec2 uv0=inTex+d;
             Vec2 uv1=inTex-d;
-            Flt  test_z0=(LINEAR_FILTER ? TexDepthRawLinear(uv0) : TexDepthRawPoint(uv0)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
-            Flt  test_z1=(LINEAR_FILTER ? TexDepthRawLinear(uv1) : TexDepthRawPoint(uv1)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
+            Flt  test_z0=(AO_MAX_LINEAR_FILTER ? TexDepthRawLinear(uv0) : TexDepthRawPoint(uv0)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
+            Flt  test_z1=(AO_MAX_LINEAR_FILTER ? TexDepthRawLinear(uv1) : TexDepthRawPoint(uv1)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
             Vec  test_pos0=GetPos(test_z0, UVToPosXY(uv0)), delta0=test_pos0-pos; Flt delta0_len2=Length2(delta0);
             Vec  test_pos1=GetPos(test_z1, UVToPosXY(uv1)), delta1=test_pos1-pos; Flt delta1_len2=Length2(delta1);
             Flt  w0=Sat(1-delta0_len2*AmbientRangeInvSqr);
@@ -223,9 +221,6 @@ if(Q)
 }else
 if(W)
 {   
-   // FIXME
-         #undef LINEAR_FILTER
-         #define LINEAR_FILTER 1
       // FIXME what values?
       Int angles=9, steps=9;
       //if(E){angles=16; steps=5;}
@@ -238,6 +233,7 @@ if(W)
          LOOP for(Int s=1; s<=steps; s++) // start from 1 to skip this pixel
          {
             Vec2 uv=inTex+dir2*((JITTER ? s-jitter_step : s)/Flt(steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
+            if(!LINEAR_FILTER)uv=Round(uv*RTSize.zw)*RTSize.xy;
             Flt  test_z  =(LINEAR_FILTER ? TexDepthRawLinear(uv) : TexDepthRawPoint(uv)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
             Vec  test_pos=GetPos(test_z, UVToPosXY(uv)),
                  delta   =test_pos-pos;
@@ -258,7 +254,7 @@ if(W)
             weight+=w;
          }
       }
-      // FIXME occl*=2?
+      occl*=2; // multiply by 2 to match MAX mode
 }else
 {
    Int         elms; Flt spacing;
@@ -313,7 +309,7 @@ if(W)
       occl  +=w*o;
       weight+=w;
    }
-   // FIXME occl*=2?
+   occl*=2; // multiply by 2 to match MAX mode
 }
    return Max(AmbientMin, 1-AmbientContrast*occl/weight);
 }
