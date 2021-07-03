@@ -156,7 +156,7 @@ Half AO_PS
    nrm=Normalize(nrm);
    Vec nrm_clamp=nrm; nrm_clamp.z=Min(nrm_clamp.z, -1.0/255); nrm_clamp=Normalize(nrm_clamp); // normal that's always facing the camera, this is needed for normals facing away from the camera
 
-   if(1)
+   if(0) // FIXME is this still needed?
    {
       pos.z=DelinearizeDepth(pos.z);
       DEPTH_DEC(pos.z, 0.00000007); // value tested on fov 20 deg, 1000 view range
@@ -196,7 +196,7 @@ if(Q)
    // FIXME
          #undef LINEAR_FILTER
          #define LINEAR_FILTER 0
-            if(!LINEAR_FILTER)d=Round(d*RTSize.zw)*RTSize.xy;
+            if(!LINEAR_FILTER){d=Round(d*RTSize.zw)*RTSize.xy; if(!any(d))continue;}
             Vec2 uv0=inTex+d;
             Vec2 uv1=inTex-d;
             Flt  test_z0=(LINEAR_FILTER ? TexDepthRawLinear(uv0) : TexDepthRawPoint(uv0)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
@@ -205,8 +205,8 @@ if(Q)
             Vec  test_pos1=GetPos(test_z1, UVToPosXY(uv1)), delta1=test_pos1-pos; Flt delta1_len2=Length2(delta1);
             Flt  w0=Sat(1-delta0_len2*AmbientRangeInvSqr);
             Flt  w1=Sat(1-delta1_len2*AmbientRangeInvSqr);
-            Flt  y=Dot(delta0, nrm); Flt sin=y*rsqrt(delta0_len2); Flt x=Dot(delta0, dir); if(x<0 && y>0)sin=1; max_sin.x=Max(max_sin.x, sin*w0);
-                 y=Dot(delta1, nrm);     sin=y*rsqrt(delta1_len2);     x=Dot(delta1, dir); if(x>0 && y>0)sin=1; max_sin.y=Max(max_sin.y, sin*w1);
+            Flt  y=Dot(delta0, nrm); Flt sin=y*rsqrt(delta0_len2); Flt x=Dot(delta0, dir); if(x<0 && y>0.5/255)sin=1; max_sin.x=Max(max_sin.x, sin*w0); // small bias needed for walls perpendicular to camera at a distance
+                 y=Dot(delta1, nrm);     sin=y*rsqrt(delta1_len2);     x=Dot(delta1, dir); if(x>0 && y>0.5/255)sin=1; max_sin.y=Max(max_sin.y, sin*w1); // small bias needed for walls perpendicular to camera at a distance
          }
          if(0) // GTAO
          {
