@@ -164,13 +164,13 @@ Half AO_PS
    }
 
    Vec2 cos_sin;
+   VecI2 pix;
    if(JITTER)
    {
-      VecI2 p=pixel.xy; p&=3;
+      pix=pixel.xy; pix&=3;
       Flt a;
-      //a=p.x*(1.0/4*PI2) + p.y*(4.0/5*1.0/4*PI2);
-      a=((((p.x+p.y))<<2)+p.x)*(1.0/16);
-      //if(R)a=((((p.x+p.y))<<2)+p.x)*(1.0/16)*PI;
+    //a=pix.x*(1.0/4*PI2) + pix.y*(4.0/5*1.0/4*PI2);
+      a=((((pix.x+pix.y))<<2)+pix.x)*(1.0/16);
       CosSin(cos_sin.x, cos_sin.y, a);
    }
 
@@ -183,6 +183,7 @@ Half AO_PS
    if(MODE==1){elms=AO1Elms; spacing=AO1Spacing;}else
    if(MODE==2){elms=AO2Elms; spacing=AO2Spacing;}else
               {elms=AO3Elms; spacing=AO3Spacing;}
+   Vec2 jitter_offs; if(JITTER)jitter_offs=(pix-1.5)*(spacing*0.4);
    LOOP for(Int i=0; i<elms; i++) // using UNROLL didn't make a performance difference, however it made shader file bigger and compilation slower
    {
       Vec        pattern;
@@ -192,7 +193,7 @@ Half AO_PS
                  pattern=AO3Vec[i];
 
       Vec2              dir2=pattern.xy; // don't use 'VecH2' here because benefit looks small, and 'dir2' has to be added to 'inTex' and multiplied by 'nrm2' which are 'Vec2' so probably there would be no performance benefits
-      if(JITTER        )dir2=Rotate(dir2, cos_sin);
+      if(JITTER        )dir2=Rotate(dir2, cos_sin)+jitter_offs;
       Vec2              uv_delta=dir2*offs_scale;
       if(!LINEAR_FILTER)uv_delta=Round(uv_delta*RTSize.zw)*RTSize.xy;
 
