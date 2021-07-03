@@ -254,7 +254,7 @@ if(W)
             weight+=w;
          }
       }
-      occl*=2; // multiply by 2 to match MAX mode
+      occl*=2; // multiply by 2 to match AO_MAX mode
 }else
 {
    Int         elms; Flt spacing;
@@ -309,7 +309,7 @@ if(W)
       occl  +=w*o;
       weight+=w;
    }
-   occl*=2; // multiply by 2 to match MAX mode
+   occl*=2; // multiply by 2 to match AO_MAX mode
 }
    return Max(AmbientMin, 1-AmbientContrast*occl/weight);
 }

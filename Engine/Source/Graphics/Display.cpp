@@ -899,7 +899,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _amb_jitter  =true;
   _amb_normal  =true;
   _amb_res     =FltToByteScale(0.5f);
-  _amb_contrast=4.0f;
+  _amb_contrast=2.0f;
   _amb_min     =0.2f;
   _amb_range   =0.4f;
   _amb_color_l =SRGBToLinear(0.366f); // #DefaultAmbientValue
