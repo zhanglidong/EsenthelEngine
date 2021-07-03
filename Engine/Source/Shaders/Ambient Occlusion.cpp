@@ -163,27 +163,109 @@ Half AO_PS
       pos.z=LinearizeDepth(pos.z); // convert back to linear
    }
 
-   Vec2 cos_sin;
+   Vec2  cos_sin;
+   Flt   jitter_angle, jitter_step;
    VecI2 pix;
    if(JITTER)
    {
       pix=pixel.xy; pix&=3;
-      Flt a;
-    //a=pix.x*(1.0/4*PI2) + pix.y*(4.0/5*1.0/4*PI2);
-      a=((((pix.x+pix.y))<<2)+pix.x)*(1.0/16);
-      CosSin(cos_sin.x, cos_sin.y, a);
+      jitter_angle=((((pix.x+pix.y)&3)<<2)+pix.x)*(1.0/16); // 0 .. 0.9375
+      jitter_step =((  pix.y-pix.x)&3           )*(1.0/ 4); // 0 .. 0.75
    }
 
    Flt  occl  =0,
         weight=0;
    Vec2 offs_scale=Viewport.size_fov_tan*(AmbientRange_2/Max(1.0f, pos.z)); // use /2 because we're converting from -1..1 to 0..1 scale
 
+//if(R)return HBAO(inTex, nrm, pos, offs_scale);
+if(Q)
+{
+      // FIXME what values?
+      Int angles=9, steps=9;
+      if(E){angles=16; steps=5;}
+      LOOP for(Int a=0; a<angles; a++)
+      {
+         Flt  angle=a; if(JITTER)angle+=jitter_angle; angle*=PI2/angles; // this is best for cache
+         Vec2 dir2; CosSin(dir2.x, dir2.y, angle);
+         Vec  dir=PointOnPlaneRay(Vec(dir2.x, -dir2.y, 0), nrm_clamp, eye_dir); // this is nrm tangent, doesn't need to be normalized
+         dir2*=offs_scale;
+         Vec2 max_sin=0;
+         LOOP for(Int s=1; s<=steps; s++) // start from 1 to skip this pixel
+         {
+            Vec2 d=dir2*((JITTER ? s-jitter_step : s)/Flt(steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
+   // FIXME
+         #undef LINEAR_FILTER
+         #define LINEAR_FILTER 0
+            if(!LINEAR_FILTER)d=Round(d*RTSize.zw)*RTSize.xy;
+            Vec2 uv0=inTex+d;
+            Vec2 uv1=inTex-d;
+            Flt  test_z0=(LINEAR_FILTER ? TexDepthRawLinear(uv0) : TexDepthRawPoint(uv0)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
+            Flt  test_z1=(LINEAR_FILTER ? TexDepthRawLinear(uv1) : TexDepthRawPoint(uv1)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
+            Vec  test_pos0=GetPos(test_z0, UVToPosXY(uv0)), delta0=test_pos0-pos; Flt delta0_len2=Length2(delta0);
+            Vec  test_pos1=GetPos(test_z1, UVToPosXY(uv1)), delta1=test_pos1-pos; Flt delta1_len2=Length2(delta1);
+            Flt  w0=Sat(1-delta0_len2*AmbientRangeInvSqr);
+            Flt  w1=Sat(1-delta1_len2*AmbientRangeInvSqr);
+            Flt  y=Dot(delta0, nrm); Flt sin=y*rsqrt(delta0_len2); Flt x=Dot(delta0, dir); if(x<0 && y>0)sin=1; max_sin.x=Max(max_sin.x, sin*w0);
+                 y=Dot(delta1, nrm);     sin=y*rsqrt(delta1_len2);     x=Dot(delta1, dir); if(x>0 && y>0)sin=1; max_sin.y=Max(max_sin.y, sin*w1);
+         }
+         if(0) // GTAO
+         {
+            if(R){weight+=1; occl+=GTAOIntegrateArc(asin(max_sin), 0);}else
+                 {weight+=2; occl+=Sqr(max_sin.x)+Sqr(max_sin.y);}
+         }else
+         {
+            occl  +=2-CosSin(max_sin.x)-CosSin(max_sin.y); // (1-CosSin(max_sin.x)) + (1-CosSin(max_sin.y))
+            weight+=2;
+         }
+      }
+}else
+if(W)
+{   
+   // FIXME
+         #undef LINEAR_FILTER
+         #define LINEAR_FILTER 1
+      // FIXME what values?
+      Int angles=9, steps=9;
+      //if(E){angles=16; steps=5;}
+      LOOP for(Int a=0; a<angles; a++)
+      {
+         Flt  angle=a; if(JITTER)angle+=jitter_angle; angle*=PI2/angles; // this is best for cache
+         Vec2 dir2; CosSin(dir2.x, dir2.y, angle);
+         Vec  dir=PointOnPlaneRay(Vec(dir2.x, -dir2.y, 0), nrm_clamp, eye_dir); // this is nrm tangent, doesn't need to be normalized
+         dir2*=offs_scale;
+         LOOP for(Int s=1; s<=steps; s++) // start from 1 to skip this pixel
+         {
+            Vec2 uv=inTex+dir2*((JITTER ? s-jitter_step : s)/Flt(steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
+            Flt  test_z  =(LINEAR_FILTER ? TexDepthRawLinear(uv) : TexDepthRawPoint(uv)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
+            Vec  test_pos=GetPos(test_z, UVToPosXY(uv)),
+                 delta   =test_pos-pos;
+            Flt  delta_len2=Length2(delta);
+            Flt o,w;
+            w=Sat(1-delta_len2*AmbientRangeInvSqr);
+            Flt y=Dot(delta, nrm); if(y>0)
+            {
+               Flt sin=y*rsqrt(delta_len2);
+               Flt x=Dot(delta, dir); if(x<0)sin=1;
+               o =1-CosSin(sin);
+               o*=w; // fix artifacts (occlusion can be strong only as weight)
+            }else o=0;
+            w=w*0.5+0.5;   // fix artifacts, this increases weight if it's small, which results in brightening because we don't touch occlusion
+          //w=Max(0.5, w); // fix artifacts, this increases weight if it's small, which results in brightening because we don't touch occlusion
+          //w=Max(1, 1/Sqrt(delta_len2));
+            occl  +=w*o;
+            weight+=w;
+         }
+      }
+      // FIXME occl*=2?
+}else
+{
    Int         elms; Flt spacing;
    if(MODE==0){elms=AO0Elms; spacing=AO0Spacing;}else
    if(MODE==1){elms=AO1Elms; spacing=AO1Spacing;}else
    if(MODE==2){elms=AO2Elms; spacing=AO2Spacing;}else
               {elms=AO3Elms; spacing=AO3Spacing;}
-   Vec2 jitter_offs; if(JITTER)jitter_offs=(pix-1.5)*(spacing*0.4);
+              // FIXME what angle range?
+   Vec2 jitter_offs; if(JITTER){CosSin(cos_sin.x, cos_sin.y, jitter_angle*Y*E); jitter_offs=(pix-1.5)*(spacing*0.4);}
    LOOP for(Int i=0; i<elms; i++) // using UNROLL didn't make a performance difference, however it made shader file bigger and compilation slower
    {
       Vec        pattern;
@@ -230,6 +312,8 @@ Half AO_PS
       occl  +=w*o;
       weight+=w;
    }
-   return Max(AmbientMin, 1-AmbientContrast*Half(occl/weight));
+   // FIXME occl*=2?
+}
+   return Max(AmbientMin, 1-AmbientContrast*occl/weight);
 }
 /******************************************************************************/
