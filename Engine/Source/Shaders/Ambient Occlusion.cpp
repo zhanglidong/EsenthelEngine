@@ -2,6 +2,7 @@
 
    For AO shader, Depth is linearized to 0 .. Viewport.range
 
+Input: MODE, JITTER, NORMALS
 /******************************************************************************/
 #include "!Header.h"
 #include "Ambient Occlusion.h"
@@ -16,10 +17,12 @@
 #define AO2Spacing (1.0/4)
 #define AO3Spacing (1.0/5)
 
-// input: MODE, JITTER, NORMALS
 #ifndef NORMALS
 #define NORMALS 1
 #endif
+
+#define TEMPORAL 0 // this would require using TAA AO RT's, old, new, and process velocities
+//Flt AmbientTemporalAngle, AmbientTemporalStep;
 
 #define        LINEAR_FILTER 1 // this removes some vertical lines on distant terrain (because multiple samples are clamped together), however introduces extra shadowing under distant objects
 #define AO_MAX_LINEAR_FILTER 0 // max mode can't use linear filter
@@ -172,6 +175,10 @@ Half AO_PS
       pix=pixel.xy; pix&=3;
       jitter_angle=((((pix.x+pix.y)&3)<<2)+pix.x)*(1.0/16); // 0 .. 0.9375
       jitter_step =((  pix.y-pix.x)&3           )*(1.0/ 4); // 0 .. 0.75
+   #if TEMPORAL
+      jitter_angle+=AmbientTemporalAngle;
+      jitter_step -=AmbientTemporalStep ; // subtract because later we're subtracting 'jitter_step' instead of adding
+   #endif
    }
 
    Flt  occl  =0,
