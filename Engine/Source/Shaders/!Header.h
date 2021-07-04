@@ -614,6 +614,16 @@ Vec   Sqr(Vec   x) {return x*x;}
 VecH4 Sqr(VecH4 x) {return x*x;}
 Vec4  Sqr(Vec4  x) {return x*x;}
 
+Int   SqrS(Int   x) {return (x>=0) ? x*x : -x*x;}
+Half  SqrS(Half  x) {return (x>=0) ? x*x : -x*x;}
+Flt   SqrS(Flt   x) {return (x>=0) ? x*x : -x*x;}
+VecH2 SqrS(VecH2 x) {return (x>=0) ? x*x : -x*x;}
+Vec2  SqrS(Vec2  x) {return (x>=0) ? x*x : -x*x;}
+VecH  SqrS(VecH  x) {return (x>=0) ? x*x : -x*x;}
+Vec   SqrS(Vec   x) {return (x>=0) ? x*x : -x*x;}
+VecH4 SqrS(VecH4 x) {return (x>=0) ? x*x : -x*x;}
+Vec4  SqrS(Vec4  x) {return (x>=0) ? x*x : -x*x;}
+
 Int   Cube(Int   x) {return x*x*x;}
 Half  Cube(Half  x) {return x*x*x;}
 Flt   Cube(Flt   x) {return x*x*x;}
