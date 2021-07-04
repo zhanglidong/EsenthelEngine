@@ -12,6 +12,9 @@
 #ifndef RANGE
 #define RANGE 0
 #endif
+#ifndef GATHER
+#define GATHER 0
+#endif
 /******************************************************************************/
 void Geom_VS // for 3D Geom
 (
@@ -89,7 +92,7 @@ Half ShdCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 // SHADOW BLUR
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
-#if GL_ES==2 // GL ES with GATHER support
+#if GL_ES && GATHER // GL ES with GATHER support
 #undef TexDepthLinear
 Flt    TexDepthLinear(Vec2 uv) // because GL ES 3 can't do 'TexDepthLinear'
 {
@@ -105,6 +108,20 @@ Flt    TexDepthLinear(Vec2 uv) // because GL ES 3 can't do 'TexDepthLinear'
    return LinearizeDepth(v);
 }
 #endif
+void Process(inout Half color, inout Half weight, Half c, Flt z, Flt base_z, Vec2 dw_mad)
+{
+   if(1)
+   {
+      z=LinearizeDepth(z);
+      Half w=DepthWeight(base_z-z, dw_mad);
+      color +=w*c;
+      weight+=w;
+   }else
+   {
+      color +=c;
+      weight+=1;
+   }
+}
 Half ShdBlur_PS
 (
 #if GL_ES && GEOM // doesn't support NOPERSP
@@ -118,24 +135,49 @@ Half ShdBlur_PS
    Vec2 inTex=PixelToUV(pixel);
 #endif
 
-   Half weight=0.25,
-        color =TexPoint(ImgX, inTex).x*weight;
+   Half weight, color;
    Flt  z     =TexDepthPoint(inTex);
    Vec2 dw_mad=DepthWeightMAD(z);
-   UNROLL for(Int i=0; i<SAMPLES; i++)
+   /*if(E && GATHER)
    {
-      Vec2 t;
-      if(SAMPLES== 4)t=RTSize.xy*BlendOfs4 [i]+inTex;
-    //if(SAMPLES== 5)t=RTSize.xy*BlendOfs5 [i]+inTex;
-      if(SAMPLES== 6)t=RTSize.xy*BlendOfs6 [i]+inTex;
-      if(SAMPLES== 8)t=RTSize.xy*BlendOfs8 [i]+inTex;
-    //if(SAMPLES== 9)t=RTSize.xy*BlendOfs9 [i]+inTex;
-      if(SAMPLES==12)t=RTSize.xy*BlendOfs12[i]+inTex;
-    //if(SAMPLES==13)t=RTSize.xy*BlendOfs13[i]+inTex;
-      // use linear filtering because texcoords are not rounded
-      Half w=DepthWeight(z-TexDepthLinear(t), dw_mad);
-      color +=w*TexLod(ImgX, t).x; // use linear filtering because texcoords aren't rounded
-      weight+=w;
+      weight=0;
+      color =0;
+      UNROLL for(Int y=0; y<2; y++)
+      UNROLL for(Int x=0; x<2; x++)
+      {
+         VecH4 c=TexGatherOfs(ImgX, inTex, VecI2(-1+x*2, -1+y*2));
+         if(0)
+         {
+            Vec4 d=TexDepthGatherOfs(inTex, VecI2(-1+x*2, -1+y*2)); // FIXME here are different AO and Depth res
+            if(x==0 && y==0){Process(color, weight, c.x, d.x, z, dw_mad); Process(color, weight, c.y, d.y, z, dw_mad); Process(color, weight, c.z, d.z, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);}else
+            if(x==1 && y==0){Process(color, weight, c.x, d.x, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);}else
+            if(x==0 && y==1){Process(color, weight, c.w, d.w, z, dw_mad); Process(color, weight, c.z, d.z, z, dw_mad);}else
+            if(x==1 && y==1){Process(color, weight, c.w, d.w, z, dw_mad);}
+         }else
+         {
+            if(x==0 && y==0){color+=Sum(c) ; weight+=4;}else
+            if(x==1 && y==0){color+=c.x+c.w; weight+=2;}else
+            if(x==0 && y==1){color+=c.w+c.z; weight+=2;}else
+            if(x==1 && y==1){color+=c.w    ; weight+=1;}
+         }
+      }
+   }else*/
+   {
+      weight=0.25;
+      color =TexPoint(ImgX, inTex).x*weight;
+      UNROLL for(Int i=0; i<SAMPLES; i++)
+      {
+         Vec2 t;
+         if(SAMPLES== 4)t=RTSize.xy*BlendOfs4 [i]+inTex;
+       //if(SAMPLES== 5)t=RTSize.xy*BlendOfs5 [i]+inTex;
+         if(SAMPLES== 6)t=RTSize.xy*BlendOfs6 [i]+inTex;
+         if(SAMPLES== 8)t=RTSize.xy*BlendOfs8 [i]+inTex;
+       //if(SAMPLES== 9)t=RTSize.xy*BlendOfs9 [i]+inTex;
+         if(SAMPLES==12)t=RTSize.xy*BlendOfs12[i]+inTex;
+       //if(SAMPLES==13)t=RTSize.xy*BlendOfs13[i]+inTex;
+         // use linear filtering because texcoords are not rounded
+         Process(color, weight, TexLod(ImgX, t).x, TexDepthRawLinear(t), z, dw_mad); // use linear filtering because texcoords aren't rounded
+      }
    }
    return color/weight;
 }
@@ -160,9 +202,7 @@ Half ShdBlurX_PS
    {
       // use linear filtering because texcoords are not rounded
       t.x=RTSize.x*(2*i+((i>0) ? -0.5 : 0.5))+inTex.x;
-      Half w=DepthWeight(z-TexDepthLinear(t), dw_mad);
-      color +=w*TexLod(ImgX, t).x; // use linear filtering because texcoords aren't rounded
-      weight+=w;
+      Process(color, weight, TexLod(ImgX, t).x, TexDepthRawLinear(t), z, dw_mad); // use linear filtering because texcoords aren't rounded
    }
    return color/weight;
 }
@@ -187,9 +227,7 @@ Half ShdBlurY_PS
    {
       // use linear filtering because texcoords are not rounded
       t.y=RTSize.y*(2*i+((i>0) ? -0.5 : 0.5))+inTex.y;
-      Half w=DepthWeight(z-TexDepthLinear(t), dw_mad);
-      color +=w*TexLod(ImgX, t).x; // use linear filtering because texcoords aren't rounded
-      weight+=w;
+      Process(color, weight, TexLod(ImgX, t).x, TexDepthRawLinear(t), z, dw_mad); // use linear filtering because texcoords aren't rounded
    }
    return color/weight;
 }
