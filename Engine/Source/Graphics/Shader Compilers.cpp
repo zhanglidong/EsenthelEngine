@@ -392,10 +392,10 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 #ifdef AMBIENT_OCCLUSION
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Ambient Occlusion", model, api, flag).New(src_path+"Ambient Occlusion.cpp");
-   REPD(mode  , 4)
-   REPD(jitter, 2)
-   REPD(normal, 2)
-      src.New("AO", "AO_VS", "AO_PS")("MODE", mode, "JITTER", jitter, "NORMALS", normal);
+   REPD(quality, 4)
+   REPD(jitter , 2)
+   REPD(normal , 2)
+      src.New("AO", "AO_VS", "AO_PS")("QUALITY", quality, "JITTER", jitter, "NORMALS", normal);
 }
 #endif
 

@@ -2,7 +2,7 @@
 
    For AO shader, Depth is linearized to 0 .. Viewport.range
 
-Input: MODE, JITTER, NORMALS
+Input: QUALITY, JITTER, NORMALS
 Img=Nrm, Depth=depth
 /******************************************************************************/
 #include "!Header.h"
@@ -16,7 +16,14 @@ Img=Nrm, Depth=depth
 //Flt AmbientTemporalAngle, AmbientTemporalStep;
 
 #define LINEAR_FILTER 0
+
+#define AO_MAX     0
+#define AO_AVG     1
+#define AO_PATTERN 2
+
+#define AO_MODE AO_AVG
 /******************************************************************************/
+#if AO_MODE==AO_PATTERN
 #include "!Set Prec Struct.h"
 BUFFER(AOConstants) // z=1/xy.length()
    Vec2 AO0Vec[]={Vec2(0.000, -0.750), Vec2(-0.650, -0.375), Vec2(-0.125, -0.217), Vec2(0.125, -0.217), Vec2(0.650, -0.375), Vec2(-0.250, 0.000), Vec2(0.250, 0.000), Vec2(-0.650, 0.375), Vec2(-0.125, 0.217), Vec2(0.125, 0.217), Vec2(0.650, 0.375), Vec2(0.000, 0.750)};
@@ -35,6 +42,7 @@ BUFFER(AOConstants) // z=1/xy.length()
    #define AO3Spacing 0.200
 BUFFER_END
 #include "!Set Prec Default.h"
+#endif
 /******************************************************************************
 static Flt ObstacleSinToLight(Flt sin) // calculate amount of received light based on obstacle sine
 {
@@ -204,9 +212,10 @@ Half AO_PS
         weight=0;
    Vec2 offs_scale=Viewport.size_fov_tan*(AmbientRange_2/Max(1.0f, pos.z)); // use /2 because we're converting from -1..1 to 0..1 scale
 
-//if(R)return HBAO(inTex, nrm, pos, offs_scale);
-if(Q)
-{
+   //if(R)return HBAO(inTex, nrm, pos, offs_scale);
+
+   #if AO_MODE==AO_MAX
+   {
       // FIXME what values?
       Int angles=4, max_steps=9;
       //Int angles=3, max_steps=4;
@@ -232,7 +241,8 @@ if(Q)
             Flt  y0=Dot(delta0, nrm); if(y0>0.5/255){Flt delta0_len2=Length2(delta0); Flt w0=FadeOut(delta0_len2); Flt sin0=y0*rsqrt(delta0_len2); Flt x0=Dot(delta0, dir); if(x0<0)sin0=1; max_sin.x=Max(max_sin.x, sin0*w0);} // small bias needed for walls perpendicular to camera at a distance
             Flt  y1=Dot(delta1, nrm); if(y1>0.5/255){Flt delta1_len2=Length2(delta1); Flt w1=FadeOut(delta1_len2); Flt sin1=y1*rsqrt(delta1_len2); Flt x1=Dot(delta1, dir); if(x1>0)sin1=1; max_sin.y=Max(max_sin.y, sin1*w1);} // small bias needed for walls perpendicular to camera at a distance
          }
-         /*alternative with steps range clamp:
+      #if 0
+         alternative with steps range clamp:
          {
             Flt frac=ViewportClamp(inTex+dir2, dir2);
             Int steps=Floor(max_steps*(1-frac)+HALF_MIN+(JITTER?jitter_step:0)); // this will have the same effect as if ignoring samples outside of viewport
@@ -256,7 +266,8 @@ if(Q)
                Vec  test_pos1=GetPos(test_z1, UVToPosXY(uv1)), delta1=test_pos1-pos;
                Flt  y1=Dot(delta1, nrm); if(y1>0.5/255){Flt delta1_len2=Length2(delta1); Flt w1=FadeOut(delta1_len2); Flt sin1=y1*rsqrt(delta1_len2); Flt x1=Dot(delta1, dir); if(x1>0)sin1=1; max_sin.y=Max(max_sin.y, sin1*w1);} // small bias needed for walls perpendicular to camera at a distance
             }
-         }*/
+         }
+      #endif
       #if 0
          if(0) // GTAO
          {
@@ -269,13 +280,15 @@ if(Q)
             weight+=2;
          }
       }
-}else
-if(W)
-{   
+   }
+   #endif
+
+   #if AO_MODE==AO_AVG
+   {   
       // FIXME what values?
-      Int angles=8, max_steps=9;
-      //Int angles=3, max_steps=4;
-      //if(E){angles=16; max_steps=5;}
+      Int angles=9, max_steps=8;
+      //Int angles=4, max_steps=3; // better than angles=3; max_steps=4;
+      if(Q){angles=4; max_steps=3;}
       LOOP for(Int a=0; a<angles; a++)
       {
          Flt  angle=a; if(JITTER)angle+=jitter_angle; angle*=PI2/angles; // this is best for cache
@@ -313,9 +326,47 @@ if(W)
          }
       }
       occl*=2; // multiply by 2 to match AO_MAX mode
-}else
-/*if(Q)
-{   
+
+   }
+   #endif
+
+   #if 0 // alternative AO_AVG
+      // FIXME what values?
+      Int angles=4, max_steps=9;
+      //Int angles=3, max_steps=4;
+      //if(E){angles=16; max_steps=5;}
+      LOOP for(Int a=0; a<angles; a++)
+      {
+         Flt  angle=a; if(JITTER)angle+=jitter_angle; angle*=PI/angles; // this is best for cache
+         Vec2 dir2; CosSin(dir2.x, dir2.y, angle);
+         Vec  dir=PointOnPlaneRay(Vec(dir2.x, -dir2.y, 0), nrm_clamp, eye_dir); // this is nrm tangent, doesn't need to be normalized
+         dir2*=offs_scale;
+         Int steps=max_steps;
+         LOOP for(Int s=1; s<=steps; s++) // start from 1 to skip this pixel
+         {
+            Vec2 d=dir2*((JITTER ? s-jitter_step : s)/Flt(max_steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
+            if(!LINEAR_FILTER){d=Round(d*RTSize.zw)*RTSize.xy; if(!any(d)){weight++; continue;}}
+            Vec2 uv0=inTex+d;
+            Vec2 uv1=inTex-d;
+            Flt  test_z0=(LINEAR_FILTER ? TexDepthRawLinear(uv0) : TexDepthRawPoint(uv0)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
+            Flt  test_z1=(LINEAR_FILTER ? TexDepthRawLinear(uv1) : TexDepthRawPoint(uv1)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
+            Vec  test_pos0=GetPos(test_z0, UVToPosXY(uv0)), delta0=test_pos0-pos;
+            Vec  test_pos1=GetPos(test_z1, UVToPosXY(uv1)), delta1=test_pos1-pos;
+            Flt  delta0_len2=Length2(delta0);
+            Flt  delta1_len2=Length2(delta1);
+            Flt  o0, w0=FadeOut(delta0_len2);
+            Flt  o1, w1=FadeOut(delta1_len2);
+            Flt  y0=Dot(delta0, nrm); if(y0>0.5/255){Flt sin=y0*rsqrt(delta0_len2); Flt x=Dot(delta0, dir); if(x<0)sin=1; o0=1-CosSin(sin); o0*=w0;}else o0=0;
+            Flt  y1=Dot(delta1, nrm); if(y1>0.5/255){Flt sin=y1*rsqrt(delta1_len2); Flt x=Dot(delta1, dir); if(x>0)sin=1; o1=1-CosSin(sin); o1*=w1;}else o1=0;
+            w0=w0*0.5+0.5;
+            w1=w1*0.5+0.5;
+            occl+=w0*o0; weight+=w0;
+            occl+=w1*o1; weight+=w1;
+         }
+      }
+      occl*=2; // multiply by 2 to match AO_MAX mode
+   #endif
+   #if 0 // alternative AO_AVG
       // FIXME what values?
       Int angles=4, max_steps=9;
       //Int angles=3, max_steps=4;
@@ -388,62 +439,66 @@ if(W)
          }
       }
       occl*=2; // multiply by 2 to match AO_MAX mode
-}else
-{
-   Int         elms; Flt spacing;
-   if(MODE==0){elms=AO0Elms; spacing=AO0Spacing;}else
-   if(MODE==1){elms=AO1Elms; spacing=AO1Spacing;}else
-   if(MODE==2){elms=AO2Elms; spacing=AO2Spacing;}else
-              {elms=AO3Elms; spacing=AO3Spacing;}
-   Vec2 jitter_offs; if(JITTER){CosSin(cos_sin.x, cos_sin.y, jitter_angle); jitter_offs=(pix.yx-jitter_half)*(spacing*0.215);} // using higher values may affect cache performance, so use smallest possible
-   LOOP for(Int i=0; i<elms; i++) // using UNROLL didn't make a performance difference, however it made shader file bigger and compilation slower
+   #endif
+
+   #if AO_MODE==AO_PATTERN
    {
-      Vec2       dir2; // don't use 'VecH2' here because benefit looks small, and 'dir2' has to be added to 'inTex' and multiplied by 'nrm2' which are 'Vec2' so probably there would be no performance benefits
-      if(MODE==0)dir2=AO0Vec[i];else
-      if(MODE==1)dir2=AO1Vec[i];else
-      if(MODE==2)dir2=AO2Vec[i];else
-                 dir2=AO3Vec[i];
-
-      if(JITTER        )dir2=Rotate(dir2, cos_sin)+jitter_offs;
-      Vec2              uv_delta=dir2*offs_scale;
-      if(!LINEAR_FILTER)uv_delta=Round(uv_delta*RTSize.zw)*RTSize.xy;
-
-      Vec2 t=inTex+uv_delta;
-      Flt  o, w;
-
-      if(!LINEAR_FILTER && !any(uv_delta))
+      Int            elms; Flt spacing;
+      if(QUALITY==0){elms=AO0Elms; spacing=AO0Spacing;}else
+      if(QUALITY==1){elms=AO1Elms; spacing=AO1Spacing;}else
+      if(QUALITY==2){elms=AO2Elms; spacing=AO2Spacing;}else
+                    {elms=AO3Elms; spacing=AO3Spacing;}
+      Vec2 jitter_offs; if(JITTER){CosSin(cos_sin.x, cos_sin.y, jitter_angle); jitter_offs=(pix.yx-jitter_half)*(spacing*0.215);} // using higher values may affect cache performance, so use smallest possible
+      LOOP for(Int i=0; i<elms; i++) // using UNROLL didn't make a performance difference, however it made shader file bigger and compilation slower
       {
-         o=0; w=1;
-      }else
-      if(all(Abs(t-Viewport.center)<=Viewport.size/2)) // UV inside viewport
-      {
-         // !! for AO shader depth is already linearized !!
-         Flt test_z  =(LINEAR_FILTER ? TexDepthRawLinear(t) : TexDepthRawPoint(t)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 't'
-         Vec test_pos=GetPos(test_z, UVToPosXY(t)),
-             delta   =test_pos-pos;
-         Flt delta_len2=Length2(delta);
-         w=FadeOut(delta_len2);
-         Flt y=Dot(delta, nrm); if(y>0)
+         Vec2          dir2; // don't use 'VecH2' here because benefit looks small, and 'dir2' has to be added to 'inTex' and multiplied by 'nrm2' which are 'Vec2' so probably there would be no performance benefits
+         if(QUALITY==0)dir2=AO0Vec[i];else
+         if(QUALITY==1)dir2=AO1Vec[i];else
+         if(QUALITY==2)dir2=AO2Vec[i];else
+                       dir2=AO3Vec[i];
+
+         if(JITTER        )dir2=Rotate(dir2, cos_sin)+jitter_offs;
+         Vec2              uv_delta=dir2*offs_scale;
+         if(!LINEAR_FILTER)uv_delta=Round(uv_delta*RTSize.zw)*RTSize.xy;
+
+         Vec2 t=inTex+uv_delta;
+         Flt  o, w;
+
+         if(!LINEAR_FILTER && !any(uv_delta))
          {
-            Flt sin=y*rsqrt(delta_len2); // "/Length(delta)" -> "/Sqrt(delta_len2)"
-            Vec dir=PointOnPlaneRay(Vec(dir2.x, -dir2.y, 0), nrm_clamp, eye_dir); // this is nrm tangent, doesn't need to be normalized
-            Flt x=Dot(delta, dir); if(x<0)sin=1;
-            o=1-CosSin(sin); // precise, calculated based on 'ObstacleSinToLight'
-            o*=w; // fix artifacts (occlusion can be strong only as weight)
-         }else o=0;
-         w=w*0.5+0.5;   // fix artifacts, this increases weight if it's small, which results in brightening because we don't touch occlusion
-       //w=Max(0.5, w); // fix artifacts, this increases weight if it's small, which results in brightening because we don't touch occlusion
-       //w=Max(1, 1/Sqrt(delta_len2));
-      }else // UV outside viewport
-      {
-         o=0; w=0.5; // set as brightening but use small weight
-      }
+            o=0; w=1;
+         }else
+         if(all(Abs(t-Viewport.center)<=Viewport.size/2)) // UV inside viewport
+         {
+            // !! for AO shader depth is already linearized !!
+            Flt test_z  =(LINEAR_FILTER ? TexDepthRawLinear(t) : TexDepthRawPoint(t)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 't'
+            Vec test_pos=GetPos(test_z, UVToPosXY(t)),
+                delta   =test_pos-pos;
+            Flt delta_len2=Length2(delta);
+            w=FadeOut(delta_len2);
+            Flt y=Dot(delta, nrm); if(y>0)
+            {
+               Flt sin=y*rsqrt(delta_len2); // "/Length(delta)" -> "/Sqrt(delta_len2)"
+               Vec dir=PointOnPlaneRay(Vec(dir2.x, -dir2.y, 0), nrm_clamp, eye_dir); // this is nrm tangent, doesn't need to be normalized
+               Flt x=Dot(delta, dir); if(x<0)sin=1;
+               o=1-CosSin(sin); // precise, calculated based on 'ObstacleSinToLight'
+               o*=w; // fix artifacts (occlusion can be strong only as weight)
+            }else o=0;
+            w=w*0.5+0.5;   // fix artifacts, this increases weight if it's small, which results in brightening because we don't touch occlusion
+          //w=Max(0.5, w); // fix artifacts, this increases weight if it's small, which results in brightening because we don't touch occlusion
+          //w=Max(1, 1/Sqrt(delta_len2));
+         }else // UV outside viewport
+         {
+            o=0; w=0.5; // set as brightening but use small weight
+         }
 
-      occl  +=w*o;
-      weight+=w;
+         occl  +=w*o;
+         weight+=w;
+      }
+      occl*=2; // multiply by 2 to match AO_MAX mode
    }
-   occl*=2; // multiply by 2 to match AO_MAX mode
-}
+   #endif
+
    return Max(AmbientMin, 1-AmbientContrast*occl/weight);
 }
 /******************************************************************************/
