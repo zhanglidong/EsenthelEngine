@@ -176,13 +176,24 @@ Half AO_PS
    }
 
    Vec2  cos_sin;
-   Flt   jitter_angle, jitter_step;
+   Flt   jitter_angle, jitter_step, jitter_half;
    VecI2 pix;
    if(JITTER)
    {
-      pix=pixel.xy; pix&=3;
-      jitter_angle=((((pix.x+pix.y)&3)<<2)+pix.x)*(1.0/16); // 0 .. 0.9375
-      jitter_step =((  pix.y-pix.x)&3           )*(1.0/ 4); // 0 .. 0.75
+      pix=pixel.xy;
+      if(JITTER_RANGE==3)
+      {
+         pix%=3;
+         jitter_angle=((((pix.x+pix.y)%3)*3)+pix.x)*(1.0/9); // 0 .. 0.888
+         jitter_step =((  pix.y-pix.x)%3          )*(1.0/3); // 0 .. 0.666
+         jitter_half =1; // because values are 0..2 inclusive
+      }else
+      {
+         pix&=3;
+         jitter_angle=((((pix.x+pix.y)&3)<<2)+pix.x)*(1.0/16); // 0 .. 0.9375
+         jitter_step =((  pix.y-pix.x)&3           )*(1.0/ 4); // 0 .. 0.75
+         jitter_half =1.5; // because values are 0..3 inclusive
+      }
    #if TEMPORAL
       jitter_angle+=AmbientTemporalAngle;
       jitter_step -=AmbientTemporalStep ; // subtract because later we're subtracting 'jitter_step' instead of adding
@@ -207,7 +218,7 @@ if(Q)
          Vec  dir=PointOnPlaneRay(Vec(dir2.x, -dir2.y, 0), nrm_clamp, eye_dir); // this is nrm tangent, doesn't need to be normalized
          dir2*=offs_scale;
          Vec2 max_sin=0;
-         Int steps=max_steps;
+         Int  steps=max_steps;
          LOOP for(Int s=1; s<=steps; s++) // start from 1 to skip this pixel
          {
             Vec2 d=dir2*((JITTER ? s-jitter_step : s)/Flt(max_steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
@@ -384,7 +395,7 @@ if(W)
    if(MODE==1){elms=AO1Elms; spacing=AO1Spacing;}else
    if(MODE==2){elms=AO2Elms; spacing=AO2Spacing;}else
               {elms=AO3Elms; spacing=AO3Spacing;}
-   Vec2 jitter_offs; if(JITTER){CosSin(cos_sin.x, cos_sin.y, jitter_angle); jitter_offs=(pix.yx-1.5)*(spacing*0.215);} // using higher values may affect cache performance, so use smallest possible
+   Vec2 jitter_offs; if(JITTER){CosSin(cos_sin.x, cos_sin.y, jitter_angle); jitter_offs=(pix.yx-jitter_half)*(spacing*0.215);} // using higher values may affect cache performance, so use smallest possible
    LOOP for(Int i=0; i<elms; i++) // using UNROLL didn't make a performance difference, however it made shader file bigger and compilation slower
    {
       Vec2       dir2; // don't use 'VecH2' here because benefit looks small, and 'dir2' has to be added to 'inTex' and multiplied by 'nrm2' which are 'Vec2' so probably there would be no performance benefits

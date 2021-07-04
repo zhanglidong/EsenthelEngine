@@ -137,6 +137,8 @@
 #define TRANSLUCENT_VAL 0.5
 
 #define REFLECT_OCCL 0 // if apply occlusion for reflectivity below 0.02 #SpecularReflectionFromZeroSmoothReflectivity
+
+#define JITTER_RANGE 4 // 3 or 4, don't use 3 because it's not good enough
 /******************************************************************************/
 // RENDER TARGETS
 /******************************************************************************/
