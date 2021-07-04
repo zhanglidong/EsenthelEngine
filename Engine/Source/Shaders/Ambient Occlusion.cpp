@@ -3,6 +3,7 @@
    For AO shader, Depth is linearized to 0 .. Viewport.range
 
 Input: MODE, JITTER, NORMALS
+Img=Nrm, Depth=depth
 /******************************************************************************/
 #include "!Header.h"
 #include "Ambient Occlusion.h"
@@ -82,8 +83,8 @@ void AO_VS
 #endif
    outVtx   =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 }
-
-/*#define NUM_DIRECTIONS 16
+/******************************************************************************
+#define NUM_DIRECTIONS 16
 #define NUM_STEPS      12
 Vec FetchEyePos(Vec2 UV) {return GetPos(TexDepthRawLinear(UV), UVToPosXY(UV));}
 Flt ComputeAO(Vec P, Vec N, Vec S)
@@ -108,8 +109,8 @@ Half HBAO(Vec2 uv, Vec nrm, Vec pos, Vec2 g_fRadiusToScreen)
    }
    AO/=(NUM_DIRECTIONS*NUM_STEPS);
    return 1-AO*2;
-}*/
-
+}
+/******************************************************************************/
 Half GTAOIntegrateArc(VecH2 h, Half n)
 {
    VecH2 Arc = -cos(2*h-n) + cos(n) + 2*h*sin(n); return 0.25*(Arc.x+Arc.y);
@@ -123,7 +124,7 @@ Flt FadeOut(Flt dist2)
    if(R)return f<1;*/
    return Sat(2-dist2*AmbientRangeInvSqr2); // 2-f*f*2
 }
-// Img=Nrm, Depth=depth
+/******************************************************************************/
 Half AO_PS
 (
    NOPERSP Vec2 inTex   :TEXCOORD ,
