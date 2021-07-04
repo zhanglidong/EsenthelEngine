@@ -7,16 +7,6 @@ Input: MODE, JITTER, NORMALS
 #include "!Header.h"
 #include "Ambient Occlusion.h"
 /******************************************************************************/
-#define AO0Elms 12
-#define AO1Elms 28
-#define AO2Elms 48
-#define AO3Elms 80
-
-#define AO0Spacing (1.0/2)
-#define AO1Spacing (1.0/3)
-#define AO2Spacing (1.0/4)
-#define AO3Spacing (1.0/5)
-
 #ifndef NORMALS
 #define NORMALS 1
 #endif
@@ -26,13 +16,24 @@ Input: MODE, JITTER, NORMALS
 
 #define        LINEAR_FILTER 1 // this removes some vertical lines on distant terrain (because multiple samples are clamped together), however introduces extra shadowing under distant objects
 #define AO_MAX_LINEAR_FILTER 0 // max mode can't use linear filter
+#define AO_AVG_LINEAR_FILTER 0 // max mode can't use linear filter
 /******************************************************************************/
 #include "!Set Prec Struct.h"
 BUFFER(AOConstants) // z=1/xy.length()
-   Vec AO0Vec[]={Vec(-0.707, -0.707, 1.000), Vec(0.000, -0.707, 1.414), Vec(0.707, -0.707, 1.000), Vec(-0.354, -0.354, 1.997), Vec(0.354, -0.354, 1.997), Vec(-0.707, 0.000, 1.414), Vec(0.707, 0.000, 1.414), Vec(-0.354, 0.354, 1.997), Vec(0.354, 0.354, 1.997), Vec(-0.707, 0.707, 1.000), Vec(0.000, 0.707, 1.414), Vec(0.707, 0.707, 1.000)};
-   Vec AO1Vec[]={Vec(0.000, -0.943, 1.060), Vec(-0.707, -0.707, 1.000), Vec(-0.236, -0.707, 1.342), Vec(0.236, -0.707, 1.342), Vec(0.707, -0.707, 1.000), Vec(-0.471, -0.471, 1.501), Vec(0.000, -0.471, 2.123), Vec(0.471, -0.471, 1.501), Vec(-0.707, -0.236, 1.342), Vec(-0.236, -0.236, 2.996), Vec(0.236, -0.236, 2.996), Vec(0.707, -0.236, 1.342), Vec(-0.943, 0.000, 1.060), Vec(-0.471, 0.000, 2.123), Vec(0.471, 0.000, 2.123), Vec(0.943, 0.000, 1.060), Vec(-0.707, 0.236, 1.342), Vec(-0.236, 0.236, 2.996), Vec(0.236, 0.236, 2.996), Vec(0.707, 0.236, 1.342), Vec(-0.471, 0.471, 1.501), Vec(0.000, 0.471, 2.123), Vec(0.471, 0.471, 1.501), Vec(-0.707, 0.707, 1.000), Vec(-0.236, 0.707, 1.342), Vec(0.236, 0.707, 1.342), Vec(0.707, 0.707, 1.000), Vec(0.000, 0.943, 1.060)};
-   Vec AO2Vec[]={Vec(-0.177, -0.884, 1.109), Vec(0.177, -0.884, 1.109), Vec(-0.707, -0.707, 1.000), Vec(-0.354, -0.707, 1.265), Vec(0.000, -0.707, 1.414), Vec(0.354, -0.707, 1.265), Vec(0.707, -0.707, 1.000), Vec(-0.530, -0.530, 1.334), Vec(-0.177, -0.530, 1.790), Vec(0.177, -0.530, 1.790), Vec(0.530, -0.530, 1.334), Vec(-0.707, -0.354, 1.265), Vec(-0.354, -0.354, 1.997), Vec(0.000, -0.354, 2.825), Vec(0.354, -0.354, 1.997), Vec(0.707, -0.354, 1.265), Vec(-0.884, -0.177, 1.109), Vec(-0.530, -0.177, 1.790), Vec(-0.177, -0.177, 3.995), Vec(0.177, -0.177, 3.995), Vec(0.530, -0.177, 1.790), Vec(0.884, -0.177, 1.109), Vec(-0.707, 0.000, 1.414), Vec(-0.354, 0.000, 2.825), Vec(0.354, 0.000, 2.825), Vec(0.707, 0.000, 1.414), Vec(-0.884, 0.177, 1.109), Vec(-0.530, 0.177, 1.790), Vec(-0.177, 0.177, 3.995), Vec(0.177, 0.177, 3.995), Vec(0.530, 0.177, 1.790), Vec(0.884, 0.177, 1.109), Vec(-0.707, 0.354, 1.265), Vec(-0.354, 0.354, 1.997), Vec(0.000, 0.354, 2.825), Vec(0.354, 0.354, 1.997), Vec(0.707, 0.354, 1.265), Vec(-0.530, 0.530, 1.334), Vec(-0.177, 0.530, 1.790), Vec(0.177, 0.530, 1.790), Vec(0.530, 0.530, 1.334), Vec(-0.707, 0.707, 1.000), Vec(-0.354, 0.707, 1.265), Vec(0.000, 0.707, 1.414), Vec(0.354, 0.707, 1.265), Vec(0.707, 0.707, 1.000), Vec(-0.177, 0.884, 1.109), Vec(0.177, 0.884, 1.109)};
-   Vec AO3Vec[]={Vec(-0.141, -0.990, 1.000), Vec(0.141, -0.990, 1.000), Vec(-0.283, -0.849, 1.117), Vec(0.000, -0.849, 1.178), Vec(0.283, -0.849, 1.117), Vec(-0.707, -0.707, 1.000), Vec(-0.424, -0.707, 1.213), Vec(-0.141, -0.707, 1.387), Vec(0.141, -0.707, 1.387), Vec(0.424, -0.707, 1.213), Vec(0.707, -0.707, 1.000), Vec(-0.566, -0.566, 1.249), Vec(-0.283, -0.566, 1.580), Vec(0.000, -0.566, 1.767), Vec(0.283, -0.566, 1.580), Vec(0.566, -0.566, 1.249), Vec(-0.707, -0.424, 1.213), Vec(-0.424, -0.424, 1.668), Vec(-0.141, -0.424, 2.238), Vec(0.141, -0.424, 2.238), Vec(0.424, -0.424, 1.668), Vec(0.707, -0.424, 1.213), Vec(-0.849, -0.283, 1.117), Vec(-0.566, -0.283, 1.580), Vec(-0.283, -0.283, 2.499), Vec(0.000, -0.283, 3.534), Vec(0.283, -0.283, 2.499), Vec(0.566, -0.283, 1.580), Vec(0.849, -0.283, 1.117), Vec(-0.990, -0.141, 1.000), Vec(-0.707, -0.141, 1.387), Vec(-0.424, -0.141, 2.238), Vec(-0.141, -0.141, 5.015), Vec(0.141, -0.141, 5.015), Vec(0.424, -0.141, 2.238), Vec(0.707, -0.141, 1.387), Vec(0.990, -0.141, 1.000), Vec(-0.849, 0.000, 1.178), Vec(-0.566, 0.000, 1.767), Vec(-0.283, 0.000, 3.534), Vec(0.283, 0.000, 3.534), Vec(0.566, 0.000, 1.767), Vec(0.849, 0.000, 1.178), Vec(-0.990, 0.141, 1.000), Vec(-0.707, 0.141, 1.387), Vec(-0.424, 0.141, 2.238), Vec(-0.141, 0.141, 5.015), Vec(0.141, 0.141, 5.015), Vec(0.424, 0.141, 2.238), Vec(0.707, 0.141, 1.387), Vec(0.990, 0.141, 1.000), Vec(-0.849, 0.283, 1.117), Vec(-0.566, 0.283, 1.580), Vec(-0.283, 0.283, 2.499), Vec(0.000, 0.283, 3.534), Vec(0.283, 0.283, 2.499), Vec(0.566, 0.283, 1.580), Vec(0.849, 0.283, 1.117), Vec(-0.707, 0.424, 1.213), Vec(-0.424, 0.424, 1.668), Vec(-0.141, 0.424, 2.238), Vec(0.141, 0.424, 2.238), Vec(0.424, 0.424, 1.668), Vec(0.707, 0.424, 1.213), Vec(-0.566, 0.566, 1.249), Vec(-0.283, 0.566, 1.580), Vec(0.000, 0.566, 1.767), Vec(0.283, 0.566, 1.580), Vec(0.566, 0.566, 1.249), Vec(-0.707, 0.707, 1.000), Vec(-0.424, 0.707, 1.213), Vec(-0.141, 0.707, 1.387), Vec(0.141, 0.707, 1.387), Vec(0.424, 0.707, 1.213), Vec(0.707, 0.707, 1.000), Vec(-0.283, 0.849, 1.117), Vec(0.000, 0.849, 1.178), Vec(0.283, 0.849, 1.117), Vec(-0.141, 0.990, 1.000), Vec(0.141, 0.990, 1.000)};
+   Vec AO0Vec[]={Vec(0.000, -0.866, 1.155), Vec(-0.750, -0.433, 1.155), Vec(-0.250, -0.433, 2.000), Vec(0.250, -0.433, 2.000), Vec(0.750, -0.433, 1.155), Vec(-0.500, 0.000, 2.000), Vec(0.500, 0.000, 2.000), Vec(-0.750, 0.433, 1.155), Vec(-0.250, 0.433, 2.000), Vec(0.250, 0.433, 2.000), Vec(0.750, 0.433, 1.155), Vec(0.000, 0.866, 1.155)};
+   Vec AO1Vec[]={Vec(-0.167, -0.866, 1.134), Vec(0.167, -0.866, 1.134), Vec(-0.667, -0.577, 1.134), Vec(-0.333, -0.577, 1.500), Vec(0.000, -0.577, 1.732), Vec(0.333, -0.577, 1.500), Vec(0.667, -0.577, 1.134), Vec(-0.833, -0.289, 1.134), Vec(-0.500, -0.289, 1.732), Vec(-0.167, -0.289, 3.000), Vec(0.167, -0.289, 3.000), Vec(0.500, -0.289, 1.732), Vec(0.833, -0.289, 1.134), Vec(-0.667, 0.000, 1.500), Vec(-0.333, 0.000, 3.000), Vec(0.333, 0.000, 3.000), Vec(0.667, 0.000, 1.500), Vec(-0.833, 0.289, 1.134), Vec(-0.500, 0.289, 1.732), Vec(-0.167, 0.289, 3.000), Vec(0.167, 0.289, 3.000), Vec(0.500, 0.289, 1.732), Vec(0.833, 0.289, 1.134), Vec(-0.667, 0.577, 1.134), Vec(-0.333, 0.577, 1.500), Vec(0.000, 0.577, 1.732), Vec(0.333, 0.577, 1.500), Vec(0.667, 0.577, 1.134), Vec(-0.167, 0.866, 1.134), Vec(0.167, 0.866, 1.134)};
+   Vec AO2Vec[]={Vec(-0.250, -0.866, 1.109), Vec(0.000, -0.866, 1.155), Vec(0.250, -0.866, 1.109), Vec(-0.625, -0.650, 1.109), Vec(-0.375, -0.650, 1.333), Vec(-0.125, -0.650, 1.512), Vec(0.125, -0.650, 1.512), Vec(0.375, -0.650, 1.333), Vec(0.625, -0.650, 1.109), Vec(-0.750, -0.433, 1.155), Vec(-0.500, -0.433, 1.512), Vec(-0.250, -0.433, 2.000), Vec(0.000, -0.433, 2.309), Vec(0.250, -0.433, 2.000), Vec(0.500, -0.433, 1.512), Vec(0.750, -0.433, 1.155), Vec(-0.875, -0.217, 1.109), Vec(-0.625, -0.217, 1.512), Vec(-0.375, -0.217, 2.309), Vec(-0.125, -0.217, 4.000), Vec(0.125, -0.217, 4.000), Vec(0.375, -0.217, 2.309), Vec(0.625, -0.217, 1.512), Vec(0.875, -0.217, 1.109), Vec(-0.750, 0.000, 1.333), Vec(-0.500, 0.000, 2.000), Vec(-0.250, 0.000, 4.000), Vec(0.250, 0.000, 4.000), Vec(0.500, 0.000, 2.000), Vec(0.750, 0.000, 1.333), Vec(-0.875, 0.217, 1.109), Vec(-0.625, 0.217, 1.512), Vec(-0.375, 0.217, 2.309), Vec(-0.125, 0.217, 4.000), Vec(0.125, 0.217, 4.000), Vec(0.375, 0.217, 2.309), Vec(0.625, 0.217, 1.512), Vec(0.875, 0.217, 1.109), Vec(-0.750, 0.433, 1.155), Vec(-0.500, 0.433, 1.512), Vec(-0.250, 0.433, 2.000), Vec(0.000, 0.433, 2.309), Vec(0.250, 0.433, 2.000), Vec(0.500, 0.433, 1.512), Vec(0.750, 0.433, 1.155), Vec(-0.625, 0.650, 1.109), Vec(-0.375, 0.650, 1.333), Vec(-0.125, 0.650, 1.512), Vec(0.125, 0.650, 1.512), Vec(0.375, 0.650, 1.333), Vec(0.625, 0.650, 1.109), Vec(-0.250, 0.866, 1.109), Vec(0.000, 0.866, 1.155), Vec(0.250, 0.866, 1.109)};
+   Vec AO3Vec[]={Vec(-0.300, -0.866, 1.091), Vec(-0.100, -0.866, 1.147), Vec(0.100, -0.866, 1.147), Vec(0.300, -0.866, 1.091), Vec(-0.600, -0.693, 1.091), Vec(-0.400, -0.693, 1.250), Vec(-0.200, -0.693, 1.387), Vec(0.000, -0.693, 1.443), Vec(0.200, -0.693, 1.387), Vec(0.400, -0.693, 1.250), Vec(0.600, -0.693, 1.091), Vec(-0.700, -0.520, 1.147), Vec(-0.500, -0.520, 1.387), Vec(-0.300, -0.520, 1.667), Vec(-0.100, -0.520, 1.890), Vec(0.100, -0.520, 1.890), Vec(0.300, -0.520, 1.667), Vec(0.500, -0.520, 1.387), Vec(0.700, -0.520, 1.147), Vec(-0.800, -0.346, 1.147), Vec(-0.600, -0.346, 1.443), Vec(-0.400, -0.346, 1.890), Vec(-0.200, -0.346, 2.500), Vec(0.000, -0.346, 2.887), Vec(0.200, -0.346, 2.500), Vec(0.400, -0.346, 1.890), Vec(0.600, -0.346, 1.443), Vec(0.800, -0.346, 1.147), Vec(-0.900, -0.173, 1.091), Vec(-0.700, -0.173, 1.387), Vec(-0.500, -0.173, 1.890), Vec(-0.300, -0.173, 2.887), Vec(-0.100, -0.173, 5.000), Vec(0.100, -0.173, 5.000), Vec(0.300, -0.173, 2.887), Vec(0.500, -0.173, 1.890), Vec(0.700, -0.173, 1.387), Vec(0.900, -0.173, 1.091), Vec(-0.800, 0.000, 1.250), Vec(-0.600, 0.000, 1.667), Vec(-0.400, 0.000, 2.500), Vec(-0.200, 0.000, 5.000), Vec(0.200, 0.000, 5.000), Vec(0.400, 0.000, 2.500), Vec(0.600, 0.000, 1.667), Vec(0.800, 0.000, 1.250), Vec(-0.900, 0.173, 1.091), Vec(-0.700, 0.173, 1.387), Vec(-0.500, 0.173, 1.890), Vec(-0.300, 0.173, 2.887), Vec(-0.100, 0.173, 5.000), Vec(0.100, 0.173, 5.000), Vec(0.300, 0.173, 2.887), Vec(0.500, 0.173, 1.890), Vec(0.700, 0.173, 1.387), Vec(0.900, 0.173, 1.091), Vec(-0.800, 0.346, 1.147), Vec(-0.600, 0.346, 1.443), Vec(-0.400, 0.346, 1.890), Vec(-0.200, 0.346, 2.500), Vec(0.000, 0.346, 2.887), Vec(0.200, 0.346, 2.500), Vec(0.400, 0.346, 1.890), Vec(0.600, 0.346, 1.443), Vec(0.800, 0.346, 1.147), Vec(-0.700, 0.520, 1.147), Vec(-0.500, 0.520, 1.387), Vec(-0.300, 0.520, 1.667), Vec(-0.100, 0.520, 1.890), Vec(0.100, 0.520, 1.890), Vec(0.300, 0.520, 1.667), Vec(0.500, 0.520, 1.387), Vec(0.700, 0.520, 1.147), Vec(-0.600, 0.693, 1.091), Vec(-0.400, 0.693, 1.250), Vec(-0.200, 0.693, 1.387), Vec(0.000, 0.693, 1.443), Vec(0.200, 0.693, 1.387), Vec(0.400, 0.693, 1.250), Vec(0.600, 0.693, 1.091), Vec(-0.300, 0.866, 1.091), Vec(-0.100, 0.866, 1.147), Vec(0.100, 0.866, 1.147), Vec(0.300, 0.866, 1.091)};
+
+   #define AO0Elms 12
+   #define AO1Elms 30
+   #define AO2Elms 54
+   #define AO3Elms 84
+
+   #define AO0Spacing 0.500
+   #define AO1Spacing 0.333
+   #define AO2Spacing 0.250
+   #define AO3Spacing 0.200
 BUFFER_END
 #include "!Set Prec Default.h"
 /******************************************************************************
@@ -113,7 +114,15 @@ Half GTAOIntegrateArc(VecH2 h, Half n)
 {
    VecH2 Arc = -cos(2*h-n) + cos(n) + 2*h*sin(n); return 0.25*(Arc.x+Arc.y);
 }
-
+Flt FadeOut(Flt dist2)
+{
+ /*Flt dist=Sqrt(dist2);
+   Flt f=Sat(dist/(AmbientRange_2*2));
+   if(W)return Sat(2-f*f*2);
+   if(E)return Sat(4-f  *4);
+   if(R)return f<1;*/
+   return Sat(2-dist2*AmbientRangeInvSqr2); // 2-f*f*2
+}
 // Img=Nrm, Depth=depth
 Half AO_PS
 (
@@ -201,17 +210,15 @@ if(Q)
          LOOP for(Int s=1; s<=steps; s++) // start from 1 to skip this pixel
          {
             Vec2 d=dir2*((JITTER ? s-jitter_step : s)/Flt(steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
-            if(!AO_MAX_LINEAR_FILTER){d=Round(d*RTSize.zw)*RTSize.xy; if(!any(d))continue;}
+            if(!AO_MAX_LINEAR_FILTER){d=Round(d*RTSize.zw)*RTSize.xy; if(!any(d)){weight++; continue;}}
             Vec2 uv0=inTex+d;
             Vec2 uv1=inTex-d;
             Flt  test_z0=(AO_MAX_LINEAR_FILTER ? TexDepthRawLinear(uv0) : TexDepthRawPoint(uv0)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
             Flt  test_z1=(AO_MAX_LINEAR_FILTER ? TexDepthRawLinear(uv1) : TexDepthRawPoint(uv1)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
-            Vec  test_pos0=GetPos(test_z0, UVToPosXY(uv0)), delta0=test_pos0-pos; Flt delta0_len2=Length2(delta0);
-            Vec  test_pos1=GetPos(test_z1, UVToPosXY(uv1)), delta1=test_pos1-pos; Flt delta1_len2=Length2(delta1);
-            Flt  w0=Sat(1-delta0_len2*AmbientRangeInvSqr);
-            Flt  w1=Sat(1-delta1_len2*AmbientRangeInvSqr);
-            Flt  y=Dot(delta0, nrm); Flt sin=y*rsqrt(delta0_len2); Flt x=Dot(delta0, dir); if(x<0 && y>0.5/255)sin=1; max_sin.x=Max(max_sin.x, sin*w0); // small bias needed for walls perpendicular to camera at a distance
-                 y=Dot(delta1, nrm);     sin=y*rsqrt(delta1_len2);     x=Dot(delta1, dir); if(x>0 && y>0.5/255)sin=1; max_sin.y=Max(max_sin.y, sin*w1); // small bias needed for walls perpendicular to camera at a distance
+            Vec  test_pos0=GetPos(test_z0, UVToPosXY(uv0)), delta0=test_pos0-pos;
+            Vec  test_pos1=GetPos(test_z1, UVToPosXY(uv1)), delta1=test_pos1-pos;
+            Flt  y0=Dot(delta0, nrm); if(y0>0.5/255){Flt delta0_len2=Length2(delta0); Flt w0=FadeOut(delta0_len2); Flt sin0=y0*rsqrt(delta0_len2); Flt x0=Dot(delta0, dir); if(x0<0)sin0=1; max_sin.x=Max(max_sin.x, sin0*w0);} // small bias needed for walls perpendicular to camera at a distance
+            Flt  y1=Dot(delta1, nrm); if(y1>0.5/255){Flt delta1_len2=Length2(delta1); Flt w1=FadeOut(delta1_len2); Flt sin1=y1*rsqrt(delta1_len2); Flt x1=Dot(delta1, dir); if(x1>0)sin1=1; max_sin.y=Max(max_sin.y, sin1*w1);} // small bias needed for walls perpendicular to camera at a distance
          }
       #if 0
          if(0) // GTAO
@@ -239,15 +246,16 @@ if(W)
          dir2*=offs_scale;
          LOOP for(Int s=1; s<=steps; s++) // start from 1 to skip this pixel
          {
-            Vec2 uv=inTex+dir2*((JITTER ? s-jitter_step : s)/Flt(steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
-            if(!LINEAR_FILTER)uv=Round(uv*RTSize.zw)*RTSize.xy;
-            Flt  test_z  =(LINEAR_FILTER ? TexDepthRawLinear(uv) : TexDepthRawPoint(uv)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
-            Vec  test_pos=GetPos(test_z, UVToPosXY(uv)),
-                 delta   =test_pos-pos;
-            Flt  delta_len2=Length2(delta);
-            Flt o,w;
-            w=Sat(1-delta_len2*AmbientRangeInvSqr);
-            Flt y=Dot(delta, nrm); if(y>0)
+            Vec2 d=dir2*((JITTER ? s-jitter_step : s)/Flt(steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
+            if(!AO_AVG_LINEAR_FILTER){d=Round(d*RTSize.zw)*RTSize.xy; if(!any(d)){weight++; continue;}}
+            Vec2 uv=inTex+d;
+
+            Flt test_z  =(AO_AVG_LINEAR_FILTER ? TexDepthRawLinear(uv) : TexDepthRawPoint(uv)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
+            Vec test_pos=GetPos(test_z, UVToPosXY(uv)),
+                delta   =test_pos-pos;
+            Flt delta_len2=Length2(delta);
+            Flt o, w=FadeOut(delta_len2);
+            Flt y=Dot(delta, nrm); if(y>0.5/255) // small bias needed for walls perpendicular to camera at a distance
             {
                Flt sin=y*rsqrt(delta_len2);
                Flt x=Dot(delta, dir); if(x<0)sin=1;
@@ -269,7 +277,7 @@ if(W)
    if(MODE==1){elms=AO1Elms; spacing=AO1Spacing;}else
    if(MODE==2){elms=AO2Elms; spacing=AO2Spacing;}else
               {elms=AO3Elms; spacing=AO3Spacing;}
-   Vec2 jitter_offs; if(JITTER){CosSin(cos_sin.x, cos_sin.y, jitter_angle*0.3); jitter_offs=(pix-1.5)*(spacing*0.4);} // using higher values may affect cache performance, so use smallest possible
+   Vec2 jitter_offs; if(JITTER){CosSin(cos_sin.x, cos_sin.y, jitter_angle); jitter_offs=(pix.yx-1.5)*(spacing*0.215);} // using higher values may affect cache performance, so use smallest possible
    LOOP for(Int i=0; i<elms; i++) // using UNROLL didn't make a performance difference, however it made shader file bigger and compilation slower
    {
       Vec        pattern;
@@ -293,9 +301,7 @@ if(W)
          Vec test_pos=GetPos(test_z, UVToPosXY(t)),
              delta   =test_pos-pos;
          Flt delta_len2=Length2(delta);
-
-         w=Sat(1-delta_len2*AmbientRangeInvSqr);
-
+         w=FadeOut(delta_len2);
          Flt y=Dot(delta, nrm); if(y>0)
          {
             Flt sin=y*rsqrt(delta_len2); // "/Length(delta)" -> "/Sqrt(delta_len2)"

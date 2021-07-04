@@ -515,16 +515,16 @@ void MainShaderClass::getTechniques()
    BendFactor      =GetShaderParam("BendFactor");
    BendFactorPrev  =GetShaderParam("BendFactorPrev");
 
-   EnvColor          =GetShaderParam    ("EnvColor"          ); EnvColor->set(D.envColor());
-   EnvMipMaps        =GetShaderParam    ("EnvMipMaps"        ); if(D.envMap())EnvMipMaps->set(D.envMap()->mipMaps()-1);
-   FirstPass         =GetShaderParamBool("FirstPass"         );
-   NightShadeColor   =GetShaderParam    ("NightShadeColor"   ); // set in 'D.ambientSet()'
-   AmbientColor_l    =GetShaderParam    ("AmbientColor"      ); // set in 'D.ambientSet()'
-   AmbientColorNS_l  =GetShaderParam    ("AmbientNSColor"    ); // set in 'D.ambientSet()'
-   AmbientContrast   =GetShaderParam    ("AmbientContrast"   ); AmbientContrast->set(D.ambientContrast());
-   AmbientMin        =GetShaderParam    ("AmbientMin"        ); AmbientMin     ->set(D.ambientMin     ());
-   AmbientRange_2    =GetShaderParam    ("AmbientRange_2"    );
-   AmbientRangeInvSqr=GetShaderParam    ("AmbientRangeInvSqr");
+   EnvColor           =GetShaderParam    ("EnvColor"           ); EnvColor->set(D.envColor());
+   EnvMipMaps         =GetShaderParam    ("EnvMipMaps"         ); if(D.envMap())EnvMipMaps->set(D.envMap()->mipMaps()-1);
+   FirstPass          =GetShaderParamBool("FirstPass"          );
+   NightShadeColor    =GetShaderParam    ("NightShadeColor"    ); // set in 'D.ambientSet()'
+   AmbientColor_l     =GetShaderParam    ("AmbientColor"       ); // set in 'D.ambientSet()'
+   AmbientColorNS_l   =GetShaderParam    ("AmbientNSColor"     ); // set in 'D.ambientSet()'
+   AmbientContrast    =GetShaderParam    ("AmbientContrast"    ); AmbientContrast->set(D.ambientContrast());
+   AmbientMin         =GetShaderParam    ("AmbientMin"         ); AmbientMin     ->set(D.ambientMin     ());
+   AmbientRange_2     =GetShaderParam    ("AmbientRange_2"     );
+   AmbientRangeInvSqr2=GetShaderParam    ("AmbientRangeInvSqr2");
    D.ambientSet(); D.ambientSetRange();
 
    HdrBrightness=GetShaderParam("HdrBrightness"); HdrBrightness->set(D.eyeAdaptationBrightness());

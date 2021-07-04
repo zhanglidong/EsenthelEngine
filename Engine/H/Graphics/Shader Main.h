@@ -99,15 +99,15 @@ struct MainShaderClass
 
       *RippleParams,
 
-      *AmbientRange_2    =&Dummy,
-      *AmbientRangeInvSqr=&Dummy,
-      *AmbientContrast   =&Dummy,
-      *AmbientMin        =&Dummy,
-      *AmbientColor_l    =&Dummy, // Vec Linear Gamma
-      *AmbientColorNS_l  =&Dummy, // Vec Linear Gamma + NightShade
-      *NightShadeColor   =&Dummy,
-      *EnvColor          =&Dummy,
-      *EnvMipMaps        =&Dummy,
+      *AmbientRange_2     =&Dummy,
+      *AmbientRangeInvSqr2=&Dummy,
+      *AmbientContrast    =&Dummy,
+      *AmbientMin         =&Dummy,
+      *AmbientColor_l     =&Dummy, // Vec Linear Gamma
+      *AmbientColorNS_l   =&Dummy, // Vec Linear Gamma + NightShade
+      *NightShadeColor    =&Dummy,
+      *EnvColor           =&Dummy,
+      *EnvMipMaps         =&Dummy,
 
       *HdrBrightness=&Dummy,
       *HdrExp       =&Dummy,

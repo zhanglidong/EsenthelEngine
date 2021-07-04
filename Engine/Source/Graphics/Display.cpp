@@ -3091,8 +3091,8 @@ void DisplayClass::ambientSet()C
 }
 void DisplayClass::ambientSetRange()C
 {
-   Sh.AmbientRange_2    ->set(         D.ambientRange()/2);
-   Sh.AmbientRangeInvSqr->set(Sqr(1.0f/D.ambientRange()) );
+   Sh.AmbientRange_2     ->set(          D.ambientRange()/2);
+   Sh.AmbientRangeInvSqr2->set(Sqr(SQRT2/D.ambientRange()) ); // Sqr(1.0f/D.ambientRange())*2
 }
 
 
