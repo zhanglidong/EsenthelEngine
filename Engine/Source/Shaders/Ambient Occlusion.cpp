@@ -197,21 +197,23 @@ Half AO_PS
 if(Q)
 {
       // FIXME what values?
-      Int angles=9, steps=9;
-      if(E){angles=16; steps=5;}
+      Int angles=4, max_steps=9;
+      //Int angles=3, max_steps=4;
+      //if(E){angles=16; max_steps=5;}
       LOOP for(Int a=0; a<angles; a++)
       {
-         Flt  angle=a; if(JITTER)angle+=jitter_angle; angle*=PI2/angles; // this is best for cache
+         Flt  angle=a; if(JITTER)angle+=jitter_angle; angle*=PI/angles; // this is best for cache
          Vec2 dir2; CosSin(dir2.x, dir2.y, angle);
          Vec  dir=PointOnPlaneRay(Vec(dir2.x, -dir2.y, 0), nrm_clamp, eye_dir); // this is nrm tangent, doesn't need to be normalized
          dir2*=offs_scale;
          Vec2 max_sin=0;
+         Int steps=max_steps;
          LOOP for(Int s=1; s<=steps; s++) // start from 1 to skip this pixel
          {
-            Vec2 d=dir2*((JITTER ? s-jitter_step : s)/Flt(steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
+            Vec2 d=dir2*((JITTER ? s-jitter_step : s)/Flt(max_steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
             if(!LINEAR_FILTER){d=Round(d*RTSize.zw)*RTSize.xy; if(!any(d)){weight++; continue;}}
-            Vec2 uv0=inTex+d;
-            Vec2 uv1=inTex-d;
+            Vec2 uv0=inTex+d; // TODO: may need to do UVClamp
+            Vec2 uv1=inTex-d; // TODO: may need to do UVClamp
             Flt  test_z0=(LINEAR_FILTER ? TexDepthRawLinear(uv0) : TexDepthRawPoint(uv0)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
             Flt  test_z1=(LINEAR_FILTER ? TexDepthRawLinear(uv1) : TexDepthRawPoint(uv1)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
             Vec  test_pos0=GetPos(test_z0, UVToPosXY(uv0)), delta0=test_pos0-pos;
@@ -219,6 +221,31 @@ if(Q)
             Flt  y0=Dot(delta0, nrm); if(y0>0.5/255){Flt delta0_len2=Length2(delta0); Flt w0=FadeOut(delta0_len2); Flt sin0=y0*rsqrt(delta0_len2); Flt x0=Dot(delta0, dir); if(x0<0)sin0=1; max_sin.x=Max(max_sin.x, sin0*w0);} // small bias needed for walls perpendicular to camera at a distance
             Flt  y1=Dot(delta1, nrm); if(y1>0.5/255){Flt delta1_len2=Length2(delta1); Flt w1=FadeOut(delta1_len2); Flt sin1=y1*rsqrt(delta1_len2); Flt x1=Dot(delta1, dir); if(x1>0)sin1=1; max_sin.y=Max(max_sin.y, sin1*w1);} // small bias needed for walls perpendicular to camera at a distance
          }
+         /*alternative with steps range clamp:
+         {
+            Flt frac=ViewportClamp(inTex+dir2, dir2);
+            Int steps=Floor(max_steps*(1-frac)+HALF_MIN+(JITTER?jitter_step:0)); // this will have the same effect as if ignoring samples outside of viewport
+            LOOP for(Int s=steps; s>=1; s--) // end at 1 to skip this pixel
+            {
+               Vec2 d=dir2*((JITTER ? s-jitter_step : s)/Flt(max_steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
+               if(!LINEAR_FILTER){d=Round(d*RTSize.zw)*RTSize.xy; if(!any(d)){weight++; continue;}}
+               Vec2 uv0=inTex+d;
+               Flt  test_z0=(LINEAR_FILTER ? TexDepthRawLinear(uv0) : TexDepthRawPoint(uv0)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
+               Vec  test_pos0=GetPos(test_z0, UVToPosXY(uv0)), delta0=test_pos0-pos;
+               Flt  y0=Dot(delta0, nrm); if(y0>0.5/255){Flt delta0_len2=Length2(delta0); Flt w0=FadeOut(delta0_len2); Flt sin0=y0*rsqrt(delta0_len2); Flt x0=Dot(delta0, dir); if(x0<0)sin0=1; max_sin.x=Max(max_sin.x, sin0*w0);} // small bias needed for walls perpendicular to camera at a distance
+            }
+            frac=ViewportClamp(inTex-dir2, dir2);
+            steps=Floor(max_steps*(1-frac)+HALF_MIN+(JITTER?jitter_step:0)); // this will have the same effect as if ignoring samples outside of viewport
+            LOOP for(Int s=1; s<=steps; s++) // start from 1 to skip this pixel
+            {
+               Vec2 d=dir2*((JITTER ? s-jitter_step : s)/Flt(max_steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
+               if(!LINEAR_FILTER){d=Round(d*RTSize.zw)*RTSize.xy; if(!any(d)){weight++; continue;}}
+               Vec2 uv1=inTex-d;
+               Flt  test_z1=(LINEAR_FILTER ? TexDepthRawLinear(uv1) : TexDepthRawPoint(uv1)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
+               Vec  test_pos1=GetPos(test_z1, UVToPosXY(uv1)), delta1=test_pos1-pos;
+               Flt  y1=Dot(delta1, nrm); if(y1>0.5/255){Flt delta1_len2=Length2(delta1); Flt w1=FadeOut(delta1_len2); Flt sin1=y1*rsqrt(delta1_len2); Flt x1=Dot(delta1, dir); if(x1>0)sin1=1; max_sin.y=Max(max_sin.y, sin1*w1);} // small bias needed for walls perpendicular to camera at a distance
+            }
+         }*/
       #if 0
          if(0) // GTAO
          {
@@ -235,17 +262,68 @@ if(Q)
 if(W)
 {   
       // FIXME what values?
-      Int angles=9, steps=9;
-      //if(E){angles=16; steps=5;}
+      Int angles=8, max_steps=9;
+      //Int angles=3, max_steps=4;
+      //if(E){angles=16; max_steps=5;}
       LOOP for(Int a=0; a<angles; a++)
       {
          Flt  angle=a; if(JITTER)angle+=jitter_angle; angle*=PI2/angles; // this is best for cache
          Vec2 dir2; CosSin(dir2.x, dir2.y, angle);
          Vec  dir=PointOnPlaneRay(Vec(dir2.x, -dir2.y, 0), nrm_clamp, eye_dir); // this is nrm tangent, doesn't need to be normalized
          dir2*=offs_scale;
+
+         Flt frac=ViewportClamp(inTex+dir2, dir2);
+         // instead of reducing movement "dir2*=1-frac;" limit number of steps, because reduced movement would change weights for samples
+         Int steps=Floor(max_steps*(1-frac)+HALF_MIN+(JITTER?jitter_step:0)); // this will have the same effect as if ignoring samples outside of viewport
+         weight+=(max_steps-steps)*0.5; // add 0.5 weight for each step skipped
+
          LOOP for(Int s=1; s<=steps; s++) // start from 1 to skip this pixel
          {
-            Vec2 d=dir2*((JITTER ? s-jitter_step : s)/Flt(steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
+            Vec2 d=dir2*((JITTER ? s-jitter_step : s)/Flt(max_steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
+            if(!LINEAR_FILTER){d=Round(d*RTSize.zw)*RTSize.xy; if(!any(d)){weight++; continue;}}
+            Vec2 uv=inTex+d;
+            Flt  test_z  =(LINEAR_FILTER ? TexDepthRawLinear(uv) : TexDepthRawPoint(uv)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
+            Vec  test_pos=GetPos(test_z, UVToPosXY(uv)),
+                 delta   =test_pos-pos;
+            Flt  delta_len2=Length2(delta);
+            Flt  o, w=FadeOut(delta_len2);
+            Flt  y=Dot(delta, nrm); if(y>0.5/255) // small bias needed for walls perpendicular to camera at a distance
+            {
+               Flt sin=y*rsqrt(delta_len2);
+               Flt x=Dot(delta, dir); if(x<0)sin=1;
+               o =1-CosSin(sin);
+               o*=w; // fix artifacts (occlusion can be strong only as weight)
+            }else o=0;
+            w=w*0.5+0.5;   // fix artifacts, this increases weight if it's small, which results in brightening because we don't touch occlusion
+          //w=Max(0.5, w); // fix artifacts, this increases weight if it's small, which results in brightening because we don't touch occlusion
+          //w=Max(1, 1/Sqrt(delta_len2));
+            occl  +=w*o;
+            weight+=w;
+         }
+      }
+      occl*=2; // multiply by 2 to match AO_MAX mode
+}else
+/*if(Q)
+{   
+      // FIXME what values?
+      Int angles=4, max_steps=9;
+      //Int angles=3, max_steps=4;
+      //if(E){angles=16; max_steps=5;}
+      LOOP for(Int a=0; a<angles; a++)
+      {
+         Flt  angle=a; if(JITTER)angle+=jitter_angle; angle*=PI/angles; // this is best for cache
+         Vec2 dir2; CosSin(dir2.x, dir2.y, angle);
+         Vec  dir=PointOnPlaneRay(Vec(dir2.x, -dir2.y, 0), nrm_clamp, eye_dir); // this is nrm tangent, doesn't need to be normalized
+         dir2*=offs_scale;
+
+         Flt frac=ViewportClamp(inTex+dir2, dir2);
+         // instead of reducing movement "dir2*=1-frac;" limit number of steps, because reduced movement would change weights for samples
+         Int steps=Floor(max_steps*(1-frac)+HALF_MIN+(JITTER?jitter_step:0)); // this will have the same effect as if ignoring samples outside of viewport
+         weight+=(max_steps-steps)*0.5; // add 0.5 weight for each step skipped
+
+         LOOP for(Int s=steps; s>=1; s--) // end at 1 to skip this pixel
+         {
+            Vec2 d=dir2*((JITTER ? s-jitter_step : s)/Flt(max_steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
             if(!LINEAR_FILTER){d=Round(d*RTSize.zw)*RTSize.xy; if(!any(d)){weight++; continue;}}
             Vec2 uv=inTex+d;
 
@@ -258,6 +336,36 @@ if(W)
             {
                Flt sin=y*rsqrt(delta_len2);
                Flt x=Dot(delta, dir); if(x<0)sin=1;
+               o =1-CosSin(sin);
+               o*=w; // fix artifacts (occlusion can be strong only as weight)
+            }else o=0;
+            w=w*0.5+0.5;   // fix artifacts, this increases weight if it's small, which results in brightening because we don't touch occlusion
+          //w=Max(0.5, w); // fix artifacts, this increases weight if it's small, which results in brightening because we don't touch occlusion
+          //w=Max(1, 1/Sqrt(delta_len2));
+            occl  +=w*o;
+            weight+=w;
+         }
+
+         frac=ViewportClamp(inTex-dir2, dir2);
+         // instead of reducing movement "dir2*=1-frac;" limit number of steps, because reduced movement would change weights for samples
+         steps=Floor(max_steps*(1-frac)+HALF_MIN+(JITTER?jitter_step:0)); // this will have the same effect as if ignoring samples outside of viewport
+         weight+=(max_steps-steps)*0.5; // add 0.5 weight for each step skipped
+
+         LOOP for(Int s=-1; s>=-steps; s--) // start from -1 to skip this pixel
+         {
+            Vec2 d=dir2*((JITTER ? s+jitter_step : s)/Flt(max_steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
+            if(!LINEAR_FILTER){d=Round(d*RTSize.zw)*RTSize.xy; if(!any(d)){weight++; continue;}}
+            Vec2 uv=inTex+d;
+
+            Flt test_z  =(LINEAR_FILTER ? TexDepthRawLinear(uv) : TexDepthRawPoint(uv)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
+            Vec test_pos=GetPos(test_z, UVToPosXY(uv)),
+                delta   =test_pos-pos;
+            Flt delta_len2=Length2(delta);
+            Flt o, w=FadeOut(delta_len2);
+            Flt y=Dot(delta, nrm); if(y>0.5/255) // small bias needed for walls perpendicular to camera at a distance
+            {
+               Flt sin=y*rsqrt(delta_len2);
+               Flt x=Dot(delta, dir); if(x>0)sin=1;
                o =1-CosSin(sin);
                o*=w; // fix artifacts (occlusion can be strong only as weight)
             }else o=0;

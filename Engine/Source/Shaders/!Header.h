@@ -987,6 +987,38 @@ Vec2 UVClamp(Vec2 uv, Bool do_clamp=true)
 {
    return do_clamp ? Mid(uv, ImgClamp.xy, ImgClamp.zw) : uv;
 }
+Flt ViewportClamp(Vec2 pos, Vec2 dir) // this can be used to clamp 'pos' to Viewport rectangle along 'dir', works OK if 'pos' is both inside and outside viewport, returns fraction of 'dir' to move from 'pos' to be inside viewport, assuming 'dir' points towards viewport (dir=start-pos where start=some point inside viewport)
+{
+#if 0
+   if(pos.x>1)
+   {
+      Flt frac=(1-start.x)/(pos.x-start.x);
+      pos.x =1;
+      pos.y-=(1-frac)*(pos.y-start.y);
+   }else
+   if(pos.x<0)
+   {
+      Flt frac=(start.x)/(start.x-pos.x);
+      pos.x =0;
+      pos.y-=(1-frac)*(pos.y-start.y);
+   }
+
+   if(pos.y>1)
+   {
+      Flt frac=(1-start.y)/(pos.y-start.y);
+      pos.y =1;
+      pos.x-=(1-frac)*(pos.x-start.x);
+   }else
+   if(pos.y<0)
+   {
+      Flt frac=(start.y)/(start.y-pos.y);
+      pos.y =0;
+      pos.x-=(1-frac)*(pos.x-start.x);
+   }
+#else
+   return Max(Max(Vec2(0, 0), Abs(pos-Viewport.center)-Viewport.size/2)/Abs(dir)); // Max(Max(0, Abs(pos.x-0.5)-0.5)/Abs(pos.x-start.x), Max(0, Abs(pos.y-0.5)-0.5)/Abs(pos.y-start.y));
+#endif
+}
 /******************************************************************************/
 Vec2 FracToPosXY(Vec2 frac) // return view space xy position at z=1
 {

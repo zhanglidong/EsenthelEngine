@@ -66,43 +66,11 @@ VecH4 SunRays_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
             Flt  light  =0; // use HP because we're iterating lot of samples
             Vec2 sun_pos=Sun.pos2;
 
-      // limit sun position
-   #if 0
-      if(sun_pos.x>1)
-      {
-         Flt frac=(1-inTex.x)/(sun_pos.x-inTex.x);
-         sun_pos.x =1;
-         sun_pos.y-=(1-frac)*(sun_pos.y-inTex.y);
-       //power    *=frac;
-      }else
-      if(sun_pos.x<0)
-      {
-         Flt frac=(inTex.x)/(inTex.x-sun_pos.x);
-         sun_pos.x =0;
-         sun_pos.y-=(1-frac)*(sun_pos.y-inTex.y);
-       //power    *=frac;
-      }
-
-      if(sun_pos.y>1)
-      {
-         Flt frac=(1-inTex.y)/(sun_pos.y-inTex.y);
-         sun_pos.y =1;
-         sun_pos.x-=(1-frac)*(sun_pos.x-inTex.x);
-       //power    *=frac;
-      }else
-      if(sun_pos.y<0)
-      {
-         Flt frac=(inTex.y)/(inTex.y-sun_pos.y);
-         sun_pos.y =0;
-         sun_pos.x-=(1-frac)*(sun_pos.x-inTex.x);
-       //power    *=frac;
-      }
-   #else
-    //Flt frac=Max(Max(Vec2(0, 0), Abs(sun_pos-0.5)-0.5)/Abs(sun_pos-inTex)); // Max(Max(0, Abs(sun_pos.x-0.5)-0.5)/Abs(sun_pos.x-inTex.x), Max(0, Abs(sun_pos.y-0.5)-0.5)/Abs(sun_pos.y-inTex.y));
-      Flt frac=Max(Max(Vec2(0, 0), Abs(sun_pos-Viewport.center)-Viewport.size/2)/Abs(sun_pos-inTex)); // Max(Max(0, Abs(sun_pos.x-0.5)-0.5)/Abs(sun_pos.x-inTex.x), Max(0, Abs(sun_pos.y-0.5)-0.5)/Abs(sun_pos.y-inTex.y));
-      sun_pos-=(  frac)*(sun_pos-inTex);
-    //power  *=(1-frac);
-   #endif
+   // limit sun position
+   Vec2 delta=inTex-sun_pos; // towards viewport
+   Flt  frac=ViewportClamp(sun_pos, delta); // returns 0 if already inside viewport
+   sun_pos+=frac*delta; // move towards viewport
+ //power  *=(1-frac);
 
    #if JITTER
       inTex+=(sun_pos-inTex)*(DitherValue(pixel.xy)*(3.0/steps)); // a good value is 2.5 or 3.0 (3.0 was slightly better)
