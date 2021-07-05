@@ -208,9 +208,10 @@ Half AO_PS
    #endif
    }
 
+   // WARNING: limiting radius based on depth has 2 effects: increased performance (because if radius is limited then it has to look at shorter distances, increasing cache performance), and Increased AO effect for AO_AVG AO_PATTERN (because samples are focused closer to the center, AO will look stronger from closeup than from distance)
+   Vec2 offs_scale=Viewport.size_fov_tan*(AmbientRange_2/Max(1.0f, pos.z)); // use /2 because we're converting from -1..1 to 0..1 scale, min depth of 1.0 has good balance between performance and increased AO effect
    Flt  occl  =0,
         weight=0;
-   Vec2 offs_scale=Viewport.size_fov_tan*(AmbientRange_2/Max(1.0f, pos.z)); // use /2 because we're converting from -1..1 to 0..1 scale
 
    //if(R)return HBAO(inTex, nrm, pos, offs_scale);
 
