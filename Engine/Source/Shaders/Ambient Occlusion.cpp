@@ -302,6 +302,15 @@ Half AO_PS
          Vec  dir=PointOnPlaneRay(Vec(dir2.x, -dir2.y, 0), nrm_clamp, eye_dir); // this is nrm tangent, doesn't need to be normalized
          dir2*=offs_scale;
 
+       /*if(Q)
+         { // alternative 'dir' calculation
+            Vec2 t2=inTex+dir2*0.01; Vec pos2=Vec(UVToPosXY(t2), 1);
+            Vec p=PointOnPlaneRay(pos2, pos, R ? nrm_clamp : nrm, W ? eye_dir : normalize(pos2));
+            dir=p-pos;
+            //Flt d=Dot(nrm, eye_dir), d1=Dot(nrm_clamp, eye_dir);
+            //if(d>=-0.01 || d1>=-0.01)return 1;
+         }*/
+
          Flt frac=ViewportClamp(inTex+dir2, dir2);
          // instead of reducing movement "dir2*=1-frac;" limit number of steps, because reduced movement would change weights for samples
          Int steps=Floor(max_steps*(1-frac)+HALF_MIN+(JITTER?jitter_step:0)); // this will have the same effect as if ignoring samples outside of viewport
