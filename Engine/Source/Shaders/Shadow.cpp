@@ -128,7 +128,8 @@ void Process(inout Half color, inout Half weight, Half c, Flt raw_z, Flt base_z,
       weight+=1;
    }
 }
-Half ShdBlur_PS
+/******************************************************************************/
+Half ShdBlurJitter_PS
 (
 #if GL_ES && GEOM // doesn't support NOPERSP
    PIXEL // 3D
@@ -144,7 +145,7 @@ Half ShdBlur_PS
    Half weight, color;
    Flt  z;
    Vec2 dw_mad;
-   if(Q && GATHER) // requires input to be jittered
+   if(GATHER)
    {
       inTex-=RTSize.xy/2; // move at the center of 2x2
       if(JITTER_RANGE==3) // 3x3
@@ -188,26 +189,54 @@ Half ShdBlur_PS
       }
    }else
    {
+      weight=1;
+      color =TexPoint(ImgX, inTex).x;
       z     =LinearDepth(TexDepthRawPoint(inTex));
       dw_mad=DepthWeightMAD(z);
-      weight=0.25;
-      color =TexPoint(ImgX, inTex).x*weight;
-      UNROLL for(Int i=0; i<SAMPLES; i++)
-      {
-         Vec2 t;
-         if(SAMPLES== 4)t=RTSize.xy*BlendOfs4 [i]+inTex;
-       //if(SAMPLES== 5)t=RTSize.xy*BlendOfs5 [i]+inTex;
-         if(SAMPLES== 6)t=RTSize.xy*BlendOfs6 [i]+inTex;
-         if(SAMPLES== 8)t=RTSize.xy*BlendOfs8 [i]+inTex;
-       //if(SAMPLES== 9)t=RTSize.xy*BlendOfs9 [i]+inTex;
-         if(SAMPLES==12)t=RTSize.xy*BlendOfs12[i]+inTex;
-       //if(SAMPLES==13)t=RTSize.xy*BlendOfs13[i]+inTex;
-         // use linear filtering because texcoords are not rounded
-         Process(color, weight, TexLod(ImgX, t).x, TexDepthRawLinear(t), z, dw_mad); // use linear filtering because texcoords aren't rounded
-      }
+      Int min, max; // inclusive
+      if(JITTER_RANGE==3){min=-1; max=1;} // 3x3
+      else               {min=-1; max=2;}
+      UNROLL for(Int y=min; y<=max; y++)
+      UNROLL for(Int x=min; x<=max; x++)
+         if(x || y) // skip 0,0
+            Process(color, weight, TexPointOfs(ImgX, inTex, VecI2(x,y)).x, TexDepthRawPointOfs(inTex, VecI2(x,y)), z, dw_mad);
    }
    return color/weight;
 }
+/******************************************************************************/
+Half ShdBlur_PS
+(
+#if GL_ES && GEOM // doesn't support NOPERSP
+   PIXEL // 3D
+#else
+   NOPERSP Vec2 inTex:TEXCOORD
+#endif
+):TARGET
+{
+#if GL_ES && GEOM // doesn't support NOPERSP
+   Vec2 inTex=PixelToUV(pixel);
+#endif
+
+   Half weight=0.25,
+        color =TexPoint(ImgX, inTex).x*weight;
+   Flt  z     =LinearDepth(TexDepthRawPoint(inTex));
+   Vec2 dw_mad=DepthWeightMAD(z);
+   UNROLL for(Int i=0; i<SAMPLES; i++)
+   {
+      Vec2 t;
+      if(SAMPLES== 4)t=RTSize.xy*BlendOfs4 [i]+inTex;
+    //if(SAMPLES== 5)t=RTSize.xy*BlendOfs5 [i]+inTex;
+      if(SAMPLES== 6)t=RTSize.xy*BlendOfs6 [i]+inTex;
+      if(SAMPLES== 8)t=RTSize.xy*BlendOfs8 [i]+inTex;
+    //if(SAMPLES== 9)t=RTSize.xy*BlendOfs9 [i]+inTex;
+      if(SAMPLES==12)t=RTSize.xy*BlendOfs12[i]+inTex;
+    //if(SAMPLES==13)t=RTSize.xy*BlendOfs13[i]+inTex;
+      // use linear filtering because texcoords are not rounded
+      Process(color, weight, TexLod(ImgX, t).x, TexDepthRawLinear(t), z, dw_mad); // use linear filtering because texcoords aren't rounded
+   }
+   return color/weight;
+}
+/******************************************************************************/
 Half ShdBlurX_PS
 (
 #if GL_ES && GEOM // doesn't support NOPERSP
@@ -233,6 +262,7 @@ Half ShdBlurX_PS
    }
    return color/weight;
 }
+/******************************************************************************/
 Half ShdBlurY_PS
 (
 #if GL_ES && GEOM // doesn't support NOPERSP

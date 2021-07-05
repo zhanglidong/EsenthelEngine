@@ -726,12 +726,13 @@ void MainShaderClass::getTechniques()
       REPD(geom        , 2)
       REPD(linear_depth, 2)
       {
-         ShdBlur [geom][linear_depth][0]=get(S8+"ShdBlur" +geom+linear_depth+gather+gl_es+4);
-         ShdBlur [geom][linear_depth][1]=get(S8+"ShdBlur" +geom+linear_depth+gather+gl_es+6);
-         ShdBlur [geom][linear_depth][2]=get(S8+"ShdBlur" +geom+linear_depth+gather+gl_es+8);
-         ShdBlur [geom][linear_depth][3]=get(S8+"ShdBlur" +geom+linear_depth+gather+gl_es+12);
-         ShdBlurX[geom][linear_depth]   =get(S8+"ShdBlurX"+geom+linear_depth+gather+gl_es+2);
-         ShdBlurY[geom][linear_depth]   =get(S8+"ShdBlurY"+geom+linear_depth+gather+gl_es+2);
+         ShdBlur      [geom][linear_depth][0]=get(S8+"ShdBlur"      +geom+linear_depth+gather+gl_es+4);
+         ShdBlur      [geom][linear_depth][1]=get(S8+"ShdBlur"      +geom+linear_depth+gather+gl_es+6);
+         ShdBlur      [geom][linear_depth][2]=get(S8+"ShdBlur"      +geom+linear_depth+gather+gl_es+8);
+         ShdBlur      [geom][linear_depth][3]=get(S8+"ShdBlur"      +geom+linear_depth+gather+gl_es+12);
+         ShdBlurX     [geom][linear_depth]   =get(S8+"ShdBlurX"     +geom+linear_depth+gather+gl_es+2);
+         ShdBlurY     [geom][linear_depth]   =get(S8+"ShdBlurY"     +geom+linear_depth+gather+gl_es+2);
+         ShdBlurJitter[geom][linear_depth]   =get(S8+"ShdBlurJitter"+geom+linear_depth+gather+gl_es);
       }
    }
 

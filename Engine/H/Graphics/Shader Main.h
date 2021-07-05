@@ -294,12 +294,13 @@ struct MainShaderClass
 
    // SHADOWS
    Shader
-      *ShdDir  [6][2][2], // [NumberOfMaps] [Clouds] [MultiSample]
-      *ShdPoint      [2], //                         [MultiSample]
-      *ShdCone       [2], //                         [MultiSample]
-      *ShdBlur [2][2][4], // [Geom] [LinearDepth] [Quality]
-      *ShdBlurX[2][2]   , // [Geom] [LinearDepth]
-      *ShdBlurY[2][2]   ; // [Geom] [LinearDepth]
+      *ShdDir       [6][2][2], // [NumberOfMaps] [Clouds] [MultiSample]
+      *ShdPoint           [2], //                         [MultiSample]
+      *ShdCone            [2], //                         [MultiSample]
+      *ShdBlur      [2][2][4], // [Geom] [LinearDepth] [Quality]
+      *ShdBlurX     [2][2]   , // [Geom] [LinearDepth]
+      *ShdBlurY     [2][2]   , // [Geom] [LinearDepth]
+      *ShdBlurJitter[2][2]   ; // [Geom] [LinearDepth]
    Shader* getShdDir  (Int map_num, Bool clouds, Bool multi_sample);
    Shader* getShdPoint(                          Bool multi_sample);
    Shader* getShdCone (                          Bool multi_sample);

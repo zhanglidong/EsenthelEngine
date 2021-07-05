@@ -297,17 +297,18 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       REPD(gather      , 2)
       {
          CChar8 *vs=(geom ? "Geom_VS" : "Draw_VS");
-         src.New("ShdBlur" , vs, "ShdBlur_PS" )("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("SAMPLES",  4).gather(gather);
-       //src.New("ShdBlur" , vs, "ShdBlur_PS" )("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("SAMPLES",  5).gather(gather);
-         src.New("ShdBlur" , vs, "ShdBlur_PS" )("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("SAMPLES",  6).gather(gather);
-         src.New("ShdBlur" , vs, "ShdBlur_PS" )("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("SAMPLES",  8).gather(gather);
-       //src.New("ShdBlur" , vs, "ShdBlur_PS" )("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("SAMPLES",  9).gather(gather);
-         src.New("ShdBlur" , vs, "ShdBlur_PS" )("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("SAMPLES", 12).gather(gather);
-       //src.New("ShdBlur" , vs, "ShdBlur_PS" )("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("SAMPLES", 13).gather(gather);
-       //src.New("ShdBlurX", vs, "ShdBlurX_PS")("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("RANGE"  ,  1).gather(gather);
-       //src.New("ShdBlurY", vs, "ShdBlurY_PS")("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("RANGE"  ,  1).gather(gather);
-         src.New("ShdBlurX", vs, "ShdBlurX_PS")("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("RANGE"  ,  2).gather(gather);
-         src.New("ShdBlurY", vs, "ShdBlurY_PS")("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("RANGE"  ,  2).gather(gather);
+         src.New("ShdBlur"      , vs, "ShdBlur_PS"      )("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("SAMPLES",  4).gather(gather);
+       //src.New("ShdBlur"      , vs, "ShdBlur_PS"      )("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("SAMPLES",  5).gather(gather);
+         src.New("ShdBlur"      , vs, "ShdBlur_PS"      )("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("SAMPLES",  6).gather(gather);
+         src.New("ShdBlur"      , vs, "ShdBlur_PS"      )("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("SAMPLES",  8).gather(gather);
+       //src.New("ShdBlur"      , vs, "ShdBlur_PS"      )("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("SAMPLES",  9).gather(gather);
+         src.New("ShdBlur"      , vs, "ShdBlur_PS"      )("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("SAMPLES", 12).gather(gather);
+       //src.New("ShdBlur"      , vs, "ShdBlur_PS"      )("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("SAMPLES", 13).gather(gather);
+       //src.New("ShdBlurX"     , vs, "ShdBlurX_PS"     )("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("RANGE"  ,  1).gather(gather);
+       //src.New("ShdBlurY"     , vs, "ShdBlurY_PS"     )("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("RANGE"  ,  1).gather(gather);
+         src.New("ShdBlurX"     , vs, "ShdBlurX_PS"     )("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("RANGE"  ,  2).gather(gather);
+         src.New("ShdBlurY"     , vs, "ShdBlurY_PS"     )("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("RANGE"  ,  2).gather(gather);
+         src.New("ShdBlurJitter", vs, "ShdBlurJitter_PS")("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)               .gather(gather);
       }
    }
    { // OUTLINE
