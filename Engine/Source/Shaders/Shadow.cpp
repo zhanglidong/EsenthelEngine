@@ -153,7 +153,7 @@ Half ShdBlur_PS
          UNROLL for(Int x=0; x<2; x++)
          {
             VecH4 c=TexGatherOfs(ImgX, inTex, VecI2(-1+x*2, -1+y*2));
-            if(R)
+            if(1) // use depth
             {
                Vec4 d=TexDepthRawGatherOfs(inTex, VecI2(-1+x*2, -1+y*2));
                if(x==0 && y==0){Process(color, weight, c.x, d.x, z, dw_mad); Process(color, weight, c.y, d.y, z, dw_mad); Process(color, weight, c.z, d.z, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);}else
@@ -174,7 +174,7 @@ Half ShdBlur_PS
          UNROLL for(Int x=0; x<2; x++)
          {
             VecH4 c=TexGatherOfs(ImgX, inTex, VecI2(-1+x*2, -1+y*2));
-            if(R)
+            if(1) // use depth
             {
                Vec4 d=TexDepthRawGatherOfs(inTex, VecI2(-1+x*2, -1+y*2));
                Process(color, weight, c.x, d.x, z, dw_mad); Process(color, weight, c.y, d.y, z, dw_mad); Process(color, weight, c.z, d.z, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);

@@ -1331,9 +1331,9 @@ void RendererClass::ao()
    ImageRT *depth=(foreground ? _ds_1s() : null);
    set(_ao, depth, true, NEED_DEPTH_READ); // use DS for 'D.depth2D'
    REPS(_eye, _eye_num)ao->draw(setEyeParams()); // calculate occlusion
-   ao_depth.clear(); // this one is no longer needed
-   Sh.Depth->set(_ds_1s); // restore full resolution depth
-
+   
+   const Bool linear_depth=true; // perform blur using downsampled linear depth
+   if(!linear_depth)Sh.Depth->set(_ds_1s); // restore full resolution depth
    if(D.ambientSoft()) // this needs to be in sync with 'D.shadowSoft'
    {
       rt_desc.type(IMAGERT_ONE);
@@ -1349,6 +1349,7 @@ void RendererClass::ao()
          set(_ao, depth, true, NEED_DEPTH_READ); Sh.ImgX[0]->set(src); Sh.ShdBlur[0][D.ambientSoft()-1]->draw(); // use DS for 'D.depth2D'
       }
    }
+   if(linear_depth)Sh.Depth->set(_ds_1s); // restore full resolution depth
    if(foreground)D.depth2DOff();
 }
 void RendererClass::setAlphaFromDepth()
