@@ -285,10 +285,11 @@ Half AO_PS
 
    #if AO_MODE==AO_AVG
    {   
-      // FIXME what values?
-      Int angles=9, max_steps=8;
-      //Int angles=4, max_steps=3; // better than angles=3; max_steps=4;
-      if(Q){angles=4; max_steps=3;}
+      Int angles, max_steps;
+      if(QUALITY==0){angles= 4; max_steps=3;}else // 12 (Better than angles= 3; max_steps=4;)
+      if(QUALITY==1){angles= 6; max_steps=5;}else // 30
+      if(QUALITY==2){angles= 8; max_steps=7;}else // 56 (Better than angles= 9; max_steps=6; AND angles=8; max_steps=6;)
+                    {angles=10; max_steps=9;}     // 90 (Better than angles=10; max_steps=8; AND angles=9; max_steps=9;)
       LOOP for(Int a=0; a<angles; a++)
       {
          Flt  angle=a; if(JITTER)angle+=jitter_angle; angle*=PI2/angles; // this is best for cache
