@@ -87,7 +87,7 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
       VecH4 color_sum=0;
       Half  valid_samples=HALF_MIN;
       VecH  night_shade_col; if(NIGHT_SHADE && AO && !AO_ALL)night_shade_col=NightShadeColor*ao; // compute it once, and not inside 'LitCol'
-      UNROLL for(Int i=0; i<MS_SAMPLES; i++)if(DEPTH_FOREGROUND(TexDepthMSRaw(pixel.xy, i))) // valid sample
+      UNROLL for(Int i=0; i<MS_SAMPLES; i++)if(DEPTH_FOREGROUND(TexDepthRawMS(pixel.xy, i))) // valid sample
       {
          VecH4 color=TexSample  (ImgMS1, pixel.xy, i); // #RTOutput
          VecH  lum  =TexSample  (ImgMS2, pixel.xy, i).rgb; //  LumMS

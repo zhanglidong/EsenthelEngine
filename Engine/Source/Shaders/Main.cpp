@@ -324,12 +324,12 @@ Half SetAlphaFromDepth_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 #if 1 // this is needed
 Half SetAlphaFromDepthMS_PS(NOPERSP Vec2 inTex:TEXCOORD, NOPERSP PIXEL, UInt index:SV_SampleIndex):TARGET
 {
-   return DEPTH_FOREGROUND(TexDepthMSRaw(pixel.xy, index));
+   return DEPTH_FOREGROUND(TexDepthRawMS(pixel.xy, index));
 }
 #else
 Half SetAlphaFromDepthMS_PS(NOPERSP Vec2 inTex:TEXCOORD, NOPERSP PIXEL):TARGET
 {
-   Half   alpha=0; UNROLL for(Int i=0; i<MS_SAMPLES; i++)alpha+=DEPTH_FOREGROUND(TexDepthMSRaw(pixel.xy, i));
+   Half   alpha=0; UNROLL for(Int i=0; i<MS_SAMPLES; i++)alpha+=DEPTH_FOREGROUND(TexDepthRawMS(pixel.xy, i));
    return alpha/MS_SAMPLES;
 }
 #endif
@@ -340,7 +340,7 @@ Half SetAlphaFromDepthAndCol_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 }
 Half SetAlphaFromDepthAndColMS_PS(NOPERSP Vec2 inTex:TEXCOORD, NOPERSP PIXEL, UInt index:SV_SampleIndex):TARGET
 {
-   return Max(Max(TexLod(Img, inTex).rgb), DEPTH_FOREGROUND(TexDepthMSRaw(pixel.xy, index))); // treat luminance as opacity
+   return Max(Max(TexLod(Img, inTex).rgb), DEPTH_FOREGROUND(TexDepthRawMS(pixel.xy, index))); // treat luminance as opacity
 }
 
 VecH4 CombineAlpha_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET

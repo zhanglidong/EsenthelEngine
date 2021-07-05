@@ -25,7 +25,7 @@ VecH4 Fog_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    Half dns=0, valid=HALF_MIN;
    UNROLL for(Int i=0; i<MS_SAMPLES; i++)
    {
-      Flt depth=TexDepthMSRaw(pixel.xy, i); if(DEPTH_FOREGROUND(depth))
+      Flt depth=TexDepthRawMS(pixel.xy, i); if(DEPTH_FOREGROUND(depth))
       {
          Vec pos =GetPos(LinearizeDepth(depth), inPosXY);
              dns+=AccumulatedDensity(FogDensity, Length(pos));

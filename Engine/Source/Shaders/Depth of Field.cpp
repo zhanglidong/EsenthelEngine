@@ -72,7 +72,7 @@ VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD
    #if MODE==2 // FilterMinMax
       depth=TexDepthRawMin(inTex);
    #elif MODE==1 // Gather available since SM_4_1, GL 4.0, GL ES 3.1
-      depth=DEPTH_MIN(TexDepthGather(inTex));
+      depth=DEPTH_MIN(TexDepthRawGather(inTex));
    #else
       Vec2 tex_min=inTex-ImgSize.xy*0.5,
            tex_max=inTex+ImgSize.xy*0.5;
@@ -100,10 +100,10 @@ VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD
                       TexDepthRawMin(t01),
                       TexDepthRawMin(t11));
    #elif MODE==1 // Gather available since SM_4_1, GL 4.0, GL ES 3.1
-      depth=DEPTH_MIN(DEPTH_MIN(TexDepthGather(t00)),
-                      DEPTH_MIN(TexDepthGather(t10)),
-                      DEPTH_MIN(TexDepthGather(t01)),
-                      DEPTH_MIN(TexDepthGather(t11)));
+      depth=DEPTH_MIN(DEPTH_MIN(TexDepthRawGather(t00)),
+                      DEPTH_MIN(TexDepthRawGather(t10)),
+                      DEPTH_MIN(TexDepthRawGather(t01)),
+                      DEPTH_MIN(TexDepthRawGather(t11)));
    #else
       // this is approximation because we would have to take 16 samples
       depth=DEPTH_MIN(TexDepthRawPoint(t00),

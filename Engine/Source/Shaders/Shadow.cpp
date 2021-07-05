@@ -100,7 +100,7 @@ Flt    TexDepthRawLinear(Vec2 uv) // because GL ES 3 can't do 'TexDepthRawLinear
         pixeli=Floor(pixel),
         f     =pixel-pixeli; Flt fx1=1-f.x;
         uv    =pixeli*RTSize.xy; // adjust 'uv' to make sure pixels will be selected based on 'pixeli' (because of precision issues)
-   Vec4 t=TexDepthGather(uv);
+   Vec4 t=TexDepthRawGather(uv);
 
    return Lerp(t.w*fx1 + t.z*f.x,
                t.x*fx1 + t.y*f.x, f.y);
@@ -142,23 +142,45 @@ Half ShdBlur_PS
    {
       weight=0;
       color =0;
-      UNROLL for(Int y=0; y<2; y++)
-      UNROLL for(Int x=0; x<2; x++)
+      if(JITTER_RANGE==3) // 3x3
       {
-         VecH4 c=TexGatherOfs(ImgX, inTex, VecI2(-1+x*2, -1+y*2));
-         if(0)
+         UNROLL for(Int y=0; y<2; y++)
+         UNROLL for(Int x=0; x<2; x++)
          {
-            Vec4 d=TexDepthGatherOfs(inTex, VecI2(-1+x*2, -1+y*2)); // FIXME here are different AO and Depth res
-            if(x==0 && y==0){Process(color, weight, c.x, d.x, z, dw_mad); Process(color, weight, c.y, d.y, z, dw_mad); Process(color, weight, c.z, d.z, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);}else
-            if(x==1 && y==0){Process(color, weight, c.x, d.x, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);}else
-            if(x==0 && y==1){Process(color, weight, c.w, d.w, z, dw_mad); Process(color, weight, c.z, d.z, z, dw_mad);}else
-            if(x==1 && y==1){Process(color, weight, c.w, d.w, z, dw_mad);}
-         }else
+            VecH4 c=TexGatherOfs(ImgX, inTex, VecI2(-1+x*2, -1+y*2));
+            if(R)
+            {
+               Vec4 d=TexDepthRawGatherOfs(inTex, VecI2(-1+x*2, -1+y*2)); // FIXME here are different AO and Depth res
+               if(x==0 && y==0){Process(color, weight, c.x, d.x, z, dw_mad); Process(color, weight, c.y, d.y, z, dw_mad); Process(color, weight, c.z, d.z, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);}else
+               if(x==1 && y==0){Process(color, weight, c.x, d.x, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);}else
+               if(x==0 && y==1){Process(color, weight, c.w, d.w, z, dw_mad); Process(color, weight, c.z, d.z, z, dw_mad);}else
+               if(x==1 && y==1){Process(color, weight, c.w, d.w, z, dw_mad);}
+            }else
+            {
+               if(x==0 && y==0){color+=Sum(c) ; weight+=4;}else
+               if(x==1 && y==0){color+=c.x+c.w; weight+=2;}else
+               if(x==0 && y==1){color+=c.w+c.z; weight+=2;}else
+               if(x==1 && y==1){color+=c.w    ; weight+=1;}
+            }
+         }
+      }else // 4x4
+      {
+         UNROLL for(Int y=0; y<2; y++)
+         UNROLL for(Int x=0; x<2; x++)
          {
-            if(x==0 && y==0){color+=Sum(c) ; weight+=4;}else
-            if(x==1 && y==0){color+=c.x+c.w; weight+=2;}else
-            if(x==0 && y==1){color+=c.w+c.z; weight+=2;}else
-            if(x==1 && y==1){color+=c.w    ; weight+=1;}
+            VecH4 c=TexGatherOfs(ImgX, inTex, VecI2(-1+x*2, -1+y*2));
+            if(R)
+            {
+               Vec4 d=TexDepthRawGatherOfs(inTex, VecI2(-1+x*2, -1+y*2)); // FIXME here are different AO and Depth res
+               if(W)
+               {
+                  
+               }
+               Process(color, weight, c.x, d.x, z, dw_mad); Process(color, weight, c.y, d.y, z, dw_mad); Process(color, weight, c.z, d.z, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);
+            }else
+            {
+               color+=Sum(c); weight+=4;
+            }
          }
       }
    }else*/

@@ -233,12 +233,12 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       ofs=VecI2(-1, 1); depth=TexDepthRawPointOfs(inTex, ofs         );              // -1,  1,  left-top
               TestDepth(depth,TexDepthRawPointOfs(inTex, VecI2(1, -1)), ofs, 1, -1); //  1, -1, right-bottom
       Vec2 tex=inTex-RTSize.xy*0.5; // move to center between -1,-1 and 0,0 texels
-      Vec4 d=TexDepthGather(tex); // get -1,-1 to 0,0 texels
+      Vec4 d=TexDepthRawGather(tex); // get -1,-1 to 0,0 texels
       TestDepth(depth, d.x, ofs, -1,  0);
       TestDepth(depth, d.y, ofs,  0,  0);
       TestDepth(depth, d.z, ofs,  0, -1);
       TestDepth(depth, d.w, ofs, -1, -1);
-      d=TexDepthGatherOfs(tex, VecI2(1, 1)); // get 0,0 to 1,1 texels
+      d=TexDepthRawGatherOfs(tex, VecI2(1, 1)); // get 0,0 to 1,1 texels
       TestDepth(depth, d.x, ofs,  0,  1);
       TestDepth(depth, d.y, ofs,  1,  1);
       TestDepth(depth, d.z, ofs,  1,  0);

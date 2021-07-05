@@ -209,16 +209,16 @@
 
 #define TexSample(image, pixel, i)   image.Load(pixel, i) // access i-th sample of a multi-sampled texture
 
-#define TexDepthRawPoint(   uv)                       TexPoint    (Depth  , uv     ).x
-#define TexDepthRawPointOfs(uv, ofs)                  TexPointOfs (Depth  , uv, ofs).x
-#define TexDepthRawLinear(  uv)                       TexLod      (Depth  , uv     ).x
-#define TexDepthPoint(      uv)        LinearizeDepth(TexPoint    (Depth  , uv     ).x)
-#define TexDepthPointOfs(   uv, ofs)   LinearizeDepth(TexPointOfs (Depth  , uv, ofs).x)
-#define TexDepthLinear(     uv)        LinearizeDepth(TexLod      (Depth  , uv     ).x)
-#define TexDepthGather(     uv)                       TexGather   (Depth  , uv     )
-#define TexDepthGatherOfs(  uv, ofs)                  TexGatherOfs(Depth  , uv, ofs)
-#define TexDepthMSRaw(pixel, sample)                  TexSample   (DepthMS, pixel, sample).x
-#define TexDepthMS(   pixel, sample)   LinearizeDepth(TexSample   (DepthMS, pixel, sample).x)
+#define TexDepthRawPoint(      uv)                       TexPoint    (Depth  , uv     ).x
+#define TexDepthRawPointOfs(   uv, ofs)                  TexPointOfs (Depth  , uv, ofs).x
+#define TexDepthRawLinear(     uv)                       TexLod      (Depth  , uv     ).x
+#define TexDepthPoint(         uv)        LinearizeDepth(TexPoint    (Depth  , uv     ).x)
+#define TexDepthPointOfs(      uv, ofs)   LinearizeDepth(TexPointOfs (Depth  , uv, ofs).x)
+#define TexDepthLinear(        uv)        LinearizeDepth(TexLod      (Depth  , uv     ).x)
+#define TexDepthRawGather(     uv)                       TexGather   (Depth  , uv     )
+#define TexDepthRawGatherOfs(  uv, ofs)                  TexGatherOfs(Depth  , uv, ofs)
+#define TexDepthRawMS(   pixel, sample)                  TexSample   (DepthMS, pixel, sample).x
+#define TexDepthMS(      pixel, sample)   LinearizeDepth(TexSample   (DepthMS, pixel, sample).x)
 
 #if !GL
 #define TexShadow(image, uvw)   image.SampleCmpLevelZero(SamplerShadowMap, uvw.xy, uvw.z)
