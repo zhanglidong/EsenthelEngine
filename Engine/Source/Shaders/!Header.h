@@ -157,6 +157,7 @@
    #define DEPTH_FOREGROUND(x) ((x)> Z_BACK)
    #define DEPTH_BACKGROUND(x) ((x)<=Z_BACK)
    #define DEPTH_SMALLER(x, y) ((x)> (y))
+   #define DEPTH_INC(x, y)     ((x)-=(y))
    #define DEPTH_DEC(x, y)     ((x)+=(y))
    #define TexDepthRawMin(uv)  TexMax(Depth, uv).x
    #define TexDepthRawMax(uv)  TexMin(Depth, uv).x
@@ -168,6 +169,7 @@
    #define DEPTH_FOREGROUND(x) ((x)< Z_BACK)
    #define DEPTH_BACKGROUND(x) ((x)>=Z_BACK)
    #define DEPTH_SMALLER(x, y) ((x)< (y))
+   #define DEPTH_INC(x, y)     ((x)+=(y))
    #define DEPTH_DEC(x, y)     ((x)-=(y))
    #define TexDepthRawMin(uv)  TexMin(Depth, uv).x
    #define TexDepthRawMax(uv)  TexMax(Depth, uv).x

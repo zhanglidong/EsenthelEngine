@@ -141,12 +141,11 @@ Half AO_PS
    NOPERSP PIXEL
 ):TARGET
 {
-   Vec2 nrm2;
-   Vec  nrm, pos=GetPos(TexDepthRawPoint(inTex), inPosXY), eye_dir=Normalize(pos); // !! for AO shader depth is already linearized !!
+   Vec nrm, pos=GetPos(TexDepthRawPoint(inTex), inPosXY), eye_dir=Normalize(pos); // !! for AO shader depth is already linearized !!
 
    #if NORMALS
    {
-      nrm=TexLod(Img, inTex).xyz; // use filtering because 'Img' may be bigger, especially important for pixels in the distance (there are some cases however when point filtering improves quality, although not always)
+      nrm=(LINEAR_FILTER ? TexLod(Img, inTex).xyz : TexPoint(Img, inTex).xyz); // Nrm RT may be bigger, however we must return values to exactly match the depth, which was processed with Point filter to avoid generating fake in-between positions, so use Point too
    #if !SIGNED_NRM_RT
       nrm-=0.5; // normally it should be "nrm=nrm*2-1", however we normalize it below, so we can just do -0.5
    #endif
@@ -174,7 +173,7 @@ Half AO_PS
    #endif // NORMALS
 
    nrm=Normalize(nrm);
-   Vec nrm_clamp=nrm; nrm_clamp.z=Min(nrm_clamp.z, -1.0/255); nrm_clamp=Normalize(nrm_clamp); // normal that's always facing the camera, this is needed for normals facing away from the camera
+   Vec nrm_clamp; nrm_clamp.xy=nrm.xy; nrm_clamp.z=Min(nrm.z, -1.0/255); nrm_clamp=Normalize(nrm_clamp); // normal that's always facing the camera, this is needed for normals facing away from the camera
 
    if(0) // FIXME is this still needed?
    {
@@ -459,7 +458,7 @@ Half AO_PS
       Vec2 jitter_offs; if(JITTER){CosSin(cos_sin.x, cos_sin.y, jitter_angle); jitter_offs=(pix.yx-jitter_half)*(spacing*0.215);} // using higher values may affect cache performance, so use smallest possible
       LOOP for(Int i=0; i<elms; i++) // using UNROLL didn't make a performance difference, however it made shader file bigger and compilation slower
       {
-         Vec2          dir2; // don't use 'VecH2' here because benefit looks small, and 'dir2' has to be added to 'inTex' and multiplied by 'nrm2' which are 'Vec2' so probably there would be no performance benefits
+         Vec2          dir2; // don't use 'VecH2' here because benefit looks small, and 'dir2' has to be added to 'inTex' which is 'Vec2' so probably there would be no performance benefits
          if(QUALITY==0)dir2=AO0Vec[i];else
          if(QUALITY==1)dir2=AO1Vec[i];else
          if(QUALITY==2)dir2=AO2Vec[i];else
