@@ -251,9 +251,9 @@ void RendererClass::linearizeDepth(ImageRT &dest, ImageRT &depth)
 {
    D.alpha(ALPHA_NONE);
    set(&dest, null, true);
-   if(!depth.multiSample() || depth.size()!=dest.size()){Sh.Depth  ->set(depth); Sh.LinearizeDepth[0][FovPerspective(D.viewFovMode())]->draw(); Sh.Depth  ->set(_ds_1s);}else // 1s->1s, set and restore depth, if we're resizing then we also need to use the simple version
-   if(!dest .multiSample()                             ){Sh.DepthMS->set(depth); Sh.LinearizeDepth[1][FovPerspective(D.viewFovMode())]->draw(); Sh.DepthMS->set(_ds   );}else // ms->1s, set and restore depth
-                                                        {Sh.DepthMS->set(depth); Sh.LinearizeDepth[2][FovPerspective(D.viewFovMode())]->draw(); Sh.DepthMS->set(_ds   );}     // ms->ms, set and restore depth
+   if(!depth.multiSample() || depth.size()!=dest.size()){Sh.imgSize(depth); Sh.Depth  ->set(depth); Sh.LinearizeDepth[0][FovPerspective(D.viewFovMode())]->draw(); Sh.Depth  ->set(_ds_1s);}else // 1s->1s, set and restore depth, if we're resizing then we also need to use the simple version, 'imgSize' needed for 'DownSamplePointUV'
+   if(!dest .multiSample()                             ){                   Sh.DepthMS->set(depth); Sh.LinearizeDepth[1][FovPerspective(D.viewFovMode())]->draw(); Sh.DepthMS->set(_ds   );}else // ms->1s, set and restore depth
+                                                        {                   Sh.DepthMS->set(depth); Sh.LinearizeDepth[2][FovPerspective(D.viewFovMode())]->draw(); Sh.DepthMS->set(_ds   );}     // ms->ms, set and restore depth
 }
 void RendererClass::setDepthForDebugDrawing()
 {
@@ -1320,8 +1320,8 @@ void RendererClass::ao()
    ao_depth.get(rt_desc.type(IMAGERT_F32)); // don't try to reduce to IMAGERT_F16 because it can create artifacts on big view ranges under certain angles (especially when we don't use normal maps, like in forward renderer)
    linearizeDepth(*ao_depth, *_ds_1s);
 
- //Sh.imgSize(*_ao); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
-   Sh.Img[0]->set(_nrm);
+   Sh.imgSize    (*_nrm); // for AO ImgSize has full original size (used for normal) and RTSize of AO size
+   Sh.Img[0]->set( _nrm);
    Sh.Depth ->set(ao_depth);
    Bool foreground=_ao->compatible(*_ds_1s);
    if(_col->multiSample())foreground&=Sky.isActual(); // when having multi-sampling, then allow this optimization only if we're rendering Sky, this is related to smooth edges between solid and sky pixels

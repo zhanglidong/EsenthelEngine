@@ -145,7 +145,7 @@ Half AO_PS
 
    #if NORMALS
    {
-      nrm=(LINEAR_FILTER ? TexLod(Img, inTex).xyz : TexPoint(Img, inTex).xyz); // Nrm RT may be bigger, however we must return values to exactly match the depth, which was processed with Point filter to avoid generating fake in-between positions, so use Point too
+      nrm=(LINEAR_FILTER ? TexLod(Img, inTex).xyz : TexPoint(Img, DownSamplePointUV(inTex)).xyz); // Nrm RT may be bigger, however we must return values to exactly match the depth, which was processed with Point filter to avoid generating fake in-between positions, so use Point too
    #if !SIGNED_NRM_RT
       nrm-=0.5; // normally it should be "nrm=nrm*2-1", however we normalize it below, so we can just do -0.5
    #endif

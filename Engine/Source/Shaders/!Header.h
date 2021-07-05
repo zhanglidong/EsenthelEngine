@@ -1058,6 +1058,15 @@ Vec2 PixelToUV(Vec4 pixel) // faster and more accurate than 'ProjectedPosToUV', 
    return pixel.xy*RTSize.xy;
 }
 /******************************************************************************/
+Vec2 DownSamplePointUV(Vec2 uv) // !! needs 'ImgSize' !! this function will return tex coordinates for downsampling with point filtering
+{ /* if downsampling 1x (no downsample, just copy), then 'uv' will be located exactly at the center of 1x1 image texel  (  correct), no offset needed
+     if downsampling 2x                             then 'uv' will be located exactly at the center of 2x2 image texels (incorrect), due to precision issues point filter might sometimes return any of them         , to fix this problem, offset tex coordinates
+     if downsampling 3x                             then 'uv' will be located exactly at the center of 3x3 image texels (  correct), no offset needed
+     if downsampling 4x                             then 'uv' will be located exactly at the center of 4x4 image texels (incorrect), due to precision issues point filter might sometimes return any of the inner 2x2, to fix this problem, offset tex coordinates
+   */
+   return ImgSize.xy*-0.25+uv; // uv-ImgSize.xy/4; instead of doing /2, do /4 because if there's no downsampling (scale=1) then UV is exactly at the center, and moving by /2 we would actually put it at biggest risk (at border between texels), so just move by /4
+}
+/******************************************************************************/
 // VELOCITIES
 /******************************************************************************
 struct Velocity

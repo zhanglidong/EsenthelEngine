@@ -416,7 +416,7 @@ VecH4 DrawDepth_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 #ifdef PERSPECTIVE
 Flt LinearizeDepth0_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
-   return LinearizeDepth(TexDepthRawPoint(inTex), PERSPECTIVE); // can't use filtering, we need exact values, this is for AO, so can't return fake in-between numbers
+   return LinearizeDepth(TexDepthRawPoint(DownSamplePointUV(inTex)), PERSPECTIVE); // can't use filtering, we need exact values, this is for AO, so can't return fake in-between numbers
 }
 Flt LinearizeDepth1_PS(NOPERSP PIXEL):TARGET
 {
