@@ -175,12 +175,15 @@ Half AO_PS
    nrm=Normalize(nrm);
    Vec nrm_clamp; nrm_clamp.xy=nrm.xy; nrm_clamp.z=Min(nrm.z, -1.0/255); nrm_clamp=Normalize(nrm_clamp); // normal that's always facing the camera, this is needed for normals facing away from the camera
 
-   if(0) // FIXME is this still needed?
+   /*if(0) // FIXME is this still needed?
    {
       pos.z=DelinearizeDepth(pos.z);
       DEPTH_DEC(pos.z, 0.00000007); // value tested on fov 20 deg, 1000 view range
       pos.z=LinearizeDepth(pos.z); // convert back to linear
-   }
+   }*/
+   Flt raw_z=DelinearizeDepth(pos.z);
+   DEPTH_INC(raw_z, 0.00000007); // value tested on fov 25 deg, 1000 view range
+   Flt z_eps=LinearizeDepth(raw_z)-pos.z+0.001; // convert back to linear, get delta from bigger value and original + 1 extra mm to make sure we will skip flat surfaces due to precision issues (will improve performance)
 
    Vec2  cos_sin;
    Flt   jitter_angle, jitter_step, jitter_half;
@@ -240,8 +243,8 @@ Half AO_PS
             Flt  test_z1=(LINEAR_FILTER ? TexDepthRawLinear(uv1) : TexDepthRawPoint(uv1)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
             Vec  test_pos0=GetPos(test_z0, UVToPosXY(uv0)), delta0=test_pos0-pos;
             Vec  test_pos1=GetPos(test_z1, UVToPosXY(uv1)), delta1=test_pos1-pos;
-            Flt  y0=Dot(delta0, nrm); if(y0>0.5/255){Flt delta0_len2=Length2(delta0); Flt w0=FadeOut(delta0_len2); Flt sin0=y0*rsqrt(delta0_len2); Flt x0=Dot(delta0, dir); if(x0<0)sin0=1; max_sin.x=Max(max_sin.x, sin0*w0);} // small bias needed for walls perpendicular to camera at a distance
-            Flt  y1=Dot(delta1, nrm); if(y1>0.5/255){Flt delta1_len2=Length2(delta1); Flt w1=FadeOut(delta1_len2); Flt sin1=y1*rsqrt(delta1_len2); Flt x1=Dot(delta1, dir); if(x1>0)sin1=1; max_sin.y=Max(max_sin.y, sin1*w1);} // small bias needed for walls perpendicular to camera at a distance
+            Flt  y0=Dot(delta0, nrm); if(y0>z_eps){Flt delta0_len2=Length2(delta0); Flt w0=FadeOut(delta0_len2); Flt sin0=y0*rsqrt(delta0_len2); Flt x0=Dot(delta0, dir); if(x0<0)sin0=1; max_sin.x=Max(max_sin.x, sin0*w0);}
+            Flt  y1=Dot(delta1, nrm); if(y1>z_eps){Flt delta1_len2=Length2(delta1); Flt w1=FadeOut(delta1_len2); Flt sin1=y1*rsqrt(delta1_len2); Flt x1=Dot(delta1, dir); if(x1>0)sin1=1; max_sin.y=Max(max_sin.y, sin1*w1);}
          }
       #if 0
          alternative with steps range clamp:
@@ -255,7 +258,7 @@ Half AO_PS
                Vec2 uv0=inTex+d;
                Flt  test_z0=(LINEAR_FILTER ? TexDepthRawLinear(uv0) : TexDepthRawPoint(uv0)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
                Vec  test_pos0=GetPos(test_z0, UVToPosXY(uv0)), delta0=test_pos0-pos;
-               Flt  y0=Dot(delta0, nrm); if(y0>0.5/255){Flt delta0_len2=Length2(delta0); Flt w0=FadeOut(delta0_len2); Flt sin0=y0*rsqrt(delta0_len2); Flt x0=Dot(delta0, dir); if(x0<0)sin0=1; max_sin.x=Max(max_sin.x, sin0*w0);} // small bias needed for walls perpendicular to camera at a distance
+               Flt  y0=Dot(delta0, nrm); if(y0>z_eps){Flt delta0_len2=Length2(delta0); Flt w0=FadeOut(delta0_len2); Flt sin0=y0*rsqrt(delta0_len2); Flt x0=Dot(delta0, dir); if(x0<0)sin0=1; max_sin.x=Max(max_sin.x, sin0*w0);}
             }
             frac=ViewportClamp(inTex-dir2, dir2);
             steps=Floor(max_steps*(1-frac)+HALF_MIN+(JITTER?jitter_step:0)); // this will have the same effect as if ignoring samples outside of viewport
@@ -266,7 +269,7 @@ Half AO_PS
                Vec2 uv1=inTex-d;
                Flt  test_z1=(LINEAR_FILTER ? TexDepthRawLinear(uv1) : TexDepthRawPoint(uv1)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
                Vec  test_pos1=GetPos(test_z1, UVToPosXY(uv1)), delta1=test_pos1-pos;
-               Flt  y1=Dot(delta1, nrm); if(y1>0.5/255){Flt delta1_len2=Length2(delta1); Flt w1=FadeOut(delta1_len2); Flt sin1=y1*rsqrt(delta1_len2); Flt x1=Dot(delta1, dir); if(x1>0)sin1=1; max_sin.y=Max(max_sin.y, sin1*w1);} // small bias needed for walls perpendicular to camera at a distance
+               Flt  y1=Dot(delta1, nrm); if(y1>z_eps){Flt delta1_len2=Length2(delta1); Flt w1=FadeOut(delta1_len2); Flt sin1=y1*rsqrt(delta1_len2); Flt x1=Dot(delta1, dir); if(x1>0)sin1=1; max_sin.y=Max(max_sin.y, sin1*w1);}
             }
          }
       #endif
@@ -314,7 +317,7 @@ Half AO_PS
                  delta   =test_pos-pos;
             Flt  delta_len2=Length2(delta);
             Flt  o, w=FadeOut(delta_len2);
-            Flt  y=Dot(delta, nrm); if(y>0.5/255) // small bias needed for walls perpendicular to camera at a distance
+            Flt  y=Dot(delta, nrm); if(y>z_eps) // use small eps (1 mm) to increase performance for flat surfaces by skipping calculations below
             {
                Flt sin=y*rsqrt(delta_len2);
                Flt x=Dot(delta, dir); if(x<0)sin=1;
@@ -361,8 +364,8 @@ Half AO_PS
             Flt  delta1_len2=Length2(delta1);
             Flt  o0, w0=FadeOut(delta0_len2);
             Flt  o1, w1=FadeOut(delta1_len2);
-            Flt  y0=Dot(delta0, nrm); if(y0>0.5/255){Flt sin=y0*rsqrt(delta0_len2); Flt x=Dot(delta0, dir); if(x<0)sin=1; o0=1-CosSin(sin); o0*=w0;}else o0=0;
-            Flt  y1=Dot(delta1, nrm); if(y1>0.5/255){Flt sin=y1*rsqrt(delta1_len2); Flt x=Dot(delta1, dir); if(x>0)sin=1; o1=1-CosSin(sin); o1*=w1;}else o1=0;
+            Flt  y0=Dot(delta0, nrm); if(y0>z_eps){Flt sin=y0*rsqrt(delta0_len2); Flt x=Dot(delta0, dir); if(x<0)sin=1; o0=1-CosSin(sin); o0*=w0;}else o0=0;
+            Flt  y1=Dot(delta1, nrm); if(y1>z_eps){Flt sin=y1*rsqrt(delta1_len2); Flt x=Dot(delta1, dir); if(x>0)sin=1; o1=1-CosSin(sin); o1*=w1;}else o1=0;
             w0=w0*0.5+0.5;
             w1=w1*0.5+0.5;
             occl+=w0*o0; weight+=w0;
@@ -401,7 +404,7 @@ Half AO_PS
                 delta   =test_pos-pos;
             Flt delta_len2=Length2(delta);
             Flt o, w=FadeOut(delta_len2);
-            Flt y=Dot(delta, nrm); if(y>0.5/255) // small bias needed for walls perpendicular to camera at a distance
+            Flt y=Dot(delta, nrm); if(y>z_eps)
             {
                Flt sin=y*rsqrt(delta_len2);
                Flt x=Dot(delta, dir); if(x<0)sin=1;
@@ -431,7 +434,7 @@ Half AO_PS
                 delta   =test_pos-pos;
             Flt delta_len2=Length2(delta);
             Flt o, w=FadeOut(delta_len2);
-            Flt y=Dot(delta, nrm); if(y>0.5/255) // small bias needed for walls perpendicular to camera at a distance
+            Flt y=Dot(delta, nrm); if(y>z_eps)
             {
                Flt sin=y*rsqrt(delta_len2);
                Flt x=Dot(delta, dir); if(x>0)sin=1;
