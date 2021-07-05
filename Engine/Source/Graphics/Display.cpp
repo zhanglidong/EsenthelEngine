@@ -3234,6 +3234,8 @@ DisplayClass& DisplayClass::tesselation         (Bool on     ) {                
 DisplayClass& DisplayClass::tesselationHeightmap(Bool on     ) {                       if(_tesselation_heightmap!=on     ){_tesselation_heightmap=on     ; setShader();} return T;}
 DisplayClass& DisplayClass::tesselationDensity  (Flt  density) {MAX(density, EPS_GPU); if(_tesselation_density  !=density){_tesselation_density  =density; Sh.TesselationDensity->set(tesselationDensity());} return T;}
 /******************************************************************************/
+void DisplayClass::setDepthWeightScale     () {Sh.DepthWeightScale->set(Vec2(_view_active.fov_tan.y*0.0072f  , 0.004f  ));} // x=linear depth range, y=linear depth offset (4 mm)
+void DisplayClass::setDepthWeightScalePoint() {Sh.DepthWeightScale->set(Vec2(_view_active.fov_tan.y*0.0072f*2, 0.004f*2));} // x=linear depth range, y=linear depth offset (use 2x bigger tolerance because point filtering doesn't smoothen depth values)
 void DisplayClass::setViewFovTan()
 {
    Vec2 mul(Renderer.resW()/(_view_active.recti.w()*w()), Renderer.resH()/(_view_active.recti.h()*h()));
@@ -3253,7 +3255,7 @@ void DisplayClass::setViewFovTan()
      _view_fov_tan_gui=_view_fov_tan_full;
    }
 
-   Sh.DepthWeightScale->set(_view_active.fov_tan.y*0.00714074011f);
+   setDepthWeightScale();
 }
 void DisplayClass::viewUpdate()
 {

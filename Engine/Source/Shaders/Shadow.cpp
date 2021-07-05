@@ -195,7 +195,7 @@ Half ShdBlurJitter_PS
       dw_mad=DepthWeightMAD(z);
       Int min, max; // inclusive
       if(JITTER_RANGE==3){min=-1; max=1;} // 3x3
-      else               {min=-1; max=2;}
+      else               {min=-1; max=2;} // 4x4
       UNROLL for(Int y=min; y<=max; y++)
       UNROLL for(Int x=min; x<=max; x++)
          if(x || y) // skip 0,0

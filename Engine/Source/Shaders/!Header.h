@@ -1635,7 +1635,7 @@ void BendLeafs(VecH center, Half offset, inout Vec pos, inout VecH nrm, inout Ve
 /******************************************************************************/
 #include "!Set Prec Struct.h"
 BUFFER(DepthWeight)
-   Flt DepthWeightScale=0.005;
+   Vec2 DepthWeightScale=Vec2(0.005, 0.004);
 BUFFER_END
 #include "!Set Prec Default.h"
 
@@ -1643,7 +1643,7 @@ BUFFER_END
 Flt P1=0.004, P2=2;
 Vec2 DepthWeightMAD(Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale+P1), P2);}
 #else
-Vec2 DepthWeightMAD(Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale+0.004), 2);}
+Vec2 DepthWeightMAD(Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale.x+DepthWeightScale.y), 2);}
 #endif
 Half DepthWeight(Flt delta, Vec2 dw_mad)
 {
