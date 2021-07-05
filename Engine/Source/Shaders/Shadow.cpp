@@ -91,6 +91,11 @@ Half ShdCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 /******************************************************************************/
 // SHADOW BLUR
 /******************************************************************************/
+#define LINEAR_DEPTH Q
+Flt LinearDepth(Flt z)
+{
+   return LINEAR_DEPTH ? z : LinearizeDepth(z);
+}
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
 #if GL_ES && GATHER // GL ES with GATHER support
 #undef TexDepthRawLinear
@@ -106,14 +111,13 @@ Flt    TexDepthRawLinear(Vec2 uv) // because GL ES 3 can't do 'TexDepthRawLinear
                t.x*fx1 + t.y*f.x, f.y);
 }
 #undef TexDepthLinear
-Flt    TexDepthLinear(Vec2 uv) {return LinearizeDepth(TexDepthRawLinear(uv));} // because GL ES 3 can't do 'TexDepthLinear'
+Flt    TexDepthLinear(Vec2 uv) {return LinearDepth(TexDepthRawLinear(uv));} // because GL ES 3 can't do 'TexDepthLinear'
 #endif
-void Process(inout Half color, inout Half weight, Half c, Flt z, Flt base_z, Vec2 dw_mad)
+void Process(inout Half color, inout Half weight, Half c, Flt raw_z, Flt base_z, Vec2 dw_mad)
 {
    if(1)
    {
-      z=LinearizeDepth(z);
-      Half w=DepthWeight(base_z-z, dw_mad);
+      Half w=DepthWeight(base_z-LinearDepth(raw_z), dw_mad);
       color +=w*c;
       weight+=w;
    }else
@@ -136,12 +140,13 @@ Half ShdBlur_PS
 #endif
 
    Half weight, color;
-   Flt  z     =TexDepthPoint(inTex);
+   Flt  z     =LinearDepth(TexDepthRawPoint(inTex));
    Vec2 dw_mad=DepthWeightMAD(z);
    /*if(E && GATHER)
    {
       weight=0;
       color =0;
+      inTex-=RTSize.xy/2; // move at the center of 2x2
       if(JITTER_RANGE==3) // 3x3
       {
          UNROLL for(Int y=0; y<2; y++)
@@ -150,7 +155,7 @@ Half ShdBlur_PS
             VecH4 c=TexGatherOfs(ImgX, inTex, VecI2(-1+x*2, -1+y*2));
             if(R)
             {
-               Vec4 d=TexDepthRawGatherOfs(inTex, VecI2(-1+x*2, -1+y*2)); // FIXME here are different AO and Depth res
+               Vec4 d=TexDepthRawGatherOfs(inTex, VecI2(-1+x*2, -1+y*2));
                if(x==0 && y==0){Process(color, weight, c.x, d.x, z, dw_mad); Process(color, weight, c.y, d.y, z, dw_mad); Process(color, weight, c.z, d.z, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);}else
                if(x==1 && y==0){Process(color, weight, c.x, d.x, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);}else
                if(x==0 && y==1){Process(color, weight, c.w, d.w, z, dw_mad); Process(color, weight, c.z, d.z, z, dw_mad);}else
@@ -171,11 +176,7 @@ Half ShdBlur_PS
             VecH4 c=TexGatherOfs(ImgX, inTex, VecI2(-1+x*2, -1+y*2));
             if(R)
             {
-               Vec4 d=TexDepthRawGatherOfs(inTex, VecI2(-1+x*2, -1+y*2)); // FIXME here are different AO and Depth res
-               if(W)
-               {
-                  
-               }
+               Vec4 d=TexDepthRawGatherOfs(inTex, VecI2(-1+x*2, -1+y*2));
                Process(color, weight, c.x, d.x, z, dw_mad); Process(color, weight, c.y, d.y, z, dw_mad); Process(color, weight, c.z, d.z, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);
             }else
             {
@@ -218,7 +219,7 @@ Half ShdBlurX_PS
 
    Half weight=0.5,
         color =TexPoint(ImgX, inTex).x*weight;
-   Flt  z     =TexDepthPoint(inTex);
+   Flt  z     =LinearDepth(TexDepthRawPoint(inTex));
    Vec2 dw_mad=DepthWeightMAD(z), t; t.y=inTex.y;
    UNROLL for(Int i=-RANGE; i<=RANGE; i++)if(i)
    {
@@ -243,7 +244,7 @@ Half ShdBlurY_PS
 
    Half weight=0.5,
         color =TexPoint(ImgX, inTex).x*weight;
-   Flt  z     =TexDepthPoint(inTex);
+   Flt  z     =LinearDepth(TexDepthRawPoint(inTex));
    Vec2 dw_mad=DepthWeightMAD(z), t; t.x=inTex.x;
    UNROLL for(Int i=-RANGE; i<=RANGE; i++)if(i)
    {
