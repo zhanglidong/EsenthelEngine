@@ -15,6 +15,9 @@
 #ifndef GATHER
 #define GATHER 0
 #endif
+#ifndef LINEAR_DEPTH
+#define LINEAR_DEPTH 0 // if depth is already linearized
+#endif
 /******************************************************************************/
 void Geom_VS // for 3D Geom
 (
@@ -91,7 +94,6 @@ Half ShdCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 /******************************************************************************/
 // SHADOW BLUR
 /******************************************************************************/
-#define LINEAR_DEPTH Q
 Flt LinearDepth(Flt z)
 {
    return LINEAR_DEPTH ? z : LinearizeDepth(z);

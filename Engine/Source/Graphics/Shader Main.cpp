@@ -723,14 +723,15 @@ void MainShaderClass::getTechniques()
    // can be used for shadows in deferred and AO
    {
       Bool gather=D.gatherAvailable(), gl_es=GL_ES;
-      REPD(geom, 2)
+      REPD(geom        , 2)
+      REPD(linear_depth, 2)
       {
-         ShdBlur [geom][0]=get(S8+"ShdBlur" +geom+gather+gl_es+4);
-         ShdBlur [geom][1]=get(S8+"ShdBlur" +geom+gather+gl_es+6);
-         ShdBlur [geom][2]=get(S8+"ShdBlur" +geom+gather+gl_es+8);
-         ShdBlur [geom][3]=get(S8+"ShdBlur" +geom+gather+gl_es+12);
-         ShdBlurX[geom]   =get(S8+"ShdBlurX"+geom+gather+gl_es+2);
-         ShdBlurY[geom]   =get(S8+"ShdBlurY"+geom+gather+gl_es+2);
+         ShdBlur [geom][linear_depth][0]=get(S8+"ShdBlur" +geom+linear_depth+gather+gl_es+4);
+         ShdBlur [geom][linear_depth][1]=get(S8+"ShdBlur" +geom+linear_depth+gather+gl_es+6);
+         ShdBlur [geom][linear_depth][2]=get(S8+"ShdBlur" +geom+linear_depth+gather+gl_es+8);
+         ShdBlur [geom][linear_depth][3]=get(S8+"ShdBlur" +geom+linear_depth+gather+gl_es+12);
+         ShdBlurX[geom][linear_depth]   =get(S8+"ShdBlurX"+geom+linear_depth+gather+gl_es+2);
+         ShdBlurY[geom][linear_depth]   =get(S8+"ShdBlurY"+geom+linear_depth+gather+gl_es+2);
       }
    }
 

@@ -1341,12 +1341,12 @@ void RendererClass::ao()
       if(D.ambientSoft()>=5)
       {
          ImageRTPtr temp; temp.get(rt_desc);
-                        set(temp, depth, true, NEED_DEPTH_READ); Sh.ImgX[0]->set( _ao); Sh.ShdBlurX[0]->draw(); // use DS for 'D.depth2D'
-        _ao->discard(); set( _ao, depth, true, NEED_DEPTH_READ); Sh.ImgX[0]->set(temp); Sh.ShdBlurY[0]->draw(); // use DS for 'D.depth2D'
+                        set(temp, depth, true, NEED_DEPTH_READ); Sh.ImgX[0]->set( _ao); Sh.ShdBlurX[0][linear_depth]->draw(); // use DS for 'D.depth2D'
+        _ao->discard(); set( _ao, depth, true, NEED_DEPTH_READ); Sh.ImgX[0]->set(temp); Sh.ShdBlurY[0][linear_depth]->draw(); // use DS for 'D.depth2D'
       }else
       {
          ImageRTPtr src=_ao; _ao.get(rt_desc);
-         set(_ao, depth, true, NEED_DEPTH_READ); Sh.ImgX[0]->set(src); Sh.ShdBlur[0][D.ambientSoft()-1]->draw(); // use DS for 'D.depth2D'
+         set(_ao, depth, true, NEED_DEPTH_READ); Sh.ImgX[0]->set(src); Sh.ShdBlur[0][linear_depth][D.ambientSoft()-1]->draw(); // use DS for 'D.depth2D'
       }
    }
    if(linear_depth)Sh.Depth->set(_ds_1s); // restore full resolution depth

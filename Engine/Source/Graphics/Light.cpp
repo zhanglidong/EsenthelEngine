@@ -255,9 +255,9 @@ static void MapSoft(UInt depth_func=FUNC_FOREGROUND, C MatrixM *light_matrix=nul
       if(D.shadowSoft()>=5) // use 2 pass blur (BlurX, BlurY)
       {
          // first pass has to be flat (!geom) and cover full screen, because second pass gathers nearby pixels
-         ImageRTPtr temp(rt_desc);    Renderer.set(            temp, Renderer._ds_1s, true, NEED_DEPTH_READ); REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.ShdBlurX[0]->draw(&CurrentLightRect[Renderer._eye]); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders
+         ImageRTPtr temp(rt_desc);    Renderer.set(            temp, Renderer._ds_1s, true, NEED_DEPTH_READ); REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.ShdBlurX[0][0]->draw(&CurrentLightRect[Renderer._eye]); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders
          Renderer._shd_1s->discard(); Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); Sh.ImgX[0]->set(temp); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders
-         Shader *shader=Sh.ShdBlurY[geom]; if(geom){D.depth2DOn(depth_func); shader->startTex(); mesh->set();}
+         Shader *shader=Sh.ShdBlurY[geom][0]; if(geom){D.depth2DOn(depth_func); shader->startTex(); mesh->set();}
          REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])
          {
             if(geom)
@@ -269,7 +269,7 @@ static void MapSoft(UInt depth_func=FUNC_FOREGROUND, C MatrixM *light_matrix=nul
       {
          ImageRTPtr src=Renderer._shd_1s; Renderer._shd_1s.get(rt_desc);
          Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders
-         Shader *shader=Sh.ShdBlur[geom][D.shadowSoft()-1]; if(geom){D.depth2DOn(depth_func); shader->startTex(); mesh->set();}
+         Shader *shader=Sh.ShdBlur[geom][0][D.shadowSoft()-1]; if(geom){D.depth2DOn(depth_func); shader->startTex(); mesh->set();}
          REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])
          {
             if(geom)
