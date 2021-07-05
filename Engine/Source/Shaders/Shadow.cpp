@@ -142,23 +142,22 @@ Half ShdBlur_PS
 #endif
 
    Half weight, color;
-   Flt  z     =LinearDepth(TexDepthRawPoint(inTex));
-   Vec2 dw_mad=DepthWeightMAD(z);
-   /*if(E && GATHER)
+   Flt  z;
+   Vec2 dw_mad;
+   if(Q && GATHER) // requires input to be jittered
    {
-      weight=0;
-      color =0;
       inTex-=RTSize.xy/2; // move at the center of 2x2
       if(JITTER_RANGE==3) // 3x3
       {
          UNROLL for(Int y=0; y<2; y++)
          UNROLL for(Int x=0; x<2; x++)
          {
-            VecH4 c=TexGatherOfs(ImgX, inTex, VecI2(-1+x*2, -1+y*2));
+            VecH4 c=TexGatherOfs(ImgX, inTex, VecI2(x*2, y*2));
             if(1) // use depth
             {
-               Vec4 d=TexDepthRawGatherOfs(inTex, VecI2(-1+x*2, -1+y*2));
-               if(x==0 && y==0){Process(color, weight, c.x, d.x, z, dw_mad); Process(color, weight, c.y, d.y, z, dw_mad); Process(color, weight, c.z, d.z, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);}else
+               Vec4 d=TexDepthRawGatherOfs(inTex, VecI2(x*2, y*2));
+               if(x==0 && y==0){z=LinearDepth(d.y); dw_mad=DepthWeightMAD(z); color=c.y; weight=1;} // Y component is the x=0,y=1 pixel which is the center pixel because we've offseted 'inTex'
+               if(x==0 && y==0){Process(color, weight, c.x, d.x, z, dw_mad); /*Process(color, weight, c.y, d.y, z, dw_mad); already processed above*/ Process(color, weight, c.z, d.z, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);}else
                if(x==1 && y==0){Process(color, weight, c.x, d.x, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);}else
                if(x==0 && y==1){Process(color, weight, c.w, d.w, z, dw_mad); Process(color, weight, c.z, d.z, z, dw_mad);}else
                if(x==1 && y==1){Process(color, weight, c.w, d.w, z, dw_mad);}
@@ -170,24 +169,27 @@ Half ShdBlur_PS
                if(x==1 && y==1){color+=c.w    ; weight+=1;}
             }
          }
-      }else // 4x4
+      }else // 4x4 Warning: 4x4 blur causes the contents to be offseted by 1 pixel XY
       {
          UNROLL for(Int y=0; y<2; y++)
          UNROLL for(Int x=0; x<2; x++)
          {
-            VecH4 c=TexGatherOfs(ImgX, inTex, VecI2(-1+x*2, -1+y*2));
+            VecH4 c=TexGatherOfs(ImgX, inTex, VecI2(x*2, y*2));
             if(1) // use depth
             {
-               Vec4 d=TexDepthRawGatherOfs(inTex, VecI2(-1+x*2, -1+y*2));
-               Process(color, weight, c.x, d.x, z, dw_mad); Process(color, weight, c.y, d.y, z, dw_mad); Process(color, weight, c.z, d.z, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);
+               Vec4 d=TexDepthRawGatherOfs(inTex, VecI2(x*2, y*2));
+               if(x==0 && y==0){z=LinearDepth(d.y); dw_mad=DepthWeightMAD(z); color=c.y; weight=1;}else Process(color, weight, c.y, d.y, z, dw_mad); // Y component is the x=0,y=1 pixel which is the center pixel because we've offseted 'inTex'
+               Process(color, weight, c.x, d.x, z, dw_mad); Process(color, weight, c.z, d.z, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);
             }else
             {
                color+=Sum(c); weight+=4;
             }
          }
       }
-   }else*/
+   }else
    {
+      z     =LinearDepth(TexDepthRawPoint(inTex));
+      dw_mad=DepthWeightMAD(z);
       weight=0.25;
       color =TexPoint(ImgX, inTex).x*weight;
       UNROLL for(Int i=0; i<SAMPLES; i++)
