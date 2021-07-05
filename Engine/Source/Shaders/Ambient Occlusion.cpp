@@ -130,6 +130,13 @@ Flt FadeOut(Flt dist2)
    if(R)return f<1;*/
    return Sat(2-dist2*AmbientRangeInvSqr2); // 2-f*f*2
 }
+Vec Tangent(Vec2 dir2, Vec nrm_scaled, Vec eye_dir) // this is 'dir2' in 3D space (nrm tangent), doesn't need to be normalized
+{
+ //Vec tan=PointOnPlaneRay(Vec(dir2.x, -dir2.y, 0), nrm_clamp, eye_dir); original formula
+   Vec tan=Vec(dir2.x, -dir2.y, 0); tan-=Dot(tan, nrm_scaled)*eye_dir;
+   return tan;
+// alternative formula (but this is AFTER "dir2*=offs_scale") : Vec2 t2=inTex+dir2*0.01; Vec pos2=Vec(UVToPosXY(t2), 1); Vec p=PointOnPlaneRay(pos2, pos, R ? nrm_clamp : nrm, W ? eye_dir : normalize(pos2)); dir=p-pos;
+}
 /******************************************************************************/
 Half AO_PS
 (
@@ -244,7 +251,7 @@ Half AO_PS
       {
          Flt  angle=a; if(JITTER)angle+=jitter_angle; angle*=PI/angles; // this is best for cache
          Vec2 dir2; CosSin(dir2.x, dir2.y, angle);
-         Vec  dir=PointOnPlaneRay(Vec(dir2.x, -dir2.y, 0), nrm_clamp, eye_dir); // this is 'dir2' in 3D space (nrm tangent), doesn't need to be normalized
+         Vec  dir=Tangent(dir2, nrm_scaled, eye_dir);
          dir2*=offs_scale;
          Vec2 max_sin=0;
          Int  steps=max_steps;
@@ -314,10 +321,8 @@ Half AO_PS
       {
          Flt  angle=a; if(JITTER)angle+=jitter_angle; angle*=PI2/angles; // this is best for cache
          Vec2 dir2; CosSin(dir2.x, dir2.y, angle);
-       //Vec  dir=PointOnPlaneRay(Vec(dir2.x, -dir2.y, 0), nrm_clamp, eye_dir); // this is 'dir2' in 3D space (nrm tangent), doesn't need to be normalized
-         Vec  dir=Vec(dir2.x, -dir2.y, 0); dir-=Dot(dir, nrm_scaled)*eye_dir; // this is 'dir2' in 3D space (nrm tangent), doesn't need to be normalized
+         Vec  dir=Tangent(dir2, nrm_scaled, eye_dir);
          dir2*=offs_scale;
-         // alternative 'dir' calculation: Vec2 t2=inTex+dir2*0.01; Vec pos2=Vec(UVToPosXY(t2), 1); Vec p=PointOnPlaneRay(pos2, pos, R ? nrm_clamp : nrm, W ? eye_dir : normalize(pos2)); dir=p-pos;
 
          Flt frac=ViewportClamp(inTex+dir2, dir2);
          // instead of reducing movement "dir2*=1-frac;" limit number of steps, because reduced movement would change weights for samples
@@ -364,7 +369,7 @@ Half AO_PS
       {
          Flt  angle=a; if(JITTER)angle+=jitter_angle; angle*=PI/angles; // this is best for cache
          Vec2 dir2; CosSin(dir2.x, dir2.y, angle);
-         Vec  dir=PointOnPlaneRay(Vec(dir2.x, -dir2.y, 0), nrm_clamp, eye_dir); // this is 'dir2' in 3D space (nrm tangent), doesn't need to be normalized
+         Vec  dir=Tangent(dir2, nrm_scaled, eye_dir);
          dir2*=offs_scale;
          Int steps=max_steps;
          LOOP for(Int s=1; s<=steps; s++) // start from 1 to skip this pixel
@@ -402,7 +407,7 @@ Half AO_PS
       {
          Flt  angle=a; if(JITTER)angle+=jitter_angle; angle*=PI/angles; // this is best for cache
          Vec2 dir2; CosSin(dir2.x, dir2.y, angle);
-         Vec  dir=PointOnPlaneRay(Vec(dir2.x, -dir2.y, 0), nrm_clamp, eye_dir); // this is 'dir2' in 3D space (nrm tangent), doesn't need to be normalized
+         Vec  dir=Tangent(dir2, nrm_scaled, eye_dir);
          dir2*=offs_scale;
 
          Flt frac=ViewportClamp(inTex+dir2, dir2);
@@ -506,7 +511,7 @@ Half AO_PS
             Flt y=Dot(delta, nrm); if(y>0)
             {
                Flt sin=y*rsqrt(delta_len2); // "/Length(delta)" -> "/Sqrt(delta_len2)"
-               Vec dir=PointOnPlaneRay(Vec(dir2.x, -dir2.y, 0), nrm_clamp, eye_dir); // this is 'dir2' in 3D space (nrm tangent), doesn't need to be normalized
+               Vec dir=Tangent(dir2, nrm_scaled, eye_dir);
                Flt x=Dot(delta, dir); if(x<0)sin=1;
                o=1-CosSin(sin); // precise, calculated based on 'ObstacleSinToLight'
                o*=w; // fix artifacts (occlusion can be strong only as weight)
