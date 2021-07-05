@@ -269,6 +269,7 @@ void Surface_PS
    #if REFRACT
       Vec2 back_tex=Mid(inTex+refract*(WaterMaterial.refract/Max(1, water_z)), WaterClamp.xy, WaterClamp.zw);
    #if GATHER
+      // potentially could use FilterMinMax instead of TexGather, however we need both DEPTH_MIN/DEPTH_MAX, so that would need 2 tex reads, so better skip
       Vec4 back_z_raw4=TexGather(ImgXF, back_tex);
    #else // simulate gather
       Vec2 pixel  =back_tex*RTSize.zw+0.5,
@@ -347,6 +348,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    #if REFRACT
       Vec2 test_tex=Mid(inTex+refract*(WaterMaterial.refract/Max(1, water_z)), WaterClamp.xy, WaterClamp.zw);
    #if GATHER
+      // potentially could use FilterMinMax instead of TexDepthGather, however we need both DEPTH_MIN/DEPTH_MAX, so that would need 2 tex reads, so better skip
       Vec4 test_z_raw4=TexDepthGather(test_tex);
    #else // simulate gather
       Vec2 pixel  =test_tex*RTSize.zw+0.5,
