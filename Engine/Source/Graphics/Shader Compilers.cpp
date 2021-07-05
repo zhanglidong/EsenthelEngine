@@ -438,8 +438,8 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    REPD(realistic, 2)
    REPD(alpha    , 2)
    REPD(half_res , 2)
-   REPD(gather   , 2)
-      src.New("DofDS", "Draw_VS", "DofDS_PS")("CLAMP", clamp, "REALISTIC", realistic, "ALPHA", alpha, "HALF_RES", half_res)("GATHER", gather).gather(gather);
+   REPD(mode     , 3)
+      src.New("DofDS", "Draw_VS", "DofDS_PS")("CLAMP", clamp, "REALISTIC", realistic, "ALPHA", alpha, "HALF_RES", half_res)("MODE", mode).gather(mode==1);
 
    REPD(alpha, 2)
    for(Int range=2; range<=12; range++)

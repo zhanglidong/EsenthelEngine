@@ -193,13 +193,14 @@ void MainShaderClass::createSamplers()
    sd.AddressU=D3D11_TEXTURE_ADDRESS_CLAMP;
    sd.AddressV=D3D11_TEXTURE_ADDRESS_CLAMP;
    sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
-   SamplerMinimum.createTry(sd); // optional because not supported everywhere - https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_filter
-
-   sd.Filter  =D3D11_FILTER_MAXIMUM_MIN_MAG_MIP_LINEAR; // this must be LINEAR to take Max from multiple texels, POINT would work as 'SamplerPoint'
-   sd.AddressU=D3D11_TEXTURE_ADDRESS_CLAMP;
-   sd.AddressV=D3D11_TEXTURE_ADDRESS_CLAMP;
-   sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
-   SamplerMaximum.createTry(sd); // optional because not supported everywhere - https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_filter
+   if(SamplerMinimum.createTry(sd)) // optional because not supported everywhere - https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_filter
+   { // create 'SamplerMaximum' only if 'SamplerMinimum' succeeded
+      sd.Filter  =D3D11_FILTER_MAXIMUM_MIN_MAG_MIP_LINEAR; // this must be LINEAR to take Max from multiple texels, POINT would work as 'SamplerPoint'
+      sd.AddressU=D3D11_TEXTURE_ADDRESS_CLAMP;
+      sd.AddressV=D3D11_TEXTURE_ADDRESS_CLAMP;
+      sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
+      SamplerMaximum.createTry(sd); // optional because not supported everywhere - https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_filter
+   }
 
    // !! THIS AT THE END BECAUSE IT MODIFIES 'ComparisonFunc' !!
    sd.Filter  =D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
@@ -913,7 +914,7 @@ Shader* MotionBlur::getBlur(Int samples, Bool dither, Bool alpha)
    return shader;
 }
 /******************************************************************************/
-Shader* DepthOfField::getDS(Bool clamp , Bool realistic, Bool alpha, Bool half_res) {return shader->get(S8+"DofDS"+clamp+realistic+alpha+half_res+D.gatherAvailable());}
+Shader* DepthOfField::getDS(Bool clamp , Bool realistic, Bool alpha, Bool half_res) {return shader->get(S8+"DofDS"+clamp+realistic+alpha+half_res+(D.filterMinMaxAvailable() ? 2 : D.gatherAvailable() ? 1 : 0));}
 Shader* DepthOfField::get  (Bool dither, Bool realistic, Bool alpha               ) {return shader->get(S8+"Dof"+dither+realistic+alpha);}
 
 void DepthOfField::load()

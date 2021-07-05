@@ -57,7 +57,7 @@ Flt Blur(Flt z)
 #endif
 }
 /******************************************************************************/
-// CLAMP, REALISTIC, ALPHA, HALF_RES, GATHER
+// CLAMP, REALISTIC, ALPHA, HALF_RES, MODE(2=FilterMinMax,1=Gather,0=None)
 VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD
                 #if ALPHA
                  , out Half outBlur:TARGET1
@@ -67,9 +67,11 @@ VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD
    VecH4 ret; // RGB=col, W=Blur
    Flt   depth;
    if(HALF_RES)
-   {
+   { // here we're rendering to half-res RT, so inTex is at the center of 2x2 full-res depth
       ret.MASK=TexLod(Img, UVClamp(inTex, CLAMP)).MASK; // use linear filtering because we're downsampling
-   #if GATHER // gather available since SM_4_1, GL 4.0, GL ES 3.1
+   #if MODE==2 // FilterMinMax
+      depth=TexDepthRawMin(inTex);
+   #elif MODE==1 // Gather available since SM_4_1, GL 4.0, GL ES 3.1
       depth=DEPTH_MIN(TexDepthGather(inTex));
    #else
       Vec2 tex_min=inTex-ImgSize.xy*0.5,
@@ -80,9 +82,9 @@ VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD
                       TexDepthRawPoint(Vec2(tex_max.x, tex_max.y)));
    #endif
    }else // quarter
-   {
-      Vec2 tex_min=UVClamp(inTex-ImgSize.xy, CLAMP),
-           tex_max=UVClamp(inTex+ImgSize.xy, CLAMP);
+   { // here we're rendering to quarter-res RT, so inTex is at the center of 4x4 full-res depth
+      Vec2 tex_min=UVClamp(inTex-ImgSize.xy, CLAMP), // center of  left-down 2x2 full-res depth
+           tex_max=UVClamp(inTex+ImgSize.xy, CLAMP); // center of right-up   2x2 full-res depth
       Vec2 t00=Vec2(tex_min.x, tex_min.y),
            t10=Vec2(tex_max.x, tex_min.y),
            t01=Vec2(tex_min.x, tex_max.y),
@@ -92,7 +94,12 @@ VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD
                +TexLod(Img, t10).MASK
                +TexLod(Img, t01).MASK
                +TexLod(Img, t11).MASK)/4;
-   #if GATHER // "gather" is available since SM_4_1, GL 4.0, GL ES 3.1
+   #if MODE==2 // FilterMinMax
+      depth=DEPTH_MIN(TexDepthRawMin(t00),
+                      TexDepthRawMin(t10),
+                      TexDepthRawMin(t01),
+                      TexDepthRawMin(t11));
+   #elif MODE==1 // Gather available since SM_4_1, GL 4.0, GL ES 3.1
       depth=DEPTH_MIN(DEPTH_MIN(TexDepthGather(t00)),
                       DEPTH_MIN(TexDepthGather(t10)),
                       DEPTH_MIN(TexDepthGather(t01)),
