@@ -1689,7 +1689,7 @@ void RendererClass::tAA()
          Sh.ImgXY[1]->set(_ctx->taa_old_vel  ); // old velocity
       #endif
 
-      Sh.imgSize(*_col);
+      Sh.imgSize(*_col); // this is needed for Cubic Sampler
       Shader *shader=Sh.TAA[!D._view_main.full][alpha][dual];
       REPS(_eye, _eye_num)
       {

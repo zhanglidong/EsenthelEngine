@@ -204,6 +204,7 @@ void TestDepth(inout Flt depth, Flt d, inout VecI2 ofs, Int x, Int y)
 {
    if(DEPTH_SMALLER(d, depth)){depth=d; ofs.x=x; ofs.y=y;}
 }
+// can use 'RTSize' instead of 'ImgSize' since there's no scale
 void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
           //NOPERSP Vec2 inPosXY:TEXCOORD1,
           //NOPERSP PIXEL                 ,
@@ -231,7 +232,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    #if GATHER
       ofs=VecI2(-1, 1); depth=TexDepthRawPointOfs(inTex, ofs         );              // -1,  1,  left-top
               TestDepth(depth,TexDepthRawPointOfs(inTex, VecI2(1, -1)), ofs, 1, -1); //  1, -1, right-bottom
-      Vec2 tex=inTex-ImgSize.xy*0.5; // move to center between -1,-1 and 0,0 texels
+      Vec2 tex=inTex-RTSize.xy*0.5; // move to center between -1,-1 and 0,0 texels
       Vec4 d=TexDepthGather(tex); // get -1,-1 to 0,0 texels
       TestDepth(depth, d.x, ofs, -1,  0);
       TestDepth(depth, d.y, ofs,  0,  0);
@@ -253,7 +254,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    }
 
    // GET VEL
-   VecH2 vel=TexPoint(ImgXY, UVClamp(inTex+ofs*ImgSize.xy, CLAMP)).xy;
+   VecH2 vel=TexPoint(ImgXY, UVClamp(inTex+ofs*RTSize.xy, CLAMP)).xy;
 
    Vec2 cur_tex=inTex+TAAOffset,
         old_tex=inTex+vel;
@@ -286,7 +287,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    #if GATHER
       TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2(-1,  1)).xy, max_delta_vel_len2); // -1,  1,  left-top
       TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2( 1, -1)).xy, max_delta_vel_len2); //  1, -1, right-bottom
-      old_tex_vel-=ImgSize.xy*0.5; // move to center between -1,-1 and 0,0 texels
+      old_tex_vel-=RTSize.xy*0.5; // move to center between -1,-1 and 0,0 texels
       VecH4 r=ImgXY1.GatherRed  (SamplerPoint, old_tex_vel); // get -1,-1 to 0,0 texels
       VecH4 g=ImgXY1.GatherGreen(SamplerPoint, old_tex_vel); // get -1,-1 to 0,0 texels
       TestVel(vel, VecH2(r.x, g.x), max_delta_vel_len2);
@@ -410,11 +411,11 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    {
       Vec2 uv[2];
    #if CLAMP
-      uv[0]=Vec2(Max(inTex.x-ImgSize.x/2, ImgClamp.x), Max(inTex.y-ImgSize.y/2, ImgClamp.y));
-      uv[1]=Vec2(Min(inTex.x+ImgSize.x/2, ImgClamp.z), Min(inTex.y+ImgSize.y/2, ImgClamp.w));
+      uv[0]=Vec2(Max(inTex.x-RTSize.x/2, ImgClamp.x), Max(inTex.y-RTSize.y/2, ImgClamp.y));
+      uv[1]=Vec2(Min(inTex.x+RTSize.x/2, ImgClamp.z), Min(inTex.y+RTSize.y/2, ImgClamp.w));
    #else
-      uv[0]=inTex-ImgSize/2;
-      uv[1]=inTex+ImgSize/2;
+      uv[0]=inTex-RTSize.xy/2;
+      uv[1]=inTex+RTSize.xy/2;
    #endif
       UNROLL for(Int y=0; y<=1; y++)
       UNROLL for(Int x=0; x<=1; x++)
@@ -447,8 +448,8 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    {
    #if CLAMP
       Vec2 tex_clamp[3];
-      tex_clamp[0]=Vec2(Max(inTex.x-ImgSize.x, ImgClamp.x), Max(inTex.y-ImgSize.y, ImgClamp.y)); tex_clamp[1]=inTex;
-      tex_clamp[2]=Vec2(Min(inTex.x+ImgSize.x, ImgClamp.z), Min(inTex.y+ImgSize.y, ImgClamp.w));
+      tex_clamp[0]=Vec2(Max(inTex.x-RTSize.x, ImgClamp.x), Max(inTex.y-RTSize.y, ImgClamp.y)); tex_clamp[1]=inTex;
+      tex_clamp[2]=Vec2(Min(inTex.x+RTSize.x, ImgClamp.z), Min(inTex.y+RTSize.y, ImgClamp.w));
    #endif
       UNROLL for(Int y=-1; y<=1; y++)
       UNROLL for(Int x=-1; x<=1; x++)
