@@ -354,7 +354,6 @@ Half AO_PS
          }
       }
       occl*=2; // multiply by 2 to match AO_MAX mode
-
    }
    #endif
 
