@@ -1340,10 +1340,8 @@ void RendererClass::ao()
     //Sh.imgSize(*_ao); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
       if(D.ambientJitter())
       {
-         D.setDepthWeightScalePoint(); // set specific for point
          ImageRTPtr src=_ao; _ao.get(rt_desc);
          set(_ao, depth, true, NEED_DEPTH_READ); Sh.ImgX[0]->set(src); Sh.ShdBlurJitter[0][linear_depth]->draw(); // use DS for 'D.depth2D'
-         D.setDepthWeightScale(); // restore default
       }else
       if(D.ambientSoft()<5)
       {

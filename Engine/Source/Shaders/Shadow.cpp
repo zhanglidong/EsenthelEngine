@@ -157,7 +157,7 @@ Half ShdBlurJitter_PS
             if(1) // use depth
             {
                Vec4 d=TexDepthRawGatherOfs(inTex, VecI2(x*2, y*2));
-               if(x==0 && y==0){z=LinearDepth(d.y); dw_mad=DepthWeightMAD(z); color=c.y; weight=1;} // Y component is the x=0,y=1 pixel which is the center pixel because we've offseted 'inTex'
+               if(x==0 && y==0){z=LinearDepth(d.y); dw_mad=DepthWeightMADPoint(z); color=c.y; weight=1;} // Y component is the x=0,y=1 pixel which is the center pixel because we've offseted 'inTex'
                if(x==0 && y==0){Process(color, weight, c.x, d.x, z, dw_mad); /*Process(color, weight, c.y, d.y, z, dw_mad); already processed above*/ Process(color, weight, c.z, d.z, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);}else
                if(x==1 && y==0){Process(color, weight, c.x, d.x, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);}else
                if(x==0 && y==1){Process(color, weight, c.w, d.w, z, dw_mad); Process(color, weight, c.z, d.z, z, dw_mad);}else
@@ -179,7 +179,7 @@ Half ShdBlurJitter_PS
             if(1) // use depth
             {
                Vec4 d=TexDepthRawGatherOfs(inTex, VecI2(x*2, y*2));
-               if(x==0 && y==0){z=LinearDepth(d.y); dw_mad=DepthWeightMAD(z); color=c.y; weight=1;}else Process(color, weight, c.y, d.y, z, dw_mad); // Y component is the x=0,y=1 pixel which is the center pixel because we've offseted 'inTex'
+               if(x==0 && y==0){z=LinearDepth(d.y); dw_mad=DepthWeightMADPoint(z); color=c.y; weight=1;}else Process(color, weight, c.y, d.y, z, dw_mad); // Y component is the x=0,y=1 pixel which is the center pixel because we've offseted 'inTex'
                Process(color, weight, c.x, d.x, z, dw_mad); Process(color, weight, c.z, d.z, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);
             }else
             {
@@ -192,7 +192,7 @@ Half ShdBlurJitter_PS
       weight=1;
       color =TexPoint(ImgX, inTex).x;
       z     =LinearDepth(TexDepthRawPoint(inTex));
-      dw_mad=DepthWeightMAD(z);
+      dw_mad=DepthWeightMADPoint(z);
       Int min, max; // inclusive
       if(JITTER_RANGE==3){min=-1; max=1;} // 3x3
       else               {min=-1; max=2;} // 4x4
@@ -220,7 +220,7 @@ Half ShdBlur_PS
    Half weight=0.25,
         color =TexPoint(ImgX, inTex).x*weight;
    Flt  z     =LinearDepth(TexDepthRawPoint(inTex));
-   Vec2 dw_mad=DepthWeightMAD(z);
+   Vec2 dw_mad=DepthWeightMADLinear(z);
    UNROLL for(Int i=0; i<SAMPLES; i++)
    {
       Vec2 t;
@@ -253,7 +253,7 @@ Half ShdBlurX_PS
    Half weight=0.5,
         color =TexPoint(ImgX, inTex).x*weight;
    Flt  z     =LinearDepth(TexDepthRawPoint(inTex));
-   Vec2 dw_mad=DepthWeightMAD(z), t; t.y=inTex.y;
+   Vec2 dw_mad=DepthWeightMADLinear(z), t; t.y=inTex.y;
    UNROLL for(Int i=-RANGE; i<=RANGE; i++)if(i)
    {
       // use linear filtering because texcoords are not rounded
@@ -279,7 +279,7 @@ Half ShdBlurY_PS
    Half weight=0.5,
         color =TexPoint(ImgX, inTex).x*weight;
    Flt  z     =LinearDepth(TexDepthRawPoint(inTex));
-   Vec2 dw_mad=DepthWeightMAD(z), t; t.x=inTex.x;
+   Vec2 dw_mad=DepthWeightMADLinear(z), t; t.x=inTex.x;
    UNROLL for(Int i=-RANGE; i<=RANGE; i++)if(i)
    {
       // use linear filtering because texcoords are not rounded

@@ -1635,15 +1635,16 @@ void BendLeafs(VecH center, Half offset, inout Vec pos, inout VecH nrm, inout Ve
 /******************************************************************************/
 #include "!Set Prec Struct.h"
 BUFFER(DepthWeight)
-   Vec2 DepthWeightScale=Vec2(0.005, 0.004);
+   Vec2 DepthWeightScale; // X=for linear filtering, Y=for point filtering
 BUFFER_END
 #include "!Set Prec Default.h"
 
 #if 0
 Flt P1=0.004, P2=2;
-Vec2 DepthWeightMAD(Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale+P1), P2);}
+Vec2 DepthWeightMAD      (Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale+P1), P2);}
 #else
-Vec2 DepthWeightMAD(Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale.x+DepthWeightScale.y), 2);}
+Vec2 DepthWeightMADLinear(Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale.x+0.004), 2);}
+Vec2 DepthWeightMADPoint (Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale.y+0.008), 2);} // use 2x bigger tolerance because point filtering doesn't smoothen depth values
 #endif
 Half DepthWeight(Flt delta, Vec2 dw_mad)
 {

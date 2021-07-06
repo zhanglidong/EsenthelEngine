@@ -392,8 +392,6 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
 
    // Viewport Settings
 #if EE_PRIVATE
-   void          setDepthWeightScale     ();
-   void          setDepthWeightScalePoint();
    void          setViewFovTan();
    void          viewUpdate();
    void          viewReset ();
