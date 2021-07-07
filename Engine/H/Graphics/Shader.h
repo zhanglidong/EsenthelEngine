@@ -387,13 +387,9 @@ struct ComputeShader11
    Int                  data_index=-1;
    Str8                       name;
 
-   Bool validate (ShaderFile &shader, Str *messages=null);
-   void commit   ()C;
-   void commitTex()C;
-   void start    ()C;
-   void startTex ()C;
-   void begin    ()C;
-   Bool load     (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
+   Bool validate(ShaderFile &shader, Str *messages=null);
+   void commit  ()C;
+   Bool load    (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
 
    void setBuffers()C;
    void setImages ()C;

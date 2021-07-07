@@ -1944,6 +1944,13 @@ Bool ShaderGL::load(File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 2
    if(f.ok())return true;
   /*del();*/ return false;
 }
+Bool ComputeShaderGL::load(File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers)
+{
+   // name + indexes
+   f.getStr(name)>>cs_index;
+   if(f.ok())return true;
+  /*del();*/ return false;
+}
 #endif
 /******************************************************************************/
 static void ExitParam(C Str &param_name, C Str &shader_name)
