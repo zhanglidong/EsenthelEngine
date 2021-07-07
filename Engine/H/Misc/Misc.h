@@ -166,11 +166,12 @@ Int  BitHi      (ULong  x); // get index of highest non-zero bit  in 'x' ( 0 if 
 Int  ByteHi     (UInt   x); // get index of highest non-zero byte in 'x' ( 0 if none)
 Int  ByteHi     (ULong  x); // get index of highest non-zero byte in 'x' ( 0 if none)
 #if EE_PRIVATE
-       Int Log2Ceil(UInt  x); // returns Ceil(Log2(x))
-       Int Log2Ceil(ULong x); // returns Ceil(Log2(x))
-inline Int DivCeil2(UInt  x) {return DivCeil(x, 2u);}
-inline Int DivCeil4(UInt  x) {return DivCeil(x, 4u);}
-inline Int DivCeil8(UInt  x) {return DivCeil(x, 8u);}
+       Int Log2Ceil (UInt  x); // returns Ceil(Log2(x))
+       Int Log2Ceil (ULong x); // returns Ceil(Log2(x))
+inline Int DivCeil2 (UInt  x) {return DivCeil(x,  2u);}
+inline Int DivCeil4 (UInt  x) {return DivCeil(x,  4u);}
+inline Int DivCeil8 (UInt  x) {return DivCeil(x,  8u);}
+inline Int DivCeil16(UInt  x) {return DivCeil(x, 16u);}
 
 inline UInt CeilGL(UInt x) {return Ceil128(x);} // use 'Ceil128' because of crash when setting/getting data due to internal system memmove which reads ahead
 
