@@ -378,6 +378,28 @@ struct Shader11
 
 //~Shader11(); no need to release 'vs,hs,ds,ps' or 'buffers,images' since they're just copies from 'Shader*11'
 };
+struct ComputeShader11
+{
+   ID3D11ComputeShader *cs=null;
+   Mems<ShaderBuffer*> all_buffers; // shader buffers used by all shader stages (CS) combined into one array
+   BufferLinkPtr           buffers;
+    ImageLinkPtr            images;
+   Int                  data_index=-1;
+   Str8                       name;
+
+   Bool validate (ShaderFile &shader, Str *messages=null);
+   void commit   ()C;
+   void commitTex()C;
+   void start    ()C;
+   void startTex ()C;
+   void begin    ()C;
+   Bool load     (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
+
+   void setBuffers()C;
+   void setImages ()C;
+
+//~ComputeShader11(); no need to release 'vs,hs,ds,ps' or 'buffers,images' since they're just copies from 'Shader*11'
+};
 #endif
 /******************************************************************************/
 struct SamplerImageLink
@@ -445,6 +467,14 @@ struct Shader
    void draw(C Image      *image, C Rect *rect, C Rect &tex)C;                             // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Img' shader image, 'rect'=screen rectangle for the effect (set null for full viewport), 'tex'=source image texture coordinates
    void draw(C Image      &image, C Rect *rect, C Rect &tex)C {draw(&image  , rect, tex);} // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Img' shader image, 'rect'=screen rectangle for the effect (set null for full viewport), 'tex'=source image texture coordinates*/
 };
+#if EE_PRIVATE
+struct ComputeShader : GPU_API(ComputeShader11, ComputeShaderGL)
+{
+#else
+struct ComputeShader
+{
+#endif
+};
 /******************************************************************************/
 struct ShaderFile // Shader File
 {
@@ -487,9 +517,10 @@ private:
    Mems<Mems<BufferLink>> _buffer_links;
    Mems<Mems< ImageLink>>  _image_links;
 #else
-   Mems<ShaderData> _vs, _hs, _ds, _ps, _cs, _buffer_links, _image_links;
+   Mems<ShaderData   > _vs, _hs, _ds, _ps, _cs, _buffer_links, _image_links;
 #endif
-   Mems<Shader    > _shaders;
+   Mems<Shader       > _shaders;
+   Mems<ComputeShader> _compute_shaders;
    NO_COPY_CONSTRUCTOR(ShaderFile);
 };
 /******************************************************************************/

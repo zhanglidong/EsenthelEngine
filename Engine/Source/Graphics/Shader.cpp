@@ -323,12 +323,13 @@ static void SetTexture(Int index, Int sampler, C Image *image) // this is called
 #endif
 /******************************************************************************/
 #if DX11
-static ID3D11Buffer *VSBuf[MAX_SHADER_BUFFERS], *HSBuf[MAX_SHADER_BUFFERS], *DSBuf[MAX_SHADER_BUFFERS], *PSBuf[MAX_SHADER_BUFFERS];
+static ID3D11Buffer *VSBuf[MAX_SHADER_BUFFERS], *HSBuf[MAX_SHADER_BUFFERS], *DSBuf[MAX_SHADER_BUFFERS], *PSBuf[MAX_SHADER_BUFFERS], *CSBuf[MAX_SHADER_BUFFERS];
 
 static INLINE void BufVS(Int index, ID3D11Buffer *buf) {if(VSBuf[index]!=buf || FORCE_BUF)D3DC->VSSetConstantBuffers(index, 1, &(VSBuf[index]=buf));}
 static INLINE void BufHS(Int index, ID3D11Buffer *buf) {if(HSBuf[index]!=buf || FORCE_BUF)D3DC->HSSetConstantBuffers(index, 1, &(HSBuf[index]=buf));}
 static INLINE void BufDS(Int index, ID3D11Buffer *buf) {if(DSBuf[index]!=buf || FORCE_BUF)D3DC->DSSetConstantBuffers(index, 1, &(DSBuf[index]=buf));}
 static INLINE void BufPS(Int index, ID3D11Buffer *buf) {if(PSBuf[index]!=buf || FORCE_BUF)D3DC->PSSetConstantBuffers(index, 1, &(PSBuf[index]=buf));}
+static INLINE void BufCS(Int index, ID3D11Buffer *buf) {if(CSBuf[index]!=buf || FORCE_BUF)D3DC->CSSetConstantBuffers(index, 1, &(CSBuf[index]=buf));}
 #endif
 /******************************************************************************/
 Cache<ShaderFile> ShaderFiles("Shader");
@@ -1119,10 +1120,11 @@ Str ShaderSubGL::source()
 /******************************************************************************/
 #if DX11
 // these members must have native alignment because we use them in atomic operations for set on multiple threads
-ALIGN_ASSERT(Shader11, vs);
-ALIGN_ASSERT(Shader11, hs);
-ALIGN_ASSERT(Shader11, ds);
-ALIGN_ASSERT(Shader11, ps);
+ALIGN_ASSERT(       Shader11, vs);
+ALIGN_ASSERT(       Shader11, hs);
+ALIGN_ASSERT(       Shader11, ds);
+ALIGN_ASSERT(       Shader11, ps);
+ALIGN_ASSERT(ComputeShader11, cs);
 /*Shader11::~Shader11()
 {
    /* can't release 'vs,hs,ds,ps' shaders since they're just copies from 'Shader*11'
@@ -1134,6 +1136,15 @@ ALIGN_ASSERT(Shader11, ps);
       if(ds)ds->Release();
       if(ps)ps->Release();
    }*
+}
+ComputeShader11::~ComputeShader11()
+{
+   /* can't release 'cs' shaders since they're just copies from 'Shader*11'
+   if(D.created())
+   {
+    //SyncLocker locker(D._lock); lock not needed for DX11 'Release'
+      if(cs)cs->Release();
+   }*
 }*/
 Bool Shader11::validate(ShaderFile &shader, Str *messages) // this function should be multi-threaded safe
 {
@@ -1142,6 +1153,11 @@ Bool Shader11::validate(ShaderFile &shader, Str *messages) // this function shou
    if(!ds && InRange(data_index[ST_DS], shader._ds))AtomicSet(ds, shader._ds[data_index[ST_DS]].create());
    if(!ps && InRange(data_index[ST_PS], shader._ps))AtomicSet(ps, shader._ps[data_index[ST_PS]].create());
    return vs && ps;
+}
+Bool ComputeShader11::validate(ShaderFile &shader, Str *messages) // this function should be multi-threaded safe
+{
+   if(!cs && InRange(data_index, shader._cs))AtomicSet(cs, shader._cs[data_index].create());
+   return cs;
 }
 #if 1
 static ID3D11VertexShader *VShader;   static INLINE void SetVS(ID3D11VertexShader *shader) {if(VShader!=shader || FORCE_SHADER)D3DC->VSSetShader(VShader=shader, null, 0);}
@@ -1206,20 +1222,22 @@ static INLINE void SetImages(C ImageLinkPtr &links, ID3D11ShaderResourceView *te
    }
 }
 
-INLINE void Shader11::setVSBuffers()C {SetBuffers(buffers[ST_VS], VSBuf, &ID3D11DeviceContext::VSSetConstantBuffers);}
-INLINE void Shader11::setHSBuffers()C {SetBuffers(buffers[ST_HS], HSBuf, &ID3D11DeviceContext::HSSetConstantBuffers);}
-INLINE void Shader11::setDSBuffers()C {SetBuffers(buffers[ST_DS], DSBuf, &ID3D11DeviceContext::DSSetConstantBuffers);}
-INLINE void Shader11::setPSBuffers()C {SetBuffers(buffers[ST_PS], PSBuf, &ID3D11DeviceContext::PSSetConstantBuffers);}
+INLINE void        Shader11::setVSBuffers()C {SetBuffers(buffers[ST_VS], VSBuf, &ID3D11DeviceContext::VSSetConstantBuffers);}
+INLINE void        Shader11::setHSBuffers()C {SetBuffers(buffers[ST_HS], HSBuf, &ID3D11DeviceContext::HSSetConstantBuffers);}
+INLINE void        Shader11::setDSBuffers()C {SetBuffers(buffers[ST_DS], DSBuf, &ID3D11DeviceContext::DSSetConstantBuffers);}
+INLINE void        Shader11::setPSBuffers()C {SetBuffers(buffers[ST_PS], PSBuf, &ID3D11DeviceContext::PSSetConstantBuffers);}
+INLINE void ComputeShader11::setBuffers  ()C {SetBuffers(buffers       , CSBuf, &ID3D11DeviceContext::CSSetConstantBuffers);}
 
 INLINE void Shader11::setVSImages()C {SetImages(images[ST_VS], VSTex, &ID3D11DeviceContext::VSSetShaderResources);}
 INLINE void Shader11::setHSImages()C {SetImages(images[ST_HS], HSTex, &ID3D11DeviceContext::HSSetShaderResources);}
 INLINE void Shader11::setDSImages()C {SetImages(images[ST_DS], DSTex, &ID3D11DeviceContext::DSSetShaderResources);}
 INLINE void Shader11::setPSImages()C {SetImages(images[ST_PS], PSTex, &ID3D11DeviceContext::PSSetShaderResources);}
 #else // set separately
-INLINE void Shader11::setVSBuffers()C {REPA(buffers[ST_VS]){C BufferLink &link=buffers[ST_VS][i]; BufVS(link.index, link.buffer->buffer.buffer);}}
-INLINE void Shader11::setHSBuffers()C {REPA(buffers[ST_HS]){C BufferLink &link=buffers[ST_HS][i]; BufHS(link.index, link.buffer->buffer.buffer);}}
-INLINE void Shader11::setDSBuffers()C {REPA(buffers[ST_DS]){C BufferLink &link=buffers[ST_DS][i]; BufDS(link.index, link.buffer->buffer.buffer);}}
-INLINE void Shader11::setPSBuffers()C {REPA(buffers[ST_PS]){C BufferLink &link=buffers[ST_PS][i]; BufPS(link.index, link.buffer->buffer.buffer);}}
+INLINE void        Shader11::setVSBuffers()C {REPA(buffers[ST_VS]){C BufferLink &link=buffers[ST_VS][i]; BufVS(link.index, link.buffer->buffer.buffer);}}
+INLINE void        Shader11::setHSBuffers()C {REPA(buffers[ST_HS]){C BufferLink &link=buffers[ST_HS][i]; BufHS(link.index, link.buffer->buffer.buffer);}}
+INLINE void        Shader11::setDSBuffers()C {REPA(buffers[ST_DS]){C BufferLink &link=buffers[ST_DS][i]; BufDS(link.index, link.buffer->buffer.buffer);}}
+INLINE void        Shader11::setPSBuffers()C {REPA(buffers[ST_PS]){C BufferLink &link=buffers[ST_PS][i]; BufPS(link.index, link.buffer->buffer.buffer);}}
+INLINE void ComputeShader11::setBuffers  ()C {REPA(buffers       ){C BufferLink &link=buffers       [i]; BufCS(link.index, link.buffer->buffer.buffer);}}
 
 INLINE void Shader11::setVSImages()C {REPA(images[ST_VS]){C ImageLink &link=images[ST_VS][i]; D.texVS(link.index, link.image->getSRV());}}
 INLINE void Shader11::setHSImages()C {REPA(images[ST_HS]){C ImageLink &link=images[ST_HS][i]; D.texHS(link.index, link.image->getSRV());}}
@@ -1227,10 +1245,8 @@ INLINE void Shader11::setDSImages()C {REPA(images[ST_DS]){C ImageLink &link=imag
 INLINE void Shader11::setPSImages()C {REPA(images[ST_PS]){C ImageLink &link=images[ST_PS][i]; D.texPS(link.index, link.image->getSRV());}}
 #endif
 
-void Shader11::commit()C
-{
-   REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}
-}
+void        Shader11::commit()C {REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}}
+void ComputeShader11::commit()C {REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}}
 void Shader11::commitTex()C
 {
    if(hs)
@@ -1611,7 +1627,8 @@ ShaderFile::ShaderFile()
 void ShaderFile::del()
 {
    // !! keep this to properly delete '_shaders', because type sizes and constructors are hidden !!
-  _shaders.del(); // first delete this, then individual shaders
+          _shaders.del(); // first delete this, then individual shaders
+  _compute_shaders.del(); // first delete this, then individual shaders
 
   _vs.del();
   _hs.del();
