@@ -324,10 +324,14 @@ Half AO_PS
          Vec  dir=Tangent(dir2, nrm_scaled, eye_dir);
          dir2*=offs_scale;
 
+      #if 1 // this reduces performance but increases quality on viewport edges, by disabling instant darkening when objects appear on the borders, instead it smoothens the darkening based on how much the object appeared in the viewport
          Flt frac=ViewportClamp(inTex+dir2, dir2);
          // instead of reducing movement "dir2*=1-frac;" limit number of steps, because reduced movement would change weights for samples
          Int steps=Floor(max_steps*(1-frac)+HALF_MIN+(JITTER?jitter_step:0)); // this will have the same effect as if ignoring samples outside of viewport
          weight+=(max_steps-steps)*0.5; // add 0.5 weight for each step skipped
+      #else
+         Int steps=max_steps;
+      #endif
 
          Flt o, w;
        //o=0; w=1; VecI2 last_uv=0;
