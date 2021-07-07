@@ -1015,23 +1015,23 @@ ShaderVS11::~ShaderVS11() {if(vs){/*SyncLocker locker(D._lock); if(vs)*/{if(D.cr
 ShaderHS11::~ShaderHS11() {if(hs){/*SyncLocker locker(D._lock); if(hs)*/{if(D.created())hs->Release(); hs=null;}}} // clear while in lock
 ShaderDS11::~ShaderDS11() {if(ds){/*SyncLocker locker(D._lock); if(ds)*/{if(D.created())ds->Release(); ds=null;}}} // clear while in lock
 ShaderPS11::~ShaderPS11() {if(ps){/*SyncLocker locker(D._lock); if(ps)*/{if(D.created())ps->Release(); ps=null;}}} // clear while in lock
+ShaderCS11::~ShaderCS11() {if(cs){/*SyncLocker locker(D._lock); if(cs)*/{if(D.created())cs->Release(); cs=null;}}} // clear while in lock
 #endif
 
 #if GL_LOCK
-ShaderVSGL::~ShaderVSGL() {if(vs){SyncLocker locker(D._lock); if(D.created())glDeleteShader(vs); vs=0;}} // clear while in lock
-ShaderPSGL::~ShaderPSGL() {if(ps){SyncLocker locker(D._lock); if(D.created())glDeleteShader(ps); ps=0;}} // clear while in lock
+ShaderSubGL::~ShaderSubGL() {if(shader){SyncLocker locker(D._lock); if(D.created())glDeleteShader(shader); shader=0;}} // clear while in lock
 #elif GL
-ShaderVSGL::~ShaderVSGL() {if(vs){if(D.created())glDeleteShader(vs); vs=0;}} // clear while in lock
-ShaderPSGL::~ShaderPSGL() {if(ps){if(D.created())glDeleteShader(ps); ps=0;}} // clear while in lock
+ShaderSubGL::~ShaderSubGL() {if(shader){if(D.created())glDeleteShader(shader); shader=0;}} // clear while in lock
 #endif
 
 #if DX11
 // lock not needed for DX11 'D3D', however we need a lock because this may get called from multiple threads at the same time, but we can use another lock to allow processing during rendering (when D._lock is locked)
 static SyncLock ShaderLock; // use custom lock instead of 'D._lock' to allow shader creation while rendering
-ID3D11VertexShader* ShaderVS11::create() {if(!vs && elms()){SyncLocker locker(ShaderLock); if(!vs && elms() && D3D){D3D->CreateVertexShader(data(), elms(), null, &vs); clean();}} return vs;}
-ID3D11HullShader  * ShaderHS11::create() {if(!hs && elms()){SyncLocker locker(ShaderLock); if(!hs && elms() && D3D){D3D->CreateHullShader  (data(), elms(), null, &hs); clean();}} return hs;}
-ID3D11DomainShader* ShaderDS11::create() {if(!ds && elms()){SyncLocker locker(ShaderLock); if(!ds && elms() && D3D){D3D->CreateDomainShader(data(), elms(), null, &ds); clean();}} return ds;}
-ID3D11PixelShader * ShaderPS11::create() {if(!ps && elms()){SyncLocker locker(ShaderLock); if(!ps && elms() && D3D){D3D->CreatePixelShader (data(), elms(), null, &ps); clean();}} return ps;}
+ID3D11VertexShader * ShaderVS11::create() {if(!vs && elms()){SyncLocker locker(ShaderLock); if(!vs && elms() && D3D){D3D->CreateVertexShader (data(), elms(), null, &vs); clean();}} return vs;}
+ID3D11HullShader   * ShaderHS11::create() {if(!hs && elms()){SyncLocker locker(ShaderLock); if(!hs && elms() && D3D){D3D->CreateHullShader   (data(), elms(), null, &hs); clean();}} return hs;}
+ID3D11DomainShader * ShaderDS11::create() {if(!ds && elms()){SyncLocker locker(ShaderLock); if(!ds && elms() && D3D){D3D->CreateDomainShader (data(), elms(), null, &ds); clean();}} return ds;}
+ID3D11PixelShader  * ShaderPS11::create() {if(!ps && elms()){SyncLocker locker(ShaderLock); if(!ps && elms() && D3D){D3D->CreatePixelShader  (data(), elms(), null, &ps); clean();}} return ps;}
+ID3D11ComputeShader* ShaderCS11::create() {if(!cs && elms()){SyncLocker locker(ShaderLock); if(!cs && elms() && D3D){D3D->CreateComputeShader(data(), elms(), null, &cs); clean();}} return cs;}
 #elif GL
 CChar8* GLSLVersion()
 {
@@ -1047,12 +1047,12 @@ CChar8* GLSLVersion()
    }
 }
 static SyncLock ShaderLock; // use custom lock instead of 'D._lock' to allow shader creation while rendering
-UInt ShaderVSGL::create(Str *messages)
+UInt ShaderSubGL::create(UInt gl_type, Str *messages)
 {
-   if(!vs && elms())
+   if(!shader && elms())
    {
       SyncLocker locker(GL_LOCK ? D._lock : ShaderLock);
-      if(!vs && elms())
+      if(!shader && elms())
       {
          CPtr data; Int size;
       #if COMPRESS_GL_SHADER // compressed
@@ -1060,7 +1060,7 @@ UInt ShaderVSGL::create(Str *messages)
       #else // uncompressed
          data=T.data(); size=T.elms();
       #endif
-         UInt vs=glCreateShader(GL_VERTEX_SHADER); if(!vs)Exit("Can't create GL_VERTEX_SHADER"); // create into temp var first and set to this only after fully initialized
+         UInt shader=glCreateShader(gl_type); if(!shader)Exit("Can't create GL SHADER"); // create into temp var first and set to this only after fully initialized
 
          CChar8 *srcs[]=
          {
@@ -1078,100 +1078,40 @@ UInt ShaderVSGL::create(Str *messages)
       #ifdef GL_SHADER_BINARY_FORMAT_SPIR_V_ARB
          if(D.SpirVAvailable())
          {
-            glShaderBinary(1, &vs, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, data, size);
-            glSpecializeShader(vs, "main", 0, null, null);
+            glShaderBinary(1, &shader, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, data, size);
+            glSpecializeShader(shader, "main", 0, null, null);
          }else
       #endif
          {
-            glShaderSource(vs, Elms(srcs), srcs, null); glCompileShader(vs); // compile
+            glShaderSource(shader, Elms(srcs), srcs, null); glCompileShader(shader); // compile
          }
 
-         GLint ok; glGetShaderiv(vs, GL_COMPILE_STATUS, &ok);
-         if(   ok)T.vs=vs;else // set to this only after all finished, so if another thread runs this method, it will detect 'vs' presence only after it was fully initialized
+         GLint ok; glGetShaderiv(shader, GL_COMPILE_STATUS, &ok);
+         if(   ok)T.shader=shader;else // set to this only after all finished, so if another thread runs this method, it will detect 'shader' presence only after it was fully initialized
          {
             if(messages)
             {
-               Char8 error[64*1024]; error[0]=0; glGetShaderInfoLog(vs, Elms(error), null, error);
+               Char8 error[64*1024]; error[0]=0; glGetShaderInfoLog(shader, Elms(error), null, error);
                messages->line()+=(S+"Vertex Shader compilation failed:\n"+error).line()+"Vertex Shader code:\n";
                if(!D.SpirVAvailable())FREPA(srcs)*messages+=srcs[i];
                messages->line();
             }
-            glDeleteShader(vs); //vs=0; not needed since it's a temporary
+            glDeleteShader(shader); //shader=0; not needed since it's a temporary
          }
 
          clean();
       }
    }
-   return vs;
-}
-UInt ShaderPSGL::create(Str *messages)
-{
-   if(!ps && elms())
-   {
-      SyncLocker locker(GL_LOCK ? D._lock : ShaderLock);
-      if(!ps && elms())
-      {
-         CPtr data; Int size;
-      #if COMPRESS_GL_SHADER // compressed
-         File src, temp; src.readMem(T.data(), T.elms()); if(!Decompress(src, temp, true))return 0; temp.pos(0); data=temp.mem(); size=temp.size(); // decompress shader
-      #else // uncompressed
-         data=T.data(); size=T.elms();
-      #endif
-         UInt ps=glCreateShader(GL_FRAGMENT_SHADER); if(!ps)Exit("Can't create GL_FRAGMENT_SHADER"); // create into temp var first and set to this only after fully initialized
-
-         CChar8 *srcs[]=
-         {
-            GLSLVersion(), // version must be first
-         #if GL_ES
-            "#define noperspective\n", // 'noperspective' not available on GL ES
-         #endif
-         #if LINUX // FIXME - https://forums.intel.com/s/question/0D50P00004QfQyQSAV/graphics-driver-bug-linux-glsl-cant-handle-precisions
-            "#define mediump\n#define highp\n#define precision\n", // Linux drivers fail to process constants VS "mediump float v;" PS "precision mediump float; float v;"
-         #endif
-            (CChar8*)data
-         };
-
-      #ifdef GL_SHADER_BINARY_FORMAT_SPIR_V_ARB
-         if(D.SpirVAvailable())
-         {
-            glShaderBinary(1, &ps, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, data, size);
-            glSpecializeShader(ps, "main", 0, null, null);
-         }else
-      #endif
-         {
-            glShaderSource(ps, Elms(srcs), srcs, null); glCompileShader(ps); // compile
-         }
-
-         GLint ok; glGetShaderiv(ps, GL_COMPILE_STATUS, &ok);
-         if(   ok)T.ps=ps;else // set to this only after all finished, so if another thread runs this method, it will detect 'ps' presence only after it was fully initialized
-         {
-            if(messages)
-            {
-               Char8 error[64*1024]; error[0]=0; glGetShaderInfoLog(ps, Elms(error), null, error);
-               messages->line()+=(S+"Pixel Shader compilation failed:\n"+error).line()+"Pixel Shader code:\n";
-               if(!D.SpirVAvailable())FREPA(srcs)*messages+=srcs[i];
-               messages->line();
-            }
-            glDeleteShader(ps); //ps=0; not needed since it's a temporary
-         }
-
-         clean();
-      }
-   }
-   return ps;
+   return shader;
 }
 static Str ShaderSource(UInt shader)
 {
    Char8  source[64*1024]; if(shader)glGetShaderSource(shader, SIZE(source), null, source);else source[0]=0;
    return source;
 }
-Str ShaderVSGL::source()
+Str ShaderSubGL::source()
 {
-   return ShaderSource(vs);
-}
-Str ShaderPSGL::source()
-{
-   return ShaderSource(ps);
+   return ShaderSource(shader);
 }
 #endif
 /******************************************************************************/
@@ -1430,7 +1370,7 @@ static UInt CreateProgramFromBinary(File &f)
       return CreateProgramFromBinary(shader_data.data(), shader_data.elms());
    }
 }
-UInt ShaderGL::compile(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array, ShaderFile *shader, Str *messages) // this function doesn't need to be multi-threaded safe, it's called by 'validate' where it's already surrounded by a lock, GL thread-safety should be handled outside of this function
+UInt ShaderGL::compile(MemPtr<ShaderSubGL> vs_array, MemPtr<ShaderSubGL> ps_array, ShaderFile *shader, Str *messages) // this function doesn't need to be multi-threaded safe, it's called by 'validate' where it's already surrounded by a lock, GL thread-safety should be handled outside of this function
 {
    if(messages)messages->clear();
    UInt prog=0; // have to operate on temp variable, so we can return it to 'validate' which still has to do some things before setting it into 'this'
@@ -1452,8 +1392,8 @@ UInt ShaderGL::compile(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array,
    }
 
    // prepare shaders
-   if(!vs && InRange(vs_index, vs_array)){if(LogInit)LogN(S+"Compiling vertex shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\""); vs=vs_array[vs_index].create(messages);} // no need for 'AtomicSet' because we don't need to be multi-thread safe here
-   if(!ps && InRange(ps_index, ps_array)){if(LogInit)LogN(S+ "Compiling pixel shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\""); ps=ps_array[ps_index].create(messages);} // no need for 'AtomicSet' because we don't need to be multi-thread safe here
+   if(!vs && InRange(vs_index, vs_array)){if(LogInit)LogN(S+"Compiling vertex shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\""); vs=vs_array[vs_index].create(GL_VERTEX_SHADER  , messages);} // no need for 'AtomicSet' because we don't need to be multi-thread safe here
+   if(!ps && InRange(ps_index, ps_array)){if(LogInit)LogN(S+ "Compiling pixel shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\""); ps=ps_array[ps_index].create(GL_FRAGMENT_SHADER, messages);} // no need for 'AtomicSet' because we don't need to be multi-thread safe here
 
    // prepare program
    if(vs && ps)
@@ -1677,6 +1617,7 @@ void ShaderFile::del()
   _hs.del();
   _ds.del();
   _ps.del();
+  _cs.del();
 
   _buffer_links.del();
    _image_links.del();

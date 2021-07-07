@@ -287,29 +287,28 @@ struct ShaderPS11 : ShaderData
    ShaderPS11() {}
    NO_COPY_CONSTRUCTOR(ShaderPS11);
 };
+struct ShaderCS11 : ShaderData
+{
+   ID3D11ComputeShader *cs=null;
+
+   ID3D11ComputeShader* create();
+
+  ~ShaderCS11();
+   ShaderCS11() {}
+   NO_COPY_CONSTRUCTOR(ShaderCS11);
+};
 #endif
 /******************************************************************************/
-struct ShaderVSGL : ShaderData
+struct ShaderSubGL : ShaderData
 {
-   UInt vs=0;
+   UInt shader=0;
 
-   UInt create(Str *messages);
+   UInt create(UInt gl_type, Str *messages);
    Str  source();
 
-  ~ShaderVSGL();
-   ShaderVSGL() {}
-   NO_COPY_CONSTRUCTOR(ShaderVSGL);
-};
-struct ShaderPSGL : ShaderData
-{
-   UInt ps=0;
-
-   UInt create(Str *messages);
-   Str  source();
-
-  ~ShaderPSGL();
-   ShaderPSGL() {}
-   NO_COPY_CONSTRUCTOR(ShaderPSGL);
+  ~ShaderSubGL();
+   ShaderSubGL() {}
+   NO_COPY_CONSTRUCTOR(ShaderSubGL);
 };
 /******************************************************************************/
 struct BufferLink
@@ -398,7 +397,7 @@ struct ShaderGL
    Str8                          name;
 
    Str  source   ()C;
-   UInt compile  (MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array, ShaderFile *shader, Str *messages);
+   UInt compile  (MemPtr<ShaderSubGL> vs_array, MemPtr<ShaderSubGL> ps_array, ShaderFile *shader, Str *messages);
    Bool validate (ShaderFile &shader, Str *messages=null);
    void commit   ()C;
    void commitTex()C;
@@ -477,16 +476,18 @@ private:
       Mems<ShaderHS11> _hs;
       Mems<ShaderDS11> _ds;
       Mems<ShaderPS11> _ps;
+      Mems<ShaderCS11> _cs;
    #elif GL
-      Mems<ShaderVSGL> _vs;
-      Mems<ShaderData> _hs;
-      Mems<ShaderData> _ds;
-      Mems<ShaderPSGL> _ps;
+      Mems<ShaderSubGL> _vs;
+      Mems<ShaderSubGL> _hs;
+      Mems<ShaderSubGL> _ds;
+      Mems<ShaderSubGL> _ps;
+      Mems<ShaderSubGL> _cs;
    #endif
    Mems<Mems<BufferLink>> _buffer_links;
    Mems<Mems< ImageLink>>  _image_links;
 #else
-   Mems<ShaderData> _vs, _hs, _ds, _ps, _buffer_links, _image_links;
+   Mems<ShaderData> _vs, _hs, _ds, _ps, _cs, _buffer_links, _image_links;
 #endif
    Mems<Shader    > _shaders;
    NO_COPY_CONSTRUCTOR(ShaderFile);
