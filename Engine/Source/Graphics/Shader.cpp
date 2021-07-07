@@ -1160,15 +1160,17 @@ Bool ComputeShader11::validate(ShaderFile &shader, Str *messages) // this functi
    return cs;
 }
 #if 1
-static ID3D11VertexShader *VShader;   static INLINE void SetVS(ID3D11VertexShader *shader) {if(VShader!=shader || FORCE_SHADER)D3DC->VSSetShader(VShader=shader, null, 0);}
-static ID3D11HullShader   *HShader;   static INLINE void SetHS(ID3D11HullShader   *shader) {if(HShader!=shader || FORCE_SHADER)D3DC->HSSetShader(HShader=shader, null, 0);}
-static ID3D11DomainShader *DShader;   static INLINE void SetDS(ID3D11DomainShader *shader) {if(DShader!=shader || FORCE_SHADER)D3DC->DSSetShader(DShader=shader, null, 0);}
-static ID3D11PixelShader  *PShader;   static INLINE void SetPS(ID3D11PixelShader  *shader) {if(PShader!=shader || FORCE_SHADER)D3DC->PSSetShader(PShader=shader, null, 0);}
+static ID3D11VertexShader  *VShader;   static INLINE void SetVS(ID3D11VertexShader  *shader) {if(VShader!=shader || FORCE_SHADER)D3DC->VSSetShader(VShader=shader, null, 0);}
+static ID3D11HullShader    *HShader;   static INLINE void SetHS(ID3D11HullShader    *shader) {if(HShader!=shader || FORCE_SHADER)D3DC->HSSetShader(HShader=shader, null, 0);}
+static ID3D11DomainShader  *DShader;   static INLINE void SetDS(ID3D11DomainShader  *shader) {if(DShader!=shader || FORCE_SHADER)D3DC->DSSetShader(DShader=shader, null, 0);}
+static ID3D11PixelShader   *PShader;   static INLINE void SetPS(ID3D11PixelShader   *shader) {if(PShader!=shader || FORCE_SHADER)D3DC->PSSetShader(PShader=shader, null, 0);}
+static ID3D11ComputeShader *CShader;   static INLINE void SetCS(ID3D11ComputeShader *shader) {if(CShader!=shader || FORCE_SHADER)D3DC->CSSetShader(CShader=shader, null, 0);}
 #else
-static INLINE void SetVS(ID3D11VertexShader *shader) {D3DC->VSSetShader(shader, null, 0);}
-static INLINE void SetHS(ID3D11HullShader   *shader) {D3DC->HSSetShader(shader, null, 0);}
-static INLINE void SetDS(ID3D11DomainShader *shader) {D3DC->DSSetShader(shader, null, 0);}
-static INLINE void SetPS(ID3D11PixelShader  *shader) {D3DC->PSSetShader(shader, null, 0);}
+static INLINE void SetVS(ID3D11VertexShader  *shader) {D3DC->VSSetShader(shader, null, 0);}
+static INLINE void SetHS(ID3D11HullShader    *shader) {D3DC->HSSetShader(shader, null, 0);}
+static INLINE void SetDS(ID3D11DomainShader  *shader) {D3DC->DSSetShader(shader, null, 0);}
+static INLINE void SetPS(ID3D11PixelShader   *shader) {D3DC->PSSetShader(shader, null, 0);}
+static INLINE void SetCS(ID3D11ComputeShader *shader) {D3DC->CSSetShader(shader, null, 0);}
 #endif
 
 #if 1 // set multiple in 1 API call
