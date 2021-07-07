@@ -13,8 +13,8 @@ static const ImageRTType ImageRTTypes[]=
 {
 #if LINEAR_GAMMA
    {IMAGE_R8G8B8A8_SRGB                                                    }, // 0 IMAGERT_SRGBA
-   {IMAGE_R8G8B8A8_SRGB                                                    }, // 1 IMAGERT_SRGB   (can't use IMAGE_R10G10B10A2 because it's not sRGB and will have low quality in dark colors, can't use IMAGE_R11G11B10F because it's broken, LitCol looks like no light, can't use IMAGE_R9G9B9E5F because it's not supported for RT)
-   {IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 2 IMAGERT_SRGB_P (can't use IMAGE_R10G10B10A2 because it's not sRGB and will have low quality in dark colors, can't use IMAGE_R11G11B10F because it's broken, LitCol looks like no light, can't use IMAGE_R9G9B9E5F because it's not supported for RT)
+   {IMAGE_R8G8B8A8_SRGB                                                    }, // 1 IMAGERT_SRGB   (can't use IMAGE_R10G10B10A2 because it's not sRGB and will have low quality in dark colors, can't use IMAGE_R11G11B10F because precision for 0..1 is very bad, with a max error of 0.0153656006, can't use IMAGE_R9G9B9E5F because it's not supported for RT)
+   {IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 2 IMAGERT_SRGB_P (can't use IMAGE_R10G10B10A2 because it's not sRGB and will have low quality in dark colors, can't use IMAGE_R11G11B10F because precision for 0..1 is very bad, with a max error of 0.0153656006, can't use IMAGE_R9G9B9E5F because it's not supported for RT)
    {IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                                       }, // 3 IMAGERT_SRGBA_H
    {IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 4 IMAGERT_SRGB_H
    {IMAGE_F32_4, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 5 IMAGERT_SRGBA_F
@@ -22,7 +22,7 @@ static const ImageRTType ImageRTTypes[]=
 #else
    {IMAGE_R8G8B8A8                                                                             }, // 0 IMAGERT_SRGBA
    {IMAGE_R10G10B10A2, IMAGE_R8G8B8A8                                                          }, // 1 IMAGERT_SRGB
-   {IMAGE_R10G10B10A2, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8                                }, // 2 IMAGERT_SRGB_P
+   {IMAGE_R10G10B10A2, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8                                }, // 2 IMAGERT_SRGB_P (can't use IMAGE_R11G11B10F because precision for 0..1 is very bad, with a max error of 0.0153656006)
    {IMAGE_F16_4      , IMAGE_R8G8B8A8                                                          }, // 3 IMAGERT_SRGBA_H
    {IMAGE_F16_3      , IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_R8G8B8A8                          }, // 4 IMAGERT_SRGB_H
    {IMAGE_F32_4      , IMAGE_F16_4, IMAGE_R8G8B8A8                                             }, // 5 IMAGERT_SRGBA_F
@@ -31,7 +31,7 @@ static const ImageRTType ImageRTTypes[]=
 
    {IMAGE_R8G8B8A8                                                                             }, //  7 IMAGERT_RGBA
    {IMAGE_R10G10B10A2, IMAGE_R8G8B8A8                                                          }, //  8 IMAGERT_RGB
-   {IMAGE_R10G10B10A2, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8                                }, //  9 IMAGERT_RGB_P
+   {IMAGE_R10G10B10A2, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8                                }, //  9 IMAGERT_RGB_P (can't use IMAGE_R11G11B10F because precision for 0..1 is very bad, with a max error of 0.0153656006)
    {IMAGE_F16_4      , IMAGE_R8G8B8A8                                                          }, // 10 IMAGERT_RGBA_H
    {IMAGE_F16_3      , IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_R8G8B8A8                          }, // 11 IMAGERT_RGB_H
    {IMAGE_F32_4      , IMAGE_F16_4, IMAGE_R8G8B8A8                                             }, // 12 IMAGERT_RGBA_F
