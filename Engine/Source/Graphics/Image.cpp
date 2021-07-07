@@ -246,6 +246,7 @@ IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type)
       case IMAGE_F16  :
       case IMAGE_F16_2:
       case IMAGE_F16_3:
+      case IMAGE_R11G11B10F:
          return IMAGE_F16_4;
 
       case IMAGE_F32  :
@@ -411,6 +412,7 @@ IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type) // this is for HW images, don't retu
          return IMAGE_R8G8_SIGN;
 
       case IMAGE_BC6:
+      case IMAGE_R11G11B10F:
          return IMAGE_F16_3;
    }
 }
