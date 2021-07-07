@@ -430,6 +430,22 @@ struct ShaderGL
 
   ~ShaderGL();
 };
+struct ComputeShaderGL
+{
+   UInt                        prog=0, cs=0;
+   Int                     cs_index=-1;
+   Mems<ShaderBuffer*   > all_buffers; // shader buffers used by all shader stages (CS) combined into one array
+   Mems<      BufferLink>     buffers;
+   Mems<SamplerImageLink>      images;
+   Str8                          name;
+
+   Str  source   ()C;
+   UInt compile  (MemPtr<ShaderSubGL> cs_array, ShaderFile *shader, Str *messages);
+   Bool validate (ShaderFile &shader, Str *messages=null);
+   Bool load     (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
+
+  ~ComputeShaderGL();
+};
 /******************************************************************************/
 struct ShaderBase
 {
