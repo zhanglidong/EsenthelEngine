@@ -422,8 +422,8 @@ UInt Image::pixel3D(Int x, Int y, Int z)C
    return 0;
 }
 /******************************************************************************/
-// 11 BIT FLOAT - EEEEE FFFFFF (E-5 bit Exponent, F-6 bit Fraction) uses 0x7FF0=0xFFFF-0x8000-1-2-4-8    mask from 16-bit float (16bits -sign -4smallest bits)
-// 10 BIT FLOAT - EEEEE FFFFF  (E-5 bit Exponent, F-5 bit Fraction) uses 0x7FE0=0xFFFF-0x8000-1-2-4-8-16 mask from 16-bit float (16bits -sign -5smallest bits)
+// 11 BIT FLOAT - EEEEE FFFFFF (E-5 bit Exponent, F-6 bit Fraction), there's no sign, uses 0x7FF0=0xFFFF-0x8000-1-2-4-8    mask from 16-bit float (16bits -sign -4smallest bits)
+// 10 BIT FLOAT - EEEEE FFFFF  (E-5 bit Exponent, F-5 bit Fraction), there's no sign, uses 0x7FE0=0xFFFF-0x8000-1-2-4-8-16 mask from 16-bit float (16bits -sign -5smallest bits)
 static Vec GetR11G11B10F(CPtr data)
 {
    VecH h;
@@ -435,7 +435,7 @@ static Vec GetR11G11B10F(CPtr data)
 }
 static void SetR11G11B10F(Ptr data, C Vec &rgb)
 {
-   VecH h=rgb;
+   VecH h=rgb; // if negative   ? 0
   *(UInt*)data=(h.x.data&0x8000 ? 0 : ((h.x.data&0x7FF0)>>    4 ))
               |(h.y.data&0x8000 ? 0 : ((h.y.data&0x7FF0)<<(11-4)))
               |(h.z.data&0x8000 ? 0 : ((h.z.data&0x7FE0)<<(22-5)));
