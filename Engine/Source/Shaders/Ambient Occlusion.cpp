@@ -303,6 +303,7 @@ Half AO_PS
             weight+=2;
          }
       }
+      return Max(AmbientMin, 1-AmbientContrast*occl/weight);
    }
    #endif
 
@@ -361,7 +362,8 @@ Half AO_PS
             weight+=w;
          }
       }
-      occl*=2; // multiply by 2 to match AO_MAX mode
+    //occl*=2; // multiply by 2 to match AO_MAX mode
+      return Max(AmbientMin, 1-AmbientContrast2*occl/weight);
    }
    #endif
 
@@ -401,7 +403,8 @@ Half AO_PS
             occl+=w1*o1; weight+=w1;
          }
       }
-      occl*=2; // multiply by 2 to match AO_MAX mode
+    //occl*=2; // multiply by 2 to match AO_MAX mode
+      return Max(AmbientMin, 1-AmbientContrast2*occl/weight);
    #endif
    #if 0 // alternative AO_AVG
       Int angles, max_steps;
@@ -477,7 +480,8 @@ Half AO_PS
             weight+=w;
          }
       }
-      occl*=2; // multiply by 2 to match AO_MAX mode
+    //occl*=2; // multiply by 2 to match AO_MAX mode
+      return Max(AmbientMin, 1-AmbientContrast2*occl/weight);
    #endif
 
    #if AO_MODE==AO_PATTERN
@@ -534,10 +538,9 @@ Half AO_PS
          occl  +=w*o;
          weight+=w;
       }
-      occl*=2; // multiply by 2 to match AO_MAX mode
+    //occl*=2; // multiply by 2 to match AO_MAX mode
+      return Max(AmbientMin, 1-AmbientContrast2*occl/weight);
    }
    #endif
-
-   return Max(AmbientMin, 1-AmbientContrast*occl/weight);
 }
 /******************************************************************************/

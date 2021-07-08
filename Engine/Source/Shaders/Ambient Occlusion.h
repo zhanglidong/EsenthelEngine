@@ -3,7 +3,7 @@
 BUFFER(AO)
    Flt AmbientRange_2,
        AmbientRangeInvSqr2,
-       AmbientContrast,
+       AmbientContrast2,
        AmbientMin;
 BUFFER_END
 #include "!Set Prec Default.h"

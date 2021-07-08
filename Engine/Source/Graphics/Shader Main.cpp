@@ -522,8 +522,8 @@ void MainShaderClass::getTechniques()
    NightShadeColor    =GetShaderParam    ("NightShadeColor"    ); // set in 'D.ambientSet()'
    AmbientColor_l     =GetShaderParam    ("AmbientColor"       ); // set in 'D.ambientSet()'
    AmbientColorNS_l   =GetShaderParam    ("AmbientNSColor"     ); // set in 'D.ambientSet()'
-   AmbientContrast    =GetShaderParam    ("AmbientContrast"    ); AmbientContrast->set(D.ambientContrast());
-   AmbientMin         =GetShaderParam    ("AmbientMin"         ); AmbientMin     ->set(D.ambientMin     ());
+   AmbientContrast2   =GetShaderParam    ("AmbientContrast2"   ); AmbientContrast2->set(D.ambientContrast()*2);
+   AmbientMin         =GetShaderParam    ("AmbientMin"         ); AmbientMin      ->set(D.ambientMin     ()  );
    AmbientRange_2     =GetShaderParam    ("AmbientRange_2"     );
    AmbientRangeInvSqr2=GetShaderParam    ("AmbientRangeInvSqr2");
    D.ambientSet(); D.ambientSetRange();

@@ -3121,8 +3121,8 @@ DisplayClass& DisplayClass::ambientPowerS  (  Flt          srgb_power) {return a
 DisplayClass& DisplayClass::ambientColorS  (C Vec         &srgb_color) {return ambientColorL(SRGBToLinear(srgb_color));}
 DisplayClass& DisplayClass::ambientPowerL  (  Flt           lin_power) {MAX(lin_power, 0);                                                    if(_amb_color_l !=lin_power){_amb_color_l =lin_power; ambientSet();} return T;}
 DisplayClass& DisplayClass::ambientColorL  (C Vec         & lin_color) {Vec c(Max(lin_color.x, 0), Max(lin_color.y, 0), Max(lin_color.z, 0)); if(_amb_color_l !=c        ){_amb_color_l =c        ; ambientSet();} return T;}
-DisplayClass& DisplayClass::ambientContrast(  Flt          contrast  ) {MAX(contrast, 0);                                                     if(_amb_contrast!=contrast ){_amb_contrast=contrast ; Sh.AmbientContrast->set(ambientContrast());} return T;}
-DisplayClass& DisplayClass::ambientMin     (  Flt          min       ) {SAT(min        );                                                     if(_amb_min     !=min      ){_amb_min     =min      ; Sh.AmbientMin     ->set(ambientMin     ());} return T;}
+DisplayClass& DisplayClass::ambientContrast(  Flt          contrast  ) {MAX(contrast, 0);                                                     if(_amb_contrast!=contrast ){_amb_contrast=contrast ; Sh.AmbientContrast2->set(ambientContrast()*2);} return T;}
+DisplayClass& DisplayClass::ambientMin     (  Flt          min       ) {SAT(min        );                                                     if(_amb_min     !=min      ){_amb_min     =min      ; Sh.AmbientMin      ->set(ambientMin     ()  );} return T;}
 DisplayClass& DisplayClass::ambientRange   (  Flt          range     ) {MAX(range   , 0);                                                     if(_amb_range   !=range    ){_amb_range   =range    ; ambientSetRange();} return T;}
 /******************************************************************************/
 Vec           DisplayClass::nightShadeColorS(                 )C {return LinearToSRGB(nightShadeColorL());}
