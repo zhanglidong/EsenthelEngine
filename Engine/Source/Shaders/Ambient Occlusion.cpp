@@ -148,8 +148,14 @@ Half AO_PS
    NOPERSP PIXEL
 ):TARGET
 {
-   Vec nrm, pos=GetPos(TexDepthRawPoint(inTex), inPosXY), eye_dir=Normalize(pos); // !! for AO shader depth is already linearized !!
+   Vec pos; pos.z=TexDepthRawPoint(inTex); // !! for AO shader depth is already linearized !!
+   Flt raw_z=DelinearizeDepth(pos.z);
+   DEPTH_INC(raw_z, 0.00000007); // value tested on fov 25 deg, 1000 view range
+   if(DEPTH_BACKGROUND(raw_z))return 1; // test after increase because we have raw Z from linear Z, so it may not return exactly background depth
+   Flt z_eps=LinearizeDepth(raw_z)-pos.z+0.001; // convert back to linear, get delta from bigger value and original + 1 extra mm to make sure we will skip flat surfaces due to precision issues (will improve performance)
+   pos=GetPos(pos.z, inPosXY); Vec eye_dir=Normalize(pos);
 
+   Vec nrm;
    #if NORMALS
    {
       nrm=(LINEAR_FILTER ? TexLod(Img, inTex).xyz : TexPoint(Img, DownSamplePointUV(inTex)).xyz); // Nrm RT may be bigger, however we must return values to exactly match the depth, which was processed with Point filter to avoid generating fake in-between positions, so use Point too
@@ -197,16 +203,6 @@ Half AO_PS
    #endif
    }
 
-   /*if(0) // FIXME is this still needed?
-   {
-      pos.z=DelinearizeDepth(pos.z);
-      DEPTH_DEC(pos.z, 0.00000007); // value tested on fov 20 deg, 1000 view range
-      pos.z=LinearizeDepth(pos.z); // convert back to linear
-   }*/
-   Flt raw_z=DelinearizeDepth(pos.z);
-   DEPTH_INC(raw_z, 0.00000007); // value tested on fov 25 deg, 1000 view range
-   Flt z_eps=LinearizeDepth(raw_z)-pos.z+0.001; // convert back to linear, get delta from bigger value and original + 1 extra mm to make sure we will skip flat surfaces due to precision issues (will improve performance)
-
    Vec2  cos_sin;
    Flt   jitter_angle, jitter_step, jitter_half;
    VecI2 pix;
@@ -235,7 +231,7 @@ Half AO_PS
    // WARNING: limiting radius based on depth has 2 effects: increased performance (because if radius is limited then it has to look at shorter distances, increasing cache performance), and Increased AO effect for AO_AVG AO_PATTERN (because samples are focused closer to the center, AO will look stronger from closeup than from distance)
    Vec2 offs_scale=Viewport.size_fov_tan*(AmbientRange_2/Max(1.0f, pos.z)); // use /2 because we're converting from -1..1 to 0..1 scale, min depth of 1.0 has good balance between performance and increased AO effect
    Flt  occl  =0,
-        weight=0;
+        weight=0; // HALF_MIN could be used if there was a possibility no samples were processed at all
 
    //if(R)return HBAO(inTex, nrm, pos, offs_scale);
 
@@ -317,6 +313,10 @@ Half AO_PS
       if(QUALITY==1){angles= 6; max_steps=5;}else // 30
       if(QUALITY==2){angles= 8; max_steps=7;}else // 56 (Better than angles= 9; max_steps=6; AND angles=8; max_steps=6;)
                     {angles=10; max_steps=9;}     // 90 (Better than angles=10; max_steps=8; AND angles=9; max_steps=9;)
+      /*{ // disable this because it actually decreases performance
+         Int pixel_range=W ? (E ? Round(Sum(offs_scale*RTSize.zw)) : Ceil(Sum(offs_scale*RTSize.zw))) : (E ? Sum(Round(offs_scale*RTSize.zw)) : Sum(Ceil(offs_scale*RTSize.zw)));
+         max_steps=Min(max_steps, pixel_range);
+      }*/
       LOOP for(Int a=0; a<angles; a++)
       {
          Flt  angle=a; if(JITTER)angle+=jitter_angle; angle*=PI2/angles; // this is best for cache

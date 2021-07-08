@@ -1674,6 +1674,7 @@ void RendererClass::tAA()
            _ctx->taa_old_alpha->clearViewport(); // here clear only for current viewport
          }
       }
+      // TODO: this could output only 1 color RT if (not final, not get target, and following post process did not modify it but always output to new RT)
       ImageRTPtr screen(rt_desc.type(col_type)); // TAA needs to output color results into 2 RT's: 'screen' and 'taa_new_col', this is because 'taa_new_col' is needed for the next frame as 'taa_old_col' to compare the results, and 'screen' is used to add post process, UI and display on the screen
       set(_ctx->taa_new_data, screen, _ctx->taa_new_col, separate_alpha ? _ctx->taa_new_alpha : _ctx->taa_new_col1, null, true); // #TAADualAlpha
       D.alpha(ALPHA_NONE);
