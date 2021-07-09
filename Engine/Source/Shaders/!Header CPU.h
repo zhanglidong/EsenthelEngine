@@ -34,10 +34,6 @@
 #define FX_LEAFS_2D 5
 #define FX_LEAFS_3D 6
 
-// Motion Blur
-#define MAX_MOTION_BLUR_PIXEL_RANGE 48 // max range of pixels to blur for 2160p resolution, Warning: increasing this value will slow down performance because we need to do more dilation steps, also it would decrease precision for blur direction coordinates because currently 10-bit are used per channel #MotionBlurDilateRanges
-#define MOTION_BLUR_PREDICTIVE 1 // 1=assumes movement will continue along velocity and blur future movements too, enable because even though this mode is not correct (it blurs both ways, including the future) it helps prevent "leaking" when rotating camera around an object, where one side doesn't get blurred because it wants to get samples behind the object however they're not avaialble since the object covers them, so when blurring in both ways, we can just use samples from the other side
-
 // Temporal Anti-Aliasing
 #define TAA_SEPARATE_ALPHA 1 // if store alpha in a separate TAA RT, if 0 then it's stored in TAA Data RT
 #define TAA_OLD_VEL        1

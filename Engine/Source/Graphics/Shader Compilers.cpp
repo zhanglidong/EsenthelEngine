@@ -568,26 +568,17 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Motion Blur", model, api, flag).New(src_path+"Motion Blur.cpp");
    //src.New("Explosion", "Explosion_VS", "Explosion_PS");
 
-   REPD(mode , 2)
-   REPD(clamp, 2)src.New("Convert", "Convert_VS", "Convert_PS")("MODE", mode, "CLAMP", clamp);
+   src.New("SetVel", "SetVel_VS", "SetVel_PS");
+
+   REPD(clamp, 2)src.New("Convert", "Draw_VS", "Convert_PS")("CLAMP", clamp);
 
    src.New("Dilate", "Draw_VS", "Dilate_PS");
-
-   REPD(clamp, 2)src.New("SetDirs", "Draw_VS", "SetDirs_PS")("CLAMP", clamp);
 
    const Int samples[]={5, 7, 9, 14}; // 5-720, 7-1080, 9-1440, 14-2160 #MotionBlurSamples
    REPD (dither, 2)
    REPD (alpha , 2)
    REPAD(sample, samples)
-      src.New("Blur", "Draw_VS", "Blur_PS")("DITHER", dither, "ALPHA", alpha, "MAX_BLUR_SAMPLES", samples[sample]);
-
-   const Int ranges[]={1, 2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48}; // #MotionBlurDilateRanges
-   REPD (diagonal, 2)
-   REPAD(range   , ranges)
-   {
-      src.New("DilateX", "Draw_VS", "DilateX_PS")("DIAGONAL", diagonal, "RANGE", ranges[range]);
-      src.New("DilateY", "Draw_VS", "DilateY_PS")("DIAGONAL", diagonal, "RANGE", ranges[range]);
-   }
+      src.New("Blur", "Draw_VS", "Blur_PS")("DITHER", dither, "ALPHA", alpha, "SAMPLES", samples[sample]);
 }
 #endif
 

@@ -54,9 +54,8 @@ enum RENDER_STAGE : Byte // Rendering Stage, allows displaying only desired rend
    RS_WATER_NORMAL, // display Water       Normal (available only in RT_DEFERRED and if 'Water.max1Light' is disabled)
    RS_WATER_LIGHT , // display Water       Light  (available only in RT_DEFERRED and if 'Water.max1Light' is disabled)
 #if EE_PRIVATE
-   RS_VEL_CONVERT , // display Converted    Velocity (available only in RT_DEFERRED)
-   RS_VEL_DILATED , // display Dilated      Velocity (available only in RT_DEFERRED)
-   RS_VEL_LEAK    , // display Leak Removed Velocity (available only in RT_DEFERRED)
+   RS_VEL_CONVERT , // display Converted Velocity (available only in RT_DEFERRED)
+   RS_VEL_DILATED , // display Dilated   Velocity (available only in RT_DEFERRED)
    RS_SKY_COVERAGE, // display Sky Coverage
 #endif
 };

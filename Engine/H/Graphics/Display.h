@@ -58,14 +58,6 @@ enum MOTION_MODE : Byte // Motion Blur Mode
    MOTION_CAMERA_OBJECT, // screen is blurred according to camera and object velocities, available only in RT_DEFERRED renderer
    MOTION_NUM          , // number of motion blur modes
 };
-enum DILATE_MODE : Byte // Motion Blur Velocity Dilate Mode
-{
-   DILATE_ORTHO , // orthogonal mode is the fastest, but makes diagonal velocities a bit shorter
-   DILATE_MIXED , // achieves quality and performance between DILATE_ORTHO and DILATE_ORTHO2
-   DILATE_ORTHO2, // slower than DILATE_ORTHO but handles diagonal velocities better
-   DILATE_ROUND , // best quality but slowest
-   DILATE_NUM   , // number of dilate modes
-};
 enum DOF_MODE : Byte // Depth of Field Mode
 {
    DOF_NONE    , // none
@@ -191,9 +183,8 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
                                                                      Byte             ambientResFast    ()C {return _amb_res          ;} // get    Ambient Resolution
                                                                      Bool             multiSample       ()C {return _samples>1        ;} // get if Multi Sampling is used
                                                                      void             aspectRatioEx     (Bool force=true, Bool quiet=false);
-                                                           constexpr Bool             signedNrmRT       ()C {return false             ;} // if Normal     Render Target  is  signed #SIGNED_NRM_RT
-                                                           constexpr Bool             signedVelRT       ()C {return true              ;} // if Velocity   Render Target  is  signed
-                                                           constexpr Bool             signedMtnRT       ()C {return false             ;} // if MotionBlur Render Targets are signed #SIGNED_MTN_RT
+                                                           constexpr Bool             signedNrmRT       ()C {return false             ;} // if Normal   Render Target is signed #SIGNED_NRM_RT
+                                                           constexpr Bool             signedVelRT       ()C {return true              ;} // if Velocity Render Target is signed
                                                                      Flt              eyeDistance_2     ()C {return _eye_dist_2       ;}
                                                                      Bool             exclusiveFull     ()C;                             // if actually in exclusive full-screen mode
                                                                      Bool             colorManaged      ()C {return _color_lut.is()   ;} // if need to perform any color transformations
@@ -331,10 +322,9 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
 #endif
 
    // Motion Blur
-   DisplayClass& motionMode  (MOTION_MODE mode );   MOTION_MODE motionMode  ()C {return _mtn_mode  ;} // set/get Motion Blur Mode           (MOTION_MODE, default=MOTION_NONE  ), the change is instant, you can call it real-time
-   DisplayClass& motionDilate(DILATE_MODE mode );   DILATE_MODE motionDilate()C {return _mtn_dilate;} // set/get Motion Blur Mode           (DILATE_MODE, default=DILATE_ORTHO2), the change is instant, you can call it real-time
-   DisplayClass& motionScale (Flt         scale);   Flt         motionScale ()C {return _mtn_scale ;} // set/get Motion Blur Velocity Scale (  0..1     , default=          1.0), the change is instant, you can call it real-time
-   DisplayClass& motionRes   (Flt         scale);   Flt         motionRes   ()C;                      // set/get Motion Blur Resolution     (  0..1     , default=          1/3), this determines the size of the buffers used for calculating the Motion Blur effect, 1=full size, 0.5=half size, 0.25=quarter size, .., smaller sizes offer faster performance but worse quality, the change is NOT instant, avoid calling real-time
+   DisplayClass& motionMode (MOTION_MODE mode );   MOTION_MODE motionMode ()C {return _mtn_mode ;} // set/get Motion Blur Mode           (MOTION_MODE, default=MOTION_NONE  ), the change is instant, you can call it real-time
+   DisplayClass& motionScale(Flt         scale);   Flt         motionScale()C {return _mtn_scale;} // set/get Motion Blur Velocity Scale (  0..1     , default=          1.0), the change is instant, you can call it real-time
+   DisplayClass& motionRes  (Flt         scale);   Flt         motionRes  ()C;                     // set/get Motion Blur Resolution     (  0..1     , default=         1/16), this determines the size of the buffers used for calculating the Motion Blur effect, 1=full size, 0.5=half size, 0.25=quarter size, .., smaller sizes offer faster performance but worse quality, the change is NOT instant, avoid calling real-time
 
    // Depth of Field
 #if EE_PRIVATE
@@ -528,7 +518,6 @@ private:
    AMBIENT_MODE      _amb_mode;
    SHADOW_MODE       _shd_mode;
    MOTION_MODE       _mtn_mode;
-   DILATE_MODE       _mtn_dilate;
    DOF_MODE          _dof_mode;
    EDGE_DETECT_MODE  _edge_detect, _outline_mode;
    EDGE_SOFTEN_MODE  _edge_soften;

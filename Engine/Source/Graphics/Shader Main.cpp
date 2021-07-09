@@ -476,9 +476,9 @@ void MainShaderClass::getTechniques()
    RTSize            =GetShaderParam("RTSize"  );
    Coords            =GetShaderParam("Coords"  );
    Viewport          =GetShaderParam("Viewport");
+   AspectRatio       =GetShaderParam("AspectRatio");
    TAAOffset         =GetShaderParam("TAAOffset");
    TAAOffsetCurToPrev=GetShaderParam("TAAOffsetCurToPrev");
-   TAAAspectRatio    =GetShaderParam("TAAAspectRatio");
    DepthWeightScale  =GetShaderParam("DepthWeightScale");
 
    ViewMatrix    =GetShaderParam("ViewMatrix"    );
@@ -854,15 +854,13 @@ void MotionBlur::load()
 {
    if(!shader)if(shader=ShaderFiles("Motion Blur"))
    {
-      MotionScaleLimit=GetShaderParam("MotionScaleLimit");
-      MotionPixelSize =GetShaderParam("MotionPixelSize");
+      MotionScale_2=GetShaderParam("MotionScale_2"); MotionScale_2->set(D.motionScale()*0.5f);
 
       //Explosion=shader->get("Explosion");
 
-      REPD(h, 2)
-      REPD(c, 2)Convert[h][c]=shader->get(S8+"Convert"+h+c);
+      SetVel=shader->get("SetVel");
 
-      Dilate=shader->get("Dilate");
+      REPD(c, 2)Convert[c]=shader->get(S8+"Convert"+c);
 
       REPD(c, 2)SetDirs[c]=shader->get(S8+"SetDirs"+c);
 
@@ -888,21 +886,6 @@ void MotionBlur::load()
       Blurs[3].samples=14;
       ASSERT(ELMS(Blurs)==4);
    }
-}
-C MotionBlur::DilateRange* MotionBlur::getDilate(Int pixels, Bool diagonal)
-{
-   if(pixels<=0)return null;
-   DilateRange *p;
-   FREPA(Dilates) // start from the smallest to find exact match or bigger, order is important
-   {
-      p=&Dilates[i]; if(p->pixels>=pixels)break; // if this covers desired range of pixels to blur
-   }
-   if(!p->DilateX[diagonal])
-   {
-      p->DilateX[diagonal]=shader->get(S8+"DilateX"+diagonal+p->pixels);
-      p->DilateY[diagonal]=shader->get(S8+"DilateY"+diagonal+p->pixels);
-   }
-   return p;
 }
 Shader* MotionBlur::getBlur(Int samples, Bool dither, Bool alpha)
 {

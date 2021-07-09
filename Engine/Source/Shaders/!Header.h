@@ -384,6 +384,7 @@ BUFFER_I(Frame, SBI_FRAME) // once per-frame
    Flt   TesselationDensity        ; // tesselation density
    Bool  FirstPass=true            ; // if first pass (apply Material Emissive and Light from Glow)
    VecH  AmbientNSColor            ; // ambient combined with night shade
+   Half  AspectRatio               ; // converts UV to Screen aspect ratio
    VecH  EnvColor                  ; // environment map color
    Half  EnvMipMaps                ; // environment map mip-maps
    VecH4 BendFactor                ; // factors used for grass/leaf bending calculation

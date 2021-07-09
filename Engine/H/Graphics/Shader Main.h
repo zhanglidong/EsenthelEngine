@@ -56,9 +56,9 @@ struct MainShaderClass
       *RTSize  ,
       *Coords  =&Dummy,
       *Viewport=&Dummy,
+      *AspectRatio,
       *TAAOffset         =&Dummy,
       *TAAOffsetCurToPrev=&Dummy,
-      *TAAAspectRatio,
       *DepthWeightScale=&Dummy,
 
       *ViewMatrix    =&Dummy,
@@ -415,19 +415,16 @@ struct HDR
 struct MotionBlur
 {
    ShaderFile  *shader;
-   ShaderParam *MotionScaleLimit   ,
-               *MotionPixelSize    ;
-   Shader      *Explosion          ,
-               *Convert      [2][2], // [High][Clamp]
-               *Dilate             ,
-               *SetDirs      [2]   ; // [Clamp]
+   ShaderParam *MotionScale_2=&Sh.Dummy;
+   Shader      *Explosion,
+               *SetVel,
+               *Convert[6][2]; // [Range][Clamp]
 
    struct DilateRange
    {
-      Int     pixels;
-      Shader *DilateX[2], // [Diagonal]
-             *DilateY[2]; // [Diagonal]
-   }Dilates[12];
+      Int     range;
+      Shader *Dilate;
+   }Dilates[6];
 
    struct BlurRange
    {
@@ -436,8 +433,7 @@ struct MotionBlur
    }Blurs[4];
 
    void load();
- C DilateRange* getDilate(Int pixels , Bool diagonal);
-        Shader* getBlur  (Int samples, Bool dither, Bool alpha);
+   Shader* getBlur(Int samples, Bool dither, Bool alpha);
 }extern
    Mtn;
 

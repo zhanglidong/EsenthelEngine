@@ -87,7 +87,6 @@ ALPHA=1
 BUFFER(TAA)
    Vec2 TAAOffset,
         TAAOffsetCurToPrev;
-   Half TAAAspectRatio;
 BUFFER_END
 /******************************************************************************/
 VecH RGBToYCoCg(VecH col)
@@ -196,7 +195,7 @@ Half GetBlend(VecH4 old, VecH4 cur, VecH4 min, VecH4 max) // 'cur' should be som
 void TestVel(VecH2 vel, VecH2 test_vel, inout Half max_delta_vel_len2)
 {
    VecH2 delta_vel=vel-test_vel;
-   delta_vel.x*=TAAAspectRatio; // 'delta_vel' is in UV 0..1 for both XY so mul X by aspect ratio
+   delta_vel.x*=AspectRatio; // 'delta_vel' is in UV 0..1 for both XY so mul X by aspect ratio
    Half delta_vel_len2=Length2(delta_vel);
    if(  delta_vel_len2>max_delta_vel_len2)max_delta_vel_len2=delta_vel_len2;
 }
