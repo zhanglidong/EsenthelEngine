@@ -166,8 +166,10 @@ Int  BitHi      (ULong  x); // get index of highest non-zero bit  in 'x' ( 0 if 
 Int  ByteHi     (UInt   x); // get index of highest non-zero byte in 'x' ( 0 if none)
 Int  ByteHi     (ULong  x); // get index of highest non-zero byte in 'x' ( 0 if none)
 #if EE_PRIVATE
-       Int Log2Ceil (UInt  x); // returns Ceil(Log2(x))
-       Int Log2Ceil (ULong x); // returns Ceil(Log2(x))
+       Int Log2Ceil (UInt  x); // returns Ceil (Log2(x))
+       Int Log2Ceil (ULong x); // returns Ceil (Log2(x))
+       Int Log2Round(UInt  x); // returns Round(Log2(x))
+       Int Log2Round(ULong x); // returns Round(Log2(x))
 inline Int DivCeil2 (UInt  x) {return DivCeil(x,  2u);}
 inline Int DivCeil4 (UInt  x) {return DivCeil(x,  4u);}
 inline Int DivCeil8 (UInt  x) {return DivCeil(x,  8u);}
