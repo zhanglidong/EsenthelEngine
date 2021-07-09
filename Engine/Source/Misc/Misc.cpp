@@ -790,54 +790,6 @@ void LogN(C Str &text)
 }
 void LogShow(Bool thread_id, Bool date, Bool time, Bool cur_time) {LogThreadID=thread_id; LogDate=date; LogTime=time; LogCurTime=cur_time;}
 /******************************************************************************/
-UInt Ceil2  (UInt x) {return (x+  1)&(~  1);}
-UInt Ceil4  (UInt x) {return (x+  3)&(~  3);}
-UInt Ceil8  (UInt x) {return (x+  7)&(~  7);}
-UInt Ceil16 (UInt x) {return (x+ 15)&(~ 15);}
-UInt Ceil32 (UInt x) {return (x+ 31)&(~ 31);}
-UInt Ceil64 (UInt x) {return (x+ 63)&(~ 63);}
-UInt Ceil128(UInt x) {return (x+127)&(~127);}
-
-UInt CeilPow2(UInt x)
-{
-   if(x>0x40000000)return 0x80000000; // needed for >0x80000000
-#if 1 // faster
-   if(x<=        1)return          1; // needed for 0
-   x--;
-   x|=(x>> 1);
-   x|=(x>> 2);
-   x|=(x>> 4);
-   x|=(x>> 8);
-   x|=(x>>16);
-   return x+1;
-#elif 1 // slower
-   Int b=BitHi(x); UInt p2=1u<<b; if(x>p2)p2<<=1; return p2;
-#else // slowest
-   UInt p2=1; for(; p2<x; )p2<<=1; return p2;
-#endif
-}
-UInt FloorPow2(UInt x)
-{
-#if 1 // faster
-   return x ? 1u<<BitHi(x) : 0;
-#else // slower
-   UInt p2=0x80000000; for(; p2>x; )p2>>=1; return p2;
-#endif
-}
-UInt NearestPow2(UInt x) {UInt cp2=CeilPow2(x), smaller=(cp2>>1); return (cp2-x>x-smaller && cp2>=x) ? smaller : cp2;} // "cp2>=x" needed for very big number cases where CeilPow2 returns <x, alternative version: "UInt fp2=FloorPow2(x); if(fp2!=0x80000000 && x>=fp2+(fp2>>1) && x!=1)fp2<<=1; return fp2;"
-
-Bool IsPow2(UInt x) {return !(x&(x-1));}
-
-Int  Log2Ceil (UInt  x) {return x>1 ? BitHi(x-1)+1 : 0;} // Int i=BitHi(x); if(x>(1u  <<i))i++; return i;}
-Int  Log2Ceil (ULong x) {return x>1 ? BitHi(x-1)+1 : 0;} // Int i=BitHi(x); if(x>(1ull<<i))i++; return i;}
-Int  Log2Round(UInt  x) {if(x<=1)return 0; Int i=BitHi(x); if(x>=(3u  <<(i-1)))i++; return i;} // BitHi(NearestPow2(x)) doesn't work for values close to 1<<32
-Int  Log2Round(ULong x) {if(x<=1)return 0; Int i=BitHi(x); if(x>=(3ull<<(i-1)))i++; return i;} // BitHi(NearestPow2(x)) doesn't work for values close to 1<<64
-
-UInt Shl(UInt  x, Int i) {return (i>=0) ? ((i<32) ? x<<i : 0) : ((i>-32) ? x>>-i : 0);}
-UInt Shr(UInt  x, Int i) {return (i>=0) ? ((i<32) ? x>>i : 0) : ((i>-32) ? x<<-i : 0);}
-UInt Rol(UInt  x, Int i) {i&=31; return (x<<i) | (x>>(32-i));}
-UInt Ror(UInt  x, Int i) {i&=31; return (x>>i) | (x<<(32-i));}
-
 Int BitOn(UInt x)
 {
 #if WINDOWS
@@ -941,6 +893,54 @@ Int ByteHi(ULong x)
    if(x>0x00000000000000)return 1;
                          return 0;
 }
+/******************************************************************************/
+UInt Ceil2  (UInt x) {return (x+  1)&(~  1);}
+UInt Ceil4  (UInt x) {return (x+  3)&(~  3);}
+UInt Ceil8  (UInt x) {return (x+  7)&(~  7);}
+UInt Ceil16 (UInt x) {return (x+ 15)&(~ 15);}
+UInt Ceil32 (UInt x) {return (x+ 31)&(~ 31);}
+UInt Ceil64 (UInt x) {return (x+ 63)&(~ 63);}
+UInt Ceil128(UInt x) {return (x+127)&(~127);}
+
+UInt CeilPow2(UInt x)
+{
+   if(x>0x40000000)return 0x80000000; // needed for >0x80000000
+#if 1 // faster
+   if(x<=        1)return          1; // needed for 0
+   x--;
+   x|=(x>> 1);
+   x|=(x>> 2);
+   x|=(x>> 4);
+   x|=(x>> 8);
+   x|=(x>>16);
+   return x+1;
+#elif 1 // slower
+   Int b=BitHi(x); UInt p2=1u<<b; if(x>p2)p2<<=1; return p2;
+#else // slowest
+   UInt p2=1; for(; p2<x; )p2<<=1; return p2;
+#endif
+}
+UInt FloorPow2(UInt x)
+{
+#if 1 // faster
+   return x ? 1u<<BitHi(x) : 0;
+#else // slower
+   UInt p2=0x80000000; for(; p2>x; )p2>>=1; return p2;
+#endif
+}
+UInt NearestPow2(UInt x) {UInt cp2=CeilPow2(x), smaller=(cp2>>1); return (cp2-x>x-smaller && cp2>=x) ? smaller : cp2;} // "cp2>=x" needed for very big number cases where CeilPow2 returns <x, alternative version: "UInt fp2=FloorPow2(x); if(fp2!=0x80000000 && x>=fp2+(fp2>>1) && x!=1)fp2<<=1; return fp2;"
+
+Bool IsPow2(UInt x) {return !(x&(x-1));}
+
+Int  Log2Ceil (UInt  x) {return x>1 ? BitHi(x-1)+1 : 0;} // Int i=BitHi(x); if(x>(1u  <<i))i++; return i;}
+Int  Log2Ceil (ULong x) {return x>1 ? BitHi(x-1)+1 : 0;} // Int i=BitHi(x); if(x>(1ull<<i))i++; return i;}
+Int  Log2Round(UInt  x) {if(x<=1)return 0; Int i=BitHi(x); if(x>=(3u  <<(i-1)))i++; return i;} // BitHi(NearestPow2(x)) doesn't work for values close to 1<<32
+Int  Log2Round(ULong x) {if(x<=1)return 0; Int i=BitHi(x); if(x>=(3ull<<(i-1)))i++; return i;} // BitHi(NearestPow2(x)) doesn't work for values close to 1<<64
+
+UInt Shl(UInt  x, Int i) {return (i>=0) ? ((i<32) ? x<<i : 0) : ((i>-32) ? x>>-i : 0);}
+UInt Shr(UInt  x, Int i) {return (i>=0) ? ((i<32) ? x>>i : 0) : ((i>-32) ? x<<-i : 0);}
+UInt Rol(UInt  x, Int i) {i&=31; return (x<<i) | (x>>(32-i));}
+UInt Ror(UInt  x, Int i) {i&=31; return (x>>i) | (x<<(32-i));}
 /******************************************************************************/
 Int MidMod(Int x, Int min, Int max)
 {
