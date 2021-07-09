@@ -132,14 +132,15 @@ VecH4 Dilate_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
    VecH4 motion=TexPoint(Img, inTex);
    VecH2 length2=VecH2(ScreenLength2(motion.xy), ScreenLength2(motion.zw));
-#if RANGE<=8
+#if RANGE<=7 // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range
    UNROLL for(Int y=-RANGE; y<=RANGE; y++)
    UNROLL for(Int x=-RANGE; x<=RANGE; x++)
+      if(x || y)Process(motion, length2, TexPointOfs(Img, inTex, VecI2(x, y)), VecH2(x, y), RTSize.zw);
 #else
-   LOOP   for(Int y=-RANGE; y<=RANGE; y++)
-   LOOP   for(Int x=-RANGE; x<=RANGE; x++)
+   LOOP for(Int y=-RANGE; y<=RANGE; y++)
+   LOOP for(Int x=-RANGE; x<=RANGE; x++)
+      if(x || y)Process(motion, length2, TexPoint(Img, inTex+Vec2(x, y)*RTSize.xy), VecH2(x, y), RTSize.zw);
 #endif
-      if(x || y)Process(motion, length2, TexPoint(Img, UVClamp(inTex+Vec2(x, y)*RTSize.xy, CLAMP)), VecH2(x, y), RTSize.zw);
    return motion;
 }
 /******************************************************************************/

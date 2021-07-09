@@ -889,8 +889,7 @@ void MotionBlur::load()
 }
 C MotionBlur::DilateRange& MotionBlur::getDilate(Int range)
 {
-   DilateRange *dr;
-   FREPA(Dilates) // start from the smallest to find exact match or bigger, order is important
+   DilateRange *dr; FREPA(Dilates) // start from the smallest to find exact match or bigger, order is important
    {
       dr=&Dilates[i]; if(dr->range>=range)break; // if this covers desired samples
    }
@@ -900,8 +899,7 @@ C MotionBlur::DilateRange& MotionBlur::getDilate(Int range)
 }
 Shader* MotionBlur::getBlur(Int samples, Bool dither, Bool alpha)
 {
-   BlurRange *b;
-   FREPA(Blurs) // start from the smallest to find exact match or bigger, order is important
+   BlurRange *b; FREPA(Blurs) // start from the smallest to find exact match or bigger, order is important
    {
       b=&Blurs[i]; if(b->samples>=samples)break; // if this covers desired samples
    }
