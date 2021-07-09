@@ -78,12 +78,12 @@ void Process(inout VecH4 max_min_motion, inout VecH2 length2, VecH4 sample_motio
     //if(  !pixel_motion_len)return; slows down
       if(   pixel_motion_len)pixel_motion/=pixel_motion_len; // normalize
       VecH2 pixel_motion_p=Perp(pixel_motion); // perpendicular to movement
-      Half  pixel_ext=(Abs(pixel_motion.x)+Abs(pixel_motion.y))*0.99; // make smallest movements dilate neighbors, but not 1.0 because that could cause dilation even without movement
+      Half  pixel_ext=(Abs(pixel_motion.x)+Abs(pixel_motion.y))*1.1; // make smallest movements dilate neighbors, increase extent because later we use linear filtering, so because of blending movement might get minimized, especially visible in cases such as moving object to the right (motion x=1, y=0) row up and down could have velocity at 0 and linear filtering could reduce motion at the object border (1.1 value was the smallest that fixed most problems)
       VecH2 pos_motion=VecH2(Dot(pixel_delta, pixel_motion  ),  // position along            motion vector
                              Dot(pixel_delta, pixel_motion_p)); // position perpendicular to motion vector
-    /*if(Abs(pos_motion.x)<=pixel_ext+pixel_motion_len
-      && Abs(pos_motion.y)<=pixel_ext)*/
-      if(all(Abs(pos_motion)<=VecH2(pixel_ext+pixel_motion_len, pixel_ext)))
+    /*if(Abs(pos_motion.x)<pixel_ext+pixel_motion_len
+      && Abs(pos_motion.y)<pixel_ext)*/
+      if(all(Abs(pos_motion)<VecH2(pixel_ext+pixel_motion_len, pixel_ext)))
       {
          Half sample_len2=ScreenLength2(sample_motion.xy); if(sample_len2>length2.x){length2.x=sample_len2; max_min_motion.xy=sample_motion.xy;} // biggest
               sample_len2=ScreenLength2(sample_motion.zw); if(sample_len2<length2.y){length2.y=sample_len2; max_min_motion.zw=sample_motion.zw;} // smallest
