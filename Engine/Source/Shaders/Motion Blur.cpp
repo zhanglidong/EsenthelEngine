@@ -112,9 +112,14 @@ VecH4 Convert_PS(NOPERSP Vec2 inTex:TEXCOORD0):TARGET
 #else // process samples in 2x2 blocks using linear filtering
    // FIXME verify ranges/tex offset
    const Int range=Max(RANGE/2, 1), ofs=range/2, min=0-ofs, max=range-ofs;
-   UNROLL for(Int y=min; y<max; y++)
-   UNROLL for(Int x=min; x<max; x++)
-      Process(motion, length2, TexLod(ImgXY, UVClamp(inTex+Vec2(x*2, y*2)*ImgSize.xy, CLAMP)).xy);
+   #if RANGE<=(GL ? 16 : 256) // for GL limit to 16 because compilation is very slow
+      UNROLL for(Int y=min; y<max; y++)
+      UNROLL for(Int x=min; x<max; x++)
+   #else
+      LOOP for(Int y=min; y<max; y++)
+      LOOP for(Int x=min; x<max; x++)
+   #endif
+         Process(motion, length2, TexLod(ImgXY, UVClamp(inTex+Vec2(x*2, y*2)*ImgSize.xy, CLAMP)).xy);
 #endif
    motion*=MotionScale_2; // for best precision this should be done for every sample, however doing it here just once, increases performance
    { // limit max length - this prevents stretching objects to distances the blur can't handle anyway, making only certain samples of it visible but not all
@@ -137,7 +142,7 @@ VecH4 Dilate_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
    VecH4 motion =TexPoint(Img, inTex);
    VecH2 length2=VecH2(ScreenLength2(motion.xy), ScreenLength2(motion.zw));
-#if RANGE<=7 // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range
+#if RANGE<=(GL ? 5 : 7) // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range, for GL limit to 5 because compilation is very slow
    UNROLL for(Int y=-RANGE; y<=RANGE; y++)
    UNROLL for(Int x=-RANGE; x<=RANGE; x++)
       if(x || y)Process(motion, length2, TexPointOfs(Img, inTex, VecI2(x, y)), VecH2(x, y), RTSize.zw);
