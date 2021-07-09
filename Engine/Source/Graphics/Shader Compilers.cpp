@@ -575,7 +575,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    REPD(clamp, 2)
       src.New("Convert", "Draw_VS", "Convert_PS")("CLAMP", clamp, "RANGE", 1<<range);
 
-   const Int dilate_ranges[]={1, 2, 3, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48}; ASSERT(Elms(dilate_ranges)==Elms(Mtn.Dilates)); // #MotionBlurDilateRanges
+   const Int dilate_ranges[]={1, 2, 3, 4, 6, 8, 10, 12, 16, 20, 24, 32, 40, 48}; ASSERT(Elms(dilate_ranges)==Elms(Mtn.Dilates)); // #MotionBlurDilateRanges
    REPAD(range, dilate_ranges)
       src.New("Dilate", "Draw_VS", "Dilate_PS")("RANGE", dilate_ranges[range]);
 

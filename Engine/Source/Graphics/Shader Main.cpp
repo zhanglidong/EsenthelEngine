@@ -870,14 +870,15 @@ void MotionBlur::load()
       Dilates[3].range=4;
       Dilates[4].range=6;
       Dilates[5].range=8;
-      Dilates[6].range=12;
-      Dilates[7].range=16;
-      Dilates[8].range=20;
-      Dilates[9].range=24;
-      Dilates[10].range=32;
-      Dilates[11].range=40;
-      Dilates[12].range=48;
-      ASSERT(ELMS(Dilates)==13);
+      Dilates[6].range=10;
+      Dilates[7].range=12;
+      Dilates[8].range=16;
+      Dilates[9].range=20;
+      Dilates[10].range=24;
+      Dilates[11].range=32;
+      Dilates[12].range=40;
+      Dilates[13].range=48;
+      ASSERT(ELMS(Dilates)==14);
 
       // #MotionBlurSamples
       Blurs[0].samples=5;

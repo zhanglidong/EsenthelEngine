@@ -32,7 +32,6 @@
    #define MASK rgb
 #endif
 /******************************************************************************/
-/******************************************************************************/
 #include "!Set Prec Struct.h"
 BUFFER(MotionBlur)
    Half MotionScale_2; // MotionScale/2 is used because we blur in both ways (read above why), so we have to make scale 2x smaller
@@ -100,9 +99,9 @@ void Process(inout VecH4 max_min_motion, inout VecH2 length2, VecH4 sample_motio
 /******************************************************************************/
 VecH4 Convert_PS(NOPERSP Vec2 inTex:TEXCOORD0):TARGET
 {
-   VecH4 motion =0; // XY=biggest, ZW=smallest
    // WARNING: code below might still set ZW (smallest) to some very small values, only XY gets forced to 0
    VecH2 length2=VecH2(ScreenLength2(ImgSize.xy)*Sqr(0.5), 2); // x=biggest, y=smallest, initially set biggest to 0 so it always gets updated (actually set to half of pixel to make sure we will ignore small motions and keep 0), initially set smallest to 2 so it always gets updated
+   VecH4 motion =0; // XY=biggest, ZW=smallest
 #if 0 // process samples individually
    // FIXME verify ranges/tex offset
    const Int range=RANGE, ofs=range/2, min=0-ofs, max=range-ofs;
@@ -118,6 +117,12 @@ VecH4 Convert_PS(NOPERSP Vec2 inTex:TEXCOORD0):TARGET
       Process(motion, length2, TexLod(ImgXY, UVClamp(inTex+Vec2(x*2, y*2)*ImgSize.xy, CLAMP)).xy);
 #endif
    motion*=MotionScale_2; // for best precision this should be done for every sample, however doing it here just once, increases performance
+   { // limit max length - this prevents stretching objects to distances the blur can't handle anyway, making only certain samples of it visible but not all
+      length2*=Sqr(MotionScale_2); // since we've scaled 'motion' above after setting 'length2', then we have to scale 'length2' too
+      Half max_length=0.25/2; // #MaxMotionBlurLength
+      if(length2.x>Sqr(max_length))motion.xy*=max_length/Sqrt(length2.x);
+    //if(length2.y>Sqr(max_length))motion.zw*=max_length/Sqrt(length2.y); don't have to scale Min motion, because it's only used to detect fast/simple blur
+   }
  //if(length2.x<ScreenLength2(ImgSize.xy)*Sqr(0.5))motion=0; // motions less than 0.5 pixel size force to 0 (ignore this code because this is done faster by just setting initial value of 'length2.x')
    return motion;
 }
@@ -188,7 +193,7 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
       dir/=steps;
       Vec2 uv1=uv0;
 
-      BRANCH if(Length2(dilated.zw)>Length2(dilated.xy)*Sqr(0.64)) // if smallest motion is close to biggest motion then just do a fast and simple blur, ignoring depths and precise velocities
+      BRANCH if(Length2(dilated.zw)>Length2(dilated.xy)*Sqr(0.64)) // if smallest motion is close to biggest motion then just do a fast and simple blur, ignoring depths and precise motions
       {
       #if ALPHA
          Vec4 color_hp=color.MASK; // use HP because we operate on many samples
@@ -238,7 +243,7 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
             Half sample0_uv_motion=UVLength(sample0_motion);
             Half sample1_uv_motion=UVLength(sample1_motion);
 
-            Half step=Max(0, i-1.5); // use -1.5 instead of -1 because on a 3D ball moving right, pixels in the center have higher movement due to perspective correction (pixels closer to camera move faster than those far), so when calculating biggest movement from neighbors, then the pixels at the border will get biggest/dilated movement (coming from ball center) that's slightly bigger than border movement. So the search vector that's set from biggest/dilated velocity will be bigger than the sample movement, and for example its motion might cover only 9/10 steps instead of 10/10. To workaround this, make step offset slightly smaller.
+            Half step=Max(0, i-1.5); // use -1.5 instead of -1 because on a 3D ball moving right, pixels in the center have higher movement due to perspective correction (pixels closer to camera move faster than those far), so when calculating biggest movement from neighbors, then the pixels at the border will get biggest/dilated movement (coming from ball center) that's slightly bigger than border movement. So the search vector that's set from biggest/dilated motion will be bigger than the sample movement, and for example its motion might cover only 9/10 steps instead of 10/10. To workaround this, make step offset slightly smaller.
             
             Half w0=SampleWeight(base_depth, sample0_depth, base_uv_motion, sample0_uv_motion, uv_motion_to_step0, step);
             Half w1=SampleWeight(base_depth, sample1_depth, base_uv_motion, sample1_uv_motion, uv_motion_to_step1, step);
