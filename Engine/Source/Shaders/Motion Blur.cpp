@@ -103,23 +103,27 @@ VecH4 Convert_PS(NOPERSP Vec2 inTex:TEXCOORD0):TARGET
    VecH2 length2=VecH2(ScreenLength2(ImgSize.xy)*Sqr(0.5), 2); // x=biggest, y=smallest, initially set biggest to 0 so it always gets updated (actually set to half of pixel to make sure we will ignore small motions and keep 0), initially set smallest to 2 so it always gets updated
    VecH4 motion =0; // XY=biggest, ZW=smallest
 #if 0 // process samples individually
-   // FIXME verify ranges/tex offset
-   const Int range=RANGE, ofs=range/2, min=0-ofs, max=range-ofs;
-   if(ofs)inTex+=ImgSize.xy*0.5; // move at the center of pixel
+   // for RANGE=1 (no scale  ) inTex should remain unmodified              , because it's already at the center of 1x1 texel
+   // for RANGE>1 (downsample) inTex should be moved to the center of texel, because it's         at the center of 2x2 texels
+   if(RANGE>1)inTex+=ImgSize.xy*0.5;
+   const Int ofs=RANGE/2, min=0-ofs, max=RANGE-ofs;
    UNROLL for(Int y=min; y<max; y++)
    UNROLL for(Int x=min; x<max; x++)
       Process(motion, length2, TexPoint(ImgXY, UVClamp(inTex+Vec2(x, y)*ImgSize.xy, CLAMP)).xy);
 #else // process samples in 2x2 blocks using linear filtering
-   // FIXME verify ranges/tex offset
-   const Int range=Max(RANGE/2, 1), ofs=range/2, min=0-ofs, max=range-ofs;
+   // for RANGE=1 (no scale          ) offset should be 0, because inTex is already at the center of 1x1 texel
+   // for RANGE=2 (2x downsample, 2x2) offset should be 0, because inTex is already at the center of 2x2 texels (linear filtering is used)
+   // for RANGE=4 (4x downsample, 4x4) offset should be 1, because inTex is already at the center of 4x4 texels, however we want to process (2x2 2x2) so have to position at the center of top left 2x2
+   // for RANGE=8 (8x downsample, 8x8) offset should be 3                                                                                   (2x2 2x2)
+   const Int ofs=(RANGE-1)/2, min=0-ofs, max=RANGE-ofs; // correctness can be verified with this code: "Int RANGE=1,2,4,8; const Int ofs=(RANGE-1)/2, min=0-ofs, max=RANGE-ofs; Str s; for(Int x=min; x<max; x+=2)s.space()+=x; Exit(s);"
    #if RANGE<=(GL ? 16 : 256) // for GL limit to 16 because compilation is very slow
-      UNROLL for(Int y=min; y<max; y++)
-      UNROLL for(Int x=min; x<max; x++)
+      UNROLL for(Int y=min; y<max; y+=2)
+      UNROLL for(Int x=min; x<max; x+=2)
    #else
-      LOOP for(Int y=min; y<max; y++)
-      LOOP for(Int x=min; x<max; x++)
+      LOOP for(Int y=min; y<max; y+=2)
+      LOOP for(Int x=min; x<max; x+=2)
    #endif
-         Process(motion, length2, TexLod(ImgXY, UVClamp(inTex+Vec2(x*2, y*2)*ImgSize.xy, CLAMP)).xy);
+         Process(motion, length2, TexLod(ImgXY, UVClamp(inTex+Vec2(x, y)*ImgSize.xy, CLAMP)).xy);
 #endif
    motion*=MotionScale_2; // for best precision this should be done for every sample, however doing it here just once, increases performance
    { // limit max length - this prevents stretching objects to distances the blur can't handle anyway, making only certain samples of it visible but not all
