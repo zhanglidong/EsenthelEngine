@@ -104,13 +104,15 @@ VecH4 Convert_PS(NOPERSP Vec2 inTex:TEXCOORD0):TARGET
    // WARNING: code below might still set ZW (smallest) to some very small values, only XY gets forced to 0
    VecH2 length2=VecH2(ScreenLength2(ImgSize.xy)*Sqr(0.5), 2); // x=biggest, y=smallest, initially set biggest to 0 so it always gets updated (actually set to half of pixel to make sure we will ignore small motions and keep 0), initially set smallest to 2 so it always gets updated
 #if 0 // process samples individually
-   const Int range=16, ofs=range/2, min=0-ofs, max=range-ofs;
+   // FIXME verify ranges/tex offset
+   const Int range=RANGE, ofs=range/2, min=0-ofs, max=range-ofs;
    if(ofs)inTex+=ImgSize.xy*0.5; // move at the center of pixel
    UNROLL for(Int y=min; y<max; y++)
    UNROLL for(Int x=min; x<max; x++)
       Process(motion, length2, TexPoint(ImgXY, UVClamp(inTex+Vec2(x, y)*ImgSize.xy, CLAMP)).xy);
 #else // process samples in 2x2 blocks using linear filtering
-   const Int range=8, ofs=range/2, min=0-ofs, max=range-ofs;
+   // FIXME verify ranges/tex offset
+   const Int range=Max(RANGE/2, 1), ofs=range/2, min=0-ofs, max=range-ofs;
    UNROLL for(Int y=min; y<max; y++)
    UNROLL for(Int x=min; x<max; x++)
       Process(motion, length2, TexLod(ImgXY, UVClamp(inTex+Vec2(x*2, y*2)*ImgSize.xy, CLAMP)).xy);
@@ -128,14 +130,16 @@ VecH4 Convert_PS(NOPERSP Vec2 inTex:TEXCOORD0):TARGET
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
 VecH4 Dilate_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
-   const Int range=24; // FIXME instead of doing multi-passes try to increase this one? (it could affect 'delta' checks better to minimize affected ranges, make comment about it if used)
    VecH4 motion=TexPoint(Img, inTex);
    VecH2 length2=VecH2(ScreenLength2(motion.xy), ScreenLength2(motion.zw));
-   //FIXME UNROLL for(Int y=-range; y<=range; y++)
-   //FIXME UNROLL for(Int x=-range; x<=range; x++)if(x || y)
-   LOOP for(Int y=-range; y<=range; y++)
-   LOOP for(Int x=-range; x<=range; x++)if(x || y)
-      Process(motion, length2, TexPoint(Img, UVClamp(inTex+Vec2(x, y)*RTSize.xy, CLAMP)), VecH2(x, y), RTSize.zw);
+#if RANGE<=8
+   UNROLL for(Int y=-RANGE; y<=RANGE; y++)
+   UNROLL for(Int x=-RANGE; x<=RANGE; x++)
+#else
+   LOOP   for(Int y=-RANGE; y<=RANGE; y++)
+   LOOP   for(Int x=-RANGE; x<=RANGE; x++)
+#endif
+      if(x || y)Process(motion, length2, TexPoint(Img, UVClamp(inTex+Vec2(x, y)*RTSize.xy, CLAMP)), VecH2(x, y), RTSize.zw);
    return motion;
 }
 /******************************************************************************/

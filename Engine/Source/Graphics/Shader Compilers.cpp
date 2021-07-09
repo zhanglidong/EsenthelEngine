@@ -570,11 +570,16 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 
    src.New("SetVel", "SetVel_VS", "SetVel_PS");
 
-   REPD(clamp, 2)src.New("Convert", "Draw_VS", "Convert_PS")("CLAMP", clamp);
+   ASSERT(6==Elms(Mtn.Convert));
+   REPD(range, 6)
+   REPD(clamp, 2)
+      src.New("Convert", "Draw_VS", "Convert_PS")("CLAMP", clamp, "RANGE", 1<<range);
 
-   src.New("Dilate", "Draw_VS", "Dilate_PS");
+   const Int dilate_ranges[]={1, 2, 3, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48}; ASSERT(Elms(dilate_ranges)==Elms(Mtn.Dilates)); // #MotionBlurDilateRanges
+   REPAD(range, dilate_ranges)
+      src.New("Dilate", "Draw_VS", "Dilate_PS")("RANGE", dilate_ranges[range]);
 
-   const Int samples[]={5, 7, 9, 14}; // 5-720, 7-1080, 9-1440, 14-2160 #MotionBlurSamples
+   const Int samples[]={5, 7, 9, 14}; ASSERT(Elms(samples)==Elms(Mtn.Blurs)); // 5-720, 7-1080, 9-1440, 14-2160 #MotionBlurSamples
    REPD (dither, 2)
    REPD (alpha , 2)
    REPAD(sample, samples)

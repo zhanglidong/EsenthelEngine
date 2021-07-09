@@ -860,24 +860,24 @@ void MotionBlur::load()
 
       SetVel=shader->get("SetVel");
 
-      REPD(c, 2)Convert[c]=shader->get(S8+"Convert"+c);
-
-      REPD(c, 2)SetDirs[c]=shader->get(S8+"SetDirs"+c);
+      REPD(range, 6)
+      REPD(clamp, 2)Convert[range][clamp]=shader->get(S8+"Convert"+clamp+(1<<range));
 
       // #MotionBlurDilateRanges
-      Dilates[ 0].pixels=1;
-      Dilates[ 1].pixels=2;
-      Dilates[ 2].pixels=4;
-      Dilates[ 3].pixels=6;
-      Dilates[ 4].pixels=8;
-      Dilates[ 5].pixels=12;
-      Dilates[ 6].pixels=16;
-      Dilates[ 7].pixels=20;
-      Dilates[ 8].pixels=24;
-      Dilates[ 9].pixels=32;
-      Dilates[10].pixels=40;
-      Dilates[11].pixels=48;
-      ASSERT(ELMS(Dilates)==12 && MAX_MOTION_BLUR_PIXEL_RANGE==48);
+      Dilates[0].range=1;
+      Dilates[1].range=2;
+      Dilates[2].range=3;
+      Dilates[3].range=4;
+      Dilates[4].range=6;
+      Dilates[5].range=8;
+      Dilates[6].range=12;
+      Dilates[7].range=16;
+      Dilates[8].range=20;
+      Dilates[9].range=24;
+      Dilates[10].range=32;
+      Dilates[11].range=40;
+      Dilates[12].range=48;
+      ASSERT(ELMS(Dilates)==13);
 
       // #MotionBlurSamples
       Blurs[0].samples=5;
@@ -886,6 +886,17 @@ void MotionBlur::load()
       Blurs[3].samples=14;
       ASSERT(ELMS(Blurs)==4);
    }
+}
+C MotionBlur::DilateRange& MotionBlur::getDilate(Int range)
+{
+   DilateRange *dr;
+   FREPA(Dilates) // start from the smallest to find exact match or bigger, order is important
+   {
+      dr=&Dilates[i]; if(dr->range>=range)break; // if this covers desired samples
+   }
+   Shader* &shader=dr->Dilate;
+   if(!shader)shader=T.shader->get(S8+"Dilate"+dr->range);
+   return *dr;
 }
 Shader* MotionBlur::getBlur(Int samples, Bool dither, Bool alpha)
 {

@@ -363,10 +363,13 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool alpha, Bool com
       Mtn.SetVel->draw();
    }
 
-   VecI2 res(DivCeil16(fxW()), DivCeil16(fxH()));
+   VecI2 res=ByteScaleRes(fx(), D._mtn_res);
+   Flt scale=Flt(fxH())/res.y;
+   Int shift=Log2Round(RoundU(scale)); // Int shift=Round(Log2(scale));
+   MIN(shift, Elms(Mtn.Convert)-1);
    ImageRTDesc rt_desc(res.x, res.y, IMAGERT_RGBA_H); // XY=biggest motion, ZW=smallest motion
    ImageRTPtr  small_motion(rt_desc);
-   Shader     *shader=Mtn.Convert[!D._view_main.full];
+   Shader     *shader=Mtn.Convert[shift][!D._view_main.full];
    set(small_motion, null, false);
    Rect dilate_rect, *dilate_rect_ptr=null,
                rect, *       rect_ptr=null;
@@ -396,14 +399,16 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool alpha, Bool com
       // however velocity for pixels around the ball (the background) may be zero, so we need to apply dilation and apply the velocity onto neighboring pixels
 
     //Sh.imgSize(*dilated); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
-      Int dilate_steps=1;//Kb.shift()*10; // FIXME
-      if(dilate_steps>0)
+
+      Int dilate_pixels=Round(0.25f*rt_desc.size.y); // dilate up to 25% of the screen vertically
+      if( dilate_pixels>0)
       {
          ImageRTPtr next(rt_desc);
       again:
-         set(next, null, false); Mtn.Dilate->draw(small_motion, dilate_rect_ptr);
+         set(next, null, false);
+       C auto &dilate=Mtn.getDilate(dilate_pixels); dilate.Dilate->draw(small_motion, dilate_rect_ptr);
          Swap(small_motion, next);
-         if(--dilate_steps){next->discard(); goto again;}
+         if((dilate_pixels-=dilate.range)>0){next->discard(); goto again;}
       }
    }
    if(stage==RS_VEL_DILATED && show(small_motion, false, true))return true;
