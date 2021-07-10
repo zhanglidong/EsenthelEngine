@@ -1198,24 +1198,29 @@ Half Dither1D(Vec2 pixel) // many steps, -0.5 .. 0.5
    return Frac(Dot(pixel, Vec2(1.6, 1)*0.25))-0.5;
 #endif
 }
+VecH Dither3D(Vec2 pixel) // -0.5 .. 0.5
+{
+   Flt noise=Dot(Vec2(171, 231), pixel);
+   return Frac(noise/Vec(103, 71, 96.9999))-0.5; // 96.9999 instead of 97 fixes blue artifacts (there are some inconsistent white lines when using 97)
+}
 Half Dither1D_Order(VecI2 pixel) // 64 steps, -0.5 .. 0.5
 {
    return OrderDither[(pixel.x&7) + (pixel.y&7)*8];
 }
-Vec2 Dither2D(VecI2 pixel)
+Vec2 Dither2D(VecI2 pixel) // (-0.5, -0.5) .. (0.5, 0.5)
 {
    pixel&=1;
 #if 0
    Vec2 p=pixel-0.5; Vec2 cos_sin; CosSin(cos_sin.x, cos_sin.y, PI_4); // PI_4 is the best angle because it looks like doubling resolution
    return Rotate(p, cos_sin)*(0.5/SQRT2_2); // 0.5 is the best scale, it puts texels exactly in the middle
-#else
+#else // optimized
    Vec2 p=pixel*0.5-0.25; return Vec2(p.x-p.y, p.x+p.y);
 #endif
 }
 void ApplyDither(inout VecH col, Vec2 pixel, Bool linear_gamma=LINEAR_GAMMA)
 {
    if(linear_gamma)col=LinearToSRGBFast(col);
-   col+=Dither1D(pixel)*(1.5/255);
+   col+=Dither3D(pixel)*((4.0/3)/255); // 4.0/3 was the biggest value that didn't introduce artifacts (1.35 already had them), 1.5 is good however has some artifacts
    if(linear_gamma)col=SRGBToLinearFast(col);
 }
 /******************************************************************************/
