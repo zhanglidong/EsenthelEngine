@@ -173,7 +173,7 @@ Half SampleWeight(Flt base_depth, Flt sample_depth, Half base_uv_motion_len, Hal
  //depth_weight.y*motion_weight.y = this is needed for cases where base is the static background and sample is a moving object     (sample=object is in front, so depth_weight.y=1, sample=object is moving so motion_weight.y=1), we're returning weight=1 so object     sample will be used on the background position, which will draw object on top of background
    return Dot(depth_weight, motion_weight); // return sum of both cases, this will always be 0..1, because even if both base and sample have motion_weight, then depth weight is always X=1-Y
 }
-Half UVLength(VecH2 uv_motion)
+Half UVMotionLength(VecH2 uv_motion)
 {
  //return Abs(Dot(uv_motion, Normalize(dir.xy)))*MotionScale_2; don't use because it might lower blurring (if object is moving, but camera is rotating faster and in perpendicular way to the object movement, camera blur direction would take priority, then object motion would become 0, and it would become focused and not blurry, so better to keep the wrong blur object direction as long as it's blurry)
    return Length(uv_motion)*MotionScale_2; // here do not use AspectRatio/UVToScreen because we need UV's
@@ -238,7 +238,7 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
          Vec   color_hp=0; // use HP because we operate on many samples
       #endif
          Flt   weight  =0; // use HP because we operate on many samples
-         VecH2 base_uv_motion=TexPoint(ImgXY, uv0).xy; Half base_uv_motion_len=UVLength(base_uv_motion);
+         VecH2 base_uv_motion=TexPoint(ImgXY, uv0).xy; Half base_uv_motion_len=UVMotionLength(base_uv_motion);
          Flt   base_depth    =TexDepthPoint(uv0);
          Half  uv_motion_len_to_step0=1/Length(dir.xy); // allows to convert travelled UV distance into how many steps (travelled_uv*uv_motion_len_to_step=step)
          Half  uv_motion_len_to_step1=1/Length(dir.zw);
@@ -270,8 +270,8 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
             VecH2 sample0_uv_motion=TexLod(ImgXY, uv0).xy; Flt sample0_depth=TexDepthLinear(uv0); // TODO: DepthPoint?
             VecH2 sample1_uv_motion=TexLod(ImgXY, uv1).xy; Flt sample1_depth=TexDepthLinear(uv1);
 
-            Half sample0_uv_motion_len=UVLength(sample0_uv_motion);
-            Half sample1_uv_motion_len=UVLength(sample1_uv_motion);
+            Half sample0_uv_motion_len=UVMotionLength(sample0_uv_motion);
+            Half sample1_uv_motion_len=UVMotionLength(sample1_uv_motion);
 
             Half w0=SampleWeight(base_depth, sample0_depth, base_uv_motion_len, sample0_uv_motion_len, uv_motion_len_to_step0, step0);
             Half w1=SampleWeight(base_depth, sample1_depth, base_uv_motion_len, sample1_uv_motion_len, uv_motion_len_to_step1, step1);
