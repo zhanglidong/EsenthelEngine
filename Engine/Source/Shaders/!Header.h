@@ -1186,7 +1186,7 @@ Half   SRGBLumOfSRGBColor  (VecH s) {return LinearToSRGBFast(Dot(SRGBToLinearFas
 /******************************************************************************/
 Half Dither1D_4(VecI2 pixel) // 4 steps, -0.375 .. 0.375
 {
-   return ((pixel.y*2-pixel.x)&3)*(1.0/4) - 0.375;
+   return ((pixel.x*2 + (pixel.y&1)*3)&3)*(1.0/4) - 0.375; // bayer 2x2
 }
 Half Dither1D(Vec2 pixel) // many steps, -0.5 .. 0.5
 {
