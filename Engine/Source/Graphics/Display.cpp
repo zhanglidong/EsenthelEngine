@@ -913,8 +913,8 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _vol_max  =1;
 
   _shd_mode           =(MOBILE ? SHADOW_NONE : SHADOW_MAP);
-//_shd_soft           =0;
-//_shd_jitter         =false;
+  _shd_soft           =1;
+  _shd_jitter         =true;
 //_shd_reduce         =false;
   _shd_frac           =1;
   _shd_fade           =1;
