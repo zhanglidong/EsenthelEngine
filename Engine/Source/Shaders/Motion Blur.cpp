@@ -14,6 +14,10 @@
 #define CLAMP 0
 #endif
 
+#ifndef JITTER
+#define JITTER 0
+#endif
+
 #ifndef RANGE
 #define RANGE 0
 #endif
@@ -198,24 +202,30 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
          dir.zw=UVClamp(uv0+dir.zw)-uv0; // first calculate target and clamp it
       }
 
-      Int steps=SAMPLES;
+      Int  steps=SAMPLES;
       dir/=steps;
+      Half jitter; if(JITTER)jitter=Dither1D_4(pixel.xy); // use only 4x4 dither because others might be too distracting (individual pixels visible)
       Vec2 uv1=uv0;
 
       BRANCH if(Length2(dilated.zw)>Length2(dilated.xy)*Sqr(0.64)) // if smallest motion is close to biggest motion then just do a fast and simple blur, ignoring depths and precise motions
       {
       #if ALPHA
-         Vec4 color_hp=color.MASK; // use HP because we operate on many samples
+         Vec4 color_hp=JITTER ? 0 : color.MASK; // use HP because we operate on many samples (when using JITTER the base sample has to be jittered too)
       #else
-         Vec  color_hp=color.MASK; // use HP because we operate on many samples
+         Vec  color_hp=JITTER ? 0 : color.MASK; // use HP because we operate on many samples (when using JITTER the base sample has to be jittered too)
       #endif
 
+         if(JITTER) // for JITTER we have to process steps starting from 0.5 because we're not leaving extra weight for the base sample (since it has to be jittered too), so move the starting UV's by 0.5 back and apply jitter offset
+         {
+            Half step0=(/*i=0*/-0.5)+jitter; uv0+=step0*dir.xy;
+            Half step1=(/*i=0*/-0.5)-jitter; uv1+=step1*dir.zw;
+         }
          UNROLL for(Int i=1; i<=steps; i++) // start from 1 because we've already got #0 before
          {
             color_hp.MASK+=TexLod(Img, uv0+=dir.xy).MASK  // use linear filtering
                           +TexLod(Img, uv1+=dir.zw).MASK; // use linear filtering
          }
-         color.MASK=color_hp.MASK/(steps*2+1); // already have 1 sample
+         color.MASK=color_hp.MASK/(steps*2+(JITTER ? 0 : 1)); // already have 1 sample (only used without JITTER)
 
       #if SHOW_BLUR_PIXELS
          color.g=1;
@@ -230,20 +240,31 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
          Flt   weight  =0; // use HP because we operate on many samples
          VecH2 base_motion=TexPoint(ImgXY, uv0).xy; Half base_uv_motion=UVLength(base_motion);
          Flt   base_depth =TexDepthPoint(uv0);
-         Half  uv_motion_to_step0=1/Length(dir.xy); // allows to convert travelled UV distance into how many steps (travelled_uv*uv_motion_to_step0=step)
+         Half  uv_motion_to_step0=1/Length(dir.xy); // allows to convert travelled UV distance into how many steps (travelled_uv*uv_motion_to_step=step)
          Half  uv_motion_to_step1=1/Length(dir.zw);
-       //return SRGBToLinear(VecH4(motion.xy*0.5+0.5,0.5,1));
-       //return SRGBToLinear(VecH4((motion.xy-0.2)*20*0.5+0.5,0.5,1));
-       //return SRGBToLinear(VecH4((dilated.xy-0.2)*20*0.5+0.5,0.5,1));
-       //return SRGBToLinear(VecH4((Length(dilated.xy).xx-0.2)*20*0.5+0.5,0.5,1));
-       //return SRGBToLinear(VecH4((Length(dilated.xy)-0.2)*20*0.5+0.5,(Length(motion.xy)-0.2)*20*0.5+0.5,0.5,1));
-       //return SRGBToLinear(VecH4((dilated.x-0.2)*20*0.5+0.5, (motion.x-0.2)*20*0.5+0.5, motion.x>dilated.x, 1));
-       //return SRGBToLinear(VecH4(base_depth.xxx,1));
-       //return SRGBToLinear(VecH4((dir.xy*20)*0.5+0.5,0,1));
-       //return SRGBToLinear(VecH4(motion.xxx>dilated.xxx,1));
-       //return SRGBToLinear(VecH4(((motion.xy-dilated.xy)*200),0,1));
+         if(JITTER) // for JITTER we have to process steps starting from 0.5 because we're not leaving extra weight for the base sample (since it has to be jittered too), so move the starting UV's by 0.5 back and apply jitter offset
+         {
+            Half step0=(/*i=0*/-0.5)+jitter; uv0+=step0*dir.xy;
+            Half step1=(/*i=0*/-0.5)-jitter; uv1+=step1*dir.zw;
+         }
+         Half step_add=-1.5; // this value allows the last step to still has some weight, use -1.5 instead of -1 because on a 3D ball moving right, pixels in the center have higher movement due to perspective correction (pixels closer to camera move faster than those far), so when calculating biggest movement from neighbors, then the pixels at the border will get biggest/dilated movement (coming from ball center) that's slightly bigger than border movement. So the search vector that's set from biggest/dilated motion will be bigger than the sample movement, and for example its motion might cover only 9/10 steps instead of 10/10. To workaround this, make step offset slightly smaller.
          UNROLL for(Int i=1; i<=steps; i++) // start from 1 because #0 is processed at the end
          {
+            Half step0, step1;
+            if(JITTER)
+            {
+             /*step0=(i-0.5)+jitter;
+               step1=(i-0.5)-jitter;
+               uv0  =start+step0*dir.xy;
+               uv1  =start+step1*dir.zw;
+               step0=Max(0, step0+step_add);
+               step1=Max(0, step1+step_add);*/
+               step0=Max(0, (i-0.5+step_add)+jitter);
+               step1=Max(0, (i-0.5+step_add)-jitter);
+            }else
+            {
+               step0=step1=Max(0, i+step_add);
+            }
             uv0+=dir.xy;
             uv1+=dir.zw;
             VecH2 sample0_motion=TexLod(ImgXY, uv0).xy; Flt sample0_depth=TexDepthLinear(uv0); // TODO: DepthPoint?
@@ -252,10 +273,8 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
             Half sample0_uv_motion=UVLength(sample0_motion);
             Half sample1_uv_motion=UVLength(sample1_motion);
 
-            Half step=Max(0, i-1.5); // use -1.5 instead of -1 because on a 3D ball moving right, pixels in the center have higher movement due to perspective correction (pixels closer to camera move faster than those far), so when calculating biggest movement from neighbors, then the pixels at the border will get biggest/dilated movement (coming from ball center) that's slightly bigger than border movement. So the search vector that's set from biggest/dilated motion will be bigger than the sample movement, and for example its motion might cover only 9/10 steps instead of 10/10. To workaround this, make step offset slightly smaller.
-            
-            Half w0=SampleWeight(base_depth, sample0_depth, base_uv_motion, sample0_uv_motion, uv_motion_to_step0, step);
-            Half w1=SampleWeight(base_depth, sample1_depth, base_uv_motion, sample1_uv_motion, uv_motion_to_step1, step);
+            Half w0=SampleWeight(base_depth, sample0_depth, base_uv_motion, sample0_uv_motion, uv_motion_to_step0, step0);
+            Half w1=SampleWeight(base_depth, sample1_depth, base_uv_motion, sample1_uv_motion, uv_motion_to_step1, step1);
 
             // this blurs background to make it look more like simple/fast blur
             if(0) // don't use
@@ -269,8 +288,8 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
                           +w1*TexLod(Img, uv1).MASK; // use linear filtering
             weight+=w0+w1;
          }
-         color_hp.MASK*=1.0/(steps*2+1); // in every step we have 2 samples + 1 to make room for base sample
-         weight       *=1.0/(steps*2+1); // in every step we have 2 samples + 1 to make room for base sample
+         color_hp.MASK*=1.0/(steps*2+(JITTER ? 0 : 1)); // in every step we have 2 samples + 1 to make room for base sample (can't do that for JITTER because when base is moving then it has to be jittered too, so it has to be processed by codes in the loop)
+         weight       *=1.0/(steps*2+(JITTER ? 0 : 1)); // in every step we have 2 samples + 1 to make room for base sample (can't do that for JITTER because when base is moving then it has to be jittered too, so it has to be processed by codes in the loop)
          color.MASK=color_hp.MASK + (1-weight)*color.MASK;
 
       #if SHOW_BLUR_PIXELS
