@@ -1204,9 +1204,13 @@ Half Dither1D_Order(VecI2 pixel) // 64 steps, -0.5 .. 0.5
 }
 Vec2 Dither2D(VecI2 pixel)
 {
-   Vec2   offset=(pixel&1)-0.5; // -0.5 .. 0.5
-          offset.y+=offset.x;
-   return offset;
+   pixel&=1;
+#if 0
+   Vec2 p=pixel-0.5; Vec2 cos_sin; CosSin(cos_sin.x, cos_sin.y, PI_4); // PI_4 is the best angle because it looks like doubling resolution
+   return Rotate(p, cos_sin)*(0.5/SQRT2_2); // 0.5 is the best scale, it puts texels exactly in the middle
+#else
+   Vec2 p=pixel*0.5-0.25; return Vec2(p.x-p.y, p.x+p.y);
+#endif
 }
 void ApplyDither(inout VecH col, Vec2 pixel, Bool linear_gamma=LINEAR_GAMMA)
 {
@@ -2065,8 +2069,8 @@ BUFFER(Shadow)
    Flt     ShdRange      ,
            ShdStep[6]    ;
    Vec2    ShdRangeMulAdd;
+   Vec2    ShdJitter     ;
    VecH2   ShdOpacity    ;
-   Vec4    ShdJitter     ;
    Matrix  ShdMatrix     ;
    Matrix4 ShdMatrix4[6] ;
 BUFFER_END
@@ -2081,7 +2085,7 @@ ImageH      ShdMap1;
 Half ShadowFinal(Half shadow) {return shadow*ShdOpacity.x+ShdOpacity.y;}
 Vec2 ShadowJitter(Vec2 pixel)
 {
-   return Dither2D(pixel)*ShdJitter.xy+ShdJitter.zw;
+   return Dither2D(pixel)*ShdJitter;
 }
 Vec ShadowDirTransform(Vec pos, Int num)
 {  // using "Int/UInt matrix_index" and "matrix_index=.."  and "ShdMatrix4[matrix_index]" was slower 

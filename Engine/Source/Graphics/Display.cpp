@@ -3049,10 +3049,7 @@ Bool DisplayClass::shadowSupported()C
 }
 void DisplayClass::shadowJitterSet()
 {
-   Vec4 j;
-   j.xy=Flt(shadowJitter())/Renderer._shd_map.hwSize(); // mul
-   j.zw=j.xy*-0.5f; // add
-   Sh.ShdJitter->set(j);
+   Sh.ShdJitter->set(Flt(shadowJitter())/Renderer._shd_map.hwSize());
 }
 void DisplayClass::shadowRangeSet()
 {
