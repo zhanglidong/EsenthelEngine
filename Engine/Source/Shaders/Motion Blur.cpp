@@ -164,19 +164,19 @@ VecH4 Dilate_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 /******************************************************************************/
 // BLUR
 /******************************************************************************/
-Half SampleWeight(Flt base_depth, Flt sample_depth, Half base_uv_motion, Half sample_uv_motion, Half uv_motion_to_step, Half step)
+Half SampleWeight(Flt base_depth, Flt sample_depth, Half base_uv_motion_len, Half sample_uv_motion_len, Half uv_motion_len_to_step, Half step)
 {
    Half   depth_delta =sample_depth-base_depth;
    VecH2  depth_weight=Sat(depth_delta*VecH2(1.0/DEPTH_TOLERANCE, -1.0/DEPTH_TOLERANCE)+0.5); // X=how much base is in front of sample, Y=how much sample is in front of base. 0.5 (middle) is returned if both have the same depth. Here it's always X=1-Y and Y=1-X
-   VecH2 motion_weight=Sat(VecH2(base_uv_motion, sample_uv_motion)*uv_motion_to_step-step); // have to convert motion into step (instead of step into motion) to make sure that we reach 1.0 weights, this weight is about checking if one position motion is covering another position (smoothly). X=if base motion is covering sample, Y=if sample motion is covering base
+   VecH2 motion_weight=Sat(VecH2(base_uv_motion_len, sample_uv_motion_len)*uv_motion_len_to_step-step); // have to convert motion into step (instead of step into motion) to make sure that we reach 1.0 weights, this weight is about checking if one position motion is covering another position (smoothly). X=if base motion is covering sample, Y=if sample motion is covering base
  //depth_weight.x*motion_weight.x = this is needed for cases where base is the moving object     and sample is a static background (base  =object is in front, so depth_weight.x=1, base  =object is moving so motion_weight.x=1), we're returning weight=1 so background sample will be used on the object     position, which will make it appear semi-transparent
  //depth_weight.y*motion_weight.y = this is needed for cases where base is the static background and sample is a moving object     (sample=object is in front, so depth_weight.y=1, sample=object is moving so motion_weight.y=1), we're returning weight=1 so object     sample will be used on the background position, which will draw object on top of background
    return Dot(depth_weight, motion_weight); // return sum of both cases, this will always be 0..1, because even if both base and sample have motion_weight, then depth weight is always X=1-Y
 }
-Half UVLength(VecH2 motion)
+Half UVLength(VecH2 uv_motion)
 {
- //return Abs(Dot(motion, Normalize(dir.xy)))*MotionScale_2; don't use because it might lower blurring (if object is moving, but camera is rotating faster and in perpendicular way to the object movement, camera blur direction would take priority, then object motion would become 0, and it would become focused and not blurry, so better to keep the wrong blur object direction as long as it's blurry)
-   return Length(motion)*MotionScale_2; // here do not use AspectRatio/UVToScreen because we need UV's
+ //return Abs(Dot(uv_motion, Normalize(dir.xy)))*MotionScale_2; don't use because it might lower blurring (if object is moving, but camera is rotating faster and in perpendicular way to the object movement, camera blur direction would take priority, then object motion would become 0, and it would become focused and not blurry, so better to keep the wrong blur object direction as long as it's blurry)
+   return Length(uv_motion)*MotionScale_2; // here do not use AspectRatio/UVToScreen because we need UV's
 }
 /******************************************************************************
 
@@ -238,10 +238,10 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
          Vec   color_hp=0; // use HP because we operate on many samples
       #endif
          Flt   weight  =0; // use HP because we operate on many samples
-         VecH2 base_motion=TexPoint(ImgXY, uv0).xy; Half base_uv_motion=UVLength(base_motion);
-         Flt   base_depth =TexDepthPoint(uv0);
-         Half  uv_motion_to_step0=1/Length(dir.xy); // allows to convert travelled UV distance into how many steps (travelled_uv*uv_motion_to_step=step)
-         Half  uv_motion_to_step1=1/Length(dir.zw);
+         VecH2 base_uv_motion=TexPoint(ImgXY, uv0).xy; Half base_uv_motion_len=UVLength(base_uv_motion);
+         Flt   base_depth    =TexDepthPoint(uv0);
+         Half  uv_motion_len_to_step0=1/Length(dir.xy); // allows to convert travelled UV distance into how many steps (travelled_uv*uv_motion_len_to_step=step)
+         Half  uv_motion_len_to_step1=1/Length(dir.zw);
          if(JITTER) // for JITTER we have to process steps starting from 0.5 because we're not leaving extra weight for the base sample (since it has to be jittered too), so move the starting UV's by 0.5 back and apply jitter offset
          {
             Half step0=(/*i=0*/-0.5)+jitter; uv0+=step0*dir.xy;
@@ -267,19 +267,19 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
             }
             uv0+=dir.xy;
             uv1+=dir.zw;
-            VecH2 sample0_motion=TexLod(ImgXY, uv0).xy; Flt sample0_depth=TexDepthLinear(uv0); // TODO: DepthPoint?
-            VecH2 sample1_motion=TexLod(ImgXY, uv1).xy; Flt sample1_depth=TexDepthLinear(uv1);
+            VecH2 sample0_uv_motion=TexLod(ImgXY, uv0).xy; Flt sample0_depth=TexDepthLinear(uv0); // TODO: DepthPoint?
+            VecH2 sample1_uv_motion=TexLod(ImgXY, uv1).xy; Flt sample1_depth=TexDepthLinear(uv1);
 
-            Half sample0_uv_motion=UVLength(sample0_motion);
-            Half sample1_uv_motion=UVLength(sample1_motion);
+            Half sample0_uv_motion_len=UVLength(sample0_uv_motion);
+            Half sample1_uv_motion_len=UVLength(sample1_uv_motion);
 
-            Half w0=SampleWeight(base_depth, sample0_depth, base_uv_motion, sample0_uv_motion, uv_motion_to_step0, step0);
-            Half w1=SampleWeight(base_depth, sample1_depth, base_uv_motion, sample1_uv_motion, uv_motion_to_step1, step1);
+            Half w0=SampleWeight(base_depth, sample0_depth, base_uv_motion_len, sample0_uv_motion_len, uv_motion_len_to_step0, step0);
+            Half w1=SampleWeight(base_depth, sample1_depth, base_uv_motion_len, sample1_uv_motion_len, uv_motion_len_to_step1, step1);
 
             // this blurs background to make it look more like simple/fast blur
             if(0) // don't use
             {
-               bool2 state=bool2(sample1_depth<sample0_depth, sample1_uv_motion>sample0_uv_motion); // X=if sample1 is in front of sample0, Y=if sample1 has bigger motion (moving faster) than sample0
+               bool2 state=bool2(sample1_depth<sample0_depth, sample1_uv_motion_len>sample0_uv_motion_len); // X=if sample1 is in front of sample0, Y=if sample1 has bigger motion (moving faster) than sample0
 			      if( all(state))w0=w1; // S1 in front of S0 and moving faster
 			      if(!any(state))w1=w0; // S0 in front of S1 and moving faster
             }
