@@ -348,7 +348,7 @@ BUFFER(Constants)
       Vec2(-0.5,  3.5),
       Vec2( 1.5,  3.5),
    };*/
-   #define V(x) (Flt(x-32)/32/256) // gives -1..1 / 256 range
+   #define V(x) ((x-32)/64.0) // gives -0.5 .. 0.5 range
    const Flt OrderDither[64]=
    {
       V( 0), V(32), V( 8), V(40), V( 2), V(34), V(10), V(42),
@@ -1182,6 +1182,39 @@ Half LinearLumOfLinearColor(VecH l) {return                  Dot(               
 Half LinearLumOfSRGBColor  (VecH s) {return                  Dot(SRGBToLinearFast(s), ColorLumWeight2) ;}
 Half   SRGBLumOfSRGBColor  (VecH s) {return LinearToSRGBFast(Dot(SRGBToLinearFast(s), ColorLumWeight2));}
 /******************************************************************************/
+// DITHER
+/******************************************************************************/
+Half Dither1D_4(VecI2 pixel) // 4 steps, -0.375 .. 0.375
+{
+   return ((pixel.y*2-pixel.x)&3)*(1.0/4) - 0.375;
+}
+Half Dither1D(Vec2 pixel) // many steps, -0.5 .. 0.5
+{
+#if 0 // low
+   return Frac(Dot(pixel, Vec2(1.0, 0.5)/3))-0.5;
+#elif 0 // medium
+   return Frac(Dot(pixel, Vec2(3, 1)/8))-0.5;
+#elif 1 // good
+   return Frac(Dot(pixel, Vec2(1.6, 1)*0.25))-0.5;
+#endif
+}
+Half Dither1D_Order(VecI2 pixel) // 64 steps, -0.5 .. 0.5
+{
+   return OrderDither[(pixel.x&7) + (pixel.y&7)*8];
+}
+Vec2 Dither2D(VecI2 pixel)
+{
+   Vec2   offset=(pixel&1)-0.5; // -0.5 .. 0.5
+          offset.y+=offset.x;
+   return offset;
+}
+void ApplyDither(inout VecH col, Vec2 pixel, Bool linear_gamma=LINEAR_GAMMA)
+{
+   if(linear_gamma)col=LinearToSRGBFast(col);
+   col+=Dither1D(pixel)*(1.5/255);
+   if(linear_gamma)col=SRGBToLinearFast(col);
+}
+/******************************************************************************/
 struct VtxInput // Vertex Input, use this class to access vertex data in vertex shaders
 {
 #include "!Set Prec Struct.h"
@@ -1403,25 +1436,6 @@ Flt  Gaussian(Flt  x) {return exp(-x*x);}
 /******************************************************************************/
 Half     VisibleOpacity(Flt density, Flt range) {return   Pow(1-density, range);} // calculate visible     opacity (0..1) having 'density' environment density (0..1), and 'range' (0..Inf)
 Half AccumulatedDensity(Flt density, Flt range) {return 1-Pow(1-density, range);} // calculate accumulated density (0..1) having 'density' environment density (0..1), and 'range' (0..Inf)
-/******************************************************************************/
-Half DitherValue(Vec2 pixel)
-{
-#if 0 // low
-   return Frac(Dot(pixel, Vec2(1.0, 0.5)/3))-0.5;
-#elif 0 // medium
-   return Frac(Dot(pixel, Vec2(3, 1)/8))-0.5;
-#elif 1 // good
-   return Frac(Dot(pixel, Vec2(1.6, 1)*0.25))-0.5; // -0.5 .. 0.5 range
-#else
-   VecI2 xy=Trunc(pixel)%8; return OrderDither[xy.x + xy.y*8]; // -1..1 / 256 range
-#endif
-}
-void ApplyDither(inout VecH col, Vec2 pixel, Bool linear_gamma=LINEAR_GAMMA)
-{
-   if(linear_gamma)col=LinearToSRGBFast(col);
-   col+=DitherValue(pixel)*(1.5/255);
-   if(linear_gamma)col=SRGBToLinearFast(col);
-}
 /******************************************************************************/
 // RGB <-> HSB
 /******************************************************************************/
@@ -2065,7 +2079,10 @@ ImageH      ShdMap1;
 #include "!Set Prec Default.h"
 
 Half ShadowFinal(Half shadow) {return shadow*ShdOpacity.x+ShdOpacity.y;}
-
+Vec2 ShadowJitter(Vec2 pixel)
+{
+   return Dither2D(pixel)*ShdJitter.xy+ShdJitter.zw;
+}
 Vec ShadowDirTransform(Vec pos, Int num)
 {  // using "Int/UInt matrix_index" and "matrix_index=.."  and "ShdMatrix4[matrix_index]" was slower 
    // using "Matrix4  m"            and "m=ShdMatrix4[..]" and "p=Transform(pos, m)"      had the same performance as version below
@@ -2111,14 +2128,6 @@ Vec ShadowPointTransform(Vec pos)
    BRANCH if(-local.z>=a)p=Transform(pos, ShdMatrix4[5]);else
                          p=Transform(pos, ShdMatrix4[2]);
    return p.xyz/p.w;
-}
-/******************************************************************************/
-Vec2 ShadowJitter(Vec2 pixel)
-{
-     Vec2 offset=Frac(pixel*0.5)*2 - 0.5;
-          offset.y+=   offset.x;
-       if(offset.y>1.1)offset.y=0;
-   return offset*ShdJitter.xy+ShdJitter.zw;
 }
 /******************************************************************************/
 Half CompareDepth(Vec pos, Vec2 jitter_value, Bool jitter)

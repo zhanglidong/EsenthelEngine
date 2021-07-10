@@ -73,7 +73,7 @@ VecH4 SunRays_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
  //power  *=(1-frac);
 
    #if JITTER
-      inTex+=(sun_pos-inTex)*(DitherValue(pixel.xy)*(3.0/steps)); // a good value is 2.5 or 3.0 (3.0 was slightly better)
+      inTex+=(sun_pos-inTex)*(Dither1D(pixel.xy)*(3.0/steps)); // a good value is 2.5 or 3.0 (3.0 was slightly better)
    #endif
 
       UNROLL for(Int i=0; i<steps; i++)
