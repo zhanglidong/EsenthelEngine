@@ -930,9 +930,10 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
 
   _bump_mode=(MOBILE ? BUMP_FLAT : BUMP_RELIEF);
 
-  _mtn_mode =MOTION_NONE;
-  _mtn_scale=1;
-  _mtn_res  =FltToByteScale(1.0f/16);
+  _mtn_mode  =MOTION_NONE;
+  _mtn_scale =1;
+  _mtn_res   =FltToByteScale(1.0f/16);
+  _mtn_jitter=true;
 
 //_dof_mode     =DOF_NONE;
 //_dof_foc_mode =false;
@@ -3132,10 +3133,11 @@ DisplayClass& DisplayClass::nightShadeColorL(C Vec & lin_color)  {Vec c(Max(lin_
 DisplayClass& DisplayClass::envColor(C Vec      &color) {if(_env_color!=color)                    Sh.EnvColor->set( _env_color=color  );                                                                                          return T;}
 DisplayClass& DisplayClass::envMap  (C ImagePtr &cube ) {if(_env_map  !=cube ){Bool was=_env_map; Sh.Env     ->set((_env_map  =cube)()); if(cube)Sh.EnvMipMaps->setConditional(cube->mipMaps()-1); if(was!=_env_map)setShader();} return T;} // if changed map presence then reset shader
 /******************************************************************************/
-Flt           DisplayClass::motionRes  (                 )C {return   ByteScaleToFlt(_mtn_res);}
-DisplayClass& DisplayClass::motionRes  (Flt         scale)  {Byte res=FltToByteScale(scale); if(res!=_mtn_res){_mtn_res=res; Renderer.rtClean();}                                                         return T;}
-DisplayClass& DisplayClass::motionMode (MOTION_MODE mode )  {Clamp(mode , MOTION_NONE, MOTION_MODE(MOTION_NUM-1));                       _mtn_mode =mode ;                                                return T;}
-DisplayClass& DisplayClass::motionScale(Flt         scale)  {MAX  (scale, 0                                     ); if(_mtn_scale!=scale){_mtn_scale=scale; Mtn.MotionScale_2->set(D.motionScale()*0.5f);} return T;}
+Flt           DisplayClass::motionRes   (                 )C {return   ByteScaleToFlt(_mtn_res);}
+DisplayClass& DisplayClass::motionRes   (Flt         scale)  {Byte res=FltToByteScale(scale); if(res!=_mtn_res){_mtn_res=res; Renderer.rtClean();}                                                         return T;}
+DisplayClass& DisplayClass::motionMode  (MOTION_MODE mode )  {Clamp(mode , MOTION_NONE, MOTION_MODE(MOTION_NUM-1));                       _mtn_mode =mode ;                                                return T;}
+DisplayClass& DisplayClass::motionScale (Flt         scale)  {MAX  (scale, 0                                     ); if(_mtn_scale!=scale){_mtn_scale=scale; Mtn.MotionScale_2->set(D.motionScale()*0.5f);} return T;}
+DisplayClass& DisplayClass::motionJitter(Bool        on   )  {_mtn_jitter=on;                                                                                                                              return T;}
 /******************************************************************************/
 DisplayClass& DisplayClass::dofMode     (DOF_MODE mode     ) {Clamp(mode, DOF_NONE, DOF_MODE(DOF_NUM-1)); _dof_mode     =mode             ; return T;}
 DisplayClass& DisplayClass::dofFocusMode(Bool     realistic) {                                            _dof_foc_mode =(realistic!=0)   ; return T;}

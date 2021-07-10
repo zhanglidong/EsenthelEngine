@@ -365,11 +365,10 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool alpha, Bool com
 
    VecI2 res=ByteScaleRes(fx(), D._mtn_res);
    Flt scale=Flt(fxH())/res.y;
-   Int shift=Log2Round(RoundU(scale)); // Int shift=Round(Log2(scale));
-   MIN(shift, Elms(Mtn.Convert)-1);
+   Int shift=Log2Round(RoundU(scale)); // Int shift=Round(Log2(scale)); 0=full-res, 1=half, 2=quarter, 3=1/8, 4=1/16, 5=1/32 (this value is unclamped)
    ImageRTDesc rt_desc(res.x, res.y, IMAGERT_RGBA_H); // XY=biggest motion, ZW=smallest motion
    ImageRTPtr  small_motion(rt_desc);
-   Shader     *shader=Mtn.Convert[shift][!D._view_main.full];
+   Shader     *shader=Mtn.getConvert(shift, !D._view_main.full); // 'shift' is clamped in this function
    set(small_motion, null, false);
    Rect dilate_rect, *dilate_rect_ptr=null,
                rect, *       rect_ptr=null;

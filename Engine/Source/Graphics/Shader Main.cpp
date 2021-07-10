@@ -860,9 +860,6 @@ void MotionBlur::load()
 
       SetVel=shader->get("SetVel");
 
-      REPD(range, 6)
-      REPD(clamp, 2)Convert[range][clamp]=shader->get(S8+"Convert"+clamp+(1<<range));
-
       // #MotionBlurDilateRanges
       Dilates[0].range=1;
       Dilates[1].range=2;
@@ -888,6 +885,13 @@ void MotionBlur::load()
       ASSERT(ELMS(Blurs)==4);
    }
 }
+Shader* MotionBlur::getConvert(Int range, Bool clamp)
+{
+   MIN(range, Elms(Convert));
+   Shader* &shader=Convert[range][clamp];
+   if(!shader)shader=T.shader->get(S8+"Convert"+clamp+(1<<range));
+   return shader;
+}
 C MotionBlur::DilateRange& MotionBlur::getDilate(Int range)
 {
    DilateRange *dr; FREPA(Dilates) // start from the smallest to find exact match or bigger, order is important
@@ -904,8 +908,9 @@ Shader* MotionBlur::getBlur(Int samples, Bool dither, Bool alpha)
    {
       b=&Blurs[i]; if(b->samples>=samples)break; // if this covers desired samples
    }
-   Shader* &shader=b->Blur[dither][alpha];
-   if(!shader)shader=T.shader->get(S8+"Blur"+dither+alpha+b->samples);
+   Bool jitter=D.motionJitter();
+   Shader* &shader=b->Blur[dither][jitter][alpha];
+   if(!shader)shader=T.shader->get(S8+"Blur"+dither+jitter+alpha+b->samples);
    return shader;
 }
 /******************************************************************************/

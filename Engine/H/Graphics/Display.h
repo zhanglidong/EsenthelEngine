@@ -322,9 +322,10 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
 #endif
 
    // Motion Blur
-   DisplayClass& motionMode (MOTION_MODE mode );   MOTION_MODE motionMode ()C {return _mtn_mode ;} // set/get Motion Blur Mode           (MOTION_MODE, default=MOTION_NONE  ), the change is instant, you can call it real-time
-   DisplayClass& motionScale(Flt         scale);   Flt         motionScale()C {return _mtn_scale;} // set/get Motion Blur Velocity Scale (  0..1     , default=          1.0), the change is instant, you can call it real-time
-   DisplayClass& motionRes  (Flt         scale);   Flt         motionRes  ()C;                     // set/get Motion Blur Resolution     (  0..1     , default=         1/16), this determines the size of the buffers used for calculating the Motion Blur effect, 1=full size, 0.5=half size, 0.25=quarter size, .., smaller sizes offer faster performance but worse quality, the change is NOT instant, avoid calling real-time
+   DisplayClass& motionMode  (MOTION_MODE mode );   MOTION_MODE motionMode  ()C {return _mtn_mode  ;} // set/get Motion Blur Mode           (MOTION_MODE, default=MOTION_NONE  ), the change is instant, you can call it real-time
+   DisplayClass& motionScale (Flt         scale);   Flt         motionScale ()C {return _mtn_scale ;} // set/get Motion Blur Velocity Scale (  0..1     , default=          1.0), the change is instant, you can call it real-time
+   DisplayClass& motionRes   (Flt         scale);   Flt         motionRes   ()C;                      // set/get Motion Blur Resolution     (  0..1     , default=         1/16), this determines the size of the buffers used for calculating the Motion Blur effect, 1=full size, 0.5=half size, 0.25=quarter size, .., smaller sizes offer faster performance but worse quality, the change is NOT instant, avoid calling real-time
+   DisplayClass& motionJitter(Bool        on   );   Bool        motionJitter()C {return _mtn_jitter;} // set/get Motion Blur Jitter         (true/false , default=         true)
 
    // Depth of Field
 #if EE_PRIVATE
@@ -533,6 +534,7 @@ private:
                      _bloom_allow,
                      _tesselation, _tesselation_heightmap, _tesselation_allow,
                      _ao_all, _amb_jitter, _amb_normal,
+                     _mtn_jitter,
                      _shd_jitter, _shd_reduce,
                      _grass_shadow, _grass_mirror,
                      _vol_light, _vol_add,
