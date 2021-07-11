@@ -26,7 +26,7 @@
 #define SAMPLES 1
 #endif
 
-#define PRECISE 1 // if precisely (separately) calculate samples for far and near (base/center), this is to solve the problem of rotating camera in FPP view, with weapon attached to player/camera. in that case background is rotating, and on the background blur line it encounters an object (weapon) that is in focus. Blur algorithm counts the far samples that move over the base center, and then lerps to the near samples that move over the base center.
+#define PRECISE 0 // if precisely (separately) calculate samples for far and near (base/center), this is to solve the problem of rotating camera in FPP view, with weapon attached to player/camera. in that case background is rotating, and on the background blur line it encounters an object (weapon) that is in focus. Blur algorithm counts the far samples that move over the base center, and then lerps to the near samples that move over the base center.
 
 #define DEPTH_TOLERANCE 0.2 // 20 cm
 
