@@ -26,14 +26,20 @@
 #define SAMPLES 1
 #endif
 
+#define PRECISE 1 // if precisely (separately) calculate samples for far and near (base/center), this is to solve the problem of rotating camera in FPP view, with weapon attached to player/camera. in that case background is rotating, and on the background blur line it encounters an object (weapon) that is in focus. Blur algorithm counts the far samples that move over the base center, and then lerps to the near samples that move over the base center.
+
 #define DEPTH_TOLERANCE 0.2 // 20 cm
 
 #define SHOW_BLUR_PIXELS 0 // show what pixels actually get blurred (they will be set to GREEN for fast blur and RED for slow blur) use only for debugging
 
 #if ALPHA
    #define MASK rgba
+   #define COL  Vec4
+   #define COLH VecH4
 #else
    #define MASK rgb
+   #define COL  Vec
+   #define COLH VecH
 #endif
 /******************************************************************************/
 #include "!Set Prec Struct.h"
@@ -164,14 +170,15 @@ VecH4 Dilate_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 /******************************************************************************/
 // BLUR
 /******************************************************************************/
-Half SampleWeight(Flt base_depth, Flt sample_depth, Half base_uv_motion_len, Half sample_uv_motion_len, Half uv_motion_len_to_step, Half step)
+VecH2 SampleWeight(Flt base_depth, Flt sample_depth, Half base_uv_motion_len, Half sample_uv_motion_len, Half uv_motion_len_to_step, Half step) // X=weight to be used for the specific sample, Y=if this sample is covered by base movement
 {
    Half   depth_delta =sample_depth-base_depth;
    VecH2  depth_weight=Sat(depth_delta*VecH2(1.0/DEPTH_TOLERANCE, -1.0/DEPTH_TOLERANCE)+0.5); // X=how much base is in front of sample, Y=how much sample is in front of base. 0.5 (middle) is returned if both have the same depth. Here it's always X=1-Y and Y=1-X
    VecH2 motion_weight=Sat(VecH2(base_uv_motion_len, sample_uv_motion_len)*uv_motion_len_to_step-step); // have to convert motion into step (instead of step into motion) to make sure that we reach 1.0 weights, this weight is about checking if one position motion is covering another position (smoothly). X=if base motion is covering sample, Y=if sample motion is covering base
  //depth_weight.x*motion_weight.x = this is needed for cases where base is the moving object     and sample is a static background (base  =object is in front, so depth_weight.x=1, base  =object is moving so motion_weight.x=1), we're returning weight=1 so background sample will be used on the object     position, which will make it appear semi-transparent
  //depth_weight.y*motion_weight.y = this is needed for cases where base is the static background and sample is a moving object     (sample=object is in front, so depth_weight.y=1, sample=object is moving so motion_weight.y=1), we're returning weight=1 so object     sample will be used on the background position, which will draw object on top of background
-   return Dot(depth_weight, motion_weight); // return sum of both cases, this will always be 0..1, because even if both base and sample have motion_weight, then depth weight is always X=1-Y
+   Half weight=Dot(depth_weight, motion_weight); // return sum of both cases, this will always be 0..1, because even if both base and sample have motion_weight, then depth weight is always X=1-Y
+   return VecH2(weight, motion_weight.x);
 }
 Half UVMotionLength(VecH2 uv_motion)
 {
@@ -188,9 +195,9 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
               NOPERSP PIXEL            ):TARGET
 {
    VecH4 dilated=TexLod(Img1, uv0); // dilated motion (XY=biggest, ZW=smallest), use linear filtering because 'Img1' may be smaller
-   VecH4 color; color.MASK=TexLod(Img, uv0).MASK; // can't use 'TexPoint' because 'Img' can be supersampled
+   VecH4 base_color; base_color.MASK=TexLod(Img, uv0).MASK; // can't use 'TexPoint' because 'Img' can be supersampled
 #if !ALPHA
-   color.a=1; // force full alpha so back buffer effects can work ok
+   base_color.a=1; // force full alpha so back buffer effects can work ok
 #endif
 
    BRANCH if(any(dilated.xy)) // XY=biggest, can use 'any' because small motions were already forced to 0 in 'Convert'
@@ -204,17 +211,12 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
 
       Int  steps=SAMPLES;
       dir/=steps;
-      Half jitter; if(JITTER)jitter=Dither1D_4(pixel.xy); // use only 4x4 dither because others might be too distracting (individual pixels visible)
+      Half jitter; if(JITTER)jitter=Dither1D_4(pixel.xy); // use only 4 step dither because others might be too distracting (individual pixels visible)
       Vec2 uv1=uv0;
 
       BRANCH if(Length2(dilated.zw)>Length2(dilated.xy)*Sqr(0.64)) // if smallest motion is close to biggest motion then just do a fast and simple blur, ignoring depths and precise motions
       {
-      #if ALPHA
-         Vec4 color_hp=JITTER ? 0 : color.MASK; // use HP because we operate on many samples (when using JITTER the base sample has to be jittered too)
-      #else
-         Vec  color_hp=JITTER ? 0 : color.MASK; // use HP because we operate on many samples (when using JITTER the base sample has to be jittered too)
-      #endif
-
+         COL color_blur=JITTER ? 0 : base_color.MASK; // use HP because we operate on many samples (when using JITTER the base sample has to be jittered too so we can't use 'base_color')
          if(JITTER) // for JITTER we have to process steps starting from 0.5 because we're not leaving extra weight for the base sample (since it has to be jittered too), so move the starting UV's by 0.5 back and apply jitter offset
          {
             Half step0=(/*i=0*/-0.5)+jitter; uv0+=step0*dir.xy;
@@ -222,22 +224,19 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
          }
          UNROLL for(Int i=1; i<=steps; i++) // start from 1 because we've already got #0 before
          {
-            color_hp.MASK+=TexLod(Img, uv0+=dir.xy).MASK  // use linear filtering
-                          +TexLod(Img, uv1+=dir.zw).MASK; // use linear filtering
+            color_blur+=TexLod(Img, uv0+=dir.xy).MASK  // use linear filtering
+                       +TexLod(Img, uv1+=dir.zw).MASK; // use linear filtering
          }
-         color.MASK=color_hp.MASK/(steps*2+(JITTER ? 0 : 1)); // already have 1 sample (only used without JITTER)
+         base_color.MASK=color_blur/(steps*2+(JITTER ? 0 : 1)); // already have 1 sample (only used without JITTER)
 
       #if SHOW_BLUR_PIXELS
-         color.g+=0.1;
+         base_color.g+=0.1;
       #endif
       }else
       {
-      #if ALPHA
-         Vec4  color_hp=0; // use HP because we operate on many samples
-      #else
-         Vec   color_hp=0; // use HP because we operate on many samples
-      #endif
-         Flt   weight  =0; // use HP because we operate on many samples
+         COL   color_near=0; // use HP because we operate on many samples
+         COL   color_far =0; // use HP because we operate on many samples
+         Vec2  weight    =0; // use HP because we operate on many samples (X=near, Y=far)
          VecH2 base_uv_motion=TexPoint(ImgXY, uv0).xy; Half base_uv_motion_len=UVMotionLength(base_uv_motion);
          Flt   base_depth    =TexDepthPoint(uv0);
          Half  uv_motion_len_to_step0=1/Length(dir.xy); // allows to convert travelled UV distance into how many steps (travelled_uv*uv_motion_len_to_step=step)
@@ -267,6 +266,7 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
             }
             uv0+=dir.xy;
             uv1+=dir.zw;
+
             // need to disable filtering to avoid ghosting on borders
             VecH2 sample0_uv_motion=TexPoint(ImgXY, uv0).xy; Flt sample0_depth=TexDepthPoint(uv0);
             VecH2 sample1_uv_motion=TexPoint(ImgXY, uv1).xy; Flt sample1_depth=TexDepthPoint(uv1);
@@ -274,39 +274,70 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
             Half sample0_uv_motion_len=UVMotionLength(sample0_uv_motion);
             Half sample1_uv_motion_len=UVMotionLength(sample1_uv_motion);
 
-            Half w0=SampleWeight(base_depth, sample0_depth, base_uv_motion_len, sample0_uv_motion_len, uv_motion_len_to_step0, step0);
-            Half w1=SampleWeight(base_depth, sample1_depth, base_uv_motion_len, sample1_uv_motion_len, uv_motion_len_to_step1, step1);
+            VecH2 w0=SampleWeight(base_depth, sample0_depth, base_uv_motion_len, sample0_uv_motion_len, uv_motion_len_to_step0, step0);
+            VecH2 w1=SampleWeight(base_depth, sample1_depth, base_uv_motion_len, sample1_uv_motion_len, uv_motion_len_to_step1, step1);
 
-            // this blurs background to make it look more like simple/fast blur
-            if(0) // don't use
+            COLH col0=TexPoint(Img, uv0).MASK,
+                 col1=TexPoint(Img, uv1).MASK;
+
+            if(PRECISE)
             {
-               bool2 state=bool2(sample1_depth<sample0_depth, sample1_uv_motion_len>sample0_uv_motion_len); // X=if sample1 is in front of sample0, Y=if sample1 has bigger motion (moving faster) than sample0
-			      if( all(state))w0=w1; // S1 in front of S0 and moving faster
-			      if(!any(state))w1=w0; // S0 in front of S1 and moving faster
+               w0=w0.x*VecH2(w0.y, 1-w0.y); // adjust X weight to be sample weight * near weight, Y weight to be sample weight * far weight (1-near)
+               w1=w1.x*VecH2(w1.y, 1-w1.y); // adjust X weight to be sample weight * near weight, Y weight to be sample weight * far weight (1-near)
+               color_near+=col0*w0.x + col1*w1.x;
+               color_far +=col0*w0.y + col1*w1.y;
+            }else
+            {
+               color_near+=col0*w0.x + col1*w1.x; // in !PRECISE we just need one color (doesn't matter if we operate on 'color_far' or 'color_near', so just choose any)
+               w0.y=Max(w0.y, w0.x); // adjust Y weight to be maximum of (near weight (Y) and sample weight (X)), it works as if sample weight but if it's near then it's always 1 (to ignore depth: anything covering the base sample), this weight will be used to blend with the final color and the base color
+               w1.y=Max(w1.y, w1.x);
             }
-
-            color_hp.MASK+=w0*TexPoint(Img, uv0).MASK  // use linear filtering
-                          +w1*TexPoint(Img, uv1).MASK; // use linear filtering
             weight+=w0+w1;
          }
-         color_hp.MASK*=1.0/(steps*2+(JITTER ? 0 : 1)); // in every step we have 2 samples + 1 to make room for base sample (can't do that for JITTER because when base is moving then it has to be jittered too, so it has to be processed by codes in the loop)
-         weight       *=1.0/(steps*2+(JITTER ? 0 : 1)); // in every step we have 2 samples + 1 to make room for base sample (can't do that for JITTER because when base is moving then it has to be jittered too, so it has to be processed by codes in the loop)
-         color.MASK=color_hp.MASK + (1-weight)*color.MASK;
+         if(PRECISE)
+         {
+            // FIXME optimize
+            // Warning: these codes don't adjust 'weight.x'
+            if(JITTER)
+            {
+               if(weight.x<1)color_near.MASK+=(1-weight.x)*base_color.MASK; // if gathered near colors are less than 1 full sample, then increase to 'base_color' (use it only if necessary because we want 'base_color' to be jittered)
+               else          color_near/=weight.x; // otherwise normalize
+            }else
+            {
+               color_near.MASK+=base_color.MASK; // here we can always add base sample because we don't need it to be jittered
+               color_near/=(weight.x+1); // normalize including base sample
+            }
+            if(weight.y)color_far/=weight.y; // normalize
+            weight.y*=1.0/(steps*2+(JITTER ? 0 : 1)); // in every step we have 2 samples + 1 to make room for base sample (can't do that for JITTER because when base is moving then it has to be jittered too, so it has to be processed by codes in the loop)
+            base_color.MASK=Lerp(color_near, color_far, weight.y);
+         }else
+         {
+            if(weight.x) // process if we've got any samples (if not then just keep 'base_color' as is)
+            {
+               weight.y*=1.0/(steps*2+(JITTER ? 0 : 1)); // in every step we have 2 samples + 1 to make room for base sample (can't do that for JITTER because when base is moving then it has to be jittered too, so it has to be processed by codes in the loop)
+            #if 0 // original
+               color_near/=weight.x; // normalize
+               base_color.MASK=Lerp(base_color.MASK, color_near.MASK, weight.y);
+            #else // optimized
+               base_color.MASK=base_color.MASK*(1-weight.y) + color_near.MASK*(weight.y/weight.x);
+            #endif
+            }
+         }
 
       #if SHOW_BLUR_PIXELS
-         color.r+=0.1;
+         base_color.r+=0.1;
       #endif
       }
 
    #if 0 // test how many samples were used for blurring
-      color.rgb=steps/Half(SAMPLES);
+      base_color.rgb=steps/Half(SAMPLES);
    #endif
 
    #if DITHER
-      ApplyDither(color.rgb, pixel.xy);
+      ApplyDither(base_color.rgb, pixel.xy);
    #endif
    }
-   return color;
+   return base_color;
 }
 /******************************************************************************
 void Explosion_VS(VtxInput vtx,
