@@ -399,7 +399,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool alpha, Bool com
 
     //Sh.imgSize(*dilated); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
 
-      Int dilate_pixels=DivCeil((UInt)rt_desc.size.y, (UInt)4*2); // dilate up to 25% of the screen vertically (this is the max amount of blur length, *2 because we blur both ways) #MaxMotionBlurLength
+      Int dilate_pixels=DivCeil((UInt)rt_desc.size.y, (UInt)5*2); // dilate up to 20% of the screen vertically (this is the max amount of blur length, *2 because we blur both ways) #MaxMotionBlurLength
       if( dilate_pixels>0)
       {
          ImageRTPtr next(rt_desc);

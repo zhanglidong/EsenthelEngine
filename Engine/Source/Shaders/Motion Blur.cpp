@@ -132,7 +132,7 @@ VecH4 Convert_PS(NOPERSP Vec2 inTex:TEXCOORD0):TARGET
    motion*=MotionScale_2; // for best precision this should be done for every sample, however doing it here just once, increases performance
    { // limit max length - this prevents stretching objects to distances the blur can't handle anyway, making only certain samples of it visible but not all
       length2*=Sqr(MotionScale_2); // since we've scaled 'motion' above after setting 'length2', then we have to scale 'length2' too
-      Half max_length=0.25/2; // #MaxMotionBlurLength
+      Half max_length=0.2/2; // #MaxMotionBlurLength
       if(length2.x>Sqr(max_length))motion.xy*=max_length/Sqrt(length2.x);
     //if(length2.y>Sqr(max_length))motion.zw*=max_length/Sqrt(length2.y); don't have to scale Min motion, because it's only used to detect fast/simple blur
    }
@@ -228,7 +228,7 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
          color.MASK=color_hp.MASK/(steps*2+(JITTER ? 0 : 1)); // already have 1 sample (only used without JITTER)
 
       #if SHOW_BLUR_PIXELS
-         color.g=1;
+         color.g+=0.1;
       #endif
       }else
       {
@@ -267,8 +267,9 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
             }
             uv0+=dir.xy;
             uv1+=dir.zw;
-            VecH2 sample0_uv_motion=TexLod(ImgXY, uv0).xy; Flt sample0_depth=TexDepthLinear(uv0); // TODO: DepthPoint?
-            VecH2 sample1_uv_motion=TexLod(ImgXY, uv1).xy; Flt sample1_depth=TexDepthLinear(uv1);
+            // need to disable filtering to avoid ghosting on borders
+            VecH2 sample0_uv_motion=TexPoint(ImgXY, uv0).xy; Flt sample0_depth=TexDepthPoint(uv0);
+            VecH2 sample1_uv_motion=TexPoint(ImgXY, uv1).xy; Flt sample1_depth=TexDepthPoint(uv1);
 
             Half sample0_uv_motion_len=UVMotionLength(sample0_uv_motion);
             Half sample1_uv_motion_len=UVMotionLength(sample1_uv_motion);
@@ -284,8 +285,8 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
 			      if(!any(state))w1=w0; // S0 in front of S1 and moving faster
             }
 
-            color_hp.MASK+=w0*TexLod(Img, uv0).MASK  // use linear filtering
-                          +w1*TexLod(Img, uv1).MASK; // use linear filtering
+            color_hp.MASK+=w0*TexPoint(Img, uv0).MASK  // use linear filtering
+                          +w1*TexPoint(Img, uv1).MASK; // use linear filtering
             weight+=w0+w1;
          }
          color_hp.MASK*=1.0/(steps*2+(JITTER ? 0 : 1)); // in every step we have 2 samples + 1 to make room for base sample (can't do that for JITTER because when base is moving then it has to be jittered too, so it has to be processed by codes in the loop)
@@ -293,7 +294,7 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
          color.MASK=color_hp.MASK + (1-weight)*color.MASK;
 
       #if SHOW_BLUR_PIXELS
-         color.r=1;
+         color.r+=0.1;
       #endif
       }
 
