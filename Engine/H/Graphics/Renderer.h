@@ -301,7 +301,7 @@ private:
 #if SUPPORT_MLAA
    Image                 _mlaa_area;
 #endif
-   Image                 _smaa_area, _smaa_search, _env_dfg;
+   Image                 _smaa_area, _smaa_search, _env_dfg, _noise;
    void                (*_render)();
  C Memc<ShaderParamChange> *_shader_param_changes;
    ImageRT               _shd_map, _cld_map,

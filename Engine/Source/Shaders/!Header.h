@@ -349,13 +349,13 @@ BUFFER(Constants)
       Vec2( 1.5,  3.5),
    };*/
    #define V(x) ((x+0.5)/4-0.5) // gives -0.375 .. 0.375 range
-   const Flt Dither4[4]=
+   const Flt Noise4[4]=
    {
       V(0), V(2),
       V(3), V(1),
    };
    #define V(x) ((x+0.5)/16-0.5) // gives -0.46875 .. 0.46875 range
-   const Flt Dither16[16]=
+   const Flt Noise16[16]=
    {
       V( 0), V( 8), V( 2), V(10),
       V(12), V( 4), V(14), V( 6),
@@ -363,7 +363,7 @@ BUFFER(Constants)
       V(15), V( 7), V(13), V( 5),
    };
    #define V(x) ((x+0.5)/64-0.5) // gives -0.4921875 .. 0.4921875 range
-   const Flt Dither64[64]=
+   const Flt Noise64[64]=
    {
       V( 0), V(32), V( 8), V(40), V( 2), V(34), V(10), V(42),
       V(48), V(16), V(56), V(24), V(50), V(18), V(58), V(26),
@@ -395,6 +395,7 @@ BUFFER_END
 /******************************************************************************/
 BUFFER_I(Frame, SBI_FRAME) // once per-frame
    Vec4  ClipPlane=Vec4(0, 0, 0, 1); // clipping plane
+   VecI2 NoiseOffset               ; // per-frame texture noise offset
    Vec2  GrassRangeMulAdd          ; // factors used for grass opacity calculation
    Flt   TesselationDensity        ; // tesselation density
    Bool  FirstPass=true            ; // if first pass (apply Material Emissive and Light from Glow)
@@ -478,7 +479,7 @@ Image     Ext, Ext1, Ext2, Ext3,
 #define APPLY_DETAIL_ROUGH(rough, tx_delta) rough+=(TEX_IS_ROUGH ? tx_delta : -tx_delta) // apply texture relative delta onto roughness (this is -tx and not 1-tx because this is relative delta and not absolute value)
 
 Image     Img, Img1, Img2, Img3, Img4, Img5;
-ImageH    ImgX, ImgX1, ImgX2, ImgX3;
+ImageH    ImgX, ImgX1, ImgX2, ImgX3, ImgNoise;
 ImageF    ImgXF, ImgXF1, Depth;
 ImageH2   ImgXY, ImgXY1, ImgXY2, EnvDFG;
 ImageCube Env, Cub, Cub1;
@@ -1200,20 +1201,24 @@ Half   SRGBLumOfSRGBColor  (VecH s) {return LinearToSRGBFast(Dot(SRGBToLinearFas
 /******************************************************************************/
 // DITHER
 /******************************************************************************/
-Half Dither1D_4(VecI2 pixel) // 4 steps, -0.375 .. 0.375
+Half Noise1D_4(VecI2 pixel) // 4 steps, -0.375 .. 0.375
 {
- //return Dither4[(pixel.x&1) + (pixel.y&1)*2];
+ //return Noise4[(pixel.x&1) + (pixel.y&1)*2];
    return ((pixel.x*2 + (pixel.y&1)*3)&3)*(1.0/4) - 0.375;
 }
-Half Dither1D_16(VecI2 pixel) // 16 steps, -0.46875 .. 0.46875
+Half Noise1D_16(VecI2 pixel) // 16 steps, -0.46875 .. 0.46875
 {
-   return Dither16[(pixel.x&3) + (pixel.y&3)*4];
+   return Noise16[(pixel.x&3) + (pixel.y&3)*4];
 }
-Half Dither1D_64(VecI2 pixel) // 64 steps, -0.4921875 .. 0.4921875
+Half Noise1D_64(VecI2 pixel) // 64 steps, -0.4921875 .. 0.4921875
 {
-   return Dither64[(pixel.x&7) + (pixel.y&7)*8];
+   return Noise64[(pixel.x&7) + (pixel.y&7)*8];
 }
-Half Dither1D(Vec2 pixel) // many steps, -0.5 .. 0.5
+Half Noise1D_Blue(VecI2 pixel) // many steps, -1.0 .. 1.0
+{
+   return ImgNoise[(pixel^NoiseOffset)&127];
+}
+Half Noise1D(Vec2 pixel) // many steps, -0.5 .. 0.5
 {
 #if 0 // low
    return Frac(Dot(pixel, Vec2(1.0, 0.5)/3))-0.5;
@@ -1223,12 +1228,12 @@ Half Dither1D(Vec2 pixel) // many steps, -0.5 .. 0.5
    return Frac(Dot(pixel, Vec2(1.6, 1)*0.25))-0.5;
 #endif
 }
-VecH Dither3D(Vec2 pixel) // -0.5 .. 0.5
+VecH Noise3D(Vec2 pixel) // -0.5 .. 0.5
 {
    Flt noise=Dot(Vec2(171, 231), pixel);
    return Frac(noise/Vec(103, 71, 96.9999))-0.5; // 96.9999 instead of 97 fixes blue artifacts (there are some inconsistent white lines when using 97)
 }
-Vec2 Dither2D(VecI2 pixel) // (-0.5, -0.5) .. (0.5, 0.5)
+Vec2 Noise2D(VecI2 pixel) // (-0.5, -0.5) .. (0.5, 0.5)
 {
    pixel&=1;
 #if 0
@@ -1241,7 +1246,7 @@ Vec2 Dither2D(VecI2 pixel) // (-0.5, -0.5) .. (0.5, 0.5)
 void ApplyDither(inout VecH col, Vec2 pixel, Bool linear_gamma=LINEAR_GAMMA)
 {
    if(linear_gamma)col=LinearToSRGBFast(col);
-   col+=Dither3D(pixel)*((4.0/3)/255); // 4.0/3 was the biggest value that didn't introduce artifacts (1.35 already had them), 1.5 is good however has some artifacts
+   col+=Noise3D(pixel)*((4.0/3)/255); // 4.0/3 was the biggest value that didn't introduce artifacts (1.35 already had them), 1.5 is good however has some artifacts
    if(linear_gamma)col=SRGBToLinearFast(col);
 }
 /******************************************************************************/
@@ -2111,7 +2116,7 @@ ImageH      ShdMap1;
 Half ShadowFinal(Half shadow) {return shadow*ShdOpacity.x+ShdOpacity.y;}
 Vec2 ShadowJitter(Vec2 pixel)
 {
-   return Dither2D(pixel)*ShdJitter;
+   return Noise2D(pixel)*ShdJitter;
 }
 Vec ShadowDirTransform(Vec pos, Int num)
 {  // using "Int/UInt matrix_index" and "matrix_index=.."  and "ShdMatrix4[matrix_index]" was slower 

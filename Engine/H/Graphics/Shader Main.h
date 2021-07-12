@@ -154,6 +154,9 @@ struct MainShaderClass
       *FirstPass,
       *VtxSkinning;
 
+   ShaderParamInt
+      *NoiseOffset;
+
    // SHADERS
    Shader
       *Draw2DFlat             ,

@@ -272,6 +272,7 @@ void RendererClass::update()
         _t_measures[1]=0;
       }
    }
+   ULong rnd=Random.l(); Sh.NoiseOffset->set(VecI2(rnd&UINT_MAX, rnd>>32));
 }
 /******************************************************************************/
 void RendererClass::setMain() // !! requires 'D._lock' !! this is called after RT creation, and when VR GuiTexture is created/deleted/changed, and at the end of frame drawing for stereo mode (to advance to the next VR frame)

@@ -210,6 +210,7 @@ void ShaderCompiler::Param::addTranslation(ID3D11ShaderReflectionType *type, C D
          switch(type_desc.Type)
          {
             case D3D_SVT_BOOL      :
+            case D3D_SVT_INT       :
             case D3D_SVT_FLOAT     :
             case D3D_SVT_MIN16FLOAT:
             {
@@ -269,6 +270,7 @@ void ShaderCompiler::Param::addTranslation(ID3D12ShaderReflectionType *type, C D
          switch(type_desc.Type)
          {
             case D3D_SVT_BOOL      :
+            case D3D_SVT_INT       :
             case D3D_SVT_FLOAT     :
             case D3D_SVT_MIN16FLOAT:
             {

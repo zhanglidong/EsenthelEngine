@@ -519,6 +519,7 @@ void MainShaderClass::getTechniques()
    EnvColor           =GetShaderParam    ("EnvColor"           ); EnvColor->set(D.envColor());
    EnvMipMaps         =GetShaderParam    ("EnvMipMaps"         ); if(D.envMap())EnvMipMaps->set(D.envMap()->mipMaps()-1);
    FirstPass          =GetShaderParamBool("FirstPass"          );
+   NoiseOffset        =GetShaderParamInt ("NoiseOffset"        );
    NightShadeColor    =GetShaderParam    ("NightShadeColor"    ); // set in 'D.ambientSet()'
    AmbientColor_l     =GetShaderParam    ("AmbientColor"       ); // set in 'D.ambientSet()'
    AmbientColorNS_l   =GetShaderParam    ("AmbientNSColor"     ); // set in 'D.ambientSet()'

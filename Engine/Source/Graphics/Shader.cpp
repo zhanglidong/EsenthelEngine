@@ -700,6 +700,15 @@ ASSERT(MIN_SHADER_PARAM_DATA_SIZE>=SIZE(Vec4)); // can write small types without
 void ShaderParamBool::set           (Bool b) {                                         setChanged(); *(U32*)_data=b; }
 void ShaderParamBool::setConditional(Bool b) {U32 &dest=*(U32*)_data; if(dest!=(U32)b){setChanged();         dest=b;}}
 
+void ShaderParamInt::set           (  Int    i) {                                        setChanged(); *(Int  *)_data=i; }
+void ShaderParamInt::set           (C VecI2 &v) {                                        setChanged(); *(VecI2*)_data=v; }
+void ShaderParamInt::set           (C VecI  &v) {                                        setChanged(); *(VecI *)_data=v; }
+void ShaderParamInt::set           (C VecI4 &v) {                                        setChanged(); *(VecI4*)_data=v; }
+void ShaderParamInt::setConditional(  Int    i) {Int   &dest=*(Int  *)_data; if(dest!=i){setChanged();           dest=i;}}
+void ShaderParamInt::setConditional(C VecI2 &v) {VecI2 &dest=*(VecI2*)_data; if(dest!=v){setChanged();           dest=v;}}
+void ShaderParamInt::setConditional(C VecI  &v) {VecI  &dest=*(VecI *)_data; if(dest!=v){setChanged();           dest=v;}}
+void ShaderParamInt::setConditional(C VecI4 &v) {VecI4 &dest=*(VecI4*)_data; if(dest!=v){setChanged();           dest=v;}}
+
 void ShaderParam::set(  Bool   b    ) {setChanged(); *(Flt *)_data=b;}
 void ShaderParam::set(  Int    i    ) {setChanged(); *(Flt *)_data=i;}
 void ShaderParam::set(  Flt    f    ) {setChanged(); *(Flt *)_data=f;}

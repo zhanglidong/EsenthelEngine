@@ -207,7 +207,7 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
       Vec4 dir=Vec4(dilated.xy, -dilated.xy);
       Int  steps=SAMPLES;
       dir/=steps;
-      Half jitter; if(JITTER)jitter=Dither1D_4(pixel.xy); // use only 4 step dither because others might be too distracting (individual pixels visible)
+      Half jitter; if(JITTER)jitter=Noise1D_4(pixel.xy); // use only 4 step dither because others might be too distracting (individual pixels visible)
       Vec2 uv1=uv0;
 
       BRANCH if(Length2(dilated.zw)>Length2(dilated.xy)*Sqr(0.64)) // if smallest motion is close to biggest motion then just do a fast and simple blur, ignoring depths and precise motions

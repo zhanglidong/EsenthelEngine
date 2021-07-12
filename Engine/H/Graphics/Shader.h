@@ -156,6 +156,19 @@ struct ShaderParamBool : ShaderParam // Shader Parameter
    void setConditional(Bool b); // set boolean value only if it's different
 #endif
 };
+struct ShaderParamInt : ShaderParam // Shader Parameter
+{
+   void set(  Int    i); // set integer  value
+   void set(C VecI2 &v); // set vector2D value
+   void set(C VecI  &v); // set vector3D value
+   void set(C VecI4 &v); // set vector4D value
+#if EE_PRIVATE
+   void setConditional(  Int    i); // set integer  value only if it's different
+   void setConditional(C VecI2 &v); // set vector2D value only if it's different
+   void setConditional(C VecI  &v); // set vector3D value only if it's different
+   void setConditional(C VecI4 &v); // set vector4D value only if it's different
+#endif
+};
 /******************************************************************************/
 struct ShaderParamChange // Shader Parameter Change
 {
@@ -600,6 +613,7 @@ ShaderParam* FindShaderParam(CChar8 *name); // find shader parameter, null on fa
 ShaderParam*  GetShaderParam(CChar8 *name); // find shader parameter, Exit on fail (shader parameter can be returned only after loading a shader which contains the parameter)
 
 inline ShaderParamBool* GetShaderParamBool(CChar8 *name) {return (ShaderParamBool*)GetShaderParam(name);}
+inline ShaderParamInt * GetShaderParamInt (CChar8 *name) {return (ShaderParamInt *)GetShaderParam(name);}
 
          inline void SPSet(CChar8 *name,   Bool     b               ) {if(ShaderParam *sp=FindShaderParam(name))sp->set(b           );} // set boolean  value
          inline void SPSet(CChar8 *name,   Int      i               ) {if(ShaderParam *sp=FindShaderParam(name))sp->set(i           );} // set integer  value
