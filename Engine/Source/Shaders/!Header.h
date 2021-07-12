@@ -1533,7 +1533,7 @@ void MaterialAlphaTest(Half alpha)
 }
 void MaterialAlphaTestDither(Half alpha, VecI2 pixel, UInt face=0)
 {
-   pixel=pixel^NoiseOffset^face; // adjust by face to make sure that multiple faces on top of each other would use different weights (example #0 face with alpha=0.5 and then #1 face with alpha=0.5 drawn on top of #0 would use the same pixels, but with face index variation they will use different)
+   pixel=pixel+NoiseOffset+face; // adjust by face to make sure that multiple faces on top of each other would use different weights (example #0 face with alpha=0.5 and then #1 face with alpha=0.5 drawn on top of #0 would use the same pixels, but with face index variation they will use different)
 #if 0 // 64-step cbuffer
    alpha=alpha*Material.color.a+(Noise1D_64  (pixel)    -0.5);
 #else // blue noise image
