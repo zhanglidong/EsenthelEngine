@@ -42,7 +42,7 @@ VecH4 PS
 ):TARGET
 {
 #if ALPHA_TEST
-   clip(Tex(Col, inTex).a + Material.color.a-1);
+   MaterialAlphaTest(Tex(Col, inTex).a);
 #endif
 
    Half alpha=Sat((Half(inPos.z-TexDepthPoint(PixelToUV(pixel)))-BehindBias)/0.3);

@@ -34,8 +34,8 @@ VecH4 Outline_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
         +Dist2(col, TexLod(Img, inTex+ImgSize.xy*Vec2( 0, -1)))*(TexDepthPoint(inTex+ImgSize.xy*Vec2( 0, -1))>=pos)
         +Dist2(col, TexLod(Img, inTex+ImgSize.xy*Vec2( 0,  1)))*(TexDepthPoint(inTex+ImgSize.xy*Vec2( 0,  1))>=pos)<=EPS_COL)col.a=0;
 	}*/
-#if CLIP
-   clip(col.a-EPS);
+#if DISCARD
+   if(col.a<=0)discard;
 #endif
    return col;
 }

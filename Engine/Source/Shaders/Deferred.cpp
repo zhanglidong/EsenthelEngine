@@ -411,7 +411,7 @@ void PS
       #if GRASS_FADE
          tex_col.a-=I.fade_out;
       #endif
-         AlphaTest(tex_col.a);
+         MaterialAlphaTest(tex_col.a);
       }
       col   *=tex_col.rgb;
       rough  =Material.  rough_add;
@@ -427,7 +427,7 @@ void PS
       #if GRASS_FADE
          tex_col.a-=I.fade_out;
       #endif
-         AlphaTest(tex_col.a);
+         MaterialAlphaTest(tex_col.a);
       }
       VecH4 tex_ext=Tex(Ext, I.tex);
       col   *=tex_col.rgb;

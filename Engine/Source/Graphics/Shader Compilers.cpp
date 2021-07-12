@@ -313,9 +313,9 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    }
    { // OUTLINE
       ShaderCompiler::Source &src=compiler.New(src_path+"Outline.cpp");
-      src.New("Outline", "Draw_VS", "Outline_PS")("DOWN_SAMPLE", 0, "CLIP", 0);
-      src.New("Outline", "Draw_VS", "Outline_PS")("DOWN_SAMPLE", 1, "CLIP", 0);
-      src.New("Outline", "Draw_VS", "Outline_PS")("DOWN_SAMPLE", 0, "CLIP", 1);
+      src.New("Outline", "Draw_VS", "Outline_PS")("DOWN_SAMPLE", 0, "DISCARD", 0);
+      src.New("Outline", "Draw_VS", "Outline_PS")("DOWN_SAMPLE", 1, "DISCARD", 0);
+      src.New("Outline", "Draw_VS", "Outline_PS")("DOWN_SAMPLE", 0, "DISCARD", 1);
       src.New("OutlineApply", "Draw_VS", "OutlineApply_PS");
    }
    { // PARTICLES

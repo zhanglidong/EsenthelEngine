@@ -78,7 +78,7 @@ void VS
 VecH4 PS(VS_PS I):TARGET
 {
 #if ALPHA_TEST
-   clip(Tex(Col, I.tex).a + Material.color.a-1);
+   MaterialAlphaTest(Tex(Col, I.tex).a);
 #endif
 
 #if EMISSIVE_MAP

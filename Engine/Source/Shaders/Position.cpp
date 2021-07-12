@@ -74,7 +74,8 @@ void VS
 void PS(VS_PS I)
 {
 #if ALPHA_TEST
-   clip(Tex(Col, I.tex).a+(TEST_BLEND ? (Material.color.a*0.5-1) : (Material.color.a-1)));
+   if(TEST_BLEND)clip(Tex(Col, I.tex).a + Material.color.a*0.5 - 1);else
+    MaterialAlphaTest(Tex(Col, I.tex).a);
 #endif
 }
 /******************************************************************************/

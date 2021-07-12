@@ -1216,7 +1216,7 @@ Half Noise1D_64(VecI2 pixel) // 64 steps, -0.4921875 .. 0.4921875
 }
 Half Noise1D_Blue(VecI2 pixel) // many steps, -1.0 .. 1.0
 {
-   return ImgNoise[(pixel^NoiseOffset)&127];
+   return ImgNoise[pixel&127];
 }
 Half Noise1D(Vec2 pixel) // many steps, -0.5 .. 0.5
 {
@@ -1515,7 +1515,7 @@ Vec HsbToRgb(Vec hsb)
 /******************************************************************************/
 // ALPHA TEST
 /******************************************************************************/
-void AlphaTest(Half alpha)
+void MaterialAlphaTest(Half alpha)
 {
    clip(alpha+Material.color.a-1);
 }
