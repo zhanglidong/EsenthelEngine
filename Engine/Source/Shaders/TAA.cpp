@@ -270,8 +270,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 #endif
 #endif
 
-   // VIEWPORT TEST - if 'old_tex' is outside viewport then ignore it
-   if(any(old_tex!=UVClamp(old_tex))) // if(any(old_tex<ImgClamp.xy || old_tex>ImgClamp.zw))
+   if(UVOutsideView(old_tex)) // if 'old_tex' is outside viewport then ignore it
    {
       old_weight=0;
    #if !FLICKER_WEIGHT

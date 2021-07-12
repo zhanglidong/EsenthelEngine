@@ -2040,7 +2040,7 @@ void RendererClass::postProcess()
    if(alpha && !_alpha)setAlphaFromDepthAndCol(); // create '_alpha' if not yet available
 
    Int fxs=((upscale || _get_target) ? -1 : eye_adapt+(bloom|alpha)+motion+dof); // this counter specifies how many effects are still left in the queue, and if we can render directly to '_final', when up sampling then don't render to '_final', 'bloom' already handles merging alpha for 'alpha'
-   if(!D._view_main.full)Sh.ImgClamp->setConditional(ImgClamp(rt_desc.size)); // set 'ImgClamp' that may be needed for Bloom, DoF, MotionBlur, this is the viewport rect within texture, so reading will be clamped to what was rendered inside the viewport
+   Sh.ImgClamp->setConditional(ImgClamp(rt_desc.size)); // set 'ImgClamp' that may be needed for Bloom, DoF, MotionBlur, this is the viewport rect within texture, so reading will be clamped to what was rendered inside the viewport
 
    IMAGE_PRECISION rt_prec=D.litColRTPrecision();
    if(!_get_target) // if we're going to output to '_final'

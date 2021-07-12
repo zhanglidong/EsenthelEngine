@@ -994,8 +994,11 @@ Vec ProjectPrevXYW(Vec pos)
 #endif
 }
 /******************************************************************************/
-Vec2 UVClamp (Vec2 uv, Bool do_clamp=true) {return do_clamp ? Mid(uv, ImgClamp.xy, ImgClamp.zw) : uv;} // clamp  UV
-Vec2 UVInView(Vec2 uv, Bool view_full    ) {return UVClamp(uv, !view_full);                          } // return UV inside viewport, 'view_full'=if viewport is full
+Vec2 UVClamp      (Vec2 uv, Bool do_clamp=true) {return do_clamp ? Mid(uv, ImgClamp.xy, ImgClamp.zw) : uv;} // clamp  UV
+Vec2 UVInView     (Vec2 uv, Bool view_full    ) {return  UVClamp(uv, !view_full);                         } // return UV inside viewport, 'view_full'=if viewport is full
+Bool UVInsideView (Vec2 uv                    ) {all(uv==UVClamp(uv));                                    } // if UV is  inside viewport
+Bool UVOutsideView(Vec2 uv                    ) {any(uv!=UVClamp(uv));                                    } // if UV is outside viewport "any(uv<ImgClamp.xy || uv>ImgClamp.zw)"
+
 Flt ViewportClamp(Vec2 pos, Vec2 dir) // this can be used to clamp 'pos' to Viewport rectangle along 'dir', works OK if 'pos' is both inside and outside viewport, returns fraction of 'dir' to move from 'pos' to be inside viewport, assuming 'dir' points towards viewport (dir=start-pos where start=some point inside viewport)
 {
 #if 0

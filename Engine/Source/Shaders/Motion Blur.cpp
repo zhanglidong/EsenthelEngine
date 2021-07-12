@@ -204,11 +204,11 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
    BRANCH if(any(dilated.xy)) // XY=biggest, can use 'any' because small motions were already forced to 0 in 'Convert'
    {
       Vec4 dir=Vec4(dilated.xy, -dilated.xy);
-      if(!VIEW_FULL)
+    /*if(!VIEW_FULL) doing this here doesn't provide good results
       {
          dir.xy=UVClamp(uv0+dir.xy)-uv0; // first calculate target and clamp it
          dir.zw=UVClamp(uv0+dir.zw)-uv0; // first calculate target and clamp it
-      }
+      }*/
 
       Int  steps=SAMPLES;
       dir/=steps;
@@ -225,8 +225,8 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
          }
          UNROLL for(Int i=1; i<=steps; i++) // start from 1 because we've already got #0 before
          {
-            color_blur+=TexLod(Img, uv0+=dir.xy).MASK  // use linear filtering
-                       +TexLod(Img, uv1+=dir.zw).MASK; // use linear filtering
+            color_blur+=TexLod(Img, UVInView(uv0+=dir.xy, VIEW_FULL)).MASK  // use linear filtering
+                       +TexLod(Img, UVInView(uv1+=dir.zw, VIEW_FULL)).MASK; // use linear filtering
          }
          base_color.MASK=color_blur/(steps*2+(JITTER ? 0 : 1)); // already have 1 sample (only used without JITTER)
 
@@ -265,8 +265,8 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
             {
                step0=step1=Max(0, i+step_add);
             }
-            uv0+=dir.xy;
-            uv1+=dir.zw;
+            uv0=UVInView(uv0+dir.xy, VIEW_FULL);
+            uv1=UVInView(uv1+dir.zw, VIEW_FULL);
 
             // need to disable filtering to avoid ghosting on borders
             VecH2 sample0_uv_motion=TexPoint(ImgXY, uv0).xy; Flt sample0_depth=TexDepthPoint(uv0);
