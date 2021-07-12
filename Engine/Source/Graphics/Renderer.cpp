@@ -412,6 +412,13 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool alpha, Bool com
    }
    if(stage==RS_VEL_DILATED && show(small_motion, false, true))return true;
 
+   #if DEBUG && 0 // test UV CLAMP
+   {
+      set(&src, null, false);
+      D.viewRect().drawBorder(Vec4(1,0,0,0), Vec2(1));
+   }
+   #endif
+
    Sh.Img[1]->set(small_motion);
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
    Mtn.getBlur(Round(fxH()*(7.0f/1080)), D.dither() /*&& src.highPrecision()*/ && !dest.highPrecision(), alpha)->draw(src); // here blurring may generate high precision values, use 7 samples on a 1080 resolution #MotionBlurSamples
