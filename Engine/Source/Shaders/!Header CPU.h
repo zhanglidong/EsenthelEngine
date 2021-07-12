@@ -5,6 +5,12 @@
    !! If any change is made here then all shaders need to be recompiled !!
 
 /******************************************************************************/
+// Alpha Test Modes
+#define ALPHA_TEST_NO     0
+#define ALPHA_TEST_YES    1
+#define ALPHA_TEST_DITHER 2
+#define ALPHA_TEST_NUM    3
+
 // Shader Bump Mapping Modes
 #define SBUMP_ZERO      0 // no vertex normal
 #define SBUMP_FLAT      1

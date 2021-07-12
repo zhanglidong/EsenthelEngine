@@ -80,6 +80,7 @@ Bool HasAlpha(MATERIAL_TECHNIQUE technique)
    switch(technique)
    {
       case MTECH_ALPHA_TEST:
+      case MTECH_ALPHA_TEST_DITHER:
       case MTECH_GRASS:
       case MTECH_GRASS_3D:
       case MTECH_LEAF_2D:
@@ -102,6 +103,7 @@ Bool HasAlphaTest(MATERIAL_TECHNIQUE technique)
    switch(technique)
    {
       case MTECH_ALPHA_TEST            :
+      case MTECH_ALPHA_TEST_DITHER     :
       case MTECH_GRASS                 :
       case MTECH_GRASS_3D              :
       case MTECH_LEAF_2D               :
@@ -118,11 +120,12 @@ Bool HasAlphaTestNoBlend(MATERIAL_TECHNIQUE technique)
 {
    switch(technique)
    {
-      case MTECH_ALPHA_TEST:
-      case MTECH_GRASS     :
-      case MTECH_GRASS_3D  :
-      case MTECH_LEAF_2D   :
-      case MTECH_LEAF      :
+      case MTECH_ALPHA_TEST       :
+      case MTECH_ALPHA_TEST_DITHER:
+      case MTECH_GRASS            :
+      case MTECH_GRASS_3D         :
+      case MTECH_LEAF_2D          :
+      case MTECH_LEAF             :
          return true;
 
       default: return false;
@@ -178,6 +181,7 @@ Bool HasDepthWrite(MATERIAL_TECHNIQUE technique)
    {
       case MTECH_DEFAULT               :
       case MTECH_ALPHA_TEST            :
+      case MTECH_ALPHA_TEST_DITHER     :
       case MTECH_FUR                   :
       case MTECH_GRASS                 :
       case MTECH_LEAF                  :
@@ -396,22 +400,6 @@ Material& Material::validate() // #MaterialTextureLayout
      _multi.macro=(macro_map!=null);
    }
    return T;
-}
-/******************************************************************************
-Bool Material::convertAlphaTest(Bool blend)
-{
-   if(blend)
-   {
-      if(technique==MTECH_ALPHA_TEST){technique=MTECH_TEST_BLEND_LIGHT      ; color.w=1; validate(); return true;}
-      if(technique==MTECH_GRASS     ){technique=MTECH_TEST_BLEND_LIGHT_GRASS; color.w=1; validate(); return true;}
-      if(technique==MTECH_LEAF      ){technique=MTECH_TEST_BLEND_LIGHT_LEAF ; color.w=1; validate(); return true;}
-   }else
-   {
-      if(technique==MTECH_TEST_BLEND_LIGHT      ){technique=MTECH_ALPHA_TEST; color.w=0.5f; validate(); return true;}
-      if(technique==MTECH_TEST_BLEND_LIGHT_GRASS){technique=MTECH_GRASS     ; color.w=0.5f; validate(); return true;}
-      if(technique==MTECH_TEST_BLEND_LIGHT_LEAF ){technique=MTECH_LEAF      ; color.w=0.5f; validate(); return true;}
-   }
-   return false;
 }
 /******************************************************************************/
 void Material::setSolid()C

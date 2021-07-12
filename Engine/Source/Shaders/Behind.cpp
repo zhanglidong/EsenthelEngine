@@ -39,10 +39,15 @@ VecH4 PS
 #endif
    VecH inNrm:NORMAL,
    Vec  inPos:POS
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+        DECLARE_FACE
+#endif
 ):TARGET
 {
-#if ALPHA_TEST
+#if ALPHA_TEST==ALPHA_TEST_YES
    MaterialAlphaTest(Tex(Col, inTex).a);
+#elif ALPHA_TEST==ALPHA_TEST_DITHER
+   MaterialAlphaTestDither(Tex(Col, inTex).a, pixel.xy  USE_FACE);
 #endif
 
    Half alpha=Sat((Half(inPos.z-TexDepthPoint(PixelToUV(pixel)))-BehindBias)/0.3);

@@ -6,7 +6,7 @@ MaterialRegion MtrlEdit;
 MaterialTech mtrl_techs[]=
 {
    {"Default"               , u"Standard rendering of solid (opaque) materials."},
-   {"Alpha Test"            , u"Indicates that textures alpha channel will be used as models transparency.\nThis is slightly slower than Default as alpha testing may disable some hardware-level optimizations."},
+   {"Alpha Test"            , u"Indicates that color texture alpha channel will be used as models transparency.\nThis is slightly slower than Default as alpha testing may disable some hardware-level optimizations."},
    {"Fur"                   , u"Mesh will be rendered with fur effect, the mesh will be wrapped with additional fur imitating textures.\nDetail Scale specifies fur intensity, Detail Power specifies fur length.\nSupported only in Deferred Renderer!"},
    {"Grass"                 , u"Mesh vertexes will bend on the wind like grass,\nbending intensity is determined by mesh vertex source Y position,\nwhich should be in the range from 0 to 1.\nGrass is made out of billboard instead of 3D geometric Mesh."},
    {"Leaf"                  , u"Mesh vertexes will bend on the wind like tree leafs,\nto use this technique mesh must also contain leaf attachment positions,\nwhich can be generated in the Model Editor tool through menu options."},
@@ -20,7 +20,8 @@ MaterialTech mtrl_techs[]=
    {"Grass 3D"              , u"Mesh vertexes will bend on the wind like grass,\nbending intensity is determined by mesh vertex source Y position,\nwhich should be in the range from 0 to 1.\nGrass is made out of 3D geometric Mesh instead of billboard."},
    {"Leaf 2D"               , u"Mesh vertexes will bend on the wind like tree leafs,\nto use this technique mesh must also contain leaf attachment positions,\nwhich can be generated in the Model Editor tool through menu options.\nLeafs are made out of 2D billboards instead 3D geometric Mesh."},
    {"Depth Blend"           , u"Works like Blend technique with additional Depth-Writing which enables correct Depth-Sorting."},
-};                                                                                                                              
+   {"Alpha Test Dither"     , u"Indicates that color texture alpha channel will be used as models transparency with dithering.\nThis is slightly slower than Default as alpha testing may disable some hardware-level optimizations."},
+};                                                                                                                                                                                                                                     
 /******************************************************************************/
 
 /******************************************************************************/

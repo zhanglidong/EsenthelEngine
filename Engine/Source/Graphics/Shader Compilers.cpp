@@ -406,7 +406,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Behind", model, api, flag).New(src_path+"Behind.cpp");
 
    REPD(skin      , 2)
-   REPD(alpha_test, 2)
+   REPD(alpha_test, ALPHA_TEST_NUM)
       src.New(S, "VS", "PS")("SKIN", skin, "ALPHA_TEST", alpha_test);
 }
 #endif
@@ -499,7 +499,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Emissive", model, api, flag).New(src_path+"Emissive.cpp");
 
    REPD(skin        , 2)
-   REPD(alpha_test  , 2)
+   REPD(alpha_test  , ALPHA_TEST_NUM)
    REPD(emissive_map, 2)
    REPD(tesselate   , tess ? 2 : 1)
       src.New(S, "VS", "PS")("SKIN", skin, "ALPHA_TEST", alpha_test, "EMISSIVE_MAP", emissive_map, "FX", FX_NONE).tesselate(tesselate);
@@ -608,7 +608,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Position", model, api, flag).New(src_path+"Position.cpp");
    REPD(tesselate , tess ? 2 : 1)
    REPD(skin      , 2)
-   REPD(alpha_test, 2)
+   REPD(alpha_test, ALPHA_TEST_NUM)
    REPD(test_blend, alpha_test ? 2 : 1)
       src.New().position(skin, alpha_test, test_blend, FX_NONE, tesselate);
 
@@ -624,7 +624,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Set Color", model, api, flag).New(src_path+"Set Color.cpp");
    REPD(tesselate , tess ? 2 : 1)
    REPD(skin      , 2)
-   REPD(alpha_test, 2)
+   REPD(alpha_test, ALPHA_TEST_NUM)
       src.New(S, "VS", "PS")("SKIN", skin, "ALPHA_TEST", alpha_test).tesselate(tesselate);
 }
 #endif
@@ -718,7 +718,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       for(Int bump_mode=SBUMP_FLAT, bump_max=((layout>=2) ? SBUMP_RELIEF : SBUMP_NORMAL); bump_mode<=bump_max; bump_mode++)if(bump_mode<=SBUMP_NORMAL || bump_mode>=SBUMP_PARALLAX_MIN)
       REPD(mtrl_blend, (materials> 1 && layout>=2           ) ? 2 : 1) // can do per-pixel mtrl-blend only if we have bump map
       REPD(heightmap , (!skin                               ) ? 2 : 1)
-      REPD(alpha_test, (materials==1 && layout && !heightmap) ? 2 : 1)
+      REPD(alpha_test, (materials==1 && layout && !heightmap) ? ALPHA_TEST_NUM : 1)
       REPD(macro     , (!skin  &&                  heightmap) ? 2 : 1)
       REPD(tesselate , tess ? 2 : 1)
       REPD(detail    , 2)
@@ -745,7 +745,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       REPD(skin        , 2)
       REPD(layout      , 3)
       REPD(bump_mode   , per_pixel ? 2 : 1)
-      REPD(alpha_test  , layout    ? 2 : 1)
+      REPD(alpha_test  , layout    ? ALPHA_TEST_NUM : 1)
       REPD(alpha       , layout    ? 2 : 1)
       REPD(emissive_map, 2)
          src.New().blendLight(skin, color, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, alpha, reflect, emissive_map, FX_NONE, per_pixel, shadow_maps);
@@ -753,7 +753,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       // grass+leaf, 1 material, 1-2 tex
       for(Int layout=1; layout<=2; layout++)
       REPD (bump_mode   , per_pixel ? 2 : 1)
-      REPD (alpha_test  , layout    ? 2 : 1) // here 'alpha_test' options are needed because of MTECH_BLEND_LIGHT_GRASS/MTECH_TEST_BLEND_LIGHT_GRASS etc.
+      REPD (alpha_test  , layout    ? ALPHA_TEST_NUM : 1) // here 'alpha_test' options are needed because of MTECH_BLEND_LIGHT_GRASS/MTECH_TEST_BLEND_LIGHT_GRASS etc.
       REPD (emissive_map, 2)
       REPAD(fx          , fxs)
          src.New().blendLight(false, color, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, reflect, emissive_map, fxs[fx], per_pixel, shadow_maps);
@@ -778,7 +778,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       REPD(bump_mode   , per_pixel                              ? 2 : 1)
       REPD(mtrl_blend  , (materials> 1 && layout>=2           ) ? 2 : 1) // can do per-pixel mtrl-blend only if we have bump map
       REPD(heightmap   , (!skin                               ) ? 2 : 1)
-      REPD(alpha_test  , (materials==1 && layout && !heightmap) ? 2 : 1)
+      REPD(alpha_test  , (materials==1 && layout && !heightmap) ? ALPHA_TEST_NUM : 1)
       REPD(emissive_map, (materials==1 &&           !heightmap) ? 2 : 1)
       REPD(tesselate   , (tess && SUPPORT_FORWARD_TESSELATE   ) ? 2 : 1)
       REPD(detail      , (        SUPPORT_FORWARD_DETAIL      ) ? 2 : 1)

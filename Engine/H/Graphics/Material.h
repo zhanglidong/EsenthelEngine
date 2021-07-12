@@ -21,6 +21,7 @@ enum MATERIAL_TECHNIQUE : Byte // Material Techniques
    MTECH_GRASS_3D              , // mesh vertexes will bend on the wind like grass, bending intensity is determined by mesh vertex source Y position, which should be in the range from 0 to 1
    MTECH_LEAF_2D               , // mesh vertexes will bend on the wind like tree leafs, to use this technique mesh must also contain leaf attachment positions, which can be generated in the Model Editor tool through menu options
    MTECH_DEPTH_BLEND           , // works like MTECH_BLEND with additional Depth-Writing which enables correct Depth-Sorting
+   MTECH_ALPHA_TEST_DITHER     , // indicates that textures alpha channel will be used as models transparency (this is slightly slower than Default as alpha testing may disable some hardware-level optimizations)
    MTECH_NUM                   , // number of Material Techniques
 };
 Bool HasAlpha           (MATERIAL_TECHNIQUE technique); // if 'technique' involves Alpha-Blending or     Alpha-Testing

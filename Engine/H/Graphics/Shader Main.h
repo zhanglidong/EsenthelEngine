@@ -523,10 +523,10 @@ struct DefaultShaders
         heightmap,
         tex, normal, color, size,
         fur, grass, leaf,
-        alpha, alpha_test, alpha_blend, alpha_blend_no_light, alpha_blend_light,
+        alpha, alpha_blend, alpha_blend_no_light, alpha_blend_light,
         skin,
         tesselate;
-   Byte materials, layout, bump, emissive, fx;
+   Byte materials, alpha_test, layout, bump, emissive, fx;
 
    void      init(C Material *material[4], MESH_FLAG mesh_flag, Int lod_index, Bool heightmap);
    DefaultShaders(C Material *material[4], MESH_FLAG mesh_flag, Int lod_index, Bool heightmap) {init(material, mesh_flag, lod_index, heightmap);}

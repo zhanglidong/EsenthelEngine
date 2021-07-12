@@ -501,11 +501,12 @@ static Bool Match(C ShaderCompiler::SubShader &output, C ShaderCompiler::SubShad
    REPA(input.inputs) // have to check only inputs, we can ignore outputs not present in inputs
    {
     C ShaderCompiler::IO &in=input.inputs[i];
-      if(!InRange(i, output.outputs) || in!=output.outputs[i])
-         if(in.name!="SV_SampleIndex" && in.name!="SV_IsFrontFace")
+      if(in.name!="SV_SampleIndex" && in.name!="SV_IsFrontFace" && in.name!="SV_PrimitiveID")
       {
+         REPA(output.outputs)if(in==output.outputs[i])goto found;
          error.line()+=S+"Input "+in.name+in.index+" register:"+in.reg+" in \""+input.func_name+"\" doesn't match output in \""+output.func_name+'"';
          ok=false;
+      found:;
       }
    }
    return ok;

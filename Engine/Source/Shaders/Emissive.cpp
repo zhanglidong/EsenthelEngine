@@ -75,10 +75,19 @@ void VS
 /******************************************************************************/
 // PS
 /******************************************************************************/
-VecH4 PS(VS_PS I):TARGET
+VecH4 PS
+(
+   VS_PS I
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+       , PIXEL
+         DECLARE_FACE
+#endif
+):TARGET
 {
-#if ALPHA_TEST
+#if ALPHA_TEST==ALPHA_TEST_YES
    MaterialAlphaTest(Tex(Col, I.tex).a);
+#elif ALPHA_TEST==ALPHA_TEST_DITHER
+   MaterialAlphaTestDither(Tex(Col, I.tex).a, pixel.xy  USE_FACE);
 #endif
 
 #if EMISSIVE_MAP

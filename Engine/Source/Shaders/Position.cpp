@@ -71,11 +71,21 @@ void VS
 /******************************************************************************/
 // PS
 /******************************************************************************/
-void PS(VS_PS I)
+void PS
+(
+   VS_PS I
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+       , PIXEL
+         DECLARE_FACE
+#endif
+)
 {
-#if ALPHA_TEST
-   if(TEST_BLEND)clip(Tex(Col, I.tex).a + Material.color.a*0.5 - 1);else
-    MaterialAlphaTest(Tex(Col, I.tex).a);
+#if ALPHA_TEST && TEST_BLEND
+   clip(Tex(Col, I.tex).a + Material.color.a*0.5 - 1);
+#elif ALPHA_TEST==ALPHA_TEST_YES
+   MaterialAlphaTest(Tex(Col, I.tex).a);
+#elif ALPHA_TEST==ALPHA_TEST_DITHER
+   MaterialAlphaTestDither(Tex(Col, I.tex).a, pixel.xy  USE_FACE);
 #endif
 }
 /******************************************************************************/

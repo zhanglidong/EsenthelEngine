@@ -239,15 +239,17 @@ void VS
 /******************************************************************************/
 void PS
 (
-   VS_PS I,
-#if USE_VEL
-   PIXEL,
+   VS_PS I
+#if USE_VEL || ALPHA_TEST==ALPHA_TEST_DITHER
+ , PIXEL
+#endif
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+   DECLARE_FACE
 #endif
 #if FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
-   IS_FRONT,
+ , IS_FRONT
 #endif
-
-   out DeferredSolidOutput output
+ , out DeferredSolidOutput output
 )
 {
    VecH col, nrm;
@@ -411,7 +413,11 @@ void PS
       #if GRASS_FADE
          tex_col.a-=I.fade_out;
       #endif
+      #if ALPHA_TEST==ALPHA_TEST_YES
          MaterialAlphaTest(tex_col.a);
+      #elif ALPHA_TEST==ALPHA_TEST_DITHER
+         MaterialAlphaTestDither(tex_col.a, pixel.xy  USE_FACE);
+      #endif
       }
       col   *=tex_col.rgb;
       rough  =Material.  rough_add;
@@ -427,7 +433,11 @@ void PS
       #if GRASS_FADE
          tex_col.a-=I.fade_out;
       #endif
+      #if ALPHA_TEST==ALPHA_TEST_YES
          MaterialAlphaTest(tex_col.a);
+      #elif ALPHA_TEST==ALPHA_TEST_DITHER
+         MaterialAlphaTestDither(tex_col.a, pixel.xy  USE_FACE);
+      #endif
       }
       VecH4 tex_ext=Tex(Ext, I.tex);
       col   *=tex_col.rgb;

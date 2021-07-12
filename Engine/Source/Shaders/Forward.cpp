@@ -269,7 +269,9 @@ VecH4 PS
 #if PIXEL_NORMAL && FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
  , IS_FRONT
 #endif
-
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+   DECLARE_FACE
+#endif
 ):TARGET
 {
    VecH col;
@@ -306,7 +308,11 @@ VecH4 PS
       #if GRASS_FADE
          tex_col.a-=I.fade_out;
       #endif
+      #if ALPHA_TEST==ALPHA_TEST_YES
          MaterialAlphaTest(tex_col.a);
+      #elif ALPHA_TEST==ALPHA_TEST_DITHER
+         MaterialAlphaTestDither(tex_col.a, pixel.xy  USE_FACE);
+      #endif
       }
       col   *=tex_col.rgb;
       rough  =Material.  rough_add;
@@ -322,7 +328,11 @@ VecH4 PS
       #if GRASS_FADE
          tex_col.a-=I.fade_out;
       #endif
+      #if ALPHA_TEST==ALPHA_TEST_YES
          MaterialAlphaTest(tex_col.a);
+      #elif ALPHA_TEST==ALPHA_TEST_DITHER
+         MaterialAlphaTestDither(tex_col.a, pixel.xy  USE_FACE);
+      #endif
       }
       VecH4 tex_ext=Tex(Ext, I.tex);
       col   *=tex_col.rgb;

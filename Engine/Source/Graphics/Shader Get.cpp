@@ -151,7 +151,7 @@ void DefaultShaders::init(C Material *material[4], MESH_FLAG mesh_flag, Int lod_
    grass               =(normal                        && !skin && materials==1 && layout>=1 && !heightmap && m->hasGrass            ());
    leaf                =(normal && (mesh_flag&VTX_HLP) && !skin && materials==1 && layout>=1 && !heightmap && m->hasLeaf             () && D.bendLeafs());
    alpha               =(                                          materials==1 && layout>=1 && !heightmap && m->hasAlpha            ()); // this is about having alpha channel in material textures so we need a texture
-   alpha_test          =(                                          materials==1 && layout>=1 && !heightmap && m->hasAlphaTest        ());
+   alpha_test          =(                                          materials==1 && layout>=1 && !heightmap && m->hasAlphaTest        ()) ? (m->technique==MTECH_ALPHA_TEST_DITHER ? ALPHA_TEST_DITHER : ALPHA_TEST_YES) : ALPHA_TEST_NO;
    alpha_blend         =(                                          materials==1 &&              !heightmap && m->hasAlphaBlend       ()); // this shouldn't require a texture, we can do alpha blending with just material color
    alpha_blend_no_light=(                                          materials==1 &&              !heightmap && m->hasAlphaBlendNoLight()); // this shouldn't require a texture, we can do alpha blending with just material color
    alpha_blend_light   =(                                          materials==1 &&              !heightmap && m->hasAlphaBlendLight  ()); // this shouldn't require a texture, we can do alpha blending with just material color

@@ -62,6 +62,7 @@
 // HELPERS
 /******************************************************************************/
 #define PIXEL               Vec4 pixel :SV_Position               // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
+#define FACE                UInt face  :SV_PrimitiveID            // face ID
 #define IS_FRONT            Bool front :SV_IsFrontFace            // face front side
 #define CLIP_DIST       out Flt  O_clip:SV_ClipDistance           // clip plane distance
 #define CLIP_PLANE(pos) O_clip=Dot(Vec4((pos).xyz, 1), ClipPlane) // perform user plane clipping
@@ -82,12 +83,21 @@
 #define TARGET6  SV_Target6
 #define TARGET7  SV_Target7
 
-#define NOPERSP noperspective // will disable perspective interpolation
+#define NOINTERP nointerpolation // disable             interpolation and take value from the main vertex
+#define NOPERSP  noperspective   // disable perspective interpolation
 
 #define FLATTEN [flatten] // will make a conditional statement flattened, use before 'if'        statement
 #define BRANCH  [branch ] // will make a conditional statement branched , use before 'if'        statement
 #define LOOP    [loop   ] // will make a loop looped                    , use before 'for while' statements
 #define UNROLL  [unroll ] // will make a loop unrolled                  , use before 'for while' statements
+
+#if (!GL) // gl_PrimitiveID requires GLSL ES 3.2 - https://www.khronos.org/registry/OpenGL-Refpages/es3/html/gl_PrimitiveID.xhtml
+   #define DECLARE_FACE , FACE
+   #define     USE_FACE , face
+#else
+   #define DECLARE_FACE
+   #define     USE_FACE
+#endif
 /******************************************************************************/
 // FUNCTIONS
 /******************************************************************************/
@@ -1284,6 +1294,7 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    VecH4 _material:COLOR0      ;
    VecH4 _color   :COLOR1      ;
 #endif
+   UInt  _id      :SV_VertexID;
    UInt  _instance:SV_InstanceID;
 #include "!Set Prec Default.h"
 
@@ -1325,6 +1336,7 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    VecH4 colorF    () {return _color                                       ;} // linear vertex color
    VecH  colorF3   () {return _color.rgb                                   ;} // linear vertex color
 
+   UInt id      () {return _id;}
    UInt instance() {return _instance;}
 };
 /******************************************************************************/
@@ -1518,6 +1530,16 @@ Vec HsbToRgb(Vec hsb)
 void MaterialAlphaTest(Half alpha)
 {
    clip(alpha+Material.color.a-1);
+}
+void MaterialAlphaTestDither(Half alpha, VecI2 pixel, UInt face=0)
+{
+   pixel=pixel^NoiseOffset^face; // adjust by face to make sure that multiple faces on top of each other would use different weights (example #0 face with alpha=0.5 and then #1 face with alpha=0.5 drawn on top of #0 would use the same pixels, but with face index variation they will use different)
+#if 0 // 64-step cbuffer
+   alpha=alpha*Material.color.a+(Noise1D_64  (pixel)    -0.5);
+#else // blue noise image
+   alpha=alpha*Material.color.a+(Noise1D_Blue(pixel)*0.5-0.5);
+#endif
+   if(alpha<=0)discard;
 }
 /******************************************************************************/
 // NORMAL
