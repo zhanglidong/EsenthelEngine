@@ -6,8 +6,8 @@
 #ifndef HALF_RES
 #define HALF_RES 0
 #endif
-#ifndef CLAMP
-#define CLAMP 0
+#ifndef VIEW_FULL
+#define VIEW_FULL 1
 #endif
 #if !ALPHA
    #define MASK rgb
@@ -57,7 +57,7 @@ Flt Blur(Flt z)
 #endif
 }
 /******************************************************************************/
-// CLAMP, REALISTIC, ALPHA, HALF_RES, MODE(2=FilterMinMax,1=Gather,0=None)
+// VIEW_FULL, REALISTIC, ALPHA, HALF_RES, MODE(2=FilterMinMax,1=Gather,0=None)
 VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD
                 #if ALPHA
                  , out Half outBlur:TARGET1
@@ -68,7 +68,7 @@ VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD
    Flt   depth;
    if(HALF_RES)
    { // here we're rendering to half-res RT, so inTex is at the center of 2x2 full-res depth
-      ret.MASK=TexLod(Img, UVClamp(inTex, CLAMP)).MASK; // use linear filtering because we're downsampling
+      ret.MASK=TexLod(Img, UVInView(inTex, VIEW_FULL)).MASK; // use linear filtering because we're downsampling
    #if MODE==2 // FilterMinMax
       depth=TexDepthRawMin(inTex);
    #elif MODE==1 // Gather available since SM_4_1, GL 4.0, GL ES 3.1
@@ -83,8 +83,8 @@ VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD
    #endif
    }else // quarter
    { // here we're rendering to quarter-res RT, so inTex is at the center of 4x4 full-res depth
-      Vec2 tex_min=UVClamp(inTex-ImgSize.xy, CLAMP), // center of  left-down 2x2 full-res depth
-           tex_max=UVClamp(inTex+ImgSize.xy, CLAMP); // center of right-up   2x2 full-res depth
+      Vec2 tex_min=UVInView(inTex-ImgSize.xy, VIEW_FULL), // center of  left-down 2x2 full-res depth
+           tex_max=UVInView(inTex+ImgSize.xy, VIEW_FULL); // center of right-up   2x2 full-res depth
       Vec2 t00=Vec2(tex_min.x, tex_min.y),
            t10=Vec2(tex_max.x, tex_min.y),
            t01=Vec2(tex_min.x, tex_max.y),

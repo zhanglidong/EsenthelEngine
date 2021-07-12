@@ -205,10 +205,10 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    }
    { // BLOOM
       ShaderCompiler::Source &src=compiler.New(src_path+"Bloom.cpp");
-      REPD(glow    , 2)
-      REPD(clamp   , 2)
-      REPD(half_res, 2)
-         src.New("BloomDS", "BloomDS_VS", "BloomDS_PS")("GLOW", glow, "CLAMP", clamp, "HALF_RES", half_res);
+      REPD(glow     , 2)
+      REPD(view_full, 2)
+      REPD(half_res , 2)
+         src.New("BloomDS", "BloomDS_VS", "BloomDS_PS")("GLOW", glow, "VIEW_FULL", view_full, "HALF_RES", half_res);
 
       REPD(dither, 2)
       REPD(alpha , 2)
@@ -374,12 +374,12 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    }
    { // TAA
       ShaderCompiler::Source &src=compiler.New(src_path+"TAA.cpp");
-      REPD(clamp         , 2)
+      REPD(view_full     , 2)
       REPD(alpha         , 2)
       REPD(dual          , 2)
       REPD(gather        , 2)
       REPD(filter_min_max, 2)
-         src.New("TAA", "Draw_VS", "TAA_PS")("CLAMP", clamp, "ALPHA", alpha, "DUAL_HISTORY", dual, "GATHER", gather)("FILTER_MIN_MAX", filter_min_max).gatherChannel(gather);
+         src.New("TAA", "Draw_VS", "TAA_PS")("VIEW_FULL", view_full, "ALPHA", alpha, "DUAL_HISTORY", dual, "GATHER", gather)("FILTER_MIN_MAX", filter_min_max).gatherChannel(gather);
    }
    { // VIDEO
       ShaderCompiler::Source &src=compiler.New(src_path+"Video.cpp");
@@ -436,12 +436,12 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 #ifdef DEPTH_OF_FIELD
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Depth of Field", model, api, flag).New(src_path+"Depth of Field.cpp");
-   REPD(clamp    , 2)
+   REPD(view_full, 2)
    REPD(realistic, 2)
    REPD(alpha    , 2)
    REPD(half_res , 2)
    REPD(mode     , 3)
-      src.New("DofDS", "Draw_VS", "DofDS_PS")("CLAMP", clamp, "REALISTIC", realistic, "ALPHA", alpha, "HALF_RES", half_res)("MODE", mode).gather(mode==1);
+      src.New("DofDS", "Draw_VS", "DofDS_PS")("VIEW_FULL", view_full, "REALISTIC", realistic, "ALPHA", alpha, "HALF_RES", half_res)("MODE", mode).gather(mode==1);
 
    REPD(alpha, 2)
    for(Int range=2; range<=12; range++)
@@ -571,20 +571,21 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    src.New("SetVel", "SetVel_VS", "SetVel_PS");
 
    ASSERT(6==Elms(Mtn.Convert));
-   REPD(range, 6)
-   REPD(clamp, 2)
-      src.New("Convert", "Draw_VS", "Convert_PS")("CLAMP", clamp, "RANGE", 1<<range);
+   REPD(range    , 6)
+   REPD(view_full, 2)
+      src.New("Convert", "Draw_VS", "Convert_PS")("VIEW_FULL", view_full, "RANGE", 1<<range);
 
    const Int dilate_ranges[]={1, 2, 3, 4, 6, 8, 10, 12, 16, 20, 24, 32, 40, 48}; ASSERT(Elms(dilate_ranges)==Elms(Mtn.Dilates)); // #MotionBlurDilateRanges
    REPAD(range, dilate_ranges)
       src.New("Dilate", "Draw_VS", "Dilate_PS")("RANGE", dilate_ranges[range]);
 
    const Int samples[]={5, 7, 9, 14}; ASSERT(Elms(samples)==Elms(Mtn.Blurs)); // 5-720, 7-1080, 9-1440, 14-2160 #MotionBlurSamples
-   REPD (dither, 2)
-   REPD (jitter, 2)
-   REPD (alpha , 2)
-   REPAD(sample, samples)
-      src.New("Blur", "Draw_VS", "Blur_PS")("DITHER", dither, "JITTER", jitter, "ALPHA", alpha, "SAMPLES", samples[sample]);
+   REPD (dither   , 2)
+   REPD (jitter   , 2)
+   REPD (view_full, 2)
+   REPD (alpha    , 2)
+   REPAD(sample   , samples)
+      src.New("Blur", "Draw_VS", "Blur_PS")("DITHER", dither, "JITTER", jitter)("VIEW_FULL", view_full, "ALPHA", alpha, "SAMPLES", samples[sample]);
 }
 #endif
 

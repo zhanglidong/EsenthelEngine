@@ -10,8 +10,8 @@
       so when blurring in both ways, we can just use samples from the other side
 
 /******************************************************************************/
-#ifndef CLAMP
-#define CLAMP 0
+#ifndef VIEW_FULL
+#define VIEW_FULL 1
 #endif
 
 #ifndef JITTER
@@ -120,7 +120,7 @@ VecH4 Convert_PS(NOPERSP Vec2 inTex:TEXCOORD0):TARGET
    const Int ofs=RANGE/2, min=0-ofs, max=RANGE-ofs;
    UNROLL for(Int y=min; y<max; y++)
    UNROLL for(Int x=min; x<max; x++)
-      Process(motion, length2, TexPoint(ImgXY, UVClamp(inTex+Vec2(x, y)*ImgSize.xy, CLAMP)).xy);
+      Process(motion, length2, TexPoint(ImgXY, UVInView(inTex+Vec2(x, y)*ImgSize.xy, VIEW_FULL)).xy);
 #else // process samples in 2x2 blocks using linear filtering
    // for RANGE=1 (no scale          ) offset should be 0, because inTex is already at the center of 1x1 texel
    // for RANGE=2 (2x downsample, 2x2) offset should be 0, because inTex is already at the center of 2x2 texels (linear filtering is used)
@@ -134,7 +134,7 @@ VecH4 Convert_PS(NOPERSP Vec2 inTex:TEXCOORD0):TARGET
       LOOP for(Int y=min; y<max; y+=2)
       LOOP for(Int x=min; x<max; x+=2)
    #endif
-         Process(motion, length2, TexLod(ImgXY, UVClamp(inTex+Vec2(x, y)*ImgSize.xy, CLAMP)).xy);
+         Process(motion, length2, TexLod(ImgXY, UVInView(inTex+Vec2(x, y)*ImgSize.xy, VIEW_FULL)).xy);
 #endif
    motion*=MotionScale_2; // for best precision this should be done for every sample, however doing it here just once, increases performance
    { // limit max length - this prevents stretching objects to distances the blur can't handle anyway, making only certain samples of it visible but not all
@@ -204,7 +204,7 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
    BRANCH if(any(dilated.xy)) // XY=biggest, can use 'any' because small motions were already forced to 0 in 'Convert'
    {
       Vec4 dir=Vec4(dilated.xy, -dilated.xy);
-      if(CLAMP)
+      if(!VIEW_FULL)
       {
          dir.xy=UVClamp(uv0+dir.xy)-uv0; // first calculate target and clamp it
          dir.zw=UVClamp(uv0+dir.zw)-uv0; // first calculate target and clamp it

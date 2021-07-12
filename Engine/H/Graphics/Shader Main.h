@@ -273,7 +273,7 @@ struct MainShaderClass
       *SMAAEdge[2] , // [Gamma]
       *SMAABlend   ,
       *SMAA        ,
-      *TAA[2][2][2], // [UVClamp][Alpha][Dual]
+      *TAA[2][2][2], // [ViewFull][Alpha][Dual]
 
       // PARTICLE
       *Bilb                ,
@@ -329,9 +329,9 @@ struct MainShaderClass
    ShaderParam
       *BloomParams;
    Shader
-      *BloomDS[2][2][2], // [Glow] [UVClamp] [HalfRes]
+      *BloomDS[2][2][2], // [Glow] [ViewFull] [HalfRes]
       *Bloom  [2][2]   ; // [Dither] [Alpha]
-   Shader* getBloomDS(Bool glow, Bool uv_clamp, Bool half_res);
+   Shader* getBloomDS(Bool glow  , Bool view_full, Bool half_res);
    Shader* getBloom  (Bool dither, Bool alpha);
 
    // SUN
@@ -418,7 +418,7 @@ struct MotionBlur
    ShaderParam *MotionScale_2=&Sh.Dummy;
    Shader      *Explosion,
                *SetVel,
-               *Convert[6][2]; // [Range][Clamp]
+               *Convert[6][2]; // [Range][ViewFull]
 
    struct DilateRange
    {
@@ -429,11 +429,11 @@ struct MotionBlur
    struct BlurRange
    {
       Int     samples;
-      Shader *Blur[2][2][2]; // [Dither][Jitter][Alpha]
+      Shader *Blur[2][2][2][2]; // [Dither][Jitter][ViewFull][Alpha]
    }Blurs[4];
 
    void load();
-   Shader     * getConvert(Int range, Bool clamp);
+   Shader     * getConvert(Int range);
  C DilateRange& getDilate (Int range);
    Shader     * getBlur   (Int samples, Bool dither, Bool alpha);
 }extern
@@ -443,7 +443,7 @@ struct DepthOfField
 {
    ShaderFile  *shader;
    ShaderParam *DofParams;
-   Shader      *DofDS[2][2][2][2], // [Clamp ][Realistic][Alpha][Half]
+   Shader      *DofDS[2][2][2][2], // [ViewFull][Realistic][Alpha][Half]
                *Dof  [2][2][2]   ; // [Dither][Realistic][Alpha]
 
    struct Pixel
@@ -454,9 +454,9 @@ struct DepthOfField
    }pixels[11];
 
    void load();
-   Shader* getDS(Bool clamp , Bool realistic, Bool alpha, Bool half_res);
-   Shader* get  (Bool dither, Bool realistic, Bool alpha);
- C Pixel&  pixel(Bool alpha , Int pixel);
+   Shader* getDS(Bool view_full, Bool realistic, Bool alpha, Bool half_res);
+   Shader* get  (Bool dither   , Bool realistic, Bool alpha);
+ C Pixel&  pixel(Bool alpha    , Int  pixel);
 }extern
    Dof;
 

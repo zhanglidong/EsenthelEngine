@@ -300,8 +300,8 @@ void RendererClass::adaptEye(ImageRTC &src, ImageRT &dest)
    Sh.ImgXF[0]->set(cur); Sh.ImgXF[1]->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.HdrUpdate                                                      ->draw();
                           Sh.ImgX [0]->set(_eye_adapt_scale[_eye_adapt_scale_cur]);                                                                            set(&dest                                  , null, true ); Hdr.Hdr[D.dither() && src.highPrecision() && !dest.highPrecision()]->draw(src);
 }
-INLINE Shader* GetBloomDS(Bool glow, Bool uv_clamp, Bool half_res) {Shader* &s=Sh.BloomDS[glow][uv_clamp][half_res]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow, uv_clamp, half_res); return s;}
-INLINE Shader* GetBloom  (Bool dither, Bool alpha                ) {Shader* &s=Sh.Bloom  [dither][alpha]           ; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloom  (dither, alpha           ); return s;}
+INLINE Shader* GetBloomDS(Bool glow  , Bool view_full, Bool half_res) {Shader* &s=Sh.BloomDS[glow  ][view_full][half_res]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow  , view_full, half_res); return s;}
+INLINE Shader* GetBloom  (Bool dither, Bool alpha                   ) {Shader* &s=Sh.Bloom  [dither][alpha    ]          ; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloom  (dither, alpha              ); return s;}
 // !! Assumes that 'ImgClamp' was already set !!
 void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
 {
@@ -330,7 +330,7 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
                                                                        : D.bloomScale()/4,
                                                                          D.bloomAdd  (),
                                                                          D.bloomGlow ()/(BLOOM_GLOW_GAMMA_PER_PIXEL ? res2 : Sqr(res2)))); // for !BLOOM_GLOW_GAMMA_PER_PIXEL we need to square res2 because of "glow.a=SRGBToLinearFast(glow.a)" in the shader which is before "glow.a/=res2;", so "SRGBToLinearFast(glow.a/res2)=SRGBToLinearFast(glow.a)/Sqr(res2)"
-      Sh.imgSize( src); GetBloomDS(_has_glow, !D._view_main.full, half_res)->draw(src, rect);
+      Sh.imgSize( src); GetBloomDS(_has_glow, D._view_main.full, half_res)->draw(src, rect);
     //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
 
       REP(blurs)
@@ -368,7 +368,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool alpha, Bool com
    Int shift=Log2Round(RoundU(scale)); // Int shift=Round(Log2(scale)); 0=full-res, 1=half, 2=quarter, 3=1/8, 4=1/16, 5=1/32 (this value is unclamped)
    ImageRTDesc rt_desc(res.x, res.y, IMAGERT_RGBA_H); // XY=biggest motion, ZW=smallest motion
    ImageRTPtr  small_motion(rt_desc);
-   Shader     *shader=Mtn.getConvert(shift, !D._view_main.full); // 'shift' is clamped in this function
+   Shader     *shader=Mtn.getConvert(shift); // 'shift' is clamped in this function
    set(small_motion, null, false);
    Rect dilate_rect, *dilate_rect_ptr=null,
                rect, *       rect_ptr=null;
@@ -419,8 +419,8 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool alpha, Bool com
   _vel.clear(); // won't be needed anymore
    return false;
 }
-INLINE Shader* GetDofDS(Bool clamp , Bool realistic, Bool alpha, Bool half_res) {Shader* &s=Dof.DofDS[clamp ][realistic][alpha][half_res]; if(SLOW_SHADER_LOAD && !s)s=Dof.getDS(clamp , realistic, alpha, half_res); return s;}
-INLINE Shader* GetDof  (Bool dither, Bool realistic, Bool alpha               ) {Shader* &s=Dof.Dof  [dither][realistic][alpha]          ; if(SLOW_SHADER_LOAD && !s)s=Dof.get  (dither, realistic, alpha          ); return s;}
+INLINE Shader* GetDofDS(Bool view_full, Bool realistic, Bool alpha, Bool half_res) {Shader* &s=Dof.DofDS[view_full][realistic][alpha][half_res]; if(SLOW_SHADER_LOAD && !s)s=Dof.getDS(view_full, realistic, alpha, half_res); return s;}
+INLINE Shader* GetDof  (Bool dither   , Bool realistic, Bool alpha               ) {Shader* &s=Dof.Dof  [dither   ][realistic][alpha]          ; if(SLOW_SHADER_LOAD && !s)s=Dof.get  (dither   , realistic, alpha          ); return s;}
 // !! Assumes that 'ImgClamp' was already set !!
 void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool alpha, Bool combine)
 { // Depth of Field shader does not require stereoscopic processing because it just reads the depth buffer
@@ -444,7 +444,7 @@ void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool alpha, Bool combine)
    Dof.DofParams->setConditional(Vec4(D.dofIntensity(), D.dofFocus(), range_inv, -D.dofFocus()*range_inv));
 
    set(rt0, blur_smooth[0], null, null, null, false); Rect ext_rect, *rect=null; if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(pixelToScreenSize(pixel.pixels+1));} // when not rendering entire viewport, then extend the rectangle because of blurs checking neighbors, add +1 because of texture filtering, we can ignore stereoscopic there because that's always disabled for not full viewports, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize' and call after setting RT
-   Sh.imgSize( src); GetDofDS(!D._view_main.full, D.dofFocusMode(), alpha, half_res)->draw(src, rect);
+   Sh.imgSize( src); GetDofDS(D._view_main.full, D.dofFocusMode(), alpha, half_res)->draw(src, rect);
  //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
                    set(rt1, blur_smooth[1], null, null, null, false); Sh.ImgX[0]->set(blur_smooth[0]); pixel.BlurX[alpha]->draw(rt0, rect);
    rt0->discard(); set(rt0, blur_smooth[0], null, null, null, false); Sh.ImgX[0]->set(blur_smooth[1]); pixel.BlurY[alpha]->draw(rt1, rect);
@@ -1661,7 +1661,7 @@ void RendererClass::tAA()
       #endif
 
       Sh.imgSize(*_col); // this is needed for Cubic Sampler
-      Shader *shader=Sh.TAA[!D._view_main.full][alpha][dual];
+      Shader *shader=Sh.TAA[D._view_main.full][alpha][dual];
       REPS(_eye, _eye_num)
       {
          Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), rt_desc.size));

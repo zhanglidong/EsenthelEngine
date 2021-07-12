@@ -10,8 +10,8 @@ BUFFER_END
 #ifndef GLOW
    #define GLOW 0
 #endif
-#ifndef CLAMP
-   #define CLAMP 0
+#ifndef VIEW_FULL
+#define VIEW_FULL 1
 #endif
 #ifndef HALF_RES
    #define HALF_RES 0
@@ -44,7 +44,7 @@ VecH4 BloomDS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // "Max(0, " of the result 
       UNROLL for(Int y=0; y<res; y++)
       UNROLL for(Int x=0; x<res; x++)
       {
-         VecH4 c=TexLod(Img, UVClamp(inTex+ImgSize.xy*Vec2(x, y), CLAMP)); // can't use 'TexPoint' because 'Img' can be supersampled
+         VecH4 c=TexLod(Img, UVInView(inTex+ImgSize.xy*Vec2(x, y), VIEW_FULL)); // can't use 'TexPoint' because 'Img' can be supersampled
          if(BLOOM_GLOW_GAMMA_PER_PIXEL)c.a=SRGBToLinearFast(c.a); // have to convert to linear because small glow of 1/255 would give 12.7/255 sRGB (Glow was sampled from non-sRGB texture and stored in RT alpha channel without any gamma conversions)
          color   +=c.rgb;
          glow.rgb+=c.rgb*c.a;
@@ -59,11 +59,11 @@ VecH4 BloomDS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // "Max(0, " of the result 
    {
       if(HALF_RES)
       {
-         return VecH4(BloomColor(TexLod(Img, UVClamp(inTex, CLAMP)).rgb), 0);
+         return VecH4(BloomColor(TexLod(Img, UVInView(inTex, VIEW_FULL)).rgb), 0);
       }else
       {
-         Vec2 tex_min=UVClamp(inTex-ImgSize.xy, CLAMP),
-              tex_max=UVClamp(inTex+ImgSize.xy, CLAMP);
+         Vec2 tex_min=UVInView(inTex-ImgSize.xy, VIEW_FULL),
+              tex_max=UVInView(inTex+ImgSize.xy, VIEW_FULL);
          return VecH4(BloomColor(TexLod(Img, Vec2(tex_min.x, tex_min.y)).rgb
                                 +TexLod(Img, Vec2(tex_max.x, tex_min.y)).rgb
                                 +TexLod(Img, Vec2(tex_min.x, tex_max.y)).rgb

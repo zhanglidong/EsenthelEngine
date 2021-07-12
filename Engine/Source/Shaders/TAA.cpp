@@ -1,7 +1,7 @@
 /******************************************************************************/
 #include "!Header.h"
 /******************************************************************************
-CLAMP, ALPHA, DUAL_HISTORY, GATHER, FILTER_MIN_MAX
+VIEW_FULL, ALPHA, DUAL_HISTORY, GATHER, FILTER_MIN_MAX
 
 Img=Cur, Img1=Old, ImgXY=CurVel
 
@@ -226,7 +226,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
    Flt depth;
    // NEAREST_DEPTH_VEL - get velocity for depth nearest to camera
-   if(NEAREST_DEPTH_VEL) // !! TODO: Warning: this ignores CLAMP, if this is fixed then 'UVClamp' below for 'vel' can be removed !!
+   if(NEAREST_DEPTH_VEL) // !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' below for 'vel' can be removed !!
    {
    #if GATHER
       ofs=VecI2(-1, 1); depth=TexDepthRawPointOfs(inTex, ofs         );              // -1,  1,  left-top
@@ -253,7 +253,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    }
 
    // GET VEL
-   VecH2 vel=TexPoint(ImgXY, UVClamp(inTex+ofs*RTSize.xy, CLAMP)).xy;
+   VecH2 vel=TexPoint(ImgXY, UVInView(inTex+ofs*RTSize.xy, VIEW_FULL)).xy;
 
    Vec2 cur_tex=inTex+TAAOffset,
         old_tex=inTex+vel;
@@ -280,7 +280,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    }
 
    // OLD VEL TEST
-#if TAA_OLD_VEL // if old velocity is different then ignore old, !! TODO: Warning: this ignores CLAMP !!
+#if TAA_OLD_VEL // if old velocity is different then ignore old, !! TODO: Warning: this ignores VIEW_FULL !!
    Vec2 old_tex_vel=old_tex+TAAOffsetCurToPrev;
    Half max_delta_vel_len2=0;
    #if GATHER
@@ -315,7 +315,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       CubicFastSampler cs;
       VecH4 old, old1;
 #if CUBIC
-      cs.set(old_tex); if(CLAMP)cs.UVClamp(ImgClamp.xy, ImgClamp.zw); // here do clamping because for CUBIC we check many samples around texcoord
+      cs.set(old_tex); if(!VIEW_FULL)cs.UVClamp(ImgClamp.xy, ImgClamp.zw); // here do clamping because for CUBIC we check many samples around texcoord
       old =Max(VecH4(0,0,0,0), cs.tex(Img1)); // use Max(0) because of cubic sharpening potentially giving negative values
    #if DUAL_HISTORY
       old1=Max(VecH4(0,0,0,0), cs.tex(Img2)); // use Max(0) because of cubic sharpening potentially giving negative values
@@ -337,12 +337,12 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
    // CUR COLOR + CUR ALPHA
 #if CUBIC
-   cs.set(cur_tex); if(CLAMP)cs.UVClamp(ImgClamp.xy, ImgClamp.zw);
+   cs.set(cur_tex); if(!VIEW_FULL)cs.UVClamp(ImgClamp.xy, ImgClamp.zw);
    #if ALPHA
       Half cur_alpha=Sat(cs.texX(ImgX)); // use Sat because of cubic sharpening potentially giving negative values
    #endif
 #else
-   if(CLAMP)cur_tex=UVClamp(cur_tex);
+   if(!VIEW_FULL)cur_tex=UVClamp(cur_tex);
    #if ALPHA
       Half cur_alpha=TexLod(ImgX, cur_tex);
    #endif
@@ -353,7 +353,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    UNROLL for(Int x=0; x<4; x++)
       if((x!=0 && x!=3) || (y!=0 && y!=3)) // skip corners
    {
-   #if !CLAMP
+   #if VIEW_FULL
       VecH4 col=TexPointOfs(Img, cs.tc[0], VecI2(x, y));
    #else
       VecH4 col=TexPoint(Img, cs.uv(x, y));
@@ -409,12 +409,12 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    #if FILTER_MIN_MAX // check 3x3 samples by using 2x2 tex reads using Min/Max filtering (where each tex read gives minimum/maximum out of 2x2 samples)
    {
       Vec2 uv[2];
-   #if CLAMP
-      uv[0]=Vec2(Max(inTex.x-RTSize.x/2, ImgClamp.x), Max(inTex.y-RTSize.y/2, ImgClamp.y));
-      uv[1]=Vec2(Min(inTex.x+RTSize.x/2, ImgClamp.z), Min(inTex.y+RTSize.y/2, ImgClamp.w));
-   #else
+   #if VIEW_FULL
       uv[0]=inTex-RTSize.xy/2;
       uv[1]=inTex+RTSize.xy/2;
+   #else
+      uv[0]=Vec2(Max(inTex.x-RTSize.x/2, ImgClamp.x), Max(inTex.y-RTSize.y/2, ImgClamp.y));
+      uv[1]=Vec2(Min(inTex.x+RTSize.x/2, ImgClamp.z), Min(inTex.y+RTSize.y/2, ImgClamp.w));
    #endif
       UNROLL for(Int y=0; y<=1; y++)
       UNROLL for(Int x=0; x<=1; x++)
@@ -445,7 +445,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    }
    #else // check all 3x3 samples individually
    {
-   #if CLAMP
+   #if !VIEW_FULL
       Vec2 tex_clamp[3];
       tex_clamp[0]=Vec2(Max(inTex.x-RTSize.x, ImgClamp.x), Max(inTex.y-RTSize.y, ImgClamp.y)); tex_clamp[1]=inTex;
       tex_clamp[2]=Vec2(Min(inTex.x+RTSize.x, ImgClamp.z), Min(inTex.y+RTSize.y, ImgClamp.w));
@@ -454,7 +454,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       UNROLL for(Int x=-1; x<=1; x++)
       {
          VecH4 col;
-      #if !CLAMP
+      #if VIEW_FULL
          col=TexPointOfs(Img, inTex, VecI2(x, y));
       #else
          col=TexPoint(Img, Vec2(tex_clamp[x+1].x, tex_clamp[y+1].y));

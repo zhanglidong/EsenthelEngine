@@ -338,8 +338,8 @@ void MainShaderClass::draw (C Image &image                  ,                   
 void MainShaderClass::draw (C Image &image, C   Vec4  &color, C   Vec4  &color_add, C Rect *rect) {Sh.Color[0]->set(color); Sh.Color[1]->set(color_add); Sh.DrawC ->draw(image, rect);}
 void MainShaderClass::draw (C Image &image, C ::Color &color, C ::Color &color_add, C Rect *rect) {Sh.Color[0]->set(color); Sh.Color[1]->set(color_add); Sh.DrawC ->draw(image, rect);}
 /******************************************************************************/
-Shader* MainShaderClass::getBloomDS(Bool glow, Bool uv_clamp, Bool half_res) {return get(S8+"BloomDS"+glow+uv_clamp+half_res);}
-Shader* MainShaderClass::getBloom  (Bool dither, Bool alpha                ) {return get(S8+"Bloom"  +dither+alpha);}
+Shader* MainShaderClass::getBloomDS(Bool glow  , Bool view_full, Bool half_res) {return get(S8+"BloomDS"+glow+view_full+half_res);}
+Shader* MainShaderClass::getBloom  (Bool dither, Bool alpha                   ) {return get(S8+"Bloom"  +dither+alpha);}
 
 Shader* MainShaderClass::getShdDir  (Int map_num, Bool clouds, Bool multi_sample) {return get(S8+"ShdDir"  +multi_sample+map_num+clouds);}
 Shader* MainShaderClass::getShdPoint(                          Bool multi_sample) {return get(S8+"ShdPoint"+multi_sample);}
@@ -627,10 +627,10 @@ void MainShaderClass::getTechniques()
    // BLOOM
    BloomParams=GetShaderParam("BloomParams");
 #if !SLOW_SHADER_LOAD
-   REPD(glow , 2)
-   REPD(clamp, 2)
-   REPD(half , 2)
-      BloomDS[glow][clamp][half]=getBloomDS(glow, clamp, half);
+   REPD(glow     , 2)
+   REPD(view_full, 2)
+   REPD(half     , 2)
+      BloomDS[glow][view_full][half]=getBloomDS(glow, view_full, half);
 
    REPD(dither, 2)
    REPD(alpha , 2)
@@ -885,11 +885,12 @@ void MotionBlur::load()
       ASSERT(ELMS(Blurs)==4);
    }
 }
-Shader* MotionBlur::getConvert(Int range, Bool clamp)
+Shader* MotionBlur::getConvert(Int range)
 {
    MIN(range, Elms(Convert));
-   Shader* &shader=Convert[range][clamp];
-   if(!shader)shader=T.shader->get(S8+"Convert"+clamp+(1<<range));
+   Bool view_full=D._view_main.full;
+   Shader* &shader=Convert[range][view_full];
+   if(!shader)shader=T.shader->get(S8+"Convert"+view_full+(1<<range));
    return shader;
 }
 C MotionBlur::DilateRange& MotionBlur::getDilate(Int range)
@@ -908,14 +909,14 @@ Shader* MotionBlur::getBlur(Int samples, Bool dither, Bool alpha)
    {
       b=&Blurs[i]; if(b->samples>=samples)break; // if this covers desired samples
    }
-   Bool jitter=D.motionJitter();
-   Shader* &shader=b->Blur[dither][jitter][alpha];
-   if(!shader)shader=T.shader->get(S8+"Blur"+dither+jitter+alpha+b->samples);
+   Bool jitter=D.motionJitter(), view_full=D._view_main.full;
+   Shader* &shader=b->Blur[dither][jitter][view_full][alpha];
+   if(!shader)shader=T.shader->get(S8+"Blur"+dither+jitter+view_full+alpha+b->samples);
    return shader;
 }
 /******************************************************************************/
-Shader* DepthOfField::getDS(Bool clamp , Bool realistic, Bool alpha, Bool half_res) {return shader->get(S8+"DofDS"+clamp+realistic+alpha+half_res+(D.filterMinMaxAvailable() ? 2 : D.gatherAvailable() ? 1 : 0));}
-Shader* DepthOfField::get  (Bool dither, Bool realistic, Bool alpha               ) {return shader->get(S8+"Dof"+dither+realistic+alpha);}
+Shader* DepthOfField::getDS(Bool view_full, Bool realistic, Bool alpha, Bool half_res) {return shader->get(S8+"DofDS"+view_full+realistic+alpha+half_res+(D.filterMinMaxAvailable() ? 2 : D.gatherAvailable() ? 1 : 0));}
+Shader* DepthOfField::get  (Bool dither   , Bool realistic, Bool alpha               ) {return shader->get(S8+"Dof"+dither+realistic+alpha);}
 
 void DepthOfField::load()
 {
@@ -924,11 +925,11 @@ void DepthOfField::load()
       DofParams=GetShaderParam("DofParams");
 
    #if !SLOW_SHADER_LOAD
-      REPD(clamp    , 2)
+      REPD(view_full, 2)
       REPD(realistic, 2)
       REPD(alpha    , 2)
       REPD(half_res , 2)
-         DofDS[clamp][realistic][alpha][half_res]=getDS(clamp, realistic, alpha, half_res);
+         DofDS[view_full][realistic][alpha][half_res]=getDS(view_full, realistic, alpha, half_res);
 
       REPD(dither   , 2)
       REPD(realistic, 2)
