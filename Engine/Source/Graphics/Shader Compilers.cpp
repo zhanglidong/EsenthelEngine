@@ -580,12 +580,11 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       src.New("Dilate", "Draw_VS", "Dilate_PS")("RANGE", dilate_ranges[range]);
 
    const Int samples[]={5, 7, 9, 14}; ASSERT(Elms(samples)==Elms(Mtn.Blurs)); // 5-720, 7-1080, 9-1440, 14-2160 #MotionBlurSamples
-   REPD (dither   , 2)
-   REPD (jitter   , 2)
-   REPD (view_full, 2)
-   REPD (alpha    , 2)
-   REPAD(sample   , samples)
-      src.New("Blur", "Draw_VS", "Blur_PS")("DITHER", dither, "JITTER", jitter)("VIEW_FULL", view_full, "ALPHA", alpha, "SAMPLES", samples[sample]);
+   REPD (dither, 2)
+   REPD (jitter, 2)
+   REPD (alpha , 2)
+   REPAD(sample, samples)
+      src.New("Blur", "Draw_VS", "Blur_PS")("DITHER", dither, "JITTER", jitter)("ALPHA", alpha, "SAMPLES", samples[sample]);
 }
 #endif
 

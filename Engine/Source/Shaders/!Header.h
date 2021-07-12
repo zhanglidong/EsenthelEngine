@@ -995,7 +995,7 @@ Vec ProjectPrevXYW(Vec pos)
 }
 /******************************************************************************/
 Vec2 UVClamp      (Vec2 uv, Bool do_clamp=true) {return do_clamp ? Mid(uv, ImgClamp.xy, ImgClamp.zw) : uv;} // clamp  UV
-Vec2 UVInView     (Vec2 uv, Bool view_full    ) {return  UVClamp(uv, !view_full);                         } // return UV inside viewport, 'view_full'=if viewport is full
+Vec2 UVInView     (Vec2 uv, Bool view_full    ) {return         UVClamp(uv, !view_full);                  } // return UV inside viewport, 'view_full'=if viewport is full
 Bool UVInsideView (Vec2 uv                    ) {return all(uv==UVClamp(uv));                             } // if UV is  inside viewport
 Bool UVOutsideView(Vec2 uv                    ) {return any(uv!=UVClamp(uv));                             } // if UV is outside viewport "any(uv<ImgClamp.xy || uv>ImgClamp.zw)"
 
