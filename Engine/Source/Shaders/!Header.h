@@ -348,8 +348,22 @@ BUFFER(Constants)
       Vec2(-0.5,  3.5),
       Vec2( 1.5,  3.5),
    };*/
-   #define V(x) ((x-32)/64.0) // gives -0.5 .. 0.5 range
-   const Flt OrderDither[64]=
+   #define V(x) ((x+0.5)/4-0.5) // gives -0.375 .. 0.375 range
+   const Flt Dither4[4]=
+   {
+      V(0), V(2),
+      V(3), V(1),
+   };
+   #define V(x) ((x+0.5)/16-0.5) // gives -0.46875 .. 0.46875 range
+   const Flt Dither16[16]=
+   {
+      V( 0), V( 8), V( 2), V(10),
+      V(12), V( 4), V(14), V( 6),
+      V( 3), V(11), V( 1), V( 9),
+      V(15), V( 7), V(13), V( 5),
+   };
+   #define V(x) ((x+0.5)/64-0.5) // gives -0.4921875 .. 0.4921875 range
+   const Flt Dither64[64]=
    {
       V( 0), V(32), V( 8), V(40), V( 2), V(34), V(10), V(42),
       V(48), V(16), V(56), V(24), V(50), V(18), V(58), V(26),
@@ -360,6 +374,7 @@ BUFFER(Constants)
       V(15), V(47), V( 7), V(39), V(13), V(45), V( 5), V(37),
       V(63), V(31), V(55), V(23), V(61), V(29), V(53), V(21),
    };
+   #undef V
 BUFFER_END
 
 BUFFER(Step)
@@ -1187,7 +1202,16 @@ Half   SRGBLumOfSRGBColor  (VecH s) {return LinearToSRGBFast(Dot(SRGBToLinearFas
 /******************************************************************************/
 Half Dither1D_4(VecI2 pixel) // 4 steps, -0.375 .. 0.375
 {
-   return ((pixel.x*2 + (pixel.y&1)*3)&3)*(1.0/4) - 0.375; // bayer 2x2
+ //return Dither4[(pixel.x&1) + (pixel.y&1)*2];
+   return ((pixel.x*2 + (pixel.y&1)*3)&3)*(1.0/4) - 0.375;
+}
+Half Dither1D_16(VecI2 pixel) // 16 steps, -0.46875 .. 0.46875
+{
+   return Dither16[(pixel.x&3) + (pixel.y&3)*4];
+}
+Half Dither1D_64(VecI2 pixel) // 64 steps, -0.4921875 .. 0.4921875
+{
+   return Dither64[(pixel.x&7) + (pixel.y&7)*8];
 }
 Half Dither1D(Vec2 pixel) // many steps, -0.5 .. 0.5
 {
@@ -1203,10 +1227,6 @@ VecH Dither3D(Vec2 pixel) // -0.5 .. 0.5
 {
    Flt noise=Dot(Vec2(171, 231), pixel);
    return Frac(noise/Vec(103, 71, 96.9999))-0.5; // 96.9999 instead of 97 fixes blue artifacts (there are some inconsistent white lines when using 97)
-}
-Half Dither1D_Order(VecI2 pixel) // 64 steps, -0.5 .. 0.5
-{
-   return OrderDither[(pixel.x&7) + (pixel.y&7)*8];
 }
 Vec2 Dither2D(VecI2 pixel) // (-0.5, -0.5) .. (0.5, 0.5)
 {
