@@ -153,6 +153,7 @@ VecH4 Convert_PS(NOPERSP Vec2 inTex:TEXCOORD0):TARGET
 
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
+// Dilate doesn't use UV clamping, instead border around viewport is cleared
 VecH4 Dilate_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
    VecH4 motion =TexPoint(Img, inTex);

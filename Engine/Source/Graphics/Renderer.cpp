@@ -363,15 +363,18 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool alpha, Bool com
       Mtn.SetVel->draw();
    }
 
-   VecI2 res=ByteScaleRes(fx(), D._mtn_res);
-   Flt scale=Flt(fxH())/res.y;
-   Int shift=Log2Round(RoundU(scale)); // Int shift=Round(Log2(scale)); 0=full-res, 1=half, 2=quarter, 3=1/8, 4=1/16, 5=1/32 (this value is unclamped)
+   VecI2       res=ByteScaleRes(fx(), D._mtn_res);
+   Flt         scale=Flt(fxH())/res.y;
+   Int         shift=Log2Round(RoundU(scale)); // Int shift=Round(Log2(scale)); 0=full-res, 1=half, 2=quarter, 3=1/8, 4=1/16, 5=1/32 (this value is unclamped)
    ImageRTDesc rt_desc(res.x, res.y, IMAGERT_RGBA_H); // XY=biggest motion, ZW=smallest motion
    ImageRTPtr  small_motion(rt_desc);
-   Shader     *shader=Mtn.getConvert(shift); // 'shift' is clamped in this function
+   Vec2        pixel_size;
+   Int         dilate_pixels=DivCeil((UInt)rt_desc.size.y, (UInt)5*2); // dilate up to 20% of the screen vertically (this is the max amount of blur length, *2 because we blur both ways) #MaxMotionBlurLength
+ C auto       *dilate=&Mtn.getDilate(dilate_pixels);
+   Shader     *shader= Mtn.getConvert(shift); // 'shift' is clamped in this function
+   Rect        rect, *rect_ptr=null;
+
    set(small_motion, null, false);
-   Rect dilate_rect, *dilate_rect_ptr=null,
-               rect, *       rect_ptr=null;
    Sh.ImgXY[0]->set(_vel);
    Sh.imgSize(*_vel); // need to have full-res size
    if(D._view_main.full)REPS(_eye, _eye_num)
@@ -380,35 +383,31 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool alpha, Bool com
       shader->draw(eye_rect);
    }else // when not rendering entire viewport
    {
-      Vec2  pixel_size=pixelToScreenSize(1);
-      Vec2 dilate_size=0;//FIXME pixel_size*(dilate_round_pixels+(diagonal ? dilate_ortho_pixels*2 : dilate_ortho_pixels)+1); // extend the rectangle because of 'Dilate' and 'SetDirs' checking neighbors, for diagonal have to double ortho because both steps (X and Y) check diagonally, add +1 because of texture filtering, we can ignore stereoscopic there because that's always disabled for not full viewports, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
-      
-      dilate_rect_ptr=&(dilate_rect=D.viewRect()).extend(dilate_size);
-             rect_ptr=&(       rect=D.viewRect()).extend( pixel_size); // just 1 pixel because of texture filtering
+      pixel_size=pixelToScreenSize(1); // call this after setting new RT to get 'small_motion' size, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
+       rect_ptr =&(rect=D.viewRect()).extend(pixel_size); // extend by 1 pixel because this will be used in full-res blur with texture filtering
 
-                    D.viewRect().drawBorder(Vec4Zero, dilate_size); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
-      shader->draw(&D.viewRect());
+                   rect_ptr->drawBorder(Vec4Zero, pixel_size*dilate->range); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
+      shader->draw(rect_ptr); // convert after drawing border
    }
 
    if(stage==RS_VEL_CONVERT && show(small_motion, false, true))return true;
 
    // Dilate
-   {
-      // we need to apply Dilation, for example, if a ball object has movement, then it should be blurred, and also pixels around the ball should be blurred too
+   if(dilate_pixels>0)
+   {  // we need to apply Dilation, for example, if a ball object has movement, then it should be blurred, and also pixels around the ball should be blurred too
       // however velocity for pixels around the ball (the background) may be zero, so we need to apply dilation and apply the velocity onto neighboring pixels
 
     //Sh.imgSize(*dilated); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
-
-      Int dilate_pixels=DivCeil((UInt)rt_desc.size.y, (UInt)5*2); // dilate up to 20% of the screen vertically (this is the max amount of blur length, *2 because we blur both ways) #MaxMotionBlurLength
-      if( dilate_pixels>0)
-      {
-         ImageRTPtr next(rt_desc);
-      again:
-         set(next, null, false);
-       C auto &dilate=Mtn.getDilate(dilate_pixels); dilate.Dilate->draw(small_motion, dilate_rect_ptr);
-         Swap(small_motion, next);
-         if((dilate_pixels-=dilate.range)>0){next->discard(); goto again;}
-      }
+      ImageRTPtr next(rt_desc);
+   again:
+      dilate_pixels-=dilate->range;
+    C auto *next_dilate=(dilate_pixels>0) ? &Mtn.getDilate(dilate_pixels) : null;
+      set(next, null, false);
+      if(rect_ptr && next_dilate) // if not full viewport, and there's a next dilate
+         rect_ptr->drawBorder(Vec4Zero, pixel_size*next_dilate->range); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
+      dilate->Dilate->draw(small_motion, rect_ptr); // dilate after drawing border
+      Swap(small_motion, next);
+      if(next_dilate){next->discard(); dilate=next_dilate; goto again;}
    }
    if(stage==RS_VEL_DILATED && show(small_motion, false, true))return true;
 
