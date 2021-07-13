@@ -1218,7 +1218,7 @@ Half Noise1D_64(VecI2 pixel) // 64 steps, -0.4921875 .. 0.4921875
 }
 Half Noise1D_Blue(VecI2 pixel) // many steps, -1.0 .. 1.0
 {
-   return ImgNoise[pixel&127];
+   return ImgNoise[pixel&(NOISE_IMAGE_RES-1)];
 }
 Half Noise1D(Vec2 pixel) // many steps, -0.5 .. 0.5
 {
@@ -1526,9 +1526,9 @@ void MaterialAlphaTest(Half alpha)
 {
    clip(alpha+Material.color.a-1);
 }
-void MaterialAlphaTestDither(Half alpha, VecI2 pixel, VecU2 face)
+void MaterialAlphaTestDither(Half alpha, VecI2 pixel, VecU2 face, bool noise_offset=true)
 {
-   pixel=pixel+NoiseOffset+face; // can't use xor because it would destroy noise image continuity, adjust by face to make sure that multiple faces on top of each other would use different weights (example #0 face with alpha=0.5 and then #1 face with alpha=0.5 drawn on top of #0 would use the same pixels, but with face index variation they will use different)
+   pixel=pixel+(noise_offset ? NoiseOffset : 0)+face; // can't use xor because it would destroy noise image continuity, adjust by face to make sure that multiple faces on top of each other would use different weights (example #0 face with alpha=0.5 and then #1 face with alpha=0.5 drawn on top of #0 would use the same pixels, but with face index variation they will use different)
    Half scale=1-1.0/1024; // this is needed to preserve fully opaque =1 alphas 
 #if 0 // 64-step cbuffer
    alpha=alpha*Material.color.a+(Noise1D_64  (pixel)*     scale -0.5);

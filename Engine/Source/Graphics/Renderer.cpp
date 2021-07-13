@@ -200,7 +200,7 @@ void RendererClass::create()
    Water .create();
 
    if(_env_dfg.load("Img/Environment DFG.img"))GetShaderImage("EnvDFG"  )->set(_env_dfg);
-   if(_noise  .load("Img/Blue Noise 128.img" ))GetShaderImage("ImgNoise")->set(_noise  );
+   if(_noise  .load("Img/Blue Noise 128.img" ))GetShaderImage("ImgNoise")->set(_noise  ); ASSERT(NOISE_IMAGE_RES==128);
 }
 RendererClass& RendererClass::type(RENDER_TYPE type)
 {
@@ -998,6 +998,8 @@ start:
 
    // now 'col' and 'ds' are known, including their sizes
 
+   Sh.NoiseOffset->set(VecI2(hasTAA() ? Time.frame()%Elms(TAAOffsets)*(NOISE_IMAGE_RES/Elms(TAAOffsets)) : 0));
+   
    D.alpha(ALPHA_NONE);
 
    mode(RM_PREPARE); AstroPrepare(); // !! call after obtaining '_col', '_ds' and '_ds_1s' because we rely on having them, and after RM_PREPARE because we may add lights !!

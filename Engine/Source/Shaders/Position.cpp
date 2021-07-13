@@ -95,7 +95,7 @@ void PS
 #elif ALPHA_TEST==ALPHA_TEST_YES
    MaterialAlphaTest(Tex(Col, I.tex).a);
 #elif ALPHA_TEST==ALPHA_TEST_DITHER
-   MaterialAlphaTestDither(Tex(Col, I.tex).a, pixel.xy, I.face_id);
+   MaterialAlphaTestDither(Tex(Col, I.tex).a, pixel.xy, I.face_id, false); // don't use noise offset for shadows because the shadow texels can be big on the screen and flickering disturbing
 #endif
 }
 /******************************************************************************/

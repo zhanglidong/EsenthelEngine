@@ -94,4 +94,6 @@
 #define MAX_MTRLS 4 // 3 or 4 (3 to make shaders smaller, 4 to support more materials per-triangle)
 
 #define LCScale 0.2
+
+#define NOISE_IMAGE_RES 128
 /******************************************************************************/
