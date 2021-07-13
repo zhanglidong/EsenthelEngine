@@ -745,15 +745,15 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       REPD(skin        , 2)
       REPD(layout      , 3)
       REPD(bump_mode   , per_pixel ? 2 : 1)
-      REPD(alpha_test  , layout    ? ALPHA_TEST_NUM : 1)
-      REPD(alpha       , layout    ? 2 : 1)
+      REPD(alpha_test  , layout    ? 2 : 1)
+      REPD(alpha       , layout    ? 2 : 1) // BlendLight doesn't support ALPHA_TEST_DITHER
       REPD(emissive_map, 2)
          src.New().blendLight(skin, color, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, alpha, reflect, emissive_map, FX_NONE, per_pixel, shadow_maps);
 
       // grass+leaf, 1 material, 1-2 tex
       for(Int layout=1; layout<=2; layout++)
       REPD (bump_mode   , per_pixel ? 2 : 1)
-      REPD (alpha_test  , layout    ? ALPHA_TEST_NUM : 1) // here 'alpha_test' options are needed because of MTECH_BLEND_LIGHT_GRASS/MTECH_TEST_BLEND_LIGHT_GRASS etc.
+      REPD (alpha_test  , layout    ? 2 : 1) // BlendLight doesn't support ALPHA_TEST_DITHER, here 'alpha_test' options are needed because of MTECH_BLEND_LIGHT_GRASS/MTECH_TEST_BLEND_LIGHT_GRASS etc.
       REPD (emissive_map, 2)
       REPAD(fx          , fxs)
          src.New().blendLight(false, color, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, reflect, emissive_map, fxs[fx], per_pixel, shadow_maps);

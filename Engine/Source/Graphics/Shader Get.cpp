@@ -273,7 +273,7 @@ BLST* DefaultShaders::Blst()C
       key.bump_mode   =Min(bump, key.per_pixel ? SBUMP_NORMAL : SBUMP_FLAT); // blend light currently supports only up to normal mapping
       key.color       =color;
       key.layout      =layout;
-      key.alpha_test  =alpha_test;
+      key.alpha_test  =(alpha_test==ALPHA_TEST_YES); // BlendLight doesn't support ALPHA_TEST_DITHER
       key.alpha       =alpha;
       key.reflect     =reflect;
       key.emissive_map=(emissive>1);
