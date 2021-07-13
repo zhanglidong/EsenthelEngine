@@ -65,7 +65,7 @@ static const Vec2 TAAOffsets[]=
 #endif
 };
 #undef TAA_MUL
-static const VecI2 NoiseOffsets[]=
+static const VecI2 NoiseOffsets[]= // these should be spread out across entire noise image and not close together
 {
    {-1*NOISE_IMAGE_RES/16, -3*NOISE_IMAGE_RES/16},
    { 1*NOISE_IMAGE_RES/16,  3*NOISE_IMAGE_RES/16},
@@ -1009,7 +1009,7 @@ start:
 
    // now 'col' and 'ds' are known, including their sizes
 
-   Sh.NoiseOffset->set(hasTAA() ? NoiseOffsets[Time.frame()%Elms(NoiseOffsets)] : VecI2Zero);
+   Sh.NoiseOffset->set(hasTAA() ? NoiseOffsets[Time.frame()%Elms(NoiseOffsets)] : VecI2Zero); // use a set of predefined repeating offsets, because using always random generates too much flickering
    
    D.alpha(ALPHA_NONE);
 
