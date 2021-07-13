@@ -1797,6 +1797,7 @@ struct VecI2 // Vector 2D (integer)
    CONVERSION VecI2(C VecSB2 &v ) {set(v.x, v.y);}
    CONVERSION VecI2(C VecUS2 &v ) {set(v.x, v.y);}
 };
+#define VecI2Zero (VecI4Zero.xy) // const VecI2(0, 0)
 /******************************************************************************/
 struct VecI // Vector 3D (integer)
 {
@@ -1964,6 +1965,7 @@ struct VecI // Vector 3D (integer)
    CONVERSION VecI(C VecSB &v         ) {set(v.x, v.y, v.z);}
    CONVERSION VecI(C VecUS &v         ) {set(v.x, v.y, v.z);}
 };
+#define VecIZero (VecI4Zero.xyz) // const VecI(0, 0, 0)
 /******************************************************************************/
 struct VecI4 // Vector 4D (integer)
 {
@@ -2124,7 +2126,8 @@ struct VecI4 // Vector 4D (integer)
               VecI4(C VecI2  &xy , C VecI2 &zw ) {set(xy      , zw      );}
    CONVERSION VecI4(C VecB4  &v                ) {set(v.x, v.y, v.z, v.w);}
    CONVERSION VecI4(C VecSB4 &v                ) {set(v.x, v.y, v.z, v.w);}
-};
+};extern VecI4
+   const VecI4Zero; // VecI4(0, 0, 0, 0)
 /******************************************************************************/
 // ROUNDING
 /******************************************************************************/

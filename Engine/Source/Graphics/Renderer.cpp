@@ -1,3 +1,9 @@
+/******************************************************************************
+
+   Graphics API differences:
+      Reading and Writing to the same Render Target - Yes: GL         No: DX10+
+      Deferred Multi-Sampling                       - Yes: DX>=10.1   No: DX10.0, GL
+
 /******************************************************************************/
 #include "stdafx.h"
 namespace EE{
@@ -59,12 +65,17 @@ static const Vec2 TAAOffsets[]=
 #endif
 };
 #undef TAA_MUL
-/******************************************************************************
-
-   Graphics API differences:
-      Reading and Writing to the same Render Target - Yes: GL         No: DX10+
-      Deferred Multi-Sampling                       - Yes: DX>=10.1   No: DX10.0, GL
-
+static const VecI2 NoiseOffsets[]=
+{
+   {-1*NOISE_IMAGE_RES/16, -3*NOISE_IMAGE_RES/16},
+   { 1*NOISE_IMAGE_RES/16,  3*NOISE_IMAGE_RES/16},
+   { 5*NOISE_IMAGE_RES/16, -1*NOISE_IMAGE_RES/16},
+   {-3*NOISE_IMAGE_RES/16,  5*NOISE_IMAGE_RES/16},
+   {-7*NOISE_IMAGE_RES/16,  1*NOISE_IMAGE_RES/16},
+   {-5*NOISE_IMAGE_RES/16, -5*NOISE_IMAGE_RES/16},
+   { 3*NOISE_IMAGE_RES/16, -7*NOISE_IMAGE_RES/16},
+   { 7*NOISE_IMAGE_RES/16,  7*NOISE_IMAGE_RES/16},
+};
 /******************************************************************************/
 RendererClass Renderer;
 MeshRender    MshrBox ,
@@ -998,7 +1009,7 @@ start:
 
    // now 'col' and 'ds' are known, including their sizes
 
-   Sh.NoiseOffset->set(VecI2(hasTAA() ? Time.frame()%Elms(TAAOffsets)*(NOISE_IMAGE_RES/Elms(TAAOffsets)) : 0));
+   Sh.NoiseOffset->set(hasTAA() ? NoiseOffsets[Time.frame()%Elms(NoiseOffsets)] : VecI2Zero);
    
    D.alpha(ALPHA_NONE);
 
