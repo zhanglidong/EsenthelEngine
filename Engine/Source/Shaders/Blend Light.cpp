@@ -408,7 +408,7 @@ void PS
    outAlpha=I.col.a; // can't output glow because we use alpha-blending here
 
 #if USE_VEL
-   outVel.xy=GetVelocityPixel(I.projected_prev_pos_xyw, pixel); outVel.z=0; outVel.w=I.col.a; // alpha needed because of blending, Z needed because have to write all channels
+   outVel.xy=GetMotionPixel(I.projected_prev_pos_xyw, pixel); outVel.z=0; outVel.w=I.col.a; // alpha needed because of blending, Z needed because have to write all channels
 #endif
 }
 /******************************************************************************/

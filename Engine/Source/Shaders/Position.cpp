@@ -9,8 +9,13 @@ struct VS_PS
    Vec pos:POS   ,
        nrm:NORMAL;
 #endif
+
 #if ALPHA_TEST
    Vec2 tex:TEXCOORD;
+#endif
+
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+   NOINTERP VecU2 face_id:FACE_ID;
 #endif
 };
 /******************************************************************************/
@@ -62,10 +67,16 @@ void VS
 #if ALPHA_TEST
    O.tex=vtx.tex();
 #endif
+
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+   O.face_id=vtx.faceID();
+#endif
+
 #if TESSELATE
    O.pos=pos;
    O.nrm=nrm;
 #endif
+
    O_vtx=Project(pos);
 }
 /******************************************************************************/
@@ -76,7 +87,6 @@ void PS
    VS_PS I
 #if ALPHA_TEST==ALPHA_TEST_DITHER
        , PIXEL
-         DECLARE_FACE
 #endif
 )
 {
@@ -85,7 +95,7 @@ void PS
 #elif ALPHA_TEST==ALPHA_TEST_YES
    MaterialAlphaTest(Tex(Col, I.tex).a);
 #elif ALPHA_TEST==ALPHA_TEST_DITHER
-   MaterialAlphaTestDither(Tex(Col, I.tex).a, pixel.xy  USE_FACE);
+   MaterialAlphaTestDither(Tex(Col, I.tex).a, pixel.xy, I.face_id);
 #endif
 }
 /******************************************************************************/
@@ -107,6 +117,9 @@ VS_PS HS(InputPatch<VS_PS,3> I, UInt cp_id:SV_OutputControlPointID)
 #if ALPHA_TEST
    O.tex=I[cp_id].tex;
 #endif
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+   O.face_id=I[cp_id].face_id;
+#endif
    return O;
 }
 /******************************************************************************/
@@ -121,6 +134,10 @@ void DS
 {
 #if ALPHA_TEST
    O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
+#endif
+
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+   O.face_id=I[0].face_id;
 #endif
 
    SetDSPosNrm(O.pos, O.nrm, I[0].pos, I[1].pos, I[2].pos, I[0].nrm, I[1].nrm, I[2].nrm, B, hs_data, false, 0);

@@ -82,16 +82,16 @@ void Base_PS
 
    I.nrm=Normalize(I.nrm);
 
-   output.color       (col);
-   output.glow        (0);
-   output.normal      (I.nrm);
-   output.translucent (0);
-   output.rough       (Material.  rough_add);
-   output.reflect     (Material.reflect_add);
+   output.color      (col);
+   output.glow       (0);
+   output.normal     (I.nrm);
+   output.translucent(0);
+   output.rough      (Material.  rough_add);
+   output.reflect    (Material.reflect_add);
 #if USE_VEL
-   output.velocity    (I.projected_prev_pos_xyw, pixel);
+   output.motion     (I.projected_prev_pos_xyw, pixel);
 #else
-   output.velocityZero();
+   output.motionZero ();
 #endif
 }
 /******************************************************************************/

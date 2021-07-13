@@ -481,7 +481,7 @@ void ClearDeferred_PS(NOPERSP Vec2 inTex                 :TEXCOORD,
    output.translucent(0);
    output.rough      (1);
    output.reflect    (0);
-   output.velocityUV (projected_prev_pos_xyw, inTex);
+   output.motionUV   (projected_prev_pos_xyw, inTex);
 }
 /******************************************************************************/
 void ClearLight_PS(out VecH lum :TARGET0,

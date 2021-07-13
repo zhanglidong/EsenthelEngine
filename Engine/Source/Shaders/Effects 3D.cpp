@@ -174,11 +174,11 @@ void Laser_PS(Vec                 inPos:TEXCOORD0,
    output.color(Color[0].rgb);
    output.glow (Color[0].a  );
 #endif
-   output.normal      (0);
-   output.translucent (0);
-   output.rough       (1);
-   output.reflect     (0);
-   output.velocityZero( );
+   output.normal     (0);
+   output.translucent(0);
+   output.rough      (1);
+   output.reflect    (0);
+   output.motionZero ( );
 }
 /******************************************************************************/
 // DECAL

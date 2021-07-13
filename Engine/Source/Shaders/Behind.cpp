@@ -3,56 +3,59 @@
 /******************************************************************************
 SKIN, ALPHA_TEST
 /******************************************************************************/
+struct VS_PS
+{
+#if ALPHA_TEST
+   Vec2 tex:TEXCOORD;
+#endif
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+   NOINTERP VecU2 face_id:FACE_ID;
+#endif
+   VecH nrm:NORMAL; // !! not Normalized !!
+   Vec  pos:POS;
+};
 void VS
 (
    VtxInput vtx,
 
-   out Vec4 outVtx:POSITION,
-#if ALPHA_TEST
-   out Vec2 outTex:TEXCOORD,
-#endif
-   out VecH outNrm:NORMAL, // !! not Normalized !!
-   out Vec  outPos:POS
+   out VS_PS O,
+   out Vec4  outVtx:POSITION
 )
 {
 #if ALPHA_TEST
-   outTex=vtx.tex();
+   O.tex=vtx.tex();
+#endif
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+   O.face_id=vtx.faceID();
 #endif
 
    if(!SKIN)
    {
-                     outNrm=TransformDir(vtx.nrm());
-      outVtx=Project(outPos=TransformPos(vtx.pos()));
+                     O.nrm=TransformDir(vtx.nrm());
+      outVtx=Project(O.pos=TransformPos(vtx.pos()));
    }else
    {
       VecU bone=vtx.bone();
-                     outNrm=TransformDir(vtx.nrm(), bone, vtx.weight());
-      outVtx=Project(outPos=TransformPos(vtx.pos(), bone, vtx.weight()));
+                     O.nrm=TransformDir(vtx.nrm(), bone, vtx.weight());
+      outVtx=Project(O.pos=TransformPos(vtx.pos(), bone, vtx.weight()));
    }
 }
 /******************************************************************************/
 VecH4 PS
 (
-   PIXEL,
-#if ALPHA_TEST
-   Vec2 inTex:TEXCOORD,
-#endif
-   VecH inNrm:NORMAL,
-   Vec  inPos:POS
-#if ALPHA_TEST==ALPHA_TEST_DITHER
-        DECLARE_FACE
-#endif
+   VS_PS I,
+   PIXEL
 ):TARGET
 {
 #if ALPHA_TEST==ALPHA_TEST_YES
-   MaterialAlphaTest(Tex(Col, inTex).a);
+   MaterialAlphaTest(Tex(Col, I.tex).a);
 #elif ALPHA_TEST==ALPHA_TEST_DITHER
-   MaterialAlphaTestDither(Tex(Col, inTex).a, pixel.xy  USE_FACE);
+   MaterialAlphaTestDither(Tex(Col, I.tex).a, pixel.xy, I.face_id);
 #endif
 
-   Half alpha=Sat((Half(inPos.z-TexDepthPoint(PixelToUV(pixel)))-BehindBias)/0.3);
+   Half alpha=Sat((Half(I.pos.z-TexDepthPoint(PixelToUV(pixel)))-BehindBias)/0.3);
 
-   VecH4  col   =Lerp(Color[0], Color[1], Abs(Normalize(inNrm).z));
+   VecH4  col   =Lerp(Color[0], Color[1], Abs(Normalize(I.nrm).z));
           col.a*=alpha;
    return col;
 }

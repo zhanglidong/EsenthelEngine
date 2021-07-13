@@ -78,6 +78,10 @@ struct VS_PS
 #if GRASS_FADE
    Half fade_out:FADE_OUT;
 #endif
+
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+   NOINTERP VecU2 face_id:FACE_ID;
+#endif
 };
 /******************************************************************************/
 // VS
@@ -101,6 +105,10 @@ void VS
 #if SET_TEX
    O.tex=vtx.tex(HEIGHTMAP);
    if(HEIGHTMAP && MATERIALS==1)O.tex*=Material.uv_scale;
+#endif
+
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+   O.face_id=vtx.faceID();
 #endif
 
 #if MATERIALS>1
@@ -242,9 +250,6 @@ void PS
    VS_PS I
 #if USE_VEL || ALPHA_TEST==ALPHA_TEST_DITHER
  , PIXEL
-#endif
-#if ALPHA_TEST==ALPHA_TEST_DITHER
-   DECLARE_FACE
 #endif
 #if FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
  , IS_FRONT
@@ -416,7 +421,7 @@ void PS
       #if ALPHA_TEST==ALPHA_TEST_YES
          MaterialAlphaTest(tex_col.a);
       #elif ALPHA_TEST==ALPHA_TEST_DITHER
-         MaterialAlphaTestDither(tex_col.a, pixel.xy  USE_FACE);
+         MaterialAlphaTestDither(tex_col.a, pixel.xy, I.face_id);
       #endif
       }
       col   *=tex_col.rgb;
@@ -436,7 +441,7 @@ void PS
       #if ALPHA_TEST==ALPHA_TEST_YES
          MaterialAlphaTest(tex_col.a);
       #elif ALPHA_TEST==ALPHA_TEST_DITHER
-         MaterialAlphaTestDither(tex_col.a, pixel.xy  USE_FACE);
+         MaterialAlphaTestDither(tex_col.a, pixel.xy, I.face_id);
       #endif
       }
       VecH4 tex_ext=Tex(Ext, I.tex);
@@ -756,16 +761,16 @@ void PS
    BackFlip(nrm, front);
 #endif
 
-   output.color       (col    );
-   output.glow        (glow   );
-   output.normal      (nrm    );
-   output.translucent (FX==FX_GRASS_3D || FX==FX_LEAF_3D || FX==FX_LEAFS_3D);
-   output.rough       (rough  );
-   output.reflect     (reflect);
+   output.color      (col    );
+   output.glow       (glow   );
+   output.normal     (nrm    );
+   output.translucent(FX==FX_GRASS_3D || FX==FX_LEAF_3D || FX==FX_LEAFS_3D);
+   output.rough      (rough  );
+   output.reflect    (reflect);
 #if USE_VEL
-   output.velocity    (I.projected_prev_pos_xyw, pixel);
+   output.motion     (I.projected_prev_pos_xyw, pixel);
 #else
-   output.velocityZero();
+   output.motionZero ();
 #endif
 }
 /******************************************************************************/
@@ -823,6 +828,10 @@ VS_PS HS
    O.fade_out=I[cp_id].fade_out;
 #endif
 
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+   O.face_id=I[cp_id].face_id;
+#endif
+
    return O;
 }
 /******************************************************************************/
@@ -861,6 +870,10 @@ void DS
 
 #if GRASS_FADE
    O.fade_out=I[0].fade_out*B.z + I[1].fade_out*B.x + I[2].fade_out*B.y;
+#endif
+
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+   O.face_id=I[0].face_id;
 #endif
 
    O_vtx=Project(O.pos);

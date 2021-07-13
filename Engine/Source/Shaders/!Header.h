@@ -90,14 +90,6 @@
 #define BRANCH  [branch ] // will make a conditional statement branched , use before 'if'        statement
 #define LOOP    [loop   ] // will make a loop looped                    , use before 'for while' statements
 #define UNROLL  [unroll ] // will make a loop unrolled                  , use before 'for while' statements
-
-#if (!GL) // gl_PrimitiveID requires GLSL ES 3.2 - https://www.khronos.org/registry/OpenGL-Refpages/es3/html/gl_PrimitiveID.xhtml
-   #define DECLARE_FACE , FACE
-   #define     USE_FACE , face
-#else
-   #define DECLARE_FACE
-   #define     USE_FACE
-#endif
 /******************************************************************************/
 // FUNCTIONS
 /******************************************************************************/
@@ -1131,13 +1123,13 @@ Vec GetBoneVel(VecH local_pos, Vec view_pos, VecU bone, VecH weight) // no need 
           +GetCamAngVel( view_pos);
 }
 /******************************************************************************/
-VecH2 GetVelocityUV(Vec projected_prev_pos_xyw, Vec2 uv)
+VecH2 GetMotionUV(Vec projected_prev_pos_xyw, Vec2 uv)
 {
    projected_prev_pos_xyw.z=Max(projected_prev_pos_xyw.z, Viewport.from); // prevent division by <=0 (needed for previous positions that are behind the camera)
    VecH2 vel=ProjectedPosXYWToUV(projected_prev_pos_xyw)-uv;
    return vel;
 }
-VecH2 GetVelocityPixel(Vec projected_prev_pos_xyw, Vec4 pixel) {return GetVelocityUV(projected_prev_pos_xyw, PixelToUV(pixel));}
+VecH2 GetMotionPixel(Vec projected_prev_pos_xyw, Vec4 pixel) {return GetMotionUV(projected_prev_pos_xyw, PixelToUV(pixel));}
 /******************************************************************************/
 // DEPTH
 /******************************************************************************/
@@ -1278,6 +1270,7 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    LOC(10) Vec4  _weight  :ATTR10; // this has to be Vec4 instead of VecH4 because of 2 reasons, we need sum of weights to be equal to 1.0 (half's can't do that), also when converting to GLSL the explicit casts to "Vec weight" precision are optimized away and perhaps some GLSL compilers may want to perform optimizations where Half*Vec is converted to VecH which would destroy precision for skinned characters
    LOC(11) VecH4 _material:ATTR11;
    LOC(12) VecH4 _color   :ATTR12;
+   LOC(13) VecU2 _face_id :ATTR13;
 #else
    // !! IF MAKING ANY CHANGE (EVEN PRECISION) THEN DON'T FORGET TO RE-CREATE 'VS_Code' FOR 'CreateInputLayout', see #VTX_INPUT_LAYOUT !!
    Vec4  _pos     :POSITION0   ;
@@ -1293,6 +1286,7 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    Vec4  _weight  :BLENDWEIGHT ; // this has to be Vec4 instead of VecH4 because of 2 reasons, we need sum of weights to be equal to 1.0 (half's can't do that), also when converting to GLSL the explicit casts to "Vec weight" precision are optimized away and perhaps some GLSL compilers may want to perform optimizations where Half*Vec is converted to VecH which would destroy precision for skinned characters
    VecH4 _material:COLOR0      ;
    VecH4 _color   :COLOR1      ;
+   VecU2 _face_id :FACE_ID     ;
 #endif
    UInt  _id      :SV_VertexID;
    UInt  _instance:SV_InstanceID;
@@ -1336,8 +1330,9 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    VecH4 colorF    () {return _color                                       ;} // linear vertex color
    VecH  colorF3   () {return _color.rgb                                   ;} // linear vertex color
 
-   UInt id      () {return _id;}
-   UInt instance() {return _instance;}
+   VecU2 faceID  () {return _face_id;}
+   UInt  id      () {return _id;}
+   UInt  instance() {return _instance;}
 };
 /******************************************************************************/
 void DrawPixel_VS(VtxInput vtx,
@@ -1531,7 +1526,7 @@ void MaterialAlphaTest(Half alpha)
 {
    clip(alpha+Material.color.a-1);
 }
-void MaterialAlphaTestDither(Half alpha, VecI2 pixel, UInt face=0)
+void MaterialAlphaTestDither(Half alpha, VecI2 pixel, VecU2 face)
 {
    pixel=pixel+NoiseOffset+face; // adjust by face to make sure that multiple faces on top of each other would use different weights (example #0 face with alpha=0.5 and then #1 face with alpha=0.5 drawn on top of #0 would use the same pixels, but with face index variation they will use different)
 #if 0 // 64-step cbuffer
@@ -2221,7 +2216,7 @@ struct DeferredSolidOutput // use this structure in Pixel Shader for setting the
    VecH4 out0:TARGET0; // Col, Glow
    VecH4 out1:TARGET1; // Nrm XYZ, Translucent
    VecH2 out2:TARGET2; // Rough, Reflect
-   VecH2 out3:TARGET3; // Velocity (TEXCOORD delta)
+   VecH2 out3:TARGET3; // Motion (UV delta)
 
    // set components
    void color (VecH color ) {out0.rgb=color;}
@@ -2239,9 +2234,9 @@ struct DeferredSolidOutput // use this structure in Pixel Shader for setting the
    void rough  (Half rough  ) {out2.x=rough  ;}
    void reflect(Half reflect) {out2.y=reflect;}
 
-   void velocity    (Vec projected_prev_pos_xyw, Vec4 pixel) {out3.xy=GetVelocityPixel(projected_prev_pos_xyw, pixel);}
-   void velocityUV  (Vec projected_prev_pos_xyw, Vec2 uv   ) {out3.xy=GetVelocityUV   (projected_prev_pos_xyw, uv   );}
-   void velocityZero(                                      ) {out3.xy=0;}
+   void motion    (Vec projected_prev_pos_xyw, Vec4 pixel) {out3.xy=GetMotionPixel(projected_prev_pos_xyw, pixel);}
+   void motionUV  (Vec projected_prev_pos_xyw, Vec2 uv   ) {out3.xy=GetMotionUV   (projected_prev_pos_xyw, uv   );}
+   void motionZero(                                      ) {out3.xy=0;}
 };
 /******************************************************************************/
 // TESSELATION

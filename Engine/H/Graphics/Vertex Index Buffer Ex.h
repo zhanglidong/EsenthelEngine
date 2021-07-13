@@ -46,7 +46,8 @@ enum GL_VTX_SEMANTIC : Byte // !! must be in sync with all "ATTR*" mentions in t
    GL_VTX_WEIGHT  , // 10
    GL_VTX_MATERIAL, // 11
    GL_VTX_COLOR   , // 12
-   GL_VTX_NUM     , // 13
+   GL_VTX_FACE_ID , // 13
+   GL_VTX_NUM     , // 14
 };
 GL_VTX_SEMANTIC VtxSemanticToIndex(Int semantic);
 struct VtxFormatGL
