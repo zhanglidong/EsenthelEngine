@@ -8,6 +8,8 @@ namespace EE{
    GL ES may not support Half / F16 / GL_HALF_FLOAT / Float16 !!
 
 /******************************************************************************/
+#define VTX_FACE_ID 0 // FIXME
+/******************************************************************************/
 // define following using defines instead of enum, so they can be used in preprocessor
 #if DX11 || DX12
    #define MEM     (32*1024)
@@ -318,6 +320,7 @@ Bool VtxFormat::create(MESH_FLAG flag, UInt compress)
                                      Set(ve[i++], ofs, DXGI_FORMAT_R32_FLOAT      , "PSIZE"       , 0); if(flag&VTX_SIZE    )ofs+=SIZE(Flt  );
                                      Set(ve[i++], ofs, DXGI_FORMAT_R8G8B8A8_UNORM , "COLOR"       , 0); if(flag&VTX_MATERIAL)ofs+=SIZE(VecB4);
                                      Set(ve[i++], ofs, DXGI_FORMAT_R8G8B8A8_UNORM , "COLOR"       , 1); if(flag&VTX_COLOR   )ofs+=SIZE(Color);
+                                     Set(ve[i++], ofs, DXGI_FORMAT_R8G8B8A8_UINT  , "FACE_ID"     , 0); if(flag&VTX_FACE_ID )ofs+=SIZE(VecB4);
    return create(ve, i);
 #elif GL
    MemtN<VtxFormatGL::Elm, 32> ve;
@@ -351,6 +354,7 @@ Bool VtxFormat::create(MESH_FLAG flag, UInt compress)
                                      if(flag&VTX_SIZE    ){ve.New().set(GL_VTX_SIZE    , 1, GL_FLOAT        , false, ofs); ofs+=SIZE(Flt  );}
                                      if(flag&VTX_MATERIAL){ve.New().set(GL_VTX_MATERIAL, 4, GL_UNSIGNED_BYTE, true , ofs); ofs+=SIZE(VecB4);}
                                      if(flag&VTX_COLOR   ){ve.New().set(GL_VTX_COLOR   , 4, GL_UNSIGNED_BYTE, true , ofs); ofs+=SIZE(Color);}
+                                     if(flag&VTX_FACE_ID ){ve.New().set(GL_VTX_FACE_ID , 4, GL_UNSIGNED_BYTE, false, ofs); ofs+=SIZE(VecB4);}
    return create(ve);
 #endif
    return false;
@@ -547,6 +551,7 @@ Bool VtxBuf::create(Int vertexes, MESH_FLAG flag, UInt compress, Bool dynamic)
                                      if(flag&VTX_SIZE    )size+=SIZE(Flt  );
                                      if(flag&VTX_MATERIAL)size+=SIZE(VecB4);
                                      if(flag&VTX_COLOR   )size+=SIZE(Color);
+                                     if(flag&VTX_FACE_ID )size+=SIZE(VecB4);
 
    return createNum(size, vertexes, dynamic);
 }
@@ -1069,6 +1074,7 @@ void VtxIndBuf::create()
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf2D_flat.create(ve, Elms(ve));
    }
@@ -1088,6 +1094,7 @@ void VtxIndBuf::create()
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx2DCol, color), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf2D_col.create(ve, Elms(ve));
    }
@@ -1107,6 +1114,7 @@ void VtxIndBuf::create()
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf2D_tex.create(ve, Elms(ve));
    }
@@ -1126,6 +1134,7 @@ void VtxIndBuf::create()
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx2DTexCol, color), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf2D_tex_col.create(ve, Elms(ve));
    }
@@ -1145,6 +1154,7 @@ void VtxIndBuf::create()
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                         0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                         0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                         0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                         0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf2D_tex2.create(ve, Elms(ve));
    }
@@ -1164,6 +1174,7 @@ void VtxIndBuf::create()
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                        0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                        0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                        0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                        0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf2D_font.create(ve, Elms(ve));
    }
@@ -1183,6 +1194,7 @@ void VtxIndBuf::create()
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_flat.create(ve, Elms(ve));
    }
@@ -1202,6 +1214,7 @@ void VtxIndBuf::create()
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DCol, color), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_col.create(ve, Elms(ve));
    }
@@ -1221,6 +1234,7 @@ void VtxIndBuf::create()
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_tex.create(ve, Elms(ve));
    }
@@ -1240,6 +1254,7 @@ void VtxIndBuf::create()
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DTexCol, color), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_tex_col.create(ve, Elms(ve));
    }
@@ -1263,6 +1278,7 @@ void VtxIndBuf::create()
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DBilb, color    ), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_bilb.create(ve, Elms(ve));
    }
@@ -1286,6 +1302,7 @@ void VtxIndBuf::create()
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                                0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                                0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DBilbAnim, color    ), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                                0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_bilb_anim.create(ve, Elms(ve));
    }
@@ -1305,6 +1322,7 @@ void VtxIndBuf::create()
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_laser.create(ve, Elms(ve));
    }
@@ -1324,6 +1342,7 @@ void VtxIndBuf::create()
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_cloth.create(ve, Elms(ve));
    }*/
@@ -1343,6 +1362,7 @@ void VtxIndBuf::create()
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DSimple, color), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_simple.create(ve, Elms(ve));
    }
@@ -1362,6 +1382,7 @@ void VtxIndBuf::create()
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DStandard, color), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_standard.create(ve, Elms(ve));
    }
@@ -1381,6 +1402,7 @@ void VtxIndBuf::create()
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DFull, blend   ), D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DFull, material), D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DFull, color   ), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                           0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_full.create(ve, Elms(ve));
    }
