@@ -83,11 +83,13 @@ struct VtxFormat // Vertex Format
 
 #if EE_PRIVATE
    #if DX11
-      Bool create(D3D11_INPUT_ELEMENT_DESC ve[], Int elms);
+      Bool createTry(D3D11_INPUT_ELEMENT_DESC ve[], Int elms);
+      void create   (D3D11_INPUT_ELEMENT_DESC ve[], Int elms);
    #elif GL
-      Bool create(C MemPtrN<VtxFormatGL::Elm, 32> &elms);
+      Bool createTry(C MemPtrN<VtxFormatGL::Elm, 32> &elms);
+      void create   (C MemPtrN<VtxFormatGL::Elm, 32> &elms);
    #endif
-   Bool create(MESH_FLAG flag, UInt compress); // 'compress'=VTX_COMPRESS_FLAG
+   void create(MESH_FLAG flag, UInt compress); // 'compress'=VTX_COMPRESS_FLAG
 #if GL
           void bind(C VtxBuf &vb);
 #else

@@ -103,7 +103,7 @@ static Int Compare(C VtxFormatKey &a, C VtxFormatKey &b)
    if(a.compress>b.compress)return +1;
                             return  0;
 }
-static Bool Create(VtxFormat &vf, C VtxFormatKey &key, Ptr) {return vf.create(key.flag, key.compress);}
+static Bool Create(VtxFormat &vf, C VtxFormatKey &key, Ptr) {vf.create(key.flag, key.compress); return true;}
 /******************************************************************************/
 IndBuf    IndBuf16384Quads, IndBufBorder, IndBufPanel, IndBufPanelEx, IndBufRectBorder, IndBufRectShaded;
 VtxIndBuf VI;
@@ -206,12 +206,16 @@ VtxFormat& VtxFormat::del()
 // following 'VS_Code' is a byte code of a vertex shader from "DX10+ Input Layout.cpp", look around the sources for #VTX_INPUT_LAYOUT on how to obtain the code (the code needs to be updated everytime 'VtxInput' is changed)
 static Byte VS_Code[1036]={68,88,66,67,22,220,144,136,241,6,230,58,105,11,15,231,71,7,65,212,1,0,0,0,12,4,0,0,6,0,0,0,56,0,0,0,132,0,0,0,252,2,0,0,56,3,0,0,128,3,0,0,144,3,0,0,82,68,69,70,68,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,28,0,0,0,0,4,254,255,0,129,0,0,28,0,0,0,77,105,99,114,111,115,111,102,116,32,40,82,41,32,72,76,83,76,32,83,104,97,100,101,114,32,67,111,109,112,105,108,101,114,32,49,48,46,49,0,73,83,71,49,112,2,0,0,16,0,0,0,8,0,0,0,0,0,0,0,8,2,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,15,15,0,0,0,0,0,0,0,0,0,0,8,2,0,0,1,0,0,0,0,0,0,0,3,0,0,0,1,0,0,0,7,0,0,0,1,0,0,0,0,0,0,0,17,2,0,0,0,0,0,0,0,0,0,0,3,0,0,0,2,0,0,0,7,0,0,0,1,0,0,0,0,0,0,0,24,2,0,0,0,0,0,0,0,0,0,0,3,0,0,0,3,0,0,0,15,0,0,0,1,0,0,0,0,0,0,0,32,2,0,0,0,0,0,0,0,0,0,0,3,0,0,0,4,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,32,2,0,0,1,0,0,0,0,0,0,0,3,0,0,0,5,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,32,2,0,0,2,0,0,0,0,0,0,0,3,0,0,0,6,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,32,2,0,0,3,0,0,0,0,0,0,0,3,0,0,0,7,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,41,2,0,0,0,0,0,0,0,0,0,0,3,0,0,0,8,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,47,2,0,0,0,0,0,0,0,0,0,0,1,0,0,0,9,0,0,0,15,0,0,0,0,0,0,0,0,0,0,0,60,2,0,0,0,0,0,0,0,0,0,0,3,0,0,0,10,0,0,0,15,0,0,0,0,0,0,0,0,0,0,0,72,2,0,0,0,0,0,0,0,0,0,0,3,0,0,0,11,0,0,0,15,0,0,0,1,0,0,0,0,0,0,0,72,2,0,0,1,0,0,0,0,0,0,0,3,0,0,0,12,0,0,0,15,0,0,0,1,0,0,0,0,0,0,0,78,2,0,0,0,0,0,0,0,0,0,0,1,0,0,0,13,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,86,2,0,0,0,0,0,0,6,0,0,0,1,0,0,0,14,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,98,2,0,0,0,0,0,0,8,0,0,0,1,0,0,0,15,0,0,0,1,0,0,0,0,0,0,0,80,79,83,73,84,73,79,78,0,78,79,82,77,65,76,0,84,65,78,71,69,78,84,0,84,69,88,67,79,79,82,68,0,80,83,73,90,69,0,66,76,69,78,68,73,78,68,73,67,69,83,0,66,76,69,78,68,87,69,73,71,72,84,0,67,79,76,79,82,0,70,65,67,69,95,73,68,0,83,86,95,86,101,114,116,101,120,73,68,0,83,86,95,73,110,115,116,97,110,99,101,73,68,0,79,83,71,49,52,0,0,0,1,0,0,0,8,0,0,0,0,0,0,0,40,0,0,0,0,0,0,0,1,0,0,0,3,0,0,0,0,0,0,0,15,0,0,0,0,0,0,0,83,86,95,80,111,115,105,116,105,111,110,0,83,72,69,88,64,0,0,0,64,0,1,0,16,0,0,0,106,8,1,1,95,0,0,3,242,16,16,0,0,0,0,0,103,0,0,4,242,32,16,0,0,0,0,0,1,0,0,0,54,0,0,5,242,32,16,0,0,0,0,0,70,30,16,0,0,0,0,0,62,0,0,1,83,70,73,48,8,0,0,0,16,0,0,0,0,0,0,0,83,84,65,84,116,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
-Bool VtxFormat::create(D3D11_INPUT_ELEMENT_DESC ve[], Int elms)
+Bool VtxFormat::createTry(D3D11_INPUT_ELEMENT_DESC ve[], Int elms)
 {
  //SyncLocker locker(D._lock); lock not needed for DX11 'D3D'
    del();
    if(D3D)return OK(D3D->CreateInputLayout(ve, elms, VS_Code, Elms(VS_Code), &vf));
    return false;
+}
+void VtxFormat::create(D3D11_INPUT_ELEMENT_DESC ve[], Int elms)
+{
+   if(!createTry(ve, elms))Exit("Can't create VtxFormat");
 }
 #elif GL
 GL_VTX_SEMANTIC VtxSemanticToIndex(Int semantic) {return GL_VTX_SEMANTIC(semantic);}
@@ -282,10 +286,11 @@ void VtxFormatGL::bind(C VtxBuf &vb) // this is called only on the main thread
    enableSet();
    glBindVertexArray(0); // disable VAO so binding IB will not modify this VAO, this is not strictly needed, because all IB bindings use either 'BindIndexBuffer' which clears VAO, or are done during drawing when correct VAO is already set, but leave it just in case
 }
-Bool VtxFormat::create(C MemPtrN<VtxFormatGL::Elm, 32> &elms) {if(!vf)New(vf); return vf->create(elms);}
-void VtxFormat::bind(C VtxBuf &vb) {if(vf)vf->bind(vb);}
+Bool VtxFormat::createTry(C MemPtrN<VtxFormatGL::Elm, 32> &elms) {if(!vf)New(vf); return vf->create(elms);}
+void VtxFormat::create   (C MemPtrN<VtxFormatGL::Elm, 32> &elms) {if(!createTry(elms))Exit("Can't create VtxFormat");}
+void VtxFormat::bind     (C VtxBuf &vb) {if(vf)vf->bind(vb);}
 #endif
-Bool VtxFormat::create(MESH_FLAG flag, UInt compress)
+void VtxFormat::create(MESH_FLAG flag, UInt compress)
 {
    // TODO: use R10G10B10A2 for compressed Nrm and Tan, however there's no signed format for that, so probably have to forget it
 #if DX11
@@ -357,7 +362,6 @@ Bool VtxFormat::create(MESH_FLAG flag, UInt compress)
                                      if(flag&VTX_FACE_ID ){ve.New().set(GL_VTX_FACE_ID , 4, GL_UNSIGNED_BYTE, false, ofs); ofs+=SIZE(VecB4);}
    return create(ve);
 #endif
-   return false;
 }
 /******************************************************************************/
 // VERTEX BUFFER
