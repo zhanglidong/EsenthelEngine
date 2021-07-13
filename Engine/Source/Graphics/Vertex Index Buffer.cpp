@@ -8,7 +8,7 @@ namespace EE{
    GL ES may not support Half / F16 / GL_HALF_FLOAT / Float16 !!
 
 /******************************************************************************/
-#define VTX_FACE_ID 0 // FIXME
+#define VTX_FACE_ID 0 // FIXME: TODO: add support for this as one random ID same for all touching faces (process the same way in Editor as when needing TanBin depending on material)
 /******************************************************************************/
 // define following using defines instead of enum, so they can be used in preprocessor
 #if DX11 || DX12
