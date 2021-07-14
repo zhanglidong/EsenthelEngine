@@ -434,7 +434,7 @@ struct MotionBlur
    struct BlurRange
    {
       Int     samples;
-      Shader *Blur[2][2][2]; // [Dither][Jitter][Alpha]
+      Shader *Blur[2][2][2][2]; // [Dither][Jitter][Alpha][TAA]
    }Blurs[4];
 
    void load();

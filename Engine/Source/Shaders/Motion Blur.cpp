@@ -26,6 +26,14 @@
 #define SAMPLES 1
 #endif
 
+#ifndef GATHER
+#define GATHER 0
+#endif
+
+#ifndef TAA
+#define TAA 0
+#endif
+
 // disable PRECISE because for it to work best 'color_near' would have to be processed along 'base_uv_motion' line, however right now: PRECISE=1 improves moving background around moving object, however it has negative effect of unnatural blurring FPP weapons when rotating camera fast left/right constantly with a key, and with mouse up/down (while weapon rotates slightly based on up/down angle) in that case the weapons get blurred way too much
 #define PRECISE 0 // if precisely (separately) calculate samples for far and near (base/center), this is to solve the problem of rotating camera in FPP view, with weapon attached to player/camera. in that case background is rotating, and on the background blur line it encounters an object (weapon) that is in focus. Blur algorithm counts the far samples that move over the base center, and then lerps to the near samples that move over the base center.
 
@@ -253,11 +261,16 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
          if(SHOW_BLUR_PIXELS)base_color.g+=0.1;
       }else
       {
-         COL   color_near=0; // use HP because we operate on many samples
-         COL   color_far =0; // use HP because we operate on many samples
-         Vec2  weight    =0; // use HP because we operate on many samples (X=near, Y=far)
-         VecH2 base_uv_motion=TexPoint(ImgXY, uv0).xy; Half base_uv_motion_len=UVMotionLength(base_uv_motion);
-         Flt   base_depth    =TexDepthPoint(uv0);
+         COL  color_near=0; // use HP because we operate on many samples
+         COL  color_far =0; // use HP because we operate on many samples
+         Vec2 weight    =0; // use HP because we operate on many samples (X=near, Y=far)
+
+         // GET DEPTH
+         Flt base_depth; VecI2 ofs;
+         if(TAA)NearestDepth(base_depth, ofs, uv0, GATHER); // this fixes issue with TAA where pixels on the border of a moving objects appear to be brighter
+         else                base_depth=TexDepthPoint(uv0);
+
+         VecH2 base_uv_motion=TexPoint(ImgXY, TAA ? UVInView(uv0+ofs*RTSize.xy, VIEW_FULL) : uv0).xy; Half base_uv_motion_len=UVMotionLength(base_uv_motion);
          Half  uv_motion_len_to_step0=1/Length(dir.xy); // allows to convert travelled UV distance into how many steps (travelled_uv*uv_motion_len_to_step=step)
          Half  uv_motion_len_to_step1=1/Length(dir.zw);
          Half  step_add=-1.5; // this value allows the last step to still has some weight, use -1.5 instead of -1 because on a 3D ball moving right, pixels in the center have higher movement due to perspective correction (pixels closer to camera move faster than those far), so when calculating biggest movement from neighbors, then the pixels at the border will get biggest/dilated movement (coming from ball center) that's slightly bigger than border movement. So the search vector that's set from biggest/dilated motion will be bigger than the sample movement, and for example its motion might cover only 9/10 steps instead of 10/10. To workaround this, make step offset slightly smaller.

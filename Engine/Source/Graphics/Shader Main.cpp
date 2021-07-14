@@ -910,9 +910,13 @@ Shader* MotionBlur::getBlur(Int samples, Bool dither, Bool alpha)
    {
       b=&Blurs[i]; if(b->samples>=samples)break; // if this covers desired samples
    }
-   Bool jitter=D.motionJitter();
-   Shader* &shader=b->Blur[dither][jitter][alpha];
-   if(!shader)shader=T.shader->get(S8+"Blur"+dither+jitter+alpha+b->samples);
+   Bool jitter=D.motionJitter(), taa=Renderer.hasTAA();
+   Shader* &shader=b->Blur[dither][jitter][alpha][taa];
+   if(!shader)
+   {
+      Bool gather=(taa && D.gatherAvailable()); // gather only needed for TAA
+      shader=T.shader->get(S8+"Blur"+dither+jitter+alpha+taa+gather+b->samples);
+   }
    return shader;
 }
 /******************************************************************************/
