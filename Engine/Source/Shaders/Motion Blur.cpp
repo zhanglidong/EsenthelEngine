@@ -73,31 +73,43 @@ VecH2 SetVel_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    return GetMotionCameraOnly(pos, inTex);
 }
 /******************************************************************************/
+void GetPixelMotion(VecH2 uv_motion, VecH2 uv_to_pixel, out VecH2 pixel_motion, out VecH2 pixel_motion_perp, out VecH2 pixel_motion_size) // 'pixel_motion'=direction, 'pixel_motion_perp'=direction perpendicular, 'pixel_motion_size'=size to check along directions
+{
+         pixel_motion=uv_motion*uv_to_pixel; // convert UV motion to pixel motion
+ //Half  pixel_motion_len2=Length2(pixel_motion);
+   Half  pixel_motion_len=Length(pixel_motion);
+ //if(  !pixel_motion_len)return; slows down
+   if(   pixel_motion_len)pixel_motion/=pixel_motion_len; // normalize
+         pixel_motion_perp=Perp(pixel_motion); // perpendicular to movement
+   Half  pixel_ext=(Abs(pixel_motion.x)+Abs(pixel_motion.y))*2; // make smallest movements dilate neighbors, increase extent because later we use linear filtering, so because of blending movement might get minimized, especially visible in cases such as moving object to the right (motion x=1, y=0) row up and down could have velocity at 0 and linear filtering could reduce motion at the object border (2 value was the smallest that fixed most problems)
+         pixel_motion_size=VecH2(pixel_ext+pixel_motion_len, pixel_ext);
+}
+/******************************************************************************/
 void Process(inout VecH4 motion, inout VecH2 length2, VecH2 sample_motion) // XY=biggest, ZW=smallest
 {
    Half sample_len2=ScreenLength2(sample_motion);
    if(  sample_len2>length2.x){length2.x=sample_len2; motion.xy=sample_motion;} // biggest
    if(  sample_len2<length2.y){length2.y=sample_len2; motion.zw=sample_motion;} // smallest
 }
-void Process(inout VecH4 max_min_motion, inout VecH2 length2, VecH4 sample_motion, VecH2 pixel_delta, VecH2 uv_to_pixel) // XY=biggest, ZW=smallest
+void Process(inout VecH4 max_min_motion, inout VecH2 length2, VecH4 sample_motion, VecH2 pixel_delta, VecH2 uv_to_pixel, VecH2 base_pixel_motion, VecH2 base_pixel_motion_perp, VecH2 base_pixel_motion_size) // XY=biggest, ZW=smallest
 {
  //if(all(Abs(sample_motion.xy)>=Abs(uv_delta))) this check slows down so don't use, also it would need some EPS +eps (ImgSize/RTSize *1 *0.99 *0.5) etc.
    {
-      VecH2 pixel_motion=sample_motion.xy*uv_to_pixel; // convert UV motion to pixel motion
-    //Half  pixel_motion_len2=Length2(pixel_motion);
-      Half  pixel_motion_len=Length(pixel_motion);
-    //if(  !pixel_motion_len)return; slows down
-      if(   pixel_motion_len)pixel_motion/=pixel_motion_len; // normalize
-      VecH2 pixel_motion_p=Perp(pixel_motion); // perpendicular to movement
-      Half  pixel_ext=(Abs(pixel_motion.x)+Abs(pixel_motion.y))*1.1; // make smallest movements dilate neighbors, increase extent because later we use linear filtering, so because of blending movement might get minimized, especially visible in cases such as moving object to the right (motion x=1, y=0) row up and down could have velocity at 0 and linear filtering could reduce motion at the object border (1.1 value was the smallest that fixed most problems)
-      VecH2 pos_motion=VecH2(Dot(pixel_delta, pixel_motion  ),  // position along            motion vector
-                             Dot(pixel_delta, pixel_motion_p)); // position perpendicular to motion vector
-    /*if(Abs(pos_motion.x)<pixel_ext+pixel_motion_len
-      && Abs(pos_motion.y)<pixel_ext)*/
-      if(all(Abs(pos_motion)<VecH2(pixel_ext+pixel_motion_len, pixel_ext)))
+      VecH2                                         sample_pixel_motion, sample_pixel_motion_perp, sample_pixel_motion_size ;
+      GetPixelMotion(sample_motion.xy, uv_to_pixel, sample_pixel_motion, sample_pixel_motion_perp, sample_pixel_motion_size);
+      VecH2   base_pos_motion=VecH2(Dot(pixel_delta, sample_pixel_motion     ),  // base   position along            sample motion vector
+                                    Dot(pixel_delta, sample_pixel_motion_perp)); // base   position perpendicular to sample motion vector
+      VecH2 sample_pos_motion=VecH2(Dot(pixel_delta,   base_pixel_motion     ),  // sample position along            base   motion vector
+                                    Dot(pixel_delta,   base_pixel_motion_perp)); // sample position perpendicular to base   motion vector
+      Bool sample_reaches_base  =all(Abs(  base_pos_motion)<sample_pixel_motion_size);
+      Bool   base_reaches_sample=all(Abs(sample_pos_motion)<  base_pixel_motion_size);
+      if(sample_reaches_base) // if sample reaches base
       {
          Half sample_len2=ScreenLength2(sample_motion.xy); if(sample_len2>length2.x){length2.x=sample_len2; max_min_motion.xy=sample_motion.xy;} // biggest
-              sample_len2=ScreenLength2(sample_motion.zw); if(sample_len2<length2.y){length2.y=sample_len2; max_min_motion.zw=sample_motion.zw;} // smallest
+      }
+      if(sample_reaches_base || base_reaches_sample) // if either sample reaches base or base reaches sample, adjust smallest
+      {
+         Half sample_len2=ScreenLength2(sample_motion.zw); if(sample_len2<length2.y){length2.y=sample_len2; max_min_motion.zw=sample_motion.zw;} // smallest
       }
    }
 }
@@ -158,14 +170,17 @@ VecH4 Dilate_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
    VecH4 motion =TexPoint(Img, inTex);
    VecH2 length2=VecH2(ScreenLength2(motion.xy), ScreenLength2(motion.zw));
-#if RANGE<=(GL ? 5 : 7) // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range, for GL limit to 5 because compilation is very slow
+   VecH2 uv_to_pixel=RTSize.zw, pixel_motion, pixel_motion_perp, pixel_motion_size;
+   GetPixelMotion(motion.xy, uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size);
+
+#if !FAST_COMPILE && RANGE<=(GL ? 5 : 7) // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range, for GL limit to 5 because compilation is very slow
    UNROLL for(Int y=-RANGE; y<=RANGE; y++)
    UNROLL for(Int x=-RANGE; x<=RANGE; x++)
-      if(x || y)Process(motion, length2, TexPointOfs(Img, inTex, VecI2(x, y)), VecH2(x, y), RTSize.zw);
+      if(x || y)Process(motion, length2, TexPointOfs(Img, inTex, VecI2(x, y)), VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size);
 #else
    LOOP for(Int y=-RANGE; y<=RANGE; y++)
    LOOP for(Int x=-RANGE; x<=RANGE; x++)
-      if(x || y)Process(motion, length2, TexPoint(Img, inTex+Vec2(x, y)*RTSize.xy), VecH2(x, y), RTSize.zw);
+      if(x || y)Process(motion, length2, TexPoint(Img, inTex+Vec2(x, y)*RTSize.xy), VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size);
 #endif
    return motion;
 }
@@ -201,6 +216,7 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
 #if !ALPHA
    base_color.a=1; // force full alpha so back buffer effects can work ok
 #endif
+   //return VecH4(SRGBToLinear(Vec(Length(dilated.xy)*10,Length(dilated.zw)*10,0)),1);
 
    BRANCH if(any(dilated.xy)) // XY=biggest, can use 'any' because small motions were already forced to 0 in 'Convert'
    {
@@ -210,7 +226,7 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
       Half jitter; if(JITTER)jitter=Noise1D_4(pixel.xy); // use only 4 step dither because others might be too distracting (individual pixels visible)
       Vec2 uv1=uv0;
 
-      BRANCH if(Length2(dilated.zw)>Length2(dilated.xy)*Sqr(0.64)) // if smallest motion is close to biggest motion then just do a fast and simple blur, ignoring depths and precise motions
+      BRANCH if(Length2(dilated.zw)>Length2(dilated.xy)*Sqr(0.5)) // if smallest motion is close to biggest motion then just do a fast and simple blur, ignoring depths and precise motions
       {
          COL color_blur=JITTER ? 0 : base_color.MASK; // use HP because we operate on many samples (when using JITTER the base sample has to be jittered too so we can't use 'base_color')
          Flt weight    =                           0; // use HP because we operate on many samples
