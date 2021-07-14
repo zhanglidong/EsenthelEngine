@@ -30,8 +30,8 @@
 #define GATHER 0
 #endif
 
-#ifndef TAA
-#define TAA 0
+#ifndef HAS_TAA
+#define HAS_TAA 0
 #endif
 
 // disable PRECISE because for it to work best 'color_near' would have to be processed along 'base_uv_motion' line, however right now: PRECISE=1 improves moving background around moving object, however it has negative effect of unnatural blurring FPP weapons when rotating camera fast left/right constantly with a key, and with mouse up/down (while weapon rotates slightly based on up/down angle) in that case the weapons get blurred way too much
@@ -55,6 +55,7 @@
    #define FAST_COMPILE 1
    #define UNROLL LOOP
 #endif
+#define FAST_UNROLL [unroll] // always unroll because the operation is fast and won't slow down compilation
 /******************************************************************************/
 #include "!Set Prec Struct.h"
 BUFFER(MotionBlur)
@@ -265,15 +266,70 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
          COL  color_far =0; // use HP because we operate on many samples
          Vec2 weight    =0; // use HP because we operate on many samples (X=near, Y=far)
 
-         // GET DEPTH
-         Flt base_depth; VecI2 ofs;
-         if(TAA)NearestDepth(base_depth, ofs, uv0, GATHER); // this fixes issue with TAA where pixels on the border of a moving objects appear to be brighter
-         else                base_depth=TexDepthPoint(uv0);
+         // GET DEPTH + MOTION
+         Flt   base_depth;
+         VecH2 base_uv_motion;
+         Half  base_uv_motion_len;
+         if(HAS_TAA) // in TAA the color RT is already adjusted by UV (to be always the same each frame), but depth and motion RT's are jittered every frame, which gives inconsistency between color and DepthMotion.
+          {// to workaround this problem, DepthMotion are taken from the pixel that's closest to camera and has highest motion
+            if(GATHER)
+            { 
+               Vec2  taa_uv=uv0+TAAOffset;
+               Vec4  d=TexDepthRawGather(taa_uv);
+               VecH4 r=TexGatherR(ImgXY, taa_uv); // motion.x
+               VecH4 g=TexGatherG(ImgXY, taa_uv); // motion.y
 
-         VecH2 base_uv_motion=TexPoint(ImgXY, TAA ? UVInView(uv0+ofs*RTSize.xy, VIEW_FULL) : uv0).xy; Half base_uv_motion_len=UVMotionLength(base_uv_motion);
-         Half  uv_motion_len_to_step0=1/Length(dir.xy); // allows to convert travelled UV distance into how many steps (travelled_uv*uv_motion_len_to_step=step)
-         Half  uv_motion_len_to_step1=1/Length(dir.zw);
-         Half  step_add=-1.5; // this value allows the last step to still has some weight, use -1.5 instead of -1 because on a 3D ball moving right, pixels in the center have higher movement due to perspective correction (pixels closer to camera move faster than those far), so when calculating biggest movement from neighbors, then the pixels at the border will get biggest/dilated movement (coming from ball center) that's slightly bigger than border movement. So the search vector that's set from biggest/dilated motion will be bigger than the sample movement, and for example its motion might cover only 9/10 steps instead of 10/10. To workaround this, make step offset slightly smaller.
+               VecH2 test_uv_motion; Half test_len;
+               if(1) // slower, higher quality. This improves blur on pixels around object (border). To verify improvement, set very low 'D.density', and rotate player+camera in TPP very fast left or right, object has to be fixed to the camera, and background rotating/blurry, you will see that this mode improves smoothness of object border pixels.
+               {
+                /*Select 'i' index to point to the component as if we were accessing without TAAOffset - TexDepthRawPoint(uv0)
+                  TEXTURE ACCESSING                 (Y^)
+                  GATHER returns in following order: V1 X0 Y1
+                                                     V0 W3 Z2
+                                                      + U0 U1 (X>)*/
+                  Int i=((TAAOffset.y>=0) ? (TAAOffset.x>=0) ? 3 : 2 // this is 100% correct (tested and verified)
+                                          : (TAAOffset.x>=0) ? 0 : 1);
+                  // set initial values as if we were using 'uv0'
+                  base_depth        =d[i];
+                  base_uv_motion    =VecH2(r[i], g[i]);
+                  base_uv_motion_len=Length2(base_uv_motion);
+
+                  test_uv_motion=VecH2(r.x, g.x); test_len=Length2(test_uv_motion); if(DEPTH_SMALLER(d.x, base_depth) && test_len>base_uv_motion_len){base_depth=d.x; base_uv_motion=test_uv_motion ; base_uv_motion_len=test_len;}
+               }else{                                                                                                                                 base_depth=d.x; base_uv_motion=VecH2(r.x, g.x); base_uv_motion_len=Length2(base_uv_motion);} // faster, lower quality, just set from first one
+                  test_uv_motion=VecH2(r.y, g.y); test_len=Length2(test_uv_motion); if(DEPTH_SMALLER(d.y, base_depth) && test_len>base_uv_motion_len){base_depth=d.y; base_uv_motion=test_uv_motion ; base_uv_motion_len=test_len;}
+                  test_uv_motion=VecH2(r.z, g.z); test_len=Length2(test_uv_motion); if(DEPTH_SMALLER(d.z, base_depth) && test_len>base_uv_motion_len){base_depth=d.z; base_uv_motion=test_uv_motion ; base_uv_motion_len=test_len;}
+                  test_uv_motion=VecH2(r.w, g.w); test_len=Length2(test_uv_motion); if(DEPTH_SMALLER(d.w, base_depth) && test_len>base_uv_motion_len){base_depth=d.w; base_uv_motion=test_uv_motion ; base_uv_motion_len=test_len;}
+            }else
+            {
+               Vec2 test_uv=uv0-(TAAOffset<0)*RTSize.xy; // if TAAOffset is negative, then move starting UV to negative too
+               FAST_UNROLL for(Int y=0; y<=1; y++)
+               FAST_UNROLL for(Int x=0; x<=1; x++)
+               {
+                  Flt   test_depth    =TexDepthRawPointOfs(test_uv, VecI2(x, y));
+                  VecH2 test_uv_motion=TexPointOfs (ImgXY, test_uv, VecI2(x, y));
+                  Half  test_len      =Length2     (test_uv_motion);
+                  if((x==0 && y==0) // first sample
+                  || (DEPTH_SMALLER(test_depth, base_depth)
+                   &&               test_len  > base_uv_motion_len))
+                  {
+                     base_depth        =test_depth;
+                     base_uv_motion    =test_uv_motion;
+                     base_uv_motion_len=test_len;
+                  }
+               }
+            }
+            base_uv_motion_len=Sqrt(base_uv_motion_len)*MotionScale_2;
+         }else
+         {
+            base_depth        =TexDepthRawPoint(uv0);
+            base_uv_motion    =TexPoint(ImgXY,  uv0);
+            base_uv_motion_len=UVMotionLength(base_uv_motion);
+         }
+         base_depth=LinearizeDepth(base_depth);
+
+         Half uv_motion_len_to_step0=1/Length(dir.xy); // allows to convert travelled UV distance into how many steps (travelled_uv*uv_motion_len_to_step=step)
+         Half uv_motion_len_to_step1=1/Length(dir.zw);
+         Half step_add=-1.5; // this value allows the last step to still has some weight, use -1.5 instead of -1 because on a 3D ball moving right, pixels in the center have higher movement due to perspective correction (pixels closer to camera move faster than those far), so when calculating biggest movement from neighbors, then the pixels at the border will get biggest/dilated movement (coming from ball center) that's slightly bigger than border movement. So the search vector that's set from biggest/dilated motion will be bigger than the sample movement, and for example its motion might cover only 9/10 steps instead of 10/10. To workaround this, make step offset slightly smaller.
          if(JITTER) // for JITTER we have to process steps starting from 0.5 because we're not leaving extra weight for the base sample (since it has to be jittered too), so move the starting UV's by 0.5 back and apply jitter offset
          {
             Half step0=(/*i=0*/-0.5)+jitter; uv0+=step0*dir.xy;

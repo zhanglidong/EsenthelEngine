@@ -84,11 +84,6 @@ ALPHA=1
 
 #define DUAL_ADJUST_OLD 1
 /******************************************************************************/
-BUFFER(TAA)
-   Vec2 TAAOffset,
-        TAAOffsetCurToPrev;
-BUFFER_END
-/******************************************************************************/
 VecH RGBToYCoCg(VecH col)
 {
    return VecH(Dot(col, VecH( 0.25, 0.50,  0.25)),
@@ -199,6 +194,42 @@ void TestVel(VecH2 vel, VecH2 test_vel, inout Half max_delta_vel_len2)
    Half delta_vel_len2=Length2(delta_vel);
    if(  delta_vel_len2>max_delta_vel_len2)max_delta_vel_len2=delta_vel_len2;
 }
+/******************************************************************************/
+void TestDepth(inout Flt depth, Flt d, inout VecI2 ofs, VecI2 o)
+{
+   if(DEPTH_SMALLER(d, depth)){depth=d; ofs=o;}
+}
+void NearestDepthRaw(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather) // get raw depth nearest to camera around 'uv' !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' for uv+ofs can be removed !!
+{
+   if(gather)
+   {
+      ofs=VecI2(-1, 1); depth=TexDepthRawPointOfs(uv, ofs         );                     // -1,  1,  left-top
+              TestDepth(depth,TexDepthRawPointOfs(uv, VecI2(1, -1)), ofs, VecI2(1, -1)); //  1, -1, right-bottom
+      Vec2 tex=uv-RTSize.xy*0.5; // move to center between -1,-1 and 0,0 texels
+      Vec4 d=TexDepthRawGather(tex); // get -1,-1 to 0,0 texels
+      TestDepth(depth, d.x, ofs, VecI2(-1,  0));
+      TestDepth(depth, d.y, ofs, VecI2( 0,  0));
+      TestDepth(depth, d.z, ofs, VecI2( 0, -1));
+      TestDepth(depth, d.w, ofs, VecI2(-1, -1));
+      d=TexDepthRawGatherOfs(tex, VecI2(1, 1)); // get 0,0 to 1,1 texels
+      TestDepth(depth, d.x, ofs, VecI2( 0,  1));
+      TestDepth(depth, d.y, ofs, VecI2( 1,  1));
+      TestDepth(depth, d.z, ofs, VecI2( 1,  0));
+    //TestDepth(depth, d.w, ofs, VecI2( 0,  0)); already processed
+   }else
+   {
+      ofs=0;
+      depth=TexDepthRawPoint(uv);
+      UNROLL for(Int y=-1; y<=1; y++)
+      UNROLL for(Int x=-1; x<=1; x++)if(x || y)TestDepth(depth, TexDepthRawPointOfs(uv, VecI2(x, y)), ofs, VecI2(x, y));
+   }
+}
+void NearestDepth(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather)
+{
+   NearestDepthRaw(depth, ofs, uv, gather);
+   depth=LinearizeDepth(depth);
+}
+/******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
 void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
           //NOPERSP Vec2 inPosXY:TEXCOORD1,
@@ -257,14 +288,14 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2(-1,  1)).xy, max_delta_vel_len2); // -1,  1,  left-top
       TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2( 1, -1)).xy, max_delta_vel_len2); //  1, -1, right-bottom
       old_tex_vel-=RTSize.xy*0.5; // move to center between -1,-1 and 0,0 texels
-      VecH4 r=ImgXY1.GatherRed  (SamplerPoint, old_tex_vel); // get -1,-1 to 0,0 texels
-      VecH4 g=ImgXY1.GatherGreen(SamplerPoint, old_tex_vel); // get -1,-1 to 0,0 texels
+      VecH4 r=TexGatherR(ImgXY1, old_tex_vel); // get -1,-1 to 0,0 texels
+      VecH4 g=TexGatherG(ImgXY1, old_tex_vel); // get -1,-1 to 0,0 texels
       TestVel(vel, VecH2(r.x, g.x), max_delta_vel_len2);
       TestVel(vel, VecH2(r.y, g.y), max_delta_vel_len2);
       TestVel(vel, VecH2(r.z, g.z), max_delta_vel_len2);
       TestVel(vel, VecH2(r.w, g.w), max_delta_vel_len2);
-      r=ImgXY1.GatherRed  (SamplerPoint, old_tex_vel, VecI2(1, 1)); // get 0,0 to 1,1 texels
-      g=ImgXY1.GatherGreen(SamplerPoint, old_tex_vel, VecI2(1, 1)); // get 0,0 to 1,1 texels
+      r=TexGatherROfs(ImgXY1, old_tex_vel, VecI2(1, 1)); // get 0,0 to 1,1 texels
+      g=TexGatherGOfs(ImgXY1, old_tex_vel, VecI2(1, 1)); // get 0,0 to 1,1 texels
       TestVel(vel, VecH2(r.x, g.x), max_delta_vel_len2);
       TestVel(vel, VecH2(r.y, g.y), max_delta_vel_len2);
       TestVel(vel, VecH2(r.z, g.z), max_delta_vel_len2);

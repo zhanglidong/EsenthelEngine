@@ -587,7 +587,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    REPD (view_full, 2)
    REPD (gather   , taa ? 2 : 1) // gather only needed for TAA
    REPAD(sample   , samples)
-      src.New("Blur", "Draw_VS", "Blur_PS")("DITHER", dither, "JITTER", jitter, "ALPHA", alpha)("TAA", taa, "VIEW_FULL", view_full, "GATHER", gather)("SAMPLES", samples[sample]).gather(gather);
+      src.New("Blur", "Draw_VS", "Blur_PS")("DITHER", dither, "JITTER", jitter, "ALPHA", alpha)("HAS_TAA", taa, "VIEW_FULL", view_full, "GATHER", gather)("SAMPLES", samples[sample]).gatherChannel(gather);
 }
 #endif
 

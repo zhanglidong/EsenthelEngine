@@ -206,6 +206,15 @@ GATHER returns in following order: V1 X  Y
 #define TexGather(   image, uv     )   image.Gather(SamplerPoint, uv     ) // gather available since SM_4_1, GL 4.0, GL ES 3.1
 #define TexGatherOfs(image, uv, ofs)   image.Gather(SamplerPoint, uv, ofs) // gather available since SM_4_1, GL 4.0, GL ES 3.1
 
+#define TexGatherR(   image, uv     )   image.GatherRed  (SamplerPoint, uv     ) // gather channel available since SM_5, GL 4.0, GL ES 3.1
+#define TexGatherG(   image, uv     )   image.GatherGreen(SamplerPoint, uv     ) // gather channel available since SM_5, GL 4.0, GL ES 3.1
+#define TexGatherB(   image, uv     )   image.GatherBlue (SamplerPoint, uv     ) // gather channel available since SM_5, GL 4.0, GL ES 3.1
+#define TexGatherA(   image, uv     )   image.GatherAlpha(SamplerPoint, uv     ) // gather channel available since SM_5, GL 4.0, GL ES 3.1
+#define TexGatherROfs(image, uv, ofs)   image.GatherRed  (SamplerPoint, uv, ofs) // gather channel available since SM_5, GL 4.0, GL ES 3.1
+#define TexGatherGOfs(image, uv, ofs)   image.GatherGreen(SamplerPoint, uv, ofs) // gather channel available since SM_5, GL 4.0, GL ES 3.1
+#define TexGatherBOfs(image, uv, ofs)   image.GatherBlue (SamplerPoint, uv, ofs) // gather channel available since SM_5, GL 4.0, GL ES 3.1
+#define TexGatherAOfs(image, uv, ofs)   image.GatherAlpha(SamplerPoint, uv, ofs) // gather channel available since SM_5, GL 4.0, GL ES 3.1
+
 #define TexClamp(    image, uv )   image.Sample     (SamplerLinearClamp, uv    )
 #define TexLodClamp( image, uv )   image.SampleLevel(SamplerLinearClamp, uv , 0)
 #define TexLodWrap(  image, uv )   image.SampleLevel(SamplerLinearWrap , uv , 0)
@@ -2354,38 +2363,8 @@ void SetDSPosNrm(out Vec pos, out Vec nrm, Vec pos0, Vec pos1, Vec pos2, Vec nrm
    }
 }
 /******************************************************************************/
-void TestDepth(inout Flt depth, Flt d, inout VecI2 ofs, VecI2 o)
-{
-   if(DEPTH_SMALLER(d, depth)){depth=d; ofs=o;}
-}
-void NearestDepthRaw(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather) // get raw depth nearest to camera around 'uv' !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' for uv+ofs can be removed !!
-{
-   if(gather)
-   {
-      ofs=VecI2(-1, 1); depth=TexDepthRawPointOfs(uv, ofs         );                     // -1,  1,  left-top
-              TestDepth(depth,TexDepthRawPointOfs(uv, VecI2(1, -1)), ofs, VecI2(1, -1)); //  1, -1, right-bottom
-      Vec2 tex=uv-RTSize.xy*0.5; // move to center between -1,-1 and 0,0 texels
-      Vec4 d=TexDepthRawGather(tex); // get -1,-1 to 0,0 texels
-      TestDepth(depth, d.x, ofs, VecI2(-1,  0));
-      TestDepth(depth, d.y, ofs, VecI2( 0,  0));
-      TestDepth(depth, d.z, ofs, VecI2( 0, -1));
-      TestDepth(depth, d.w, ofs, VecI2(-1, -1));
-      d=TexDepthRawGatherOfs(tex, VecI2(1, 1)); // get 0,0 to 1,1 texels
-      TestDepth(depth, d.x, ofs, VecI2( 0,  1));
-      TestDepth(depth, d.y, ofs, VecI2( 1,  1));
-      TestDepth(depth, d.z, ofs, VecI2( 1,  0));
-    //TestDepth(depth, d.w, ofs, VecI2( 0,  0)); already processed
-   }else
-   {
-      ofs=0;
-      depth=TexDepthRawPoint(uv);
-      UNROLL for(Int y=-1; y<=1; y++)
-      UNROLL for(Int x=-1; x<=1; x++)if(x || y)TestDepth(depth, TexDepthRawPointOfs(uv, VecI2(x, y)), ofs, VecI2(x, y));
-   }
-}
-void NearestDepth(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather)
-{
-   NearestDepthRaw(depth, ofs, uv, gather);
-   depth=LinearizeDepth(depth);
-}
+BUFFER(TAA)
+   Vec2 TAAOffset,
+        TAAOffsetCurToPrev;
+BUFFER_END
 /******************************************************************************/
