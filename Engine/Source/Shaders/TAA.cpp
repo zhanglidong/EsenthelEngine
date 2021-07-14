@@ -199,10 +199,6 @@ void TestVel(VecH2 vel, VecH2 test_vel, inout Half max_delta_vel_len2)
    Half delta_vel_len2=Length2(delta_vel);
    if(  delta_vel_len2>max_delta_vel_len2)max_delta_vel_len2=delta_vel_len2;
 }
-void TestDepth(inout Flt depth, Flt d, inout VecI2 ofs, Int x, Int y)
-{
-   if(DEPTH_SMALLER(d, depth)){depth=d; ofs.x=x; ofs.y=y;}
-}
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
 void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
           //NOPERSP Vec2 inPosXY:TEXCOORD1,
@@ -222,38 +218,13 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
              #endif
             )
 {
-   VecI2 ofs=0;
-
-   Flt depth;
-   // NEAREST_DEPTH_VEL - get velocity for depth nearest to camera
-   if(NEAREST_DEPTH_VEL) // !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' below for 'vel' can be removed !!
-   {
-   #if GATHER
-      ofs=VecI2(-1, 1); depth=TexDepthRawPointOfs(inTex, ofs         );              // -1,  1,  left-top
-              TestDepth(depth,TexDepthRawPointOfs(inTex, VecI2(1, -1)), ofs, 1, -1); //  1, -1, right-bottom
-      Vec2 tex=inTex-RTSize.xy*0.5; // move to center between -1,-1 and 0,0 texels
-      Vec4 d=TexDepthRawGather(tex); // get -1,-1 to 0,0 texels
-      TestDepth(depth, d.x, ofs, -1,  0);
-      TestDepth(depth, d.y, ofs,  0,  0);
-      TestDepth(depth, d.z, ofs,  0, -1);
-      TestDepth(depth, d.w, ofs, -1, -1);
-      d=TexDepthRawGatherOfs(tex, VecI2(1, 1)); // get 0,0 to 1,1 texels
-      TestDepth(depth, d.x, ofs,  0,  1);
-      TestDepth(depth, d.y, ofs,  1,  1);
-      TestDepth(depth, d.z, ofs,  1,  0);
-    //TestDepth(depth, d.w, ofs,  0,  0); already processed
-   #else
-      depth=TexDepthRawPoint(inTex);
-      UNROLL for(Int y=-1; y<=1; y++)
-      UNROLL for(Int x=-1; x<=1; x++)if(x || y)TestDepth(depth, TexDepthRawPointOfs(inTex, VecI2(x, y)), ofs, x, y);
-   #endif
-   }else
-   {
-      depth=TexDepthRawPoint(inTex);
-   }
+   // GET DEPTH
+   Flt depth; VecI2 ofs;
+   if(NEAREST_DEPTH_VEL)NearestDepthRaw(depth, ofs, inTex, GATHER);
+   else                      depth=TexDepthRawPoint(inTex);
 
    // GET VEL
-   VecH2 vel=TexPoint(ImgXY, UVInView(inTex+ofs*RTSize.xy, VIEW_FULL)).xy;
+   VecH2 vel=TexPoint(ImgXY, NEAREST_DEPTH_VEL ? UVInView(inTex+ofs*RTSize.xy, VIEW_FULL) : inTex).xy;
 
    Vec2 cur_tex=inTex+TAAOffset,
         old_tex=inTex+vel;
