@@ -128,7 +128,7 @@ void Process(inout VecH4 max_min_motion, inout VecH2 length2, VecH4 sample_motio
 VecH4 Convert_PS(NOPERSP Vec2 inTex:TEXCOORD0):TARGET
 {
    // WARNING: code below might still set ZW (smallest) to some very small values, only XY gets forced to 0
-   VecH2 length2=VecH2(ScreenLength2(ImgSize.xy)*Sqr(0.5), 2); // x=biggest, y=smallest, initially set biggest to 0 so it always gets updated (actually set to half of pixel to make sure we will ignore small motions and keep 0), initially set smallest to 2 so it always gets updated
+   VecH2 length2=VecH2(ScreenLength2(ImgSize.xy)*Sqr(0.5*2), 2); // x=biggest, y=smallest, initially set biggest to 0 so it always gets updated (actually set to half of pixel (*2 because later we mul by 'MotionScale_2' instead of 'MotionScale') to make sure we will ignore small motions and keep 0), initially set smallest to 2 so it always gets updated
    VecH4 motion =0; // XY=biggest, ZW=smallest
 #if 0 // process samples individually
    // for RANGE=1 (no scale  ) inTex should remain unmodified              , because it's already at the center of 1x1 texel
@@ -250,9 +250,7 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
          }
          base_color.MASK=color_blur/(weight+(JITTER ? 0 : 1)); // already have 1 sample (only used without JITTER)
 
-      #if SHOW_BLUR_PIXELS
-         base_color.g+=0.1;
-      #endif
+         if(SHOW_BLUR_PIXELS)base_color.g+=0.1;
       }else
       {
          COL   color_near=0; // use HP because we operate on many samples
@@ -357,9 +355,7 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
             base_color.MASK=base_color.MASK*(1-weight.x) + color_near.MASK;
          }
 
-      #if SHOW_BLUR_PIXELS
-         base_color.r+=0.1;
-      #endif
+         if(SHOW_BLUR_PIXELS)base_color.r+=0.1;
       }
 
    #if 0 // test how many samples were used for blurring
