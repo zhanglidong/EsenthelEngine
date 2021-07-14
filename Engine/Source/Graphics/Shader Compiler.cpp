@@ -334,7 +334,7 @@ void ShaderCompiler::Param::addTranslation(spvc_compiler compiler, spvc_type_id 
    Int           elms=Max(array_elms, 1), last_index=elms-1; // 'array_elms' is 0 for non-arrays
    if(!is_struct)
    {
-      if(type!=SPVC_BASETYPE_FP32 && type!=SPVC_BASETYPE_UINT32)Exit(S+"Unhandled Shader Parameter Type for \""+names+'.'+name+'"');
+      if(type!=SPVC_BASETYPE_FP32 && type!=SPVC_BASETYPE_INT32 && type!=SPVC_BASETYPE_UINT32)Exit(S+"Unhandled Shader Parameter Type for \""+names+'.'+name+'"');
       auto vec_size=spvc_type_get_vector_size(var),
            cols    =spvc_type_get_columns    (var);
       if(vec_size<=0 || vec_size>4)Exit("Invalid Shader Param Vector Size");
