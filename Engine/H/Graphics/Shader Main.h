@@ -15,8 +15,10 @@ struct MainShaderClass
    static void draw (C Image &image, C Color &color, C Color &color_add=TRANSPARENT, C Rect *rect=null);
    static void draw (C Image &image, C Vec4  &color, C Vec4  &color_add=Vec4Zero   , C Rect *rect=null);
 
-   INLINE void imgSize(C Image &image) {ImgSize->set           (Vec4(1.0f/image.hwSize(), image.hwSize()));} // xy=1/hwSize(), zw=hwSize(), this format is also required for SMAA
-   INLINE void  rtSize(C Image &image) {RTSize ->setConditional(Vec4(1.0f/image.hwSize(), image.hwSize()));} // xy=1/hwSize(), zw=hwSize(), this format is also required for SMAA
+   static INLINE Vec4 GetImgSize(C VecI2 &size ) {return Vec4(1.0f/size, size);} // xy=1/size, zw=size, this format is also required by SMAA
+          INLINE void    imgSize(C VecI2 &size ) {ImgSize->set(GetImgSize(size));}
+          INLINE void    imgSize(C Image &image) {imgSize(image.hwSize());}
+          INLINE void     rtSize(C Image &image) {RTSize ->setConditional(GetImgSize(image.hwSize()));}
 
    // private
    void del           ();

@@ -364,16 +364,18 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool alpha, Bool com
    Mtn.load();
    D.alpha(ALPHA_NONE);
 
+   VecI2 fx=T.fx();
    if(!_vel) // MOTION_CAMERA, however can already be set for TAA
    {
-     _vel.get(ImageRTDesc(fxW(), fxH(), IMAGERT_TWO_H));
+     _vel.get(ImageRTDesc(fx.x, fx.y, IMAGERT_TWO_H));
       set(_vel, null, true);
       SetViewToViewPrev();
       Mtn.SetVel->draw();
    }
 
-   VecI2       res=ByteScaleRes(fx(), D._mtn_res);
-   Flt         scale=Flt(fxH())/res.y;
+ C VecI2      &convert_src=(1 ? fx : _vel->size()); // 1 is faster but slightly lower quality
+   VecI2       res=ByteScaleRes(fx, D._mtn_res);
+   Flt         scale=Flt(convert_src.y)/res.y;
    Int         shift=Log2Round(RoundU(scale)); // Int shift=Round(Log2(scale)); 0=full-res, 1=half, 2=quarter, 3=1/8, 4=1/16, 5=1/32 (this value is unclamped)
    ImageRTDesc rt_desc(res.x, res.y, IMAGERT_RGBA_H); // XY=biggest motion, ZW=smallest motion
    ImageRTPtr  small_motion(rt_desc);
@@ -385,7 +387,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool alpha, Bool com
 
    set(small_motion, null, false);
    Sh.ImgXY[0]->set(_vel);
-   Sh.imgSize(*_vel); // need to have full-res size
+   Sh.imgSize(convert_src); // need to have full-res size
    if(D._view_main.full)REPS(_eye, _eye_num)
    {
       Rect *eye_rect=setEyeParams();
@@ -429,7 +431,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool alpha, Bool com
 
    Sh.Img[1]->set(small_motion);
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
-   Mtn.getBlur(Round(fxH()*(7.0f/1080)), D.dither() /*&& src.highPrecision()*/ && !dest.highPrecision(), alpha)->draw(src); // here blurring may generate high precision values, use 7 samples on a 1080 resolution #MotionBlurSamples
+   Mtn.getBlur(Round(fx.y*(7.0f/1080)), D.dither() /*&& src.highPrecision()*/ && !dest.highPrecision(), alpha)->draw(src); // here blurring may generate high precision values, use 7 samples on a 1080 resolution #MotionBlurSamples
 
   _vel.clear(); // won't be needed anymore
    return false;
@@ -440,7 +442,8 @@ INLINE Shader* GetDof  (Bool dither   , Bool realistic, Bool alpha              
 void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool alpha, Bool combine)
 { // Depth of Field shader does not require stereoscopic processing because it just reads the depth buffer
    const Int   shift=1; // half_res
-   ImageRTDesc rt_desc(fxW()>>shift, fxH()>>shift, src.highPrecision() ? IMAGERT_SRGBA_H : IMAGERT_SRGBA); // here Alpha is used to store amount of Blur, use high precision if source is to don't lose smooth gradients when having full blur (especially visible on sky), IMAGERT_SRGBA_H vs IMAGERT_SRGBA has no significant difference on GeForce 1050Ti
+   const VecI2 fx=T.fx();
+   ImageRTDesc rt_desc(fx.x>>shift, fx.y>>shift, src.highPrecision() ? IMAGERT_SRGBA_H : IMAGERT_SRGBA); // here Alpha is used to store amount of Blur, use high precision if source is to don't lose smooth gradients when having full blur (especially visible on sky), IMAGERT_SRGBA_H vs IMAGERT_SRGBA has no significant difference on GeForce 1050Ti
    ImageRTPtr  rt0(rt_desc),
                rt1(rt_desc), blur_smooth[2];
    if(alpha)
@@ -453,7 +456,7 @@ void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool alpha, Bool combine)
    Bool half_res=(Flt(src.h())/rt0->h() <= 2.5f); // half_res=scale 2, ..3.., quarter=scale 4, 2.5 was the biggest scale that didn't cause jittering when using half down-sampling
    Dof.load();
    D.alpha(ALPHA_NONE);
- C DepthOfField::Pixel &pixel=Dof.pixel(alpha, Round(fxH()*(5.0f/1080))); // use 5 pixel range blur on a 1080 resolution
+ C DepthOfField::Pixel &pixel=Dof.pixel(alpha, Round(fx.y*(5.0f/1080))); // use 5 pixel range blur on a 1080 resolution
 
    Flt range_inv=1.0f/Max(D.dofRange(), EPS);
    Dof.DofParams->setConditional(Vec4(D.dofIntensity(), D.dofFocus(), range_inv, -D.dofFocus()*range_inv));
