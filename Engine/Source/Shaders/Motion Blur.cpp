@@ -42,6 +42,11 @@
    #define COL  Vec
    #define COLH VecH
 #endif
+
+#if 0 // use only for testing for fast compilation
+   #define FAST_COMPILE 1
+   #define UNROLL LOOP
+#endif
 /******************************************************************************/
 #include "!Set Prec Struct.h"
 BUFFER(MotionBlur)
