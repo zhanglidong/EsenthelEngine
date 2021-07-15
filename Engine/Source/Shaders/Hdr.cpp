@@ -9,10 +9,10 @@
 /******************************************************************************/
 // HDR
 /******************************************************************************/
-Flt HdrDS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+Flt HdrDS_PS(NOPERSP Vec2 uv:TEXCOORD):TARGET
 {
-   Vec2 tex_min=inTex-ImgSize.xy,
-        tex_max=inTex+ImgSize.xy;
+   Vec2 tex_min=uv-ImgSize.xy,
+        tex_max=uv+ImgSize.xy;
 
 #if STEP==0
    // use linear filtering because we're downsampling, for the first step use half precision for high performance, because there's a lot of data
@@ -45,7 +45,7 @@ Flt HdrDS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 #endif
 }
 /******************************************************************************/
-Flt HdrUpdate_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // here use full precision
+Flt HdrUpdate_PS():TARGET // here use full precision
 {
    Flt lum=TexPoint(ImgXF, Vec2(0, 0)).x; // new luminance
 
@@ -65,20 +65,35 @@ Flt HdrUpdate_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // here use full precision
    return Lerp(lum, TexPoint(ImgXF1, Vec2(0, 0)).x, Step); // lerp new with old
 }
 /******************************************************************************/
-VecH4 Hdr_PS(NOPERSP Vec2 inTex:TEXCOORD,
-             NOPERSP PIXEL              ):TARGET
+void Hdr_VS(VtxInput vtx,
+   NOPERSP  out Vec2 uv :TEXCOORD,
+   NOINTERP out Half lum:LUM     ,
+   NOPERSP  out Vec4 vtx:POSITION)
 {
-   VecH4 col=TexLod  (Img , inTex); // can't use 'TexPoint' because 'Img' can be supersampled
-   Half  lum=TexPoint(ImgX, Vec2(0, 0)).x;
+   uv=vtx.tex();
+
+#if !GL
+   lum=ImgX[VecI2(0,0)];
+#else
+   lum=TexPoint(ImgX, Vec2(0, 0));
+#endif
+#if !LINEAR_GAMMA
+   lum=LinearToSRGBFast(lum);
+#endif
+
+   vtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+}
+VecH4 Hdr_PS(NOPERSP  Vec2 uv :TEXCOORD,
+             NOINTERP Half lum:LUM     ,
+             NOPERSP  PIXEL            ):TARGET
+{
+   VecH4 col=TexLod(Img, uv); // can't use 'TexPoint' because 'Img' can be supersampled
 
    /* full formula
    if(gamma)col.rgb=SRGBToLinearFast(col.rgb);
    col.rgb*=lum;
-   if(gamma)col.rgb=LinearToSRGBFast(col.rgb); */
+   if(gamma)col.rgb=LinearToSRGBFast(col.rgb);*/
 
-#if !LINEAR_GAMMA
-   lum=LinearToSRGBFast(lum);
-#endif
    col.rgb*=lum;
 
 #if DITHER

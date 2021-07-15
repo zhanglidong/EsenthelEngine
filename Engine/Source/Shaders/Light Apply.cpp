@@ -52,15 +52,15 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
                     NOPERSP Vec2 inPosXY:TEXCOORD1,
                     NOPERSP PIXEL):TARGET
 {
-   Half ao; VecH ambient; if(AO){ao=TexLod(ImgX, inTex).x; if(!AO_ALL)ambient=AmbientColor*ao;} // use 'TexLod' because AO can be of different size and we need to use tex filtering. #AmbientInLum
-   VecI p=VecI(pixel.xy, 0);
-   Vec  eye_dir=Normalize(Vec(inPosXY, 1));
+   Half  ao; VecH ambient; if(AO){ao=TexLod(ImgX, inTex).x; if(!AO_ALL)ambient=AmbientColor*ao;} // use 'TexLod' because AO can be of different size and we need to use tex filtering. #AmbientInLum
+   VecI2 p=pixel.xy;
+   Vec   eye_dir=Normalize(Vec(inPosXY, 1));
    if(MULTI_SAMPLE==0)
    {
    #if !GL // does not work on SpirV -> GLSL
-      VecH4 color=Img1.Load(p); // #RTOutput
-      VecH  lum  =Img2.Load(p).rgb;
-      VecH  spec =Img3.Load(p).rgb;
+      VecH4 color=Img1[p]; // #RTOutput
+      VecH  lum  =Img2[p].rgb;
+      VecH  spec =Img3[p].rgb;
    #else
       VecH4 color=TexPoint(Img1, inTex); // #RTOutput
       VecH  lum  =TexPoint(Img2, inTex).rgb;
@@ -75,8 +75,8 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
    if(MULTI_SAMPLE==1) // 1 sample
    {
       VecH4  color=TexSample  (ImgMS1, pixel.xy, 0); // #RTOutput
-      VecH   lum  =Img2.Load(p).rgb; //  Lum1S
-      VecH   spec =Img3.Load(p).rgb; // Spec1S
+      VecH   lum  =Img2[p].rgb; //  Lum1S
+      VecH   spec =Img3[p].rgb; // Spec1S
       Vec    nrm  =GetNormalMS(pixel.xy, 0).xyz;
       VecH2  ext  =GetExtMS   (pixel.xy, 0); // #RTOutput
       if(AO && !AO_ALL)lum+=ambient;

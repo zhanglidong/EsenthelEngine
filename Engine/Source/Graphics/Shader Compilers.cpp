@@ -553,7 +553,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 
    src.New("HdrUpdate", "Draw_VS", "HdrUpdate_PS");
 
-   REPD(dither, 2)src.New("Hdr", "Draw_VS", "Hdr_PS")("DITHER", dither);
+   REPD(dither, 2)src.New("Hdr", "Hdr_VS", "Hdr_PS")("DITHER", dither);
 }
 #endif
 
