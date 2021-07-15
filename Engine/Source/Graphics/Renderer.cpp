@@ -1328,7 +1328,11 @@ void RendererClass::ao()
    if(foreground)D.depth2DOn(); // this enables depth but disables 'D.depthWrite'
    ImageRT *depth=(foreground ? _ds_1s() : null);
    set(_ao, depth, true, NEED_DEPTH_READ); // use DS for 'D.depth2D'
-   REPS(_eye, _eye_num)ao->draw(setEyeParams()); // calculate occlusion
+   REPS(_eye, _eye_num)
+   {
+      Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), rt_desc.size));
+      ao->draw(setEyeParams()); // calculate occlusion
+   }
    
    const Bool linear_depth=true; // perform blur using downsampled linear depth
    if(!linear_depth)Sh.Depth->set(_ds_1s); // restore full resolution depth
