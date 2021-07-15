@@ -14,7 +14,7 @@ SKIN, COLORS, LAYOUT, BUMP_MODE, REFLECT, EMISSIVE_MAP
 #define SET_POS      (REFLECT || TESSELATE)
 #define PIXEL_NORMAL (REFLECT) // if calculate normal in the pixel shader
 /******************************************************************************/
-struct VS_PS
+struct Data
 {
 #if SET_POS
    Vec pos:POS;
@@ -44,8 +44,8 @@ void VS
 (
    VtxInput vtx,
 
-   out VS_PS O,
-   out Vec4  pixel:POSITION
+   out Data O,
+   out Vec4 pixel:POSITION
 )
 {
 #if SET_TEX
@@ -121,7 +121,7 @@ void VS
 /******************************************************************************/
 VecH4 PS
 (
-   VS_PS I,
+   Data I,
 /*#if PIXEL_NORMAL && FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
    IS_FRONT,
 #endif*/

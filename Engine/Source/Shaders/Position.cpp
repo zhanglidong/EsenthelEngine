@@ -3,7 +3,7 @@
 /******************************************************************************
 SKIN, ALPHA_TEST, TEST_BLEND, FX, TESSELATE
 /******************************************************************************/
-struct VS_PS
+struct Data
 {
 #if TESSELATE
    Vec pos:POS   ,
@@ -25,8 +25,8 @@ void VS
 (
    VtxInput vtx,
 
-   out VS_PS O,
-   out Vec4  pixel:POSITION
+   out Data O,
+   out Vec4 pixel:POSITION
 )
 {
    Vec  pos=vtx.pos();
@@ -84,9 +84,9 @@ void VS
 /******************************************************************************/
 void PS
 (
-   VS_PS I
+   Data I
 #if ALPHA_TEST==ALPHA_TEST_DITHER
-       , PIXEL
+      , PIXEL
 #endif
 )
 {
@@ -102,16 +102,16 @@ void PS
 // HULL / DOMAIN
 /******************************************************************************/
 #if TESSELATE
-HSData HSConstant(InputPatch<VS_PS,3> I) {return GetHSData(I[0].pos, I[1].pos, I[2].pos, I[0].nrm, I[1].nrm, I[2].nrm, true);}
+HSData HSConstant(InputPatch<Data,3> I) {return GetHSData(I[0].pos, I[1].pos, I[2].pos, I[0].nrm, I[1].nrm, I[2].nrm, true);}
 [maxtessfactor(5.0)]
 [domain("tri")]
 [partitioning("fractional_odd")] // use 'odd' because it supports range from 1.0 ('even' supports range from 2.0)
 [outputtopology("triangle_cw")]
 [patchconstantfunc("HSConstant")]
 [outputcontrolpoints(3)]
-VS_PS HS(InputPatch<VS_PS,3> I, UInt cp_id:SV_OutputControlPointID)
+Data HS(InputPatch<Data,3> I, UInt cp_id:SV_OutputControlPointID)
 {
-   VS_PS O;
+   Data O;
    O.pos=I[cp_id].pos;
    O.nrm=I[cp_id].nrm;
 #if ALPHA_TEST
@@ -126,10 +126,10 @@ VS_PS HS(InputPatch<VS_PS,3> I, UInt cp_id:SV_OutputControlPointID)
 [domain("tri")]
 void DS
 (
-   HSData hs_data, const OutputPatch<VS_PS,3> I, Vec B:SV_DomainLocation,
+   HSData hs_data, const OutputPatch<Data,3> I, Vec B:SV_DomainLocation,
 
-   out VS_PS O,
-   out Vec4  pixel:POSITION
+   out Data O,
+   out Vec4 pixel:POSITION
 )
 {
 #if ALPHA_TEST

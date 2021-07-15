@@ -9,7 +9,7 @@ BUFFER_END
 /******************************************************************************
 SKIN, BUMP_MODE
 /******************************************************************************/
-struct VS_PS
+struct Data
 {
 #if BUMP_MODE>=SBUMP_FLAT
    VecH nrm:NORMAL;
@@ -21,8 +21,8 @@ void VS
 (
    VtxInput vtx,
 
-   out VS_PS O,
-   out Vec4  pixel:POSITION
+   out Data O,
+   out Vec4 pixel:POSITION
 )
 {
 #if BUMP_MODE>=SBUMP_FLAT
@@ -41,7 +41,7 @@ void VS
    pixel=Project(TransformPos(vtx.pos()));
 }
 /******************************************************************************/
-VecH4 PS(VS_PS I, IS_FRONT):TARGET
+VecH4 PS(Data I, IS_FRONT):TARGET
 {
    if(LINEAR_GAMMA)I.col.rgb=SRGBToLinear(I.col.rgb);
    I.col.rgb+=Highlight.rgb;

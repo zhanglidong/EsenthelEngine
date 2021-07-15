@@ -72,26 +72,26 @@ Image XZImage;
 
 #include "!Set Prec Default.h"
 /******************************************************************************/
-struct VS_PS
+struct Data
 {
    Vec  pos  :TEXCOORD0,
         nrm  :TEXCOORD1;
    Vec2 pos2D:TEXCOORD2;
    Vec4 vtx  :POSITION ;
 };
-struct VS_PS_NOVTX
+struct DataNoPixel
 {
    Vec  pos  :TEXCOORD0,
         nrm  :TEXCOORD1;
    Vec2 pos2D:TEXCOORD2;
 };
 /******************************************************************************/
-VS_PS FX_VS
+Data FX_VS
 (
    VtxInput vtx
 )
 {
-   VS_PS O;
+   Data O;
    O.pos=          TransformPos(vtx.pos()) ; O.pos2D=Transform(O.pos, CamMatrix).xz;
    O.nrm=Normalize(TransformDir(vtx.nrm()));
    O.vtx=          Project     (  O.pos  ) ;
@@ -100,7 +100,7 @@ VS_PS FX_VS
 /******************************************************************************/
 Vec4 Circle_PS
 (
-   VS_PS I
+   Data I
 ):TARGET
 {
    Vec2 cos_sin; CosSin(cos_sin.x, cos_sin.y, XZAngle);
@@ -119,7 +119,7 @@ Vec4 Circle_PS
 /******************************************************************************/
 Vec4 Square_PS
 (
-   VS_PS I
+   Data I
 ):TARGET
 {
    Vec2 cos_sin; CosSin(cos_sin.x, cos_sin.y, XZAngle);
@@ -138,7 +138,7 @@ Vec4 Square_PS
 /******************************************************************************/
 Vec4 Grid_PS
 (
-   VS_PS_NOVTX I
+   DataNoPixel I
 ):TARGET
 {
    Vec2 pos  =I.pos2D/XZRange;
@@ -153,20 +153,20 @@ Vec4 Grid_PS
 /******************************************************************************/
 // HULL / DOMAIN
 /******************************************************************************
-HSData HSConstant(InputPatch<VS_PS_NOVTX,3> I) {return GetHSData(I[0].pos, I[1].pos, I[2].pos, I[0].nrm, I[1].nrm, I[2].nrm);}
+HSData HSConstant(InputPatch<DataNoPixel,3> I) {return GetHSData(I[0].pos, I[1].pos, I[2].pos, I[0].nrm, I[1].nrm, I[2].nrm);}
 [maxtessfactor(5.0)]
 [domain("tri")]
 [partitioning("fractional_odd")] // use 'odd' because it supports range from 1.0 ('even' supports range from 2.0)
 [outputtopology("triangle_cw")]
 [patchconstantfunc("HSConstant")]
 [outputcontrolpoints(3)]
-VS_PS_NOVTX HS
+DataNoPixel HS
 (
-   InputPatch<VS_PS_NOVTX,3> I,
+   InputPatch<DataNoPixel,3> I,
    UInt cp_id:SV_OutputControlPointID
 )
 {
-   VS_PS_NOVTX O;
+   DataNoPixel O;
    O.pos  =I[cp_id].pos;
    O.nrm  =I[cp_id].nrm;
    O.pos2D=I[cp_id].pos2D;
@@ -174,12 +174,12 @@ VS_PS_NOVTX HS
 }
 
 [domain("tri")]
-VS_PS DS
+Data DS
 (
-   HSData hs_data, const OutputPatch<VS_PS_NOVTX,3> I, Vec B:SV_DomainLocation
+   HSData hs_data, const OutputPatch<DataNoPixel,3> I, Vec B:SV_DomainLocation
 )
 {
-   VS_PS O;
+   Data O;
 
    O.pos2D=I[0].pos2D*B.z + I[1].pos2D*B.x + I[2].pos2D*B.y;
 

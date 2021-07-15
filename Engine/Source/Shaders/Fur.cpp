@@ -9,7 +9,7 @@ VecH GetBoneFurVel(VecU bone, VecH weight) {return weight.x*FurVel[bone.x] + wei
 /******************************************************************************/
 // SKIN, SIZE, DIFFUSE
 /******************************************************************************/
-struct Base_VS_PS
+struct BaseData
 {
    Vec2 tex:TEXCOORD;
    VecH nrm:NORMAL  ; // !! not Normalized !!
@@ -24,7 +24,7 @@ void Base_VS
 (
    VtxInput vtx,
 
-   out Base_VS_PS O,
+   out BaseData O,
    out Vec4 pixel:POSITION,
 
    CLIP_DIST
@@ -64,7 +64,7 @@ void Base_VS
 /******************************************************************************/
 void Base_PS
 (
-   Base_VS_PS I,
+   BaseData I,
 #if USE_VEL
    PIXEL,
 #endif

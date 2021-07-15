@@ -24,7 +24,7 @@
 #define GRASS_FADE     (FX==FX_GRASS_2D || FX==FX_GRASS_3D)
 #define ALPHA_CLIP     0.5
 /******************************************************************************/
-struct VS_PS
+struct Data
 {
 #if SET_POS
    Vec pos:POS;
@@ -69,8 +69,8 @@ void VS
 (
    VtxInput vtx,
 
-   out VS_PS O,
-   out Vec4  pixel:POSITION
+   out Data O,
+   out Vec4 pixel:POSITION
 )
 {
    Vec  local_pos=vtx.pos(), view_pos, view_vel;
@@ -226,7 +226,7 @@ void VS
 /******************************************************************************/
 void PS
 (
-   VS_PS I,
+   Data I,
 #if USE_VEL
    PIXEL,
 #endif
