@@ -175,7 +175,7 @@ void Draw3DTex_VS(VtxInput vtx,
            #if COLORS
               out VecH4 col:COLOR,
            #endif
-           #if FOG
+           #if USE_FOG
               out VecH4 fog:FOG,
            #endif
               out Vec4  pixel:POSITION)
@@ -185,7 +185,7 @@ void Draw3DTex_VS(VtxInput vtx,
 #if COLORS
    col=vtx.color();
 #endif
-#if FOG
+#if USE_FOG
    fog=VecH4(FogColor, AccumulatedDensity(FogDensity, Length(pos)));
 #endif
    pixel=Project(pos);
@@ -194,7 +194,7 @@ VecH4 Draw3DTex_PS(Vec2  uv:UV
                 #if COLORS
                  , VecH4 vtx_col:COLOR
                 #endif
-                #if FOG
+                #if USE_FOG
                  , VecH4 fog:FOG
                 #endif
                   ):TARGET
@@ -206,7 +206,7 @@ VecH4 Draw3DTex_PS(Vec2  uv:UV
 #if COLORS
    col*=vtx_col;
 #endif
-#if FOG
+#if USE_FOG
    col.rgb=Lerp(col.rgb, fog.rgb, fog.a);
 #endif
    return col;

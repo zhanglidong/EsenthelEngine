@@ -153,7 +153,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       REPD(color     , 2)
       {
                      src.New("Draw2DDepthTex", "Draw2DDepthTex_VS", "Draw2DDepthTex_PS")("ALPHA_TEST", alpha_test, "COLORS", color);
-         REPD(fog, 2)src.New("Draw3DTex"     , "Draw3DTex_VS"     , "Draw3DTex_PS"     )("ALPHA_TEST", alpha_test, "COLORS", color, "FOG", fog);
+         REPD(fog, 2)src.New("Draw3DTex"     , "Draw3DTex_VS"     , "Draw3DTex_PS"     )("ALPHA_TEST", alpha_test, "COLORS", color, "USE_FOG", fog);
       }
 
       if(ms) // Multi-Sampling
