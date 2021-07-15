@@ -95,10 +95,10 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    #endif
       src.New("Draw2DFlat", "Draw2DFlat_VS", "DrawFlat_PS");
       src.New("Draw3DFlat", "Draw3DFlat_VS", "DrawFlat_PS");
-      src.New("SetCol"    , "DrawUV_VS"    , "DrawFlat_PS");
+      src.New("SetCol"    , "Draw_VS"      , "DrawFlat_PS");
 
       src.New("ClearDeferred", "ClearDeferred_VS", "ClearDeferred_PS");
-      src.New("ClearLight"   , "DrawUV_VS"       , "ClearLight_PS");
+      src.New("ClearLight"   , "Draw_VS"         , "ClearLight_PS");
 
       REPD(hdr      , 2)
       REPD(dither   , 2)
@@ -244,7 +244,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    }
    { // FOG
       ShaderCompiler::Source &src=compiler.New(src_path+"Fog.cpp");
-      REPD(multi_sample, ms ? 3 : 1)src.New("Fog", "DrawUVPosXY_VS", "Fog_PS")("MULTI_SAMPLE", multi_sample).multiSample(multi_sample>=2);
+      REPD(multi_sample, ms ? 3 : 1)src.New("Fog", "DrawPosXY_VS", "Fog_PS")("MULTI_SAMPLE", multi_sample).multiSample(multi_sample>=2);
    }
    { // FONT
       ShaderCompiler::Source &src=compiler.New(src_path+"Font.cpp");
@@ -262,13 +262,13 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       REPD(multi_sample, ms ? 2 : 1)
       REPD(water       , 2)
       {
-                           src.New("DrawLightDir"     , "DrawUVPosXY_VS", "LightDir_PS"   ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water); // Directional light is always fullscreen, so can use 2D shader
+                           src.New("DrawLightDir"     , "DrawPosXY_VS", "LightDir_PS"   ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water); // Directional light is always fullscreen, so can use 2D shader
          REPD(gl_es, (api==API_GL) ? 2 : 1) // GL ES doesn't support NOPERSP and 'D.depthClip'
          {
-                           src.New("DrawLightPoint"   , "Geom_VS"       , "LightPoint_PS" ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water)(                "GL_ES", gl_es).extra("CLAMP_DEPTH", gl_es);  // 3D Geom Mesh (only ball based are depth-clamped, because Dir is fullscreen and Cone has too many artifacts when depth clamping)
-                           src.New("DrawLightLinear"  , "Geom_VS"       , "LightLinear_PS").multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water)(                "GL_ES", gl_es).extra("CLAMP_DEPTH", gl_es);  // 3D Geom Mesh (only ball based are depth-clamped, because Dir is fullscreen and Cone has too many artifacts when depth clamping)
-            REPD(image, 2){src.New("DrawLightCone"    , "Geom_VS"       , "LightCone_PS"  ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water)("IMAGE", image, "GL_ES", gl_es)                            ;  // 3D Geom Mesh
-                  if(gl_es)src.New("DrawLightConeFlat", "DrawUVPosXY_VS", "LightCone_PS"  ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water)("IMAGE", image                )                            ;} // 2D Flat
+                           src.New("DrawLightPoint"   , "Geom_VS"     , "LightPoint_PS" ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water)(                "GL_ES", gl_es).extra("CLAMP_DEPTH", gl_es);  // 3D Geom Mesh (only ball based are depth-clamped, because Dir is fullscreen and Cone has too many artifacts when depth clamping)
+                           src.New("DrawLightLinear"  , "Geom_VS"     , "LightLinear_PS").multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water)(                "GL_ES", gl_es).extra("CLAMP_DEPTH", gl_es);  // 3D Geom Mesh (only ball based are depth-clamped, because Dir is fullscreen and Cone has too many artifacts when depth clamping)
+            REPD(image, 2){src.New("DrawLightCone"    , "Geom_VS"     , "LightCone_PS"  ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water)("IMAGE", image, "GL_ES", gl_es)                            ;  // 3D Geom Mesh
+                  if(gl_es)src.New("DrawLightConeFlat", "DrawPosXY_VS", "LightCone_PS"  ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water)("IMAGE", image                )                            ;} // 2D Flat
          }
       }
    }
@@ -287,9 +287,9 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       REPD(multi_sample, ms ? 2 : 1)
       {
          REPD(map_num, 6)
-         REPD(cloud  , 2)src.New("ShdDir"  , "DrawUVPosXY_VS", "ShdDir_PS"  ).multiSample(multi_sample)("MULTI_SAMPLE", multi_sample, "MAP_NUM", map_num+1, "CLOUD", cloud);
-                         src.New("ShdPoint", "DrawUVPosXY_VS", "ShdPoint_PS").multiSample(multi_sample)("MULTI_SAMPLE", multi_sample);
-                         src.New("ShdCone" , "DrawUVPosXY_VS", "ShdCone_PS" ).multiSample(multi_sample)("MULTI_SAMPLE", multi_sample);
+         REPD(cloud  , 2)src.New("ShdDir"  , "DrawPosXY_VS", "ShdDir_PS"  ).multiSample(multi_sample)("MULTI_SAMPLE", multi_sample, "MAP_NUM", map_num+1, "CLOUD", cloud);
+                         src.New("ShdPoint", "DrawPosXY_VS", "ShdPoint_PS").multiSample(multi_sample)("MULTI_SAMPLE", multi_sample);
+                         src.New("ShdCone" , "DrawPosXY_VS", "ShdCone_PS" ).multiSample(multi_sample)("MULTI_SAMPLE", multi_sample);
       }
       REPD(gl_es       , (api==API_GL) ? 2 : 1) // GL ES doesn't support NOPERSP, 'D.depthClip' and TexDepthLinear (0=no GL ES, 1=GL ES)
       REPD(geom        , 2)
@@ -364,7 +364,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    }
    { // SUN
       ShaderCompiler::Source &src=compiler.New(src_path+"Sun.cpp");
-      REPD(mask, 2)src.New("SunRaysMask", "DrawUVPosXY_VS", "SunRaysMask_PS")("MASK", mask);
+      REPD(mask, 2)src.New("SunRaysMask", mask ? "DrawUVPosXY_VS" : "DrawPosXY_VS", "SunRaysMask_PS")("MASK", mask);
 
       REPD(mask  , 2)
       REPD(dither, 2)
