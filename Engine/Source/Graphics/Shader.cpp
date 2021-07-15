@@ -1559,15 +1559,22 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
                DYNAMIC_ASSERT(offset==gpu_offset, "Invalid ShaderParam gpu_offset");
                UInt size; switch(type)
                {
-                  case GL_UNSIGNED_INT: size=SIZE(UInt   ); break;
-                  case GL_FLOAT       : size=SIZE(Flt    ); break;
-                  case GL_FLOAT_VEC2  : size=SIZE(Vec2   ); break;
-                  case GL_FLOAT_VEC3  : size=SIZE(Vec    ); break;
-                  case GL_FLOAT_VEC4  : size=SIZE(Vec4   ); break;
-                  case GL_FLOAT_MAT3  : size=SIZE(Matrix3); DYNAMIC_ASSERT(matrix_stride==SIZE(Vec4), S+"Invalid ShaderParam \""+name+"\" matrix stride: "+matrix_stride); break;
-                  case GL_FLOAT_MAT4  : size=SIZE(Matrix4); DYNAMIC_ASSERT(matrix_stride==SIZE(Vec4), S+"Invalid ShaderParam \""+name+"\" matrix stride: "+matrix_stride); break;
-                  case GL_FLOAT_MAT4x3: size=SIZE(Matrix ); DYNAMIC_ASSERT(matrix_stride==SIZE(Vec4), S+"Invalid ShaderParam \""+name+"\" matrix stride: "+matrix_stride); break;
-                  default             : Exit("Invalid ShaderParam type"); return false;
+                  case GL_INT              : size=SIZE(Int    ); break;
+                  case GL_UNSIGNED_INT     : size=SIZE(UInt   ); break;
+                  case GL_INT_VEC2         : size=SIZE(VecI2  ); break;
+                  case GL_INT_VEC3         : size=SIZE(VecI   ); break;
+                  case GL_INT_VEC4         : size=SIZE(VecI4  ); break;
+                  case GL_UNSIGNED_INT_VEC2: size=SIZE(VecI2  ); break;
+                  case GL_UNSIGNED_INT_VEC3: size=SIZE(VecI   ); break;
+                  case GL_UNSIGNED_INT_VEC4: size=SIZE(VecI4  ); break;
+                  case GL_FLOAT            : size=SIZE(Flt    ); break;
+                  case GL_FLOAT_VEC2       : size=SIZE(Vec2   ); break;
+                  case GL_FLOAT_VEC3       : size=SIZE(Vec    ); break;
+                  case GL_FLOAT_VEC4       : size=SIZE(Vec4   ); break;
+                  case GL_FLOAT_MAT3       : size=SIZE(Matrix3); DYNAMIC_ASSERT(matrix_stride==SIZE(Vec4), S+"Invalid ShaderParam \""+name+"\" matrix stride: "+matrix_stride); break;
+                  case GL_FLOAT_MAT4       : size=SIZE(Matrix4); DYNAMIC_ASSERT(matrix_stride==SIZE(Vec4), S+"Invalid ShaderParam \""+name+"\" matrix stride: "+matrix_stride); break;
+                  case GL_FLOAT_MAT4x3     : size=SIZE(Matrix ); DYNAMIC_ASSERT(matrix_stride==SIZE(Vec4), S+"Invalid ShaderParam \""+name+"\" matrix stride: "+matrix_stride); break;
+                  default                  : Exit("Invalid ShaderParam type"); return false;
                }
                DYNAMIC_ASSERT(size==param->_cpu_data_size, "Invalid ShaderParam size");
             }//else Exit(S+"ShaderParam \""+name+"\" not found"); disable because currently 'FindShaderParam' does not support finding members, such as "Viewport.size_fov_tan" etc.
