@@ -48,9 +48,9 @@ Flt Blur(Flt z)
 {
 #if REALISTIC
    #if 0 // F makes almost no difference
-      Flt F=0.075; return DofIntensity() /* * F */ * (z - DofFocus()) / (z * (DofFocus() - F));
+      Flt F=0.075; return DofIntensity() * Mid(/* * F */ (z - DofFocus()) / (z * (DofFocus() - F)), -1, 1);
    #else
-      return DofIntensity()*(z-DofFocus())/(z*DofFocus()); // 'DofRange' ignored
+      return DofIntensity()*Mid((z-DofFocus())/(z*DofFocus()), -1, 1); // 'DofRange' ignored
    #endif
 #else
    return DofIntensity()*Mid(z*DofMul() + DofAdd(), -1, 1); // (z-DofFocus())/DofRange, z/DofRange - DofFocus()/DofRange
@@ -139,7 +139,7 @@ Flt Weight(Flt center_blur, Flt test_blur, Int dist, Int range) // center_blur=-
    x=Sat(x); // x=Min(x, 1); to prevent for returning 'Weight' values outside 0..1 range
    return Weight(x)/b; // weight, divide by 'b' to make narrower ranges more intense to preserve total intensity
 }
-Flt FinalBlur(Flt blur, Flt blur_smooth) // 'blur'=-Inf .. Inf, 'blur_smooth'=0..1
+Flt FinalBlur(Flt blur, Flt blur_smooth) // 'blur'=-1..1, 'blur_smooth'=0..1
 {
    if(SHOW_BLURRED)return 1;
  //blur_smooth=(FINAL_MODE ? Sat(blur_smooth*-2+1) : Abs(blur_smooth*2-1)); already done in 'DofBlurY_PS'
