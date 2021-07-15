@@ -6,7 +6,7 @@ SKIN, ALPHA_TEST
 struct VS_PS
 {
 #if ALPHA_TEST
-   Vec2 tex:TEXCOORD;
+   Vec2 uv:UV;
 #endif
 #if ALPHA_TEST==ALPHA_TEST_DITHER
    NOINTERP VecU2 face_id:FACE_ID;
@@ -23,7 +23,7 @@ void VS
 )
 {
 #if ALPHA_TEST
-   O.tex=vtx.tex();
+   O.uv=vtx.tex();
 #endif
 #if ALPHA_TEST==ALPHA_TEST_DITHER
    O.face_id=vtx.faceID();
@@ -48,9 +48,9 @@ VecH4 PS
 ):TARGET
 {
 #if ALPHA_TEST==ALPHA_TEST_YES
-   MaterialAlphaTest(Tex(Col, I.tex).a);
+   MaterialAlphaTest(Tex(Col, I.uv).a);
 #elif ALPHA_TEST==ALPHA_TEST_DITHER
-   MaterialAlphaTestDither(Tex(Col, I.tex).a, pixel.xy, I.face_id);
+   MaterialAlphaTestDither(Tex(Col, I.uv).a, pixel.xy, I.face_id);
 #endif
 
    Half alpha=Sat((Half(I.pos.z-TexDepthPoint(PixelToUV(pixel)))-BehindBias)/0.3);
