@@ -193,7 +193,7 @@ Half AO_PS
       Flt nrm_eye_dir=Dot(nrm, eye_dir);
    #if 0 // slower
       Vec nrm_clamp=nrm;
-      Flt d=nrm_eye_dir+1.0/256; if(d>0) // if nrm is behind eye_dir plane
+      Flt d=nrm_eye_dir+64.0/256; if(d>0) // if nrm is behind eye_dir plane
       {
          nrm_clamp -=eye_dir*d; // move on eye_dir plane
          nrm_clamp  =Normalize(nrm_clamp);
@@ -201,7 +201,7 @@ Half AO_PS
       }
       nrm_scaled=nrm_clamp/nrm_eye_dir;
    #else
-      nrm_scaled=nrm/Min(nrm_eye_dir, -1.0/256);
+      nrm_scaled=nrm/Min(nrm_eye_dir, -64.0/256); // big value like this is needed to eliminate artifacts on distant flat terrain with normal maps
    #endif
    }
 
