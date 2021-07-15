@@ -53,32 +53,32 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 uv   :UV,
                     NOPERSP PIXEL):TARGET
 {
    Half  ao; VecH ambient; if(AO){ao=TexLod(ImgX, uv).x; if(!AO_ALL)ambient=AmbientColor*ao;} // use 'TexLod' because AO can be of different size and we need to use tex filtering. #AmbientInLum
-   VecI2 p=pixel.xy;
+   VecI2 pix=pixel.xy;
    Vec   eye_dir=Normalize(Vec(posXY, 1));
    if(MULTI_SAMPLE==0)
    {
    #if !GL // does not work on SpirV -> GLSL
-      VecH4 color=Img1[p]; // #RTOutput
-      VecH  lum  =Img2[p].rgb;
-      VecH  spec =Img3[p].rgb;
+      VecH4 color=Img1[pix]; // #RTOutput
+      VecH  lum  =Img2[pix].rgb;
+      VecH  spec =Img3[pix].rgb;
    #else
       VecH4 color=TexPoint(Img1, uv); // #RTOutput
       VecH  lum  =TexPoint(Img2, uv).rgb;
       VecH  spec =TexPoint(Img3, uv).rgb;
    #endif
-      Vec   nrm=GetNormal(uv).xyz;
-      VecH2 ext=GetExt   (uv); // #RTOutput
+      Vec   nrm=GetNormal(pix, uv).xyz;
+      VecH2 ext=GetExt   (pix, uv); // #RTOutput
       if(AO && !AO_ALL)lum+=ambient;
       color.rgb=LitCol(color.rgb, color.a, nrm, ext.x, ext.y, lum, spec, ao, NightShadeColor, AO && !AO_ALL, eye_dir);
       return color;
    }else
    if(MULTI_SAMPLE==1) // 1 sample
    {
-      VecH4  color=TexSample  (ImgMS1, pixel.xy, 0); // #RTOutput
-      VecH   lum  =Img2[p].rgb; //  Lum1S
-      VecH   spec =Img3[p].rgb; // Spec1S
-      Vec    nrm  =GetNormalMS(pixel.xy, 0).xyz;
-      VecH2  ext  =GetExtMS   (pixel.xy, 0); // #RTOutput
+      VecH4  color=TexSample  (ImgMS1, pix, 0); // #RTOutput
+      VecH   lum  =Img2[pix].rgb; //  Lum1S
+      VecH   spec =Img3[pix].rgb; // Spec1S
+      Vec    nrm  =GetNormalMS(pix, 0).xyz;
+      VecH2  ext  =GetExtMS   (pix, 0); // #RTOutput
       if(AO && !AO_ALL)lum+=ambient;
       color.rgb=LitCol(color.rgb, color.a, nrm, ext.x, ext.y, lum, spec, ao, NightShadeColor, AO && !AO_ALL, eye_dir);
       return color;
@@ -87,13 +87,13 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 uv   :UV,
       VecH4 color_sum=0;
       Half  valid_samples=HALF_MIN;
       VecH  night_shade_col; if(NIGHT_SHADE && AO && !AO_ALL)night_shade_col=NightShadeColor*ao; // compute it once, and not inside 'LitCol'
-      UNROLL for(Int i=0; i<MS_SAMPLES; i++)if(DEPTH_FOREGROUND(TexDepthRawMS(pixel.xy, i))) // valid sample
+      UNROLL for(Int i=0; i<MS_SAMPLES; i++)if(DEPTH_FOREGROUND(TexDepthRawMS(pix, i))) // valid sample
       {
-         VecH4 color=TexSample  (ImgMS1, pixel.xy, i); // #RTOutput
-         VecH  lum  =TexSample  (ImgMS2, pixel.xy, i).rgb; //  LumMS
-         VecH  spec =TexSample  (ImgMS3, pixel.xy, i).rgb; // SpecMS
-         Vec   nrm  =GetNormalMS(        pixel.xy, i).xyz;
-         VecH2 ext  =GetExtMS   (        pixel.xy, i); // #RTOutput
+         VecH4 color=TexSample  (ImgMS1, pix, i); // #RTOutput
+         VecH  lum  =TexSample  (ImgMS2, pix, i).rgb; //  LumMS
+         VecH  spec =TexSample  (ImgMS3, pix, i).rgb; // SpecMS
+         Vec   nrm  =GetNormalMS(        pix, i).xyz;
+         VecH2 ext  =GetExtMS   (        pix, i); // #RTOutput
          if(AO && !AO_ALL)lum+=ambient;
          color.rgb =LitCol(color.rgb, color.a, nrm, ext.x, ext.y, lum, spec, ao, (NIGHT_SHADE && AO && !AO_ALL) ? night_shade_col : NightShadeColor, false, eye_dir); // we've already adjusted 'night_shade_col' by 'ao', so set 'night_shade_ao' as false
          color_sum+=color;

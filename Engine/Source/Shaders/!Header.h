@@ -1547,7 +1547,7 @@ void MaterialAlphaTestDither(Half alpha, VecI2 pixel, VecU2 face, bool noise_off
    if(alpha<=0)discard;
 }
 /******************************************************************************/
-// NORMAL
+// NORMAL + EXT
 /******************************************************************************/
 Vec4 UnpackNormal(VecH4 nrm)
 {
@@ -1558,13 +1558,25 @@ Vec4 UnpackNormal(VecH4 nrm)
    nrm_hp.xyz=Normalize(nrm_hp.xyz); // normalize needed even if source was F16 format because it improves quality for specular
    return nrm_hp;
 }
-Vec4 GetNormal  (Vec2  tex               ) {return UnpackNormal(TexPoint (Img  , tex          ));}
-Vec4 GetNormalMS(VecI2 pixel, UInt sample) {return UnpackNormal(TexSample(ImgMS, pixel, sample));}
-/******************************************************************************/
-// EXT
-/******************************************************************************/
-VecH2 GetExt  (Vec2  tex               ) {return TexPoint (ImgXY  , tex          );}
-VecH2 GetExtMS(VecI2 pixel, UInt sample) {return TexSample(ImgXYMS, pixel, sample);}
+Vec4 GetNormal(VecI2 pixel, Vec2 uv)
+{
+#if !GL
+   VecH4 nrm=Img[pixel];
+#else
+   VecH4 nrm=TexPoint(Img, uv);
+#endif
+   return UnpackNormal(nrm);
+}
+VecH2 GetExt(VecI2 pixel, Vec2 uv)
+{
+#if !GL
+   return ImgXY[pixel];
+#else
+   return TexPoint(ImgXY, uv);
+#endif
+}
+Vec4  GetNormalMS(VecI2 pixel, UInt sample) {return UnpackNormal(TexSample(ImgMS  , pixel, sample));}
+VecH2 GetExtMS   (VecI2 pixel, UInt sample) {return              TexSample(ImgXYMS, pixel, sample) ;}
 /******************************************************************************/
 // LOD INDEX
 /******************************************************************************/

@@ -311,7 +311,8 @@ void Surface_PS
 // these must be the same as "Surface" shader - Img1=reflection (2D image), Img2=background underwater
 // REFRACT, SET_DEPTH, REFLECT_ENV, REFLECT_MIRROR, GATHER
 VecH4 Apply_PS(NOPERSP Vec2 uv   :UV,
-               NOPERSP Vec2 posXY:POS_XY
+               NOPERSP Vec2 posXY:POS_XY,
+               NOPERSP PIXEL
             #if SET_DEPTH
                  , out Flt  depth:DEPTH
             #endif
@@ -338,7 +339,7 @@ VecH4 Apply_PS(NOPERSP Vec2 uv   :UV,
       water_col.a=0;
       VecH lum =TexLod(Img4, uv); // water surface light
       VecH spec=TexLod(Img5, uv); // water surface light specular
-      Vec  nrm =GetNormal(uv).xyz; // water surface normals
+      Vec  nrm =GetNormal(pixel.xy, uv).xyz; // water surface normals
       Vec  nrm_flat=TransformTP(nrm, (Matrix3)GetViewMatrix()).xzy;
       Vec2 refract=nrm_flat.xy*Viewport.size; // TODO: this could be improved
 
