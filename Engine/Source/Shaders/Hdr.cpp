@@ -72,11 +72,7 @@ void Hdr_VS(VtxInput vtx,
 {
    uv=vtx.uv();
 
-#if !GL
-   lum=ImgX[VecI2(0,0)];
-#else
-   lum=TexPoint(ImgX, Vec2(0, 0));
-#endif
+   lum=ImgX[VecI2(0, 0)];
 #if !LINEAR_GAMMA
    lum=LinearToSRGBFast(lum);
 #endif

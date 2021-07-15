@@ -57,17 +57,11 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 uv   :UV,
    Vec   eye_dir=Normalize(Vec(posXY, 1));
    if(MULTI_SAMPLE==0)
    {
-   #if !GL // does not work on SpirV -> GLSL
-      VecH4 color=Img1[pix]; // #RTOutput
-      VecH  lum  =Img2[pix].rgb;
-      VecH  spec =Img3[pix].rgb;
-   #else
-      VecH4 color=TexPoint(Img1, uv); // #RTOutput
-      VecH  lum  =TexPoint(Img2, uv).rgb;
-      VecH  spec =TexPoint(Img3, uv).rgb;
-   #endif
-      Vec   nrm=GetNormal(pix, uv).xyz;
-      VecH2 ext=GetExt   (pix, uv); // #RTOutput
+      VecH4 color=   Img1  [pix]; // #RTOutput
+      VecH  lum  =   Img2  [pix].rgb;
+      VecH  spec =   Img3  [pix].rgb;
+      Vec   nrm  =GetNormal(pix).xyz;
+      VecH2 ext  =GetExt   (pix); // #RTOutput
       if(AO && !AO_ALL)lum+=ambient;
       color.rgb=LitCol(color.rgb, color.a, nrm, ext.x, ext.y, lum, spec, ao, NightShadeColor, AO && !AO_ALL, eye_dir);
       return color;
@@ -75,8 +69,8 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 uv   :UV,
    if(MULTI_SAMPLE==1) // 1 sample
    {
       VecH4  color=TexSample  (ImgMS1, pix, 0); // #RTOutput
-      VecH   lum  =Img2[pix].rgb; //  Lum1S
-      VecH   spec =Img3[pix].rgb; // Spec1S
+      VecH   lum  =   Img2    [pix].rgb; //  Lum1S
+      VecH   spec =   Img3    [pix].rgb; // Spec1S
       Vec    nrm  =GetNormalMS(pix, 0).xyz;
       VecH2  ext  =GetExtMS   (pix, 0); // #RTOutput
       if(AO && !AO_ALL)lum+=ambient;
