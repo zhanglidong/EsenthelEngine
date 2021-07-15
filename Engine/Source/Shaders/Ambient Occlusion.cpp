@@ -81,7 +81,7 @@ void AO_VS
 #if !NORMALS
    NOPERSP out Vec2 posXY1:POS_XY1,
 #endif
-   NOPERSP out Vec4 vtx:POSITION
+   NOPERSP out Vec4 pixel:POSITION
 )
 {
    uv    =vtx.tex();
@@ -89,7 +89,7 @@ void AO_VS
 #if !NORMALS
    posXY1=UVToPosXY(uv+RTSize.xy);
 #endif
-   vtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 }
 /******************************************************************************
 #define NUM_DIRECTIONS 16
