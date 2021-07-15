@@ -1305,7 +1305,8 @@ inline Shader* AmbientOcclusion::get(Int quality, Bool jitter, Bool normal)
 void RendererClass::ao()
 {
    D.alpha(ALPHA_NONE);
-   Shader *ao=AO.get(D.ambientMode()-1, D.ambientJitter(), D.ambientNormal() && _nrm);
+   Bool use_nrm=(D.ambientNormal() && _nrm);
+   Shader *ao=AO.get(D.ambientMode()-1, D.ambientJitter(), use_nrm);
    VecI2 res=ByteScaleRes(fx(), D._amb_res);
    ImageRTDesc rt_desc(res.x, res.y, IMAGERT_ONE); _ao.get(rt_desc);
 
@@ -1314,9 +1315,12 @@ void RendererClass::ao()
    ao_depth.get(rt_desc.type(IMAGERT_F32)); // don't try to reduce to IMAGERT_F16 because it can create artifacts on big view ranges under certain angles (especially when we don't use normal maps, like in forward renderer)
    linearizeDepth(*ao_depth, *_ds_1s);
 
-   Sh.imgSize    (*_nrm); // for AO ImgSize has full original size (used for normal) and RTSize of AO size
-   Sh.Img[0]->set( _nrm);
-   Sh.Depth ->set(ao_depth);
+   if(use_nrm)
+   {
+      Sh.imgSize    (*_nrm); // for AO ImgSize has full original size (used for normal) and RTSize of AO size
+      Sh.Img[0]->set( _nrm);
+   }
+   Sh.Depth->set(ao_depth);
    Bool foreground=_ao->compatible(*_ds_1s);
    if(_col->multiSample())foreground&=Sky.isActual(); // when having multi-sampling, then allow this optimization only if we're rendering Sky, this is related to smooth edges between solid and sky pixels
    if(stage)if(stage==RS_AO || stage==RS_LIGHT_AO)foreground=false; // if we will display AO then set fully
