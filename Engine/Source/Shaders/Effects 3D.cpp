@@ -37,11 +37,11 @@ void Volume_VS(VtxInput vtx,
            out Vec4     pixel:POSITION ,
            out Vec     outPos:TEXCOORD0,
            out Vec     outTex:TEXCOORD1,
-           out Matrix3 outMat:TEXCOORD2)
+  NOINTERP out Matrix3 mtrx  :MATRIX)
 {
-   outMat[0]=Normalize(ViewMatrixX());
-   outMat[1]=Normalize(ViewMatrixY());
-   outMat[2]=Normalize(ViewMatrixZ());
+   mtrx[0]=Normalize(ViewMatrixX());
+   mtrx[1]=Normalize(ViewMatrixY());
+   mtrx[2]=Normalize(ViewMatrixZ());
 
    // convert to texture space (0..1)
    if(INSIDE)outTex=Volume.inside/(2*Volume.size)+0.5;
@@ -53,9 +53,9 @@ void Volume_PS
 (
    PIXEL,
 
-   Vec     inPos:TEXCOORD0,
-   Vec     inTex:TEXCOORD1,
-   Matrix3 inMat:TEXCOORD2,
+            Vec     inPos:TEXCOORD0,
+            Vec     inTex:TEXCOORD1,
+   NOINTERP Matrix3 mtrx :MATRIX,
 
    out VecH4 color:TARGET0,
    out VecH4 mask :TARGET1
@@ -64,7 +64,7 @@ void Volume_PS
    Flt z  =TexDepthPoint(PixelToUV(pixel));
    Vec pos=inTex;
    Vec dir=Normalize(inPos); dir*=Min((SQRT3*2)*Max(Volume.size), (z-(INSIDE ? Viewport.from : inPos.z))/dir.z);
-       dir=TransformTP(dir, inMat); // convert to box space
+       dir=TransformTP(dir, mtrx); // convert to box space
 
    // convert to texture space (0..1)
    dir=dir/(2*Volume.size);

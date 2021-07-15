@@ -27,48 +27,50 @@ BUFFER_END
 #include "!Set Prec Default.h"
 
 void SMAAEdge_VS(VtxInput vtx,
-     NOPERSP out Vec2 texcoord :TEXCOORD0,
-     NOPERSP out Vec4 offset[3]:TEXCOORD1,
-     NOPERSP out Vec4 position :POSITION )
+     NOPERSP out Vec2 uv       :UV,
+     NOPERSP out Vec4 offset[3]:OFFSET,
+     NOPERSP out Vec4 position :POSITION)
 {
    position=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
-   texcoord=vtx.tex();
-   SMAAEdgeDetectionVS(texcoord, offset);
+   uv      =vtx.uv();
+   SMAAEdgeDetectionVS(uv, offset);
 }
+VecH2 SMAAEdge_PS(NOPERSP Vec2 uv       :UV,
+                  NOPERSP Vec4 offset[3]:OFFSET):TARGET // Input: GAMMA
+{
+   return SMAAColorEdgeDetectionPS(uv, offset, Img); // use instead of "SMAALumaEdgeDetectionPS" to differentiate between different colors
+}
+
 void SMAABlend_VS(VtxInput vtx,
-      NOPERSP out Vec2 texcoord :TEXCOORD0,
-      NOPERSP out Vec2 pixcoord :TEXCOORD1,
-      NOPERSP out Vec4 offset[3]:TEXCOORD2,
-      NOPERSP out Vec4 position :POSITION )
+      NOPERSP out Vec2 uv       :UV,
+      NOPERSP out Vec2 pixcoord :PIXCOORD,
+      NOPERSP out Vec4 offset[3]:OFFSET,
+      NOPERSP out Vec4 position :POSITION)
 {
    position=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
-   texcoord=vtx.tex();
-   SMAABlendingWeightCalculationVS(texcoord, pixcoord, offset);
+   uv      =vtx.uv();
+   SMAABlendingWeightCalculationVS(uv, pixcoord, offset);
 }
+VecH4 SMAABlend_PS(NOPERSP Vec2 uv       :UV,
+                   NOPERSP Vec2 pixcoord :PIXCOORD,
+                   NOPERSP Vec4 offset[3]:OFFSET):TARGET
+{
+   return SMAABlendingWeightCalculationPS(uv, pixcoord, offset, Img, Img1, Img2, 0);
+}
+
 void SMAA_VS(VtxInput vtx,
- NOPERSP out Vec2 texcoord:TEXCOORD0,
- NOPERSP out Vec4 offset  :TEXCOORD1,
- NOPERSP out Vec4 position:POSITION )
+ NOPERSP out Vec2 uv      :UV,
+ NOPERSP out Vec4 offset  :OFFSET,
+ NOPERSP out Vec4 position:POSITION)
 {
    position=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
-   texcoord=vtx.tex();
-   SMAANeighborhoodBlendingVS(texcoord, offset);
+   uv      =vtx.uv();
+   SMAANeighborhoodBlendingVS(uv, offset);
 }
-VecH2 SMAAEdge_PS(NOPERSP Vec2 texcoord :TEXCOORD0,
-                  NOPERSP Vec4 offset[3]:TEXCOORD1):TARGET // Input: GAMMA
+VecH4 SMAA_PS(NOPERSP Vec2 uv    :UV,
+              NOPERSP Vec4 offset:OFFSET):TARGET
 {
-   return SMAAColorEdgeDetectionPS(texcoord, offset, Img); // use instead of "SMAALumaEdgeDetectionPS" to differentiate between different colors
-}
-VecH4 SMAABlend_PS(NOPERSP Vec2 texcoord :TEXCOORD0,
-                   NOPERSP Vec2 pixcoord :TEXCOORD1,
-                   NOPERSP Vec4 offset[3]:TEXCOORD2):TARGET
-{
-   return SMAABlendingWeightCalculationPS(texcoord, pixcoord, offset, Img, Img1, Img2, 0);
-}
-VecH4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
-              NOPERSP Vec4 offset  :TEXCOORD1):TARGET
-{
-   return SMAANeighborhoodBlendingPS(texcoord, offset, Img, Img1);
+   return SMAANeighborhoodBlendingPS(uv, offset, Img, Img1);
 }
 /******************************************************************************
 // MLAA
@@ -98,7 +100,7 @@ void MLAA_VS(VtxInput vtx,
  NOPERSP out Vec4 pixel          :POSITION )
 {
    pixel          =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
-   outTex         =vtx.tex();
+   outTex         =vtx.uv();
    outTexOffset[0]=RTSize.xyxy*Vec4(-1, 0, 0,-1)+outTex.xyxy;
    outTexOffset[1]=RTSize.xyxy*Vec4( 1, 0, 0, 1)+outTex.xyxy;
 }

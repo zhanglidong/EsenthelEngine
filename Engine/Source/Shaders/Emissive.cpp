@@ -3,7 +3,7 @@
 /******************************************************************************
 SKIN, ALPHA_TEST, EMISSIVE_MAP, FX, TESSELATE
 /******************************************************************************/
-#define SET_TEX (ALPHA_TEST || EMISSIVE_MAP)
+#define SET_UV (ALPHA_TEST || EMISSIVE_MAP)
 /******************************************************************************/
 struct Data
 {
@@ -12,8 +12,8 @@ struct Data
        nrm:NORMAL;
 #endif
 
-#if SET_TEX
-   Vec2 tex:TEXCOORD;
+#if SET_UV
+   Vec2 uv:UV;
 #endif
 
 #if ALPHA_TEST==ALPHA_TEST_DITHER
@@ -68,8 +68,8 @@ void VS
       if(TESSELATE)nrm=Normalize(TransformDir(nrm, bone, vtx.weight()));
    }
 
-#if SET_TEX
-   O.tex=vtx.tex();
+#if SET_UV
+   O.uv=vtx.uv();
 #endif
 
 #if ALPHA_TEST==ALPHA_TEST_DITHER
@@ -94,13 +94,13 @@ VecH4 PS
 ):TARGET
 {
 #if ALPHA_TEST==ALPHA_TEST_YES
-   MaterialAlphaTest(Tex(Col, I.tex).a);
+   MaterialAlphaTest(Tex(Col, I.uv).a);
 #elif ALPHA_TEST==ALPHA_TEST_DITHER
-   MaterialAlphaTestDither(Tex(Col, I.tex).a, pixel.xy, I.face_id);
+   MaterialAlphaTestDither(Tex(Col, I.uv).a, pixel.xy, I.face_id);
 #endif
 
 #if EMISSIVE_MAP
-   VecH emissive=Tex(Lum, I.tex).rgb;
+   VecH emissive=Tex(Lum, I.uv).rgb;
    return VecH4(Material.emissive*emissive, Material.emissive_glow*Max(emissive));
 #else
    return VecH4(Material.emissive, Material.emissive_glow);
@@ -122,8 +122,8 @@ Data HS(InputPatch<Data,3> I, UInt cp_id:SV_OutputControlPointID)
    Data O;
    O.pos=I[cp_id].pos;
    O.nrm=I[cp_id].nrm;
-#if SET_TEX
-   O.tex=I[cp_id].tex;
+#if SET_UV
+   O.uv =I[cp_id].uv;
 #endif
 #if ALPHA_TEST==ALPHA_TEST_DITHER
    O.face_id=I[cp_id].face_id;
@@ -140,8 +140,8 @@ void DS
    out Vec4 pixel:POSITION
 )
 {
-#if SET_TEX
-   O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
+#if SET_UV
+   O.uv=I[0].uv*B.z + I[1].uv*B.x + I[2].uv*B.y;
 #endif
 
 #if ALPHA_TEST==ALPHA_TEST_DITHER

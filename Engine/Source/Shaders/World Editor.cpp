@@ -8,20 +8,18 @@ void Color_VS
    VtxInput vtx,
 
 #if VTX_COL
-   out VecH4 outCol:COLOR    ,
+   out VecH4 col:COLOR,
 #endif
-   out VecH  outNrm:TEXCOORD0,
-   out Vec   outPos:TEXCOORD1,
-   out Vec4  pixel :POSITION
+   out VecH  nrm  :NORMAL,
+   out Vec4  pixel:POSITION
 )
 {  
 #if VTX_COL
-   outCol=vtx.colorFast();
+   col=vtx.colorFast();
 #endif
 
-   outNrm=Normalize(TransformDir(vtx.nrm()));
-   outPos=          TransformPos(vtx.pos()) ;
-   pixel =          Project     ( outPos  ) ;
+   nrm  =Normalize(TransformDir(vtx.nrm()));
+   pixel=Project  (TransformPos(vtx.pos()));
 }
 /******************************************************************************/
 #ifndef COL_VALUE
@@ -30,21 +28,20 @@ void Color_VS
 void Color_PS
 (
 #if VTX_COL
-   VecH4 inCol:COLOR    ,
+   VecH4 col:COLOR,
 #endif
-   VecH  inNrm:TEXCOORD0,
-   Vec   inPos:TEXCOORD1,
+   VecH  nrm:NORMAL,
 
    out DeferredSolidOutput output
 )
 {
 #if VTX_COL
-   output.color      (VecH(COL_VALUE)*inCol.rgb+Highlight.rgb);
+   output.color      (VecH(COL_VALUE)*col.rgb+Highlight.rgb);
 #else
    output.color      (VecH(COL_VALUE)+Highlight.rgb);
 #endif
    output.glow       (0);
-   output.normal     (Normalize(inNrm));
+   output.normal     (Normalize(nrm));
    output.translucent(0);
    output.rough      (1);
    output.reflect    (0);
@@ -74,16 +71,16 @@ Image XZImage;
 /******************************************************************************/
 struct Data
 {
-   Vec  pos  :TEXCOORD0,
-        nrm  :TEXCOORD1;
-   Vec2 pos2D:TEXCOORD2;
-   Vec4 vtx  :POSITION ;
+   Vec  pos  :POS,
+        nrm  :NORMAL;
+   Vec2 pos2D:POS2D;
+   Vec4 vtx  :POSITION;
 };
 struct DataNoPixel
 {
-   Vec  pos  :TEXCOORD0,
-        nrm  :TEXCOORD1;
-   Vec2 pos2D:TEXCOORD2;
+   Vec  pos  :POS,
+        nrm  :NORMAL;
+   Vec2 pos2D:POS2D;
 };
 /******************************************************************************/
 Data FX_VS

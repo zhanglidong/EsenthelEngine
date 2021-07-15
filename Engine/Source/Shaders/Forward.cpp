@@ -20,7 +20,7 @@ Final = (TexCol*MtrlCol*VtxCol+Detail)*FinalLight
 #define AMBIENT_IN_VTX (VTX_LIGHT && !SHADOW) // if stored per-vertex (in either 'vtx.col' or 'vtx.lum')
 #define LIGHT_IN_COL   (VTX_LIGHT && !DETAIL && (NO_AMBIENT || !SHADOW) && !REFLECT) // can't mix light with vtx.col when REFLECT because for reflections we need unlit color
 #define SET_POS        ((LIGHT && PER_PIXEL) || SHADOW || REFLECT || TESSELATE)
-#define SET_TEX        (LAYOUT || DETAIL || EMISSIVE_MAP || BUMP_MODE>SBUMP_FLAT)
+#define SET_UV         (LAYOUT || DETAIL || EMISSIVE_MAP || BUMP_MODE>SBUMP_FLAT)
 #define SET_COL        (COLORS || LIGHT_IN_COL)
 #define SET_LUM        (VTX_LIGHT && !LIGHT_IN_COL)
 #define VTX_REFLECT    (REFLECT && !PER_PIXEL && BUMP_MODE<=SBUMP_FLAT) // require !PER_PIXEL because even without normal maps (SBUMP_FLAT) the quality suffers
@@ -33,8 +33,8 @@ struct Data
    Vec pos:POS;
 #endif
 
-#if SET_TEX
-   Vec2 tex:TEXCOORD;
+#if SET_UV
+   Vec2 uv:UV;
 #endif
 
 #if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
@@ -87,9 +87,9 @@ void VS
    Vec  pos=vtx.pos();
    VecH nrm, tan; if(BUMP_MODE>=SBUMP_FLAT)nrm=vtx.nrm(); if(BUMP_MODE>SBUMP_FLAT)tan=vtx.tan(nrm, HEIGHTMAP);
 
-#if SET_TEX
-   O.tex=vtx.tex(HEIGHTMAP);
-   if(HEIGHTMAP && MATERIALS==1)O.tex*=Material.uv_scale;
+#if SET_UV
+   O.uv=vtx.uv(HEIGHTMAP);
+   if(HEIGHTMAP && MATERIALS==1)O.uv*=Material.uv_scale;
 #endif
 
 #if ALPHA_TEST==ALPHA_TEST_DITHER
@@ -294,7 +294,7 @@ VecH4 PS
 #if MATERIALS==1
    VecH4 det;
 #if DETAIL
-   det=GetDetail(I.tex);
+   det=GetDetail(I.uv);
 #endif
 
    // #MaterialTextureLayout
@@ -307,7 +307,7 @@ VecH4 PS
    }
    #elif LAYOUT==1
    {
-      VecH4 tex_col=Tex(Col, I.tex);
+      VecH4 tex_col=Tex(Col, I.uv);
       if(ALPHA_TEST)
       {
       #if GRASS_FADE
@@ -327,7 +327,7 @@ VecH4 PS
    }
    #elif LAYOUT==2
    {
-      VecH4 tex_col=Tex(Col, I.tex);
+      VecH4 tex_col=Tex(Col, I.uv);
       if(ALPHA_TEST)
       {
       #if GRASS_FADE
@@ -339,7 +339,7 @@ VecH4 PS
          MaterialAlphaTestDither(tex_col.a, pixel.xy, I.face_id);
       #endif
       }
-      VecH4 tex_ext=Tex(Ext, I.tex);
+      VecH4 tex_ext=Tex(Ext, I.uv);
       col   *=tex_col.rgb;
       rough  =tex_ext.BASE_CHANNEL_ROUGH*Material.  rough_mul+Material.  rough_add; // saturated later below
       reflect=tex_ext.BASE_CHANNEL_METAL*Material.reflect_mul+Material.reflect_add;
@@ -356,11 +356,11 @@ VecH4 PS
          nrmh=I.Nrm(); // can't add DETAIL normal because it would need 'I.mtrx'
       #else
          #if 0
-                      nrmh.xy =Tex(Nrm, I.tex).BASE_CHANNEL_NORMAL*Material.normal;
+                      nrmh.xy =Tex(Nrm, I.uv).BASE_CHANNEL_NORMAL*Material.normal;
             if(DETAIL)nrmh.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
                       nrmh.z  =CalcZ(nrmh.xy);
          #else
-                      nrmh.xy =Tex(Nrm, I.tex).BASE_CHANNEL_NORMAL;
+                      nrmh.xy =Tex(Nrm, I.uv).BASE_CHANNEL_NORMAL;
                       nrmh.z  =CalcZ(nrmh.xy);
                       nrmh.xy*=Material.normal;
             if(DETAIL)nrmh.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
@@ -371,11 +371,11 @@ VecH4 PS
 
 #else // MATERIALS>1
    // assuming that in multi materials LAYOUT!=0
-   Vec2 tex0, tex1, tex2, tex3;
-                   tex0=I.tex*MultiMaterial0.uv_scale;
-                   tex1=I.tex*MultiMaterial1.uv_scale;
-   if(MATERIALS>=3)tex2=I.tex*MultiMaterial2.uv_scale;
-   if(MATERIALS>=4)tex3=I.tex*MultiMaterial3.uv_scale;
+   Vec2 uv0, uv1, uv2, uv3;
+                   uv0=I.uv*MultiMaterial0.uv_scale;
+                   uv1=I.uv*MultiMaterial1.uv_scale;
+   if(MATERIALS>=3)uv2=I.uv*MultiMaterial2.uv_scale;
+   if(MATERIALS>=4)uv3=I.uv*MultiMaterial3.uv_scale;
 
    // #MaterialTextureLayout #MaterialTextureLayoutDetail
 
@@ -383,10 +383,10 @@ VecH4 PS
    VecH4 det0, det1, det2, det3;
    if(DETAIL)
    {
-                      det0=GetDetail0(tex0);
-                      det1=GetDetail1(tex1);
-      if(MATERIALS>=3)det2=GetDetail2(tex2);
-      if(MATERIALS>=4)det3=GetDetail3(tex3);
+                      det0=GetDetail0(uv0);
+                      det1=GetDetail1(uv1);
+      if(MATERIALS>=3)det2=GetDetail2(uv2);
+      if(MATERIALS>=4)det3=GetDetail3(uv3);
    }
 
    // macro texture
@@ -397,10 +397,10 @@ VecH4 PS
    if(LAYOUT==2)
    {
       VecH4 ext0, ext1, ext2, ext3;
-                      ext0=Tex(Ext , tex0);
-                      ext1=Tex(Ext1, tex1);
-      if(MATERIALS>=3)ext2=Tex(Ext2, tex2);
-      if(MATERIALS>=4)ext3=Tex(Ext3, tex3);
+                      ext0=Tex(Ext , uv0);
+                      ext1=Tex(Ext1, uv1);
+      if(MATERIALS>=3)ext2=Tex(Ext2, uv2);
+      if(MATERIALS>=4)ext3=Tex(Ext3, uv3);
       if(MTRL_BLEND)
       {
                           I.material.x=MultiMaterialWeight(I.material.x, ext0.BASE_CHANNEL_BUMP);
@@ -425,10 +425,10 @@ VecH4 PS
 
    // Color + Detail + Macro !! do this second after modifying 'I.material' !! here Alpha is ignored for multi-materials
    VecH rgb;
-                   {VecH col0=Tex(Col , tex0).rgb; col0.rgb*=MultiMaterial0.color.rgb; if(DETAIL)col0.rgb*=det0.DETAIL_CHANNEL_COLOR; /*if(MACRO)col0.rgb=Lerp(col0.rgb, Tex(Mac , tex0*MacroScale).rgb, MultiMaterial0.macro*mac_blend);*/ rgb =I.material.x*col0;} // #MaterialTextureLayoutDetail
-                   {VecH col1=Tex(Col1, tex1).rgb; col1.rgb*=MultiMaterial1.color.rgb; if(DETAIL)col1.rgb*=det1.DETAIL_CHANNEL_COLOR; /*if(MACRO)col1.rgb=Lerp(col1.rgb, Tex(Mac1, tex1*MacroScale).rgb, MultiMaterial1.macro*mac_blend);*/ rgb+=I.material.y*col1;}
-   if(MATERIALS>=3){VecH col2=Tex(Col2, tex2).rgb; col2.rgb*=MultiMaterial2.color.rgb; if(DETAIL)col2.rgb*=det2.DETAIL_CHANNEL_COLOR; /*if(MACRO)col2.rgb=Lerp(col2.rgb, Tex(Mac2, tex2*MacroScale).rgb, MultiMaterial2.macro*mac_blend);*/ rgb+=I.material.z*col2;}
-   if(MATERIALS>=4){VecH col3=Tex(Col3, tex3).rgb; col3.rgb*=MultiMaterial3.color.rgb; if(DETAIL)col3.rgb*=det3.DETAIL_CHANNEL_COLOR; /*if(MACRO)col3.rgb=Lerp(col3.rgb, Tex(Mac3, tex3*MacroScale).rgb, MultiMaterial3.macro*mac_blend);*/ rgb+=I.material.w*col3;}
+                   {VecH col0=Tex(Col , uv0).rgb; col0.rgb*=MultiMaterial0.color.rgb; if(DETAIL)col0.rgb*=det0.DETAIL_CHANNEL_COLOR; /*if(MACRO)col0.rgb=Lerp(col0.rgb, Tex(Mac , uv0*MacroScale).rgb, MultiMaterial0.macro*mac_blend);*/ rgb =I.material.x*col0;} // #MaterialTextureLayoutDetail
+                   {VecH col1=Tex(Col1, uv1).rgb; col1.rgb*=MultiMaterial1.color.rgb; if(DETAIL)col1.rgb*=det1.DETAIL_CHANNEL_COLOR; /*if(MACRO)col1.rgb=Lerp(col1.rgb, Tex(Mac1, uv1*MacroScale).rgb, MultiMaterial1.macro*mac_blend);*/ rgb+=I.material.y*col1;}
+   if(MATERIALS>=3){VecH col2=Tex(Col2, uv2).rgb; col2.rgb*=MultiMaterial2.color.rgb; if(DETAIL)col2.rgb*=det2.DETAIL_CHANNEL_COLOR; /*if(MACRO)col2.rgb=Lerp(col2.rgb, Tex(Mac2, uv2*MacroScale).rgb, MultiMaterial2.macro*mac_blend);*/ rgb+=I.material.z*col2;}
+   if(MATERIALS>=4){VecH col3=Tex(Col3, uv3).rgb; col3.rgb*=MultiMaterial3.color.rgb; if(DETAIL)col3.rgb*=det3.DETAIL_CHANNEL_COLOR; /*if(MACRO)col3.rgb=Lerp(col3.rgb, Tex(Mac3, uv3*MacroScale).rgb, MultiMaterial3.macro*mac_blend);*/ rgb+=I.material.w*col3;}
 #if SET_COL
    col*=rgb.rgb;
 #else
@@ -444,16 +444,16 @@ VecH4 PS
       #else
          if(DETAIL)
          { // #MaterialTextureLayoutDetail
-                            nrmh.xy =(Tex(Nrm , tex0).BASE_CHANNEL_NORMAL*MultiMaterial0.normal + det0.DETAIL_CHANNEL_NORMAL)*I.material.x;
-                            nrmh.xy+=(Tex(Nrm1, tex1).BASE_CHANNEL_NORMAL*MultiMaterial1.normal + det1.DETAIL_CHANNEL_NORMAL)*I.material.y;
-            if(MATERIALS>=3)nrmh.xy+=(Tex(Nrm2, tex2).BASE_CHANNEL_NORMAL*MultiMaterial2.normal + det2.DETAIL_CHANNEL_NORMAL)*I.material.z;
-            if(MATERIALS>=4)nrmh.xy+=(Tex(Nrm3, tex3).BASE_CHANNEL_NORMAL*MultiMaterial3.normal + det3.DETAIL_CHANNEL_NORMAL)*I.material.w;
+                            nrmh.xy =(Tex(Nrm , uv0).BASE_CHANNEL_NORMAL*MultiMaterial0.normal + det0.DETAIL_CHANNEL_NORMAL)*I.material.x;
+                            nrmh.xy+=(Tex(Nrm1, uv1).BASE_CHANNEL_NORMAL*MultiMaterial1.normal + det1.DETAIL_CHANNEL_NORMAL)*I.material.y;
+            if(MATERIALS>=3)nrmh.xy+=(Tex(Nrm2, uv2).BASE_CHANNEL_NORMAL*MultiMaterial2.normal + det2.DETAIL_CHANNEL_NORMAL)*I.material.z;
+            if(MATERIALS>=4)nrmh.xy+=(Tex(Nrm3, uv3).BASE_CHANNEL_NORMAL*MultiMaterial3.normal + det3.DETAIL_CHANNEL_NORMAL)*I.material.w;
          }else
          {
-                            nrmh.xy =Tex(Nrm , tex0).BASE_CHANNEL_NORMAL*(MultiMaterial0.normal*I.material.x);
-                            nrmh.xy+=Tex(Nrm1, tex1).BASE_CHANNEL_NORMAL*(MultiMaterial1.normal*I.material.y);
-            if(MATERIALS>=3)nrmh.xy+=Tex(Nrm2, tex2).BASE_CHANNEL_NORMAL*(MultiMaterial2.normal*I.material.z);
-            if(MATERIALS>=4)nrmh.xy+=Tex(Nrm3, tex3).BASE_CHANNEL_NORMAL*(MultiMaterial3.normal*I.material.w);
+                            nrmh.xy =Tex(Nrm , uv0).BASE_CHANNEL_NORMAL*(MultiMaterial0.normal*I.material.x);
+                            nrmh.xy+=Tex(Nrm1, uv1).BASE_CHANNEL_NORMAL*(MultiMaterial1.normal*I.material.y);
+            if(MATERIALS>=3)nrmh.xy+=Tex(Nrm2, uv2).BASE_CHANNEL_NORMAL*(MultiMaterial2.normal*I.material.z);
+            if(MATERIALS>=4)nrmh.xy+=Tex(Nrm3, uv3).BASE_CHANNEL_NORMAL*(MultiMaterial3.normal*I.material.w);
          }
          nrmh.z=CalcZ(nrmh.xy);
          nrmh  =Transform(nrmh, I.mtrx);
@@ -651,7 +651,7 @@ VecH4 PS
       if(MATERIALS<=1) // emissive
       {
       #if EMISSIVE_MAP
-         VecH emissive=Tex(Lum, I.tex).rgb;
+         VecH emissive=Tex(Lum, I.uv).rgb;
          total_specular+=Material.emissive     *    emissive ;
          glow          +=Material.emissive_glow*Max(emissive);
       #else
@@ -667,7 +667,7 @@ VecH4 PS
       if(MATERIALS<=1) // glow from emissive
       {
       #if EMISSIVE_MAP
-         VecH emissive=Tex(Lum, I.tex).rgb;
+         VecH emissive=Tex(Lum, I.uv).rgb;
          glow+=Material.emissive_glow*Max(emissive);
       #else
          glow+=Material.emissive_glow;
@@ -707,8 +707,8 @@ Data HS
    O.nrm =I[cp_id].nrm;
 #endif
 
-#if SET_TEX
-   O.tex=I[cp_id].tex;
+#if SET_UV
+   O.uv=I[cp_id].uv;
 #endif
 
 #if MATERIALS>1
@@ -755,8 +755,8 @@ void DS
    SetDSPosNrm(O.pos, O.nrm    , I[0].pos, I[1].pos, I[2].pos, I[0].Nrm(), I[1].Nrm(), I[2].Nrm(), B, hs_data, false, 0);
 #endif
 
-#if SET_TEX
-   O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
+#if SET_UV
+   O.uv=I[0].uv*B.z + I[1].uv*B.x + I[2].uv*B.y;
 #endif
 
 #if MATERIALS>1

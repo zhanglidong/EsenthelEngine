@@ -84,7 +84,7 @@ void AO_VS
    NOPERSP out Vec4 pixel:POSITION
 )
 {
-   uv    =vtx.tex();
+   uv    =vtx.uv();
    posXY =UVToPosXY(uv);
 #if !NORMALS
    posXY1=UVToPosXY(uv+RTSize.xy);

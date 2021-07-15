@@ -9,7 +9,7 @@
 /******************************************************************************/
 // HDR
 /******************************************************************************/
-Flt HdrDS_PS(NOPERSP Vec2 uv:TEXCOORD):TARGET
+Flt HdrDS_PS(NOPERSP Vec2 uv:UV):TARGET
 {
    Vec2 tex_min=uv-ImgSize.xy,
         tex_max=uv+ImgSize.xy;
@@ -66,11 +66,11 @@ Flt HdrUpdate_PS():TARGET // here use full precision
 }
 /******************************************************************************/
 void Hdr_VS(VtxInput vtx,
-   NOPERSP  out Vec2 uv   :TEXCOORD,
-   NOINTERP out Half lum  :LUM     ,
+   NOPERSP  out Vec2 uv   :UV ,
+   NOINTERP out Half lum  :LUM,
    NOPERSP  out Vec4 pixel:POSITION)
 {
-   uv=vtx.tex();
+   uv=vtx.uv();
 
 #if !GL
    lum=ImgX[VecI2(0,0)];
@@ -83,9 +83,9 @@ void Hdr_VS(VtxInput vtx,
 
    pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 }
-VecH4 Hdr_PS(NOPERSP  Vec2 uv :TEXCOORD,
-             NOINTERP Half lum:LUM     ,
-             NOPERSP  PIXEL            ):TARGET
+VecH4 Hdr_PS(NOPERSP  Vec2 uv :UV ,
+             NOINTERP Half lum:LUM,
+             NOPERSP  PIXEL       ):TARGET
 {
    VecH4 col=TexLod(Img, uv); // can't use 'TexPoint' because 'Img' can be supersampled
 

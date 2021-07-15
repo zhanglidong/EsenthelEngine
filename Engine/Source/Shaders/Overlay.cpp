@@ -8,13 +8,13 @@ void VS
 (
    VtxInput vtx,
 
-   out Vec      outTex   :TEXCOORD, // xy=uv, z=alpha
+   out Vec      outTex:TEXCOORD, // xy=uv, z=alpha
 #if NORMALS
-   out MatrixH3 outMatrix:MATRIX,
+   out MatrixH3 mtrx:MATRIX,
 #else
-   out VecH     outNrm   :NORMAL,
+   out VecH     outNrm:NORMAL,
 #endif
-   out Vec4     pixel   :POSITION
+   out Vec4     pixel:POSITION
 )
 {
    Matrix3 m;
@@ -28,8 +28,8 @@ void VS
    if(!SKIN)
    {
    #if NORMALS
-      outMatrix[1]=Normalize(TransformDir(OverlayParams.mtrx[1]));
-      outMatrix[2]=Normalize(TransformDir(OverlayParams.mtrx[2]));
+      mtrx[1]=Normalize(TransformDir(OverlayParams.mtrx[1]));
+      mtrx[2]=Normalize(TransformDir(OverlayParams.mtrx[2]));
    #else
       outNrm=Normalize(TransformDir(OverlayParams.mtrx[2]));
    #endif
@@ -40,8 +40,8 @@ void VS
       VecU bone=vtx.bone();
 
    #if NORMALS
-      outMatrix[1]=Normalize(TransformDir(OverlayParams.mtrx[1], bone, vtx.weight()));
-      outMatrix[2]=Normalize(TransformDir(OverlayParams.mtrx[2], bone, vtx.weight()));
+      mtrx[1]=Normalize(TransformDir(OverlayParams.mtrx[1], bone, vtx.weight()));
+      mtrx[2]=Normalize(TransformDir(OverlayParams.mtrx[2], bone, vtx.weight()));
    #else
       outNrm=Normalize(TransformDir(OverlayParams.mtrx[2], bone, vtx.weight()));
    #endif
@@ -49,20 +49,20 @@ void VS
       pixel=Project(TransformPos(vtx.pos(), bone, vtx.weight()));
    }
 #if NORMALS
-   outMatrix[0]=Cross(outMatrix[1], outMatrix[2]);
+   mtrx[0]=Cross(mtrx[1], mtrx[2]);
 #endif
 }
 /******************************************************************************/
 VecH4 PS
 (
-    Vec      inTex   :TEXCOORD,
+    Vec      inTex:TEXCOORD,
 #if NORMALS
-    MatrixH3 inMatrix:MATRIX  ,
+    MatrixH3 mtrx :MATRIX  ,
 #else
-    VecH     inNrm   :NORMAL  ,
+    VecH     inNrm:NORMAL  ,
 #endif
-out VecH4   outNrm   :TARGET1 ,
-out VecH4   outExt   :TARGET2
+out VecH4   outNrm:TARGET1 ,
+out VecH4   outExt:TARGET2
 ):TARGET // #RTOutput
 {
    VecH4 col=Tex(Col, inTex.xy);
@@ -91,7 +91,7 @@ out VecH4   outExt   :TARGET2
                   nrm.xy*=Material.normal;
       //if(DETAIL)nrm.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
    #endif
-                  nrm    =Normalize(Transform(nrm, inMatrix));
+                  nrm    =Normalize(Transform(nrm, mtrx));
 #else
    nrm=Normalize(inNrm);
 #endif

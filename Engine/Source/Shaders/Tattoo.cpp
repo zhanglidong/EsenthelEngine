@@ -5,7 +5,7 @@ SKIN, TESSELATE
 /******************************************************************************/
 struct Data
 {
-   Vec2 tex:TEXCOORD;
+   Vec2 uv :UV;
 #if TESSELATE
    Vec  pos:POS;
    VecH nrm:NORMAL;
@@ -22,7 +22,7 @@ void VS
    out Vec4 pixel:POSITION
 )
 {
-   O.tex=vtx.tex();
+   O.uv=vtx.uv();
 
    Vec pos;
    if(!SKIN)
@@ -52,7 +52,7 @@ VecH4 PS
    Data I
 ):TARGET
 {
-   return Tex(Col, I.tex)*Color[0];
+   return Tex(Col, I.uv)*Color[0];
 }
 /******************************************************************************/
 // HULL / DOMAIN
@@ -74,7 +74,7 @@ Data HS
    Data O;
    O.pos=I[cp_id].pos;
    O.nrm=I[cp_id].nrm;
-   O.tex=I[cp_id].tex;
+   O.uv =I[cp_id].uv;
    return O;
 }
 /******************************************************************************/
@@ -87,7 +87,7 @@ void DS
    out Vec4 pixel:POSITION
 )
 {
-   O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
+   O.uv=I[0].uv*B.z + I[1].uv*B.x + I[2].uv*B.y;
 
    SetDSPosNrm(O.pos, O.nrm, I[0].pos, I[1].pos, I[2].pos, I[0].nrm, I[1].nrm, I[2].nrm, B, hs_data, false, 0);
    pixel=Project(O.pos);

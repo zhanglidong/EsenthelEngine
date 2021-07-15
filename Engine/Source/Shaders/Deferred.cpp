@@ -103,7 +103,7 @@ void VS
    Vec local_pos_prev, view_pos_prev; VecH nrm_prev; if(USE_VEL){local_pos_prev=local_pos; if(TESSELATE_VEL)nrm_prev=nrm;}
 
 #if SET_UV
-   O.uv=vtx.tex(HEIGHTMAP);
+   O.uv=vtx.uv(HEIGHTMAP);
    if(HEIGHTMAP && MATERIALS==1)O.uv*=Material.uv_scale;
 #endif
 

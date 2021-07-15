@@ -23,7 +23,7 @@ void VS
 )
 {
 #if ALPHA_TEST
-   O.uv=vtx.tex();
+   O.uv=vtx.uv();
 #endif
 #if ALPHA_TEST==ALPHA_TEST_DITHER
    O.face_id=vtx.faceID();

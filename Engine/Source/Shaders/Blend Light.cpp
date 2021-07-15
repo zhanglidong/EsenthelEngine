@@ -80,7 +80,7 @@ void VS
    Vec local_pos_prev, view_pos_prev; if(USE_VEL)local_pos_prev=local_pos;
 
 #if SET_UV
-   O.uv=vtx.tex(HEIGHTMAP);
+   O.uv=vtx.uv(HEIGHTMAP);
    if(HEIGHTMAP)O.uv*=Material.uv_scale;
 #endif
 

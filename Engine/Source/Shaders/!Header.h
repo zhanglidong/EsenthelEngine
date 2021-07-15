@@ -1182,10 +1182,10 @@ Vec GetPos(Flt z, Vec2 pos_xy) // Get Viewspace Position at 'z' depth, 'pos_xy'=
                     pos.xy=pos_xy*pos.z;
    return pos;
 }
-Vec GetPosPoint (Vec2 tex             ) {return GetPos(TexDepthPoint (tex), UVToPosXY(tex));} // Get Viewspace Position at 'tex' screen coordinates
-Vec GetPosPoint (Vec2 tex, Vec2 pos_xy) {return GetPos(TexDepthPoint (tex), pos_xy        );} // Get Viewspace Position at 'tex' screen coordinates, 'pos_xy'=known xy position at depth=1
-Vec GetPosLinear(Vec2 tex             ) {return GetPos(TexDepthLinear(tex), UVToPosXY(tex));} // Get Viewspace Position at 'tex' screen coordinates
-Vec GetPosLinear(Vec2 tex, Vec2 pos_xy) {return GetPos(TexDepthLinear(tex), pos_xy        );} // Get Viewspace Position at 'tex' screen coordinates, 'pos_xy'=known xy position at depth=1
+Vec GetPosPoint (Vec2 uv             ) {return GetPos(TexDepthPoint (uv), UVToPosXY(uv));} // Get Viewspace Position at 'uv' coordinates
+Vec GetPosPoint (Vec2 uv, Vec2 pos_xy) {return GetPos(TexDepthPoint (uv), pos_xy       );} // Get Viewspace Position at 'uv' coordinates, 'pos_xy'=known xy position at depth=1
+Vec GetPosLinear(Vec2 uv             ) {return GetPos(TexDepthLinear(uv), UVToPosXY(uv));} // Get Viewspace Position at 'uv' coordinates
+Vec GetPosLinear(Vec2 uv, Vec2 pos_xy) {return GetPos(TexDepthLinear(uv), pos_xy       );} // Get Viewspace Position at 'uv' coordinates, 'pos_xy'=known xy position at depth=1
 
 Vec GetPosMS(VecI2 pixel, UInt sample, Vec2 pos_xy) {return GetPos(TexDepthMS(pixel, sample), pos_xy);}
 /******************************************************************************/
@@ -1270,10 +1270,10 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    LOC( 1) VecH  _hlp     :ATTR1 ;
    LOC( 2) VecH  _nrm     :ATTR2 ;
    LOC( 3) VecH4 _tan     :ATTR3 ;
-   LOC( 4) Vec2  _tex     :ATTR4 ;
-   LOC( 5) Vec2  _tex1    :ATTR5 ;
-   LOC( 6) Vec2  _tex2    :ATTR6 ;
-   LOC( 7) Vec2  _tex3    :ATTR7 ;
+   LOC( 4) Vec2  _uv      :ATTR4 ;
+   LOC( 5) Vec2  _uv1     :ATTR5 ;
+   LOC( 6) Vec2  _uv2     :ATTR6 ;
+   LOC( 7) Vec2  _uv3     :ATTR7 ;
    LOC( 8) Half  _size    :ATTR8 ;
    LOC( 9) Vec4  _bone    :ATTR9 ; // this has to be Vec4 because VecI4 and VecU4 don't work for some reason
    LOC(10) Vec4  _weight  :ATTR10; // this has to be Vec4 instead of VecH4 because of 2 reasons, we need sum of weights to be equal to 1.0 (half's can't do that), also when converting to GLSL the explicit casts to "Vec weight" precision are optimized away and perhaps some GLSL compilers may want to perform optimizations where Half*Vec is converted to VecH which would destroy precision for skinned characters
@@ -1286,10 +1286,10 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    VecH  _hlp     :POSITION1   ;
    VecH  _nrm     :NORMAL      ;
    VecH4 _tan     :TANGENT     ;
-   Vec2  _tex     :TEXCOORD0   ;
-   Vec2  _tex1    :TEXCOORD1   ;
-   Vec2  _tex2    :TEXCOORD2   ;
-   Vec2  _tex3    :TEXCOORD3   ;
+   Vec2  _uv      :UV0         ;
+   Vec2  _uv1     :UV1         ;
+   Vec2  _uv2     :UV2         ;
+   Vec2  _uv3     :UV3         ;
    Half  _size    :PSIZE       ;
    VecU4 _bone    :BLENDINDICES;
    Vec4  _weight  :BLENDWEIGHT ; // this has to be Vec4 instead of VecH4 because of 2 reasons, we need sum of weights to be equal to 1.0 (half's can't do that), also when converting to GLSL the explicit casts to "Vec weight" precision are optimized away and perhaps some GLSL compilers may want to perform optimizations where Half*Vec is converted to VecH which would destroy precision for skinned characters
@@ -1310,10 +1310,10 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    Flt   posZ     (                                        ) {return _pos.z                                                                ;} // vertex position Z
    VecH  hlp      (                                        ) {return _hlp                                                                  ;} // helper position
    VecH  tan      (                                        ) {return _tan.xyz                                                              ;} // helper position
-   Vec2  tex      (                    Bool heightmap=false) {return heightmap ? Vec2(_pos.x, -_pos.z) : _tex                              ;} // tex coords 0
-   Vec2  tex1     (                                        ) {return                                     _tex1                             ;} // tex coords 1
-   Vec2  tex2     (                                        ) {return                                     _tex2                             ;} // tex coords 2
-   Vec2  tex3     (                                        ) {return                                     _tex3                             ;} // tex coords 3
+   Vec2  uv       (                    Bool heightmap=false) {return heightmap ? Vec2(_pos.x, -_pos.z) : _uv                               ;} // tex coords 0
+   Vec2  uv1      (                                        ) {return                                     _uv1                              ;} // tex coords 1
+   Vec2  uv2      (                                        ) {return                                     _uv2                              ;} // tex coords 2
+   Vec2  uv3      (                                        ) {return                                     _uv3                              ;} // tex coords 3
 #if GL
    VecU  bone     (                                        ) {return VtxSkinning ? VecU(_bone.xyz) : VecU(0, 0, 0)                         ;} // bone matrix indexes
 #else
@@ -1350,26 +1350,26 @@ void DrawPixel_VS(VtxInput vtx,
    pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 }
 void Draw_VS(VtxInput vtx,
- NOPERSP out Vec2 outTex:TEXCOORD0,
- NOPERSP out Vec4 pixel:POSITION )
+ NOPERSP out Vec2 uv   :UV,
+ NOPERSP out Vec4 pixel:POSITION)
 {
-   outTex=vtx.tex();
+   uv   =vtx.uv();
    pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 }
 void DrawPosXY_VS(VtxInput vtx,
-      NOPERSP out Vec2 outTex  :TEXCOORD0,
-      NOPERSP out Vec2 outPosXY:TEXCOORD1,
-      NOPERSP out Vec4 pixel  :POSITION )
-{
-   outTex  =vtx.tex();
-   outPosXY=UVToPosXY(outTex);
-   pixel  =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
-}
-void Draw2DTex_VS(VtxInput vtx,
-      NOPERSP out Vec2 outTex:TEXCOORD,
+      NOPERSP out Vec2 uv   :UV    ,
+      NOPERSP out Vec2 posXY:POS_XY,
       NOPERSP out Vec4 pixel:POSITION)
 {
-   outTex=vtx.tex();
+   uv   =vtx.uv();
+   posXY=UVToPosXY(uv);
+   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+}
+void Draw2DTex_VS(VtxInput vtx,
+      NOPERSP out Vec2 uv   :UV,
+      NOPERSP out Vec4 pixel:POSITION)
+{
+   uv   =vtx.uv();
    pixel=Vec4(vtx.pos2()*Coords.xy+Coords.zw, Z_FRONT, 1);
 }
 /******************************************************************************/

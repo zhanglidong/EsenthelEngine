@@ -48,13 +48,13 @@ VecH LitCol(VecH base_col, Half glow, Vec nrm, Half rough, Half reflect, VecH lu
    return lit_col;
 }
 /******************************************************************************/
-VecH4 ApplyLight_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
-                    NOPERSP Vec2 inPosXY:TEXCOORD1,
+VecH4 ApplyLight_PS(NOPERSP Vec2 uv   :UV,
+                    NOPERSP Vec2 posXY:POS_XY,
                     NOPERSP PIXEL):TARGET
 {
-   Half  ao; VecH ambient; if(AO){ao=TexLod(ImgX, inTex).x; if(!AO_ALL)ambient=AmbientColor*ao;} // use 'TexLod' because AO can be of different size and we need to use tex filtering. #AmbientInLum
+   Half  ao; VecH ambient; if(AO){ao=TexLod(ImgX, uv).x; if(!AO_ALL)ambient=AmbientColor*ao;} // use 'TexLod' because AO can be of different size and we need to use tex filtering. #AmbientInLum
    VecI2 p=pixel.xy;
-   Vec   eye_dir=Normalize(Vec(inPosXY, 1));
+   Vec   eye_dir=Normalize(Vec(posXY, 1));
    if(MULTI_SAMPLE==0)
    {
    #if !GL // does not work on SpirV -> GLSL
@@ -62,12 +62,12 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
       VecH  lum  =Img2[p].rgb;
       VecH  spec =Img3[p].rgb;
    #else
-      VecH4 color=TexPoint(Img1, inTex); // #RTOutput
-      VecH  lum  =TexPoint(Img2, inTex).rgb;
-      VecH  spec =TexPoint(Img3, inTex).rgb;
+      VecH4 color=TexPoint(Img1, uv); // #RTOutput
+      VecH  lum  =TexPoint(Img2, uv).rgb;
+      VecH  spec =TexPoint(Img3, uv).rgb;
    #endif
-      Vec   nrm=GetNormal(inTex).xyz;
-      VecH2 ext=GetExt   (inTex); // #RTOutput
+      Vec   nrm=GetNormal(uv).xyz;
+      VecH2 ext=GetExt   (uv); // #RTOutput
       if(AO && !AO_ALL)lum+=ambient;
       color.rgb=LitCol(color.rgb, color.a, nrm, ext.x, ext.y, lum, spec, ao, NightShadeColor, AO && !AO_ALL, eye_dir);
       return color;

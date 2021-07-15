@@ -58,7 +58,7 @@ Flt Blur(Flt z)
 }
 /******************************************************************************/
 // VIEW_FULL, REALISTIC, ALPHA, HALF_RES, MODE(2=FilterMinMax,1=Gather,0=None)
-VecH4 DofDS_PS(NOPERSP Vec2 uv:TEXCOORD
+VecH4 DofDS_PS(NOPERSP Vec2 uv:UV
                 #if ALPHA
                  , out Half outBlur:TARGET1
                 #endif
@@ -150,7 +150,7 @@ Flt FinalBlur(Flt blur, Flt blur_smooth) // 'blur'=-1..1, 'blur_smooth'=0..1
 // Use HighPrec because we operate on lot of samples
 // ALPHA, RANGE
 
-VecH4 DofBlurX_PS(NOPERSP Vec2 uv:TEXCOORD
+VecH4 DofBlurX_PS(NOPERSP Vec2 uv:UV
                    #if ALPHA
                     , out Half outBlur:TARGET1
                    #endif
@@ -197,7 +197,7 @@ VecH4 DofBlurX_PS(NOPERSP Vec2 uv:TEXCOORD
 #endif
    return color;
 }
-VecH4 DofBlurY_PS(NOPERSP Vec2 uv:TEXCOORD
+VecH4 DofBlurY_PS(NOPERSP Vec2 uv:UV
                    #if ALPHA
                     , out Half outBlur:TARGET1
                    #endif
@@ -246,8 +246,8 @@ VecH4 DofBlurY_PS(NOPERSP Vec2 uv:TEXCOORD
 }
 /******************************************************************************/
 // DITHER, REALISTIC, ALPHA
-VecH4 Dof_PS(NOPERSP Vec2 uv:TEXCOORD,
-             NOPERSP PIXEL           ):TARGET
+VecH4 Dof_PS(NOPERSP Vec2 uv:UV,
+             NOPERSP PIXEL     ):TARGET
 {
    Flt z=TexDepthPoint(uv),
        b=Blur(z);

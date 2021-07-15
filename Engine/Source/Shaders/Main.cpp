@@ -10,10 +10,10 @@
 #include "Light Apply.h"
 /******************************************************************************/
 #ifdef MODE
-VecH4 Test_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+VecH4 Test_PS(NOPERSP Vec2 uv:UV):TARGET
 {
 #if MODE // half
-   VecH4 t=inTex.xyyx;
+   VecH4 t=uv.xyyx;
    VecH4 r=VecH4(0.1, 0.2, 0.3, 0.4);
    LOOP for(Int i=0; i<256; i++)
    {
@@ -21,7 +21,7 @@ VecH4 Test_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    }
    return VecH4(r.xy+r.yx, MODE, 1);
 #else
-   Vec4 t=inTex.xyyx;
+   Vec4 t=uv.xyyx;
    Vec4 r=Vec4(0.1, 0.2, 0.3, 0.4);
    LOOP for(Int i=0; i<256; i++)
    {
@@ -40,53 +40,53 @@ NOPERSP Vec4 Draw2DFlat_VS(VtxInput vtx):POSITION {return Vec4(vtx.pos2()*Coords
 VecH4 DrawFlat_PS():TARGET {return Color[0];}
 /******************************************************************************/
 void Draw2DCol_VS(VtxInput vtx,
-      NOPERSP out VecH4 outCol:COLOR   ,
-      NOPERSP out Vec4  pixel :POSITION)
+      NOPERSP out VecH4 col  :COLOR   ,
+      NOPERSP out Vec4  pixel:POSITION)
 {
-   outCol=     vtx.color();
-   pixel =Vec4(vtx.pos2 ()*Coords.xy+Coords.zw, Z_FRONT, 1);
+   col  =     vtx.color();
+   pixel=Vec4(vtx.pos2 ()*Coords.xy+Coords.zw, Z_FRONT, 1);
 }
-VecH4 Draw2DCol_PS(NOPERSP VecH4 inCol:COLOR):TARGET {return inCol;}
+VecH4 Draw2DCol_PS(NOPERSP VecH4 col:COLOR):TARGET {return col;}
 /******************************************************************************/
 void Draw3DCol_VS(VtxInput vtx,
-              out VecH4 outCol:COLOR   ,
-              out Vec4  pixel :POSITION)
+              out VecH4 col  :COLOR   ,
+              out Vec4  pixel:POSITION)
 {
-   outCol=vtx.color();
-   pixel =Project(TransformPos(vtx.pos()));
+   col  =vtx.color();
+   pixel=Project(TransformPos(vtx.pos()));
 }
-VecH4 Draw3DCol_PS(VecH4 inCol:COLOR):TARGET {return inCol;}
+VecH4 Draw3DCol_PS(VecH4 col:COLOR):TARGET {return col;}
 /******************************************************************************/
-VecH4 Draw2DTex_PS (NOPERSP Vec2 inTex:TEXCOORD):TARGET {return       Tex(Img, inTex);}
-VecH4 Draw2DTexC_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return       Tex(Img, inTex)*Color[0]+Color[1];}
-VecH4 Draw2DTexA_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(Tex(Img, inTex).rgb, Step);}
+VecH4 Draw2DTex_PS (NOPERSP Vec2 uv:UV):TARGET {return       Tex(Img, uv);}
+VecH4 Draw2DTexC_PS(NOPERSP Vec2 uv:UV):TARGET {return       Tex(Img, uv)*Color[0]+Color[1];}
+VecH4 Draw2DTexA_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(Tex(Img, uv).rgb, Step);}
 
-VecH4 DrawTexX_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(Tex(Img, inTex).xxx, 1);}
-VecH4 DrawTexY_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(Tex(Img, inTex).yyy, 1);}
-VecH4 DrawTexZ_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(Tex(Img, inTex).zzz, 1);}
-VecH4 DrawTexW_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(Tex(Img, inTex).www, 1);}
+VecH4 DrawTexX_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(Tex(Img, uv).xxx, 1);}
+VecH4 DrawTexY_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(Tex(Img, uv).yyy, 1);}
+VecH4 DrawTexZ_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(Tex(Img, uv).zzz, 1);}
+VecH4 DrawTexW_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(Tex(Img, uv).www, 1);}
 
 // these functions are used in Editor for previewing material textures, so use slow high precision versions to visually match original
-VecH4 DrawTexG_PS (NOPERSP Vec2 inTex:TEXCOORD):TARGET {return SRGBToLinear(Tex(Img, inTex)                  );}
-VecH4 DrawTexCG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return SRGBToLinear(Tex(Img, inTex)*Color[0]+Color[1]);}
+VecH4 DrawTexG_PS (NOPERSP Vec2 uv:UV):TARGET {return SRGBToLinear(Tex(Img, uv)                  );}
+VecH4 DrawTexCG_PS(NOPERSP Vec2 uv:UV):TARGET {return SRGBToLinear(Tex(Img, uv)*Color[0]+Color[1]);}
 
-VecH4 DrawTexXG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(Tex(Img, inTex).x).xxx, 1);}
-VecH4 DrawTexYG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(Tex(Img, inTex).y).xxx, 1);}
-VecH4 DrawTexZG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(Tex(Img, inTex).z).xxx, 1);}
-VecH4 DrawTexWG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(Tex(Img, inTex).w).xxx, 1);}
+VecH4 DrawTexXG_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(SRGBToLinear(Tex(Img, uv).x).xxx, 1);}
+VecH4 DrawTexYG_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(SRGBToLinear(Tex(Img, uv).y).xxx, 1);}
+VecH4 DrawTexZG_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(SRGBToLinear(Tex(Img, uv).z).xxx, 1);}
+VecH4 DrawTexWG_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(SRGBToLinear(Tex(Img, uv).w).xxx, 1);}
 
-VecH4 DrawTexXIG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(1-Tex(Img, inTex).x).xxx, 1);}
-VecH4 DrawTexYIG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(1-Tex(Img, inTex).y).xxx, 1);}
-VecH4 DrawTexZIG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(1-Tex(Img, inTex).z).xxx, 1);}
-VecH4 DrawTexWIG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(1-Tex(Img, inTex).w).xxx, 1);}
+VecH4 DrawTexXIG_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(SRGBToLinear(1-Tex(Img, uv).x).xxx, 1);}
+VecH4 DrawTexYIG_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(SRGBToLinear(1-Tex(Img, uv).y).xxx, 1);}
+VecH4 DrawTexZIG_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(SRGBToLinear(1-Tex(Img, uv).z).xxx, 1);}
+VecH4 DrawTexWIG_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(SRGBToLinear(1-Tex(Img, uv).w).xxx, 1);}
 
-VecH4 DrawTexXSG_PS (NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(Tex(Img, inTex).x *0.5+0.5).xxx, 1);}
-VecH4 DrawTexXYSG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(Tex(Img, inTex).xy*0.5+0.5),  0, 1);}
-VecH4 DrawTexSG_PS  (NOPERSP Vec2 inTex:TEXCOORD):TARGET {return       SRGBToLinear(Tex(Img, inTex)   *0.5+0.5);}
+VecH4 DrawTexXSG_PS (NOPERSP Vec2 uv:UV):TARGET {return VecH4(SRGBToLinear(Tex(Img, uv).x *0.5+0.5).xxx, 1);}
+VecH4 DrawTexXYSG_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(SRGBToLinear(Tex(Img, uv).xy*0.5+0.5),  0, 1);}
+VecH4 DrawTexSG_PS  (NOPERSP Vec2 uv:UV):TARGET {return       SRGBToLinear(Tex(Img, uv)   *0.5+0.5);}
 
-VecH4 DrawTexNrm_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+VecH4 DrawTexNrm_PS(NOPERSP Vec2 uv:UV):TARGET
 {
-   VecH nrm; nrm.xy=Tex(Img, inTex).BASE_CHANNEL_NORMAL; // #MaterialTextureLayout
+   VecH nrm; nrm.xy=Tex(Img, uv).BASE_CHANNEL_NORMAL; // #MaterialTextureLayout
              nrm.z =CalcZ(nrm.xy);
              nrm   =Normalize(nrm)*0.5+0.5;
           #if LINEAR_GAMMA
@@ -94,9 +94,9 @@ VecH4 DrawTexNrm_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
           #endif
    return VecH4(nrm, 1);
 }
-VecH4 DrawTexDetNrm_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+VecH4 DrawTexDetNrm_PS(NOPERSP Vec2 uv:UV):TARGET
 {
-   VecH nrm; nrm.xy=Tex(Img, inTex).DETAIL_CHANNEL_NORMAL*2-1; // #MaterialTextureLayoutDetail
+   VecH nrm; nrm.xy=Tex(Img, uv).DETAIL_CHANNEL_NORMAL*2-1; // #MaterialTextureLayoutDetail
              nrm.z =CalcZ(nrm.xy);
              nrm   =Normalize(nrm)*0.5+0.5;
           #if LINEAR_GAMMA
@@ -105,14 +105,14 @@ VecH4 DrawTexDetNrm_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    return VecH4(nrm, 1);
 }
 
-VecH4 DrawX_PS (NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(             Tex(ImgX, inTex)   .xxx, 1);}
-VecH4 DrawXG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(Tex(ImgX, inTex).x).xxx, 1);}
+VecH4 DrawX_PS (NOPERSP Vec2 uv:UV):TARGET {return VecH4(             Tex(ImgX, uv)   .xxx, 1);}
+VecH4 DrawXG_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(SRGBToLinear(Tex(ImgX, uv).x).xxx, 1);}
 
 #if defined DITHER && defined GAMMA
-VecH4 DrawXC_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                NOPERSP PIXEL              ):TARGET
+VecH4 DrawXC_PS(NOPERSP Vec2 uv:UV,
+                NOPERSP PIXEL     ):TARGET
 {
-   VecH4 col=Tex(ImgX, inTex).x*Color[0]+Color[1];
+   VecH4 col=Tex(ImgX, uv).x*Color[0]+Color[1];
 #if DITHER
    ApplyDither(col.rgb, pixel.xy, LINEAR_GAMMA && !GAMMA); // don't perform gamma conversions inside dither, because this means we have sRGB color which we're going to convert to linear below
 #endif
@@ -123,91 +123,91 @@ VecH4 DrawXC_PS(NOPERSP Vec2 inTex:TEXCOORD,
 }
 #endif
 
-VecH4 DrawTexPoint_PS (NOPERSP Vec2 inTex:TEXCOORD):TARGET {return TexPoint(Img, inTex);}
-VecH4 DrawTexPointC_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return TexPoint(Img, inTex)*Color[0]+Color[1];}
+VecH4 DrawTexPoint_PS (NOPERSP Vec2 uv:UV):TARGET {return TexPoint(Img, uv);}
+VecH4 DrawTexPointC_PS(NOPERSP Vec2 uv:UV):TARGET {return TexPoint(Img, uv)*Color[0]+Color[1];}
 /******************************************************************************/
 void Draw2DTexCol_VS(VtxInput vtx,
-         NOPERSP out Vec2  outTex:TEXCOORD,
-         NOPERSP out VecH4 outCol:COLOR   ,
-         NOPERSP out Vec4  pixel :POSITION)
+         NOPERSP out Vec2  uv   :UV      ,
+         NOPERSP out VecH4 col  :COLOR   ,
+         NOPERSP out Vec4  pixel:POSITION)
 {
-   outTex=     vtx.tex  ();
-   outCol=     vtx.color();
-   pixel =Vec4(vtx.pos2 ()*Coords.xy+Coords.zw, Z_FRONT, 1);
+   uv   =     vtx.uv   ();
+   col  =     vtx.color();
+   pixel=Vec4(vtx.pos2 ()*Coords.xy+Coords.zw, Z_FRONT, 1);
 }
-VecH4 Draw2DTexCol_PS(NOPERSP Vec2  inTex:TEXCOORD,
-                      NOPERSP VecH4 inCol:COLOR   ):TARGET
+VecH4 Draw2DTexCol_PS(NOPERSP Vec2  uv :UV   ,
+                      NOPERSP VecH4 col:COLOR):TARGET
 {
-   return Tex(Img, inTex)*inCol;
+   return Tex(Img, uv)*col;
 }
 /******************************************************************************/
 void Draw2DDepthTex_VS(VtxInput vtx,
-           NOPERSP out Vec2  outTex:TEXCOORD,
+           NOPERSP out Vec2  uv:UV,
                 #if COLORS
-           NOPERSP out VecH4 outCol:COLOR   ,
+           NOPERSP out VecH4 col:COLOR,
                 #endif
            NOPERSP out Vec4  pixel:POSITION)
 {
-   outTex=vtx.tex();
+   uv   =vtx.uv();
 #if COLORS
-   outCol=vtx.color();
+   col  =vtx.color();
 #endif
    pixel=Vec4(vtx.pos2()*Coords.xy+Coords.zw, DelinearizeDepth(vtx.posZ()), 1);
 }
-VecH4 Draw2DDepthTex_PS(NOPERSP Vec2  inTex:TEXCOORD
+VecH4 Draw2DDepthTex_PS(NOPERSP Vec2  uv:UV
                    #if COLORS
-                      , NOPERSP VecH4 inCol:COLOR
+                      , NOPERSP VecH4 vtx_col:COLOR
                    #endif
                        ):TARGET
 {
-   VecH4 col=Tex(Img, inTex);
+   VecH4 col=Tex(Img, uv);
 #if ALPHA_TEST
    clip(col.a-0.5);
 #endif
 #if COLORS
-   col*=inCol;
+   col*=vtx_col;
 #endif
    return col;
 }
 /******************************************************************************/
 void Draw3DTex_VS(VtxInput vtx,
-              out Vec2  outTex:TEXCOORD,
+              out Vec2  uv:UV,
            #if COLORS
-              out VecH4 outCol:COLOR   ,
+              out VecH4 col:COLOR,
            #endif
            #if FOG
-              out VecH4 outFog:COLOR1  ,
+              out VecH4 fog:FOG,
            #endif
               out Vec4  pixel:POSITION)
 {
    Vec pos=TransformPos(vtx.pos());
-   outTex=vtx.tex();
+   uv=vtx.uv();
 #if COLORS
-   outCol=vtx.color();
+   col=vtx.color();
 #endif
 #if FOG
-   outFog=VecH4(FogColor, AccumulatedDensity(FogDensity, Length(pos)));
+   fog=VecH4(FogColor, AccumulatedDensity(FogDensity, Length(pos)));
 #endif
    pixel=Project(pos);
 }
-VecH4 Draw3DTex_PS(Vec2  inTex:TEXCOORD
+VecH4 Draw3DTex_PS(Vec2  uv:UV
                 #if COLORS
-                 , VecH4 inCol:COLOR
+                 , VecH4 vtx_col:COLOR
                 #endif
                 #if FOG
-                 , VecH4 inFog:COLOR1  
+                 , VecH4 fog:FOG
                 #endif
                   ):TARGET
 {
-   VecH4 col=Tex(Img, inTex);
+   VecH4 col=Tex(Img, uv);
 #if ALPHA_TEST
    clip(col.a-0.5);
 #endif
 #if COLORS
-   col*=inCol;
+   col*=vtx_col;
 #endif
 #if FOG
-   col.rgb=Lerp(col.rgb, inFog.rgb, inFog.a);
+   col.rgb=Lerp(col.rgb, fog.rgb, fog.a);
 #endif
    return col;
 }
@@ -226,75 +226,76 @@ VecH4 DrawMsM_PS(NOPERSP PIXEL,
 }
 /******************************************************************************/
 void DrawMask_VS(VtxInput vtx,
-     NOPERSP out Vec2 outTexC:TEXCOORD0,
-     NOPERSP out Vec2 outTexM:TEXCOORD1,
-     NOPERSP out Vec4 pixel :POSITION )
+     NOPERSP out Vec2 uv     :UV,
+     NOPERSP out Vec2 uv_mask:UV_MASK,
+     NOPERSP out Vec4 pixel  :POSITION )
 {
-   outTexC=vtx.tex ();
-   outTexM=vtx.tex1();
-   pixel =Vec4(vtx.pos2()*Coords.xy+Coords.zw, Z_FRONT, 1);
+   uv     =vtx.uv ();
+   uv_mask=vtx.uv1();
+   pixel  =Vec4(vtx.pos2()*Coords.xy+Coords.zw, Z_FRONT, 1);
 }
-VecH4 DrawMask_PS(NOPERSP Vec2 inTexC:TEXCOORD0, NOPERSP Vec2 inTexM:TEXCOORD1):TARGET
+VecH4 DrawMask_PS(NOPERSP Vec2 uv     :UV,
+                  NOPERSP Vec2 uv_mask:UV_MASK):TARGET
 {
 #if POINT
-   VecH4 c=TexPoint(Img, inTexC);
+   VecH4 c=TexPoint(Img, uv);
 #else
-   VecH4 c=Tex(Img, inTexC);
+   VecH4 c=Tex(Img, uv);
 #endif
 
 #if ALPHA
-   c.a*=Tex(Img1, inTexM).a;
+   c.a*=Tex(Img1, uv_mask).a;
 #else
-   c*=Tex(Img1, inTexM);
+   c*=Tex(Img1, uv_mask);
 #endif
 
    return c*Color[0]+Color[1];
 }
 /******************************************************************************/
 void DrawCubeFace_VS(VtxInput vtx,
-         NOPERSP out Vec  outTex:TEXCOORD,
+         NOPERSP out Vec  uv   :UV,
          NOPERSP out Vec4 pixel:POSITION)
 {
-   outTex=Vec (vtx.tex(), vtx.size());
+   uv   =Vec (vtx.uv(), vtx.size());
    pixel=Vec4(vtx.pos2()*Coords.xy+Coords.zw, Z_FRONT, 1);
 }
-VecH4 DrawCubeFace_PS(NOPERSP Vec inTex:TEXCOORD):TARGET {return TexCube(Cub, inTex)*Color[0]+Color[1];}
+VecH4 DrawCubeFace_PS(NOPERSP Vec uv:UV):TARGET {return TexCube(Cub, uv)*Color[0]+Color[1];}
 /******************************************************************************/
 void Simple_VS(VtxInput vtx,
-           out Vec2  outTex:TEXCOORD,
-           out VecH4 outCol:COLOR   ,
+           out Vec2  uv   :UV,
+           out VecH4 col  :COLOR,
            out Vec4  pixel:POSITION)
 {
-   outTex=vtx.tex();
-   outCol=vtx.colorFast();
+   uv   =vtx.uv();
+   col  =vtx.colorFast();
    pixel=Project(TransformPos(vtx.pos()));
 }
-Vec4 Simple_PS(Vec2  inTex:TEXCOORD,
-               VecH4 inCol:COLOR   ):TARGET
+Vec4 Simple_PS(Vec2  uv :UV   ,
+               VecH4 col:COLOR):TARGET
 {
-   return Tex(Img, inTex)*inCol;
+   return Tex(Img, uv)*col;
 }
 /******************************************************************************/
-VecH4 Dither_PS(NOPERSP Vec2 inTex:TEXCOORD,
+VecH4 Dither_PS(NOPERSP Vec2 uv:UV,
                 NOPERSP PIXEL):TARGET
 {
-   VecH4 col=VecH4(TexLod(Img, inTex).rgb, 1); // force full alpha so back buffer effects can work ok, can't use 'TexPoint' because 'Img' can be of different size
+   VecH4 col=VecH4(TexLod(Img, uv).rgb, 1); // force full alpha so back buffer effects can work ok, can't use 'TexPoint' because 'Img' can be of different size
    ApplyDither(col.rgb, pixel.xy);
    return col;
 }
 /******************************************************************************/
 // EDGE DETECT
 /******************************************************************************/
-VecH4 EdgeDetect_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
-                    NOPERSP Vec2 inPosXY:TEXCOORD1):TARGET // use VecH4 because we may want to apply this directly onto RGBA destination
+VecH4 EdgeDetect_PS(NOPERSP Vec2 uv   :UV    ,
+                    NOPERSP Vec2 posXY:POS_XY):TARGET // use VecH4 because we may want to apply this directly onto RGBA destination
 {
-   Flt z =TexDepthPoint   (inTex),
-       zl=TexDepthPointOfs(inTex, VecI2(-1, 0)),
-       zr=TexDepthPointOfs(inTex, VecI2( 1, 0)),
-       zd=TexDepthPointOfs(inTex, VecI2( 0,-1)),
-       zu=TexDepthPointOfs(inTex, VecI2( 0, 1)), soft=0.1+z/50;
+   Flt z =TexDepthPoint   (uv),
+       zl=TexDepthPointOfs(uv, VecI2(-1, 0)),
+       zr=TexDepthPointOfs(uv, VecI2( 1, 0)),
+       zd=TexDepthPointOfs(uv, VecI2( 0,-1)),
+       zu=TexDepthPointOfs(uv, VecI2( 0, 1)), soft=0.1+z/50;
 
-   Vec pos=GetPos(Min(z, Min(zl, zr, zd, zu)), inPosXY);
+   Vec pos=GetPos(Min(z, Min(zl, zr, zd, zu)), posXY);
 
    Half px   =Abs(zr-((z-zl)+z))/soft-0.5, //cx=Sat(Max(Abs(zl-z), Abs(zr-z))/soft-0.5), cx, cy doesn't work well in lower screen resolutions and with flat terrain
         py   =Abs(zu-((z-zd)+z))/soft-0.5, //cy=Sat(Max(Abs(zu-z), Abs(zd-z))/soft-0.5),
@@ -303,13 +304,13 @@ VecH4 EdgeDetect_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
 
    return 1-edge*alpha;
 }
-VecH4 EdgeDetectApply_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // use VecH4 because we apply this directly onto RGBA destination
+VecH4 EdgeDetectApply_PS(NOPERSP Vec2 uv:UV):TARGET // use VecH4 because we apply this directly onto RGBA destination
 {
    const Int  samples=4;
-         Half color  =TexPoint(ImgX, inTex).x;
+         Half color  =TexPoint(ImgX, uv).x;
    for(Int i=0; i<samples; i++)
    {
-      Vec2 t=inTex+BlendOfs4[i]*ImgSize.xy;
+      Vec2 t=uv+BlendOfs4[i]*ImgSize.xy;
       color+=TexLod(ImgX, t).x; // use linear filtering because texcoords aren't rounded
    }
    return color/(samples+1); // Sqr could be used on the result, to make darkening much stronger
@@ -317,42 +318,42 @@ VecH4 EdgeDetectApply_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // use VecH4 becaus
 /******************************************************************************/
 // COMBINE
 /******************************************************************************/
-Half SetAlphaFromDepth_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+Half SetAlphaFromDepth_PS(NOPERSP Vec2 uv:UV):TARGET
 {
-   return DEPTH_FOREGROUND(TexDepthRawPoint(inTex));
+   return DEPTH_FOREGROUND(TexDepthRawPoint(uv));
 }
 #if 1 // this is needed
-Half SetAlphaFromDepthMS_PS(NOPERSP Vec2 inTex:TEXCOORD, NOPERSP PIXEL, UInt index:SV_SampleIndex):TARGET
+Half SetAlphaFromDepthMS_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL, UInt index:SV_SampleIndex):TARGET
 {
    return DEPTH_FOREGROUND(TexDepthRawMS(pixel.xy, index));
 }
 #else
-Half SetAlphaFromDepthMS_PS(NOPERSP Vec2 inTex:TEXCOORD, NOPERSP PIXEL):TARGET
+Half SetAlphaFromDepthMS_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL):TARGET
 {
    Half   alpha=0; UNROLL for(Int i=0; i<MS_SAMPLES; i++)alpha+=DEPTH_FOREGROUND(TexDepthRawMS(pixel.xy, i));
    return alpha/MS_SAMPLES;
 }
 #endif
 
-Half SetAlphaFromDepthAndCol_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+Half SetAlphaFromDepthAndCol_PS(NOPERSP Vec2 uv:UV):TARGET
 {
-   return Max(Max(TexLod(Img, inTex).rgb), DEPTH_FOREGROUND(TexDepthRawPoint(inTex))); // treat luminance as opacity
+   return Max(Max(TexLod(Img, uv).rgb), DEPTH_FOREGROUND(TexDepthRawPoint(uv))); // treat luminance as opacity
 }
-Half SetAlphaFromDepthAndColMS_PS(NOPERSP Vec2 inTex:TEXCOORD, NOPERSP PIXEL, UInt index:SV_SampleIndex):TARGET
+Half SetAlphaFromDepthAndColMS_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL, UInt index:SV_SampleIndex):TARGET
 {
-   return Max(Max(TexLod(Img, inTex).rgb), DEPTH_FOREGROUND(TexDepthRawMS(pixel.xy, index))); // treat luminance as opacity
+   return Max(Max(TexLod(Img, uv).rgb), DEPTH_FOREGROUND(TexDepthRawMS(pixel.xy, index))); // treat luminance as opacity
 }
 
-VecH4 CombineAlpha_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+VecH4 CombineAlpha_PS(NOPERSP Vec2 uv:UV):TARGET
 {
    VecH4 col;
-   col.rgb=TexLod(Img , inTex).rgb; // use linear filtering because 'Img'  can be of different size
-   col.w  =TexLod(ImgX, inTex).x  ; // use linear filtering because 'ImgX' can be of different size
+   col.rgb=TexLod(Img , uv).rgb; // use linear filtering because 'Img'  can be of different size
+   col.w  =TexLod(ImgX, uv).x  ; // use linear filtering because 'ImgX' can be of different size
    return col;
 }
-VecH4 ReplaceAlpha_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+VecH4 ReplaceAlpha_PS(NOPERSP Vec2 uv:UV):TARGET
 {
-   return VecH4(0, 0, 0, TexLod(ImgX, inTex).x); // use linear filtering because 'ImgX' can be of different size
+   return VecH4(0, 0, 0, TexLod(ImgX, uv).x); // use linear filtering because 'ImgX' can be of different size
 }
 /******************************************************************************/
 // MULTI SAMPLE
@@ -399,24 +400,24 @@ void ResolveDepth_PS(NOPERSP PIXEL,
    UNROLL for(Int i=1; i<MS_SAMPLES; i++)depth=DEPTH_MIN(depth, TexSample(DepthMS, pixel.xy, i).x); // have to use minimum of depth samples to avoid shadow artifacts, by picking the samples that are closer to the camera, similar effect to what we do with view space bias (if Max is used, then shadow acne can occur for local lights)
 }
 
-void SetDepth_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                     out Flt  depth:DEPTH   )
+void SetDepth_PS(NOPERSP Vec2 uv   :UV   ,
+                     out Flt  depth:DEPTH)
 {
-   depth=TexLod(Depth, inTex).x; // use linear filtering because this can be used for different size RT
+   depth=TexLod(Depth, uv).x; // use linear filtering because this can be used for different size RT
 }
 
-VecH4 DrawDepth_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+VecH4 DrawDepth_PS(NOPERSP Vec2 uv:UV):TARGET
 {
-   Flt frac=TexDepthPoint(inTex)/Viewport.range; // can't filter depth, because if Depth image is smaller, then we will get borders around objects
+   Flt frac=TexDepthPoint(uv)/Viewport.range; // can't filter depth, because if Depth image is smaller, then we will get borders around objects
    VecH rgb=HsbToRgb(Vec(frac*2.57, 1, 1)); // the scale is set so the full range equals to blue color, to imitate sky color
    if(LINEAR_GAMMA)rgb=SRGBToLinear(rgb);
    return VecH4(rgb, 1);
 }
 
 #ifdef PERSPECTIVE
-Flt LinearizeDepth0_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+Flt LinearizeDepth0_PS(NOPERSP Vec2 uv:UV):TARGET
 {
-   return LinearizeDepth(TexDepthRawPoint(DownSamplePointUV(inTex)), PERSPECTIVE); // can't use filtering, we need exact values, this is for AO, so can't return fake in-between numbers
+   return LinearizeDepth(TexDepthRawPoint(DownSamplePointUV(uv)), PERSPECTIVE); // can't use filtering, we need exact values, this is for AO, so can't return fake in-between numbers
 }
 Flt LinearizeDepth1_PS(NOPERSP PIXEL):TARGET
 {
@@ -427,20 +428,20 @@ Flt LinearizeDepth2_PS(NOPERSP PIXEL,
 {
    return LinearizeDepth(TexSample(DepthMS, pixel.xy, index).x, PERSPECTIVE);
 }
-/*void RebuildDepth_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                         out Flt  depth:DEPTH   )
+/*void RebuildDepth_PS(NOPERSP Vec2 uv   :UV   ,
+                         out Flt  depth:DEPTH)
 {
-   depth=DelinearizeDepth(TexLod(Depth, inTex).x, PERSPECTIVE); // use linear filtering because this can be used for different size RT
+   depth=DelinearizeDepth(TexLod(Depth, uv).x, PERSPECTIVE); // use linear filtering because this can be used for different size RT
 }*/
 #endif
 /******************************************************************************/
 // PALETTE
 /******************************************************************************/
-VecH4 PaletteDraw_PS(NOPERSP Vec2  inTex  :TEXCOORD,
-                         out Half outAlpha:TARGET2 // #RTOutput.Blend
+VecH4 PaletteDraw_PS(NOPERSP Vec2 uv   :UV,
+                         out Half alpha:TARGET2 // #RTOutput.Blend
                     ):TARGET
 {
-   VecH4 particle=TexLod(Img, inTex); // use linear filtering in case in the future we support downsized palette intensities (for faster fill-rate)
+   VecH4 particle=TexLod(Img, uv); // use linear filtering in case in the future we support downsized palette intensities (for faster fill-rate)
    clip(Length2(particle)-Sqr(Half(EPS_COL))); // 'clip' is faster than "BRANCH if(Length2(particle)>Sqr(EPS_COL))" (branch is however slightly faster when entire majority of pixels have some effect, however in most cases majority of pixels doesn't have anything so stick with 'clip')
 
    // have to use linear filtering because this is palette image
@@ -448,30 +449,28 @@ VecH4 PaletteDraw_PS(NOPERSP Vec2  inTex  :TEXCOORD,
          c1=TexLod(Img1, VecH2(particle.y, 1.5/4)),
          c2=TexLod(Img1, VecH2(particle.z, 2.5/4)),
          c3=TexLod(Img1, VecH2(particle.w, 3.5/4));
-   Half  a =Max(c0.a, c1.a, c2.a, c3.a);
-
-   outAlpha=a;
+      alpha=Max(c0.a, c1.a, c2.a, c3.a);
 
    return VecH4((c0.rgb*c0.a
                 +c1.rgb*c1.a
                 +c2.rgb*c2.a
-                +c3.rgb*c3.a)/(a+HALF_MIN), a); // NaN
+                +c3.rgb*c3.a)/(alpha+HALF_MIN), alpha); // NaN
 }
 /******************************************************************************/
 void ClearDeferred_VS(VtxInput vtx,
-          NOPERSP out Vec2  outTex                :TEXCOORD,
+          NOPERSP out Vec2  uv                    :UV,
           NOPERSP out Vec   projected_prev_pos_xyw:PREV_POS,
           NOPERSP out Vec4  pixel                 :POSITION)
 {
-   outTex=vtx.tex();
+   uv=vtx.uv();
 
-   Vec view_pos=Vec(UVToPosXY(vtx.tex()), 1); // no need to normalize
+   Vec view_pos=Vec(UVToPosXY(vtx.uv()), 1); // no need to normalize
    Vec prev_pos=Transform3(view_pos, ViewToViewPrev); // view_pos/ViewMatrix*ViewMatrixPrev, use 'Transform3' to rotate only (angular velocity) and skip movement (linear velocity)
    projected_prev_pos_xyw=ProjectPrevXYW(prev_pos);
 
    pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 }
-void ClearDeferred_PS(NOPERSP Vec2 inTex                 :TEXCOORD,
+void ClearDeferred_PS(NOPERSP Vec2 uv                    :UV,
                       NOPERSP Vec  projected_prev_pos_xyw:PREV_POS,
            out DeferredSolidOutput output) // #RTOutput
 {
@@ -481,7 +480,7 @@ void ClearDeferred_PS(NOPERSP Vec2 inTex                 :TEXCOORD,
    output.translucent(0);
    output.rough      (1);
    output.reflect    (0);
-   output.motionUV   (projected_prev_pos_xyw, inTex);
+   output.motionUV   (projected_prev_pos_xyw, uv);
 }
 /******************************************************************************/
 void ClearLight_PS(out VecH lum :TARGET0,
@@ -493,10 +492,10 @@ void ClearLight_PS(out VecH lum :TARGET0,
 /******************************************************************************/
 // COLOR LUT - HDR, DITHER, IN_GAMMA, OUT_GAMMA
 /******************************************************************************/
-VecH4 ColorLUT_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                  NOPERSP PIXEL              ):TARGET
+VecH4 ColorLUT_PS(NOPERSP Vec2 uv:UV,
+                  NOPERSP PIXEL     ):TARGET
 {
-   VecH4 col=TexLod(Img, inTex);
+   VecH4 col=TexLod(Img, uv);
 
    // now 'col' is Linear
 
@@ -536,6 +535,6 @@ Flt Params1_PS():TARGET {return CamMatrix[0].x+AmbientContrast2+HdrBrightness+Lo
 Flt Params2_PS():TARGET {return NightShadeColor.x;}
 /******************************************************************************/
 #if GL // #WebSRGB
-VecH4 WebLToS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return LinearToSRGB(TexLod(Img, inTex));}
+VecH4 WebLToS_PS(NOPERSP Vec2 uv:UV):TARGET {return LinearToSRGB(TexLod(Img, uv));}
 #endif
 /******************************************************************************/

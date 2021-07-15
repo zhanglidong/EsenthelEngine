@@ -84,10 +84,10 @@ void Surface_VS
 (
    VtxInput vtx,
 
-   out Vec2 outTex  :TEXCOORD0,
-   out Vec4 outTexN0:TEXCOORD1,
+   out Vec2 uv_col:UV_COL,
+   out Vec4 uv_nrm:UV_NRM,
 #if DUAL_NORMAL
-   out Vec4 outTexN1:TEXCOORD2,
+   out Vec4 uv_nrm1:UV_NRM1,
 #endif
 #if WAVES
    out VecH outWaveN:NORMAL,
@@ -121,15 +121,15 @@ void Surface_VS
       view_pos=TransformPos(world_pos);
    }
 
-   Vec2 tex;
-   if(RIVER){tex=vtx.tex(); tex.y-=WaterFlow;}
-   else     {tex=world_pos.xz;}
-   outTex     =(WaterOfsCol+tex)*WaterMaterial.scale_color ; // it's better to scale 'WaterOfsCol' too
-   outTexN0.xy=(WaterOfsNrm+tex)*WaterMaterial.scale_normal;
-   outTexN0.zw=(WaterOfsNrm-tex)*WaterMaterial.scale_normal;
+   Vec2 uv;
+   if(RIVER){uv=vtx.uv(); uv.y-=WaterFlow;}
+   else     {uv=world_pos.xz;}
+   uv_col   =(WaterOfsCol+uv)*WaterMaterial.scale_color ; // it's better to scale 'WaterOfsCol' too
+   uv_nrm.xy=(WaterOfsNrm+uv)*WaterMaterial.scale_normal;
+   uv_nrm.zw=(WaterOfsNrm-uv)*WaterMaterial.scale_normal;
 #if DUAL_NORMAL
-   outTexN1.xy=(WaterOfsNrm+tex/8)*WaterMaterial.scale_normal;
-   outTexN1.zw=(WaterOfsNrm-tex/8)*WaterMaterial.scale_normal;
+   uv_nrm1.xy=(WaterOfsNrm+uv/8)*WaterMaterial.scale_normal;
+   uv_nrm1.zw=(WaterOfsNrm-uv/8)*WaterMaterial.scale_normal;
 #endif
 
 #if WAVES
@@ -140,9 +140,9 @@ void Surface_VS
  //dist_scale=Sat( 6/dist      )*WaterMaterial.wave_scale;
 
    #define DERIVATIVE 0.125
-   Half wave  =Wave(tex),
-        wave_r=Wave(tex+Vec2(DERIVATIVE, 0)),
-        wave_f=Wave(tex+Vec2(0, DERIVATIVE));
+   Half wave  =Wave(uv),
+        wave_r=Wave(uv+Vec2(DERIVATIVE, 0)),
+        wave_f=Wave(uv+Vec2(0, DERIVATIVE));
 
    outWaveN.x=wave-wave_r;
    outWaveN.y=wave-wave_f;
@@ -159,7 +159,7 @@ void Surface_VS
    pixel=Project(view_pos);
 }
 /******************************************************************************/
-void WaterReflectColor(inout VecH total_specular, Vec nrm, Vec eye_dir, Vec2 tex, Vec2 refract, Half plane_dist)
+void WaterReflectColor(inout VecH total_specular, Vec nrm, Vec eye_dir, Vec2 uv, Vec2 refract, Half plane_dist)
 {
    #if REFLECT_ENV || REFLECT_MIRROR
    {
@@ -170,7 +170,7 @@ void WaterReflectColor(inout VecH total_specular, Vec nrm, Vec eye_dir, Vec2 tex
       VecH reflect_env=ReflectTex(reflect_dir, WaterMaterial.rough)*EnvColor;
    #endif
    #if REFLECT_MIRROR
-      Vec2 reflect_tex=Mid((tex+refract*WaterMaterial.refract_reflection)*WaterReflectMulAdd.xy+WaterReflectMulAdd.zw, WaterClamp.xy, WaterClamp.zw);
+      Vec2 reflect_tex=Mid((uv+refract*WaterMaterial.refract_reflection)*WaterReflectMulAdd.xy+WaterReflectMulAdd.zw, WaterClamp.xy, WaterClamp.zw);
       VecH reflect_mirror=TexLodClamp(Img1, reflect_tex).rgb;
       Half reflect_mirror_power=Sat(2-Abs(plane_dist)); // can use mirror reflection only if water position is close to water plane
    #endif
@@ -189,10 +189,10 @@ void WaterReflectColor(inout VecH total_specular, Vec nrm, Vec eye_dir, Vec2 tex
 }
 void Surface_PS
 (
-   Vec2 inTexC :TEXCOORD0,
-   Vec4 inTexN0:TEXCOORD1,
+   Vec2 uv_col:UV_COL,
+   Vec4 uv_nrm:UV_NRM,
 #if DUAL_NORMAL
-   Vec4 inTexN1:TEXCOORD2,
+   Vec4 uv_nrm1:UV_NRM1,
 #endif
 #if WAVES
    VecH inWaveN:NORMAL,
@@ -211,9 +211,9 @@ void Surface_PS
 {
    VecH nrm_flat; // #MaterialTextureLayoutWater
 #if DUAL_NORMAL
-   nrm_flat.xy=(Tex(Nrm, inTexN0.xy).xy - Tex(Nrm, inTexN0.zw).xy + Tex(Nrm, inTexN1.xy).xy - Tex(Nrm, inTexN1.zw).xy)*(WaterMaterial.normal/4); // Avg(Tex(Nrm, inTexN0.xy).xy, -Tex(Nrm, inTexN0.zw).xy, Tex(Nrm, inTexN1.xy).xy, -Tex(Nrm, inTexN1.zw).xy)*WaterMaterial.normal; normals from mirrored tex coordinates must be subtracted
+   nrm_flat.xy=(Tex(Nrm, uv_nrm.xy).xy - Tex(Nrm, uv_nrm.zw).xy + Tex(Nrm, uv_nrm1.xy).xy - Tex(Nrm, uv_nrm1.zw).xy)*(WaterMaterial.normal/4); // Avg(Tex(Nrm, uv_nrm.xy).xy, -Tex(Nrm, uv_nrm.zw).xy, Tex(Nrm, uv_nrm1.xy).xy, -Tex(Nrm, uv_nrm1.zw).xy)*WaterMaterial.normal; normals from mirrored tex coordinates must be subtracted
 #else
-   nrm_flat.xy=(Tex(Nrm, inTexN0.xy).xy - Tex(Nrm, inTexN0.zw).xy)*(WaterMaterial.normal/2); // Avg(Tex(Nrm, inTexN0.xy).xy, -Tex(Nrm, inTexN0.zw).xy)*WaterMaterial.normal; normals from mirrored tex coordinates must be subtracted
+   nrm_flat.xy=(Tex(Nrm, uv_nrm.xy).xy - Tex(Nrm, uv_nrm.zw).xy)*(WaterMaterial.normal/2); // Avg(Tex(Nrm, uv_nrm.xy).xy, -Tex(Nrm, uv_nrm.zw).xy)*WaterMaterial.normal; normals from mirrored tex coordinates must be subtracted
 #endif
 #if WAVES
    nrm_flat.xy+=inWaveN.xy;
@@ -222,7 +222,7 @@ void Surface_PS
    Vec nrm=Normalize(Vec(TransformDir(nrm_flat.xzy))); // convert to view space, convert to HP before Normalize
 
    VecH4 water_col;
-   water_col.rgb=Tex(Col, inTexC).rgb*WaterMaterial.color;
+   water_col.rgb=Tex(Col, uv_col).rgb*WaterMaterial.color;
    water_col.a  =0;
 
 #if !LIGHT
@@ -234,7 +234,7 @@ void Surface_PS
       O_nrm.xyz=nrm*0.5+0.5; // -1..1 -> 0..1
    #endif
 #else
-   Vec2 inTex  =PixelToUV(pixel);
+   Vec2 uv     =PixelToUV(pixel);
    Vec2 refract=nrm_flat.xy*Viewport.size; // TODO: this could be improved
    Vec  eye_dir=Normalize(inPos);
 
@@ -260,19 +260,19 @@ void Surface_PS
    water_col.rgb*=total_lum;
 
    // reflection
-   WaterReflectColor(total_specular, nrm, eye_dir, inTex, refract, inPlaneDist);
+   WaterReflectColor(total_specular, nrm, eye_dir, uv, refract, inPlaneDist);
 
    if(SOFT)
    {
       Flt water_z    =inPos.z;
       Flt water_z_raw=pixel.z;
    #if REFRACT
-      Vec2 back_tex=Mid(inTex+refract*(WaterMaterial.refract/Max(1, water_z)), WaterClamp.xy, WaterClamp.zw);
+      Vec2 back_uv=Mid(uv+refract*(WaterMaterial.refract/Max(1, water_z)), WaterClamp.xy, WaterClamp.zw);
    #if GATHER
       // potentially could use FilterMinMax instead of TexGather, however we need both DEPTH_MIN/DEPTH_MAX, so that would need 2 tex reads, so better skip
-      Vec4 back_z_raw4=TexGather(ImgXF, back_tex);
+      Vec4 back_z_raw4=TexGather(ImgXF, back_uv);
    #else // simulate gather
-      Vec2 pixel  =back_tex*RTSize.zw+0.5,
+      Vec2 pixel  =back_uv*RTSize.zw+0.5,
            pixeli =Floor(pixel),
            tex_min=(pixeli-0.5)*RTSize.xy,
            tex_max=(pixeli+0.5)*RTSize.xy;
@@ -284,19 +284,19 @@ void Surface_PS
       Flt back_z_raw=DEPTH_MAX(back_z_raw4); // use DEPTH_MAX to check if any depth sample is Z_BACK (not set), we will use linear filtering so have to check all 4 pixels for depth
       if(DEPTH_SMALLER(DEPTH_MIN(back_z_raw4), water_z_raw)) // if refracted sample is in front of water (leaking), use DEPTH_MIN to check if all samples are in front
       { // skip refracted sample
-         back_tex  =inTex;
-         back_z_raw=TexPoint(ImgXF, inTex).x;
+         back_uv   =uv;
+         back_z_raw=TexPoint(ImgXF, uv).x;
       }
    #else // NO REFRACT
-      Vec2 back_tex  =inTex;
-      Flt  back_z_raw=TexPoint(ImgXF, inTex).x;
+      Vec2 back_uv   =uv;
+      Flt  back_z_raw=TexPoint(ImgXF, uv).x;
    #endif // REFRACT
       if(DEPTH_BACKGROUND(back_z_raw))O_col=water_col;else // always force full opacity when there's no background pixel set to ignore discarded pixels in RenderTarget (they could cause artifacts)
       {
          Flt   back_z=LinearizeDepth(back_z_raw);
          Flt   dz=back_z-water_z;
          Half  alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add);
-         VecH4 back_col=TexLodClamp(Img2, back_tex);
+         VecH4 back_col=TexLodClamp(Img2, back_uv);
          O_col=Lerp(back_col, water_col, alpha);
       }
    }else
@@ -310,16 +310,16 @@ void Surface_PS
 // Img=Water RT Nrm (this is required for 'GetNormal', 'GetNormalMS', which are used for Lights - Dir, Point, etc.), ImgXF=WaterDepth, Img3=Water RT Col, Img4=Water RT Lum, Img5=Water RT Lum Spec
 // these must be the same as "Surface" shader - Img1=reflection (2D image), Img2=background underwater
 // REFRACT, SET_DEPTH, REFLECT_ENV, REFLECT_MIRROR, GATHER
-VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-               NOPERSP Vec2 inPosXY:TEXCOORD1
+VecH4 Apply_PS(NOPERSP Vec2 uv   :UV,
+               NOPERSP Vec2 posXY:POS_XY
             #if SET_DEPTH
-                 , out Flt  depth  :DEPTH
+                 , out Flt  depth:DEPTH
             #endif
               ):TARGET
 {
-   Vec2 back_tex=inTex;
-   Flt  back_z_raw=TexDepthRawPoint(    back_tex),
-       water_z_raw=TexPoint        (ImgXF, inTex).x;
+   Vec2 back_uv=uv;
+   Flt  back_z_raw=TexDepthRawPoint(back_uv),
+       water_z_raw=TexPoint        (ImgXF, uv).x;
 
 #if SET_DEPTH
    depth=water_z_raw;
@@ -330,23 +330,23 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       Flt water_z=LinearizeDepth(water_z_raw);
       Flt  back_z=LinearizeDepth( back_z_raw);
 
-      Vec pos=Vec(inPosXY*water_z, water_z);
+      Vec pos=Vec(posXY*water_z, water_z);
       Vec eye_dir=Normalize(pos);
 
       VecH4 water_col;
-      water_col.rgb=TexLod(Img3, inTex).rgb; // water surface color
+      water_col.rgb=TexLod(Img3, uv).rgb; // water surface color
       water_col.a=0;
-      VecH lum =TexLod(Img4, inTex); // water surface light
-      VecH spec=TexLod(Img5, inTex); // water surface light specular
-      Vec  nrm =GetNormal(inTex).xyz; // water surface normals
+      VecH lum =TexLod(Img4, uv); // water surface light
+      VecH spec=TexLod(Img5, uv); // water surface light specular
+      Vec  nrm =GetNormal(uv).xyz; // water surface normals
       Vec  nrm_flat=TransformTP(nrm, (Matrix3)GetViewMatrix()).xzy;
       Vec2 refract=nrm_flat.xy*Viewport.size; // TODO: this could be improved
 
       water_col.rgb*=lum;
-      WaterReflectColor(spec, nrm, eye_dir, inTex, refract, DistPointPlane(pos, WaterPlanePos, WaterPlaneNrm));
+      WaterReflectColor(spec, nrm, eye_dir, uv, refract, DistPointPlane(pos, WaterPlanePos, WaterPlaneNrm));
 
    #if REFRACT
-      Vec2 test_tex=Mid(inTex+refract*(WaterMaterial.refract/Max(1, water_z)), WaterClamp.xy, WaterClamp.zw);
+      Vec2 test_tex=Mid(uv+refract*(WaterMaterial.refract/Max(1, water_z)), WaterClamp.xy, WaterClamp.zw);
    #if GATHER
       // potentially could use FilterMinMax instead of 'TexDepthRawGather', however we need both DEPTH_MIN/DEPTH_MAX, so that would need 2 tex reads, so better skip
       Vec4 test_z_raw4=TexDepthRawGather(test_tex);
@@ -362,7 +362,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    #endif // GATHER
       if(DEPTH_SMALLER(water_z_raw, DEPTH_MIN(test_z_raw4))) // if refracted sample is behind water (not leaking), use DEPTH_MIN to check if all samples are behind
       { // use refracted sample
-         back_tex  =test_tex;
+         back_uv   =test_tex;
          back_z_raw=DEPTH_MAX(test_z_raw4); // use DEPTH_MAX to check if any depth sample is Z_BACK (not set) to force full opacity
       }
    #endif // REFRACT
@@ -371,38 +371,38 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          Flt   back_z=LinearizeDepth(back_z_raw);
          Flt   dz=back_z-water_z;
          Half  alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add);
-         VecH4 back_col=TexLodClamp(Img2, back_tex);
+         VecH4 back_col=TexLodClamp(Img2, back_uv);
          water_col=Lerp(back_col, water_col, alpha);
       }
       water_col.rgb+=spec; // independent of alpha
       return water_col;
    }
-   return TexLodClamp(Img2, inTex);
+   return TexLodClamp(Img2, uv);
 }
 /******************************************************************************/
 // REFRACT
-VecH4 Under_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-               NOPERSP Vec2 inPosXY:TEXCOORD1):TARGET
+VecH4 Under_PS(NOPERSP Vec2 uv   :UV,
+               NOPERSP Vec2 posXY:POS_XY):TARGET
 {
    // underwater refraction
    if(REFRACT)
    {
       Flt dist      =Viewport.range;
-      Flt to_surface=-DistPointPlaneRay(Vec(0, 0, 0), WaterPlanePos, WaterPlaneNrm, Normalize(Vec(inPosXY, 1)));
+      Flt to_surface=-DistPointPlaneRay(Vec(0, 0, 0), WaterPlanePos, WaterPlaneNrm, Normalize(Vec(posXY, 1)));
       if( to_surface>0)dist=Min(to_surface, dist);
 
       Flt refract_len=Sat(AccumulatedDensity(WaterMaterial.density, dist)+WaterMaterial.density_add)*Water_refract_underwater;
 
    #if 1 // viewport size adjusted
-      inTex+=Sin(inTex.yx*14/Viewport.size+Step)*refract_len*Viewport.size; // add refraction
-      inTex =(inTex-Viewport.center)/(1+2*refract_len)+Viewport.center; // scale texture coordinates to avoid clamping
+      uv+=Sin(uv.yx*14/Viewport.size+Step)*refract_len*Viewport.size; // add refraction
+      uv =(uv-Viewport.center)/(1+2*refract_len)+Viewport.center; // scale texture coordinates to avoid clamping
    #else
-      inTex+=Sin(inTex.yx*14+Step)*refract_len; // add refraction
-      inTex =(inTex-0.5)/(1+2*refract_len)+0.5; // scale texture coordinates to avoid clamping
+      uv+=Sin(uv.yx*14+Step)*refract_len; // add refraction
+      uv =(uv-0.5)/(1+2*refract_len)+0.5; // scale texture coordinates to avoid clamping
    #endif
    }
 
-   Vec pos       =(REFRACT ? GetPosLinear(inTex) : GetPosPoint(inTex, inPosXY));
+   Vec pos       =(REFRACT ? GetPosLinear(uv) : GetPosPoint(uv, posXY));
    Flt dist      =Length(pos);
    Vec ray       =pos/dist; // Normalize(pos); should be no NaN because pos.z should be always >0
    Flt to_surface=-DistPointPlaneRay(Vec(0, 0, 0), WaterPlanePos, WaterPlaneNrm, ray);
@@ -444,7 +444,7 @@ VecH4 Under_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
    VecH water_col=Lerp(Water_color_underwater0, Water_color_underwater1, water_density);
 
-   return REFRACT ? Lerp(TexLod(Img, inTex), VecH4(water_col, 0), opacity)
-                  :                          VecH4(water_col    , opacity);
+   return REFRACT ? Lerp(TexLod(Img, uv), VecH4(water_col, 0), opacity)
+                  :                       VecH4(water_col    , opacity);
 }
 /******************************************************************************/

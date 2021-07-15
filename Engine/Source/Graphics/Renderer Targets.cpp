@@ -12,7 +12,7 @@ namespace EE{
   _col       : D.renderW, D.renderH,                                                        D.highPrecColRT ? IMAGERT_SRGBA_P : IMAGERT_SRGBA, D.samples, COLOR RGB, GLOW
   _nrm       : D.renderW, D.renderH,                D.highPrecNrmRT ? IMAGERT_RGB_A1_H : (D.signedNrmRT ? IMAGERT_RGB_A1_S : IMAGERT_RGB_A1) , D.samples, NRM   XYZ, TRANSLUCENCY (used for double sided lighting for plants)
   _ext       : D.renderW, D.renderH,                                                                                            IMAGERT_TWO  , D.samples, ROUGH    , REFLECT
-  _vel       : D.renderW, D.renderH,                                                                                            IMAGERT_TWO_H, D.samples, 2D VELOCITY (TEXCOORD delta from CUR_POS to PREV_FRAME_POS)
+  _vel       : D.renderW, D.renderH,                                                                                            IMAGERT_TWO_H, D.samples, 2D VELOCITY (UV delta from CUR_POS to PREV_FRAME_POS)
   _alpha     : D.renderW, D.renderH,                                                                                            IMAGERT_ONE  , D.samples, OPACITY
   _lum       : D.renderW, D.renderH,                                                         D.highPrecLumRT ? IMAGERT_SRGB_H : IMAGERT_SRGB , D.samples, LIGHT RGB
   _lum_1s    : D.renderW, D.renderH,                                                         D.highPrecLumRT ? IMAGERT_SRGB_H : IMAGERT_SRGB , 1        , LIGHT RGB. if '_lum' is Multi-Sampled then this is created as a standalone 1-sampled depth buffer, otherwise it's a duplicate of '_lum'

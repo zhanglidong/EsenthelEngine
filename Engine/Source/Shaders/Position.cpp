@@ -11,7 +11,7 @@ struct Data
 #endif
 
 #if ALPHA_TEST
-   Vec2 tex:TEXCOORD;
+   Vec2 uv:UV;
 #endif
 
 #if ALPHA_TEST==ALPHA_TEST_DITHER
@@ -65,7 +65,7 @@ void VS
    }
 
 #if ALPHA_TEST
-   O.tex=vtx.tex();
+   O.uv=vtx.uv();
 #endif
 
 #if ALPHA_TEST==ALPHA_TEST_DITHER
@@ -91,11 +91,11 @@ void PS
 )
 {
 #if ALPHA_TEST && TEST_BLEND
-   clip(Tex(Col, I.tex).a + Material.color.a*0.5 - 1);
+   clip(Tex(Col, I.uv).a + Material.color.a*0.5 - 1);
 #elif ALPHA_TEST==ALPHA_TEST_YES
-   MaterialAlphaTest(Tex(Col, I.tex).a);
+   MaterialAlphaTest(Tex(Col, I.uv).a);
 #elif ALPHA_TEST==ALPHA_TEST_DITHER
-   MaterialAlphaTestDither(Tex(Col, I.tex).a, pixel.xy, I.face_id, false); // don't use noise offset for shadows because the shadow texels can be big on the screen and flickering disturbing
+   MaterialAlphaTestDither(Tex(Col, I.uv).a, pixel.xy, I.face_id, false); // don't use noise offset for shadows because the shadow texels can be big on the screen and flickering disturbing
 #endif
 }
 /******************************************************************************/
@@ -115,7 +115,7 @@ Data HS(InputPatch<Data,3> I, UInt cp_id:SV_OutputControlPointID)
    O.pos=I[cp_id].pos;
    O.nrm=I[cp_id].nrm;
 #if ALPHA_TEST
-   O.tex=I[cp_id].tex;
+   O.uv =I[cp_id].uv;
 #endif
 #if ALPHA_TEST==ALPHA_TEST_DITHER
    O.face_id=I[cp_id].face_id;
@@ -133,7 +133,7 @@ void DS
 )
 {
 #if ALPHA_TEST
-   O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
+   O.uv=I[0].uv*B.z + I[1].uv*B.x + I[2].uv*B.y;
 #endif
 
 #if ALPHA_TEST==ALPHA_TEST_DITHER

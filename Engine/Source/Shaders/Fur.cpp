@@ -11,8 +11,8 @@ VecH GetBoneFurVel(VecU bone, VecH weight) {return weight.x*FurVel[bone.x] + wei
 /******************************************************************************/
 struct BaseData
 {
-   Vec2 tex:TEXCOORD;
-   VecH nrm:NORMAL  ; // !! not Normalized !!
+   Vec2 uv :UV;
+   VecH nrm:NORMAL; // !! not Normalized !!
 #if USE_VEL
    Vec projected_prev_pos_xyw:PREV_POS;
 #endif
@@ -31,7 +31,7 @@ void Base_VS
 )
 {
    Vec view_pos, view_pos_prev;
-   O.tex=vtx.tex();
+   O.uv=vtx.uv();
 
    if(!SKIN)
    {
@@ -71,13 +71,13 @@ void Base_PS
    out DeferredSolidOutput output
 )
 {
-   Half fur=Tex(FurCol, I.tex*Material.det_uv_scale).r;
+   Half fur=Tex(FurCol, I.uv*Material.det_uv_scale).r;
 #if SIZE
    VecH col=Sat(I.len*-fur+1); // I.len*-fur+step+1 : fur*FACTOR+step+1, here step=0
 #else
    VecH col=Sat(fur*FACTOR+1); // I.len*-fur+step+1 : fur*FACTOR+step+1, here step=0
 #endif
-   if(DIFFUSE)col*=Tex(Col, I.tex).rgb;
+   if(DIFFUSE)col*=Tex(Col, I.uv).rgb;
    col=col*Material.color.rgb+Highlight.rgb;
 
    I.nrm=Normalize(I.nrm);
@@ -99,18 +99,18 @@ void Soft_VS
 (
    VtxInput vtx,
 
-   out Vec2 outTex    :TEXCOORD,
-   out Vec  outOrigPos:ORIG_POS,
+   out Vec2 uv      :UV,
+   out Vec  orig_pos:ORIG_POS,
 #if SIZE
-   out Half outLen    :LENGTH  ,
+   out Half length  :LENGTH,
 #endif
-   out Vec4 pixel     :POSITION
+   out Vec4 pixel   :POSITION
 )
 {
    Vec  pos=vtx.pos();
    VecH nrm=vtx.nrm();
 
-   outTex=vtx.tex();
+   uv=vtx.uv();
 
    if(!SKIN)
    {
@@ -123,9 +123,9 @@ void Soft_VS
       nrm+=GetBoneFurVel(     bone, vtx.weight()); nrm=Normalize(nrm);
       nrm =TransformDir (nrm, bone, vtx.weight());
    }
-   outOrigPos=ProjectXYW(pos); // set in 'outOrigPos' the original position without expansion
+   orig_pos=ProjectXYW(pos); // set in 'orig_pos' the original position without expansion
 #if SIZE
-   outLen=vtx.size();
+   length=vtx.size();
 #endif
    pos+=nrm*(SIZE ? vtx.size()*Material.det_power*FurStep.x : Material.det_power*FurStep.x);
    pixel=Project(pos);
@@ -133,29 +133,29 @@ void Soft_VS
 /******************************************************************************/
 VecH4 Soft_PS
 (
-   Vec2 inTex    :TEXCOORD,
-   Vec  inOrigPos:ORIG_POS
+   Vec2 uv      :UV,
+   Vec  orig_pos:ORIG_POS
 #if SIZE
- , Half inLen    :LENGTH
+ , Half length  :LENGTH
 #endif
 , out Half outAlpha:TARGET2 // #RTOutput.Blend
 ):TARGET
 {
-   Half fur=Tex(FurCol, inTex*Material.det_uv_scale).r;
+   Half fur=Tex(FurCol, uv*Material.det_uv_scale).r;
 
    VecH4 color;
 #if SIZE
-   color.rgb=Sat(inLen*-fur+FurStep.y   ); // inLen*-fur+step+1 : fur*FACTOR+step+1
-   color.a  =Sat(inLen*(1-FurStep.x/fur)); // alternative: Sat(1-FurStep.x/(fur*inLen))
+   color.rgb=Sat(length*-fur+FurStep.y   ); // length*-fur+step+1 : fur*FACTOR+step+1
+   color.a  =Sat(length*(1-FurStep.x/fur)); // alternative: Sat(1-FurStep.x/(fur*length))
 #else
-   color.rgb=Sat(fur*FACTOR+FurStep.y); // inLen*-fur+step+1 : fur*FACTOR+step+1
-   color.a  =Sat(1-FurStep.x/fur     ); // alternative: Sat(1-FurStep.x/(fur*inLen))
+   color.rgb=Sat(fur*FACTOR+FurStep.y); // length*-fur+step+1 : fur*FACTOR+step+1
+   color.a  =Sat(1-FurStep.x/fur     ); // alternative: Sat(1-FurStep.x/(fur*length))
 #endif
 
    outAlpha=color.a;
    
-   if(DIFFUSE)color.rgb*=Tex(Col, inTex).rgb;
-              color.rgb =(color.rgb*Material.color.rgb+Highlight.rgb)*TexPoint(FurLight, ProjectedPosXYWToUV(inOrigPos)).rgb; // we need to access the un-expanded pixel and not current pixel
+   if(DIFFUSE)color.rgb*=Tex(Col, uv).rgb;
+              color.rgb =(color.rgb*Material.color.rgb+Highlight.rgb)*TexPoint(FurLight, ProjectedPosXYWToUV(orig_pos)).rgb; // we need to access the un-expanded pixel and not current pixel
    return     color;
 }
 /******************************************************************************/

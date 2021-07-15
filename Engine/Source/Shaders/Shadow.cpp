@@ -23,10 +23,10 @@ void Geom_VS // for 3D Geom
 (
            VtxInput vtx,
 #if !GL_ES
-   out NOPERSP Vec2 outTex  :TEXCOORD0,
- //out NOPERSP Vec2 outPosXY:TEXCOORD1,
+   out NOPERSP Vec2 uv   :UV,
+ //out NOPERSP Vec2 posXY:POS_XY,
 #endif
-   out         Vec4 outPos  :POSITION
+   out         Vec4 outPos:POSITION
 )
 {
    outPos=Project(TransformPos(vtx.pos()));
@@ -40,55 +40,55 @@ void Geom_VS // for 3D Geom
 #endif
 
 #if !GL_ES
-   outTex  =ProjectedPosToUV   (outPos);
- //outPosXY=          UVToPosXY(outTex);
+   uv   =ProjectedPosToUV   (outPos);
+ //posXY=          UVToPosXY(uv);
 #endif
 }
 /******************************************************************************/
 // SHADOW SET
 /******************************************************************************/
-Half ShdDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-               NOPERSP Vec2 inPosXY:TEXCOORD1,
+Half ShdDir_PS(NOPERSP Vec2 uv   :UV,
+               NOPERSP Vec2 posXY:POS_XY,
                NOPERSP PIXEL                 
             #if MULTI_SAMPLE
-                     , UInt index  :SV_SampleIndex
+                     , UInt index:SV_SampleIndex
             #endif
               ):TARGET
 {
 #if MULTI_SAMPLE
-   return ShadowDirValue(GetPosMS(pixel.xy, index, inPosXY), ShadowJitter(pixel.xy), true, MAP_NUM, CLOUD);
+   return ShadowDirValue(GetPosMS(pixel.xy, index, posXY), ShadowJitter(pixel.xy), true, MAP_NUM, CLOUD);
 #else
-   return ShadowDirValue(GetPosPoint(inTex, inPosXY), ShadowJitter(pixel.xy), true, MAP_NUM, CLOUD);
+   return ShadowDirValue(GetPosPoint(uv, posXY), ShadowJitter(pixel.xy), true, MAP_NUM, CLOUD);
 #endif
 }
 /******************************************************************************/
-Half ShdPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-                 NOPERSP Vec2 inPosXY:TEXCOORD1,
+Half ShdPoint_PS(NOPERSP Vec2 uv   :UV,
+                 NOPERSP Vec2 posXY:POS_XY,
                  NOPERSP PIXEL                 
               #if MULTI_SAMPLE
-                       , UInt index  :SV_SampleIndex
+                       , UInt index:SV_SampleIndex
               #endif
                 ):TARGET
 {
 #if MULTI_SAMPLE
-   return ShadowPointValue(GetPosMS(pixel.xy, index, inPosXY), ShadowJitter(pixel.xy), true);
+   return ShadowPointValue(GetPosMS(pixel.xy, index, posXY), ShadowJitter(pixel.xy), true);
 #else
-   return ShadowPointValue(GetPosPoint(inTex, inPosXY), ShadowJitter(pixel.xy), true);
+   return ShadowPointValue(GetPosPoint(uv, posXY), ShadowJitter(pixel.xy), true);
 #endif
 }
 /******************************************************************************/
-Half ShdCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-                NOPERSP Vec2 inPosXY:TEXCOORD1,
+Half ShdCone_PS(NOPERSP Vec2 uv   :UV,
+                NOPERSP Vec2 posXY:POS_XY,
                 NOPERSP PIXEL                 
              #if MULTI_SAMPLE
-                      , UInt index  :SV_SampleIndex
+                      , UInt index:SV_SampleIndex
              #endif
                ):TARGET
 {
 #if MULTI_SAMPLE
-   return ShadowConeValue(GetPosMS(pixel.xy, index, inPosXY), ShadowJitter(pixel.xy), true);
+   return ShadowConeValue(GetPosMS(pixel.xy, index, posXY), ShadowJitter(pixel.xy), true);
 #else
-   return ShadowConeValue(GetPosPoint(inTex, inPosXY), ShadowJitter(pixel.xy), true);
+   return ShadowConeValue(GetPosPoint(uv, posXY), ShadowJitter(pixel.xy), true);
 #endif
 }
 /******************************************************************************/
@@ -134,12 +134,12 @@ Half ShdBlurJitter_PS
 #if GL_ES && GEOM // doesn't support NOPERSP
    PIXEL // 3D
 #else
-   NOPERSP Vec2 inTex:TEXCOORD
+   NOPERSP Vec2 uv:UV
 #endif
 ):TARGET
 {
 #if GL_ES && GEOM // doesn't support NOPERSP
-   Vec2 inTex=PixelToUV(pixel);
+   Vec2 uv=PixelToUV(pixel);
 #endif
 
    Half weight, color;
@@ -147,17 +147,17 @@ Half ShdBlurJitter_PS
    Vec2 dw_mad;
    if(GATHER)
    {
-      inTex-=RTSize.xy/2; // move at the center of 2x2
+      uv-=RTSize.xy/2; // move at the center of 2x2
       if(JITTER_RANGE==3) // 3x3
       {
          UNROLL for(Int y=0; y<2; y++)
          UNROLL for(Int x=0; x<2; x++)
          {
-            VecH4 c=TexGatherOfs(ImgX, inTex, VecI2(x*2, y*2));
+            VecH4 c=TexGatherOfs(ImgX, uv, VecI2(x*2, y*2));
             if(1) // use depth
             {
-               Vec4 d=TexDepthRawGatherOfs(inTex, VecI2(x*2, y*2));
-               if(x==0 && y==0){z=LinearDepth(d.y); dw_mad=DepthWeightMADPoint(z); color=c.y; weight=1;} // Y component is the x=0,y=1 pixel which is the center pixel because we've offseted 'inTex'
+               Vec4 d=TexDepthRawGatherOfs(uv, VecI2(x*2, y*2));
+               if(x==0 && y==0){z=LinearDepth(d.y); dw_mad=DepthWeightMADPoint(z); color=c.y; weight=1;} // Y component is the x=0,y=1 pixel which is the center pixel because we've offseted 'uv'
                if(x==0 && y==0){Process(color, weight, c.x, d.x, z, dw_mad); /*Process(color, weight, c.y, d.y, z, dw_mad); already processed above*/ Process(color, weight, c.z, d.z, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);}else
                if(x==1 && y==0){Process(color, weight, c.x, d.x, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);}else
                if(x==0 && y==1){Process(color, weight, c.w, d.w, z, dw_mad); Process(color, weight, c.z, d.z, z, dw_mad);}else
@@ -175,11 +175,11 @@ Half ShdBlurJitter_PS
          UNROLL for(Int y=0; y<2; y++)
          UNROLL for(Int x=0; x<2; x++)
          {
-            VecH4 c=TexGatherOfs(ImgX, inTex, VecI2(x*2, y*2));
+            VecH4 c=TexGatherOfs(ImgX, uv, VecI2(x*2, y*2));
             if(1) // use depth
             {
-               Vec4 d=TexDepthRawGatherOfs(inTex, VecI2(x*2, y*2));
-               if(x==0 && y==0){z=LinearDepth(d.y); dw_mad=DepthWeightMADPoint(z); color=c.y; weight=1;}else Process(color, weight, c.y, d.y, z, dw_mad); // Y component is the x=0,y=1 pixel which is the center pixel because we've offseted 'inTex'
+               Vec4 d=TexDepthRawGatherOfs(uv, VecI2(x*2, y*2));
+               if(x==0 && y==0){z=LinearDepth(d.y); dw_mad=DepthWeightMADPoint(z); color=c.y; weight=1;}else Process(color, weight, c.y, d.y, z, dw_mad); // Y component is the x=0,y=1 pixel which is the center pixel because we've offseted 'uv'
                Process(color, weight, c.x, d.x, z, dw_mad); Process(color, weight, c.z, d.z, z, dw_mad); Process(color, weight, c.w, d.w, z, dw_mad);
             }else
             {
@@ -190,8 +190,8 @@ Half ShdBlurJitter_PS
    }else
    {
       weight=1;
-      color =TexPoint(ImgX, inTex).x;
-      z     =LinearDepth(TexDepthRawPoint(inTex));
+      color =TexPoint(ImgX, uv).x;
+      z     =LinearDepth(TexDepthRawPoint(uv));
       dw_mad=DepthWeightMADPoint(z);
       Int min, max; // inclusive
       if(JITTER_RANGE==3){min=-1; max=1;} // 3x3
@@ -199,7 +199,7 @@ Half ShdBlurJitter_PS
       UNROLL for(Int y=min; y<=max; y++)
       UNROLL for(Int x=min; x<=max; x++)
          if(x || y) // skip 0,0
-            Process(color, weight, TexPointOfs(ImgX, inTex, VecI2(x,y)).x, TexDepthRawPointOfs(inTex, VecI2(x,y)), z, dw_mad);
+            Process(color, weight, TexPointOfs(ImgX, uv, VecI2(x,y)).x, TexDepthRawPointOfs(uv, VecI2(x,y)), z, dw_mad);
    }
    return color/weight;
 }
@@ -209,28 +209,28 @@ Half ShdBlur_PS
 #if GL_ES && GEOM // doesn't support NOPERSP
    PIXEL // 3D
 #else
-   NOPERSP Vec2 inTex:TEXCOORD
+   NOPERSP Vec2 uv:UV
 #endif
 ):TARGET
 {
 #if GL_ES && GEOM // doesn't support NOPERSP
-   Vec2 inTex=PixelToUV(pixel);
+   Vec2 uv=PixelToUV(pixel);
 #endif
 
    Half weight=0.25,
-        color =TexPoint(ImgX, inTex).x*weight;
-   Flt  z     =LinearDepth(TexDepthRawPoint(inTex));
+        color =TexPoint(ImgX, uv).x*weight;
+   Flt  z     =LinearDepth(TexDepthRawPoint(uv));
    Vec2 dw_mad=DepthWeightMADLinear(z);
    UNROLL for(Int i=0; i<SAMPLES; i++)
    {
       Vec2 t;
-      if(SAMPLES== 4)t=RTSize.xy*BlendOfs4 [i]+inTex;
-    //if(SAMPLES== 5)t=RTSize.xy*BlendOfs5 [i]+inTex;
-      if(SAMPLES== 6)t=RTSize.xy*BlendOfs6 [i]+inTex;
-      if(SAMPLES== 8)t=RTSize.xy*BlendOfs8 [i]+inTex;
-    //if(SAMPLES== 9)t=RTSize.xy*BlendOfs9 [i]+inTex;
-      if(SAMPLES==12)t=RTSize.xy*BlendOfs12[i]+inTex;
-    //if(SAMPLES==13)t=RTSize.xy*BlendOfs13[i]+inTex;
+      if(SAMPLES== 4)t=RTSize.xy*BlendOfs4 [i]+uv;
+    //if(SAMPLES== 5)t=RTSize.xy*BlendOfs5 [i]+uv;
+      if(SAMPLES== 6)t=RTSize.xy*BlendOfs6 [i]+uv;
+      if(SAMPLES== 8)t=RTSize.xy*BlendOfs8 [i]+uv;
+    //if(SAMPLES== 9)t=RTSize.xy*BlendOfs9 [i]+uv;
+      if(SAMPLES==12)t=RTSize.xy*BlendOfs12[i]+uv;
+    //if(SAMPLES==13)t=RTSize.xy*BlendOfs13[i]+uv;
       // use linear filtering because texcoords are not rounded
       Process(color, weight, TexLod(ImgX, t).x, TexDepthRawLinear(t), z, dw_mad); // use linear filtering because texcoords aren't rounded
    }
@@ -242,22 +242,22 @@ Half ShdBlurX_PS
 #if GL_ES && GEOM // doesn't support NOPERSP
    PIXEL // 3D
 #else
-   NOPERSP Vec2 inTex:TEXCOORD
+   NOPERSP Vec2 uv:UV
 #endif
 ):TARGET
 {
 #if GL_ES && GEOM // doesn't support NOPERSP
-   Vec2 inTex=PixelToUV(pixel);
+   Vec2 uv=PixelToUV(pixel);
 #endif
 
    Half weight=0.5,
-        color =TexPoint(ImgX, inTex).x*weight;
-   Flt  z     =LinearDepth(TexDepthRawPoint(inTex));
-   Vec2 dw_mad=DepthWeightMADLinear(z), t; t.y=inTex.y;
+        color =TexPoint(ImgX, uv).x*weight;
+   Flt  z     =LinearDepth(TexDepthRawPoint(uv));
+   Vec2 dw_mad=DepthWeightMADLinear(z), t; t.y=uv.y;
    UNROLL for(Int i=-RANGE; i<=RANGE; i++)if(i)
    {
       // use linear filtering because texcoords are not rounded
-      t.x=RTSize.x*(2*i+((i>0) ? -0.5 : 0.5))+inTex.x;
+      t.x=RTSize.x*(2*i+((i>0) ? -0.5 : 0.5))+uv.x;
       Process(color, weight, TexLod(ImgX, t).x, TexDepthRawLinear(t), z, dw_mad); // use linear filtering because texcoords aren't rounded
    }
    return color/weight;
@@ -268,22 +268,22 @@ Half ShdBlurY_PS
 #if GL_ES && GEOM // doesn't support NOPERSP
    PIXEL // 3D
 #else
-   NOPERSP Vec2 inTex:TEXCOORD
+   NOPERSP Vec2 uv:UV
 #endif
 ):TARGET
 {
 #if GL_ES && GEOM // doesn't support NOPERSP
-   Vec2 inTex=PixelToUV(pixel);
+   Vec2 uv=PixelToUV(pixel);
 #endif
 
    Half weight=0.5,
-        color =TexPoint(ImgX, inTex).x*weight;
-   Flt  z     =LinearDepth(TexDepthRawPoint(inTex));
-   Vec2 dw_mad=DepthWeightMADLinear(z), t; t.x=inTex.x;
+        color =TexPoint(ImgX, uv).x*weight;
+   Flt  z     =LinearDepth(TexDepthRawPoint(uv));
+   Vec2 dw_mad=DepthWeightMADLinear(z), t; t.x=uv.x;
    UNROLL for(Int i=-RANGE; i<=RANGE; i++)if(i)
    {
       // use linear filtering because texcoords are not rounded
-      t.y=RTSize.y*(2*i+((i>0) ? -0.5 : 0.5))+inTex.y;
+      t.y=RTSize.y*(2*i+((i>0) ? -0.5 : 0.5))+uv.y;
       Process(color, weight, TexLod(ImgX, t).x, TexDepthRawLinear(t), z, dw_mad); // use linear filtering because texcoords aren't rounded
    }
    return color/weight;

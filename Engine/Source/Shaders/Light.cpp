@@ -25,10 +25,10 @@ void Geom_VS // for 3D Geom
 (
            VtxInput vtx,
 #if !GL_ES
-   out NOPERSP Vec2 outTex  :TEXCOORD0,
-   out NOPERSP Vec2 outPosXY:TEXCOORD1,
+   out NOPERSP Vec2 uv   :UV,
+   out NOPERSP Vec2 posXY:POS_XY,
 #endif
-   out         Vec4 outPos  :POSITION
+   out         Vec4 outPos:POSITION
 )
 {
    outPos=Project(TransformPos(vtx.pos()));
@@ -42,8 +42,8 @@ void Geom_VS // for 3D Geom
 #endif
 
 #if !GL_ES
-   outTex  =ProjectedPosToUV   (outPos);
-   outPosXY=          UVToPosXY(outTex);
+   uv   =ProjectedPosToUV   (outPos);
+   posXY=          UVToPosXY(uv);
 #endif
 }
 /******************************************************************************/
@@ -51,11 +51,11 @@ void Geom_VS // for 3D Geom
 /******************************************************************************/
 VecH LightDir_PS
 (
-   NOPERSP Vec2 inTex  :TEXCOORD0,
-   NOPERSP Vec2 inPosXY:TEXCOORD1
+   NOPERSP Vec2 uv   :UV,
+   NOPERSP Vec2 posXY:POS_XY
 #if MULTI_SAMPLE
  , NOPERSP PIXEL // 2D
- ,         UInt index  :SV_SampleIndex
+ ,         UInt index:SV_SampleIndex
 #endif
  , out VecH outSpec:TARGET1
 ):TARGET
@@ -64,7 +64,7 @@ VecH LightDir_PS
 #if MULTI_SAMPLE
    Half shadow; if(SHADOW)shadow=TexSample(ImgXMS, pixel.xy, index).x;
 #else
-   Half shadow; if(SHADOW)shadow=TexPoint(ImgX, inTex).x;
+   Half shadow; if(SHADOW)shadow=TexPoint(ImgX, uv).x;
 #endif
    if(SHADOW && shadow<=EPS_LUM)discard;
 
@@ -72,7 +72,7 @@ VecH LightDir_PS
 #if MULTI_SAMPLE
    Vec4 nrm=GetNormalMS(pixel.xy, index);
 #else
-   Vec4 nrm=GetNormal(inTex);
+   Vec4 nrm=GetNormal(uv);
 #endif
 
    // light
@@ -93,12 +93,12 @@ VecH LightDir_PS
    VecH2 ext     =GetExtMS (pixel.xy, index);
    VecH  base_col=TexSample(ImgMS1, pixel.xy, index).rgb;
 #else
-   VecH2 ext     =GetExt  (inTex);
-   VecH  base_col=TexPoint(Img1, inTex).rgb;
+   VecH2 ext     =GetExt  (uv);
+   VecH  base_col=TexPoint(Img1, uv).rgb;
 #endif
 
    // light #1
-   Vec eye_dir=Normalize(Vec(inPosXY, 1));
+   Vec eye_dir=Normalize(Vec(posXY, 1));
    lp.set(nrm.xyz, light_dir, eye_dir);
 
    VecH    lum_rgb=LightDir.color.rgb*lum;
@@ -111,34 +111,34 @@ VecH LightPoint_PS
 #if GL_ES // doesn't support NOPERSP
    PIXEL // 3D
 #else
-   NOPERSP Vec2 inTex  :TEXCOORD0,
-   NOPERSP Vec2 inPosXY:TEXCOORD1
+   NOPERSP Vec2 uv   :UV,
+   NOPERSP Vec2 posXY:POS_XY
 #if MULTI_SAMPLE
  ,         PIXEL // 3D
- ,         UInt index  :SV_SampleIndex
+ ,         UInt index:SV_SampleIndex
 #endif
 #endif
  , out VecH outSpec:TARGET1
 ):TARGET
 {
 #if GL_ES // doesn't support NOPERSP
-   Vec2 inTex  =PixelToUV   (pixel);
-   Vec2 inPosXY=   UVToPosXY(inTex);
+   Vec2 uv   =PixelToUV   (pixel);
+   Vec2 posXY=   UVToPosXY(uv);
 #endif
 
    // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
 #if MULTI_SAMPLE
    Half shadow; if(SHADOW)shadow=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x);
 #else
-   Half shadow; if(SHADOW)shadow=ShadowFinal(TexPoint(ImgX, inTex).x);
+   Half shadow; if(SHADOW)shadow=ShadowFinal(TexPoint(ImgX, uv).x);
 #endif
    if(SHADOW && shadow<=EPS_LUM)discard;
 
    // distance
 #if MULTI_SAMPLE
-   Vec pos=GetPosMS(pixel.xy, index, inPosXY);
+   Vec pos=GetPosMS(pixel.xy, index, posXY);
 #else
-   Vec pos=GetPosPoint(inTex, inPosXY);
+   Vec pos=GetPosPoint(uv, posXY);
 #endif
    Vec  delta=LightPoint.pos-pos; Flt inv_dist2=1/Length2(delta);
    Half lum  =LightPointDist(inv_dist2); if(SHADOW)lum*=shadow; if(lum<=EPS_LUM)discard;
@@ -147,7 +147,7 @@ VecH LightPoint_PS
 #if MULTI_SAMPLE
    Vec4 nrm=GetNormalMS(pixel.xy, index);
 #else
-   Vec4 nrm=GetNormal(inTex);
+   Vec4 nrm=GetNormal(uv);
 #endif
 
    // light
@@ -168,8 +168,8 @@ VecH LightPoint_PS
    VecH2 ext     =GetExtMS (pixel.xy, index);
    VecH  base_col=TexSample(ImgMS1, pixel.xy, index).rgb;
 #else
-   VecH2 ext     =GetExt  (inTex);
-   VecH  base_col=TexPoint(Img1, inTex).rgb;
+   VecH2 ext     =GetExt  (uv);
+   VecH  base_col=TexPoint(Img1, uv).rgb;
 #endif
 
    // light #1
@@ -186,34 +186,34 @@ VecH LightLinear_PS
 #if GL_ES // doesn't support NOPERSP
    PIXEL // 3D
 #else
-   NOPERSP Vec2 inTex  :TEXCOORD0,
-   NOPERSP Vec2 inPosXY:TEXCOORD1
+   NOPERSP Vec2 uv   :UV,
+   NOPERSP Vec2 posXY:POS_XY
 #if MULTI_SAMPLE
  ,         PIXEL // 3D
- ,         UInt index  :SV_SampleIndex
+ ,         UInt index:SV_SampleIndex
 #endif
 #endif
  , out VecH outSpec:TARGET1
 ):TARGET
 {
 #if GL_ES // doesn't support NOPERSP
-   Vec2 inTex  =PixelToUV   (pixel);
-   Vec2 inPosXY=   UVToPosXY(inTex);
+   Vec2 uv   =PixelToUV   (pixel);
+   Vec2 posXY=   UVToPosXY(uv);
 #endif
 
    // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
 #if MULTI_SAMPLE
    Half shadow; if(SHADOW)shadow=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x);
 #else
-   Half shadow; if(SHADOW)shadow=ShadowFinal(TexPoint(ImgX, inTex).x);
+   Half shadow; if(SHADOW)shadow=ShadowFinal(TexPoint(ImgX, uv).x);
 #endif
    if(SHADOW && shadow<=EPS_LUM)discard;
 
    // distance
 #if MULTI_SAMPLE
-   Vec pos=GetPosMS(pixel.xy, index, inPosXY);
+   Vec pos=GetPosMS(pixel.xy, index, posXY);
 #else
-   Vec pos=GetPosPoint(inTex, inPosXY);
+   Vec pos=GetPosPoint(uv, posXY);
 #endif
    Vec  delta=LightLinear.pos-pos; Flt dist=Length(delta);
    Half lum  =LightLinearDist(dist); if(SHADOW)lum*=shadow; if(lum<=EPS_LUM)discard;
@@ -222,7 +222,7 @@ VecH LightLinear_PS
 #if MULTI_SAMPLE
    Vec4 nrm=GetNormalMS(pixel.xy, index);
 #else
-   Vec4 nrm=GetNormal(inTex);
+   Vec4 nrm=GetNormal(uv);
 #endif
 
    // light
@@ -243,8 +243,8 @@ VecH LightLinear_PS
    VecH2 ext     =GetExtMS (pixel.xy, index);
    VecH  base_col=TexSample(ImgMS1, pixel.xy, index).rgb;
 #else
-   VecH2 ext     =GetExt  (inTex);
-   VecH  base_col=TexPoint(Img1, inTex).rgb;
+   VecH2 ext     =GetExt  (uv);
+   VecH  base_col=TexPoint(Img1, uv).rgb;
 #endif
 
    // light #1
@@ -261,34 +261,34 @@ VecH LightCone_PS
 #if GL_ES // doesn't support NOPERSP
    PIXEL // 3D
 #else
-   NOPERSP Vec2 inTex  :TEXCOORD0,
-   NOPERSP Vec2 inPosXY:TEXCOORD1
+   NOPERSP Vec2 uv   :UV,
+   NOPERSP Vec2 posXY:POS_XY
 #if MULTI_SAMPLE
  ,         PIXEL // 3D
- ,         UInt index  :SV_SampleIndex
+ ,         UInt index:SV_SampleIndex
 #endif
 #endif
  , out VecH outSpec:TARGET1
 ):TARGET
 {
 #if GL_ES // doesn't support NOPERSP
-   Vec2 inTex  =PixelToUV   (pixel);
-   Vec2 inPosXY=   UVToPosXY(inTex);
+   Vec2 uv   =PixelToUV   (pixel);
+   Vec2 posXY=   UVToPosXY(uv);
 #endif
 
    // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
 #if MULTI_SAMPLE
    Half shadow; if(SHADOW)shadow=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x);
 #else
-   Half shadow; if(SHADOW)shadow=ShadowFinal(TexPoint(ImgX, inTex).x);
+   Half shadow; if(SHADOW)shadow=ShadowFinal(TexPoint(ImgX, uv).x);
 #endif
    if(SHADOW && shadow<=EPS_LUM)discard;
 
    // distance & angle
 #if MULTI_SAMPLE
-   Vec pos=GetPosMS(pixel.xy, index, inPosXY);
+   Vec pos=GetPosMS(pixel.xy, index, posXY);
 #else
-   Vec pos=GetPosPoint(inTex, inPosXY);
+   Vec pos=GetPosPoint(uv, posXY);
 #endif
    Vec  delta=LightCone.pos-pos,
         dir  =TransformTP(delta, LightCone.mtrx); dir.xy/=dir.z; clip(Vec(1-Abs(dir.xy), dir.z));
@@ -299,7 +299,7 @@ VecH LightCone_PS
 #if MULTI_SAMPLE
    Vec4 nrm=GetNormalMS(pixel.xy, index);
 #else
-   Vec4 nrm=GetNormal(inTex);
+   Vec4 nrm=GetNormal(uv);
 #endif
 
    // light
@@ -329,8 +329,8 @@ VecH LightCone_PS
    VecH2 ext     =GetExtMS (pixel.xy, index);
    VecH  base_col=TexSample(ImgMS1, pixel.xy, index).rgb;
 #else
-   VecH2 ext     =GetExt  (inTex);
-   VecH  base_col=TexPoint(Img1, inTex).rgb;
+   VecH2 ext     =GetExt  (uv);
+   VecH  base_col=TexPoint(Img1, uv).rgb;
 #endif
 
    // light #1

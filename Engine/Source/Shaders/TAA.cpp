@@ -231,9 +231,9 @@ void NearestDepth(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather)
 }
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
-void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-          //NOPERSP Vec2 inPosXY:TEXCOORD1,
-          //NOPERSP PIXEL                 ,
+void TAA_PS(NOPERSP Vec2 uv   :UV,
+          //NOPERSP Vec2 posXY:POS_XY,
+          //NOPERSP PIXEL,
              #if MERGED_ALPHA
                 out VecH  outData  :TARGET0,
              #else
@@ -251,14 +251,14 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 {
    // GET DEPTH
    Flt depth; VecI2 ofs;
-   if(NEAREST_DEPTH_VEL)NearestDepthRaw(depth, ofs, inTex, GATHER);
-   else                      depth=TexDepthRawPoint(inTex);
+   if(NEAREST_DEPTH_VEL)NearestDepthRaw(depth, ofs, uv, GATHER);
+   else                      depth=TexDepthRawPoint(uv);
 
    // GET VEL
-   VecH2 vel=TexPoint(ImgXY, NEAREST_DEPTH_VEL ? UVInView(inTex+ofs*RTSize.xy, VIEW_FULL) : inTex).xy;
+   VecH2 vel=TexPoint(ImgXY, NEAREST_DEPTH_VEL ? UVInView(uv+ofs*RTSize.xy, VIEW_FULL) : uv).xy;
 
-   Vec2 cur_tex=inTex+TAAOffset,
-        old_tex=inTex+vel;
+   Vec2 cur_tex=uv+TAAOffset,
+        old_tex=uv+vel;
 
    // OLD DATA (WEIGHT + FLICKER + ALPHA)
 #if MERGED_ALPHA
@@ -310,7 +310,7 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
  /* test current velocities, skip because didn't help
    UNROLL for(Int y=-1; y<=1; y++)
    UNROLL for(Int x=-1; x<=1; x++)if(x || y)
-      TestVel(vel, TexPointOfs(ImgXY, inTex, VecI2(x, y)).xy, max_delta_vel_len2);*/
+      TestVel(vel, TexPointOfs(ImgXY, uv, VecI2(x, y)).xy, max_delta_vel_len2);*/
 
    // OLD COLOR
       CubicFastSampler cs;
@@ -409,19 +409,19 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    // MIN MAX
    #if FILTER_MIN_MAX // check 3x3 samples by using 2x2 tex reads using Min/Max filtering (where each tex read gives minimum/maximum out of 2x2 samples)
    {
-      Vec2 uv[2];
+      Vec2 uv_clamp[2];
    #if VIEW_FULL
-      uv[0]=inTex-RTSize.xy/2;
-      uv[1]=inTex+RTSize.xy/2;
+      uv_clamp[0]=uv-RTSize.xy/2;
+      uv_clamp[1]=uv+RTSize.xy/2;
    #else
-      uv[0]=Vec2(Max(inTex.x-RTSize.x/2, ImgClamp.x), Max(inTex.y-RTSize.y/2, ImgClamp.y));
-      uv[1]=Vec2(Min(inTex.x+RTSize.x/2, ImgClamp.z), Min(inTex.y+RTSize.y/2, ImgClamp.w));
+      uv_clamp[0]=Vec2(Max(uv.x-RTSize.x/2, ImgClamp.x), Max(uv.y-RTSize.y/2, ImgClamp.y));
+      uv_clamp[1]=Vec2(Min(uv.x+RTSize.x/2, ImgClamp.z), Min(uv.y+RTSize.y/2, ImgClamp.w));
    #endif
       UNROLL for(Int y=0; y<=1; y++)
       UNROLL for(Int x=0; x<=1; x++)
       {
-         VecH4 min=TexMin(Img, Vec2(uv[x].x, uv[y].y));
-         VecH4 max=TexMax(Img, Vec2(uv[x].x, uv[y].y));
+         VecH4 min=TexMin(Img, Vec2(uv_clamp[x].x, uv_clamp[y].y));
+         VecH4 max=TexMax(Img, Vec2(uv_clamp[x].x, uv_clamp[y].y));
       #if YCOCG
          VecH4 ycocg_lo=RGBToYCoCg4(min), ycocg_hi=RGBToYCoCg4(max);
       #endif
@@ -447,18 +447,18 @@ void TAA_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    #else // check all 3x3 samples individually
    {
    #if !VIEW_FULL
-      Vec2 tex_clamp[3];
-      tex_clamp[0]=Vec2(Max(inTex.x-RTSize.x, ImgClamp.x), Max(inTex.y-RTSize.y, ImgClamp.y)); tex_clamp[1]=inTex;
-      tex_clamp[2]=Vec2(Min(inTex.x+RTSize.x, ImgClamp.z), Min(inTex.y+RTSize.y, ImgClamp.w));
+      Vec2 uv_clamp[3];
+           uv_clamp[0]=Vec2(Max(uv.x-RTSize.x, ImgClamp.x), Max(uv.y-RTSize.y, ImgClamp.y)); uv_clamp[1]=uv;
+           uv_clamp[2]=Vec2(Min(uv.x+RTSize.x, ImgClamp.z), Min(uv.y+RTSize.y, ImgClamp.w));
    #endif
       UNROLL for(Int y=-1; y<=1; y++)
       UNROLL for(Int x=-1; x<=1; x++)
       {
          VecH4 col;
       #if VIEW_FULL
-         col=TexPointOfs(Img, inTex, VecI2(x, y));
+         col=TexPointOfs(Img, uv, VecI2(x, y));
       #else
-         col=TexPoint(Img, Vec2(tex_clamp[x+1].x, tex_clamp[y+1].y));
+         col=TexPoint(Img, Vec2(uv_clamp[x+1].x, uv_clamp[y+1].y));
       #endif
       #if YCOCG
          VecH4 ycocg=RGBToYCoCg4(col);

@@ -17,8 +17,8 @@
 #include "FXAA.h"
 #include "!Set Prec Default.h"
 
-VecH4 FXAA_PS(NOPERSP Vec2 pos:TEXCOORD):TARGET
+VecH4 FXAA_PS(NOPERSP Vec2 uv:UV):TARGET
 {
-   return FxaaPixelShader(pos, 0, Img, Img, Img, RTSize.xy, 0, 0, 0, 0.475, 0.15, 0.0833, 8.0, 0.125, 0.05, Vec4(1.0, -1.0, 0.25, -0.25));
+   return FxaaPixelShader(uv, 0, Img, Img, Img, RTSize.xy, 0, 0, 0, 0.475, 0.15, 0.0833, 8.0, 0.125, 0.05, Vec4(1.0, -1.0, 0.25, -0.25));
 }
 /******************************************************************************/

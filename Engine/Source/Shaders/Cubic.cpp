@@ -66,9 +66,9 @@ VecH TexLerpRGB(Vec2 t0, Vec2 t1, Flt lu, Flt ru, Flt lb, Flt rb) // ignores alp
    return Tex(Img, t/w).rgb*Half(w);
 }*/
 
-VecH4 TexCubicPlus(Vec2 inTex)
+VecH4 TexCubicPlus(Vec2 uv)
 {
-   Vec2  pixel =inTex*ImgSize.zw-0.5,
+   Vec2  pixel =uv*ImgSize.zw-0.5,
          pixeli=Floor(pixel),
          offset       [CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE];
    VecH2 offset_weight[CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE];
@@ -116,9 +116,9 @@ VecH4 TexCubicPlus(Vec2 inTex)
 #endif
    return color/weight;
 }
-VecH TexCubicPlusRGB(Vec2 inTex) // ignores alpha channel
+VecH TexCubicPlusRGB(Vec2 uv) // ignores alpha channel
 {
-   Vec2  pixel =inTex*ImgSize.zw-0.5,
+   Vec2  pixel =uv*ImgSize.zw-0.5,
          pixeli=Floor(pixel),
          offset       [CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE];
    VecH2 offset_weight[CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE];
@@ -167,10 +167,10 @@ VecH TexCubicPlusRGB(Vec2 inTex) // ignores alpha channel
    return color/weight;
 }
 /******************************************************************************/
-VecH4 DrawTexCubicFast_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                          NOPERSP PIXEL              ):TARGET
+VecH4 DrawTexCubicFast_PS(NOPERSP Vec2 uv:UV,
+                          NOPERSP PIXEL     ):TARGET
 {
-   VecH4 col=TexCubicFast(Img, inTex);
+   VecH4 col=TexCubicFast(Img, uv);
 #if COLORS
    col=col*Color[0]+Color[1];
 #endif
@@ -179,10 +179,10 @@ VecH4 DrawTexCubicFast_PS(NOPERSP Vec2 inTex:TEXCOORD,
 #endif
    return col;
 }
-VecH4 DrawTexCubicFastRGB_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                             NOPERSP PIXEL              ):TARGET
+VecH4 DrawTexCubicFastRGB_PS(NOPERSP Vec2 uv:UV,
+                             NOPERSP PIXEL     ):TARGET
 {
-   VecH4 col=VecH4(TexCubicFastRGB(Img, inTex), 1);
+   VecH4 col=VecH4(TexCubicFastRGB(Img, uv), 1);
 #if COLORS
    col=col*Color[0]+Color[1];
 #endif
@@ -192,10 +192,10 @@ VecH4 DrawTexCubicFastRGB_PS(NOPERSP Vec2 inTex:TEXCOORD,
    return col;
 }
 /******************************************************************************/
-VecH4 DrawTexCubic_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                      NOPERSP PIXEL              ):TARGET
+VecH4 DrawTexCubic_PS(NOPERSP Vec2 uv:UV,
+                      NOPERSP PIXEL     ):TARGET
 {
-   VecH4 col=TexCubicPlus(inTex);
+   VecH4 col=TexCubicPlus(uv);
 #if COLORS
    col=col*Color[0]+Color[1];
 #endif
@@ -204,10 +204,10 @@ VecH4 DrawTexCubic_PS(NOPERSP Vec2 inTex:TEXCOORD,
 #endif
    return col;
 }
-VecH4 DrawTexCubicRGB_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                         NOPERSP PIXEL              ):TARGET
+VecH4 DrawTexCubicRGB_PS(NOPERSP Vec2 uv:UV,
+                         NOPERSP PIXEL     ):TARGET
 {
-   VecH4 col=VecH4(TexCubicPlusRGB(inTex), 1);
+   VecH4 col=VecH4(TexCubicPlusRGB(uv), 1);
 #if COLORS
    col=col*Color[0]+Color[1];
 #endif

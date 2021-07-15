@@ -49,7 +49,7 @@ void VS
 )
 {
 #if SET_UV
-   O.uv=vtx.tex();
+   O.uv=vtx.uv();
 #endif
              O.color =Material.color;
    if(COLORS)O.color*=vtx.colorFast();

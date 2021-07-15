@@ -72,19 +72,19 @@ VecH2 GetMotionCameraOnly(Vec view_pos, Vec2 uv)
    return PosToUV(view_pos_prev) - uv;
 }
 void SetVel_VS(VtxInput vtx,
-    NOPERSP out Vec2 outTex  :TEXCOORD0,
-    NOPERSP out Vec2 outPosXY:TEXCOORD1,
-    NOPERSP out Vec4 pixel   :POSITION )
+    NOPERSP out Vec2 uv   :UV,
+    NOPERSP out Vec2 posXY:POS_XY,
+    NOPERSP out Vec4 pixel:POSITION)
 {
-   outTex=vtx.tex();
-   outPosXY=UVToPosXY(outTex);
+   uv   =vtx.uv();
+   posXY=UVToPosXY(uv);
    pixel=vtx.pos4();
 }
-VecH2 SetVel_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-                NOPERSP Vec2 inPosXY:TEXCOORD1):TARGET
+VecH2 SetVel_PS(NOPERSP Vec2 uv   :UV,
+                NOPERSP Vec2 posXY:POS_XY):TARGET
 {
-   Vec pos=GetPosPoint(inTex, inPosXY);
-   return GetMotionCameraOnly(pos, inTex);
+   Vec pos=GetPosPoint(uv, posXY);
+   return GetMotionCameraOnly(pos, uv);
 }
 /******************************************************************************/
 void GetPixelMotion(VecH2 uv_motion, VecH2 uv_to_pixel, out VecH2 pixel_motion, out VecH2 pixel_motion_perp, out VecH2 pixel_motion_size) // 'pixel_motion'=direction, 'pixel_motion_perp'=direction perpendicular, 'pixel_motion_size'=size to check along directions
@@ -134,23 +134,23 @@ void Process(inout VecH4 max_min_motion, inout VecH2 length2, VecH4 sample_motio
       Output = Max Min UV Motion * MotionScale
 
 /******************************************************************************/
-VecH4 Convert_PS(NOPERSP Vec2 inTex:TEXCOORD0):TARGET
+VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
 {
    // WARNING: code below might still set ZW (smallest) to some very small values, only XY gets forced to 0
    VecH2 length2=VecH2(ScreenLength2(ImgSize.xy)*Sqr(0.5*2), 2); // x=biggest, y=smallest, initially set biggest to 0 so it always gets updated (actually set to half of pixel (*2 because later we mul by 'MotionScale_2' instead of 'MotionScale') to make sure we will ignore small motions and keep 0), initially set smallest to 2 so it always gets updated
    VecH4 motion =0; // XY=biggest, ZW=smallest
 #if 0 // process samples individually
-   // for RANGE=1 (no scale  ) inTex should remain unmodified              , because it's already at the center of 1x1 texel
-   // for RANGE>1 (downsample) inTex should be moved to the center of texel, because it's         at the center of 2x2 texels
-   if(RANGE>1)inTex+=ImgSize.xy*0.5;
+   // for RANGE=1 (no scale  ) uv should remain unmodified              , because it's already at the center of 1x1 texel
+   // for RANGE>1 (downsample) uv should be moved to the center of texel, because it's         at the center of 2x2 texels
+   if(RANGE>1)uv+=ImgSize.xy*0.5;
    const Int ofs=RANGE/2, min=0-ofs, max=RANGE-ofs;
    UNROLL for(Int y=min; y<max; y++)
    UNROLL for(Int x=min; x<max; x++)
-      Process(motion, length2, TexPoint(ImgXY, UVInView(inTex+Vec2(x, y)*ImgSize.xy, VIEW_FULL)).xy);
+      Process(motion, length2, TexPoint(ImgXY, UVInView(uv+Vec2(x, y)*ImgSize.xy, VIEW_FULL)).xy);
 #else // process samples in 2x2 blocks using linear filtering
-   // for RANGE=1 (no scale          ) offset should be 0, because inTex is already at the center of 1x1 texel
-   // for RANGE=2 (2x downsample, 2x2) offset should be 0, because inTex is already at the center of 2x2 texels (linear filtering is used)
-   // for RANGE=4 (4x downsample, 4x4) offset should be 1, because inTex is already at the center of 4x4 texels, however we want to process (2x2 2x2) so have to position at the center of top left 2x2
+   // for RANGE=1 (no scale          ) offset should be 0, because uv is already at the center of 1x1 texel
+   // for RANGE=2 (2x downsample, 2x2) offset should be 0, because uv is already at the center of 2x2 texels (linear filtering is used)
+   // for RANGE=4 (4x downsample, 4x4) offset should be 1, because uv is already at the center of 4x4 texels, however we want to process (2x2 2x2) so have to position at the center of top left 2x2
    // for RANGE=8 (8x downsample, 8x8) offset should be 3                                                                                   (2x2 2x2)
    const Int ofs=(RANGE-1)/2, min=0-ofs, max=RANGE-ofs; // correctness can be verified with this code: "Int RANGE=1,2,4,8; const Int ofs=(RANGE-1)/2, min=0-ofs, max=RANGE-ofs; Str s; for(Int x=min; x<max; x+=2)s.space()+=x; Exit(s);"
    #if RANGE<=(GL ? 16 : 256) // for GL limit to 16 because compilation is very slow
@@ -160,7 +160,7 @@ VecH4 Convert_PS(NOPERSP Vec2 inTex:TEXCOORD0):TARGET
       LOOP for(Int y=min; y<max; y+=2)
       LOOP for(Int x=min; x<max; x+=2)
    #endif
-         Process(motion, length2, TexLod(ImgXY, UVInView(inTex+Vec2(x, y)*ImgSize.xy, VIEW_FULL)).xy);
+         Process(motion, length2, TexLod(ImgXY, UVInView(uv+Vec2(x, y)*ImgSize.xy, VIEW_FULL)).xy);
 #endif
    motion*=MotionScale_2; // for best precision this should be done for every sample, however doing it here just once, increases performance
    { // limit max length - this prevents stretching objects to distances the blur can't handle anyway, making only certain samples of it visible but not all
@@ -180,9 +180,9 @@ VecH4 Convert_PS(NOPERSP Vec2 inTex:TEXCOORD0):TARGET
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
 // Dilate doesn't use UV clamping, instead border around viewport is cleared
-VecH4 Dilate_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+VecH4 Dilate_PS(NOPERSP Vec2 uv:UV):TARGET
 {
-   VecH4 motion =TexPoint(Img, inTex);
+   VecH4 motion =TexPoint(Img, uv);
    VecH2 length2=VecH2(ScreenLength2(motion.xy), ScreenLength2(motion.zw));
    VecH2 uv_to_pixel=RTSize.zw, pixel_motion, pixel_motion_perp, pixel_motion_size;
    GetPixelMotion(motion.xy, uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size);
@@ -190,11 +190,11 @@ VecH4 Dilate_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 #if !FAST_COMPILE && RANGE<=(GL ? 5 : 7) // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range, for GL limit to 5 because compilation is very slow
    UNROLL for(Int y=-RANGE; y<=RANGE; y++)
    UNROLL for(Int x=-RANGE; x<=RANGE; x++)
-      if(x || y)Process(motion, length2, TexPointOfs(Img, inTex, VecI2(x, y)), VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size);
+      if(x || y)Process(motion, length2, TexPointOfs(Img, uv, VecI2(x, y)), VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size);
 #else
    LOOP for(Int y=-RANGE; y<=RANGE; y++)
    LOOP for(Int x=-RANGE; x<=RANGE; x++)
-      if(x || y)Process(motion, length2, TexPoint(Img, inTex+Vec2(x, y)*RTSize.xy), VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size);
+      if(x || y)Process(motion, length2, TexPoint(Img, uv+Vec2(x, y)*RTSize.xy), VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size);
 #endif
    return motion;
 }
@@ -222,8 +222,8 @@ Half UVMotionLength(VecH2 uv_motion)
    ImgXY =              full-res         UV Motion      (unscaled)
 
 /******************************************************************************/
-VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
-              NOPERSP PIXEL            ):TARGET
+VecH4 Blur_PS(NOPERSP Vec2 uv0:UV,
+              NOPERSP PIXEL      ):TARGET
 {
    VecH4 dilated=TexLod(Img1, uv0); // dilated motion (XY=biggest, ZW=smallest), use linear filtering because 'Img1' may be smaller
    VecH4 base_color; base_color.MASK=TexLod(Img, uv0).MASK; // can't use 'TexPoint' because 'Img' can be supersampled
