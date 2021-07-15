@@ -51,7 +51,7 @@ Half SunRaysMask_PS
    }
    return Vec4(color/(samples+1)*Color[0].rgb, 0);
 }
-TECHNIQUE(SunRaysSoft, Draw_VS(), SunRaysSoft_PS());*/
+TECHNIQUE(SunRaysSoft, DrawUV_VS(), SunRaysSoft_PS());*/
 /******************************************************************************/
 VecH4 SunRays_PS(NOPERSP Vec2 uv   :UV,
                  NOPERSP Vec2 posXY:POS_XY,

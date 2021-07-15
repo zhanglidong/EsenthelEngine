@@ -511,6 +511,19 @@ static Bool Match(C ShaderCompiler::SubShader &output, C ShaderCompiler::SubShad
       found:;
       }
    }
+#if 1 // check outputs (if they're not needed, shaders will still work, however remove them for performance reason)
+   REPA(output.outputs)
+   {
+    C ShaderCompiler::IO &out=output.outputs[i];
+      if(out.name!="SV_Position" && out.name!="SV_ClipDistance")
+      {
+         REPA(input.inputs)if(out==input.inputs[i])goto found1;
+         error.line()+=S+"Output "+out.name+out.index+" register:"+out.reg+" in \""+output.func_name+"\" doesn't match input in \""+input.func_name+'"';
+         ok=false;
+      found1:;
+      }
+   }
+#endif
    return ok;
 }
 void ShaderCompiler::SubShader::compile()

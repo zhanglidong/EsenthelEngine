@@ -90,21 +90,21 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       ShaderCompiler::Source &src=compiler.New(src_path+"Main.cpp");
    #if DEBUG && 0
       #pragma message("!! Warning: Use this only for debugging !!")
-      src.New("Test", "Draw_VS", "Test_PS")("MODE", 0);
-      src.New("Test", "Draw_VS", "Test_PS")("MODE", 1);
+      src.New("Test", "DrawUV_VS", "Test_PS")("MODE", 0);
+      src.New("Test", "DrawUV_VS", "Test_PS")("MODE", 1);
    #endif
       src.New("Draw2DFlat", "Draw2DFlat_VS", "DrawFlat_PS");
       src.New("Draw3DFlat", "Draw3DFlat_VS", "DrawFlat_PS");
-      src.New("SetCol"    , "Draw_VS"      , "DrawFlat_PS");
+      src.New("SetCol"    , "DrawUV_VS"    , "DrawFlat_PS");
 
       src.New("ClearDeferred", "ClearDeferred_VS", "ClearDeferred_PS");
-      src.New("ClearLight"   , "Draw_VS"         , "ClearLight_PS");
+      src.New("ClearLight"   , "DrawUV_VS"       , "ClearLight_PS");
 
       REPD(hdr      , 2)
       REPD(dither   , 2)
       REPD( in_gamma, 2)
       REPD(out_gamma, 2)
-         src.New("ColorLUT", "Draw_VS", "ColorLUT_PS")("HDR", hdr, "DITHER", dither, "IN_GAMMA", in_gamma, "OUT_GAMMA", out_gamma);
+         src.New("ColorLUT", "DrawUV_VS", "ColorLUT_PS")("HDR", hdr, "DITHER", dither, "IN_GAMMA", in_gamma, "OUT_GAMMA", out_gamma);
 
       src.New("Draw2DCol", "Draw2DCol_VS", "Draw2DCol_PS");
       src.New("Draw3DCol", "Draw3DCol_VS", "Draw3DCol_PS");
@@ -133,16 +133,16 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 
       src.New("DrawTexNrm"   , "Draw2DTex_VS", "DrawTexNrm_PS");
       src.New("DrawTexDetNrm", "Draw2DTex_VS", "DrawTexDetNrm_PS");
-      src.New("Draw"         ,      "Draw_VS", "Draw2DTex_PS");
-      src.New("DrawC"        ,      "Draw_VS", "Draw2DTexC_PS");
-      src.New("DrawCG"       ,      "Draw_VS", "DrawTexCG_PS");
-      src.New("DrawG"        ,      "Draw_VS", "DrawTexG_PS");
-      src.New("DrawA"        ,      "Draw_VS", "Draw2DTexA_PS");
+      src.New("Draw"         , "DrawUV_VS", "Draw2DTex_PS");
+      src.New("DrawC"        , "DrawUV_VS", "Draw2DTexC_PS");
+      src.New("DrawCG"       , "DrawUV_VS", "DrawTexCG_PS");
+      src.New("DrawG"        , "DrawUV_VS", "DrawTexG_PS");
+      src.New("DrawA"        , "DrawUV_VS", "Draw2DTexA_PS");
 
-      src.New("DrawX" , "Draw_VS", "DrawX_PS" );
-      src.New("DrawXG", "Draw_VS", "DrawXG_PS");
+      src.New("DrawX" , "DrawUV_VS", "DrawX_PS" );
+      src.New("DrawXG", "DrawUV_VS", "DrawXG_PS");
       REPD(dither, 2)
-      REPD(gamma , 2)src.New("DrawXC", "Draw_VS", "DrawXC_PS")("DITHER", dither, "GAMMA", gamma);
+      REPD(gamma , 2)src.New("DrawXC", "DrawUV_VS", "DrawXC_PS")("DITHER", dither, "GAMMA", gamma);
 
       src.New("DrawTexPoint" , "Draw2DTex_VS", "DrawTexPoint_PS");
       src.New("DrawTexPointC", "Draw2DTex_VS", "DrawTexPointC_PS");
@@ -158,12 +158,12 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 
       if(ms) // Multi-Sampling
       {
-         src.New("DrawMs1", "DrawPixel_VS", "DrawMs1_PS");
-         src.New("DrawMsN", "DrawPixel_VS", "DrawMsN_PS");
-         src.New("DrawMsM", "DrawPixel_VS", "DrawMsM_PS").multiSample();
+         src.New("DrawMs1", "Draw_VS", "DrawMs1_PS");
+         src.New("DrawMsN", "Draw_VS", "DrawMsN_PS");
+         src.New("DrawMsM", "Draw_VS", "DrawMsM_PS").multiSample();
 
-         src.New("DetectMSCol", "DrawPixel_VS", "DetectMSCol_PS");
-       //src.New("DetectMSNrm", "DrawPixel_VS", "DetectMSNrm_PS");
+         src.New("DetectMSCol", "Draw_VS", "DetectMSCol_PS");
+       //src.New("DetectMSNrm", "Draw_VS", "DetectMSNrm_PS");
       }
 
       REPD(alpha, 2)
@@ -171,33 +171,33 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       src.New("DrawCubeFace", "DrawCubeFace_VS", "DrawCubeFace_PS");
       src.New("Simple", "Simple_VS", "Simple_PS");
 
-      src.New("Dither", "Draw_VS", "Dither_PS");
+      src.New("Dither", "DrawUV_VS", "Dither_PS");
 
-            src.New("SetAlphaFromDepth"        , "Draw_VS", "SetAlphaFromDepth_PS");
-      if(ms)src.New("SetAlphaFromDepthMS"      , "Draw_VS", "SetAlphaFromDepthMS_PS").multiSample();
-            src.New("SetAlphaFromDepthAndCol"  , "Draw_VS", "SetAlphaFromDepthAndCol_PS");
-      if(ms)src.New("SetAlphaFromDepthAndColMS", "Draw_VS", "SetAlphaFromDepthAndColMS_PS").multiSample();
-            src.New("CombineAlpha"             , "Draw_VS", "CombineAlpha_PS");
-            src.New("ReplaceAlpha"             , "Draw_VS", "ReplaceAlpha_PS");
+            src.New("SetAlphaFromDepth"        , "DrawUV_VS", "SetAlphaFromDepth_PS");
+      if(ms)src.New("SetAlphaFromDepthMS"      , "DrawUV_VS", "SetAlphaFromDepthMS_PS").multiSample();
+            src.New("SetAlphaFromDepthAndCol"  , "DrawUV_VS", "SetAlphaFromDepthAndCol_PS");
+      if(ms)src.New("SetAlphaFromDepthAndColMS", "DrawUV_VS", "SetAlphaFromDepthAndColMS_PS").multiSample();
+            src.New("CombineAlpha"             , "DrawUV_VS", "CombineAlpha_PS");
+            src.New("ReplaceAlpha"             , "DrawUV_VS", "ReplaceAlpha_PS");
 
-      if(ms)src.New("ResolveDepth", "DrawPixel_VS", "ResolveDepth_PS");
-      src.New("SetDepth", "Draw_VS", "SetDepth_PS");
-      src.New("DrawDepth", "Draw_VS", "DrawDepth_PS");
+      if(ms)src.New("ResolveDepth", "Draw_VS", "ResolveDepth_PS");
+      src.New("SetDepth", "DrawUV_VS", "SetDepth_PS");
+      src.New("DrawDepth", "DrawUV_VS", "DrawDepth_PS");
 
       REPD(perspective, 2)
       {
-                src.New("LinearizeDepth0", "Draw_VS"     , "LinearizeDepth0_PS")("PERSPECTIVE", perspective);
-         if(ms){src.New("LinearizeDepth1", "DrawPixel_VS", "LinearizeDepth1_PS")("PERSPECTIVE", perspective);
-                src.New("LinearizeDepth2", "DrawPixel_VS", "LinearizeDepth2_PS")("PERSPECTIVE", perspective).multiSample();
+                src.New("LinearizeDepth0", "DrawUV_VS", "LinearizeDepth0_PS")("PERSPECTIVE", perspective);
+         if(ms){src.New("LinearizeDepth1", "Draw_VS"  , "LinearizeDepth1_PS")("PERSPECTIVE", perspective);
+                src.New("LinearizeDepth2", "Draw_VS"  , "LinearizeDepth2_PS")("PERSPECTIVE", perspective).multiSample();
          }
       }
 
-      src.New("EdgeDetect"     , "DrawPosXY_VS",      "EdgeDetect_PS");
-      src.New("EdgeDetectApply", "Draw_VS"     , "EdgeDetectApply_PS");
+      src.New("EdgeDetect"     , "DrawUVPosXY_VS",      "EdgeDetect_PS");
+      src.New("EdgeDetectApply", "DrawUV_VS"     , "EdgeDetectApply_PS");
 
-      src.New("PaletteDraw", "Draw_VS", "PaletteDraw_PS");
+      src.New("PaletteDraw", "DrawUV_VS", "PaletteDraw_PS");
 
-      if(api==API_GL)src.New("WebLToS", "Draw_VS", "WebLToS_PS"); // #WebSRGB
+      if(api==API_GL)src.New("WebLToS", "DrawUV_VS", "WebLToS_PS"); // #WebSRGB
 
       src.New("Params0", S, "Params0_PS").dummy=true;
       src.New("Params1", S, "Params1_PS").dummy=true;
@@ -212,20 +212,20 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 
       REPD(dither, 2)
       REPD(alpha , 2)
-         src.New("Bloom", "Draw_VS", "Bloom_PS")("DITHER", dither, "ALPHA", alpha);
+         src.New("Bloom", "DrawUV_VS", "Bloom_PS")("DITHER", dither, "ALPHA", alpha);
    }
    { // BLUR
       ShaderCompiler::Source &src=compiler.New(src_path+"Blur.cpp");
-      src.New("BlurX", "Draw_VS", "BlurX_PS")("SAMPLES", 4);
-      src.New("BlurX", "Draw_VS", "BlurX_PS")("SAMPLES", 6);
-      src.New("BlurY", "Draw_VS", "BlurY_PS")("SAMPLES", 4);
-      src.New("BlurY", "Draw_VS", "BlurY_PS")("SAMPLES", 6);
+      src.New("BlurX", "DrawUV_VS", "BlurX_PS")("SAMPLES", 4);
+      src.New("BlurX", "DrawUV_VS", "BlurX_PS")("SAMPLES", 6);
+      src.New("BlurY", "DrawUV_VS", "BlurY_PS")("SAMPLES", 4);
+      src.New("BlurY", "DrawUV_VS", "BlurY_PS")("SAMPLES", 6);
 
-      src.New("BlurX_X", "Draw_VS", "BlurX_X_PS");
-      src.New("BlurY_X", "Draw_VS", "BlurY_X_PS");
+      src.New("BlurX_X", "DrawUV_VS", "BlurX_X_PS");
+      src.New("BlurY_X", "DrawUV_VS", "BlurY_X_PS");
 
-    //src.New("MaxX", "Draw_VS", "MaxX_PS");
-    //src.New("MaxY", "Draw_VS", "MaxY_PS");
+    //src.New("MaxX", "DrawUV_VS", "MaxX_PS");
+    //src.New("MaxY", "DrawUV_VS", "MaxY_PS");
    }
    { // CUBIC
       ShaderCompiler::Source &src=compiler.New(src_path+"Cubic.cpp");
@@ -236,15 +236,15 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       }
       REPD(dither, 2)
       {
-         src.New("DrawTexCubicFastF"   , "Draw_VS", "DrawTexCubicFast_PS"   )("DITHER", dither);
-         src.New("DrawTexCubicFastFRGB", "Draw_VS", "DrawTexCubicFastRGB_PS")("DITHER", dither);
-         src.New("DrawTexCubicF"       , "Draw_VS", "DrawTexCubic_PS"       )("DITHER", dither);
-         src.New("DrawTexCubicFRGB"    , "Draw_VS", "DrawTexCubicRGB_PS"    )("DITHER", dither);
+         src.New("DrawTexCubicFastF"   , "DrawUV_VS", "DrawTexCubicFast_PS"   )("DITHER", dither);
+         src.New("DrawTexCubicFastFRGB", "DrawUV_VS", "DrawTexCubicFastRGB_PS")("DITHER", dither);
+         src.New("DrawTexCubicF"       , "DrawUV_VS", "DrawTexCubic_PS"       )("DITHER", dither);
+         src.New("DrawTexCubicFRGB"    , "DrawUV_VS", "DrawTexCubicRGB_PS"    )("DITHER", dither);
       }
    }
    { // FOG
       ShaderCompiler::Source &src=compiler.New(src_path+"Fog.cpp");
-      REPD(multi_sample, ms ? 3 : 1)src.New("Fog", "DrawPosXY_VS", "Fog_PS")("MULTI_SAMPLE", multi_sample).multiSample(multi_sample>=2);
+      REPD(multi_sample, ms ? 3 : 1)src.New("Fog", "DrawUVPosXY_VS", "Fog_PS")("MULTI_SAMPLE", multi_sample).multiSample(multi_sample>=2);
    }
    { // FONT
       ShaderCompiler::Source &src=compiler.New(src_path+"Font.cpp");
@@ -262,13 +262,13 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       REPD(multi_sample, ms ? 2 : 1)
       REPD(water       , 2)
       {
-                           src.New("DrawLightDir"     , "DrawPosXY_VS", "LightDir_PS"   ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water); // Directional light is always fullscreen, so can use 2D shader
+                           src.New("DrawLightDir"     , "DrawUVPosXY_VS", "LightDir_PS"   ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water); // Directional light is always fullscreen, so can use 2D shader
          REPD(gl_es, (api==API_GL) ? 2 : 1) // GL ES doesn't support NOPERSP and 'D.depthClip'
          {
-                           src.New("DrawLightPoint"   , "Geom_VS"     , "LightPoint_PS" ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water)(                "GL_ES", gl_es).extra("CLAMP_DEPTH", gl_es);  // 3D Geom Mesh (only ball based are depth-clamped, because Dir is fullscreen and Cone has too many artifacts when depth clamping)
-                           src.New("DrawLightLinear"  , "Geom_VS"     , "LightLinear_PS").multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water)(                "GL_ES", gl_es).extra("CLAMP_DEPTH", gl_es);  // 3D Geom Mesh (only ball based are depth-clamped, because Dir is fullscreen and Cone has too many artifacts when depth clamping)
-            REPD(image, 2){src.New("DrawLightCone"    , "Geom_VS"     , "LightCone_PS"  ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water)("IMAGE", image, "GL_ES", gl_es)                            ;  // 3D Geom Mesh
-                  if(gl_es)src.New("DrawLightConeFlat", "DrawPosXY_VS", "LightCone_PS"  ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water)("IMAGE", image                )                            ;} // 2D Flat
+                           src.New("DrawLightPoint"   , "Geom_VS"       , "LightPoint_PS" ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water)(                "GL_ES", gl_es).extra("CLAMP_DEPTH", gl_es);  // 3D Geom Mesh (only ball based are depth-clamped, because Dir is fullscreen and Cone has too many artifacts when depth clamping)
+                           src.New("DrawLightLinear"  , "Geom_VS"       , "LightLinear_PS").multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water)(                "GL_ES", gl_es).extra("CLAMP_DEPTH", gl_es);  // 3D Geom Mesh (only ball based are depth-clamped, because Dir is fullscreen and Cone has too many artifacts when depth clamping)
+            REPD(image, 2){src.New("DrawLightCone"    , "Geom_VS"       , "LightCone_PS"  ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water)("IMAGE", image, "GL_ES", gl_es)                            ;  // 3D Geom Mesh
+                  if(gl_es)src.New("DrawLightConeFlat", "DrawUVPosXY_VS", "LightCone_PS"  ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water)("IMAGE", image                )                            ;} // 2D Flat
          }
       }
    }
@@ -280,23 +280,23 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       REPD(night_shade , 2)
       REPD(glow        , 2)
       REPD(reflect     , 2)
-         src.New("ApplyLight", "DrawPosXY_VS", "ApplyLight_PS")("MULTI_SAMPLE", multi_sample, "AO", ao, "CEL_SHADE", cel_shade, "NIGHT_SHADE", night_shade)("GLOW", glow, "REFLECT", reflect);
+         src.New("ApplyLight", "DrawUVPosXY_VS", "ApplyLight_PS")("MULTI_SAMPLE", multi_sample, "AO", ao, "CEL_SHADE", cel_shade, "NIGHT_SHADE", night_shade)("GLOW", glow, "REFLECT", reflect);
    }
    { // SHADOW
       ShaderCompiler::Source &src=compiler.New(src_path+"Shadow.cpp");
       REPD(multi_sample, ms ? 2 : 1)
       {
          REPD(map_num, 6)
-         REPD(cloud  , 2)src.New("ShdDir"  , "DrawPosXY_VS", "ShdDir_PS"  ).multiSample(multi_sample)("MULTI_SAMPLE", multi_sample, "MAP_NUM", map_num+1, "CLOUD", cloud);
-                         src.New("ShdPoint", "DrawPosXY_VS", "ShdPoint_PS").multiSample(multi_sample)("MULTI_SAMPLE", multi_sample);
-                         src.New("ShdCone" , "DrawPosXY_VS", "ShdCone_PS" ).multiSample(multi_sample)("MULTI_SAMPLE", multi_sample);
+         REPD(cloud  , 2)src.New("ShdDir"  , "DrawUVPosXY_VS", "ShdDir_PS"  ).multiSample(multi_sample)("MULTI_SAMPLE", multi_sample, "MAP_NUM", map_num+1, "CLOUD", cloud);
+                         src.New("ShdPoint", "DrawUVPosXY_VS", "ShdPoint_PS").multiSample(multi_sample)("MULTI_SAMPLE", multi_sample);
+                         src.New("ShdCone" , "DrawUVPosXY_VS", "ShdCone_PS" ).multiSample(multi_sample)("MULTI_SAMPLE", multi_sample);
       }
       REPD(gl_es       , (api==API_GL) ? 2 : 1) // GL ES doesn't support NOPERSP, 'D.depthClip' and TexDepthLinear (0=no GL ES, 1=GL ES)
       REPD(geom        , 2)
       REPD(linear_depth, 2)
       REPD(gather      , 2)
       {
-         CChar8 *vs=(geom ? "Geom_VS" : "Draw_VS");
+         CChar8 *vs=(geom ? "Geom_VS" : "DrawUV_VS");
          src.New("ShdBlur"      , vs, "ShdBlur_PS"      )("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("SAMPLES",  4).gather(gather);
        //src.New("ShdBlur"      , vs, "ShdBlur_PS"      )("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("SAMPLES",  5).gather(gather);
          src.New("ShdBlur"      , vs, "ShdBlur_PS"      )("GEOM", geom, "LINEAR_DEPTH", linear_depth, "GATHER", gather)("GL_ES", gl_es)("SAMPLES",  6).gather(gather);
@@ -313,10 +313,10 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    }
    { // OUTLINE
       ShaderCompiler::Source &src=compiler.New(src_path+"Outline.cpp");
-      src.New("Outline", "Draw_VS", "Outline_PS")("DOWN_SAMPLE", 0, "DISCARD", 0);
-      src.New("Outline", "Draw_VS", "Outline_PS")("DOWN_SAMPLE", 1, "DISCARD", 0);
-      src.New("Outline", "Draw_VS", "Outline_PS")("DOWN_SAMPLE", 0, "DISCARD", 1);
-      src.New("OutlineApply", "Draw_VS", "OutlineApply_PS");
+      src.New("Outline", "DrawUV_VS", "Outline_PS")("DOWN_SAMPLE", 0, "DISCARD", 0);
+      src.New("Outline", "DrawUV_VS", "Outline_PS")("DOWN_SAMPLE", 1, "DISCARD", 0);
+      src.New("Outline", "DrawUV_VS", "Outline_PS")("DOWN_SAMPLE", 0, "DISCARD", 1);
+      src.New("OutlineApply", "DrawUV_VS", "OutlineApply_PS");
    }
    { // PARTICLES
       ShaderCompiler::Source &src=compiler.New(src_path+"Particles.cpp");
@@ -364,13 +364,13 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    }
    { // SUN
       ShaderCompiler::Source &src=compiler.New(src_path+"Sun.cpp");
-      REPD(mask, 2)src.New("SunRaysMask", "DrawPosXY_VS", "SunRaysMask_PS")("MASK", mask);
+      REPD(mask, 2)src.New("SunRaysMask", "DrawUVPosXY_VS", "SunRaysMask_PS")("MASK", mask);
 
       REPD(mask  , 2)
       REPD(dither, 2)
       REPD(jitter, 2)
       REPD(gamma , 2)
-         src.New("SunRays", "DrawPosXY_VS", "SunRays_PS")("MASK", mask, "DITHER", dither, "JITTER", jitter, "GAMMA", gamma);
+         src.New("SunRays", "DrawUVPosXY_VS", "SunRays_PS")("MASK", mask, "DITHER", dither, "JITTER", jitter, "GAMMA", gamma);
    }
    { // TAA
       ShaderCompiler::Source &src=compiler.New(src_path+"TAA.cpp");
@@ -379,7 +379,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       REPD(dual          , 2)
       REPD(gather        , 2)
       REPD(filter_min_max, 2)
-         src.New("TAA", "Draw_VS", "TAA_PS")("VIEW_FULL", view_full, "ALPHA", alpha, "DUAL_HISTORY", dual, "GATHER", gather)("FILTER_MIN_MAX", filter_min_max).gatherChannel(gather);
+         src.New("TAA", "DrawUV_VS", "TAA_PS")("VIEW_FULL", view_full, "ALPHA", alpha, "DUAL_HISTORY", dual, "GATHER", gather)("FILTER_MIN_MAX", filter_min_max).gatherChannel(gather);
    }
    { // VIDEO
       ShaderCompiler::Source &src=compiler.New(src_path+"Video.cpp");
@@ -441,19 +441,19 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    REPD(alpha    , 2)
    REPD(half_res , 2)
    REPD(mode     , 3)
-      src.New("DofDS", "Draw_VS", "DofDS_PS")("VIEW_FULL", view_full, "REALISTIC", realistic, "ALPHA", alpha, "HALF_RES", half_res)("MODE", mode).gather(mode==1);
+      src.New("DofDS", "DrawUV_VS", "DofDS_PS")("VIEW_FULL", view_full, "REALISTIC", realistic, "ALPHA", alpha, "HALF_RES", half_res)("MODE", mode).gather(mode==1);
 
    REPD(alpha, 2)
    for(Int range=2; range<=12; range++)
    {
-      src.New("DofBlurX", "Draw_VS", "DofBlurX_PS")("ALPHA", alpha, "RANGE", range);
-      src.New("DofBlurY", "Draw_VS", "DofBlurY_PS")("ALPHA", alpha, "RANGE", range);
+      src.New("DofBlurX", "DrawUV_VS", "DofBlurX_PS")("ALPHA", alpha, "RANGE", range);
+      src.New("DofBlurY", "DrawUV_VS", "DofBlurY_PS")("ALPHA", alpha, "RANGE", range);
    }
 
    REPD(dither   , 2)
    REPD(realistic, 2)
    REPD(alpha    , 2)
-      src.New("Dof", "Draw_VS", "Dof_PS")("DITHER", dither, "REALISTIC", realistic, "ALPHA", alpha);
+      src.New("Dof", "DrawUV_VS", "Dof_PS")("DITHER", dither, "REALISTIC", realistic, "ALPHA", alpha);
 }
 #endif
 
@@ -467,14 +467,14 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 #ifdef EFFECTS_2D
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Effects 2D", model, api, flag).New(src_path+"Effects 2D.cpp");
-   src.New("ColTrans"   , "Draw_VS", "ColTrans_PS");
-   src.New("ColTransHB" , "Draw_VS", "ColTransHB_PS");
-   src.New("ColTransHSB", "Draw_VS", "ColTransHSB_PS");
+   src.New("ColTrans"   , "DrawUV_VS", "ColTrans_PS");
+   src.New("ColTransHB" , "DrawUV_VS", "ColTransHB_PS");
+   src.New("ColTransHSB", "DrawUV_VS", "ColTransHSB_PS");
 
-   src.New("Fade", "Draw_VS", "Fade_PS");
-   src.New("RadialBlur", "Draw_VS", "RadialBlur_PS");
+   src.New("Fade", "DrawUV_VS", "Fade_PS");
+   src.New("RadialBlur", "DrawUV_VS", "RadialBlur_PS");
    src.New("Ripple", "Draw2DTex_VS", "Ripple_PS");
-   src.New("Titles", "Draw_VS", "Titles_PS");
+   src.New("Titles", "DrawUV_VS", "Titles_PS");
    src.New("Wave", "Wave_VS", "Wave_PS");
 }
 #endif
@@ -542,14 +542,14 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 #ifdef FXAA // FXAA unlike SMAA is kept outside of Main shader, because it's rarely used.
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"FXAA", model, api, flag).New(src_path+"FXAA.cpp");
-   REPD(gamma, 2)src.New("FXAA", "Draw_VS", "FXAA_PS")("GAMMA", gamma);
+   REPD(gamma, 2)src.New("FXAA", "DrawUV_VS", "FXAA_PS")("GAMMA", gamma);
 }
 #endif
 
 #ifdef HDR
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Hdr", model, api, flag).New(src_path+"Hdr.cpp");
-   REPD(step, 2)src.New("HdrDS", "Draw_VS", "HdrDS_PS")("STEP", step);
+   REPD(step, 2)src.New("HdrDS", "DrawUV_VS", "HdrDS_PS")("STEP", step);
 
    src.New("HdrUpdate", "Draw_VS", "HdrUpdate_PS");
 
@@ -573,11 +573,11 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    ASSERT(6==Elms(Mtn.Convert));
    REPD(range    , 6)
    REPD(view_full, 2)
-      src.New("Convert", "Draw_VS", "Convert_PS")("VIEW_FULL", view_full, "RANGE", 1<<range);
+      src.New("Convert", "DrawUV_VS", "Convert_PS")("VIEW_FULL", view_full, "RANGE", 1<<range);
 
    const Int dilate_ranges[]={1, 2, 3, 4, 6, 8, 10, 12, 16, 20, 24, 32, 40, 48}; ASSERT(Elms(dilate_ranges)==Elms(Mtn.Dilates)); // #MotionBlurDilateRanges
    REPAD(range, dilate_ranges)
-      src.New("Dilate", "Draw_VS", "Dilate_PS")("RANGE", dilate_ranges[range]);
+      src.New("Dilate", "DrawUV_VS", "Dilate_PS")("RANGE", dilate_ranges[range]);
 
    const Int samples[]={5, 7, 9, 14}; ASSERT(Elms(samples)==Elms(Mtn.Blurs)); // 5-720, 7-1080, 9-1440, 14-2160 #MotionBlurSamples
    REPD (dither   , 2)
@@ -587,7 +587,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    REPD (view_full, 2)
    REPD (gather   , taa ? 2 : 1) // gather only needed for TAA
    REPAD(sample   , samples)
-      src.New("Blur", "Draw_VS", "Blur_PS")("DITHER", dither, "JITTER", jitter, "ALPHA", alpha)("HAS_TAA", taa, "VIEW_FULL", view_full, "GATHER", gather)("SAMPLES", samples[sample]).gatherChannel(gather);
+      src.New("Blur", "DrawUV_VS", "Blur_PS")("DITHER", dither, "JITTER", jitter, "ALPHA", alpha)("HAS_TAA", taa, "VIEW_FULL", view_full, "GATHER", gather)("SAMPLES", samples[sample]).gatherChannel(gather);
 }
 #endif
 
@@ -646,13 +646,13 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Volumetric Lights", model, api, flag).New(src_path+"Volumetric Lights.cpp");
    REPD(num  , 6)
    REPD(cloud, 2)
-      src.New("VolDir", "DrawPosXY_VS", "VolDir_PS")("NUM", num+1, "CLOUD", cloud);
+      src.New("VolDir", "DrawUVPosXY_VS", "VolDir_PS")("NUM", num+1, "CLOUD", cloud);
 
-   src.New("VolPoint" , "DrawPosXY_VS", "VolPoint_PS" );
-   src.New("VolLinear", "DrawPosXY_VS", "VolLinear_PS");
-   src.New("VolCone"  , "DrawPosXY_VS", "VolCone_PS"  );
+   src.New("VolPoint" , "DrawUVPosXY_VS", "VolPoint_PS" );
+   src.New("VolLinear", "DrawUVPosXY_VS", "VolLinear_PS");
+   src.New("VolCone"  , "DrawUVPosXY_VS", "VolCone_PS"  );
 
-   REPD(add, 2)src.New("Volumetric", "Draw_VS", "Volumetric_PS")("ADD", add);
+   REPD(add, 2)src.New("Volumetric", "DrawUV_VS", "Volumetric_PS")("ADD", add);
 }
 #endif
 
@@ -676,9 +676,9 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
             src.New("Ocean", "Surface_VS", "Surface_PS")("LIGHT", 1, "SHADOW", shadow, "SOFT", soft)("REFLECT_ENV", reflect_env, "REFLECT_MIRROR", reflect_mirror, "REFRACT", refract, "GATHER", gather).extra("WAVES", 1, "RIVER", 0).gather(gather);
          }
          REPD(set_depth, 2)
-            src.New("Apply", "DrawPosXY_VS", "Apply_PS")("SET_DEPTH", set_depth)("REFLECT_ENV", reflect_env, "REFLECT_MIRROR", reflect_mirror, "REFRACT", refract, "GATHER", gather).gather(gather);
+            src.New("Apply", "DrawUVPosXY_VS", "Apply_PS")("SET_DEPTH", set_depth)("REFLECT_ENV", reflect_env, "REFLECT_MIRROR", reflect_mirror, "REFRACT", refract, "GATHER", gather).gather(gather);
       }
-      src.New("Under", "DrawPosXY_VS", "Under_PS")("REFRACT", refract);
+      src.New("Under", refract ? "DrawUVPosXY_VS" : "DrawPosXY_VS", "Under_PS")("REFRACT", refract);
    }
 }
 #endif
