@@ -232,6 +232,7 @@ GATHER returns in following order: V1 X  Y
 #define TexDepthRawGatherOfs(  uv, ofs)                  TexGatherOfs(Depth  , uv, ofs)
 #define TexDepthRawMS(   pixel, sample)                  TexSample   (DepthMS, pixel, sample).x
 #define TexDepthMS(      pixel, sample)   LinearizeDepth(TexSample   (DepthMS, pixel, sample).x)
+#define TexDepthPix(     pixel        )   LinearizeDepth(             Depth  [ pixel])
 
 #if !GL
 #define TexShadow(image, uvw)   image.SampleCmpLevelZero(SamplerShadowMap, uvw.xy, uvw.z)
@@ -1182,12 +1183,12 @@ Vec GetPos(Flt z, Vec2 pos_xy) // Get Viewspace Position at 'z' depth, 'pos_xy'=
                     pos.xy=pos_xy*pos.z;
    return pos;
 }
-Vec GetPosPoint (Vec2 uv             ) {return GetPos(TexDepthPoint (uv), UVToPosXY(uv));} // Get Viewspace Position at 'uv' coordinates
-Vec GetPosPoint (Vec2 uv, Vec2 pos_xy) {return GetPos(TexDepthPoint (uv), pos_xy       );} // Get Viewspace Position at 'uv' coordinates, 'pos_xy'=known xy position at depth=1
-Vec GetPosLinear(Vec2 uv             ) {return GetPos(TexDepthLinear(uv), UVToPosXY(uv));} // Get Viewspace Position at 'uv' coordinates
-Vec GetPosLinear(Vec2 uv, Vec2 pos_xy) {return GetPos(TexDepthLinear(uv), pos_xy       );} // Get Viewspace Position at 'uv' coordinates, 'pos_xy'=known xy position at depth=1
-
-Vec GetPosMS(VecI2 pixel, UInt sample, Vec2 pos_xy) {return GetPos(TexDepthMS(pixel, sample), pos_xy);}
+Vec GetPosPix   (VecI2 pixel,              Vec2 pos_xy) {return GetPos(TexDepthPix   (pixel        ),     pos_xy   );}
+Vec GetPosMS    (VecI2 pixel, UInt sample, Vec2 pos_xy) {return GetPos(TexDepthMS    (pixel, sample),     pos_xy   );}
+Vec GetPosPoint (Vec2  uv                             ) {return GetPos(TexDepthPoint (uv           ), UVToPosXY(uv));} // Get Viewspace Position at 'uv' coordinates
+Vec GetPosPoint (Vec2  uv   ,              Vec2 pos_xy) {return GetPos(TexDepthPoint (uv           ),     pos_xy   );} // Get Viewspace Position at 'uv' coordinates, 'pos_xy'=known xy position at depth=1
+Vec GetPosLinear(Vec2  uv                             ) {return GetPos(TexDepthLinear(uv           ), UVToPosXY(uv));} // Get Viewspace Position at 'uv' coordinates
+Vec GetPosLinear(Vec2  uv   ,              Vec2 pos_xy) {return GetPos(TexDepthLinear(uv           ),     pos_xy   );} // Get Viewspace Position at 'uv' coordinates, 'pos_xy'=known xy position at depth=1
 /******************************************************************************/
 // sRGB
 /******************************************************************************/

@@ -181,7 +181,7 @@ VecH4 CloudsDraw_PS(NOPERSP Vec2  uv   :UV,
 #if 1
    clouds.y*=Sat(TexDepthPoint(uv)*Length(Vec(posXY, 1))*SkyFracMulAdd.x+SkyFracMulAdd.y);
 #else
-   Vec pos=GetPosPoint(uv, posXY); clouds.y*=Sat(Length(pos)*SkyFracMulAdd.x+SkyFracMulAdd.y);
+   Vec pos=GetPosPix(pixel.xy, posXY); clouds.y*=Sat(Length(pos)*SkyFracMulAdd.x+SkyFracMulAdd.y);
 #endif
    VecH c=Color[0].rgb*clouds.x;
 #if GAMMA

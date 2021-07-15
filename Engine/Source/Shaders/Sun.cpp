@@ -13,8 +13,14 @@ BUFFER(Sun)
 BUFFER_END
 #include "!Set Prec Default.h"
 /******************************************************************************/
-Half SunRaysMask_PS(NOPERSP Vec2 uv   :UV,
-                    NOPERSP Vec2 posXY:POS_XY):TARGET
+Half SunRaysMask_PS
+(
+#if MASK
+   NOPERSP Vec2 uv:UV,
+#endif
+   NOPERSP Vec2 posXY:POS_XY,
+   NOPERSP PIXEL
+):TARGET
 {
 #if MASK // for this version we have to use linear depth filtering, because RT is of different size, and otherwise too much artifacts/flickering is generated
    #if REVERSE_DEPTH // we can use the simple version for REVERSE_DEPTH
@@ -26,9 +32,9 @@ Half SunRaysMask_PS(NOPERSP Vec2 uv   :UV,
       return m*TexLod(ImgX, uv).x; // use linear filtering because 'ImgX' can be of different size
 #else // can use point filtering here
    #if REVERSE_DEPTH // we can use the simple version for REVERSE_DEPTH
-      return Length2(GetPosPoint(uv, posXY))>=Sqr(Viewport.range);
+      return Length2(GetPosPix(pixel.xy, posXY))>=Sqr(Viewport.range);
    #else // need safer
-      Flt z=TexDepthRawPoint(uv);
+      Flt z=Depth[pixel.xy];
       return DEPTH_BACKGROUND(z) || Length2(GetPos(LinearizeDepth(z), posXY))>=Sqr(Viewport.range);
    #endif
 #endif

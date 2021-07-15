@@ -47,8 +47,7 @@ void Geom_VS // for 3D Geom
 /******************************************************************************/
 // SHADOW SET
 /******************************************************************************/
-Half ShdDir_PS(NOPERSP Vec2 uv   :UV,
-               NOPERSP Vec2 posXY:POS_XY,
+Half ShdDir_PS(NOPERSP Vec2 posXY:POS_XY,
                NOPERSP PIXEL                 
             #if MULTI_SAMPLE
                      , UInt index:SV_SampleIndex
@@ -58,12 +57,11 @@ Half ShdDir_PS(NOPERSP Vec2 uv   :UV,
 #if MULTI_SAMPLE
    return ShadowDirValue(GetPosMS(pixel.xy, index, posXY), ShadowJitter(pixel.xy), true, MAP_NUM, CLOUD);
 #else
-   return ShadowDirValue(GetPosPoint(uv, posXY), ShadowJitter(pixel.xy), true, MAP_NUM, CLOUD);
+   return ShadowDirValue(GetPosPix(pixel.xy, posXY), ShadowJitter(pixel.xy), true, MAP_NUM, CLOUD);
 #endif
 }
 /******************************************************************************/
-Half ShdPoint_PS(NOPERSP Vec2 uv   :UV,
-                 NOPERSP Vec2 posXY:POS_XY,
+Half ShdPoint_PS(NOPERSP Vec2 posXY:POS_XY,
                  NOPERSP PIXEL                 
               #if MULTI_SAMPLE
                        , UInt index:SV_SampleIndex
@@ -73,12 +71,11 @@ Half ShdPoint_PS(NOPERSP Vec2 uv   :UV,
 #if MULTI_SAMPLE
    return ShadowPointValue(GetPosMS(pixel.xy, index, posXY), ShadowJitter(pixel.xy), true);
 #else
-   return ShadowPointValue(GetPosPoint(uv, posXY), ShadowJitter(pixel.xy), true);
+   return ShadowPointValue(GetPosPix(pixel.xy, posXY), ShadowJitter(pixel.xy), true);
 #endif
 }
 /******************************************************************************/
-Half ShdCone_PS(NOPERSP Vec2 uv   :UV,
-                NOPERSP Vec2 posXY:POS_XY,
+Half ShdCone_PS(NOPERSP Vec2 posXY:POS_XY,
                 NOPERSP PIXEL                 
              #if MULTI_SAMPLE
                       , UInt index:SV_SampleIndex
@@ -88,7 +85,7 @@ Half ShdCone_PS(NOPERSP Vec2 uv   :UV,
 #if MULTI_SAMPLE
    return ShadowConeValue(GetPosMS(pixel.xy, index, posXY), ShadowJitter(pixel.xy), true);
 #else
-   return ShadowConeValue(GetPosPoint(uv, posXY), ShadowJitter(pixel.xy), true);
+   return ShadowConeValue(GetPosPix(pixel.xy, posXY), ShadowJitter(pixel.xy), true);
 #endif
 }
 /******************************************************************************/

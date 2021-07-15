@@ -25,7 +25,6 @@ void Geom_VS // for 3D Geom
 (
            VtxInput vtx,
 #if !GL_ES
-   out NOPERSP Vec2 uv   :UV,
    out NOPERSP Vec2 posXY:POS_XY,
 #endif
    out         Vec4 pixel:POSITION
@@ -42,8 +41,8 @@ void Geom_VS // for 3D Geom
 #endif
 
 #if !GL_ES
-   uv   =ProjectedPosToUV   (pixel);
-   posXY=          UVToPosXY(uv);
+   Vec2 uv   =ProjectedPosToUV   (pixel);
+        posXY=          UVToPosXY(uv);
 #endif
 }
 /******************************************************************************/
@@ -51,7 +50,6 @@ void Geom_VS // for 3D Geom
 /******************************************************************************/
 VecH LightDir_PS
 (
-   NOPERSP Vec2 uv   :UV,
    NOPERSP Vec2 posXY:POS_XY,
    NOPERSP PIXEL // 2D
 #if MULTI_SAMPLE
@@ -110,7 +108,6 @@ VecH LightDir_PS
 VecH LightPoint_PS
 (
 #if !GL_ES // doesn't support NOPERSP
-   NOPERSP Vec2 uv   :UV,
    NOPERSP Vec2 posXY:POS_XY,
 #endif
    PIXEL // 3D
@@ -138,7 +135,7 @@ VecH LightPoint_PS
 #if MULTI_SAMPLE
    Vec pos=GetPosMS(pix, index, posXY);
 #else
-   Vec pos=GetPosPoint(uv, posXY);
+   Vec pos=GetPosPix(pix, posXY);
 #endif
    Vec  delta=LightPoint.pos-pos; Flt inv_dist2=1/Length2(delta);
    Half lum  =LightPointDist(inv_dist2); if(SHADOW)lum*=shadow; if(lum<=EPS_LUM)discard;
@@ -184,7 +181,6 @@ VecH LightPoint_PS
 VecH LightLinear_PS
 (
 #if !GL_ES // doesn't support NOPERSP
-   NOPERSP Vec2 uv   :UV,
    NOPERSP Vec2 posXY:POS_XY,
 #endif
    PIXEL // 3D
@@ -212,7 +208,7 @@ VecH LightLinear_PS
 #if MULTI_SAMPLE
    Vec pos=GetPosMS(pix, index, posXY);
 #else
-   Vec pos=GetPosPoint(uv, posXY);
+   Vec pos=GetPosPix(pix, posXY);
 #endif
    Vec  delta=LightLinear.pos-pos; Flt dist=Length(delta);
    Half lum  =LightLinearDist(dist); if(SHADOW)lum*=shadow; if(lum<=EPS_LUM)discard;
@@ -258,7 +254,6 @@ VecH LightLinear_PS
 VecH LightCone_PS
 (
 #if !GL_ES // doesn't support NOPERSP
-   NOPERSP Vec2 uv   :UV,
    NOPERSP Vec2 posXY:POS_XY,
 #endif
    PIXEL // 3D
@@ -286,7 +281,7 @@ VecH LightCone_PS
 #if MULTI_SAMPLE
    Vec pos=GetPosMS(pix, index, posXY);
 #else
-   Vec pos=GetPosPoint(uv, posXY);
+   Vec pos=GetPosPix(pix, posXY);
 #endif
    Vec  delta=LightCone.pos-pos,
         dir  =TransformTP(delta, LightCone.mtrx); dir.xy/=dir.z; clip(Vec(1-Abs(dir.xy), dir.z));

@@ -81,9 +81,10 @@ void SetVel_VS(VtxInput vtx,
    pixel=vtx.pos4();
 }
 VecH2 SetVel_PS(NOPERSP Vec2 uv   :UV,
-                NOPERSP Vec2 posXY:POS_XY):TARGET
+                NOPERSP Vec2 posXY:POS_XY,
+                NOPERSP PIXEL):TARGET
 {
-   Vec pos=GetPosPoint(uv, posXY);
+   Vec pos=GetPosPix(pixel.xy, posXY);
    return GetMotionCameraOnly(pos, uv);
 }
 /******************************************************************************/

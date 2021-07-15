@@ -381,11 +381,17 @@ VecH4 Apply_PS(NOPERSP Vec2 uv   :UV,
 }
 /******************************************************************************/
 // REFRACT
-VecH4 Under_PS(NOPERSP Vec2 uv   :UV,
-               NOPERSP Vec2 posXY:POS_XY):TARGET
+VecH4 Under_PS
+(
+#if REFRACT
+   NOPERSP Vec2 uv:UV,
+#endif
+   NOPERSP Vec2 posXY:POS_XY,
+   NOPERSP PIXEL
+):TARGET
 {
    // underwater refraction
-   if(REFRACT)
+   #if REFRACT
    {
       Flt dist      =Viewport.range;
       Flt to_surface=-DistPointPlaneRay(Vec(0, 0, 0), WaterPlanePos, WaterPlaneNrm, Normalize(Vec(posXY, 1)));
@@ -401,8 +407,13 @@ VecH4 Under_PS(NOPERSP Vec2 uv   :UV,
       uv =(uv-0.5)/(1+2*refract_len)+0.5; // scale texture coordinates to avoid clamping
    #endif
    }
+   #endif
 
-   Vec pos       =(REFRACT ? GetPosLinear(uv) : GetPosPoint(uv, posXY));
+#if REFRACT
+   Vec pos=GetPosLinear(uv);
+#else
+   Vec pos=GetPosPix(pixel.xy, posXY);
+#endif
    Flt dist      =Length(pos);
    Vec ray       =pos/dist; // Normalize(pos); should be no NaN because pos.z should be always >0
    Flt to_surface=-DistPointPlaneRay(Vec(0, 0, 0), WaterPlanePos, WaterPlaneNrm, ray);
@@ -444,7 +455,10 @@ VecH4 Under_PS(NOPERSP Vec2 uv   :UV,
 
    VecH water_col=Lerp(Water_color_underwater0, Water_color_underwater1, water_density);
 
-   return REFRACT ? Lerp(TexLod(Img, uv), VecH4(water_col, 0), opacity)
-                  :                       VecH4(water_col    , opacity);
+#if REFRACT
+   return Lerp(TexLod(Img, uv), VecH4(water_col, 0), opacity);
+#else
+   return                       VecH4(water_col    , opacity);
+#endif
 }
 /******************************************************************************/
