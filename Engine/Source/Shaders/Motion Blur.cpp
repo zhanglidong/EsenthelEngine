@@ -257,7 +257,8 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
                        +w1*TexLod(Img, uv1).MASK; // use linear filtering
             weight+=w0+w1;
          }
-         base_color.MASK=color_blur/(weight+(JITTER ? 0 : 1)); // already have 1 sample (only used without JITTER)
+         if(!JITTER || weight>0.5) // update only if have any samples
+            base_color.MASK=color_blur/(weight+(JITTER ? 0 : 1)); // already have 1 sample (only used without JITTER)
 
          if(SHOW_BLUR_PIXELS)base_color.g+=0.1;
       }else
