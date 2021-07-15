@@ -293,12 +293,8 @@ void PS
       BRANCH if(GetLod(I.uv, DEFAULT_TEX_SIZE)<=4)
    #endif
       {
-      #if !GL
          Vec2 TexSize; BUMP_IMAGE.GetDimensions(TexSize.x, TexSize.y);
-      #else
-         Flt TexSize=DEFAULT_TEX_SIZE; // on GL using 'GetDimensions' would force create a secondary sampler for 'BUMP_IMAGE'
-      #endif
-         Flt lod=Max(0, GetLod(I.uv, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
+         Flt  lod=Max(0, GetLod(I.uv, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
          //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
 
          VecH tpos=I.tpos();
