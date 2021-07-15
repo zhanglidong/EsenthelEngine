@@ -1349,6 +1349,17 @@ ShaderGL::~ShaderGL()
    }
    // no need to release 'vs,ps' shaders since they're just copies from 'Shader*GL'
 }
+ComputeShaderGL::~ComputeShaderGL()
+{
+   if(prog)
+   {
+   #if GL_LOCK
+      SyncLocker locker(D._lock);
+   #endif
+      if(D.created())glDeleteProgram(prog); prog=0; // clear while in lock
+   }
+   // no need to release 'cs' shaders since they're just copies from 'Shader*GL'
+}
 Str ShaderGL::source()C
 {
    return S+"Vertex Shader:\n"+ShaderSource(vs)
