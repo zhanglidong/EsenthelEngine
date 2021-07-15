@@ -22,6 +22,8 @@ Img=Nrm, Depth=depth
 #define AO_PATTERN 2
 
 #define AO_MODE AO_AVG
+
+#define DYNAMIC 1 // 1=faster
 /******************************************************************************/
 #if AO_MODE==AO_PATTERN
 #include "!Set Prec Struct.h"
@@ -318,14 +320,19 @@ Half AO_PS
          Int pixel_range=W ? (E ? Round(Sum(offs_scale*RTSize.zw)) : Ceil(Sum(offs_scale*RTSize.zw))) : (E ? Sum(Round(offs_scale*RTSize.zw)) : Sum(Ceil(offs_scale*RTSize.zw)));
          max_steps=Min(max_steps, pixel_range);
       }*/
-      LOOP for(Int a=0; a<angles; a++)
+   #if DYNAMIC
+      LOOP 
+   #else
+      UNROLL
+   #endif
+         for(Int a=0; a<angles; a++)
       {
          Flt  angle=a; if(JITTER)angle+=jitter_angle; angle*=PI2/angles; // this is best for cache
          Vec2 dir2; CosSin(dir2.x, dir2.y, angle);
          Vec  dir=Tangent(dir2, nrm_scaled, eye_dir);
          dir2*=offs_scale;
 
-      #if 1 // this reduces performance but increases quality on viewport edges, by disabling instant darkening when objects appear on the borders, instead it smoothens the darkening based on how much the object appeared in the viewport
+      #if DYNAMIC // this reduces performance but increases quality on viewport edges, by disabling instant darkening when objects appear on the borders, instead it smoothens the darkening based on how much the object appeared in the viewport
          Flt frac=ViewportClamp(inTex+dir2, dir2);
          // instead of reducing movement "dir2*=1-frac;" limit number of steps, because reduced movement would change weights for samples
          Int steps=Floor(max_steps*(1-frac)+HALF_MIN+(JITTER?jitter_step:0)); // this will have the same effect as if ignoring samples outside of viewport
@@ -358,6 +365,9 @@ Half AO_PS
           //w=Max(0.5, w); // fix artifacts, this increases weight if it's small, which results in brightening because we don't touch occlusion
           //w=Max(1, 1/Sqrt(delta_len2));
             o*=w;
+         #if !DYNAMIC
+            if(UVOutsideView(uv)){o=0; w=0.5;}
+         #endif
             occl  +=o;
             weight+=w;
          }
