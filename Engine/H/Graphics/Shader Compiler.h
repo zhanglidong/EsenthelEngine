@@ -107,14 +107,14 @@ struct ShaderCompiler
    };
    struct IO
    {
+      Byte index, reg, type, precision, mask;
       Str8 name;
-      Int  index, reg;
 
    #if WINDOWS
-      void operator=(C D3D11_SIGNATURE_PARAMETER_DESC &desc) {name=desc.SemanticName; index=desc.SemanticIndex; reg=desc.Register;}
-      void operator=(C D3D12_SIGNATURE_PARAMETER_DESC &desc) {name=desc.SemanticName; index=desc.SemanticIndex; reg=desc.Register;}
+      void operator=(C D3D11_SIGNATURE_PARAMETER_DESC &desc) {name=desc.SemanticName; index=desc.SemanticIndex; reg=desc.Register; type=desc.ComponentType; precision=desc.MinPrecision; mask=desc.Mask;}
+      void operator=(C D3D12_SIGNATURE_PARAMETER_DESC &desc) {name=desc.SemanticName; index=desc.SemanticIndex; reg=desc.Register; type=desc.ComponentType; precision=desc.MinPrecision; mask=desc.Mask;}
    #endif
-      Bool operator==(C IO &io)C {return index==io.index && reg==io.reg && Equal(name, io.name, true);}
+      Bool operator==(C IO &io)C {return index==io.index && reg==io.reg && type==io.type && precision==io.precision && mask==io.mask && Equal(name, io.name, true);}
       Bool operator!=(C IO &io)C {return !(T==io);}
    };
 
