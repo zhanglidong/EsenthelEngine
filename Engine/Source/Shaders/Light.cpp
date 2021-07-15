@@ -64,6 +64,8 @@ VecH LightDir_PS
    // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
 #if MULTI_SAMPLE
    Half shadow; if(SHADOW)shadow=TexSample(ImgXMS, pix, index).x;
+#elif !GL
+   Half shadow; if(SHADOW)shadow=ImgX[pix];
 #else
    Half shadow; if(SHADOW)shadow=TexPoint(ImgX, uv).x;
 #endif
@@ -94,8 +96,12 @@ VecH LightDir_PS
    VecH2 ext     =GetExtMS (pix, index);
    VecH  base_col=TexSample(ImgMS1, pix, index).rgb;
 #else
-   VecH2 ext     =GetExt  (pix, uv);
+   VecH2 ext     =GetExt(pix, uv);
+#if !GL
+   VecH  base_col=Img1[pix].rgb;
+#else
    VecH  base_col=TexPoint(Img1, uv).rgb;
+#endif
 #endif
 
    // light #1
@@ -129,6 +135,8 @@ VecH LightPoint_PS
    // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
 #if MULTI_SAMPLE
    Half shadow; if(SHADOW)shadow=ShadowFinal(TexSample(ImgXMS, pix, index).x);
+#elif !GL
+   Half shadow; if(SHADOW)shadow=ShadowFinal(ImgX[pix]);
 #else
    Half shadow; if(SHADOW)shadow=ShadowFinal(TexPoint(ImgX, uv).x);
 #endif
@@ -168,8 +176,12 @@ VecH LightPoint_PS
    VecH2 ext     =GetExtMS (pix, index);
    VecH  base_col=TexSample(ImgMS1, pix, index).rgb;
 #else
-   VecH2 ext     =GetExt  (pix, uv);
+   VecH2 ext     =GetExt(pix, uv);
+#if !GL
+   VecH  base_col=Img1[pix].rgb;
+#else
    VecH  base_col=TexPoint(Img1, uv).rgb;
+#endif
 #endif
 
    // light #1
@@ -203,6 +215,8 @@ VecH LightLinear_PS
    // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
 #if MULTI_SAMPLE
    Half shadow; if(SHADOW)shadow=ShadowFinal(TexSample(ImgXMS, pix, index).x);
+#elif !GL
+   Half shadow; if(SHADOW)shadow=ShadowFinal(ImgX[pix]);
 #else
    Half shadow; if(SHADOW)shadow=ShadowFinal(TexPoint(ImgX, uv).x);
 #endif
@@ -242,8 +256,12 @@ VecH LightLinear_PS
    VecH2 ext     =GetExtMS (pix, index);
    VecH  base_col=TexSample(ImgMS1, pix, index).rgb;
 #else
-   VecH2 ext     =GetExt  (pix, uv);
+   VecH2 ext     =GetExt(pix, uv);
+#if !GL
+   VecH  base_col=Img1[pix].rgb;
+#else
    VecH  base_col=TexPoint(Img1, uv).rgb;
+#endif
 #endif
 
    // light #1
@@ -277,6 +295,8 @@ VecH LightCone_PS
    // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
 #if MULTI_SAMPLE
    Half shadow; if(SHADOW)shadow=ShadowFinal(TexSample(ImgXMS, pix, index).x);
+#elif !GL
+   Half shadow; if(SHADOW)shadow=ShadowFinal(ImgX[pix]);
 #else
    Half shadow; if(SHADOW)shadow=ShadowFinal(TexPoint(ImgX, uv).x);
 #endif
@@ -327,8 +347,12 @@ VecH LightCone_PS
    VecH2 ext     =GetExtMS (pix, index);
    VecH  base_col=TexSample(ImgMS1, pix, index).rgb;
 #else
-   VecH2 ext     =GetExt  (pix, uv);
+   VecH2 ext     =GetExt(pix, uv);
+#if !GL
+   VecH  base_col=Img1[pix].rgb;
+#else
    VecH  base_col=TexPoint(Img1, uv).rgb;
+#endif
 #endif
 
    // light #1
