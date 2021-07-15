@@ -19,7 +19,7 @@ void VS
    VtxInput vtx,
 
    out VS_PS O,
-   out Vec4  O_vtx:POSITION
+   out Vec4  pixel:POSITION
 )
 {
    O.tex=vtx.tex();
@@ -42,7 +42,7 @@ void VS
 #if TESSELATE
    O.pos=pos;
 #endif
-   O_vtx=Project(pos);
+   pixel=Project(pos);
 }
 /******************************************************************************/
 // PS
@@ -84,13 +84,13 @@ void DS
    HSData hs_data, const OutputPatch<VS_PS,3> I, Vec B:SV_DomainLocation,
 
    out VS_PS O,
-   out Vec4  O_vtx:POSITION
+   out Vec4  pixel:POSITION
 )
 {
    O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
 
    SetDSPosNrm(O.pos, O.nrm, I[0].pos, I[1].pos, I[2].pos, I[0].nrm, I[1].nrm, I[2].nrm, B, hs_data, false, 0);
-   O_vtx=Project(O.pos);
+   pixel=Project(O.pos);
 }
 #endif
 /******************************************************************************/

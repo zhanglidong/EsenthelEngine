@@ -70,7 +70,7 @@ void VS
    VtxInput vtx,
 
    out VS_PS O,
-   out Vec4  O_vtx:POSITION
+   out Vec4  pixel:POSITION
 )
 {
    Vec  local_pos=vtx.pos(), view_pos, view_vel;
@@ -213,7 +213,7 @@ void VS
    }
    #endif
 
-   O_vtx=Project(view_pos);
+   pixel=Project(view_pos);
 #if SET_POS
    O.pos=view_pos;
 #endif

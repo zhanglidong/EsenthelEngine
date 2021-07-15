@@ -91,7 +91,7 @@ void VS
    VtxInput vtx,
 
    out VS_PS O,
-   out Vec4  O_vtx:POSITION,
+   out Vec4  pixel:POSITION,
 
    CLIP_DIST
 )
@@ -237,7 +237,7 @@ void VS
 #if SET_POS
    O.pos=view_pos;
 #endif
-   O_vtx=Project(view_pos); CLIP_PLANE(view_pos);
+   pixel=Project(view_pos); CLIP_PLANE(view_pos);
 #if USE_VEL
    O.projected_prev_pos_xyw=ProjectPrevXYW(view_pos_prev);
 #endif
@@ -841,7 +841,7 @@ void DS
    HSData hs_data, const OutputPatch<VS_PS,3> I, Vec B:SV_DomainLocation,
 
    out VS_PS O,
-   out Vec4  O_vtx:POSITION
+   out Vec4  pixel:POSITION
 )
 {
 #if   BUMP_MODE> SBUMP_FLAT
@@ -876,7 +876,7 @@ void DS
    O.face_id=I[0].face_id;
 #endif
 
-   O_vtx=Project(O.pos);
+   pixel=Project(O.pos);
 
 #if USE_VEL
    #if TESSELATE_VEL
@@ -884,7 +884,7 @@ void DS
    #else // this is just an approximation
       Vec interpolated_pos    =I[0].pos                   *B.z + I[1].pos                   *B.x + I[2].pos                   *B.y;
       O.projected_prev_pos_xyw=I[0].projected_prev_pos_xyw*B.z + I[1].projected_prev_pos_xyw*B.x + I[2].projected_prev_pos_xyw*B.y
-                              +O_vtx.xyw-ProjectXYW(interpolated_pos); // + delta (tesselated pos - interpolated pos)
+                              +pixel.xyw-ProjectXYW(interpolated_pos); // + delta (tesselated pos - interpolated pos)
    #endif
 #endif
 }

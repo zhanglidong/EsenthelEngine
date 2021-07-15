@@ -79,7 +79,7 @@ void VS
    VtxInput vtx,
 
    out VS_PS O,
-   out Vec4  O_vtx:POSITION,
+   out Vec4  pixel:POSITION,
 
    CLIP_DIST
 )
@@ -261,7 +261,7 @@ void VS
    }
    #endif
 
-   O_vtx=Project(pos); CLIP_PLANE(pos);
+   pixel=Project(pos); CLIP_PLANE(pos);
 #if SET_POS
    O.pos=pos;
 #endif
@@ -744,7 +744,7 @@ void DS
    HSData hs_data, const OutputPatch<VS_PS,3> I, Vec B:SV_DomainLocation,
 
    out VS_PS O,
-   out Vec4  O_vtx:POSITION
+   out Vec4  pixel:POSITION
 )
 {
 #if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
@@ -783,7 +783,7 @@ void DS
    O.face_id=I[0].face_id;
 #endif
 
-   O_vtx=Project(O.pos);
+   pixel=Project(O.pos);
 }
 #endif
 /******************************************************************************/

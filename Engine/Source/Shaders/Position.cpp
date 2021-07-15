@@ -26,7 +26,7 @@ void VS
    VtxInput vtx,
 
    out VS_PS O,
-   out Vec4  O_vtx:POSITION
+   out Vec4  pixel:POSITION
 )
 {
    Vec  pos=vtx.pos();
@@ -77,7 +77,7 @@ void VS
    O.nrm=nrm;
 #endif
 
-   O_vtx=Project(pos);
+   pixel=Project(pos);
 }
 /******************************************************************************/
 // PS
@@ -129,7 +129,7 @@ void DS
    HSData hs_data, const OutputPatch<VS_PS,3> I, Vec B:SV_DomainLocation,
 
    out VS_PS O,
-   out Vec4  O_vtx:POSITION
+   out Vec4  pixel:POSITION
 )
 {
 #if ALPHA_TEST
@@ -141,7 +141,7 @@ void DS
 #endif
 
    SetDSPosNrm(O.pos, O.nrm, I[0].pos, I[1].pos, I[2].pos, I[0].nrm, I[1].nrm, I[2].nrm, B, hs_data, false, 0);
-   O_vtx=Project(O.pos);
+   pixel=Project(O.pos);
 }
 #endif
 /******************************************************************************/
