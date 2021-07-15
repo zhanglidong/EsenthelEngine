@@ -58,7 +58,7 @@ Flt Blur(Flt z)
 }
 /******************************************************************************/
 // VIEW_FULL, REALISTIC, ALPHA, HALF_RES, MODE(2=FilterMinMax,1=Gather,0=None)
-VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD
+VecH4 DofDS_PS(NOPERSP Vec2 uv:TEXCOORD
                 #if ALPHA
                  , out Half outBlur:TARGET1
                 #endif
@@ -67,24 +67,24 @@ VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD
    VecH4 ret; // RGB=col, W=Blur
    Flt   depth;
    if(HALF_RES)
-   { // here we're rendering to half-res RT, so inTex is at the center of 2x2 full-res depth
-      ret.MASK=TexLod(Img, UVInView(inTex, VIEW_FULL)).MASK; // use linear filtering because we're downsampling
+   { // here we're rendering to half-res RT, so 'uv' is at the center of 2x2 full-res depth
+      ret.MASK=TexLod(Img, UVInView(uv, VIEW_FULL)).MASK; // use linear filtering because we're downsampling
    #if MODE==2 // FilterMinMax
-      depth=TexDepthRawMin(inTex);
+      depth=TexDepthRawMin(uv);
    #elif MODE==1 // Gather available since SM_4_1, GL 4.0, GL ES 3.1
-      depth=DEPTH_MIN(TexDepthRawGather(inTex));
+      depth=DEPTH_MIN(TexDepthRawGather(uv));
    #else
-      Vec2 tex_min=inTex-ImgSize.xy*0.5,
-           tex_max=inTex+ImgSize.xy*0.5;
+      Vec2 tex_min=uv-ImgSize.xy*0.5,
+           tex_max=uv+ImgSize.xy*0.5;
       depth=DEPTH_MIN(TexDepthRawPoint(Vec2(tex_min.x, tex_min.y)),
                       TexDepthRawPoint(Vec2(tex_max.x, tex_min.y)),
                       TexDepthRawPoint(Vec2(tex_min.x, tex_max.y)),
                       TexDepthRawPoint(Vec2(tex_max.x, tex_max.y)));
    #endif
    }else // quarter
-   { // here we're rendering to quarter-res RT, so inTex is at the center of 4x4 full-res depth
-      Vec2 tex_min=UVInView(inTex-ImgSize.xy, VIEW_FULL), // center of  left-down 2x2 full-res depth
-           tex_max=UVInView(inTex+ImgSize.xy, VIEW_FULL); // center of right-up   2x2 full-res depth
+   { // here we're rendering to quarter-res RT, so 'uv' is at the center of 4x4 full-res depth
+      Vec2 tex_min=UVInView(uv-ImgSize.xy, VIEW_FULL), // center of  left-down 2x2 full-res depth
+           tex_max=UVInView(uv+ImgSize.xy, VIEW_FULL); // center of right-up   2x2 full-res depth
       Vec2 t00=Vec2(tex_min.x, tex_min.y),
            t10=Vec2(tex_max.x, tex_min.y),
            t01=Vec2(tex_min.x, tex_max.y),
@@ -150,25 +150,25 @@ Flt FinalBlur(Flt blur, Flt blur_smooth) // 'blur'=-1..1, 'blur_smooth'=0..1
 // Use HighPrec because we operate on lot of samples
 // ALPHA, RANGE
 
-VecH4 DofBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD
+VecH4 DofBlurX_PS(NOPERSP Vec2 uv:TEXCOORD
                    #if ALPHA
                     , out Half outBlur:TARGET1
                    #endif
 ):TARGET
 {  //  INPUT: Img: RGB         , Blur
    // OUTPUT:      RGB BlurredX, BlurSmooth
-   Vec4 center     =TexPoint(Img, inTex); // 'center' will be added to 'color' later, based on remaining weight
-   Flt  center_blur=OPT(center.a*2-1, TexPoint(ImgX, inTex).x),
+   Vec4 center     =TexPoint(Img, uv); // 'center' will be added to 'color' later, based on remaining weight
+   Flt  center_blur=OPT(center.a*2-1, TexPoint(ImgX, uv).x),
         weight=0,
      #if ALPHA
         blur=0,
      #endif
         blur_abs=0;
    Vec4 color=0;
-   Vec2 t; t.y=inTex.y;
+   Vec2 t; t.y=uv.y;
    UNROLL for(Int i=-RANGE; i<=RANGE; i++)if(i)
    {
-      t.x=inTex.x+RTSize.x*i;
+      t.x=uv.x+RTSize.x*i;
       Vec4 c=TexPoint(Img, t);
       Flt  test_blur=OPT(c.a*2-1, TexPoint(ImgX, t).x),
            w=Weight(center_blur, test_blur, Abs(i), RANGE);
@@ -197,25 +197,25 @@ VecH4 DofBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD
 #endif
    return color;
 }
-VecH4 DofBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD
+VecH4 DofBlurY_PS(NOPERSP Vec2 uv:TEXCOORD
                    #if ALPHA
                     , out Half outBlur:TARGET1
                    #endif
 ):TARGET
 {  //  INPUT: Img: RGB BlurredX , BlurSmooth
    // OUTPUT:      RGB BlurredXY, BlurSmooth
-   Vec4 center     =TexPoint(Img, inTex); // 'center' will be added to 'color' later, based on remaining weight
-   Flt  center_blur=OPT(center.a*2-1, TexPoint(ImgX, inTex).x),
+   Vec4 center     =TexPoint(Img, uv); // 'center' will be added to 'color' later, based on remaining weight
+   Flt  center_blur=OPT(center.a*2-1, TexPoint(ImgX, uv).x),
         weight=0,
      #if ALPHA
         blur=0,
      #endif
         blur_abs=0;
    Vec4 color=0;
-   Vec2 t; t.x=inTex.x;
+   Vec2 t; t.x=uv.x;
    UNROLL for(Int i=-RANGE; i<=RANGE; i++)if(i)
    {
-      t.y=inTex.y+RTSize.y*i;
+      t.y=uv.y+RTSize.y*i;
       Vec4 c=TexPoint(Img, t);
       Flt  test_blur=OPT(c.a*2-1, TexPoint(ImgX, t).x),
            w=Weight(center_blur, test_blur, Abs(i), RANGE);
@@ -246,21 +246,21 @@ VecH4 DofBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD
 }
 /******************************************************************************/
 // DITHER, REALISTIC, ALPHA
-VecH4 Dof_PS(NOPERSP Vec2 inTex:TEXCOORD,
-             NOPERSP PIXEL              ):TARGET
+VecH4 Dof_PS(NOPERSP Vec2 uv:TEXCOORD,
+             NOPERSP PIXEL           ):TARGET
 {
-   Flt z=TexDepthPoint(inTex),
+   Flt z=TexDepthPoint(uv),
        b=Blur(z);
 #if SHOW_BLUR
    b=1-Abs(b); return Vec4(b, b, b, 1);
 #endif
-   VecH4 focus=TexLod(Img , inTex), // can't use 'TexPoint' because 'Img' can be supersampled
-         blur =TexLod(Img1, inTex), // use linear filtering because 'Img1' may be smaller RT
+   VecH4 focus=TexLod(Img , uv), // can't use 'TexPoint' because 'Img' can be supersampled
+         blur =TexLod(Img1, uv), // use linear filtering because 'Img1' may be smaller RT
          col;
      #if SHOW_SMOOTH_BLUR
         col.rgb=blur.a;
      #else
-        col.MASK=Lerp(focus.MASK, blur.MASK, FinalBlur(b, OPT(blur.a, TexLod(ImgX, inTex).x))); // use linear filtering because 'ImgX' may be smaller RT
+        col.MASK=Lerp(focus.MASK, blur.MASK, FinalBlur(b, OPT(blur.a, TexLod(ImgX, uv).x))); // use linear filtering because 'ImgX' may be smaller RT
      #endif
      #if !ALPHA
         col.a=1; // force full alpha so back buffer effects can work ok
