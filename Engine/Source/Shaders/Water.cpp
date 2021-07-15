@@ -318,9 +318,10 @@ VecH4 Apply_PS(NOPERSP Vec2 uv   :UV,
             #endif
               ):TARGET
 {
-   Vec2 back_uv=uv;
-   Flt  back_z_raw=TexDepthRawPoint(back_uv),
-       water_z_raw=TexPoint        (ImgXF, uv).x;
+   VecI2 pix=pixel.xy;
+   Vec2  back_uv=uv;
+   Flt   back_z_raw=Depth[pix],
+        water_z_raw=ImgXF[pix];
 
 #if SET_DEPTH
    depth=water_z_raw;
@@ -334,14 +335,12 @@ VecH4 Apply_PS(NOPERSP Vec2 uv   :UV,
       Vec pos=Vec(posXY*water_z, water_z);
       Vec eye_dir=Normalize(pos);
 
-      VecH4 water_col;
-      water_col.rgb=TexLod(Img3, uv).rgb; // water surface color
-      water_col.a=0;
-      VecH lum =TexLod(Img4, uv); // water surface light
-      VecH spec=TexLod(Img5, uv); // water surface light specular
-      Vec  nrm =GetNormal(pixel.xy, uv).xyz; // water surface normals
-      Vec  nrm_flat=TransformTP(nrm, (Matrix3)GetViewMatrix()).xzy;
-      Vec2 refract=nrm_flat.xy*Viewport.size; // TODO: this could be improved
+      VecH4 water_col; water_col.rgb=Img3[pix].rgb; water_col.a=0; // water surface color
+      VecH  lum =   Img4  [pix]; // water surface light
+      VecH  spec=   Img5  [pix]; // water surface light specular
+      Vec   nrm =GetNormal(pix).xyz; // water surface normals
+      Vec   nrm_flat=TransformTP(nrm, (Matrix3)GetViewMatrix()).xzy;
+      Vec2  refract=nrm_flat.xy*Viewport.size; // TODO: this could be improved
 
       water_col.rgb*=lum;
       WaterReflectColor(spec, nrm, eye_dir, uv, refract, DistPointPlane(pos, WaterPlanePos, WaterPlaneNrm));
@@ -378,7 +377,7 @@ VecH4 Apply_PS(NOPERSP Vec2 uv   :UV,
       water_col.rgb+=spec; // independent of alpha
       return water_col;
    }
-   return TexLodClamp(Img2, uv);
+   return Img2[pix];
 }
 /******************************************************************************/
 // REFRACT
