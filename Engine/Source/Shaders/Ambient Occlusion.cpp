@@ -76,20 +76,20 @@ Occlusion = 1-Light
 void AO_VS
 (
    VtxInput vtx,
-   NOPERSP out Vec2 outTex   :TEXCOORD0,
-   NOPERSP out Vec2 outPosXY :TEXCOORD1,
+   NOPERSP out Vec2 uv:UV,
+   NOPERSP out Vec2 posXY :POS_XY,
 #if !NORMALS
-   NOPERSP out Vec2 outPosXY1:TEXCOORD2,
+   NOPERSP out Vec2 posXY1:POS_XY1,
 #endif
-   NOPERSP out Vec4 outVtx   :POSITION
+   NOPERSP out Vec4 vtx:POSITION
 )
 {
-   outTex   =vtx.tex();
-   outPosXY =UVToPosXY(outTex);
+   uv    =vtx.tex();
+   posXY =UVToPosXY(uv);
 #if !NORMALS
-   outPosXY1=UVToPosXY(outTex+RTSize.xy);
+   posXY1=UVToPosXY(uv+RTSize.xy);
 #endif
-   outVtx   =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+   vtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 }
 /******************************************************************************
 #define NUM_DIRECTIONS 16
@@ -137,30 +137,30 @@ Vec Tangent(Vec2 dir2, Vec nrm_scaled, Vec eye_dir) // this is 'dir2' in 3D spac
  //Vec tan=PointOnPlaneRay(Vec(dir2.x, -dir2.y, 0), nrm_clamp, eye_dir); original formula
    Vec tan=Vec(dir2.x, -dir2.y, 0); tan-=Dot(tan, nrm_scaled)*eye_dir;
    return tan;
-// alternative formula (but this is AFTER "dir2*=offs_scale") : Vec2 t2=inTex+dir2*0.01; Vec pos2=Vec(UVToPosXY(t2), 1); Vec p=PointOnPlaneRay(pos2, pos, R ? nrm_clamp : nrm, W ? eye_dir : normalize(pos2)); dir=p-pos;
+// alternative formula (but this is AFTER "dir2*=offs_scale") : Vec2 t2=uv+dir2*0.01; Vec pos2=Vec(UVToPosXY(t2), 1); Vec p=PointOnPlaneRay(pos2, pos, R ? nrm_clamp : nrm, W ? eye_dir : normalize(pos2)); dir=p-pos;
 }
 /******************************************************************************/
 Half AO_PS
 (
-   NOPERSP Vec2 inTex   :TEXCOORD ,
-   NOPERSP Vec2 inPosXY :TEXCOORD1,
+   NOPERSP Vec2 uv    :UV,
+   NOPERSP Vec2 posXY :POS_XY,
 #if !NORMALS
-   NOPERSP Vec2 inPosXY1:TEXCOORD2,
+   NOPERSP Vec2 posXY1:POS_XY1,
 #endif
    NOPERSP PIXEL
 ):TARGET
 {
-   Vec pos; pos.z=TexDepthRawPoint(inTex); // !! for AO shader depth is already linearized !!
+   Vec pos; pos.z=TexDepthRawPoint(uv); // !! for AO shader depth is already linearized !!
    Flt raw_z=DelinearizeDepth(pos.z);
    DEPTH_INC(raw_z, 0.00000007); // value tested on fov 25 deg, 1000 view range
    if(DEPTH_BACKGROUND(raw_z))return 1; // test after increase because we have raw Z from linear Z, so it may not return exactly background depth
    Flt z_eps=LinearizeDepth(raw_z)-pos.z+0.001; // convert back to linear, get delta from bigger value and original + 1 extra mm to make sure we will skip flat surfaces due to precision issues (will improve performance)
-   pos=GetPos(pos.z, inPosXY); Vec eye_dir=Normalize(pos);
+   pos=GetPos(pos.z, posXY); Vec eye_dir=Normalize(pos);
 
    Vec nrm;
    #if NORMALS
    {
-      nrm=(LINEAR_FILTER ? TexLod(Img, inTex).xyz : TexPoint(Img, DownSamplePointUV(inTex)).xyz); // Nrm RT may be bigger, however we must return values to exactly match the depth, which was processed with Point filter to avoid generating fake in-between positions, so use Point too
+      nrm=(LINEAR_FILTER ? TexLod(Img, uv).xyz : TexPoint(Img, DownSamplePointUV(uv)).xyz); // Nrm RT may be bigger, however we must return values to exactly match the depth, which was processed with Point filter to avoid generating fake in-between positions, so use Point too
    #if !SIGNED_NRM_RT
       nrm-=0.5; // normally it should be "nrm=nrm*2-1", however we normalize it below, so we can just do -0.5
    #endif
@@ -168,20 +168,20 @@ Half AO_PS
    #else // NORMALS
    {
       // !! for AO shader depth is already linearized !!
-      Flt zl=TexDepthRawPointOfs(inTex, VecI2(-1,  0)), // TexDepthRawPoint(inTex-Vec2(RTSize.x, 0)),
-          zr=TexDepthRawPointOfs(inTex, VecI2( 1,  0)), // TexDepthRawPoint(inTex+Vec2(RTSize.x, 0)),
-          zd=TexDepthRawPointOfs(inTex, VecI2( 0, -1)), // TexDepthRawPoint(inTex-Vec2(0, RTSize.y)),
-          zu=TexDepthRawPointOfs(inTex, VecI2( 0,  1)), // TexDepthRawPoint(inTex+Vec2(0, RTSize.y)),
+      Flt zl=TexDepthRawPointOfs(uv, VecI2(-1,  0)), // TexDepthRawPoint(uv-Vec2(RTSize.x, 0)),
+          zr=TexDepthRawPointOfs(uv, VecI2( 1,  0)), // TexDepthRawPoint(uv+Vec2(RTSize.x, 0)),
+          zd=TexDepthRawPointOfs(uv, VecI2( 0, -1)), // TexDepthRawPoint(uv-Vec2(0, RTSize.y)),
+          zu=TexDepthRawPointOfs(uv, VecI2( 0,  1)), // TexDepthRawPoint(uv+Vec2(0, RTSize.y)),
           dl=pos.z-zl, dr=zr-pos.z,
           dd=pos.z-zd, du=zu-pos.z;
 
       #if 0 // made no difference
-         Vec up=((Abs(dd)<Abs(du)) ? pos-GetPos(zd, Vec2(inPosXY.x                   , UVToPosXY(inTex-RTSize.xy).y)) : GetPos(zu, Vec2(inPosXY .x, inPosXY1.y))-pos),
-             rg=((Abs(dl)<Abs(dr)) ? pos-GetPos(zl, Vec2(UVToPosXY(inTex-RTSize.xy).x, inPosXY.y                   )) : GetPos(zr, Vec2(inPosXY1.x, inPosXY .y))-pos);
+         Vec up=((Abs(dd)<Abs(du)) ? pos-GetPos(zd, Vec2(posXY.x                  , UVToPosXY(uv-RTSize.xy).y)) : GetPos(zu, Vec2(posXY .x, posXY1.y))-pos),
+             rg=((Abs(dl)<Abs(dr)) ? pos-GetPos(zl, Vec2(UVToPosXY(uv-RTSize.xy).x, posXY.y                  )) : GetPos(zr, Vec2(posXY1.x, posXY .y))-pos);
          nrm=Cross(rg, up);
       #else
-         Vec up=GetPos((Abs(dd)<Abs(du)) ? pos.z+dd : zu, Vec2(inPosXY .x, inPosXY1.y)),
-             rg=GetPos((Abs(dl)<Abs(dr)) ? pos.z+dl : zr, Vec2(inPosXY1.x, inPosXY .y));
+         Vec up=GetPos((Abs(dd)<Abs(du)) ? pos.z+dd : zu, Vec2(posXY .x, posXY1.y)),
+             rg=GetPos((Abs(dl)<Abs(dr)) ? pos.z+dl : zr, Vec2(posXY1.x, posXY .y));
          nrm=Cross(rg-pos, up-pos);
       #endif
    }
@@ -235,7 +235,7 @@ Half AO_PS
    Flt  occl  =0,
         weight=0; // HALF_MIN could be used if there was a possibility no samples were processed at all
 
-   //if(R)return HBAO(inTex, nrm, pos, offs_scale);
+   //if(R)return HBAO(uv, nrm, pos, offs_scale);
 
    #if AO_MODE==AO_MAX
    {
@@ -257,10 +257,10 @@ Half AO_PS
          {
             Vec2 d=dir2*((JITTER ? s-jitter_step : s)/Flt(max_steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
             if(!LINEAR_FILTER)d=Round(d*RTSize.zw)*RTSize.xy;
-            Vec2 uv0=inTex+d; // TODO: may need to do UVClamp
-            Vec2 uv1=inTex-d; // TODO: may need to do UVClamp
-            Flt  test_z0=(LINEAR_FILTER ? TexDepthRawLinear(uv0) : TexDepthRawPoint(uv0)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
-            Flt  test_z1=(LINEAR_FILTER ? TexDepthRawLinear(uv1) : TexDepthRawPoint(uv1)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
+            Vec2 uv0=uv+d; // TODO: may need to do UVClamp
+            Vec2 uv1=uv-d; // TODO: may need to do UVClamp
+            Flt  test_z0=(LINEAR_FILTER ? TexDepthRawLinear(uv0) : TexDepthRawPoint(uv0)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded UV
+            Flt  test_z1=(LINEAR_FILTER ? TexDepthRawLinear(uv1) : TexDepthRawPoint(uv1)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded UV
             Vec  test_pos0=GetPos(test_z0, UVToPosXY(uv0)), delta0=test_pos0-pos;
             Vec  test_pos1=GetPos(test_z1, UVToPosXY(uv1)), delta1=test_pos1-pos;
             Flt  y0=Dot(delta0, nrm); if(y0>z_eps){Flt delta0_len2=Length2(delta0); Flt w0=FadeOut(delta0_len2); Flt sin0=y0*rsqrt(delta0_len2); Flt x0=Dot(delta0, dir); if(x0<0)sin0=1; max_sin.x=Max(max_sin.x, sin0*w0);}
@@ -269,25 +269,25 @@ Half AO_PS
       #if 0
          alternative with steps range clamp:
          {
-            Flt frac=ViewportClamp(inTex+dir2, dir2);
+            Flt frac=ViewportClamp(uv+dir2, dir2);
             Int steps=Floor(max_steps*(1-frac)+HALF_MIN+(JITTER?jitter_step:0)); // this will have the same effect as if ignoring samples outside of viewport
             LOOP for(Int s=steps; s>=1; s--) // end at 1 to skip this pixel
             {
                Vec2 d=dir2*((JITTER ? s-jitter_step : s)/Flt(max_steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
                if(!LINEAR_FILTER)d=Round(d*RTSize.zw)*RTSize.xy;
-               Vec2 uv0=inTex+d;
-               Flt  test_z0=(LINEAR_FILTER ? TexDepthRawLinear(uv0) : TexDepthRawPoint(uv0)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
+               Vec2 uv0=uv+d;
+               Flt  test_z0=(LINEAR_FILTER ? TexDepthRawLinear(uv0) : TexDepthRawPoint(uv0)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded UV
                Vec  test_pos0=GetPos(test_z0, UVToPosXY(uv0)), delta0=test_pos0-pos;
                Flt  y0=Dot(delta0, nrm); if(y0>z_eps){Flt delta0_len2=Length2(delta0); Flt w0=FadeOut(delta0_len2); Flt sin0=y0*rsqrt(delta0_len2); Flt x0=Dot(delta0, dir); if(x0<0)sin0=1; max_sin.x=Max(max_sin.x, sin0*w0);}
             }
-            frac=ViewportClamp(inTex-dir2, dir2);
+            frac=ViewportClamp(uv-dir2, dir2);
             steps=Floor(max_steps*(1-frac)+HALF_MIN+(JITTER?jitter_step:0)); // this will have the same effect as if ignoring samples outside of viewport
             LOOP for(Int s=1; s<=steps; s++) // start from 1 to skip this pixel
             {
                Vec2 d=dir2*((JITTER ? s-jitter_step : s)/Flt(max_steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
                if(!LINEAR_FILTER)d=Round(d*RTSize.zw)*RTSize.xy;
-               Vec2 uv1=inTex-d;
-               Flt  test_z1=(LINEAR_FILTER ? TexDepthRawLinear(uv1) : TexDepthRawPoint(uv1)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
+               Vec2 uv1=uv-d;
+               Flt  test_z1=(LINEAR_FILTER ? TexDepthRawLinear(uv1) : TexDepthRawPoint(uv1)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded UV
                Vec  test_pos1=GetPos(test_z1, UVToPosXY(uv1)), delta1=test_pos1-pos;
                Flt  y1=Dot(delta1, nrm); if(y1>z_eps){Flt delta1_len2=Length2(delta1); Flt w1=FadeOut(delta1_len2); Flt sin1=y1*rsqrt(delta1_len2); Flt x1=Dot(delta1, dir); if(x1>0)sin1=1; max_sin.y=Max(max_sin.y, sin1*w1);}
             }
@@ -333,7 +333,7 @@ Half AO_PS
          dir2*=offs_scale;
 
       #if DYNAMIC // this reduces performance but increases quality on viewport edges, by disabling instant darkening when objects appear on the borders, instead it smoothens the darkening based on how much the object appeared in the viewport
-         Flt frac=ViewportClamp(inTex+dir2, dir2);
+         Flt frac=ViewportClamp(uv+dir2, dir2);
          // instead of reducing movement "dir2*=1-frac;" limit number of steps, because reduced movement would change weights for samples
          Int steps=Floor(max_steps*(1-frac)+HALF_MIN+(JITTER?jitter_step:0)); // this will have the same effect as if ignoring samples outside of viewport
          weight+=(max_steps-steps)*0.5; // add 0.5 weight for each step skipped
@@ -348,9 +348,9 @@ Half AO_PS
             Vec2 d=dir2*((JITTER ? s-jitter_step : s)/Flt(max_steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
           //if(!LINEAR_FILTER){VecI2 uv=Round(d*RTSize.zw); if(all(uv==last_uv)){occl+=o; weight+=w; continue;} last_uv=uv; d=uv*RTSize.xy;} if coordinates are the same as in last step then reuse calculations, however this slows down, probably because of 'continue' branching
             if(!LINEAR_FILTER)d=Round(d*RTSize.zw)*RTSize.xy;
-            Vec2 uv=inTex+d;
-            Flt  test_z  =(LINEAR_FILTER ? TexDepthRawLinear(uv) : TexDepthRawPoint(uv)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
-            Vec  test_pos=GetPos(test_z, UVToPosXY(uv)),
+            Vec2 test_uv =uv+d;
+            Flt  test_z  =(LINEAR_FILTER ? TexDepthRawLinear(test_uv) : TexDepthRawPoint(test_uv)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded UV
+            Vec  test_pos=GetPos(test_z, UVToPosXY(test_uv)),
                  delta   =test_pos-pos;
             Flt  delta_len2=Length2(delta);
                  w=FadeOut(delta_len2);
@@ -366,7 +366,7 @@ Half AO_PS
           //w=Max(1, 1/Sqrt(delta_len2));
             o*=w;
          #if !DYNAMIC
-            if(UVOutsideView(uv)){o=0; w=0.5;}
+            if(UVOutsideView(test_uv)){o=0; w=0.5;}
          #endif
             occl  +=o;
             weight+=w;
@@ -395,10 +395,10 @@ Half AO_PS
          {
             Vec2 d=dir2*((JITTER ? s-jitter_step : s)/Flt(max_steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
             if(!LINEAR_FILTER)d=Round(d*RTSize.zw)*RTSize.xy;
-            Vec2 uv0=inTex+d;
-            Vec2 uv1=inTex-d;
-            Flt  test_z0=(LINEAR_FILTER ? TexDepthRawLinear(uv0) : TexDepthRawPoint(uv0)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
-            Flt  test_z1=(LINEAR_FILTER ? TexDepthRawLinear(uv1) : TexDepthRawPoint(uv1)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
+            Vec2 uv0=uv+d;
+            Vec2 uv1=uv-d;
+            Flt  test_z0=(LINEAR_FILTER ? TexDepthRawLinear(uv0) : TexDepthRawPoint(uv0)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded UV
+            Flt  test_z1=(LINEAR_FILTER ? TexDepthRawLinear(uv1) : TexDepthRawPoint(uv1)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded UV
             Vec  test_pos0=GetPos(test_z0, UVToPosXY(uv0)), delta0=test_pos0-pos;
             Vec  test_pos1=GetPos(test_z1, UVToPosXY(uv1)), delta1=test_pos1-pos;
             Flt  delta0_len2=Length2(delta0);
@@ -430,7 +430,7 @@ Half AO_PS
          Vec  dir=Tangent(dir2, nrm_scaled, eye_dir);
          dir2*=offs_scale;
 
-         Flt frac=ViewportClamp(inTex+dir2, dir2);
+         Flt frac=ViewportClamp(uv+dir2, dir2);
          // instead of reducing movement "dir2*=1-frac;" limit number of steps, because reduced movement would change weights for samples
          Int steps=Floor(max_steps*(1-frac)+HALF_MIN+(JITTER?jitter_step:0)); // this will have the same effect as if ignoring samples outside of viewport
          weight+=(max_steps-steps)*0.5; // add 0.5 weight for each step skipped
@@ -439,14 +439,13 @@ Half AO_PS
          {
             Vec2 d=dir2*((JITTER ? s-jitter_step : s)/Flt(max_steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
             if(!LINEAR_FILTER)d=Round(d*RTSize.zw)*RTSize.xy;
-            Vec2 uv=inTex+d;
-
-            Flt test_z  =(LINEAR_FILTER ? TexDepthRawLinear(uv) : TexDepthRawPoint(uv)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
-            Vec test_pos=GetPos(test_z, UVToPosXY(uv)),
-                delta   =test_pos-pos;
-            Flt delta_len2=Length2(delta);
-            Flt o, w=FadeOut(delta_len2);
-            Flt y=Dot(delta, nrm); if(y>z_eps)
+            Vec2 test_uv=uv+d;
+            Flt  test_z  =(LINEAR_FILTER ? TexDepthRawLinear(test_uv) : TexDepthRawPoint(test_uv)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded UV
+            Vec  test_pos=GetPos(test_z, UVToPosXY(test_uv)),
+                 delta   =test_pos-pos;
+            Flt  delta_len2=Length2(delta);
+            Flt  o, w=FadeOut(delta_len2);
+            Flt  y=Dot(delta, nrm); if(y>z_eps)
             {
                Flt sin=y*rsqrt(delta_len2);
                Flt x=Dot(delta, dir); if(x<0)sin=1;
@@ -460,7 +459,7 @@ Half AO_PS
             weight+=w;
          }
 
-         frac=ViewportClamp(inTex-dir2, dir2);
+         frac=ViewportClamp(uv-dir2, dir2);
          // instead of reducing movement "dir2*=1-frac;" limit number of steps, because reduced movement would change weights for samples
          steps=Floor(max_steps*(1-frac)+HALF_MIN+(JITTER?jitter_step:0)); // this will have the same effect as if ignoring samples outside of viewport
          weight+=(max_steps-steps)*0.5; // add 0.5 weight for each step skipped
@@ -469,14 +468,13 @@ Half AO_PS
          {
             Vec2 d=dir2*((JITTER ? s+jitter_step : s)/Flt(max_steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
             if(!LINEAR_FILTER)d=Round(d*RTSize.zw)*RTSize.xy;
-            Vec2 uv=inTex+d;
-
-            Flt test_z  =(LINEAR_FILTER ? TexDepthRawLinear(uv) : TexDepthRawPoint(uv)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 'uv'
-            Vec test_pos=GetPos(test_z, UVToPosXY(uv)),
-                delta   =test_pos-pos;
-            Flt delta_len2=Length2(delta);
-            Flt o, w=FadeOut(delta_len2);
-            Flt y=Dot(delta, nrm); if(y>z_eps)
+            Vec2 test_uv=uv+d;
+            Flt  test_z  =(LINEAR_FILTER ? TexDepthRawLinear(test_uv) : TexDepthRawPoint(test_uv)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded UV
+            Vec  test_pos=GetPos(test_z, UVToPosXY(test_uv)),
+                 delta   =test_pos-pos;
+            Flt  delta_len2=Length2(delta);
+            Flt  o, w=FadeOut(delta_len2);
+            Flt  y=Dot(delta, nrm); if(y>z_eps)
             {
                Flt sin=y*rsqrt(delta_len2);
                Flt x=Dot(delta, dir); if(x>0)sin=1;
@@ -504,7 +502,7 @@ Half AO_PS
       Vec2 jitter_offs; if(JITTER){CosSin(cos_sin.x, cos_sin.y, jitter_angle); jitter_offs=(pix.yx-jitter_half)*(spacing*0.215);} // using higher values may affect cache performance, so use smallest possible
       LOOP for(Int i=0; i<elms; i++) // using UNROLL didn't make a performance difference, however it made shader file bigger and compilation slower
       {
-         Vec2          dir2; // don't use 'VecH2' here because benefit looks small, and 'dir2' has to be added to 'inTex' which is 'Vec2' so probably there would be no performance benefits
+         Vec2          dir2; // don't use 'VecH2' here because benefit looks small, and 'dir2' has to be added to 'uv' which is 'Vec2' so probably there would be no performance benefits
          if(QUALITY==0)dir2=AO0Vec[i];else
          if(QUALITY==1)dir2=AO1Vec[i];else
          if(QUALITY==2)dir2=AO2Vec[i];else
@@ -514,7 +512,7 @@ Half AO_PS
          Vec2              uv_delta=dir2*offs_scale;
          if(!LINEAR_FILTER)uv_delta=Round(uv_delta*RTSize.zw)*RTSize.xy;
 
-         Vec2 t=inTex+uv_delta;
+         Vec2 t=uv+uv_delta;
          Flt  o, w;
 
          if(!LINEAR_FILTER && !any(uv_delta))
