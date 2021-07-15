@@ -128,7 +128,7 @@ BlendInstancesClass BlendInstances;
 GameObjects PaletteObjects, Palette1Objects, OverlayObjects, SolidObjects, EmissiveObjects, OutlineObjects, BehindObjects;
 GameAreas   PaletteAreas  , Palette1Areas;
 /******************************************************************************/
-#if 0 // this doesn't work, because we need to adjust ViewMatrix and not ProjMatrix (for example Shadows in Forward Renderer will not work, because VS_PS.pos in shaders depends on ViewMatrix only, it affects shadows, and reflections, etc.)
+#if 0 // this doesn't work, because we need to adjust ViewMatrix and not ProjMatrix (for example Shadows in Forward Renderer will not work, because 'Data.pos' in shaders depends on ViewMatrix only, it affects shadows, and reflections, etc.)
 // precomputed view matrixes were generated for the first eye, so for next eye we need to adjust the projection matrix (instead of adjusting camera and recalculating view matrixes which would be slower)
 static void BeginPrecomputedViewMatrix() {if(/*Renderer._stereo && */Renderer._eye!=0)SetProjMatrix(ProjMatrixEyeOffset[Renderer._eye], -D.eyeDistance());}
 static void   EndPrecomputedViewMatrix() {if(/*Renderer._stereo && */Renderer._eye!=0)SetProjMatrix(ProjMatrixEyeOffset[Renderer._eye]);}

@@ -23,10 +23,10 @@ BUFFER_END
 /******************************************************************************/
 void BloomDS_VS(VtxInput vtx,
     NOPERSP out Vec2 outTex:TEXCOORD,
-    NOPERSP out Vec4 outVtx:POSITION)
+    NOPERSP out Vec4 pixel:POSITION)
 {
    outTex=vtx.tex (); if(GLOW)outTex-=ImgSize.xy*Vec2(HALF_RES ? 0.5 : 1.5, HALF_RES ? 0.5 : 1.5);
-   outVtx=vtx.pos4();
+   pixel=vtx.pos4();
 }
 VecH BloomColor(VecH color)
 {

@@ -13,7 +13,7 @@ BUFFER_END
 #include "!Set Prec Default.h"
 /******************************************************************************/
 void Particle_VS(VtxInput vtx,
-             out Vec4  outVtx :POSITION ,
+             out Vec4  pixel  :POSITION ,
              out VecH4 outCol :COLOR    ,
              out Vec2  outTex :TEXCOORD0
           #if SOFT
@@ -117,7 +117,7 @@ void Particle_VS(VtxInput vtx,
 #if GL // needed for iOS PVRTC Pow2 #ParticleImgPart
    outTex.xy*=ImgSize.xy;
 #endif
-   outVtx=Project(pos);
+   pixel=Project(pos);
 }
 /******************************************************************************/
 VecH4 Particle_PS(PIXEL,

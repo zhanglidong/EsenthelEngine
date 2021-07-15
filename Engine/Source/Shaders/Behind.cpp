@@ -3,7 +3,7 @@
 /******************************************************************************
 SKIN, ALPHA_TEST
 /******************************************************************************/
-struct VS_PS
+struct Data
 {
 #if ALPHA_TEST
    Vec2 uv:UV;
@@ -18,8 +18,8 @@ void VS
 (
    VtxInput vtx,
 
-   out VS_PS O,
-   out Vec4  outVtx:POSITION
+   out Data O,
+   out Vec4 pixel:POSITION
 )
 {
 #if ALPHA_TEST
@@ -31,19 +31,19 @@ void VS
 
    if(!SKIN)
    {
-                     O.nrm=TransformDir(vtx.nrm());
-      outVtx=Project(O.pos=TransformPos(vtx.pos()));
+                    O.nrm=TransformDir(vtx.nrm());
+      pixel=Project(O.pos=TransformPos(vtx.pos()));
    }else
    {
       VecU bone=vtx.bone();
-                     O.nrm=TransformDir(vtx.nrm(), bone, vtx.weight());
-      outVtx=Project(O.pos=TransformPos(vtx.pos(), bone, vtx.weight()));
+                    O.nrm=TransformDir(vtx.nrm(), bone, vtx.weight());
+      pixel=Project(O.pos=TransformPos(vtx.pos(), bone, vtx.weight()));
    }
 }
 /******************************************************************************/
 VecH4 PS
 (
-   VS_PS I,
+   Data I,
    PIXEL
 ):TARGET
 {

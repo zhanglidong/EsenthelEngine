@@ -1345,32 +1345,32 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
 };
 /******************************************************************************/
 void DrawPixel_VS(VtxInput vtx,
-      NOPERSP out Vec4 outVtx:POSITION)
+          NOPERSP out Vec4 pixel:POSITION)
 {
-   outVtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 }
 void Draw_VS(VtxInput vtx,
  NOPERSP out Vec2 outTex:TEXCOORD0,
- NOPERSP out Vec4 outVtx:POSITION )
+ NOPERSP out Vec4 pixel:POSITION )
 {
    outTex=vtx.tex();
-   outVtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 }
 void DrawPosXY_VS(VtxInput vtx,
       NOPERSP out Vec2 outTex  :TEXCOORD0,
       NOPERSP out Vec2 outPosXY:TEXCOORD1,
-      NOPERSP out Vec4 outVtx  :POSITION )
+      NOPERSP out Vec4 pixel  :POSITION )
 {
    outTex  =vtx.tex();
    outPosXY=UVToPosXY(outTex);
-   outVtx  =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+   pixel  =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 }
 void Draw2DTex_VS(VtxInput vtx,
       NOPERSP out Vec2 outTex:TEXCOORD,
-      NOPERSP out Vec4 outVtx:POSITION)
+      NOPERSP out Vec4 pixel:POSITION)
 {
    outTex=vtx.tex();
-   outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, Z_FRONT, 1);
+   pixel=Vec4(vtx.pos2()*Coords.xy+Coords.zw, Z_FRONT, 1);
 }
 /******************************************************************************/
 Half DistPointPlaneRay(VecH2 p,                  VecH2 plane_normal, VecH2 ray) {Half rd=Dot(ray, plane_normal); return rd ? Dot           (p,            plane_normal)/rd : 0;}

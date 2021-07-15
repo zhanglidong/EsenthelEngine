@@ -10,7 +10,7 @@ void LayeredClouds_VS
    out Vec  outPos  :TEXCOORD0,
    out Vec  outTex  :TEXCOORD1, // 3d tex coord
    out Half outAlpha:TEXCOORD2,
-   out Vec4 outVtx  :POSITION 
+   out Vec4 pixel   :POSITION 
 )
 {
    Vec pos=vtx.pos();
@@ -18,7 +18,7 @@ void LayeredClouds_VS
    outTex  =pos.xyz*Vec(LCScale, 1, LCScale);
    outAlpha=CloudAlpha(outTex.y);
       pos.y=pos.y*LCScaleY+(-LCScaleY+1); // (pos.y-1)*LCScaleY+1
-   outVtx  =Project(outPos=TransformPos(pos));
+   pixel   =Project(outPos=TransformPos(pos));
 }
 /******************************************************************************/
 VecH4 LayeredClouds_PS(Vec   inPos  :TEXCOORD0,

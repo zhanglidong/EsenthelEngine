@@ -12,7 +12,7 @@ void Color_VS
 #endif
    out VecH  outNrm:TEXCOORD0,
    out Vec   outPos:TEXCOORD1,
-   out Vec4  outVtx:POSITION
+   out Vec4  pixel :POSITION
 )
 {  
 #if VTX_COL
@@ -21,7 +21,7 @@ void Color_VS
 
    outNrm=Normalize(TransformDir(vtx.nrm()));
    outPos=          TransformPos(vtx.pos()) ;
-   outVtx=          Project     ( outPos  ) ;
+   pixel =          Project     ( outPos  ) ;
 }
 /******************************************************************************/
 #ifndef COL_VALUE

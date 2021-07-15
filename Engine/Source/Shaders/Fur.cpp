@@ -25,7 +25,7 @@ void Base_VS
    VtxInput vtx,
 
    out Base_VS_PS O,
-   out Vec4 outVtx:POSITION,
+   out Vec4 pixel:POSITION,
 
    CLIP_DIST
 )
@@ -56,7 +56,7 @@ void Base_VS
 #if SIZE
    O.len=vtx.size();
 #endif
-   outVtx=Project(view_pos); CLIP_PLANE(view_pos);
+   pixel=Project(view_pos); CLIP_PLANE(view_pos);
 #if USE_VEL
    O.projected_prev_pos_xyw=ProjectPrevXYW(view_pos_prev);
 #endif
@@ -104,7 +104,7 @@ void Soft_VS
 #if SIZE
    out Half outLen    :LENGTH  ,
 #endif
-   out Vec4 outVtx    :POSITION
+   out Vec4 pixel     :POSITION
 )
 {
    Vec  pos=vtx.pos();
@@ -128,7 +128,7 @@ void Soft_VS
    outLen=vtx.size();
 #endif
    pos+=nrm*(SIZE ? vtx.size()*Material.det_power*FurStep.x : Material.det_power*FurStep.x);
-   outVtx=Project(pos);
+   pixel=Project(pos);
 }
 /******************************************************************************/
 VecH4 Soft_PS

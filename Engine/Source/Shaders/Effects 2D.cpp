@@ -89,11 +89,11 @@ VecH4 Fade_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 /******************************************************************************/
 void Wave_VS(VtxInput vtx,
  NOPERSP out Vec2 outTex:TEXCOORD,
- NOPERSP out Vec4 outVtx:POSITION)
+ NOPERSP out Vec4 pixel:POSITION)
 {
    outTex.x=vtx.tex().x*Color[0].x + vtx.tex().y*Color[0].y + Color[0].z;
    outTex.y=vtx.tex().x*Color[1].x + vtx.tex().y*Color[1].y + Color[1].z;
-   outVtx  =vtx.pos4();
+   pixel  =vtx.pos4();
 }
 VecH4 Wave_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {

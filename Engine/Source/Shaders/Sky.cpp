@@ -13,7 +13,7 @@ VecH4 SkyColor(Vec inTex)
 void Sky_VS
 (
    VtxInput vtx,
-   out Vec4 outVtx:POSITION
+   out Vec4 pixel:POSITION
 
 #if !FLAT
  , out Vec outPos:TEXCOORD0
@@ -37,7 +37,7 @@ void Sky_VS
 #endif
 )
 {
-   Vec pos=TransformPos(vtx.pos()); outVtx=Project(pos);
+   Vec pos=TransformPos(vtx.pos()); pixel=Project(pos);
 #if !FLAT
    outPos=pos;
 #endif

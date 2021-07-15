@@ -95,9 +95,9 @@ Vec2 MLAAArea(Vec2 distance, Flt e1, Flt e2)
 void MLAA_VS(VtxInput vtx,
  NOPERSP out Vec2 outTex         :TEXCOORD0,
  NOPERSP out Vec4 outTexOffset[2]:TEXCOORD1,
- NOPERSP out Vec4 outVtx         :POSITION )
+ NOPERSP out Vec4 pixel          :POSITION )
 {
-   outVtx         =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+   pixel          =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
    outTex         =vtx.tex();
    outTexOffset[0]=RTSize.xyxy*Vec4(-1, 0, 0,-1)+outTex.xyxy;
    outTexOffset[1]=RTSize.xyxy*Vec4( 1, 0, 0, 1)+outTex.xyxy;

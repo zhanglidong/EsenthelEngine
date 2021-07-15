@@ -74,11 +74,11 @@ VecH2 GetMotionCameraOnly(Vec view_pos, Vec2 uv)
 void SetVel_VS(VtxInput vtx,
     NOPERSP out Vec2 outTex  :TEXCOORD0,
     NOPERSP out Vec2 outPosXY:TEXCOORD1,
-    NOPERSP out Vec4 outVtx  :POSITION )
+    NOPERSP out Vec4 pixel   :POSITION )
 {
    outTex=vtx.tex();
    outPosXY=UVToPosXY(outTex);
-   outVtx=vtx.pos4();
+   pixel=vtx.pos4();
 }
 VecH2 SetVel_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                 NOPERSP Vec2 inPosXY:TEXCOORD1):TARGET
@@ -436,11 +436,11 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
 void Explosion_VS(VtxInput vtx,
               out Vec  outPos:TEXCOORD0,
               out Vec  outVel:TEXCOORD1,
-              out Vec4 outVtx:POSITION )
+              out Vec4 pixel :POSITION )
 {
    outVel=TransformTP (Normalize(vtx.pos())*Step, (Matrix3)CamMatrix);
    outPos=TransformPos(vtx.pos());
-   outVtx=Project     ( outPos  );
+   pixel =Project     ( outPos  );
 }
 void Explosion_PS(Vec   inPos:TEXCOORD0,
                   Vec   inVel:TEXCOORD1,

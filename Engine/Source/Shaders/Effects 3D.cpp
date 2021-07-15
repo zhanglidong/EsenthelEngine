@@ -34,7 +34,7 @@ BUFFER_END
 #include "!Set Prec Default.h"
 
 void Volume_VS(VtxInput vtx,
-           out Vec4    outVtx:POSITION ,
+           out Vec4     pixel:POSITION ,
            out Vec     outPos:TEXCOORD0,
            out Vec     outTex:TEXCOORD1,
            out Matrix3 outMat:TEXCOORD2)
@@ -47,7 +47,7 @@ void Volume_VS(VtxInput vtx,
    if(INSIDE)outTex=Volume.inside/(2*Volume.size)+0.5;
    else      outTex=vtx.pos()*0.5+0.5;
 
-   outVtx=Project(outPos=TransformPos(vtx.pos()));
+   pixel=Project(outPos=TransformPos(vtx.pos()));
 }
 void Volume_PS
 (
@@ -149,12 +149,12 @@ void Laser_VS(VtxInput vtx,
          #if NORMALS
           out VecH outNrm:TEXCOORD1,
          #endif
-          out Vec4 outVtx:POSITION )
+          out Vec4 pixel:POSITION )
 {
 #if NORMALS
    outNrm=TransformDir(vtx.nrm());
 #endif
-   outVtx=Project(outPos=TransformPos(vtx.pos()));
+   pixel=Project(outPos=TransformPos(vtx.pos()));
 }
 void Laser_PS(Vec                 inPos:TEXCOORD0,
            #if NORMALS
@@ -194,7 +194,7 @@ Half DecalOpaqueFracMul() {return DecalParams.x;}
 Half DecalOpaqueFracAdd() {return DecalParams.y;}
 
 void Decal_VS(VtxInput vtx,
-          out Vec4    outVtx    :POSITION,
+          out Vec4     pixel    :POSITION,
           out Matrix  outMatrix :TEXCOORD0
        #if MODE==1
         , out Matrix3 outMatrixN:TEXCOORD3
@@ -213,9 +213,9 @@ void Decal_VS(VtxInput vtx,
 #endif
 
 #if FULLSCREEN
-   outVtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
 #else
-   outVtx=Project(TransformPos(vtx.pos()));
+   pixel=Project(TransformPos(vtx.pos()));
 #endif
 }
 VecH4 Decal_PS(PIXEL,
