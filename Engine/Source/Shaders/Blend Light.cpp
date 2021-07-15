@@ -16,7 +16,7 @@
 #define FOG_IN_COL     (!REFLECT) // can't mix fog with vtx.col when REFLECT because for reflections we need unlit color
 #define USE_VEL        ALPHA_TEST
 #define SET_POS        ((LIGHT && PER_PIXEL) || SHADOW || REFLECT || TESSELATE)
-#define SET_TEX        (LAYOUT || DETAIL || EMISSIVE_MAP || BUMP_MODE>SBUMP_FLAT)
+#define SET_UV         (LAYOUT || DETAIL || EMISSIVE_MAP || BUMP_MODE>SBUMP_FLAT)
 #define SET_LUM        (VTX_LIGHT && !LIGHT_IN_COL)
 #define SET_FOG        (!FOG_IN_COL)
 #define VTX_REFLECT    (REFLECT && !PER_PIXEL && BUMP_MODE<=SBUMP_FLAT) // require !PER_PIXEL because even without normal maps (SBUMP_FLAT) the quality suffers
@@ -30,8 +30,8 @@ struct Data
    Vec pos:POS;
 #endif
 
-#if SET_TEX
-   Vec2 tex:TEXCOORD;
+#if SET_UV
+   Vec2 uv:UV;
 #endif
 
    VecH4 col    :COLOR;
@@ -79,9 +79,9 @@ void VS
    // VEL
    Vec local_pos_prev, view_pos_prev; if(USE_VEL)local_pos_prev=local_pos;
 
-#if SET_TEX
-   O.tex=vtx.tex(HEIGHTMAP);
-   if(HEIGHTMAP)O.tex*=Material.uv_scale;
+#if SET_UV
+   O.uv=vtx.tex(HEIGHTMAP);
+   if(HEIGHTMAP)O.uv*=Material.uv_scale;
 #endif
 
              O.col =Material.color;
@@ -249,14 +249,14 @@ void PS
    reflect=Material.reflect_add;
    glow   =Material.       glow;
 #elif LAYOUT==1
-   VecH4 tex_col=Tex(Col, I.tex); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
+   VecH4 tex_col=Tex(Col, I.uv); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
    if(ALPHA)I.col*=tex_col;else I.col.rgb*=tex_col.rgb;
    rough  =Material.  rough_add;
    reflect=Material.reflect_add;
    glow   =Material.       glow;
 #elif LAYOUT==2
-   VecH4 tex_col=Tex(Col, I.tex); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
-   VecH4 tex_ext=Tex(Ext, I.tex);
+   VecH4 tex_col=Tex(Col, I.uv); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
+   VecH4 tex_ext=Tex(Ext, I.uv);
    if(ALPHA)I.col*=tex_col;else I.col.rgb*=tex_col.rgb;
    rough  =Sat(tex_ext.BASE_CHANNEL_ROUGH*Material.  rough_mul+Material.  rough_add); // need to saturate to avoid invalid values
    reflect=    tex_ext.BASE_CHANNEL_METAL*Material.reflect_mul+Material.reflect_add ;
@@ -272,10 +272,10 @@ void PS
       nrmh=I.Nrm();
    #else
       #if 0
-         nrmh.xy=Tex(Nrm, I.tex).BASE_CHANNEL_NORMAL*Material.normal;
+         nrmh.xy=Tex(Nrm, I.uv).BASE_CHANNEL_NORMAL*Material.normal;
          nrmh.z =CalcZ(nrmh.xy);
       #else
-         nrmh.xy =Tex(Nrm, I.tex).BASE_CHANNEL_NORMAL;
+         nrmh.xy =Tex(Nrm, I.uv).BASE_CHANNEL_NORMAL;
          nrmh.z  =CalcZ(nrmh.xy);
          nrmh.xy*=Material.normal;
       #endif
@@ -371,7 +371,7 @@ void PS
     //if(MATERIALS<=1) // emissive
       {
       #if EMISSIVE_MAP
-         VecH emissive=Tex(Lum, I.tex).rgb;
+         VecH emissive=Tex(Lum, I.uv).rgb;
          total_specular+=Material.emissive     *    emissive ;
          glow          +=Material.emissive_glow*Max(emissive);
       #else
@@ -387,7 +387,7 @@ void PS
     //if(MATERIALS<=1) glow from emissive
       {
       #if EMISSIVE_MAP
-         VecH emissive=Tex(Lum, I.tex).rgb;
+         VecH emissive=Tex(Lum, I.uv).rgb;
          glow+=Material.emissive_glow*Max(emissive);
       #else
          glow+=Material.emissive_glow;

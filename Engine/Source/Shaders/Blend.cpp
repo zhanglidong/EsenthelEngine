@@ -9,7 +9,7 @@ SKIN, COLORS, LAYOUT, BUMP_MODE, REFLECT, EMISSIVE_MAP
 #endif
 #define HEIGHTMAP    0
 #define TESSELATE    0
-#define SET_TEX      (LAYOUT || BUMP_MODE>SBUMP_FLAT || EMISSIVE_MAP)
+#define SET_UV       (LAYOUT || BUMP_MODE>SBUMP_FLAT || EMISSIVE_MAP)
 #define VTX_REFLECT  (REFLECT && !PER_PIXEL && BUMP_MODE<=SBUMP_FLAT) // require !PER_PIXEL because even without normal maps (SBUMP_FLAT) the quality suffers
 #define SET_POS      (REFLECT || TESSELATE)
 #define PIXEL_NORMAL (REFLECT) // if calculate normal in the pixel shader
@@ -20,8 +20,8 @@ struct Data
    Vec pos:POS;
 #endif
 
-#if SET_TEX
-   Vec2 tex:TEXCOORD;
+#if SET_UV
+   Vec2 uv:UV;
 #endif
 
    VecH4 color:COLOR;
@@ -48,8 +48,8 @@ void VS
    out Vec4 pixel:POSITION
 )
 {
-#if SET_TEX
-   O.tex=vtx.tex();
+#if SET_UV
+   O.uv=vtx.tex();
 #endif
              O.color =Material.color;
    if(COLORS)O.color*=vtx.colorFast();
@@ -135,12 +135,12 @@ VecH4 PS
    rough  =Material.  rough_add;
    reflect=Material.reflect_add;
 #elif LAYOUT==1
-   I.color*=Tex(Col, I.tex);
+   I.color*=Tex(Col, I.uv);
    rough  =Material.  rough_add;
    reflect=Material.reflect_add;
 #elif LAYOUT==2
-    I.color*=Tex(Col, I.tex);
-   VecH2 ext=Tex(Ext, I.tex).xy;
+    I.color*=Tex(Col, I.uv);
+   VecH2 ext=Tex(Ext, I.uv).xy;
    rough  =Sat(ext.BASE_CHANNEL_ROUGH*Material.  rough_mul+Material.  rough_add); // need to saturate to avoid invalid values
    reflect=    ext.BASE_CHANNEL_METAL*Material.reflect_mul+Material.reflect_add ;
 #endif
@@ -154,10 +154,10 @@ VecH4 PS
       nrmh=I.Nrm();
    #else
       #if 0
-         nrmh.xy=Tex(Nrm, I.tex).BASE_CHANNEL_NORMAL*Material.normal;
+         nrmh.xy=Tex(Nrm, I.uv).BASE_CHANNEL_NORMAL*Material.normal;
          nrmh.z =CalcZ(nrmh.xy);
       #else
-         nrmh.xy =Tex(Nrm, I.tex).BASE_CHANNEL_NORMAL;
+         nrmh.xy =Tex(Nrm, I.uv).BASE_CHANNEL_NORMAL;
          nrmh.z  =CalcZ(nrmh.xy);
          nrmh.xy*=Material.normal;
       #endif
@@ -189,7 +189,7 @@ VecH4 PS
 #endif
 
 #if EMISSIVE_MAP
-   VecH emissive=Tex(Lum, I.tex).rgb;
+   VecH emissive=Tex(Lum, I.uv).rgb;
    I.color.rgb+=Material.emissive*emissive;
 #else
    I.color.rgb+=Material.emissive;
