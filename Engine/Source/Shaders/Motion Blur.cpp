@@ -272,6 +272,7 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
          Half  base_uv_motion_len;
          if(HAS_TAA) // in TAA the color RT is already adjusted by UV (to be always the same each frame), but depth and motion RT's are jittered every frame, which gives inconsistency between color and DepthMotion.
           {// to workaround this problem, DepthMotion are taken from the pixel that's closest to camera and has highest motion
+            // TODO: Warning: these ignore UVClamp/UVInView
             if(GATHER)
             { 
                Vec2  taa_uv=uv0+TAAOffset;
@@ -282,16 +283,9 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
                VecH2 test_uv_motion; Half test_len;
                if(1) // slower, higher quality. This improves blur on pixels around object (border). To verify improvement, set very low 'D.density', and rotate player+camera in TPP very fast left or right, object has to be fixed to the camera, and background rotating/blurry, you will see that this mode improves smoothness of object border pixels.
                {
-                /*Select 'i' index to point to the component as if we were accessing without TAAOffset - TexDepthRawPoint(uv0)
-                  TEXTURE ACCESSING                 (Y^)
-                  GATHER returns in following order: V1 X0 Y1
-                                                     V0 W3 Z2
-                                                      + U0 U1 (X>)*/
-                  Int i=((TAAOffset.y>=0) ? (TAAOffset.x>=0) ? 3 : 2 // this is 100% correct (tested and verified)
-                                          : (TAAOffset.x>=0) ? 0 : 1);
-                  // set initial values as if we were using 'uv0'
-                  base_depth        =d[i];
-                  base_uv_motion    =VecH2(r[i], g[i]);
+                 // set initial values with 'TAAOffsetGatherIndex' as if we were using 'uv0' without 'TAAOffset'
+                  base_depth        =      d[TAAOffsetGatherIndex];
+                  base_uv_motion    =VecH2(r[TAAOffsetGatherIndex], g[TAAOffsetGatherIndex]);
                   base_uv_motion_len=Length2(base_uv_motion);
 
                   test_uv_motion=VecH2(r.x, g.x); test_len=Length2(test_uv_motion); if(DEPTH_SMALLER(d.x, base_depth) && test_len>base_uv_motion_len){base_depth=d.x; base_uv_motion=test_uv_motion ; base_uv_motion_len=test_len;}
@@ -300,7 +294,7 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:TEXCOORD,
                   test_uv_motion=VecH2(r.z, g.z); test_len=Length2(test_uv_motion); if(DEPTH_SMALLER(d.z, base_depth) && test_len>base_uv_motion_len){base_depth=d.z; base_uv_motion=test_uv_motion ; base_uv_motion_len=test_len;}
                   test_uv_motion=VecH2(r.w, g.w); test_len=Length2(test_uv_motion); if(DEPTH_SMALLER(d.w, base_depth) && test_len>base_uv_motion_len){base_depth=d.w; base_uv_motion=test_uv_motion ; base_uv_motion_len=test_len;}
             }else
-            {
+            { // Warning: this ignores 'TAAOffsetGatherIndex'
                Vec2 test_uv=uv0-(TAAOffset<0)*RTSize.xy; // if TAAOffset is negative, then move starting UV to negative too
                FAST_UNROLL for(Int y=0; y<=1; y++)
                FAST_UNROLL for(Int x=0; x<=1; x++)

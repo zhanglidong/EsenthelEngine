@@ -59,7 +59,7 @@ struct MainShaderClass
       *Coords  =&Dummy,
       *Viewport=&Dummy,
       *AspectRatio,
-      *TAAOffset         =&Dummy,
+      *TAAOffset=&Dummy,
       *TAAOffsetCurToPrev=&Dummy,
       *DepthWeightScale=&Dummy,
 
@@ -157,7 +157,8 @@ struct MainShaderClass
       *VtxSkinning;
 
    ShaderParamInt
-      *NoiseOffset;
+      *NoiseOffset,
+      *TAAOffsetGatherIndex;
 
    // SHADERS
    Shader

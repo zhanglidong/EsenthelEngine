@@ -2366,5 +2366,6 @@ void SetDSPosNrm(out Vec pos, out Vec nrm, Vec pos0, Vec pos1, Vec pos2, Vec nrm
 BUFFER(TAA)
    Vec2 TAAOffset,
         TAAOffsetCurToPrev;
+   UInt TAAOffsetGatherIndex; // this is index to be used for TexGather(uv+TAAOffset) that allows to get the same values as if accessing TexPoint(uv)
 BUFFER_END
 /******************************************************************************/

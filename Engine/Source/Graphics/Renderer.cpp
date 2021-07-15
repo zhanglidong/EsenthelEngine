@@ -944,12 +944,22 @@ void RendererClass::tAACheck() // needs to be called after RT and viewport were 
     C Vec2  &offset_prev=TAAOffsets[Unsigned(Time.frame()-1)%Elms(TAAOffsets)];
       RectI  viewport   =(_stereo ? screenToPixelI(D._view_eye_rect[0]) : D._view_active.recti);
       Vec2   mul        =Vec2(0.5f, -0.5f)/size;
-     _taa_use   =true;
-     _taa_offset=                 offset             /viewport.size();
-      Sh.TAAOffset         ->set( offset             *mul); // this always changes so don't use 'setConditional'
+             _taa_use   =true;
+             _taa_offset=offset/viewport.size();
+      Vec2 shader_offset=offset*mul;
+      Sh.TAAOffset         ->set(shader_offset); // this always changes so don't use 'setConditional'
    #if TAA_OLD_VEL
       Sh.TAAOffsetCurToPrev->set((offset_prev-offset)*mul); // this always changes so don't use 'setConditional', 'offset_prev' because we're using this to access 'old_vel' texture from a previous frame that was not offseted, and "-offset" because we're comparing results to 'vel' accessed with 'inTex' instead of "inTex+TAAOffset". We should be accessing "vel inTex+TAAOffset" and "old_vel inTex+TAAOffsetPrev", however we're accessing "vel inTex" so access "old_vel inTex+TAAOffsetPrev-TAAOffset"
    #endif
+
+      /*Select index to point to the component as if we were accessing without TAAOffset - TexPoint(uv)
+        TEXTURE ACCESSING                 (Y^)
+        GATHER returns in following order: V1 X0 Y1
+                                           V0 W3 Z2
+                                            + U0 U1 (X>)*/
+      Sh.TAAOffsetGatherIndex->set((shader_offset.y>=0) ? (shader_offset.x>=0) ? 3 : 2 // this is 100% correct (tested and verified), always changes so don't use 'setConditional'
+                                                        : (shader_offset.x>=0) ? 0 : 1);
+
       D._view_active.setShader();
    }
    SetProjMatrix(); // call after setting '_taa_offset', always call because needed for MotionBlur and TAA
