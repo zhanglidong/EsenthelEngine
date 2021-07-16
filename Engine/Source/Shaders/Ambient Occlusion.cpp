@@ -24,10 +24,12 @@ Img=Nrm, Depth=depth
 #define AO_MODE AO_AVG
 
 #define DYNAMIC 1 // 1=faster
+
+#define PRECISION 1
 /******************************************************************************/
 #if AO_MODE==AO_PATTERN
 #include "!Set Prec Struct.h"
-BUFFER(AOConstants) // z=1/xy.length()
+BUFFER(AOConstants)
    Vec2 AO0Vec[]={Vec2(0.000, -0.750), Vec2(-0.650, -0.375), Vec2(-0.125, -0.217), Vec2(0.125, -0.217), Vec2(0.650, -0.375), Vec2(-0.250, 0.000), Vec2(0.250, 0.000), Vec2(-0.650, 0.375), Vec2(-0.125, 0.217), Vec2(0.125, 0.217), Vec2(0.650, 0.375), Vec2(0.000, 0.750)};
    Vec2 AO1Vec[]={Vec2(-0.147, -0.764), Vec2(0.147, -0.764), Vec2(-0.588, -0.509), Vec2(-0.222, -0.385), Vec2(0.000, -0.333), Vec2(0.222, -0.385), Vec2(0.588, -0.509), Vec2(-0.735, -0.255), Vec2(-0.289, -0.167), Vec2(-0.056, -0.096), Vec2(0.056, -0.096), Vec2(0.289, -0.167), Vec2(0.735, -0.255), Vec2(-0.444, 0.000), Vec2(-0.111, 0.000), Vec2(0.111, 0.000), Vec2(0.444, 0.000), Vec2(-0.735, 0.255), Vec2(-0.289, 0.167), Vec2(-0.056, 0.096), Vec2(0.056, 0.096), Vec2(0.289, 0.167), Vec2(0.735, 0.255), Vec2(-0.588, 0.509), Vec2(-0.222, 0.385), Vec2(0.000, 0.333), Vec2(0.222, 0.385), Vec2(0.588, 0.509), Vec2(-0.147, 0.764), Vec2(0.147, 0.764)};
    Vec2 AO2Vec[]={Vec2(-0.225, -0.781), Vec2(0.000, -0.750), Vec2(0.225, -0.781), Vec2(-0.563, -0.585), Vec2(-0.281, -0.487), Vec2(-0.083, -0.430), Vec2(0.083, -0.430), Vec2(0.281, -0.487), Vec2(0.563, -0.585), Vec2(-0.650, -0.375), Vec2(-0.331, -0.286), Vec2(-0.125, -0.217), Vec2(0.000, -0.188), Vec2(0.125, -0.217), Vec2(0.331, -0.286), Vec2(0.650, -0.375), Vec2(-0.789, -0.195), Vec2(-0.413, -0.143), Vec2(-0.162, -0.094), Vec2(-0.031, -0.054), Vec2(0.031, -0.054), Vec2(0.162, -0.094), Vec2(0.413, -0.143), Vec2(0.789, -0.195), Vec2(-0.563, 0.000), Vec2(-0.250, 0.000), Vec2(-0.063, 0.000), Vec2(0.063, 0.000), Vec2(0.250, 0.000), Vec2(0.563, 0.000), Vec2(-0.789, 0.195), Vec2(-0.413, 0.143), Vec2(-0.162, 0.094), Vec2(-0.031, 0.054), Vec2(0.031, 0.054), Vec2(0.162, 0.094), Vec2(0.413, 0.143), Vec2(0.789, 0.195), Vec2(-0.650, 0.375), Vec2(-0.331, 0.286), Vec2(-0.125, 0.217), Vec2(0.000, 0.188), Vec2(0.125, 0.217), Vec2(0.331, 0.286), Vec2(0.650, 0.375), Vec2(-0.563, 0.585), Vec2(-0.281, 0.487), Vec2(-0.083, 0.430), Vec2(0.083, 0.430), Vec2(0.281, 0.487), Vec2(0.563, 0.585), Vec2(-0.225, 0.781), Vec2(0.000, 0.750), Vec2(0.225, 0.781)};
@@ -132,13 +134,16 @@ Flt FadeOut(Flt dist2)
    if(R)return f<1;*/
    return Sat(2-dist2*AmbientRangeInvSqr2); // 2-f*f*2
 }
-Vec Tangent(Vec2 dir2, Vec nrm_scaled, Vec eye_dir) // this is 'dir2' in 3D space (nrm tangent), doesn't need to be normalized
+#if PRECISION==0
+Vec Tangent(Vec2 dir2, Vec nrm_scaled, Vec eye_dir, bool flip) // this is 'dir2' in 3D space (nrm tangent), doesn't need to be normalized
 {
  //Vec tan=PointOnPlaneRay(Vec(dir2.x, -dir2.y, 0), nrm_clamp, eye_dir); original formula
    Vec tan=Vec(dir2.x, -dir2.y, 0); tan-=Dot(tan, nrm_scaled)*eye_dir;
+   if(flip)tan=-tan;
    return tan;
-// alternative formula (but this is AFTER "dir2*=offs_scale") : Vec2 t2=uv+dir2*0.01; Vec pos2=Vec(UVToPosXY(t2), 1); Vec p=PointOnPlaneRay(pos2, pos, R ? nrm_clamp : nrm, W ? eye_dir : normalize(pos2)); dir=p-pos;
+// alternative formula (but this is AFTER "dir2*=offs_scale") : Vec2 t2=uv+dir2*0.01; Vec pos2=Vec(UVToPosXY(t2), 1); Vec p=PointOnPlaneRay(pos2, pos, R ? nrm_clamp : nrm, W ? eye_dir : Normalize(pos2)); dir=p-pos;
 }
+#endif
 /******************************************************************************/
 Half AO_PS
 (
@@ -188,7 +193,10 @@ Half AO_PS
    #endif // NORMALS
 
    nrm=Normalize(nrm);
-   Vec nrm_scaled; // normal scaled by Dot(nrm, eye_dir) used for calculating the tangent
+
+#if PRECISION==0
+   Vec  nrm_scaled; // normal scaled by Dot(nrm, eye_dir) used for calculating the tangent
+   Bool flip_tan;
    {
       Flt nrm_eye_dir=Dot(nrm, eye_dir);
    #if 0 // slower
@@ -203,7 +211,15 @@ Half AO_PS
    #else
       nrm_scaled=nrm/Min(nrm_eye_dir, -64.0/256); // big value like this is needed to eliminate artifacts on distant flat terrain with normal maps
    #endif
+      flip_tan=false;
+      /*if(R)
+      {
+         //if(W){Flt a=Abs(nrm_eye_dir), min=64.0/256; if(a<min)nrm_eye_dir*=min/a;}
+         nrm_scaled=nrm/nrm_eye_dir; // FIXME NaN
+         flip_tan=(nrm_eye_dir>0);
+      }*/
    }
+#endif
 
    Vec2  cos_sin;
    Flt   jitter_angle, jitter_step, jitter_half;
@@ -296,7 +312,7 @@ Half AO_PS
       #if 0
          if(0) // GTAO
          {
-            if(R){weight+=1; occl+=GTAOIntegrateArc(asin(max_sin), 0);}else
+            if(R){weight+=1; occl+=GTAOIntegrateArc(Asin(max_sin), 0);}else
                  {weight+=2; occl+=Sqr(max_sin.x)+Sqr(max_sin.y);}
          }else
       #endif
@@ -324,13 +340,30 @@ Half AO_PS
       {
          Flt  angle=a; if(JITTER)angle+=jitter_angle; angle*=PI2/angles; // this is best for cache
          Vec2 dir2; CosSin(dir2.x, dir2.y, angle);
-         Vec  dir=Tangent(dir2, nrm_scaled, eye_dir);
+
+      #if PRECISION==0
+         Vec dir=Tangent(dir2, nrm_scaled, eye_dir, flip_tan);
+      #endif
+
+      // FIXME only in prec =1
+         Vec plane_nrm        =Normalize(Cross(Vec(dir2.x, -dir2.y, 0), eye_dir));
+         Vec plane_tan        =Cross(eye_dir, plane_nrm); // normalized
+         Vec projected_nrm    =PointOnPlane(nrm, plane_nrm);
+         Flt projected_nrm_len=Length(projected_nrm);
+      #if 0 // slower
+         if(projected_nrm_len)projected_nrm/=projected_nrm_len; Flt base_sin=Dot(projected_nrm, plane_tan);
+      #else
+         Flt base_sin=Dot(projected_nrm, plane_tan); if(projected_nrm_len)base_sin/=projected_nrm_len;
+      #endif
+       //base_sin=Mid(base_sin, -1, 1); FIXME alternatively we could replace "if(projected_nrm_len)base_sin/=projected_nrm_len;" with "base_sin/=projected_nrm_len+eps;"
+         Flt base_angle=Asin(base_sin); // Warning: NaN
+
          dir2*=offs_scale;
 
       #if DYNAMIC // this reduces performance but increases quality on viewport edges, by disabling instant darkening when objects appear on the borders, instead it smoothens the darkening based on how much the object appeared in the viewport
          Flt frac=ViewportClamp(uv+dir2, dir2);
          // instead of reducing movement "dir2*=1-frac;" limit number of steps, because reduced movement would change weights for samples
-         Int steps=Floor(max_steps*(1-frac)+HALF_MIN+(JITTER?jitter_step:0)); // this will have the same effect as if ignoring samples outside of viewport
+         Int steps=Floor(max_steps*(1-frac)+HALF_MIN+(JITTER ? jitter_step : 0)); // this will have the same effect as if ignoring samples outside of viewport
          weight+=(max_steps-steps)*0.5; // add 0.5 weight for each step skipped
       #else
          Int steps=max_steps;
@@ -356,10 +389,43 @@ Half AO_PS
                  w=FadeOut(delta_len2);
             Flt  y=Dot(delta, nrm); if(y>z_eps) // use small eps (1 mm) to increase performance for flat surfaces by skipping calculations below
             {
+            #if PRECISION==0
                Flt sin=y*rsqrt(delta_len2);
                Flt x=Dot(delta, dir); if(x<0)sin=1;
                o =1-CosSin(sin);
                o*=w; // fix artifacts (occlusion can be strong only as weight)
+            #endif
+
+      // FIXME only in prec =1
+               Flt test_sin=Dot(delta, eye_dir)*rsqrt(delta_len2);
+             //test_sin=Mid(test_sin, -1, 1); FIXME
+               Flt test_angle=Asin(test_sin); // Warning: NaN
+
+               Flt angle_delta=base_angle-test_angle;
+               if(W)angle_delta=Mid(angle_delta, 0, E ? PI_2 : PI); // FIXME
+               o=1-Cos(angle_delta);
+               o*=projected_nrm_len*w;
+
+      // FIXME only in prec =2
+               if(Q)
+               {
+                  Vec test_dir         =Normalize(test_pos);
+	               Vec plane_nrm        =Normalize(Cross(eye_dir, test_dir));
+	               Vec projected_nrm    =PointOnPlane(nrm, plane_nrm);
+                  Flt projected_nrm_len=Length(projected_nrm);
+	               Vec projected_dir    =Normalize(test_dir-eye_dir);
+               #if 0 // slower
+                  Flt base_sin         =Dot(projected_dir, projected_nrm/projected_nrm_len);
+               #else
+                  Flt base_sin         =Dot(projected_dir, projected_nrm); if(projected_nrm_len)base_sin/=projected_nrm_len;
+               #endif
+                //base_sin=Mid(base_sin, -1, 1); FIXME alternatively we could replace "if(projected_nrm_len)base_sin/=projected_nrm_len;" with "base_sin/=projected_nrm_len+eps;"
+	               Flt base_angle       =Asin(base_sin); // Warning: NaN
+                  Flt angle_delta      =base_angle-test_angle;
+                  if(W)angle_delta=Mid(angle_delta, 0, E ? PI_2 : PI); // FIXME
+                  o=1-Cos(angle_delta);
+                  o*=projected_nrm_len*w;
+               }
             }else o=0;
             w=w*0.5+0.5;   // fix artifacts, this increases weight if it's small, which results in brightening because we don't touch occlusion
           //w=Max(0.5, w); // fix artifacts, this increases weight if it's small, which results in brightening because we don't touch occlusion
