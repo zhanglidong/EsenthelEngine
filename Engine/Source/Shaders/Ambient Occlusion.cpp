@@ -320,12 +320,7 @@ Half AO_PS
          Int pixel_range=W ? (E ? Round(Sum(offs_scale*RTSize.zw)) : Ceil(Sum(offs_scale*RTSize.zw))) : (E ? Sum(Round(offs_scale*RTSize.zw)) : Sum(Ceil(offs_scale*RTSize.zw)));
          max_steps=Min(max_steps, pixel_range);
       }*/
-   #if DYNAMIC
-      LOOP 
-   #else
-      UNROLL
-   #endif
-         for(Int a=0; a<angles; a++)
+      LOOP for(Int a=0; a<angles; a++)
       {
          Flt  angle=a; if(JITTER)angle+=jitter_angle; angle*=PI2/angles; // this is best for cache
          Vec2 dir2; CosSin(dir2.x, dir2.y, angle);
@@ -343,7 +338,12 @@ Half AO_PS
 
          Flt o, w;
        //o=0; w=1; VecI2 last_uv=0;
-         LOOP for(Int s=1; s<=steps; s++) // start from 1 to skip this pixel
+      #if DYNAMIC
+         LOOP 
+      #else
+         UNROLL
+      #endif
+            for(Int s=1; s<=steps; s++) // start from 1 to skip this pixel
          {
             Vec2 d=dir2*((JITTER ? s-jitter_step : s)/Flt(max_steps)); // subtract 'jitter_step' because we start from step 's=1' and subtracting 0 .. 0.75 jitter allows us to still skip step 0 and start from 0.25
           //if(!LINEAR_FILTER){VecI2 uv=Round(d*RTSize.zw); if(all(uv==last_uv)){occl+=o; weight+=w; continue;} last_uv=uv; d=uv*RTSize.xy;} if coordinates are the same as in last step then reuse calculations, however this slows down, probably because of 'continue' branching
