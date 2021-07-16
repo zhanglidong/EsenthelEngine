@@ -413,13 +413,14 @@ Half AO_PS
 	               Vec plane_nrm        =Normalize(Cross(eye_dir, test_dir));
 	               Vec projected_nrm    =PointOnPlane(nrm, plane_nrm);
                   Flt projected_nrm_len=Length(projected_nrm);
-	               Vec projected_dir    =Normalize(test_dir-eye_dir);
                #if 0 // slower
+	               Vec projected_dir    =Normalize(test_dir-eye_dir);
                   Flt base_sin         =Dot(projected_dir, projected_nrm/projected_nrm_len);
                #else
-                  Flt base_sin         =Dot(projected_dir, projected_nrm); if(projected_nrm_len)base_sin/=projected_nrm_len;
+	               Vec projected_dir    =test_dir-eye_dir;
+                  Flt base_sin         =Dot(projected_dir, projected_nrm); if(projected_nrm_len)base_sin/=projected_nrm_len*Length(projected_dir);
                #endif
-                //base_sin=Mid(base_sin, -1, 1); FIXME alternatively we could replace "if(projected_nrm_len)base_sin/=projected_nrm_len;" with "base_sin/=projected_nrm_len+eps;"
+                //base_sin=Mid(base_sin, -1, 1); FIXME alternatively we could replace "if(projected_nrm_len)base_sin/=projected_nrm_len*Length(projected_dir);" with "base_sin/=projected_nrm_len*Length(projected_dir)+eps;"
 	               Flt base_angle       =Asin(base_sin); // Warning: NaN
                   Flt angle_delta      =base_angle-test_angle;
                   if(W)angle_delta=Mid(angle_delta, 0, E ? PI_2 : PI); // FIXME
