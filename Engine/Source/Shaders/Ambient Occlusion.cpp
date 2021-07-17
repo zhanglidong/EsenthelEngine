@@ -396,7 +396,7 @@ Half AO_PS
                  delta   =test_pos-pos;
             Flt  delta_len2=Length2(delta);
                  w=FadeOut(delta_len2);
-            Flt  y=Dot(delta, nrm); if(y>z_eps) // use small eps (1 mm) to increase performance for flat surfaces by skipping calculations below
+            Flt  y=Dot(delta, nrm); if(y>z_eps) // use small eps (1 mm) to increase performance for flat surfaces by skipping calculations below, this check also avoids some precision issues for "PRECISION=1"
             {
             #if PRECISION==0
                Flt sin=y*Rsqrt(delta_len2);
