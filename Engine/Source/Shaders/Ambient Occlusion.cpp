@@ -399,7 +399,7 @@ Half AO_PS
             Flt  y=Dot(delta, nrm); if(y>z_eps) // use small eps (1 mm) to increase performance for flat surfaces by skipping calculations below, this check also avoids some precision issues for "PRECISION=1"
             {
             #if PRECISION==0
-               Flt sin=y*Rsqrt(delta_len2);
+               Flt sin=y*Rsqrt(delta_len2+EPS_RSQRT);
                Flt x=Dot(delta, dir); if(x<0)sin=1;
                o =1-CosSin(sin); // Warning: NaN
                o*=w; // fix artifacts (occlusion can be strong only as weight)
@@ -440,7 +440,7 @@ Half AO_PS
                   o=1-Cos(angle_delta);
                }
                #endif
-             //o=Min(o, 1);
+               o=Min(o, 1);
 
                o*=projected_nrm_len2*w; // mul by 'projected_nrm_len2' applies perspective correction (occlusion will be similar when viewed from different angles)
             #endif
