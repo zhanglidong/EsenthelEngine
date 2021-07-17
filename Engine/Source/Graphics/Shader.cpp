@@ -1417,7 +1417,7 @@ updateBuffers();
 }
 void ComputeShader11::end()C
 {
-   clearImages();
+   clearImages(); // have to unlink UAV's after computing, because DX will fail to bind their SRV's while UAV's are still bound
 }
 void ComputeShader11::compute(C VecI2 &groups)C {begin(); D3DC->Dispatch(groups.x, groups.y,        1); end();}
 void ComputeShader11::compute(C VecI  &groups)C {begin(); D3DC->Dispatch(groups.x, groups.y, groups.z); end();}
