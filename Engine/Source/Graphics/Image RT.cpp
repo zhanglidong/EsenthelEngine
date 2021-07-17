@@ -287,12 +287,12 @@ Bool ImageRT::createViews()
          rtvd.ViewDimension=(multiSample() ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D);
          D3D->CreateRenderTargetView(_txtr, &rtvd, &_rtv); if(!_rtv)return false;
          
-         if(0) // FIXME always?
+         if(D.computeAvailable())
          {
             D3D11_UNORDERED_ACCESS_VIEW_DESC uavd; Zero(uavd); uavd.Format=hwTypeInfo().format;
             uavd.ViewDimension=D3D11_UAV_DIMENSION_TEXTURE2D;
           //uavd.Texture2D.MipSlice=0;
-            D3D->CreateUnorderedAccessView(_txtr, &uavd, &_uav); if(!_uav)return false;
+            D3D->CreateUnorderedAccessView(_txtr, &uavd, &_uav); //if(!_uav)return false; this might fail for map main
          }
       #endif
          if(IMAGE_TYPE type_srgb=ImageTypeToggleSRGB(type()))if(type_srgb!=type()) // try creating toggled sRGB Resource Views
