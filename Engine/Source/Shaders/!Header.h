@@ -123,6 +123,7 @@
 #define EPS        0.0001                             // float epsilon
 #define EPS_COL    (1.0/256)                          // color epsilon
 #define EPS_LUM    (LINEAR_GAMMA ? 1.0/512 : EPS_COL) // light epsilon (need a little extra precision for linear gamma)
+#define EPS_RSQRT  HALF_MIN                           // rsqrt epsilon, makes sure that vec*rsqrt(Length2(vec)+EPS_RSQRT) gives range -1..1
 
 #define PI_6    0.5235987755982988 // PI/6 ( 30 deg) Flt
 #define PI_4    0.7853981633974483 // PI/4 ( 45 deg) Flt

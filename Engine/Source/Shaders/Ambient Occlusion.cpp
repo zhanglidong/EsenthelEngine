@@ -356,11 +356,10 @@ Half AO_PS
          Vec projected_nrm     =PointOnPlane(nrm, plane_nrm);
          Flt projected_nrm_len2=Length2(projected_nrm);
       #if 0 // slower
-         if(projected_nrm_len)projected_nrm/=projected_nrm_len; Flt base_sin=Dot(projected_nrm, plane_tan);
+         if(projected_nrm_len)projected_nrm/=projected_nrm_len; Flt base_sin=Dot(projected_nrm, plane_tan); base_sin=Mid(base_sin, -1, 1);
       #else
-         Flt base_sin=Dot(projected_nrm, plane_tan)*Rsqrt(projected_nrm_len2);
+         Flt base_sin=Dot(projected_nrm, plane_tan)*Rsqrt(projected_nrm_len2+EPS_RSQRT); // EPS_RSQRT to skip "base_sin=Mid(base_sin, -1, 1);"
       #endif
-       //base_sin=Mid(base_sin, -1, 1); FIXME alternatively we could replace "if(projected_nrm_len)base_sin/=projected_nrm_len;" with "base_sin/=projected_nrm_len+eps;"
       #if COS_SIN
          Flt base_cos=CosSin(base_sin); // Warning: NaN
       #else
@@ -405,8 +404,7 @@ Half AO_PS
                o =1-CosSin(sin); // Warning: NaN
                o*=w; // fix artifacts (occlusion can be strong only as weight)
             #else
-               Flt test_sin=Dot(delta, eye_dir)*Rsqrt(delta_len2);
-                 //test_sin=Mid(test_sin, -1, 1); FIXME
+               Flt test_sin=Dot(delta, eye_dir)*Rsqrt(delta_len2+EPS_RSQRT); // EPS_RSQRT to skip "test_sin=Mid(test_sin, -1, 1);"
 
             #if PRECISION==2 // recalculate base for every sample
                Vec test_dir          =Normalize(test_pos);
@@ -416,11 +414,11 @@ Half AO_PS
             #if 0 // slower
 	            Vec projected_dir     =Normalize(test_dir-eye_dir);
                Flt base_sin          =Dot(projected_dir, projected_nrm/projected_nrm_len);
+                   base_sin          =Mid(base_sin, -1, 1);
             #else
 	            Vec projected_dir     =test_dir-eye_dir;
-               Flt base_sin          =Dot(projected_dir, projected_nrm)*Rsqrt(projected_nrm_len2*Length2(projected_dir));
+               Flt base_sin          =Dot(projected_dir, projected_nrm)*Rsqrt(projected_nrm_len2*Length2(projected_dir)+EPS_RSQRT); // EPS_RSQRT to skip "base_sin=Mid(base_sin, -1, 1);"
             #endif
-                 //base_sin=Mid(base_sin, -1, 1); FIXME alternatively we could replace "if(projected_nrm_len)base_sin/=projected_nrm_len*Length(projected_dir);" with "base_sin/=projected_nrm_len*Length(projected_dir)+eps;"
             #if COS_SIN
                Flt base_cos          =CosSin(base_sin); // Warning: NaN
             #else
