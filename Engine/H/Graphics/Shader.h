@@ -411,12 +411,13 @@ struct Shader11
    Str8                       name;
 
    Bool validate (ShaderFile &shader, Str *messages=null);
+   Bool load     (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
+
    void commit   ()C;
    void commitTex()C;
    void start    ()C;
    void startTex ()C;
    void begin    ()C;
-   Bool load     (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
 
    void setVSBuffers()C;
    void setHSBuffers()C;
@@ -441,11 +442,16 @@ struct ComputeShader11
    Str8                       name;
 
    Bool validate(ShaderFile &shader, Str *messages=null);
-   void commit  ()C;
    Bool load    (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
+
+   void commit()C;
 
    void setBuffers()C;
    void setImages ()C;
+
+   void begin  ()C;
+   void compute(C VecI2 &groups)C;
+   void compute(C VecI  &groups)C;
 
 //~ComputeShader11(); no need to release 'vs,hs,ds,ps' or 'buffers,images,rw_images' since they're just copies from 'Shader*11'
 };
@@ -467,15 +473,16 @@ struct ShaderGL
    Mems<SamplerImageLink>      images;
    Str8                          name;
 
-   Str  source   ()C;
-   UInt compile  (MemPtr<ShaderSubGL> vs_array, MemPtr<ShaderSubGL> ps_array, ShaderFile *shader, Str *messages);
-   Bool validate (ShaderFile &shader, Str *messages=null);
+   Str  source  ()C;
+   UInt compile (MemPtr<ShaderSubGL> vs_array, MemPtr<ShaderSubGL> ps_array, ShaderFile *shader, Str *messages);
+   Bool validate(ShaderFile &shader, Str *messages=null);
+   Bool load    (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
+
    void commit   ()C;
    void commitTex()C;
    void start    ()C;
    void startTex ()C;
    void begin    ()C;
-   Bool load     (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
 
   ~ShaderGL();
 };
@@ -488,10 +495,10 @@ struct ComputeShaderGL
    Mems<SamplerImageLink>      images;
    Str8                          name;
 
-   Str  source   ()C;
-   UInt compile  (MemPtr<ShaderSubGL> cs_array, ShaderFile *shader, Str *messages);
-   Bool validate (ShaderFile &shader, Str *messages=null);
-   Bool load     (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
+   Str  source  ()C;
+   UInt compile (MemPtr<ShaderSubGL> cs_array, ShaderFile *shader, Str *messages);
+   Bool validate(ShaderFile &shader, Str *messages=null);
+   Bool load    (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
 
   ~ComputeShaderGL();
 };

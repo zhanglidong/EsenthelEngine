@@ -1302,6 +1302,7 @@ INLINE void Shader11::setPSImages()C {REPA(images[ST_PS]){C ImageLink &link=imag
 
 void        Shader11::commit()C {REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}}
 void ComputeShader11::commit()C {REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}}
+
 void Shader11::commitTex()C
 {
    if(hs)
@@ -1312,6 +1313,7 @@ void Shader11::commitTex()C
    setVSImages();
    setPSImages();
 }
+
 void Shader11::start()C // same as 'begin' but without committing buffers and textures
 {
    if(hs/* && D.tesselationAllow()*/) // currently disabled to avoid extra overhead as tesselation isn't generally used, TODO:
@@ -1381,6 +1383,15 @@ void Shader11::begin()C
    setPSBuffers();
    REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}
 }
+void ComputeShader11::begin()C
+{
+   SetCS(cs);
+   setImages();
+   setBuffers();
+   REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}
+}
+void ComputeShader11::compute(C VecI2 &groups)C {begin(); D3DC->Dispatch(groups.x, groups.y,        1);}
+void ComputeShader11::compute(C VecI  &groups)C {begin(); D3DC->Dispatch(groups.x, groups.y, groups.z);}
 #elif GL
 ShaderGL::~ShaderGL()
 {
