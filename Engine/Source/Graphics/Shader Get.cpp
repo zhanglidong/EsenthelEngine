@@ -11,8 +11,10 @@ namespace EE{
       Because crash/memory corruption may occur, since they need to operate on different containers 'MultiMaterialShaderDraws' and 'ShaderDraws'
 
 /******************************************************************************/
-ShaderImage* FindShaderImage(CChar8 *name) {return ShaderImages.find(Str8Temp(name));}
-ShaderImage*  GetShaderImage(CChar8 *name) {ShaderImage *image=FindShaderImage(name); if(!image)Exit(S+"Shader Image \""+name+"\" not found."); return image;}
+ShaderImage  * FindShaderImage  (CChar8 *name) {return ShaderImages  .find(Str8Temp(name));}
+ShaderRWImage* FindShaderRWImage(CChar8 *name) {return ShaderRWImages.find(Str8Temp(name));}
+ShaderImage  *  GetShaderImage  (CChar8 *name) {ShaderImage   *image=FindShaderImage  (name); if(!image)Exit(S+"Shader Image \""   +name+"\" not found."); return image;}
+ShaderRWImage*  GetShaderRWImage(CChar8 *name) {ShaderRWImage *image=FindShaderRWImage(name); if(!image)Exit(S+"Shader RW Image \""+name+"\" not found."); return image;}
 
 ShaderParam* FindShaderParam(CChar8 *name)
 {

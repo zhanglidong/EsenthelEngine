@@ -246,15 +246,16 @@ void ImageRT::clearViewport(C Vec4 &color, Bool restore_rt)
    }
 }
 /******************************************************************************/
-void ImageRT:: zero   () {_srv_srgb=null; _rtv=_rtv_srgb=null; _dsv=_rdsv=null;}
+void ImageRT:: zero   () {_srv_srgb=null; _rtv=_rtv_srgb=null; _dsv=_rdsv=null; _uav=null;}
      ImageRT:: ImageRT() {zero();}
      ImageRT::~ImageRT() {delThis();} // delete children first, 'super.del' already called automatically in '~Image'
 void ImageRT:: delThis() // delete only this class members without super
 {
 #if DX11
-   if(_srv_srgb || _rtv || _rtv_srgb || _dsv || _rdsv)
+   if(_srv_srgb || _rtv || _rtv_srgb || _dsv || _rdsv || _uav)
    {
-      D.texClear(_srv_srgb);
+      D.texClearAll(_srv_srgb);
+      D.uavClear   (_uav     );
     //SyncLocker locker(D._lock); lock not needed for DX11 'Release'
       if(D.created())
       {
@@ -263,6 +264,7 @@ void ImageRT:: delThis() // delete only this class members without super
          RELEASE(_rtv_srgb);
          RELEASE(_dsv     );
          RELEASE(_rdsv    );
+         RELEASE(_uav     );
       }
    }
 #endif
@@ -284,6 +286,14 @@ Bool ImageRT::createViews()
          D3D11_RENDER_TARGET_VIEW_DESC rtvd; Zero(rtvd); rtvd.Format=hwTypeInfo().format;
          rtvd.ViewDimension=(multiSample() ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D);
          D3D->CreateRenderTargetView(_txtr, &rtvd, &_rtv); if(!_rtv)return false;
+         
+         if(0) // FIXME always?
+         {
+            D3D11_UNORDERED_ACCESS_VIEW_DESC uavd; Zero(uavd); uavd.Format=hwTypeInfo().format;
+            uavd.ViewDimension=D3D11_UAV_DIMENSION_TEXTURE2D;
+          //uavd.Texture2D.MipSlice=0;
+            D3D->CreateUnorderedAccessView(_txtr, &uavd, &_uav); if(!_uav)return false;
+         }
       #endif
          if(IMAGE_TYPE type_srgb=ImageTypeToggleSRGB(type()))if(type_srgb!=type()) // try creating toggled sRGB Resource Views
          {

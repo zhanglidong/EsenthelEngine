@@ -13,6 +13,7 @@ struct ShaderSampler
    void setHS    (Int index)C;
    void setDS    (Int index)C;
    void setPS    (Int index)C;
+   void setCS    (Int index)C;
 #elif GL
    UInt sampler=0;
 #if GL_ES
@@ -33,10 +34,10 @@ struct ShaderSampler
 #endif
 struct ShaderImage // Shader Image
 {
- C Image* get(                   )C {return   _image  ;}
-   void   set(C Image      *image)  {T._image= image  ;}
-   void   set(C Image      &image)  {T._image=&image  ;}
- //void   set(C ImagePtr   &image)  {T._image= image();} this is not safe, as 'ShaderImage' does not store 'ImagePtr' for performance reasons
+ C Image* get(                 )C {return   _image  ;}
+   void   set(C Image    *image)  {T._image= image  ;}
+   void   set(C Image    &image)  {T._image=&image  ;}
+ //void   set(C ImagePtr &image)  {T._image= image();} this is not safe, as 'ShaderImage' does not store 'ImagePtr' for performance reasons
 
 #if !EE_PRIVATE
 private:
@@ -45,6 +46,22 @@ private:
 #if EE_PRIVATE
    #if DX11
       INLINE ID3D11ShaderResourceView* getSRV()C {return _image ? _image->_srv  : null;}
+   #endif
+#endif
+};
+struct ShaderRWImage // Shader Read Write Image
+{
+ C ImageRT* get(                )C {return   _image;}
+   void     set(C ImageRT *image)  {T._image= image;}
+   void     set(C ImageRT &image)  {T._image=&image;}
+
+#if !EE_PRIVATE
+private:
+#endif
+ C ImageRT *_image=null;
+#if EE_PRIVATE
+   #if DX11
+      INLINE ID3D11UnorderedAccessView* getUAV()C {return _image ? _image->_uav  : null;}
    #endif
 #endif
 };
@@ -342,6 +359,15 @@ struct ImageLink
    void set(Int index, ShaderImage &image) {T.index=index; T.image=&image;}
    Bool load(File &f, C MemtN<ShaderImage*, 256> &images);
 };
+struct RWImageLink
+{
+   Int            index;
+   ShaderRWImage *image;
+
+   void set(Int index, ShaderRWImage &image) {T.index=index; T.image=&image;}
+   Bool load(File &f, C MemtN<ShaderRWImage*, 256> &images);
+};
+
 struct BufferLinkPtr
 {
  C BufferLink *data=null;
@@ -358,8 +384,19 @@ struct ImageLinkPtr
  C ImageLink& operator[](Int i)C {DEBUG_RANGE_ASSERT(i, elms); return data[i];}
    void operator=(C Mems<ImageLink> &links) {data=links.data(); elms=links.elms();}
 };
-inline Int Elms(C BufferLinkPtr &links) {return links.elms;}
-inline Int Elms(C  ImageLinkPtr &links) {return links.elms;}
+struct RWImageLinkPtr
+{
+ C RWImageLink *data=null;
+   Int          elms=0;
+
+ C RWImageLink& operator[](Int i)C {DEBUG_RANGE_ASSERT(i, elms); return data[i];}
+   void operator=(C Mems<RWImageLink> &links) {data=links.data(); elms=links.elms();}
+};
+
+inline Int Elms(C  BufferLinkPtr &links) {return links.elms;}
+inline Int Elms(C   ImageLinkPtr &links) {return links.elms;}
+inline Int Elms(C RWImageLinkPtr &links) {return links.elms;}
+
 #if WINDOWS
 struct Shader11
 {
@@ -399,6 +436,7 @@ struct ComputeShader11
    Mems<ShaderBuffer*> all_buffers; // shader buffers used by all shader stages (CS) combined into one array
    BufferLinkPtr           buffers;
     ImageLinkPtr            images;
+  RWImageLinkPtr         rw_images;
    Int                  data_index=-1;
    Str8                       name;
 
@@ -409,7 +447,7 @@ struct ComputeShader11
    void setBuffers()C;
    void setImages ()C;
 
-//~ComputeShader11(); no need to release 'vs,hs,ds,ps' or 'buffers,images' since they're just copies from 'Shader*11'
+//~ComputeShader11(); no need to release 'vs,hs,ds,ps' or 'buffers,images,rw_images' since they're just copies from 'Shader*11'
 };
 #endif
 /******************************************************************************/
@@ -541,10 +579,11 @@ private:
    #elif GL
       Mems<ShaderSubGL> _vs, _hs, _ds, _ps, _cs;
    #endif
-   Mems<Mems<BufferLink>> _buffer_links;
-   Mems<Mems< ImageLink>>  _image_links;
+   Mems<Mems< BufferLink>>   _buffer_links;
+   Mems<Mems<  ImageLink>>    _image_links;
+   Mems<Mems<RWImageLink>> _rw_image_links;
 #else
-   Mems<ShaderData   > _vs, _hs, _ds, _ps, _cs, _buffer_links, _image_links;
+   Mems<ShaderData   > _vs, _hs, _ds, _ps, _cs, _buffer_links, _image_links, _rw_image_links;
 #endif
    Mems<       Shader>         _shaders;
    Mems<ComputeShader> _compute_shaders;
@@ -580,11 +619,12 @@ struct BLST // Blend Light Shader Techniques
    Shader *dir[7];
 };
 /******************************************************************************/
-extern ThreadSafeMap<FRSTKey, FRST        > Frsts        ; // Forward Rendering Shader Techniques
-extern ThreadSafeMap<BLSTKey, BLST        > Blsts        ; // Blend   Light     Shader Techniques
-extern ThreadSafeMap<Str8   , ShaderImage > ShaderImages ; // Shader Images
-extern ThreadSafeMap<Str8   , ShaderParam > ShaderParams ; // Shader Parameters
-extern ThreadSafeMap<Str8   , ShaderBuffer> ShaderBuffers; // Shader Constant Buffers
+extern ThreadSafeMap<FRSTKey, FRST         > Frsts         ; // Forward Rendering Shader Techniques
+extern ThreadSafeMap<BLSTKey, BLST         > Blsts         ; // Blend   Light     Shader Techniques
+extern ThreadSafeMap<Str8   , ShaderImage  > ShaderImages  ; // Shader            Images
+extern ThreadSafeMap<Str8   , ShaderRWImage> ShaderRWImages; // Shader Read Write Images
+extern ThreadSafeMap<Str8   , ShaderParam  > ShaderParams  ; // Shader Parameters
+extern ThreadSafeMap<Str8   , ShaderBuffer > ShaderBuffers ; // Shader Constant Buffers
 #endif
 extern Cache<ShaderFile> ShaderFiles; // Shader File Cache
 /******************************************************************************/
@@ -609,6 +649,10 @@ struct ShaderGLSL
 // shader image
 ShaderImage* FindShaderImage(CChar8 *name); // find shader image, null on fail (shader image can be returned only after loading a shader which contains the image)
 ShaderImage*  GetShaderImage(CChar8 *name); // find shader image, Exit on fail (shader image can be returned only after loading a shader which contains the image)
+
+// shader read write image
+ShaderRWImage* FindShaderRWImage(CChar8 *name); // find shader read write image, null on fail (shader image can be returned only after loading a shader which contains the image)
+ShaderRWImage*  GetShaderRWImage(CChar8 *name); // find shader read write image, Exit on fail (shader image can be returned only after loading a shader which contains the image)
 
 // shader parameter
 ShaderParam* FindShaderParam(CChar8 *name); // find shader parameter, null on fail (shader parameter can be returned only after loading a shader which contains the parameter)

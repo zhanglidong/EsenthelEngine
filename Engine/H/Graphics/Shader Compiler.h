@@ -117,12 +117,13 @@ struct ShaderCompiler
       Str8         func_name;
       Str          error;
       Mems<Buffer> buffers;
-      Mems<Image > images;
+      Mems<Image > images, rw_images;
       Mems<IO    > inputs, outputs;
       ShaderData   shader_data;
-      Int          shader_data_index=-1, // index of 'ShaderData' in 'ShaderFile'
-                   buffer_bind_index=-1, // index of buffer binds in 'ShaderFile'
-                    image_bind_index=-1; // index of image  binds in 'ShaderFile'
+      Int          shader_data_index=-1, // index of   'ShaderData' in 'ShaderFile'
+                   buffer_bind_index=-1, // index of   buffer binds in 'ShaderFile'
+                    image_bind_index=-1, // index of    image binds in 'ShaderFile'
+                 rw_image_bind_index=-1; // index of rw image binds in 'ShaderFile'
 
       Bool is()C {return func_name.is();}
       void compile();
@@ -231,7 +232,7 @@ struct ShaderCompiler
    SC_FLAG            flag;
    Memc<Source>       sources;
    Map <Str8, Buffer> buffers;
-   Memc<Str8        > images;
+   Memc<Str8        > images, rw_images;
 
    void message(C Str &t) {messages.line()+=t;}
    Bool error  (C Str &t) {message(t); return false;}
@@ -262,6 +263,13 @@ struct ShaderIndex
 
    ShaderIndex() {}
    ShaderIndex(C ShaderCompiler::SubShader &shader);
+};
+struct ComputeShaderIndex : ShaderIndex
+{
+   UShort rw_image_bind_index;
+
+   ComputeShaderIndex() {}
+   ComputeShaderIndex(C ShaderCompiler::SubShader &shader);
 };
 #pragma pack(pop)
 

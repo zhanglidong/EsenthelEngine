@@ -680,18 +680,20 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
                   {
                      D3D12_SHADER_DESC desc; if(!OK(reflection->GetDesc(&desc))){error.line()+="'ID3D12ShaderReflection.GetDesc' failed.";}else
                      {
-                        Int images_elms=0, buffers_elms=0;
+                        Int images_elms=0, rw_images_elms=0, buffers_elms=0;
                         FREP(desc.BoundResources)
                         {
                            D3D12_SHADER_INPUT_BIND_DESC desc; if(!OK(reflection->GetResourceBindingDesc(i, &desc))){error.line()+="'GetResourceBindingDesc' failed."; goto error_new;}
                            switch(desc.Type)
                            {
-                              case D3D_SIT_TEXTURE:  images_elms++; break;
-                              case D3D_SIT_CBUFFER: buffers_elms++; break;
+                              case D3D_SIT_TEXTURE    :    images_elms++; break;
+                              case D3D_SIT_UAV_RWTYPED: rw_images_elms++; break;
+                              case D3D_SIT_CBUFFER    :   buffers_elms++; break;
                            }
                         }
-                         images.setNum( images_elms);  images_elms=0;
-                        buffers.setNum(buffers_elms); buffers_elms=0;
+                         images.setNum(   images_elms);    images_elms=0;
+                      rw_images.setNum(rw_images_elms); rw_images_elms=0;
+                        buffers.setNum(  buffers_elms);   buffers_elms=0;
                         FREP(desc.BoundResources)
                         {
                            D3D12_SHADER_INPUT_BIND_DESC desc; if(!OK(reflection->GetResourceBindingDesc(i, &desc))){error.line()+="'GetResourceBindingDesc' failed."; goto error_new;}
@@ -701,6 +703,12 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
                               {
                                  if(!InRange(desc.BindPoint, MAX_SHADER_IMAGES)){error.line()+=S+"Image index: "+desc.BindPoint+", is too big"; goto error_new;}
                                  Image &image=images[images_elms++]; image.name=desc.Name; image.bind_slot=desc.BindPoint;
+                              }break;
+
+                              case D3D_SIT_UAV_RWTYPED:
+                              {
+                                 if(!InRange(desc.BindPoint, MAX_SHADER_IMAGES)){error.line()+=S+"RW Image index: "+desc.BindPoint+", is too big"; goto error_new;}
+                                 Image &image=rw_images[rw_images_elms++]; image.name=desc.Name; image.bind_slot=desc.BindPoint;
                               }break;
 
                               case D3D_SIT_CBUFFER:
@@ -745,12 +753,13 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
                               }break;
                            }
                         }
-                        if(get_default_val)images.del(); // we don't need images for default value, only buffers
+                        if(get_default_val){images.del(); rw_images.del();} // we don't need images for default value, only buffers
                         if(!shader->dummy)
                         {
                            // sort by bind members, to increase chance of generating the same bind map for multiple shaders
                            buffers.sort(CompareBind);
                             images.sort(CompareBind);
+                         rw_images.sort(CompareBind);
 
                             inputs.setNum(desc. InputParameters); FREPA( inputs){D3D12_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetInputParameterDesc (i, &desc)))Exit("'GetInputParameterDesc' failed" );  inputs[i]=desc;}
                            outputs.setNum(desc.OutputParameters); FREPA(outputs){D3D12_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetOutputParameterDesc(i, &desc)))Exit("'GetOutputParameterDesc' failed"); outputs[i]=desc;}
@@ -848,18 +857,20 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
          {
             D3D11_SHADER_DESC desc; if(!OK(reflection->GetDesc(&desc))){error.line()+="'ID3D11ShaderReflection.GetDesc' failed.";}else
             {
-               Int images_elms=0, buffers_elms=0;
+               Int images_elms=0, rw_images_elms=0, buffers_elms=0;
                FREP(desc.BoundResources)
                {
                   D3D11_SHADER_INPUT_BIND_DESC desc; if(!OK(reflection->GetResourceBindingDesc(i, &desc))){error.line()+="'GetResourceBindingDesc' failed."; goto error;}
                   switch(desc.Type)
                   {
-                     case D3D_SIT_TEXTURE:  images_elms++; break;
-                     case D3D_SIT_CBUFFER: buffers_elms++; break;
+                     case D3D_SIT_TEXTURE    :    images_elms++; break;
+                     case D3D_SIT_UAV_RWTYPED: rw_images_elms++; break;
+                     case D3D_SIT_CBUFFER    :   buffers_elms++; break;
                   }
                }
-                images.setNum( images_elms);  images_elms=0;
-               buffers.setNum(buffers_elms); buffers_elms=0;
+                images.setNum(   images_elms);    images_elms=0;
+             rw_images.setNum(rw_images_elms); rw_images_elms=0;
+               buffers.setNum(  buffers_elms);   buffers_elms=0;
                FREP(desc.BoundResources)
                {
                   D3D11_SHADER_INPUT_BIND_DESC desc; if(!OK(reflection->GetResourceBindingDesc(i, &desc))){error.line()+="'GetResourceBindingDesc' failed."; goto error;}
@@ -869,6 +880,12 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
                      {
                         if(!InRange(desc.BindPoint, MAX_SHADER_IMAGES)){error.line()+=S+"Image index: "+desc.BindPoint+", is too big"; goto error;}
                         Image &image=images[images_elms++]; image.name=desc.Name; image.bind_slot=desc.BindPoint;
+                     }break;
+
+                     case D3D_SIT_UAV_RWTYPED:
+                     {
+                        if(!InRange(desc.BindPoint, MAX_SHADER_IMAGES)){error.line()+=S+"RW Image index: "+desc.BindPoint+", is too big"; goto error;}
+                        Image &image=rw_images[rw_images_elms++]; image.name=desc.Name; image.bind_slot=desc.BindPoint;
                      }break;
 
                      case D3D_SIT_CBUFFER:
@@ -912,12 +929,13 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
                      }break;
                   }
                }
-               if(get_default_val)images.del(); // we don't need images for default value, only buffers
+               if(get_default_val){images.del(); rw_images.del();} // we don't need images for default value, only buffers
                if(!shader->dummy)
                {
                   // sort by bind members, to increase chance of generating the same bind map for multiple shaders
                   buffers.sort(CompareBind);
                    images.sort(CompareBind);
+                rw_images.sort(CompareBind);
 
                    inputs.setNum(desc. InputParameters); FREPA( inputs){D3D11_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetInputParameterDesc (i, &desc)))Exit("'GetInputParameterDesc' failed" );  inputs[i]=desc;}
                   outputs.setNum(desc.OutputParameters); FREPA(outputs){D3D11_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetOutputParameterDesc(i, &desc)))Exit("'GetOutputParameterDesc' failed"); outputs[i]=desc;}
@@ -1032,6 +1050,10 @@ ShaderIndex::ShaderIndex(C ShaderCompiler::SubShader &shader)
    buffer_bind_index=AsUShort(shader.buffer_bind_index);
     image_bind_index=AsUShort(shader. image_bind_index);
 }
+ComputeShaderIndex::ComputeShaderIndex(C ShaderCompiler::SubShader &shader) : ShaderIndex(shader)
+{
+   rw_image_bind_index=AsUShort(shader.rw_image_bind_index);
+}
 
 Bool ShaderCompiler::Param::save(File &f)C
 {
@@ -1057,7 +1079,7 @@ Bool ShaderCompiler::Shader::save(File &f, C ShaderCompiler &compiler)C
       // indexes
       if(compute()) // compute shader
       {
-         ShaderIndex index=sub[ST_CS];
+         ComputeShaderIndex index=sub[ST_CS];
          f<<index;
       }else
       {
@@ -1385,6 +1407,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    spvc_compiler_build_combined_image_samplers(spirv_compiler);
    const spvc_combined_image_sampler *samplers=null; size_t num_samplers=0;
    spvc_compiler_get_combined_image_samplers(spirv_compiler, &samplers, &num_samplers);
+      // FIXME rw images
    FREP(num_samplers)
    {
     C spvc_combined_image_sampler &cis=samplers[i];
@@ -1447,17 +1470,17 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    }
 }
 /******************************************************************************/
-struct ImageBindMap : Mems<ShaderCompiler::Bind>
+struct ImageBindMap : Mems<ShaderCompiler::Image>
 {
    void operator =(C Mems<ShaderCompiler::Image> &images)  {setNum(images.elms()); FREPAO(T)=images[i];}
    Bool operator==(C Mems<ShaderCompiler::Image> &images)C {if(elms()!=images.elms())return false; REPA(T)if(T[i]!=images[i])return false; return true;}
-   Bool save(File &f, C ShaderCompiler &compiler)C
+   Bool save(File &f, C Memc<Str8> &images)C
    {
       f.cmpUIntV(elms());
       FREPA(T)
       {
        C ShaderCompiler::Bind &bind=T[i];
-         Int src_index; if(!compiler.images.binarySearch(bind.name, src_index, CompareCS))Exit("Image not found in Shader");
+         Int src_index; if(!images.binarySearch(bind.name, src_index, CompareCS))Exit("Image not found in Shader");
          f<<ConstantIndex(bind.bind_slot, src_index);
       }
       return f.ok();
@@ -1525,7 +1548,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
       }
    }
    threads.wait1();
-   Memc< ImageBindMap>  image_maps;
+   Memc< ImageBindMap>  image_maps, rw_image_maps;
    Memc<BufferBindMap> buffer_maps;
    Memc<ShaderData   > shader_datas[ST_NUM];
    Mems<Shader*      > shaders(shaders_num), compute_shaders(compute_shaders_num); shaders_num=compute_shaders_num=0;
@@ -1542,7 +1565,8 @@ Bool ShaderCompiler::compileTry(Threads &threads)
                Buffer &    buffer=*buffers(sub_buffer.name);
                if(!buffer.name.is())buffer=sub_buffer;else if(buffer!=sub_buffer)return error(S+"Buffer \""+buffer.name+"\" is not always the same in all shaders");
             }
-            FREPA(sub.images)images.binaryInclude(sub.images[i].name, CompareCS);
+            FREPA(sub.   images)   images.binaryInclude(sub.   images[i].name, CompareCS);
+            FREPA(sub.rw_images)rw_images.binaryInclude(sub.rw_images[i].name, CompareCS);
 
             if(!shader.dummy)
             {
@@ -1555,6 +1579,11 @@ Bool ShaderCompiler::compileTry(Threads &threads)
                FREPA(image_maps)if(image_maps[i]==sub.images){sub.image_bind_index=i; goto got_image;} // find same
                sub.image_bind_index=image_maps.elms(); image_maps.add(sub.images);
             got_image:
+
+               // rw image map
+               FREPA(rw_image_maps)if(rw_image_maps[i]==sub.rw_images){sub.rw_image_bind_index=i; goto got_rw_image;} // find same
+               sub.rw_image_bind_index=rw_image_maps.elms(); rw_image_maps.add(sub.rw_images);
+            got_rw_image:
 
                // shader data
                if(sub.shader_data.elms())
@@ -1633,13 +1662,15 @@ Bool ShaderCompiler::compileTry(Threads &threads)
       }
 
       // images
-      f.cmpUIntV(images.elms()); FREPA(images)f.putStr(images[i]);
+      f.cmpUIntV(   images.elms()); FREPA(   images)f.putStr(   images[i]);
+      f.cmpUIntV(rw_images.elms()); FREPA(rw_images)f.putStr(rw_images[i]);
 
       // buffer+image map
       if(api!=API_GL)
       {
-         if(!buffer_maps.save(f, T))goto error;
-         if(! image_maps.save(f, T))goto error;
+         if(!  buffer_maps.save(f,         T))goto error;
+         if(!   image_maps.save(f,    images))goto error;
+         if(!rw_image_maps.save(f, rw_images))goto error;
       }
 
       // shader data

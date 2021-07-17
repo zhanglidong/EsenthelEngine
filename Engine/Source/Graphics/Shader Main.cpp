@@ -136,11 +136,12 @@ MainShaderClass::MainShaderClass()
 void MainShaderClass::del()
 {
    // delete all to detect GPU memory leaks when using D3D_DEBUG
-   shader        =null;
-   ShaderFiles  .del();
-   ShaderParams .del(); // params before buffers, because they point to them
-   ShaderBuffers.del();
-   ShaderImages .del();
+   shader         =null;
+   ShaderFiles   .del();
+   ShaderParams  .del(); // params before buffers, because they point to them
+   ShaderBuffers .del();
+   ShaderImages  .del();
+   ShaderRWImages.del();
 
    SamplerPoint           .del();
    SamplerLinearWrap      .del();

@@ -856,13 +856,20 @@ Image::~Image()
 {
    del();
 
-   // remove image from 'ShaderImages' and 'VI.image'
+   // remove image from 'ShaderImages', 'ShaderRWImages' and 'VI.image'
 #if !SYNC_LOCK_SAFE
    if(ShaderImages.elms())
 #endif
    {
       ShaderImages.lock  (); REPA(ShaderImages){ShaderImage &image=ShaderImages.lockedData(i); if(image.get()==this)image.set(null);}
       ShaderImages.unlock();
+   }
+#if !SYNC_LOCK_SAFE
+   if(ShaderRWImages.elms())
+#endif
+   {
+      ShaderRWImages.lock  (); REPA(ShaderRWImages){ShaderRWImage &image=ShaderRWImages.lockedData(i); if(image.get()==this)image.set(null);}
+      ShaderRWImages.unlock();
    }
    if(VI._image==this)VI._image=null;
 }

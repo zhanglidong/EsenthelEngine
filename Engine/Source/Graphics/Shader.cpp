@@ -193,7 +193,8 @@ DisplayClass& DisplayClass::shaderCache(C Str &path)
 }
 /******************************************************************************/
 #if DX11
-static ID3D11ShaderResourceView *VSTex[MAX_SHADER_IMAGES], *HSTex[MAX_SHADER_IMAGES], *DSTex[MAX_SHADER_IMAGES], *PSTex[MAX_SHADER_IMAGES];
+static ID3D11ShaderResourceView  *VSTex[MAX_SHADER_IMAGES], *HSTex[MAX_SHADER_IMAGES], *DSTex[MAX_SHADER_IMAGES], *PSTex[MAX_SHADER_IMAGES], *CSTex[MAX_SHADER_IMAGES];
+static ID3D11UnorderedAccessView *CSUAV[MAX_SHADER_IMAGES];
 #elif GL
 static UInt                      Tex[MAX_SHADER_IMAGES], TexSampler[MAX_SHADER_IMAGES];
 #endif
@@ -221,12 +222,26 @@ INLINE void DisplayState::texPS(Int index, GPU_API(ID3D11ShaderResourceView*, UI
    if(PSTex[index]!=tex || FORCE_TEX)D3DC->PSSetShaderResources(index, 1, &(PSTex[index]=tex));
 #endif
 }
+INLINE void DisplayState::texCS(Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex)
+{
+#if DX11
+   if(CSTex[index]!=tex || FORCE_TEX)D3DC->CSSetShaderResources(index, 1, &(CSTex[index]=tex));
+#endif
+}
 void DisplayState::texClear(GPU_API(ID3D11ShaderResourceView*, UInt) tex)
 {
 #if DX11
    if(tex)REPA(PSTex)if(PSTex[i]==tex)PSTex[i]=null; // for performance reasons this clears only from Pixel Shader, to clear from all shaders use 'clearAll'
 #elif GL
    if(tex)REPA(Tex)if(Tex[i]==tex)Tex[i]=~0;
+#endif
+}
+void DisplayState::uavClear(GPU_API(ID3D11UnorderedAccessView*, UInt) tex)
+{
+#if DX11
+   if(tex)REPA(CSUAV)if(CSUAV[i]==tex)CSUAV[i]=null;
+#elif GL
+   if(tex)REPA(Tex)if(Tex[i]==tex)Tex[i]=~0; // FIXME is this good?
 #endif
 }
 void DisplayState::texClearAll(GPU_API(ID3D11ShaderResourceView*, UInt) tex)
@@ -238,6 +253,7 @@ void DisplayState::texClearAll(GPU_API(ID3D11ShaderResourceView*, UInt) tex)
       REPA(HSTex)if(HSTex[i]==tex)HSTex[i]=null;
       REPA(DSTex)if(DSTex[i]==tex)DSTex[i]=null;
       REPA(PSTex)if(PSTex[i]==tex)PSTex[i]=null;
+      REPA(CSTex)if(CSTex[i]==tex)CSTex[i]=null;
    }
 #elif GL
    if(tex)REPA(Tex)if(Tex[i]==tex)Tex[i]=~0;
@@ -336,7 +352,8 @@ Cache<ShaderFile> ShaderFiles("Shader");
 /******************************************************************************/
 // SHADER IMAGE
 /******************************************************************************/
-ThreadSafeMap<Str8, ShaderImage> ShaderImages(CompareCS);
+ThreadSafeMap<Str8, ShaderImage  > ShaderImages  (CompareCS);
+ThreadSafeMap<Str8, ShaderRWImage> ShaderRWImages(CompareCS);
 /******************************************************************************/
 void ShaderSampler::del()
 {
@@ -396,7 +413,8 @@ void ShaderSampler::setVS(Int index)C {D3DC->VSSetSamplers(index, 1, &state);}
 void ShaderSampler::setHS(Int index)C {D3DC->HSSetSamplers(index, 1, &state);}
 void ShaderSampler::setDS(Int index)C {D3DC->DSSetSamplers(index, 1, &state);}
 void ShaderSampler::setPS(Int index)C {D3DC->PSSetSamplers(index, 1, &state);}
-void ShaderSampler::set  (Int index)C {setVS(index); setHS(index); setDS(index); setPS(index);}
+void ShaderSampler::setCS(Int index)C {D3DC->CSSetSamplers(index, 1, &state);}
+void ShaderSampler::set  (Int index)C {setVS(index); setHS(index); setDS(index); setPS(index); setCS(index);}
 #elif GL
 #if GL_ES
 UInt GLNoFilter(UInt filter)
@@ -1232,6 +1250,30 @@ static INLINE void SetImages(C ImageLinkPtr &links, ID3D11ShaderResourceView *te
       }
    }
 }
+static INLINE void SetImages(C RWImageLinkPtr &links, ID3D11UnorderedAccessView *tex[MAX_SHADER_IMAGES], void (STDMETHODCALLTYPE ID3D11DeviceContext::*SetUnorderedAccessView)(UINT StartSlot, UINT NumUAVs, ID3D11UnorderedAccessView*C *ppUnorderedAccessViews, const UINT *pUAVInitialCounts)) // use INLINE to allow directly using virtual func calls
+{
+   REPA(links) // go from the end
+   {
+    C RWImageLink              &link=links[i];
+      ID3D11UnorderedAccessView *uav=link.image->getUAV();
+      Int                 last_index=link.index;
+      if(tex[last_index]!=uav || FORCE_TEX) // find first that's different
+      {
+         tex[last_index]=uav;
+         Int first_index=last_index; // initially this is also the first index
+         for(; --i>=0; ) // check all previous
+         {
+          C RWImageLink              &link=links[i];
+            ID3D11UnorderedAccessView *uav=link.image->getUAV();
+            Int                      index=link.index;
+            if(tex[            index]!=uav || FORCE_TEX) // if another is different too
+               tex[first_index=index] =uav; // set this image and change first index
+         }
+         (D3DC->*SetUnorderedAccessView)(first_index, last_index-first_index+1, tex+first_index, null); // set all from 'first_index' until 'last_index' (inclusive) in 1 API call
+         break; // finished
+      }
+   }
+}
 
 INLINE void        Shader11::setVSBuffers()C {SetBuffers(buffers[ST_VS], VSBuf, &ID3D11DeviceContext::VSSetConstantBuffers);}
 INLINE void        Shader11::setHSBuffers()C {SetBuffers(buffers[ST_HS], HSBuf, &ID3D11DeviceContext::HSSetConstantBuffers);}
@@ -1239,10 +1281,12 @@ INLINE void        Shader11::setDSBuffers()C {SetBuffers(buffers[ST_DS], DSBuf, 
 INLINE void        Shader11::setPSBuffers()C {SetBuffers(buffers[ST_PS], PSBuf, &ID3D11DeviceContext::PSSetConstantBuffers);}
 INLINE void ComputeShader11::setBuffers  ()C {SetBuffers(buffers       , CSBuf, &ID3D11DeviceContext::CSSetConstantBuffers);}
 
-INLINE void Shader11::setVSImages()C {SetImages(images[ST_VS], VSTex, &ID3D11DeviceContext::VSSetShaderResources);}
-INLINE void Shader11::setHSImages()C {SetImages(images[ST_HS], HSTex, &ID3D11DeviceContext::HSSetShaderResources);}
-INLINE void Shader11::setDSImages()C {SetImages(images[ST_DS], DSTex, &ID3D11DeviceContext::DSSetShaderResources);}
-INLINE void Shader11::setPSImages()C {SetImages(images[ST_PS], PSTex, &ID3D11DeviceContext::PSSetShaderResources);}
+INLINE void        Shader11::setVSImages()C {SetImages(   images[ST_VS], VSTex, &ID3D11DeviceContext::VSSetShaderResources);}
+INLINE void        Shader11::setHSImages()C {SetImages(   images[ST_HS], HSTex, &ID3D11DeviceContext::HSSetShaderResources);}
+INLINE void        Shader11::setDSImages()C {SetImages(   images[ST_DS], DSTex, &ID3D11DeviceContext::DSSetShaderResources);}
+INLINE void        Shader11::setPSImages()C {SetImages(   images[ST_PS], PSTex, &ID3D11DeviceContext::PSSetShaderResources);}
+INLINE void ComputeShader11::setImages  ()C {SetImages(   images       , CSTex, &ID3D11DeviceContext::CSSetShaderResources);
+                                             SetImages(rw_images       , CSUAV, &ID3D11DeviceContext::CSSetUnorderedAccessViews);}
 #else // set separately
 INLINE void        Shader11::setVSBuffers()C {REPA(buffers[ST_VS]){C BufferLink &link=buffers[ST_VS][i]; BufVS(link.index, link.buffer->buffer.buffer);}}
 INLINE void        Shader11::setHSBuffers()C {REPA(buffers[ST_HS]){C BufferLink &link=buffers[ST_HS][i]; BufHS(link.index, link.buffer->buffer.buffer);}}
@@ -1665,8 +1709,9 @@ void ShaderFile::del()
   _ps.del();
   _cs.del();
 
-  _buffer_links.del();
-   _image_links.del();
+    _buffer_links.del();
+     _image_links.del();
+  _rw_image_links.del();
 }
 /******************************************************************************/
 // GET / SET
@@ -1855,8 +1900,9 @@ void Shader::draw(                C Rect *rect, C Rect &tex)C
 /******************************************************************************/
 // IO
 /******************************************************************************/
-static ShaderImage * Get(Int i, C MemtN<ShaderImage *, 256> &images ) {RANGE_ASSERT_ERROR(i, images , "Invalid ShaderImage index" ); return  images[i];}
-static ShaderBuffer* Get(Int i, C MemtN<ShaderBuffer*, 256> &buffers) {RANGE_ASSERT_ERROR(i, buffers, "Invalid ShaderBuffer index"); return buffers[i];}
+static ShaderBuffer * Get(Int i, C MemtN<ShaderBuffer *, 256> &buffers) {RANGE_ASSERT_ERROR(i, buffers, "Invalid ShaderBuffer index" ); return buffers[i];}
+static ShaderImage  * Get(Int i, C MemtN<ShaderImage  *, 256> &images ) {RANGE_ASSERT_ERROR(i, images , "Invalid ShaderImage index"  ); return  images[i];}
+static ShaderRWImage* Get(Int i, C MemtN<ShaderRWImage*, 256> &images ) {RANGE_ASSERT_ERROR(i, images , "Invalid ShaderRWImage index"); return  images[i];}
 /******************************************************************************/
 Int ExpectedBufferSlot(C Str8 &name)
 {
@@ -1919,6 +1965,17 @@ static Bool Test(C CMemPtr<Mems<ImageLink>> &links)
    }
    return true;
 }
+static Bool Test(C CMemPtr<Mems<RWImageLink>> &links)
+{
+   REPA(links)
+   {
+    C Mems<RWImageLink> &link=links[i]; if(link.elms()>1)
+      {
+         Int first=link[0].index; for(Int i=1; i<link.elms(); i++)if(link[i].index!=first+i)Exit("Invalid RW Image index");
+      }
+   }
+   return true;
+}
 static void LoadTranslation(MemPtr<ShaderParam::Translation> translation, File &f, Int elms)
 {
    if(elms<=1)translation.loadRaw(f);else
@@ -1953,6 +2010,11 @@ Bool ImageLink::load(File &f, C MemtN<ShaderImage*, 256> &images)
    ConstantIndex ci; f>>ci; index=ci.bind_index; RANGE_ASSERT_ERROR(index, MAX_SHADER_IMAGES, S+"Image index: "+index+", is too big"); image=Get(ci.src_index, images);
    return f.ok();
 }
+Bool RWImageLink::load(File &f, C MemtN<ShaderRWImage*, 256> &images)
+{
+   ConstantIndex ci; f>>ci; index=ci.bind_index; RANGE_ASSERT_ERROR(index, MAX_SHADER_IMAGES, S+"RW Image index: "+index+", is too big"); image=Get(ci.src_index, images);
+   return f.ok();
+}
 #endif
 /******************************************************************************/
 #if WINDOWS
@@ -1972,10 +2034,11 @@ Bool Shader11::load(File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 2
 }
 Bool ComputeShader11::load(File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &file_buffers)
 {
-   ShaderIndex index; f.getStr(name)>>index;
-           data_index=index.shader_data_index;
-   RANGE_ASSERT_ERROR(index.buffer_bind_index, shader_file._buffer_links, "Buffer Bind Index out of range"); buffers=shader_file._buffer_links[index.buffer_bind_index];
-   RANGE_ASSERT_ERROR(index. image_bind_index, shader_file. _image_links,  "Image Bind Index out of range");  images=shader_file. _image_links[index. image_bind_index];
+   ComputeShaderIndex index; f.getStr(name)>>index;
+           data_index=index.  shader_data_index;
+   RANGE_ASSERT_ERROR(index.  buffer_bind_index, shader_file.  _buffer_links,   "Buffer Bind Index out of range");   buffers=shader_file.  _buffer_links[index.  buffer_bind_index];
+   RANGE_ASSERT_ERROR(index.   image_bind_index, shader_file.   _image_links,    "Image Bind Index out of range");    images=shader_file.   _image_links[index.   image_bind_index];
+   RANGE_ASSERT_ERROR(index.rw_image_bind_index, shader_file._rw_image_links, "RW Image Bind Index out of range"); rw_images=shader_file._rw_image_links[index.rw_image_bind_index];
    all_buffers.setNum(f.decUIntV()); FREPAO(all_buffers)=Get(f.getUShort(), file_buffers);
    if(f.ok())return true;
   /*del();*/ return false;
@@ -2066,16 +2129,18 @@ Bool ShaderFile::load(C Str &name)
          ShaderBuffers.unlock();
 
          // images
-         MemtN<ShaderImage*, 256> images; images.setNum(f.decUIntV());
-         FREPA(images){f.getStr(temp_str); images[i]=ShaderImages(temp_str);}
+         MemtN<ShaderImage  *, 256>    images;    images.setNum(f.decUIntV()); FREPA(   images){f.getStr(temp_str);    images[i]=ShaderImages  (temp_str);}
+         MemtN<ShaderRWImage*, 256> rw_images; rw_images.setNum(f.decUIntV()); FREPA(rw_images){f.getStr(temp_str); rw_images[i]=ShaderRWImages(temp_str);}
 
          // shaders
       #if !GL
-         if(_buffer_links.load(f, buffers)) // buffer link map
-         if( _image_links.load(f,  images)) //  image link map
+         if(  _buffer_links.load(f,   buffers)) //   buffer link map
+         if(   _image_links.load(f,    images)) //    image link map
+         if(_rw_image_links.load(f, rw_images)) // rw image link map
       #if DEBUG
-         if(Test(_buffer_links))
-         if(Test( _image_links))
+         if(Test(  _buffer_links))
+         if(Test(   _image_links))
+         if(Test(_rw_image_links))
       #endif
       #endif
          if(             _vs.load(f))
@@ -2100,6 +2165,8 @@ void DisplayState::clearShader()
    SetMem(HSTex, ~0);
    SetMem(DSTex, ~0);
    SetMem(PSTex, ~0);
+   SetMem(CSTex, ~0);
+   SetMem(CSUAV, ~0);
    SetMem(VSBuf, ~0);
    SetMem(HSBuf, ~0);
    SetMem(DSBuf, ~0);
