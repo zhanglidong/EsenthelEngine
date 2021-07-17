@@ -1274,6 +1274,28 @@ static INLINE void SetImages(C RWImageLinkPtr &links, ID3D11UnorderedAccessView 
       }
    }
 }
+static INLINE void ClearImages(C RWImageLinkPtr &links, ID3D11UnorderedAccessView *tex[MAX_SHADER_IMAGES], void (STDMETHODCALLTYPE ID3D11DeviceContext::*SetUnorderedAccessView)(UINT StartSlot, UINT NumUAVs, ID3D11UnorderedAccessView*C *ppUnorderedAccessViews, const UINT *pUAVInitialCounts)) // use INLINE to allow directly using virtual func calls
+{
+   REPA(links) // go from the end
+   {
+    C RWImageLink &link=links[i];
+      Int    last_index=link.index;
+      if(tex[last_index]!=null || FORCE_TEX) // find first that's different
+      {
+         tex[last_index]=null;
+         Int first_index=last_index; // initially this is also the first index
+         for(; --i>=0; ) // check all previous
+         {
+          C RWImageLink &link=links[i];
+            Int         index=link.index;
+            if(tex[            index]!=null || FORCE_TEX) // if another is different too
+               tex[first_index=index] =null; // set this image and change first index
+         }
+         (D3DC->*SetUnorderedAccessView)(first_index, last_index-first_index+1, tex+first_index, null); // set all from 'first_index' until 'last_index' (inclusive) in 1 API call
+         break; // finished
+      }
+   }
+}
 
 INLINE void        Shader11::setVSBuffers()C {SetBuffers(buffers[ST_VS], VSBuf, &ID3D11DeviceContext::VSSetConstantBuffers);}
 INLINE void        Shader11::setHSBuffers()C {SetBuffers(buffers[ST_HS], HSBuf, &ID3D11DeviceContext::HSSetConstantBuffers);}
@@ -1281,12 +1303,13 @@ INLINE void        Shader11::setDSBuffers()C {SetBuffers(buffers[ST_DS], DSBuf, 
 INLINE void        Shader11::setPSBuffers()C {SetBuffers(buffers[ST_PS], PSBuf, &ID3D11DeviceContext::PSSetConstantBuffers);}
 INLINE void ComputeShader11::setBuffers  ()C {SetBuffers(buffers       , CSBuf, &ID3D11DeviceContext::CSSetConstantBuffers);}
 
-INLINE void        Shader11::setVSImages()C {SetImages(   images[ST_VS], VSTex, &ID3D11DeviceContext::VSSetShaderResources);}
-INLINE void        Shader11::setHSImages()C {SetImages(   images[ST_HS], HSTex, &ID3D11DeviceContext::HSSetShaderResources);}
-INLINE void        Shader11::setDSImages()C {SetImages(   images[ST_DS], DSTex, &ID3D11DeviceContext::DSSetShaderResources);}
-INLINE void        Shader11::setPSImages()C {SetImages(   images[ST_PS], PSTex, &ID3D11DeviceContext::PSSetShaderResources);}
-INLINE void ComputeShader11::setImages  ()C {SetImages(   images       , CSTex, &ID3D11DeviceContext::CSSetShaderResources);
-                                             SetImages(rw_images       , CSUAV, &ID3D11DeviceContext::CSSetUnorderedAccessViews);}
+INLINE void        Shader11::setVSImages()C {  SetImages(   images[ST_VS], VSTex, &ID3D11DeviceContext::VSSetShaderResources);}
+INLINE void        Shader11::setHSImages()C {  SetImages(   images[ST_HS], HSTex, &ID3D11DeviceContext::HSSetShaderResources);}
+INLINE void        Shader11::setDSImages()C {  SetImages(   images[ST_DS], DSTex, &ID3D11DeviceContext::DSSetShaderResources);}
+INLINE void        Shader11::setPSImages()C {  SetImages(   images[ST_PS], PSTex, &ID3D11DeviceContext::PSSetShaderResources);}
+INLINE void ComputeShader11::setImages  ()C {  SetImages(   images       , CSTex, &ID3D11DeviceContext::CSSetShaderResources);
+                                               SetImages(rw_images       , CSUAV, &ID3D11DeviceContext::CSSetUnorderedAccessViews);}
+INLINE void ComputeShader11::clearImages()C {ClearImages(rw_images       , CSUAV, &ID3D11DeviceContext::CSSetUnorderedAccessViews);}
 #else // set separately
 INLINE void        Shader11::setVSBuffers()C {REPA(buffers[ST_VS]){C BufferLink &link=buffers[ST_VS][i]; BufVS(link.index, link.buffer->buffer.buffer);}}
 INLINE void        Shader11::setHSBuffers()C {REPA(buffers[ST_HS]){C BufferLink &link=buffers[ST_HS][i]; BufHS(link.index, link.buffer->buffer.buffer);}}
@@ -1300,8 +1323,10 @@ INLINE void Shader11::setDSImages()C {REPA(images[ST_DS]){C ImageLink &link=imag
 INLINE void Shader11::setPSImages()C {REPA(images[ST_PS]){C ImageLink &link=images[ST_PS][i]; D.texPS(link.index, link.image->getSRV());}}
 #endif
 
-void        Shader11::commit()C {REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}}
-void ComputeShader11::commit()C {REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}}
+INLINE void        Shader11::updateBuffers()C {REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}}
+INLINE void ComputeShader11::updateBuffers()C {REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}}
+
+void Shader11::commit()C {updateBuffers();}
 
 void Shader11::commitTex()C
 {
@@ -1381,18 +1406,23 @@ void Shader11::begin()C
    setPSImages();
    setVSBuffers();
    setPSBuffers();
-   REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}
+  updateBuffers();
 }
 void ComputeShader11::begin()C
 {
    SetCS(cs);
    setImages();
    setBuffers();
-   REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}
+updateBuffers();
 }
-void ComputeShader11::compute(C VecI2 &groups)C {begin(); D3DC->Dispatch(groups.x, groups.y,        1);}
-void ComputeShader11::compute(C VecI  &groups)C {begin(); D3DC->Dispatch(groups.x, groups.y, groups.z);}
+void ComputeShader11::end()C
+{
+   clearImages();
+}
+void ComputeShader11::compute(C VecI2 &groups)C {begin(); D3DC->Dispatch(groups.x, groups.y,        1); end();}
+void ComputeShader11::compute(C VecI  &groups)C {begin(); D3DC->Dispatch(groups.x, groups.y, groups.z); end();}
 #elif GL
+/******************************************************************************/
 ShaderGL::~ShaderGL()
 {
    if(prog)
@@ -1420,6 +1450,7 @@ Str ShaderGL::source()C
    return S+"Vertex Shader:\n"+ShaderSource(vs)
           +"\nPixel Shader:\n"+ShaderSource(ps);
 }
+/******************************************************************************/
 static const Int ProgramBinaryHeader=4; ASSERT(SIZE(GLenum)==ProgramBinaryHeader); // make room for 'format'
 static void SaveProgramBinary(UInt prog, C Str &name)
 {
@@ -1463,6 +1494,7 @@ static UInt CreateProgramFromBinary(File &f)
       return CreateProgramFromBinary(shader_data.data(), shader_data.elms());
    }
 }
+/******************************************************************************/
 UInt ShaderGL::compile(MemPtr<ShaderSubGL> vs_array, MemPtr<ShaderSubGL> ps_array, ShaderFile *shader, Str *messages) // this function doesn't need to be multi-threaded safe, it's called by 'validate' where it's already surrounded by a lock, GL thread-safety should be handled outside of this function
 {
    if(messages)messages->clear();
@@ -1516,6 +1548,7 @@ UInt ShaderGL::compile(MemPtr<ShaderSubGL> vs_array, MemPtr<ShaderSubGL> ps_arra
    }
    return prog;
 }
+/******************************************************************************/
 Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function should be multi-threaded safe
 {
    if(prog || !D.created())return true; // needed for APP_ALLOW_NO_GPU/APP_ALLOW_NO_XDISPLAY, skip shader compilation if we don't need it (this is because compiling shaders on Linux with no GPU can exit the app with a message like "Xlib:  extension "XFree86-VidModeExtension" missing on display ":99".")
@@ -1643,6 +1676,20 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
    }
    return prog!=0;
 }
+Bool ComputeShaderGL::validate(ShaderFile &shader, Str *messages) // this function should be multi-threaded safe
+{
+   return false;
+}
+/******************************************************************************/
+INLINE void ShaderGL::bindImages()C
+{
+   REPA(images){C SamplerImageLink &t=images[i]; SetTexture(t.index, t.sampler, t.image->get());}
+}
+void ShaderGL::commitTex()C
+{
+   bindImages();
+}
+
 #if GL_MULTIPLE_UBOS
 void ShaderGL::commit()C
 {
@@ -1652,10 +1699,6 @@ void ShaderGL::commit()C
       if(b.changed){b.buffer=b.parts[b.part]; b.part=(b.part+1)%b.parts.elms(); b.update();}
       glBindBufferBase(GL_UNIFORM_BUFFER, i, b.buffer.buffer);
    }
-}
-void ShaderGL::commitTex()C
-{
-   REPA(images){C SamplerImageLink &t=images[i]; SetTexture(t.index, t.sampler, t.image->get());}
 }
 void ShaderGL::start()C // same as 'begin' but without committing buffers and textures
 {
@@ -1673,31 +1716,35 @@ void ShaderGL::begin()C
    commit   ();
 }
 #else
+INLINE void ShaderGL::bindBuffers()C
+{
+   REPA(buffers){C BufferLink &b=buffers[i]; glBindBufferBase(GL_UNIFORM_BUFFER, b.index, b.buffer);}
+}
+
+INLINE void        ShaderGL::updateBuffers()C {REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}}
+INLINE void ComputeShaderGL::updateBuffers()C {REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}}
+
 void ShaderGL::commit()C
 {
-   REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}
-}
-void ShaderGL::commitTex()C
-{
-   REPA(images){C SamplerImageLink &t=images[i]; SetTexture(t.index, t.sampler, t.image->get());}
+   updateBuffers();
 }
 void ShaderGL::start()C // same as 'begin' but without committing buffers and textures
 {
    glUseProgram(prog);
-   REPA(buffers){C BufferLink &b=buffers[i]; glBindBufferBase(GL_UNIFORM_BUFFER, b.index, b.buffer);} // bind buffer
+   bindBuffers();
 }
 void ShaderGL::startTex()C // same as 'begin' but without committing buffers
 {
    glUseProgram(prog);
-   REPA( images){C SamplerImageLink &t= images[i]; SetTexture(t.index, t.sampler, t.image->get());} // 'commitTex'
-   REPA(buffers){C       BufferLink &b=buffers[i]; glBindBufferBase(GL_UNIFORM_BUFFER, b.index, b.buffer);} // bind buffer
+   bindImages (); // 'commitTex'
+   bindBuffers();
 }
 void ShaderGL::begin()C
 {
    glUseProgram(prog);
-   REPA(all_buffers){      ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();} // 'commit'
-   REPA(     images){C SamplerImageLink &t=      images[i]; SetTexture(t.index, t.sampler, t.image->get());} // 'commitTex'
-   REPA(    buffers){C       BufferLink &b=     buffers[i]; glBindBufferBase(GL_UNIFORM_BUFFER, b.index, b.buffer);} // bind buffer
+   updateBuffers(); // 'commit'
+     bindImages (); // 'commitTex'
+     bindBuffers();
 }
 #endif
 #endif

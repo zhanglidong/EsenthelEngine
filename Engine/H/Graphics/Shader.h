@@ -419,10 +419,11 @@ struct Shader11
    void startTex ()C;
    void begin    ()C;
 
-   void setVSBuffers()C;
-   void setHSBuffers()C;
-   void setDSBuffers()C;
-   void setPSBuffers()C;
+   void  setVSBuffers()C;
+   void  setHSBuffers()C;
+   void  setDSBuffers()C;
+   void  setPSBuffers()C;
+   void updateBuffers()C;
 
    void setVSImages()C;
    void setHSImages()C;
@@ -444,12 +445,14 @@ struct ComputeShader11
    Bool validate(ShaderFile &shader, Str *messages=null);
    Bool load    (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
 
-   void commit()C;
+   void    setBuffers()C;
+   void updateBuffers()C;
+   void    setImages ()C;
+   void  clearImages ()C;
 
-   void setBuffers()C;
-   void setImages ()C;
+   void begin()C;
+   void end  ()C;
 
-   void begin  ()C;
    void compute(C VecI2 &groups)C;
    void compute(C VecI  &groups)C;
 
@@ -478,6 +481,10 @@ struct ShaderGL
    Bool validate(ShaderFile &shader, Str *messages=null);
    Bool load    (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
 
+   void   bindImages ()C;
+   void   bindBuffers()C;
+   void updateBuffers()C;
+
    void commit   ()C;
    void commitTex()C;
    void start    ()C;
@@ -499,6 +506,13 @@ struct ComputeShaderGL
    UInt compile (MemPtr<ShaderSubGL> cs_array, ShaderFile *shader, Str *messages);
    Bool validate(ShaderFile &shader, Str *messages=null);
    Bool load    (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
+
+   void updateBuffers()C;
+
+   void begin()C;
+
+   void compute(C VecI2 &groups)C;
+   void compute(C VecI  &groups)C;
 
   ~ComputeShaderGL();
 };
