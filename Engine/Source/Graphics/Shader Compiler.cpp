@@ -1111,7 +1111,7 @@ struct ConvertContext
    SyncLock        lock;
 #if DEBUG
    Memc<                ShaderData> (&shader_datas)[ST_NUM];
-   Memc<ShaderCompiler::Shader*   >  &shaders, &compute_shaders;
+   Mems<ShaderCompiler::Shader*   >  &shaders, &compute_shaders;
 #endif
    ShaderCompiler::Shader* findShader(C ShaderData &shader_data)C // find first 'Shader' using 'shader_data'
    {
@@ -1142,8 +1142,8 @@ struct ConvertContext
    ConvertContext(ShaderCompiler &compiler
    #if DEBUG
     , Memc<                ShaderData> (&        shader_datas)[ST_NUM]
-    , Memc<ShaderCompiler::Shader*   >  &        shaders
-    , Memc<ShaderCompiler::Shader*   >  &compute_shaders
+    , Mems<ShaderCompiler::Shader*   >  &        shaders
+    , Mems<ShaderCompiler::Shader*   >  &compute_shaders
    #endif
    ) : compiler(compiler)
    #if DEBUG
@@ -1485,16 +1485,18 @@ struct BufferBindMap : Mems<ShaderCompiler::Bind>
 /******************************************************************************/
 Bool ShaderCompiler::compileTry(Threads &threads)
 {
+   Int     shaders_num=0,
+   compute_shaders_num=0;
    FREPA(sources)
    {
       Source &source=sources[i];
       if(!source.load())return error(S+"Can't open file:"+source.file_name);
-    //shaders_num+=source.shaders.elms(); need to check if dummy
       FREPA(source.shaders)
       {
          Shader &shader=source.shaders[i];
          shader.source=&source; // link only during compilation because sources use 'Memc' container which could change addresses while new sources were being added, however at this stage all have already been created
          shader.finalizeName();
+         if(!shader.dummy)(shader.compute() ? compute_shaders_num : shaders_num)++;
          FREPA(shader.sub)
          {
             SubShader &sub=shader.sub[i]; if(sub.is())
@@ -1510,7 +1512,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
    Memc< ImageBindMap>  image_maps;
    Memc<BufferBindMap> buffer_maps;
    Memc<ShaderData   > shader_datas[ST_NUM];
-   Memc<Shader*      > shaders, compute_shaders;
+   Mems<Shader*      > shaders(shaders_num), compute_shaders(compute_shaders_num); shaders_num=compute_shaders_num=0;
    FREPA(sources)
    {
       Source &source=sources[i]; FREPA(source.shaders)
@@ -1549,7 +1551,8 @@ Bool ShaderCompiler::compileTry(Threads &threads)
                }
             }
          }
-         if(!shader.dummy)(shader.compute() ? compute_shaders : shaders).add(&shader);
+         if(!shader.dummy)(shader.compute() ? compute_shaders[compute_shaders_num++]
+                                            :         shaders[        shaders_num++])=&shader;
       }
    }
            shaders.sort(Compare); // sort by name so we can do binary search when looking for shaders
