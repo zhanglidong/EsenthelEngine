@@ -407,7 +407,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 
    REPD(skin      , 2)
    REPD(alpha_test, ALPHA_TEST_NUM)
-      src.New(S, "VS", "PS")("SKIN", skin, "ALPHA_TEST", alpha_test);
+      src.New()("SKIN", skin, "ALPHA_TEST", alpha_test);
 }
 #endif
 
@@ -421,7 +421,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    for(Int bump_mode=SBUMP_ZERO; bump_mode<=SBUMP_NORMAL; bump_mode++)
    REPD(reflect     , (bump_mode==SBUMP_ZERO) ? 1 : 2)
    REPD(emissive_map, 2)
-      src.New(S, "VS", "PS")("SKIN", skin, "COLORS", color, "LAYOUT", layout, "BUMP_MODE", bump_mode)("REFLECT", reflect, "EMISSIVE_MAP", emissive_map);
+      src.New()("SKIN", skin, "COLORS", color, "LAYOUT", layout, "BUMP_MODE", bump_mode)("REFLECT", reflect, "EMISSIVE_MAP", emissive_map);
 }
 #endif
 
@@ -429,7 +429,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Bone Highlight", model, api, flag).New(src_path+"Bone Highlight.cpp");
    REPD(skin     , 2)
-   REPD(bump_mode, 2)src.New(S, "VS", "PS")("SKIN", skin, "BUMP_MODE", bump_mode ? SBUMP_FLAT : SBUMP_ZERO);
+   REPD(bump_mode, 2)src.New()("SKIN", skin, "BUMP_MODE", bump_mode ? SBUMP_FLAT : SBUMP_ZERO);
 }
 #endif
 
@@ -460,7 +460,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 #ifdef EARLY_Z
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Early Z", model, api, flag).New(src_path+"Early Z.cpp");
-   REPD(skin, 2)src.New(S, "VS", "PS")("SKIN", skin);
+   REPD(skin, 2)src.New()("SKIN", skin);
 }
 #endif
 
@@ -502,13 +502,13 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    REPD(alpha_test  , ALPHA_TEST_NUM)
    REPD(emissive_map, 2)
    REPD(tesselate   , tess ? 2 : 1)
-      src.New(S, "VS", "PS")("SKIN", skin, "ALPHA_TEST", alpha_test, "EMISSIVE_MAP", emissive_map, "FX", FX_NONE).tesselate(tesselate);
+      src.New()("SKIN", skin, "ALPHA_TEST", alpha_test, "EMISSIVE_MAP", emissive_map, "FX", FX_NONE).tesselate(tesselate);
 
    // grass + leaf
    REPD (emissive_map, 2  )
    REPAD(fx          , fxs)
    REPD (tesselate   , tess ? 2 : 1)
-      src.New(S, "VS", "PS")("SKIN", false, "ALPHA_TEST", true, "EMISSIVE_MAP", emissive_map, "FX", fxs[fx]).tesselate(tesselate);
+      src.New()("SKIN", false, "ALPHA_TEST", true, "EMISSIVE_MAP", emissive_map, "FX", fxs[fx]).tesselate(tesselate);
 }
 #endif
 
@@ -597,12 +597,12 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    REPD(skin  , 2)
    REPD(normal, 2)
    for(Int layout=1; layout<=2; layout++)
-      src.New(S, "VS", "PS")("SKIN", skin, "NORMALS", normal, "LAYOUT", layout);
+      src.New()("SKIN", skin, "NORMALS", normal, "LAYOUT", layout);
 }
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Tattoo", model, api, flag).New(src_path+"Tattoo.cpp");
    REPD(tesselate, tess ? 2 : 1)
-   REPD(skin     , 2           )src.New(S, "VS", "PS")("SKIN", skin).tesselate(tesselate);
+   REPD(skin     , 2           )src.New()("SKIN", skin).tesselate(tesselate);
 }
 #endif
 
@@ -628,7 +628,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    REPD(tesselate , tess ? 2 : 1)
    REPD(skin      , 2)
    REPD(alpha_test, ALPHA_TEST_NUM)
-      src.New(S, "VS", "PS")("SKIN", skin, "ALPHA_TEST", alpha_test).tesselate(tesselate);
+      src.New()("SKIN", skin, "ALPHA_TEST", alpha_test).tesselate(tesselate);
 }
 #endif
 
@@ -701,7 +701,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 #ifdef DX10_INPUT_LAYOUT
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(S, model, api, flag).New(src_path+"DX10+ Input Layout.cpp");
-   src.New("Shader", "VS", "PS");
+   src.New();
 }
 #endif
 
