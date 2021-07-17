@@ -38,7 +38,8 @@ static const CChar8 *ShaderTypeName[]=
    "HS", // 1
    "DS", // 2
    "PS", // 3
-}; ASSERT(ST_VS==0 && ST_HS==1 && ST_DS==2 && ST_PS==3 && ST_NUM==4);
+   "CS", // 4
+}; ASSERT(ST_VS==0 && ST_HS==1 && ST_DS==2 && ST_PS==3 && ST_CS==4 && ST_NUM==5);
 /******************************************************************************/
 static Bool HasData(CPtr data, Int size)
 {
@@ -1016,6 +1017,13 @@ ShaderCompiler::Source& ShaderCompiler::New(C Str &file_name)
 /******************************************************************************/
 static UShort AsUShort(Int i) {RANGE_ASSERT_ERROR(i, USHORT_MAX+1, "Value too big to be represented as UShort"); return i;}
 
+ShaderIndex::ShaderIndex(C ShaderCompiler::SubShader &shader)
+{
+   shader_data_index=         shader.shader_data_index ;
+   buffer_bind_index=AsUShort(shader.buffer_bind_index);
+    image_bind_index=AsUShort(shader. image_bind_index);
+}
+
 Bool ShaderCompiler::Param::save(File &f)C
 {
    f.putStr(name).putMulti(cpu_data_size, gpu_data_size, array_elms); // name+info
@@ -1038,15 +1046,15 @@ Bool ShaderCompiler::Shader::save(File &f, C ShaderCompiler &compiler)C
    if(compiler.api!=API_GL)
    {
       // indexes
-      ShaderIndexes indexes;
-      FREPA(sub)
+      if(compute()) // compute shader
       {
-       C SubShader &sub=T.sub[i];
-         indexes.shader_data_index[i]=         sub.shader_data_index ;
-         indexes.buffer_bind_index[i]=AsUShort(sub.buffer_bind_index);
-         indexes. image_bind_index[i]=AsUShort(sub. image_bind_index);
+         ShaderIndex index=sub[ST_CS];
+         f<<index;
+      }else
+      {
+         ShaderIndex indexes[ST_BASE]; FREPAO(indexes)=sub[i]; // !! WARNING: HERE 'sub' HAS MORE ELEMENTS THAN 'indexes' !!
+         f<<indexes;
       }
-      f<<indexes;
 
       // all buffers
       MemtN<UShort, 256> all_buffers;
@@ -1103,7 +1111,7 @@ struct ConvertContext
    SyncLock        lock;
 #if DEBUG
    Memc<                ShaderData> (&shader_datas)[ST_NUM];
-   Mems<ShaderCompiler::Shader*   >  &shaders;
+   Memc<ShaderCompiler::Shader*   >  &shaders;
 #endif
    ShaderCompiler::Shader* findShader(C ShaderData &shader_data)C // find first 'Shader' using 'shader_data'
    {
@@ -1136,7 +1144,7 @@ struct ConvertContext
    ConvertContext(ShaderCompiler &compiler
    #if DEBUG
     , Memc<                ShaderData> (&shader_datas)[ST_NUM]
-    , Mems<ShaderCompiler::Shader*   >  &shaders
+    , Memc<ShaderCompiler::Shader*   >  &shaders
    #endif
    ) : compiler(compiler)
    #if DEBUG
@@ -1478,7 +1486,6 @@ struct BufferBindMap : Mems<ShaderCompiler::Bind>
 /******************************************************************************/
 Bool ShaderCompiler::compileTry(Threads &threads)
 {
-   Int shaders_num=0;
    FREPA(sources)
    {
       Source &source=sources[i];
@@ -1489,7 +1496,6 @@ Bool ShaderCompiler::compileTry(Threads &threads)
          Shader &shader=source.shaders[i];
          shader.source=&source; // link only during compilation because sources use 'Memc' container which could change addresses while new sources were being added, however at this stage all have already been created
          shader.finalizeName();
-         shaders_num+=!shader.dummy;
          FREPA(shader.sub)
          {
             SubShader &sub=shader.sub[i]; if(sub.is())
@@ -1505,7 +1511,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
    Memc< ImageBindMap>  image_maps;
    Memc<BufferBindMap> buffer_maps;
    Memc<ShaderData   > shader_datas[ST_NUM];
-   Mems<Shader*      > shaders(shaders_num); shaders_num=0;
+   Memc<Shader*      > shaders, compute_shaders;
    FREPA(sources)
    {
       Source &source=sources[i]; FREPA(source.shaders)
@@ -1527,7 +1533,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
                FREPA(buffer_maps)if(buffer_maps[i]==sub.buffers){sub.buffer_bind_index=i; goto got_buffer;} // find same
                sub.buffer_bind_index=buffer_maps.elms(); buffer_maps.add(sub.buffers);
             got_buffer:
-            
+
                // image map
                FREPA(image_maps)if(image_maps[i]==sub.images){sub.image_bind_index=i; goto got_image;} // find same
                sub.image_bind_index=image_maps.elms(); image_maps.add(sub.images);
@@ -1544,10 +1550,11 @@ Bool ShaderCompiler::compileTry(Threads &threads)
                }
             }
          }
-         if(!shader.dummy)shaders[shaders_num++]=&shader;
+         if(!shader.dummy)(shader.compute() ? compute_shaders : shaders).add(&shader);
       }
    }
-   shaders.sort(Compare); // sort by name so we can do binary search when looking for shaders
+           shaders.sort(Compare); // sort by name so we can do binary search when looking for shaders
+   compute_shaders.sort(Compare); // sort by name so we can do binary search when looking for shaders
 
    if(api!=API_DX)
    {
@@ -1624,11 +1631,8 @@ Bool ShaderCompiler::compileTry(Threads &threads)
       }
 
       // shaders
-      f.cmpUIntV(shaders.elms()); FREPA(shaders)
-      {
-       C Shader &shader=*shaders[i];
-         if(!shader.save(f, T))goto error;
-      }
+      f.cmpUIntV(        shaders.elms()); FREPA(        shaders)if(!        shaders[i]->save(f, T))goto error;
+      f.cmpUIntV(compute_shaders.elms()); FREPA(compute_shaders)if(!compute_shaders[i]->save(f, T))goto error;
 
       if(f.flushOK())return true;
 

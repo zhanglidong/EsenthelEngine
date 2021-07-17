@@ -257,7 +257,9 @@ enum SHADER_TYPE : Byte
    ST_HS,
    ST_DS,
    ST_PS,
+   ST_CS,
    ST_NUM,
+   ST_BASE=ST_CS, // first 4 shaders
 };
 #if WINDOWS
 struct ShaderVS11 : ShaderData
@@ -366,9 +368,9 @@ struct Shader11
    ID3D11DomainShader *ds=null;
    ID3D11PixelShader  *ps=null;
    Mems<ShaderBuffer*> all_buffers; // shader buffers used by all shader stages (VS HS DS PS) combined into one array
-   BufferLinkPtr           buffers[ST_NUM];
-    ImageLinkPtr            images[ST_NUM];
-   Int                  data_index[ST_NUM]={-1, -1, -1, -1}; ASSERT(ST_NUM==4);
+   BufferLinkPtr           buffers[ST_BASE];
+    ImageLinkPtr            images[ST_BASE];
+   Int                  data_index[ST_BASE]={-1, -1, -1, -1}; ASSERT(ST_BASE==4);
    Str8                       name;
 
    Bool validate (ShaderFile &shader, Str *messages=null);
@@ -504,13 +506,17 @@ struct ComputeShader
 struct ShaderFile // Shader File
 {
    // get
-   Int     shaders(            )C {return _shaders.elms();} // get number of shaders in this file
-   Shader* shader (Int i       ); // get i-th shader, null on fail
-   Shader* first  (            ); // first shader, null on fail
-   Shader*  find  (C Str8 &name); // find  shader, null on fail
-   Shader*   get  (C Str8 &name); //  get  shader, Exit on fail
+          Int            shaders(            )C {return         _shaders.elms();} // get number of         shaders in this file
+          Int     computeShaders(            )C {return _compute_shaders.elms();} // get number of compute shaders in this file
+          Shader*        shader (Int i       ); // get i-th         shader, null on fail
+   ComputeShader* computeShader (Int i       ); // get i-th compute shader, null on fail
+          Shader*        find   (C Str8 &name); // find             shader, null on fail
+   ComputeShader* computeFind   (C Str8 &name); // find     compute shader, null on fail
+          Shader*        get    (C Str8 &name); // get              shader, Exit on fail
+   ComputeShader* computeGet    (C Str8 &name); // get      compute shader, Exit on fail
 #if EE_PRIVATE
-   Shader*  find  (C Str8 &name, Str *messages); // find shader, put error messages into 'messages', null on fail
+          Shader*        find   (C Str8 &name, Str *messages); // find         shader, put error messages into 'messages', null on fail
+   ComputeShader* computeFind   (C Str8 &name, Str *messages); // find compute shader, put error messages into 'messages', null on fail
 #endif
 
    // manage
@@ -533,18 +539,14 @@ private:
       Mems<ShaderPS11> _ps;
       Mems<ShaderCS11> _cs;
    #elif GL
-      Mems<ShaderSubGL> _vs;
-      Mems<ShaderSubGL> _hs;
-      Mems<ShaderSubGL> _ds;
-      Mems<ShaderSubGL> _ps;
-      Mems<ShaderSubGL> _cs;
+      Mems<ShaderSubGL> _vs, _hs, _ds, _ps, _cs;
    #endif
    Mems<Mems<BufferLink>> _buffer_links;
    Mems<Mems< ImageLink>>  _image_links;
 #else
    Mems<ShaderData   > _vs, _hs, _ds, _ps, _cs, _buffer_links, _image_links;
 #endif
-   Mems<Shader       > _shaders;
+   Mems<       Shader>         _shaders;
    Mems<ComputeShader> _compute_shaders;
    NO_COPY_CONSTRUCTOR(ShaderFile);
 };
@@ -560,7 +562,7 @@ struct FRST : ShaderBase // Forward Rendering Shader Techniques
 {
    Bool all_passes;
    Shader
-      *none  ,                 // no light
+      *none  ,                 // no          light
       *dir   , *   dir_shd[6], // directional light, [MapNum]
       *point , * point_shd   , // point       light
       *linear, *linear_shd   , // square      light

@@ -1,3 +1,9 @@
+/******************************************************************************
+
+   TODO: add support for dual motion:
+      first find biggest motion as done now,
+      then find biggest motion along Perp(first biggest motion), using Dot(motion, perp)
+
 /******************************************************************************/
 #include "!Header.h"
 /******************************************************************************

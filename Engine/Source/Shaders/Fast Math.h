@@ -22,6 +22,9 @@
    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
+/******************************************************************************
+  'RsqrtFast'  is unused because quality is not good enough
+  'RsqrtFast1' is unused because it's slower than full precision 'Rsqrt'
 /******************************************************************************/
 Flt AcosFast(Flt cos) // 'cos'=-1..1, returns [0, PI]
 {

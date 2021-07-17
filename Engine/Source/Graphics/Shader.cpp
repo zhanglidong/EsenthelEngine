@@ -1671,22 +1671,9 @@ void ShaderFile::del()
 /******************************************************************************/
 // GET / SET
 /******************************************************************************/
-Shader* ShaderFile::first()
-{
-   if(_shaders.elms())
-   {
-      Shader &shader=_shaders.first(); if(shader.validate(T))return &shader;
-   }
-   return null;
-}
-Shader* ShaderFile::shader(Int i)
-{
-   if(InRange(i, _shaders))
-   {
-      Shader &shader=_shaders[i]; if(shader.validate(T))return &shader;
-   }
-   return null;
-}
+       Shader* ShaderFile::       shader(Int i) {if(InRange(i,         _shaders)){       Shader &shader=        _shaders[i]; if(shader.validate(T))return &shader;} return null;}
+ComputeShader* ShaderFile::computeShader(Int i) {if(InRange(i, _compute_shaders)){ComputeShader &shader=_compute_shaders[i]; if(shader.validate(T))return &shader;} return null;}
+
 Shader* ShaderFile::find(C Str8 &name, Str *messages)
 {
    if(name.is())for(Int l=0, r=_shaders.elms(); l<r; )
@@ -1700,17 +1687,38 @@ Shader* ShaderFile::find(C Str8 &name, Str *messages)
    if(messages)*messages="Technique not found in shader.";
    return null;
 }
-Shader* ShaderFile::find(C Str8 &name)
+ComputeShader* ShaderFile::computeFind(C Str8 &name, Str *messages)
 {
-   return find(name, null);
+   if(name.is())for(Int l=0, r=_compute_shaders.elms(); l<r; )
+   {
+      Int mid=UInt(l+r)/2,
+          compare=Compare(name, _compute_shaders[mid].name, true);
+      if(!compare  ){ComputeShader &shader=_compute_shaders[mid]; return shader.validate(T, messages) ? &shader : null;}
+      if( compare<0)r=mid;
+      else          l=mid+1;
+   }
+   if(messages)*messages="Technique not found in shader.";
+   return null;
 }
+
+Shader       * ShaderFile::       find(C Str8 &name) {return        find(name, null);}
+ComputeShader* ShaderFile::computeFind(C Str8 &name) {return computeFind(name, null);}
+
 Shader* ShaderFile::get(C Str8 &name)
 {
    if(name.is())
    {
-      Str messages;
-      if(Shader *shader=find(name, &messages))return shader;
+      Str messages; if(Shader *shader=find(name, &messages))return shader;
       Exit(S+"Error accessing Shader \""+name+"\" in ShaderFile \""+ShaderFiles.name(this)+"\"."+(messages.is() ? S+"\n"+messages : S));
+   }
+   return null;
+}
+ComputeShader* ShaderFile::computeGet(C Str8 &name)
+{
+   if(name.is())
+   {
+      Str messages; if(ComputeShader *shader=computeFind(name, &messages))return shader;
+      Exit(S+"Error accessing ComputeShader \""+name+"\" in ShaderFile \""+ShaderFiles.name(this)+"\"."+(messages.is() ? S+"\n"+messages : S));
    }
    return null;
 }
@@ -1950,13 +1958,24 @@ Bool ImageLink::load(File &f, C MemtN<ShaderImage*, 256> &images)
 #if WINDOWS
 Bool Shader11::load(File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &file_buffers)
 {
-   ShaderIndexes indexes; f.getStr(name)>>indexes;
+   ShaderIndex indexes[ST_NUM]; f.getStr(name)>>indexes;
    FREPA(data_index)
    {
-      data_index[i]=indexes.shader_data_index[i];
-      RANGE_ASSERT_ERROR(indexes.buffer_bind_index[i], shader_file._buffer_links, "Buffer Bind Index out of range"); buffers[i]=shader_file._buffer_links[indexes.buffer_bind_index[i]];
-      RANGE_ASSERT_ERROR(indexes. image_bind_index[i], shader_file. _image_links,  "Image Bind Index out of range");  images[i]=shader_file. _image_links[indexes. image_bind_index[i]];
+    C ShaderIndex &index=indexes[i];
+           data_index[i]=index.shader_data_index;
+      RANGE_ASSERT_ERROR(index.buffer_bind_index, shader_file._buffer_links, "Buffer Bind Index out of range"); buffers[i]=shader_file._buffer_links[index.buffer_bind_index];
+      RANGE_ASSERT_ERROR(index. image_bind_index, shader_file. _image_links,  "Image Bind Index out of range");  images[i]=shader_file. _image_links[index. image_bind_index];
    }
+   all_buffers.setNum(f.decUIntV()); FREPAO(all_buffers)=Get(f.getUShort(), file_buffers);
+   if(f.ok())return true;
+  /*del();*/ return false;
+}
+Bool ComputeShader11::load(File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &file_buffers)
+{
+   ShaderIndex index; f.getStr(name)>>index;
+           data_index=index.shader_data_index;
+   RANGE_ASSERT_ERROR(index.buffer_bind_index, shader_file._buffer_links, "Buffer Bind Index out of range"); buffers=shader_file._buffer_links[index.buffer_bind_index];
+   RANGE_ASSERT_ERROR(index. image_bind_index, shader_file. _image_links,  "Image Bind Index out of range");  images=shader_file. _image_links[index. image_bind_index];
    all_buffers.setNum(f.decUIntV()); FREPAO(all_buffers)=Get(f.getUShort(), file_buffers);
    if(f.ok())return true;
   /*del();*/ return false;
@@ -2059,11 +2078,12 @@ Bool ShaderFile::load(C Str &name)
          if(Test( _image_links))
       #endif
       #endif
-         if(_vs     .load(f))
-         if(_hs     .load(f))
-         if(_ds     .load(f))
-         if(_ps     .load(f))
-         if(_shaders.load(f, T, buffers))
+         if(             _vs.load(f))
+         if(             _hs.load(f))
+         if(             _ds.load(f))
+         if(             _ps.load(f))
+         if(        _shaders.load(f, T, buffers))
+         if(_compute_shaders.load(f, T, buffers))
             if(f.ok())return true;
       }break;
    }

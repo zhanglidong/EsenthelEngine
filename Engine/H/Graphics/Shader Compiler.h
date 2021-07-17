@@ -23,23 +23,6 @@
 #define SUPPORT_FORWARD_DETAIL    0 // disable to reduce shader size
 #define SUPPORT_FORWARD_TESSELATE 0 // disable to reduce shader size
 
-#pragma pack(push, 1)
-struct ConstantIndex
-{
-   Byte  bind_index;
-   UShort src_index;
-
-        void set(Int bind_index, Int src_index);
-   ConstantIndex(Int bind_index, Int src_index) {set(bind_index, src_index);}
-   ConstantIndex() {}
-};
-struct ShaderIndexes
-{
-   Int    shader_data_index[ST_NUM];
-   UShort buffer_bind_index[ST_NUM], image_bind_index[ST_NUM];
-};
-#pragma pack(pop)
-
 Int ExpectedBufferSlot(C Str8 &name);
 Int GetSamplerIndex   (CChar8 *name);
 
@@ -162,7 +145,8 @@ struct ShaderCompiler
       SubShader        sub[ST_NUM];
     C Source          *source;
 
-      API api()C;
+      API  api    ()C;
+      Bool compute()C {return sub[ST_CS].is();} // if this is a compute shader
 
       Shader& multiSample  (       ) {MAX(model, SM_4_1);    return T;} // SM_4_1 needed for 'SV_SampleIndex'
       Shader& multiSample  (Bool on) {if(on)multiSample();   return T;} // SM_4_1 needed for 'SV_SampleIndex'
@@ -259,5 +243,26 @@ struct ShaderCompiler
 
    ShaderCompiler();
 };
+
+#pragma pack(push, 1)
+struct ConstantIndex
+{
+   Byte  bind_index;
+   UShort src_index;
+
+        void set(Int bind_index, Int src_index);
+   ConstantIndex(Int bind_index, Int src_index) {set(bind_index, src_index);}
+   ConstantIndex() {}
+};
+struct ShaderIndex
+{
+   Int    shader_data_index;
+   UShort buffer_bind_index, image_bind_index;
+
+   ShaderIndex() {}
+   ShaderIndex(C ShaderCompiler::SubShader &shader);
+};
+#pragma pack(pop)
+
 #endif
 /******************************************************************************/
