@@ -25,7 +25,12 @@ Img=Nrm, Depth=depth
 
 #define DYNAMIC 1 // 1=faster
 
-#define PRECISION 1
+#define PRECISION 1 // 0..2, 0=doesn't look good, 1=looks good, 2=slightly more correct however much slower
+
+#define COS_SIN 1 // if operate on Cos/Sin instead of Angles, 1=faster
+
+#define Acos AcosFast // we don't need full precision here
+#define Asin AsinFast // we don't need full precision here
 /******************************************************************************/
 #if AO_MODE==AO_PATTERN
 #include "!Set Prec Struct.h"
@@ -101,7 +106,7 @@ Flt ComputeAO(Vec P, Vec N, Vec S)
 {
    Vec delta = S - P;
    Flt len2=Length2(delta);
-   Flt NdotV = dot(N, delta) * rsqrt(len2);
+   Flt NdotV = dot(N, delta) * Rsqrt(len2);
    return Sat(NdotV) * Sat(1 - len2 * AmbientRangeInvSqr);
 }
 Half HBAO(Vec2 uv, Vec nrm, Vec pos, Vec2 g_fRadiusToScreen)
@@ -155,6 +160,8 @@ Half AO_PS
    NOPERSP PIXEL
 ):TARGET
 {
+   //Flt x=uv.x*2-1; return ((uv.y>=0.5 ? rsqrt(x) : RsqrtFast1(x)))/10;
+
    Vec pos; pos.z=TexDepthRawPoint(uv); // !! for AO shader depth is already linearized !!
    Flt raw_z=DelinearizeDepth(pos.z);
    DEPTH_INC(raw_z, 0.00000007); // value tested on fov 25 deg, 1000 view range
@@ -279,8 +286,8 @@ Half AO_PS
             Flt  test_z1=(LINEAR_FILTER ? TexDepthRawLinear(uv1) : TexDepthRawPoint(uv1)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded UV
             Vec  test_pos0=GetPos(test_z0, UVToPosXY(uv0)), delta0=test_pos0-pos;
             Vec  test_pos1=GetPos(test_z1, UVToPosXY(uv1)), delta1=test_pos1-pos;
-            Flt  y0=Dot(delta0, nrm); if(y0>z_eps){Flt delta0_len2=Length2(delta0); Flt w0=FadeOut(delta0_len2); Flt sin0=y0*rsqrt(delta0_len2); Flt x0=Dot(delta0, dir); if(x0<0)sin0=1; max_sin.x=Max(max_sin.x, sin0*w0);}
-            Flt  y1=Dot(delta1, nrm); if(y1>z_eps){Flt delta1_len2=Length2(delta1); Flt w1=FadeOut(delta1_len2); Flt sin1=y1*rsqrt(delta1_len2); Flt x1=Dot(delta1, dir); if(x1>0)sin1=1; max_sin.y=Max(max_sin.y, sin1*w1);}
+            Flt  y0=Dot(delta0, nrm); if(y0>z_eps){Flt delta0_len2=Length2(delta0); Flt w0=FadeOut(delta0_len2); Flt sin0=y0*Rsqrt(delta0_len2); Flt x0=Dot(delta0, dir); if(x0<0)sin0=1; max_sin.x=Max(max_sin.x, sin0*w0);}
+            Flt  y1=Dot(delta1, nrm); if(y1>z_eps){Flt delta1_len2=Length2(delta1); Flt w1=FadeOut(delta1_len2); Flt sin1=y1*Rsqrt(delta1_len2); Flt x1=Dot(delta1, dir); if(x1>0)sin1=1; max_sin.y=Max(max_sin.y, sin1*w1);}
          }
       #if 0
          alternative with steps range clamp:
@@ -294,7 +301,7 @@ Half AO_PS
                Vec2 uv0=uv+d;
                Flt  test_z0=(LINEAR_FILTER ? TexDepthRawLinear(uv0) : TexDepthRawPoint(uv0)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded UV
                Vec  test_pos0=GetPos(test_z0, UVToPosXY(uv0)), delta0=test_pos0-pos;
-               Flt  y0=Dot(delta0, nrm); if(y0>z_eps){Flt delta0_len2=Length2(delta0); Flt w0=FadeOut(delta0_len2); Flt sin0=y0*rsqrt(delta0_len2); Flt x0=Dot(delta0, dir); if(x0<0)sin0=1; max_sin.x=Max(max_sin.x, sin0*w0);}
+               Flt  y0=Dot(delta0, nrm); if(y0>z_eps){Flt delta0_len2=Length2(delta0); Flt w0=FadeOut(delta0_len2); Flt sin0=y0*Rsqrt(delta0_len2); Flt x0=Dot(delta0, dir); if(x0<0)sin0=1; max_sin.x=Max(max_sin.x, sin0*w0);}
             }
             frac=ViewportClamp(uv-dir2, dir2);
             steps=Floor(max_steps*(1-frac)+HALF_MIN+(JITTER?jitter_step:0)); // this will have the same effect as if ignoring samples outside of viewport
@@ -305,7 +312,7 @@ Half AO_PS
                Vec2 uv1=uv-d;
                Flt  test_z1=(LINEAR_FILTER ? TexDepthRawLinear(uv1) : TexDepthRawPoint(uv1)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded UV
                Vec  test_pos1=GetPos(test_z1, UVToPosXY(uv1)), delta1=test_pos1-pos;
-               Flt  y1=Dot(delta1, nrm); if(y1>z_eps){Flt delta1_len2=Length2(delta1); Flt w1=FadeOut(delta1_len2); Flt sin1=y1*rsqrt(delta1_len2); Flt x1=Dot(delta1, dir); if(x1>0)sin1=1; max_sin.y=Max(max_sin.y, sin1*w1);}
+               Flt  y1=Dot(delta1, nrm); if(y1>z_eps){Flt delta1_len2=Length2(delta1); Flt w1=FadeOut(delta1_len2); Flt sin1=y1*Rsqrt(delta1_len2); Flt x1=Dot(delta1, dir); if(x1>0)sin1=1; max_sin.y=Max(max_sin.y, sin1*w1);}
             }
          }
       #endif
@@ -343,20 +350,23 @@ Half AO_PS
 
       #if PRECISION==0
          Vec dir=Tangent(dir2, nrm_scaled, eye_dir, flip_tan);
-      #endif
-
-      // FIXME only in prec =1
-         Vec plane_nrm        =Normalize(Cross(Vec(dir2.x, -dir2.y, 0), eye_dir));
-         Vec plane_tan        =Cross(eye_dir, plane_nrm); // normalized
-         Vec projected_nrm    =PointOnPlane(nrm, plane_nrm);
-         Flt projected_nrm_len=Length(projected_nrm);
+      #elif PRECISION==1
+         Vec plane_nrm         =Normalize(Cross(Vec(dir2.x, -dir2.y, 0), eye_dir));
+         Vec plane_tan         =Cross(eye_dir, plane_nrm); // normalized
+         Vec projected_nrm     =PointOnPlane(nrm, plane_nrm);
+         Flt projected_nrm_len2=Length2(projected_nrm);
       #if 0 // slower
          if(projected_nrm_len)projected_nrm/=projected_nrm_len; Flt base_sin=Dot(projected_nrm, plane_tan);
       #else
-         Flt base_sin=Dot(projected_nrm, plane_tan); if(projected_nrm_len)base_sin/=projected_nrm_len;
+         Flt base_sin=Dot(projected_nrm, plane_tan)*Rsqrt(projected_nrm_len2);
       #endif
        //base_sin=Mid(base_sin, -1, 1); FIXME alternatively we could replace "if(projected_nrm_len)base_sin/=projected_nrm_len;" with "base_sin/=projected_nrm_len+eps;"
+      #if COS_SIN
+         Flt base_cos=CosSin(base_sin); // Warning: NaN
+      #else
          Flt base_angle=Asin(base_sin); // Warning: NaN
+      #endif
+      #endif
 
          dir2*=offs_scale;
 
@@ -390,48 +400,56 @@ Half AO_PS
             Flt  y=Dot(delta, nrm); if(y>z_eps) // use small eps (1 mm) to increase performance for flat surfaces by skipping calculations below
             {
             #if PRECISION==0
-               Flt sin=y*rsqrt(delta_len2);
+               Flt sin=y*Rsqrt(delta_len2);
                Flt x=Dot(delta, dir); if(x<0)sin=1;
-               o =1-CosSin(sin);
+               o =1-CosSin(sin); // Warning: NaN
                o*=w; // fix artifacts (occlusion can be strong only as weight)
+            #else
+               Flt test_sin=Dot(delta, eye_dir)*Rsqrt(delta_len2);
+                 //test_sin=Mid(test_sin, -1, 1); FIXME
+
+            #if PRECISION==2 // recalculate base for every sample
+               Vec test_dir          =Normalize(test_pos);
+	            Vec plane_nrm         =Normalize(Cross(eye_dir, test_dir));
+	            Vec projected_nrm     =PointOnPlane(nrm, plane_nrm);
+               Flt projected_nrm_len2=Length2(projected_nrm);
+            #if 0 // slower
+	            Vec projected_dir     =Normalize(test_dir-eye_dir);
+               Flt base_sin          =Dot(projected_dir, projected_nrm/projected_nrm_len);
+            #else
+	            Vec projected_dir     =test_dir-eye_dir;
+               Flt base_sin          =Dot(projected_dir, projected_nrm)*Rsqrt(projected_nrm_len2*Length2(projected_dir));
+            #endif
+                 //base_sin=Mid(base_sin, -1, 1); FIXME alternatively we could replace "if(projected_nrm_len)base_sin/=projected_nrm_len*Length(projected_dir);" with "base_sin/=projected_nrm_len*Length(projected_dir)+eps;"
+            #if COS_SIN
+               Flt base_cos          =CosSin(base_sin); // Warning: NaN
+            #else
+	            Flt base_angle        =Asin(base_sin); // Warning: NaN
+            #endif
             #endif
 
-      // FIXME only in prec =1
-               Flt test_sin=Dot(delta, eye_dir)*rsqrt(delta_len2);
-             //test_sin=Mid(test_sin, -1, 1); FIXME
-               Flt test_angle=Asin(test_sin); // Warning: NaN
-
-               Flt angle_delta=base_angle-test_angle;
-               if(W)angle_delta=Mid(angle_delta, 0, E ? PI_2 : PI); // FIXME
-               o=1-Cos(angle_delta);
-               o*=projected_nrm_len*w;
-
-      // FIXME only in prec =2
-               if(Q)
+               #if COS_SIN // instead of operating on angles, operate directly on cos/sin
                {
-                  Vec test_dir         =Normalize(test_pos);
-	               Vec plane_nrm        =Normalize(Cross(eye_dir, test_dir));
-	               Vec projected_nrm    =PointOnPlane(nrm, plane_nrm);
-                  Flt projected_nrm_len=Length(projected_nrm);
-               #if 0 // slower
-	               Vec projected_dir    =Normalize(test_dir-eye_dir);
-                  Flt base_sin         =Dot(projected_dir, projected_nrm/projected_nrm_len);
-               #else
-	               Vec projected_dir    =test_dir-eye_dir;
-                  Flt base_sin         =Dot(projected_dir, projected_nrm); if(projected_nrm_len)base_sin/=projected_nrm_len*Length(projected_dir);
-               #endif
-                //base_sin=Mid(base_sin, -1, 1); FIXME alternatively we could replace "if(projected_nrm_len)base_sin/=projected_nrm_len*Length(projected_dir);" with "base_sin/=projected_nrm_len*Length(projected_dir)+eps;"
-	               Flt base_angle       =Asin(base_sin); // Warning: NaN
-                  Flt angle_delta      =base_angle-test_angle;
-                  if(W)angle_delta=Mid(angle_delta, 0, E ? PI_2 : PI); // FIXME
-                  o=1-Cos(angle_delta);
-                  o*=projected_nrm_len*w;
+                  Flt  test_cos=CosSin(test_sin), // Warning: NaN
+                      delta_cos=test_cos*base_cos + test_sin*base_sin; // "Vec2(test_cos, test_sin)" rotate by "-base_angle"
+                  o=1-delta_cos;
                }
+               #else
+               {
+                  Flt  test_angle=Asin(test_sin); // Warning: NaN
+                  Flt angle_delta=test_angle-base_angle;
+                //angle_delta=Max(angle_delta, -PI_2);
+                  o=1-Cos(angle_delta);
+               }
+               #endif
+             //o=Min(o, 1);
+
+               o*=projected_nrm_len2*w; // mul by 'projected_nrm_len2' applies perspective correction (occlusion will be similar when viewed from different angles)
+            #endif
             }else o=0;
             w=w*0.5+0.5;   // fix artifacts, this increases weight if it's small, which results in brightening because we don't touch occlusion
           //w=Max(0.5, w); // fix artifacts, this increases weight if it's small, which results in brightening because we don't touch occlusion
           //w=Max(1, 1/Sqrt(delta_len2));
-            o*=w;
          #if !DYNAMIC
             if(UVOutsideView(test_uv)){o=0; w=0.5;}
          #endif
@@ -472,8 +490,8 @@ Half AO_PS
             Flt  delta1_len2=Length2(delta1);
             Flt  o0, w0=FadeOut(delta0_len2);
             Flt  o1, w1=FadeOut(delta1_len2);
-            Flt  y0=Dot(delta0, nrm); if(y0>z_eps){Flt sin=y0*rsqrt(delta0_len2); Flt x=Dot(delta0, dir); if(x<0)sin=1; o0=1-CosSin(sin); o0*=w0;}else o0=0;
-            Flt  y1=Dot(delta1, nrm); if(y1>z_eps){Flt sin=y1*rsqrt(delta1_len2); Flt x=Dot(delta1, dir); if(x>0)sin=1; o1=1-CosSin(sin); o1*=w1;}else o1=0;
+            Flt  y0=Dot(delta0, nrm); if(y0>z_eps){Flt sin=y0*Rsqrt(delta0_len2); Flt x=Dot(delta0, dir); if(x<0)sin=1; o0=1-CosSin(sin); o0*=w0;}else o0=0;
+            Flt  y1=Dot(delta1, nrm); if(y1>z_eps){Flt sin=y1*Rsqrt(delta1_len2); Flt x=Dot(delta1, dir); if(x>0)sin=1; o1=1-CosSin(sin); o1*=w1;}else o1=0;
             w0=w0*0.5+0.5;
             w1=w1*0.5+0.5;
             occl+=w0*o0; weight+=w0;
@@ -514,7 +532,7 @@ Half AO_PS
             Flt  o, w=FadeOut(delta_len2);
             Flt  y=Dot(delta, nrm); if(y>z_eps)
             {
-               Flt sin=y*rsqrt(delta_len2);
+               Flt sin=y*Rsqrt(delta_len2);
                Flt x=Dot(delta, dir); if(x<0)sin=1;
                o =1-CosSin(sin);
                o*=w; // fix artifacts (occlusion can be strong only as weight)
@@ -543,7 +561,7 @@ Half AO_PS
             Flt  o, w=FadeOut(delta_len2);
             Flt  y=Dot(delta, nrm); if(y>z_eps)
             {
-               Flt sin=y*rsqrt(delta_len2);
+               Flt sin=y*Rsqrt(delta_len2);
                Flt x=Dot(delta, dir); if(x>0)sin=1;
                o =1-CosSin(sin);
                o*=w; // fix artifacts (occlusion can be strong only as weight)
@@ -596,7 +614,7 @@ Half AO_PS
             w=FadeOut(delta_len2);
             Flt y=Dot(delta, nrm); if(y>0)
             {
-               Flt sin=y*rsqrt(delta_len2); // "/Length(delta)" -> "/Sqrt(delta_len2)"
+               Flt sin=y*Rsqrt(delta_len2); // "/Length(delta)" -> "/Sqrt(delta_len2)"
                Vec dir=Tangent(dir2, nrm_scaled, eye_dir);
                Flt x=Dot(delta, dir); if(x<0)sin=1;
                o=1-CosSin(sin); // precise, calculated based on 'ObstacleSinToLight'

@@ -105,6 +105,7 @@
 #define Floor     floor
 #define Ceil      ceil
 #define Sqrt      sqrt
+#define Rsqrt     rsqrt
 #define Normalize normalize
 #define Pow       pow
 #define Sin       sin
@@ -801,6 +802,8 @@ Half LerpR (Half from, Half to, Half v) {return     (v-from)/(to-from) ;}
 Flt  LerpR (Flt  from, Flt  to, Flt  v) {return     (v-from)/(to-from) ;}
 Half LerpRS(Half from, Half to, Half v) {return Sat((v-from)/(to-from));}
 Flt  LerpRS(Flt  from, Flt  to, Flt  v) {return Sat((v-from)/(to-from));}
+/******************************************************************************/
+#include "Fast Math.h"
 /******************************************************************************/
 #if 1 // faster (1.6 fps) tested on GeForce 1050 Ti
 Vec  Transform(Vec  v, Matrix3  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2]));} // transform 'v' vector by 'm' orientation-scale matrix
@@ -1927,7 +1930,7 @@ struct LightParams
       VdotH   =Dot(L, H);
    #else // faster
     //VdotL=2*VdotH*VdotH-1
-	   Flt VL=rsqrt(VdotL_HP*2+2);
+	   Flt VL=Rsqrt(VdotL_HP*2+2);
 	   NdotH_HP=(NdotL_HP+NdotV_HP)*VL;
 	   VdotH   =       VL*VdotL_HP +VL;
    #endif
