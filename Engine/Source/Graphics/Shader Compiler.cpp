@@ -458,6 +458,14 @@ ShaderCompiler::Shader& ShaderCompiler::Source::New(C Str &name, C Str8 &vs_func
    shader.sub[ST_PS].func_name=ps_func_name;
    return shader;
 }
+ShaderCompiler::Shader& ShaderCompiler::Source::computeNew(C Str &name, C Str8 &cs_func_name)
+{
+   Shader &shader=shaders.New();
+   shader.model=model;
+   shader.name =name;
+   shader.sub[ST_CS].func_name=cs_func_name;
+   return shader;
+}
 ShaderCompiler::Source::~Source()
 {
 #if DX_SHADER_COMPILER
@@ -539,6 +547,7 @@ void ShaderCompiler::SubShader::compile()
       case ST_HS: target[0]='h'; break;
       case ST_DS: target[0]='d'; break;
       case ST_PS: target[0]='p'; break;
+      case ST_CS: target[0]='c'; break;
    }
    target[1]='s';
    target[2]='_';
@@ -546,7 +555,7 @@ void ShaderCompiler::SubShader::compile()
    target[6]='\0';
 REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to process 2 times, first to extract default values, then to get actual results
 {
-   SHADER_MODEL model=shader->model; if(type==ST_HS || type==ST_DS)MAX(model, SM_5); // HS DS are supported only in SM5+
+   SHADER_MODEL model=shader->model; if(type==ST_HS || type==ST_DS || type==ST_CS)MAX(model, SM_5); // HS DS CS are supported only in SM5+ (CS in SM4 too but has limitations)
    if(!get_default_val && compiler->api!=API_DX)MAX(model, SM_6); // need to use new compiler for DX-> conversions
    switch(model)
    {
@@ -1071,7 +1080,13 @@ Bool ShaderCompiler::Shader::save(File &f, C ShaderCompiler &compiler)C
    }else
    {
       // indexes
-      f.putMulti(sub[ST_VS].shader_data_index, sub[ST_PS].shader_data_index);
+      if(compute()) // compute shader
+      {
+         f<<sub[ST_CS].shader_data_index;
+      }else
+      {
+         f.putMulti(sub[ST_VS].shader_data_index, sub[ST_PS].shader_data_index);
+      }
    }
 
    return f.ok();
@@ -1225,6 +1240,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
       case SpvExecutionModelTessellationEvaluation: type=ST_DS; break;
     //case SpvExecutionModelGeometry              : type=ST_GS; break;
       case SpvExecutionModelFragment              : type=ST_PS; break;
+      case SpvExecutionModelGLCompute             : type=ST_CS; break;
       default: Exit("Invalid Execution model"); break;
    }
 

@@ -204,7 +204,8 @@ struct ShaderCompiler
       Bool newCompiler()C {return model>=SM_6 || api()!=API_DX;}
       Bool load();
 
-      Shader& New(C Str &name=S, C Str8 &vs_func_name="VS", C Str8 &ps_func_name="PS");
+      Shader&        New(C Str &name=S, C Str8 &vs_func_name="VS", C Str8 &ps_func_name="PS");
+      Shader& computeNew(C Str &name=S, C Str8 &cs_func_name="CS");
 
       Shader& forward(Int skin, Int materials, Int layout, Int bump_mode, Int alpha_test, Int reflect, Int emissive_map, Int detail, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tesselate)
          {return New()("SKIN", skin)("MATERIALS", materials, "LAYOUT", layout)("BUMP_MODE", bump_mode)("ALPHA_TEST", alpha_test)("REFLECT", reflect, "EMISSIVE_MAP", emissive_map, "DETAIL", detail)("COLORS", color, "MTRL_BLEND", mtrl_blend, "HEIGHTMAP", heightmap)("FX", fx)("PER_PIXEL", per_pixel)("LIGHT_DIR", light_dir, "LIGHT_DIR_SHD", light_dir_shd, "LIGHT_DIR_SHD_NUM", light_dir_shd_num)("LIGHT_POINT", light_point, "LIGHT_POINT_SHD", light_point_shd)("LIGHT_LINEAR", light_linear, "LIGHT_LINEAR_SHD", light_linear_shd)("LIGHT_CONE", light_cone, "LIGHT_CONE_SHD", light_cone_shd).tesselate(tesselate);}
