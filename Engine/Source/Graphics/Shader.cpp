@@ -1958,7 +1958,7 @@ Bool ImageLink::load(File &f, C MemtN<ShaderImage*, 256> &images)
 #if WINDOWS
 Bool Shader11::load(File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &file_buffers)
 {
-   ShaderIndex indexes[ST_NUM]; f.getStr(name)>>indexes;
+   ShaderIndex indexes[ST_BASE]; f.getStr(name)>>indexes;
    FREPA(data_index)
    {
     C ShaderIndex &index=indexes[i];
@@ -2082,6 +2082,7 @@ Bool ShaderFile::load(C Str &name)
          if(             _hs.load(f))
          if(             _ds.load(f))
          if(             _ps.load(f))
+         if(             _cs.load(f))
          if(        _shaders.load(f, T, buffers))
          if(_compute_shaders.load(f, T, buffers))
             if(f.ok())return true;

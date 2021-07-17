@@ -1111,7 +1111,7 @@ struct ConvertContext
    SyncLock        lock;
 #if DEBUG
    Memc<                ShaderData> (&shader_datas)[ST_NUM];
-   Memc<ShaderCompiler::Shader*   >  &shaders;
+   Memc<ShaderCompiler::Shader*   >  &shaders, &compute_shaders;
 #endif
    ShaderCompiler::Shader* findShader(C ShaderData &shader_data)C // find first 'Shader' using 'shader_data'
    {
@@ -1120,10 +1120,8 @@ struct ConvertContext
       {
          Int shader_data_index=shader_datas[type].index(&shader_data); if(shader_data_index>=0)
          {
-            FREPAD(si, shaders)
-            {
-               ShaderCompiler::Shader &shader=*shaders[si]; if(shader.sub[type].shader_data_index==shader_data_index)return &shader;
-            }
+            FREPAD(si,         shaders){ShaderCompiler::Shader &shader=*        shaders[si]; if(shader.sub[type].shader_data_index==shader_data_index)return &shader;}
+            FREPAD(si, compute_shaders){ShaderCompiler::Shader &shader=*compute_shaders[si]; if(shader.sub[type].shader_data_index==shader_data_index)return &shader;}
             break;
          }
       }
@@ -1143,12 +1141,13 @@ struct ConvertContext
 
    ConvertContext(ShaderCompiler &compiler
    #if DEBUG
-    , Memc<                ShaderData> (&shader_datas)[ST_NUM]
-    , Memc<ShaderCompiler::Shader*   >  &shaders
+    , Memc<                ShaderData> (&        shader_datas)[ST_NUM]
+    , Memc<ShaderCompiler::Shader*   >  &        shaders
+    , Memc<ShaderCompiler::Shader*   >  &compute_shaders
    #endif
    ) : compiler(compiler)
    #if DEBUG
-     , shader_datas(shader_datas), shaders(shaders)
+     , shader_datas(shader_datas), shaders(shaders), compute_shaders(compute_shaders)
    #endif
    {
    }
@@ -1562,7 +1561,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
 
       ConvertContext cc(T
       #if DEBUG
-       , shader_datas, shaders
+       , shader_datas, shaders, compute_shaders
       #endif
       );
       FREPA(shader_datas)
