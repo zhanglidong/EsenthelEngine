@@ -1383,7 +1383,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
       {
       #if 1 // use GL_ES to output precisions
          spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_TRUE);
-         spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, 300);
+         spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, (type==ST_CS) ? 310 : 300);
       #else
          spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_FALSE);
          spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, 330);
@@ -1430,6 +1430,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
 
       code=Replace(code, "#version 330\n", S);
       code=Replace(code, "#version 300 es\n", S);
+      code=Replace(code, "#version 310 es\n", S);
       code=RemoveEmptyLines(RemoveSpaces(code));
 
       FREPA(buffer_instances)
