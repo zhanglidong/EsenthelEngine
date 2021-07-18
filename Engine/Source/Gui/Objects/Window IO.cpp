@@ -63,9 +63,10 @@ static Str QPSFullPath (C Str &path) {return (path.is() && !FullPath(path)) ? Sy
 static Str QPSShortPath(C Str &path) {return SkipStartPath(path, DataPath());}
 static Str QPSFullPath (C Str &path) {return (path.is() && !FullPath(path)) ? DataPath()+path : path;}
 #endif
-static void PathChanged(C Str &path, QuickPathSelector &qps)
+static void PathChanged(C CMemPtr<MenuPush> &mps, QuickPathSelector &qps)
 {
-   if(path.is())
+   Str path; FREPA(mps){if(i)path+='\\'; path+=mps[i].name;}
+   if( path.is())
    {
       if(path==QPS_DATA        )qps.setPath(DataPath());else
       if(path==QPS_DESKTOP     )qps.setPath(SystemPath(SP_DESKTOP  ));else
