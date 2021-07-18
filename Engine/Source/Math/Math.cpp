@@ -306,6 +306,41 @@ Flt AngleFast(C Vec2 &v)
    if(!r)return 0;
    return (v.y>=0) ? (1-v.x/r)*PI_2 : (v.x/r-1)*PI_2;
 }
+Vec2 AngleFastToPos(Flt angle_fast)
+{
+   angle_fast/=PI_2;
+/* angle_fast=1-x/(Abs(x)+Abs(y))
+   af=1-x/(ax+ay)
+   x/(ax+ay)=1-af
+   x=(1-af)*(ax+ay)
+   x=(1-af)*ax + (1-af)*ay
+   x - (1-af)*ax = (1-af)*ay
+   x/y=(1-angle_fast)/angle_fast */
+   return (angle_fast>=0) ? (angle_fast<= 1) ? Vec2(1-angle_fast,    angle_fast)
+                                             : Vec2(1-angle_fast,  2-angle_fast)
+                          : (angle_fast>=-1) ? Vec2(1+angle_fast,    angle_fast)
+                                             : Vec2(1+angle_fast, -2-angle_fast);
+}
+
+/* Alternative version:
+Flt AngleFast1(Flt x, Flt y)
+{
+   Flt ax=Abs(x), ay=Abs(y), r=Max(ax, ay);
+   if(!r)return 0;
+   return (ax>ay) ? (x>0) ?  y/r*PI_4      : -y/r*PI_4+PI
+                  : (y>0) ? -x/r*PI_4+PI_2 :  x/r*PI_4-PI_2;
+}
+However in test results it's similar, but slower
+   Dbl AD[3]; Flt MAD[3]; Zero(AD); Zero(MAD);
+   REP(65536)
+   {
+      Flt  a=i*(PI2/65536);
+      Vec2 p; CosSin(p.x, p.y, a);
+      Flt a0=Angle     (p       ); Flt a0d=Abs(AngleDelta(a, a0)); AD[0]+=a0d; MAX(MAD[0], a0d);
+      Flt a1=AngleFast (p       ); Flt a1d=Abs(AngleDelta(a, a1)); AD[1]+=a1d; MAX(MAD[1], a1d);
+      Flt a2=AngleFast1(p.x, p.y); Flt a2d=Abs(AngleDelta(a, a2)); AD[2]+=a2d; MAX(MAD[2], a2d);
+   }
+*/
 
 Flt AngleFast(C Vec &v, C Vec &x, C Vec &y) {return AngleFast(Dot(v, x), Dot(v, y));}
 Flt Angle    (C Vec &v, C Vec &x, C Vec &y) {return Angle    (Dot(v, x), Dot(v, y));}
