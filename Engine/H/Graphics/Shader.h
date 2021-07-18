@@ -513,6 +513,7 @@ struct ComputeShaderGL
    void updateBuffers()C;
 
    void begin()C;
+   void end  ()C;
 
    void compute(C VecI2 &groups)C;
    void compute(C VecI  &groups)C;

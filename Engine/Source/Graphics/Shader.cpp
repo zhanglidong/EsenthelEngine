@@ -1854,9 +1854,13 @@ void ComputeShaderGL::begin()C
      bindImages (); // 'commitTex'
      bindBuffers();
 }
+void ComputeShaderGL::end()C
+{
+   REPA(rw_images){C RWImageLink &t=rw_images[i]; SetRWImage(t.index, null);} // clear same like on DX11 because drivers are buggy
+}
 #endif
-void ComputeShaderGL::compute(C VecI2 &groups)C {begin(); glDispatchCompute(groups.x, groups.y,        1);}
-void ComputeShaderGL::compute(C VecI  &groups)C {begin(); glDispatchCompute(groups.x, groups.y, groups.z);}
+void ComputeShaderGL::compute(C VecI2 &groups)C {begin(); glDispatchCompute(groups.x, groups.y,        1); end();}
+void ComputeShaderGL::compute(C VecI  &groups)C {begin(); glDispatchCompute(groups.x, groups.y, groups.z); end();}
 #endif
 /******************************************************************************/
 // MANAGE
