@@ -1512,6 +1512,9 @@ static UInt CreateProgramFromBinary(File &f)
    }
 }
 /******************************************************************************/
+static const Char8        ShaderSeparator='@';
+static const Char8 ComputeShaderSeparator='#'; // must be different so it doesn't conflict with regular shaders
+
 UInt ShaderGL::compile(MemPtr<ShaderSubGL> vs_array, MemPtr<ShaderSubGL> ps_array, ShaderFile *shader, Str *messages) // this function doesn't need to be multi-threaded safe, it's called by 'validate' where it's already surrounded by a lock, GL thread-safety should be handled outside of this function
 {
    if(messages)messages->clear();
@@ -1520,12 +1523,12 @@ UInt ShaderGL::compile(MemPtr<ShaderSubGL> vs_array, MemPtr<ShaderSubGL> ps_arra
    // load from cache
    if(PrecompiledShaderCache.is())
    {
-      File f; if(f.readTry(ShaderFiles.name(shader)+'@'+T.name, PrecompiledShaderCache.pak))if(prog=CreateProgramFromBinary(f))return prog;
+      File f; if(f.readTry(ShaderFiles.name(shader)+ShaderSeparator+T.name, PrecompiledShaderCache.pak))if(prog=CreateProgramFromBinary(f))return prog;
    }
    Str shader_cache_name; // this name will be used for loading from cache, and if failed to load, then save to cache
    if(ShaderCache.is())
    {
-      shader_cache_name=ShaderCache.path+ShaderFiles.name(shader)+'@'+T.name;
+      shader_cache_name=ShaderCache.path+ShaderFiles.name(shader)+ShaderSeparator+T.name;
       File f; if(f.readStdTry(shader_cache_name))
       {
          if(prog=CreateProgramFromBinary(f))return prog;
@@ -1570,22 +1573,21 @@ UInt ComputeShaderGL::compile(MemPtr<ShaderSubGL> cs_array, ShaderFile *shader, 
    if(messages)messages->clear();
    UInt prog=0; // have to operate on temp variable, so we can return it to 'validate' which still has to do some things before setting it into 'this'
 
-   /*// load from cache
-   WARNING: HERE 'name' NAMES MIGHT conflict with regular shaders, have to use different symbol instead of '@' ? or disallow same names for regular shaders and compute shaders in the shader compiler?
+   // load from cache
    if(PrecompiledShaderCache.is())
    {
-      File f; if(f.readTry(ShaderFiles.name(shader)+'@'+T.name, PrecompiledShaderCache.pak))if(prog=CreateProgramFromBinary(f))return prog;
+      File f; if(f.readTry(ShaderFiles.name(shader)+ComputeShaderSeparator+T.name, PrecompiledShaderCache.pak))if(prog=CreateProgramFromBinary(f))return prog;
    }
    Str shader_cache_name; // this name will be used for loading from cache, and if failed to load, then save to cache
    if(ShaderCache.is())
    {
-      shader_cache_name=ShaderCache.path+ShaderFiles.name(shader)+'@'+T.name;
+      shader_cache_name=ShaderCache.path+ShaderFiles.name(shader)+ComputeShaderSeparator+T.name;
       File f; if(f.readStdTry(shader_cache_name))
       {
          if(prog=CreateProgramFromBinary(f))return prog;
          f.del(); FDelFile(shader_cache_name); // if failed to create, then assume file data is outdated and delete it
       }
-   }*/
+   }
 
    // prepare shaders
    if(!cs && InRange(cs_index, cs_array)){if(LogInit)LogN(S+ "Compiling compute shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\""); cs=cs_array[cs_index].create(GL_COMPUTE_SHADER, messages);} // no need for 'AtomicSet' because we don't need to be multi-thread safe here
@@ -1608,7 +1610,7 @@ UInt ComputeShaderGL::compile(MemPtr<ShaderSubGL> cs_array, ShaderFile *shader, 
       if(LogInit)LogN("Success");
       
       // save to cache
-      //if(prog && shader_cache_name.is())SaveProgramBinary(prog, shader_cache_name);
+      if(prog && shader_cache_name.is())SaveProgramBinary(prog, shader_cache_name);
    }
    return prog;
 }
