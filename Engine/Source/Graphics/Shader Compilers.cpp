@@ -571,9 +571,11 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    src.New("SetVel", "SetVel_VS", "SetVel_PS");
 
    ASSERT(6==Elms(Mtn.Convert));
-   REPD(range    , 6)
-   REPD(view_full, 2)
-      src.New("Convert", "DrawUV_VS", "Convert_PS")("VIEW_FULL", view_full, "RANGE", 1<<range);
+   REPD(range, 6)
+   {
+      REPD(view_full, 2)src.       New("Convert", "DrawUV_VS", "Convert_PS")("VIEW_FULL", view_full, "RANGE", 1<<range);
+                      //src.computeNew("Convert",              "Convert_CS")(                        "RANGE", 1<<range);
+   }
 
    const Int dilate_ranges[]={1, 2, 3, 4, 6, 8, 10, 12, 16, 20, 24, 32, 40, 48}; ASSERT(Elms(dilate_ranges)==Elms(Mtn.Dilates)); // #MotionBlurDilateRanges
    REPAD(range, dilate_ranges)

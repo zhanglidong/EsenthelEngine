@@ -202,7 +202,7 @@ void Process(uint i, uint j)
          ScreenLength2(a.zw)<ScreenLength2(b.zw) ? a.zw : b.zw);
 
    if(SharedLength2[i].x<SharedLength2[j].x){SharedLength2[i].x=SharedLength2[j].x; SharedMotion[i].xy=SharedMotion[j].xy;}
-   if(SharedLength2[i].y>SharedLength2[j].y){SharedLength2[i].y=SharedLength2[j].y; SharedMotion[i].zw=SharedMotion[j].zw;}*/
+   if(SharedLength2[i].y>SharedLength2[j].y){SharedLength2[i].y=SharedLength2[j].y; SharedMotion[i].zw=SharedMotion[j].zw;} */
 }
 [numthreads(THREAD_SIZE_X, THREAD_SIZE_Y, 1)]
 void Convert_CS
