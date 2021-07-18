@@ -312,6 +312,11 @@ inline Flt AngleXZ(C Vec   &v, C Matrix  &matrix                 ) {return Angle
 Flt AngleFast(Flt x, Flt y); // get point angle approximation (-PI..PI)
 Flt AngleFast(C Vec2 &v   ); // get point angle approximation (-PI..PI)
 #if EE_PRIVATE
+Flt Angle1Fast(Flt x, Flt y); // get point angle approximation (-1..1)
+
+Vec2 AngleFastToPos (Flt angle_fast); // convert angle approximation (-PI..PI) into a point position
+Vec2 Angle1FastToPos(Flt angle_fast); // convert angle approximation ( -1..1 ) into a point position
+
        Flt AngleFast  (C Vec  &v,                 C Vec &x, C Vec &y);                                                       // get point angle approximation according to given axes            (-PI..PI)
 inline Flt AngleFast  (C Vec  &v, C Vec     &pos, C Vec &x, C Vec &y) {return AngleFast(v-pos,                x,        y);} // get point angle approximation according to given axes and center (-PI..PI)
 inline Flt AngleFast  (C Vec  &v, C Matrix3 &matrix                 ) {return AngleFast(v            , matrix.x, matrix.y);} // get point angle approximation according to given matrix          (-PI..PI)

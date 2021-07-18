@@ -294,21 +294,20 @@ Dbl ACosSin(Dbl cos, Dbl sin) // assumes "sin>=0"
 
 Vec2 Atan(C Vec2 &tan) {return Vec2(Atan(tan.x), Atan(tan.y));}
 
+Flt Angle1Fast(Flt x, Flt y)
+{
+   Flt r=Abs(x)+Abs(y); return r ? ((y>=0) ? 1-x/r : x/r-1) : 0;
+}
 Flt AngleFast(Flt x, Flt y)
 {
-   Flt r=Abs(x)+Abs(y);
-   if(!r)return 0;
-   return (y>=0) ? (1-x/r)*PI_2 : (x/r-1)*PI_2;
+   Flt r=Abs(x)+Abs(y); return r ? ((y>=0) ? (1-x/r)*PI_2 : (x/r-1)*PI_2) : 0;
 }
 Flt AngleFast(C Vec2 &v)
 {
-   Flt r=Abs(v.x)+Abs(v.y);
-   if(!r)return 0;
-   return (v.y>=0) ? (1-v.x/r)*PI_2 : (v.x/r-1)*PI_2;
+   Flt r=Abs(v.x)+Abs(v.y); return r ? ((v.y>=0) ? (1-v.x/r)*PI_2 : (v.x/r-1)*PI_2) : 0;
 }
-Vec2 AngleFastToPos(Flt angle_fast)
+Vec2 Angle1FastToPos(Flt angle_fast)
 {
-   angle_fast/=PI_2;
 /* angle_fast=1-x/(Abs(x)+Abs(y))
    af=1-x/(ax+ay)
    x/(ax+ay)=1-af
@@ -316,6 +315,14 @@ Vec2 AngleFastToPos(Flt angle_fast)
    x=(1-af)*ax + (1-af)*ay
    x - (1-af)*ax = (1-af)*ay
    x/y=(1-angle_fast)/angle_fast */
+   return (angle_fast>=0) ? (angle_fast<= 1) ? Vec2(1-angle_fast,    angle_fast)
+                                             : Vec2(1-angle_fast,  2-angle_fast)
+                          : (angle_fast>=-1) ? Vec2(1+angle_fast,    angle_fast)
+                                             : Vec2(1+angle_fast, -2-angle_fast);
+}
+Vec2 AngleFastToPos(Flt angle_fast)
+{
+   angle_fast/=PI_2;
    return (angle_fast>=0) ? (angle_fast<= 1) ? Vec2(1-angle_fast,    angle_fast)
                                              : Vec2(1-angle_fast,  2-angle_fast)
                           : (angle_fast>=-1) ? Vec2(1+angle_fast,    angle_fast)
@@ -330,7 +337,7 @@ Flt AngleFast1(Flt x, Flt y)
    return (ax>ay) ? (x>0) ?  y/r*PI_4      : -y/r*PI_4+PI
                   : (y>0) ? -x/r*PI_4+PI_2 :  x/r*PI_4-PI_2;
 }
-However in test results it's similar, but slower
+However in test results it has similar precision, but slower
    Dbl AD[3]; Flt MAD[3]; Zero(AD); Zero(MAD);
    REP(65536)
    {
@@ -344,6 +351,17 @@ However in test results it's similar, but slower
 
 Flt AngleFast(C Vec &v, C Vec &x, C Vec &y) {return AngleFast(Dot(v, x), Dot(v, y));}
 Flt Angle    (C Vec &v, C Vec &x, C Vec &y) {return Angle    (Dot(v, x), Dot(v, y));}
+/******************************************************************************/
+// Polar coordinates
+Vec2 ToLen2Angle1Fast(C Vec2 &v) // 'v'=pos XY, returns (X=length2, Y=Angle1Fast)
+{
+   Flt r=Abs(v.x)+Abs(v.y); return r ? Vec2(v.length2(), (v.y>=0) ? 1-v.x/r : v.x/r-1) : Vec2Zero;
+}
+Vec2 FromLen2Angle1Fast(C Vec2 &v) // 'v'=(X=length2, Y=Angle1Fast), returns pos XY
+{
+   Vec2   p=Angle1FastToPos(v.y);
+   return p*SqrtFast(v.x/p.length2());
+}
 /******************************************************************************/
 Flt AngleNormalize(Flt angle) {angle=AngleFull(angle); return (angle>PI ) ? angle-PI2  : angle;}
 Dbl AngleNormalize(Dbl angle) {angle=AngleFull(angle); return (angle>PID) ? angle-PID2 : angle;}
