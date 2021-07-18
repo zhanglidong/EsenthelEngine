@@ -1235,7 +1235,7 @@ Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
                desc.Height            =hwH();
                desc.MipLevels         =mip_maps;
                desc.Usage             =D3D11_USAGE_DEFAULT;
-               desc.BindFlags         =D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE; if(D.computeAvailable())desc.BindFlags|=D3D11_BIND_UNORDERED_ACCESS;
+               desc.BindFlags         =D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE; if(samples<=1 && D.computeAvailable())desc.BindFlags|=D3D11_BIND_UNORDERED_ACCESS;
                desc.MiscFlags         =0;
                desc.CPUAccessFlags    =0;
                desc.SampleDesc.Count  =samples;
