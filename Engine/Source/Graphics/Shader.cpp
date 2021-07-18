@@ -610,6 +610,7 @@ void ShaderBuffer::bind(Int index)
    BufHS(index, buffer.buffer);
    BufDS(index, buffer.buffer);
    BufPS(index, buffer.buffer);
+   BufCS(index, buffer.buffer);
 #elif GL
    glBindBufferBase(GL_UNIFORM_BUFFER, index, buffer.buffer);
 #endif
@@ -2369,6 +2370,7 @@ void SetMatrixCount(Int num)
             D3DC1->HSSetConstantBuffers1(SBI_OBJ_MATRIX, 2, buf, first, num);
             D3DC1->DSSetConstantBuffers1(SBI_OBJ_MATRIX, 2, buf, first, num);
             D3DC1->PSSetConstantBuffers1(SBI_OBJ_MATRIX, 2, buf, first, num);
+            D3DC1->CSSetConstantBuffers1(SBI_OBJ_MATRIX, 2, buf, first, num);
          }
       }else
    #endif
@@ -2389,6 +2391,7 @@ void SetMatrixCount(Int num)
             D3DC->HSSetConstantBuffers(SBI_OBJ_MATRIX, 2, buf);
             D3DC->DSSetConstantBuffers(SBI_OBJ_MATRIX, 2, buf);
             D3DC->PSSetConstantBuffers(SBI_OBJ_MATRIX, 2, buf);
+            D3DC->CSSetConstantBuffers(SBI_OBJ_MATRIX, 2, buf);
          #endif
          }
       }
