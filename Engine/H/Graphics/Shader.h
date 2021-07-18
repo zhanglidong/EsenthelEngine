@@ -500,6 +500,7 @@ struct ComputeShaderGL
    Mems<ShaderBuffer*   > all_buffers; // shader buffers used by all shader stages (CS) combined into one array
    Mems<      BufferLink>     buffers;
    Mems<SamplerImageLink>      images;
+   Mems<     RWImageLink>   rw_images;
    Str8                          name;
 
    Str  source  ()C;
@@ -507,6 +508,8 @@ struct ComputeShaderGL
    Bool validate(ShaderFile &shader, Str *messages=null);
    Bool load    (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
 
+   void   bindImages ()C;
+   void   bindBuffers()C;
    void updateBuffers()C;
 
    void begin()C;

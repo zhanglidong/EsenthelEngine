@@ -63,6 +63,13 @@ struct ImageRT : Image // Image Render Target
    ImageRT& mustCreate(C VecI2 &size, IMAGE_TYPE type, IMAGE_MODE mode=IMAGE_RT, Byte samples=1); // create, Exit  on fail
 #if EE_PRIVATE
    Bool depthTexture()C;
+   constexpr INLINE Bool hasUAV()C
+   {
+   #if DX11
+      return _uav!=null;
+   #endif
+      return true;
+   }
    constexpr INLINE Bool canSwapSRV()C
    {
    #if DX11

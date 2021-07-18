@@ -196,7 +196,7 @@ DisplayClass& DisplayClass::shaderCache(C Str &path)
 static ID3D11ShaderResourceView  *VSTex[MAX_SHADER_IMAGES], *HSTex[MAX_SHADER_IMAGES], *DSTex[MAX_SHADER_IMAGES], *PSTex[MAX_SHADER_IMAGES], *CSTex[MAX_SHADER_IMAGES];
 static ID3D11UnorderedAccessView *CSUAV[MAX_SHADER_IMAGES];
 #elif GL
-static UInt                      Tex[MAX_SHADER_IMAGES], TexSampler[MAX_SHADER_IMAGES];
+static UInt                      Tex[MAX_SHADER_IMAGES], TexSampler[MAX_SHADER_IMAGES], UAV[MAX_SHADER_IMAGES];
 #endif
 INLINE void DisplayState::texVS(Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex)
 {
@@ -241,7 +241,7 @@ void DisplayState::uavClear(GPU_API(ID3D11UnorderedAccessView*, UInt) tex)
 #if DX11
    if(tex)REPA(CSUAV)if(CSUAV[i]==tex)CSUAV[i]=null;
 #elif GL
-   if(tex)REPA(Tex)if(Tex[i]==tex)Tex[i]=~0; // FIXME is this good?
+   if(tex)REPA(UAV)if(UAV[i]==tex)UAV[i]=~0;
 #endif
 }
 void DisplayState::texClearAll(GPU_API(ID3D11ShaderResourceView*, UInt) tex)
@@ -335,6 +335,17 @@ static void SetTexture(Int index, Int sampler, C Image *image) // this is called
    DEBUG_RANGE_ASSERT(sampler, SamplerSlot); UInt gl_sampler=SamplerSlot[sampler];
 #endif
    DEBUG_RANGE_ASSERT(index  , TexSampler ); if(TexSampler[index]!=gl_sampler)glBindSampler(index, TexSampler[index]=gl_sampler);
+}
+static void SetRWImage(Int index, C Image *image) // this is called only on the Main thread
+{
+   UInt txtr=(image ? image->_txtr : 0);
+   DEBUG_RANGE_ASSERT(index, UAV);
+   if(UAV[index]!=txtr || FORCE_TEX)
+   {
+      UAV[index]=txtr;
+      glBindImageTextures(index, 1, &txtr);
+    //glBindImageTexture (index,     txtr, 0, true, 0, GL_READ_WRITE, type);
+   }
 }
 #endif
 /******************************************************************************/
@@ -1554,6 +1565,53 @@ UInt ShaderGL::compile(MemPtr<ShaderSubGL> vs_array, MemPtr<ShaderSubGL> ps_arra
    }
    return prog;
 }
+UInt ComputeShaderGL::compile(MemPtr<ShaderSubGL> cs_array, ShaderFile *shader, Str *messages) // this function doesn't need to be multi-threaded safe, it's called by 'validate' where it's already surrounded by a lock, GL thread-safety should be handled outside of this function
+{
+   if(messages)messages->clear();
+   UInt prog=0; // have to operate on temp variable, so we can return it to 'validate' which still has to do some things before setting it into 'this'
+
+   /*// load from cache
+   WARNING: HERE 'name' NAMES MIGHT conflict with regular shaders, have to use different symbol instead of '@' ? or disallow same names for regular shaders and compute shaders in the shader compiler?
+   if(PrecompiledShaderCache.is())
+   {
+      File f; if(f.readTry(ShaderFiles.name(shader)+'@'+T.name, PrecompiledShaderCache.pak))if(prog=CreateProgramFromBinary(f))return prog;
+   }
+   Str shader_cache_name; // this name will be used for loading from cache, and if failed to load, then save to cache
+   if(ShaderCache.is())
+   {
+      shader_cache_name=ShaderCache.path+ShaderFiles.name(shader)+'@'+T.name;
+      File f; if(f.readStdTry(shader_cache_name))
+      {
+         if(prog=CreateProgramFromBinary(f))return prog;
+         f.del(); FDelFile(shader_cache_name); // if failed to create, then assume file data is outdated and delete it
+      }
+   }*/
+
+   // prepare shaders
+   if(!cs && InRange(cs_index, cs_array)){if(LogInit)LogN(S+ "Compiling compute shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\""); cs=cs_array[cs_index].create(GL_COMPUTE_SHADER, messages);} // no need for 'AtomicSet' because we don't need to be multi-thread safe here
+
+   // prepare program
+   if(cs)
+   {
+      if(LogInit)Log(S+"Linking compute shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\": ");
+      prog=glCreateProgram(); if(!prog)Exit("Can't create GL Shader Program");
+      glAttachShader(prog, cs);
+      glLinkProgram (prog);
+      GLint ok; glGetProgramiv(prog, GL_LINK_STATUS, &ok);
+      if(  !ok)
+      {
+         GLint max_length; glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &max_length);
+         Mems<char> error; error.setNumZero(max_length+1); glGetProgramInfoLog(prog, max_length, null, error.data());
+         if(messages)messages->line()+=(S+"Error linking compute shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\"\n"+error.data()).line()+source().line();
+         glDeleteProgram(prog); prog=0;
+      }
+      if(LogInit)LogN("Success");
+      
+      // save to cache
+      //if(prog && shader_cache_name.is())SaveProgramBinary(prog, shader_cache_name);
+   }
+   return prog;
+}
 /******************************************************************************/
 Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function should be multi-threaded safe
 {
@@ -1684,12 +1742,100 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
 }
 Bool ComputeShaderGL::validate(ShaderFile &shader, Str *messages) // this function should be multi-threaded safe
 {
-   return false;
+   if(prog || !D.created())return true; // needed for APP_ALLOW_NO_GPU/APP_ALLOW_NO_XDISPLAY, skip shader compilation if we don't need it (this is because compiling shaders on Linux with no GPU can exit the app with a message like "Xlib:  extension "XFree86-VidModeExtension" missing on display ":99".")
+   SyncLocker locker(GL_LOCK ? D._lock : ShaderLock);
+   if(!prog)
+      if(UInt prog=compile(shader._cs, &shader, messages)) // create into temp var first and set to this only after fully initialized
+   {
+      MemtN<SamplerImageLink, 256>    images;
+      MemtN<     RWImageLink, 256> rw_images;
+      Int  params=0; glGetProgramiv(prog, GL_ACTIVE_UNIFORMS, &params);
+      FREP(params)
+      {
+         Char8 name[1024]; name[0]=0; Int elms=0; GLenum type=0; glGetActiveUniform(prog, i, Elms(name), null, &elms, &type, name);
+         switch(type)
+         {
+            case GL_SAMPLER_2D:
+            case GL_SAMPLER_CUBE:
+         #ifdef GL_SAMPLER_3D
+            case GL_SAMPLER_3D:
+         #endif
+         #ifdef GL_SAMPLER_2D_SHADOW
+            case GL_SAMPLER_2D_SHADOW:
+         #endif
+         #if defined GL_SAMPLER_2D_SHADOW_EXT && GL_SAMPLER_2D_SHADOW_EXT!=GL_SAMPLER_2D_SHADOW
+            case GL_SAMPLER_2D_SHADOW_EXT:
+         #endif
+            {
+               if(name[0]!='S' || name[2]!='_')Exit("Invalid Sampler name"); // all GL buffers assume to start with 'S' this is adjusted in 'ShaderCompiler' #SamplerName
+               Int tex_unit=images.elms(); if(!InRange(tex_unit, Tex))Exit(S+"Texture index: "+tex_unit+", is too big");
+               Int location=glGetUniformLocation(prog, name); if(location<0)Exit(S+"Invalid Uniform Location ("+location+") of GLSL Parameter \""+name+"\"");
+               Int sampler_index=TextInt(name+1);
+               images.New().set(tex_unit, sampler_index, *GetShaderImage(name+3));
+             //LogN(S+"IMAGE: "+name+", location:"+location+", tex_unit:"+tex_unit);
+
+               glUseProgram(prog);
+               glUniform1i (location, tex_unit); // set 'location' sampler to use 'tex_unit' texture unit
+            }break;
+
+            case GL_IMAGE_2D:
+            {
+               Int tex_unit=rw_images.elms(); if(!InRange(tex_unit, UAV))Exit(S+"Texture index: "+tex_unit+", is too big");
+               Int location=glGetUniformLocation(prog, name); if(location<0)Exit(S+"Invalid Uniform Location ("+location+") of GLSL Parameter \""+name+"\"");
+               rw_images.New().set(tex_unit, *GetShaderRWImage(name));
+
+               glUseProgram(prog);
+               glUniform1i (location, tex_unit); // set 'location' sampler to use 'tex_unit' texture unit
+            }break;
+         }
+      }
+      T.   images=   images;
+      T.rw_images=rw_images;
+
+      MemtN<BufferLink, 256> buffers; Int variable_slot_index=SBI_NUM;
+           params=0; glGetProgramiv(prog, GL_ACTIVE_UNIFORM_BLOCKS, &params); all_buffers.setNum(params);
+      FREP(params)
+      {
+         Char8 _name[256]; _name[0]='\0'; Int length=0;
+         glGetActiveUniformBlockName(prog, i, Elms(_name), &length, _name);
+         CChar8 *name;
+         if(D.SpirVAvailable())
+         {
+            name=TextPos(_name, '.'); if(!name)Exit("Invalid buffer name"); // SPIR-V generates buffer names as "type_NAME.NAME", so just get after '.'
+            name++;
+         }else
+         {
+            if(_name[0]!='_')Exit("Invalid buffer name"); // all GL buffers assume to start with '_' this is adjusted in 'ShaderCompiler' #UBOName
+            name=_name+1; // skip '_'
+         }
+         ShaderBuffer *buffer=all_buffers[i]=GetShaderBuffer(name);
+      #if GL_MULTIPLE_UBOS
+         glUniformBlockBinding(prog, i, i);
+      #else
+         if(buffer->explicit_bind_slot>=0)glUniformBlockBinding(prog, i, buffer->explicit_bind_slot);else // explicit bind slot buffers are always bound to the same slot, and linked with the GL program
+         { // non-explicit buffers will be assigned to slots starting from SBI_NUM (to avoid conflict with explicits)
+            glUniformBlockBinding(prog, i, variable_slot_index); // link with 'variable_slot_index' slot
+            buffers.New().set(variable_slot_index, buffer->buffer.buffer); // request linking buffer with 'variable_slot_index' slot
+            variable_slot_index++;
+         }
+      #endif
+      }
+      T.buffers=buffers;
+
+      // !! at the end !!
+      T.prog=prog; // set to this only after all finished, so if another thread runs this method, it will detect 'prog' presence only after it was fully initialized
+   }
+   return prog!=0;
 }
 /******************************************************************************/
 INLINE void ShaderGL::bindImages()C
 {
    REPA(images){C SamplerImageLink &t=images[i]; SetTexture(t.index, t.sampler, t.image->get());}
+}
+INLINE void ComputeShaderGL::bindImages()C
+{
+   REPA(   images){C SamplerImageLink &t=   images[i]; SetTexture(t.index, t.sampler, t.image->get());}
+   REPA(rw_images){C      RWImageLink &t=rw_images[i]; SetRWImage(t.index,            t.image->get());}
 }
 void ShaderGL::commitTex()C
 {
@@ -1722,10 +1868,8 @@ void ShaderGL::begin()C
    commit   ();
 }
 #else
-INLINE void ShaderGL::bindBuffers()C
-{
-   REPA(buffers){C BufferLink &b=buffers[i]; glBindBufferBase(GL_UNIFORM_BUFFER, b.index, b.buffer);}
-}
+INLINE void        ShaderGL::bindBuffers()C {REPA(buffers){C BufferLink &b=buffers[i]; glBindBufferBase(GL_UNIFORM_BUFFER, b.index, b.buffer);}}
+INLINE void ComputeShaderGL::bindBuffers()C {REPA(buffers){C BufferLink &b=buffers[i]; glBindBufferBase(GL_UNIFORM_BUFFER, b.index, b.buffer);}}
 
 INLINE void        ShaderGL::updateBuffers()C {REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}}
 INLINE void ComputeShaderGL::updateBuffers()C {REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}}
@@ -1746,6 +1890,13 @@ void ShaderGL::startTex()C // same as 'begin' but without committing buffers
    bindBuffers();
 }
 void ShaderGL::begin()C
+{
+   glUseProgram(prog);
+   updateBuffers(); // 'commit'
+     bindImages (); // 'commitTex'
+     bindBuffers();
+}
+void ComputeShaderGL::begin()C
 {
    glUseProgram(prog);
    updateBuffers(); // 'commit'
@@ -2243,6 +2394,7 @@ void DisplayState::clearShader()
    SetMem(PShader, ~0);
 #elif GL
    SetMem(Tex, ~0);
+   SetMem(UAV, ~0);
 #endif
 }
 /******************************************************************************/
