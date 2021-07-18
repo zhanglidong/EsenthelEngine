@@ -1748,6 +1748,8 @@ void ShaderGL::begin()C
      bindBuffers();
 }
 #endif
+void ComputeShaderGL::compute(C VecI2 &groups)C {begin(); glDispatchCompute(groups.x, groups.y,        1);}
+void ComputeShaderGL::compute(C VecI  &groups)C {begin(); glDispatchCompute(groups.x, groups.y, groups.z);}
 #endif
 /******************************************************************************/
 // MANAGE
