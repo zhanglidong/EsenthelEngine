@@ -1449,6 +1449,17 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
          code=Replace(code, inst    , S, true, WHOLE_WORD_STRICT);
       }
 
+      // remove "binding=x" because it might be invalid
+      for(;;)
+      {
+         Int pos=TextPosI(code, "binding=", true, WHOLE_WORD_YES); if(pos<0)break;
+         Int end=pos+8;
+         Bool removed_prev=(pos>0 && code[pos-1]==','); if(removed_prev)pos--;
+         for(; CharFlag(code[end])&CHARF_DIG; )end++;
+         if(!removed_prev && code[end]==',')end++;
+         code.remove(pos, end-pos);
+      }
+
    #if FORCE_LOG_SHADER_CODE
       #pragma message("!! Warning: Use this only for debugging !!")
       LogN(S+"/******************************************************************************/\nShader:"+cc.shaderName(shader_data)+' '+ShaderTypeName[type]+'\n'+code);

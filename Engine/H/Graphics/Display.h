@@ -107,6 +107,7 @@ enum SHADER_MODEL : Byte
    SM_GL_ES_3_2, //           (OpenGL ES      3.2)
    SM_GL_3     , //           (OpenGL Desktop 3.2)
    SM_GL_4     , //           (OpenGL Desktop 4.0)
+   SM_GL_4_3   , //           (OpenGL Desktop 4.3)
    SM_4        , // Model 4.0 (DirectX 10        )
    SM_4_1      , // Model 4.1 (DirectX 10.1      )
    SM_5        , // Model 5.0 (DirectX 11        )

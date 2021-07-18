@@ -1070,6 +1070,7 @@ CChar8* GLSLVersion()
       default          : return ""; // avoid null in case some drivers will crash
       case SM_GL_3     : return "#version 330\n";
       case SM_GL_4     : return "#version 400\n";
+      case SM_GL_4_3   : return "#version 430\n";
       case SM_GL_ES_3  : return "#version 300 es\n";
       case SM_GL_ES_3_1: return "#version 310 es\n";
       case SM_GL_ES_3_2: return "#version 320 es\n";
@@ -1121,7 +1122,7 @@ UInt ShaderSubGL::create(UInt gl_type, Str *messages)
             if(messages)
             {
                Char8 error[64*1024]; error[0]=0; glGetShaderInfoLog(shader, Elms(error), null, error);
-               messages->line()+=(S+"Vertex Shader compilation failed:\n"+error).line()+"Vertex Shader code:\n";
+               messages->line()+=(S+"Shader compilation failed:\n"+error).line()+"Shader code:\n";
                if(!D.SpirVAvailable())FREPA(srcs)*messages+=srcs[i];
                messages->line();
             }
@@ -1450,6 +1451,10 @@ Str ShaderGL::source()C
 {
    return S+"Vertex Shader:\n"+ShaderSource(vs)
           +"\nPixel Shader:\n"+ShaderSource(ps);
+}
+Str ComputeShaderGL::source()C
+{
+   return ShaderSource(cs);
 }
 /******************************************************************************/
 static const Int ProgramBinaryHeader=4; ASSERT(SIZE(GLenum)==ProgramBinaryHeader); // make room for 'format'
