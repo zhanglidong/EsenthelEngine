@@ -133,11 +133,18 @@ void MenuElm::push()
    if(flag()&MENU_TOGGLABLE)on^=1;
    call();
 }
-void Menu::push(C Str &elm)
+void Menu::push(Int abs)
 {
-   Str path=elm;
-   for(GuiObj *go=this; go->is(GO_MENU); go=go->parent())if(go->asMenu()._func)
+   if(Ptr data=list.absToData(abs)) // if index valid
+      for(GuiObj *go=this; go->is(GO_MENU); go=go->parent()) // iterate all menu parents (including this)
+         if(go->asMenu()._func) // if any has a callback
    {
+      Memc<MenuPush> mps;
+
+      // set first element to this
+      MenuPush &mp=mps.New(); mp.abs=abs;
+      if(ListColumn *lc=listColumn())mp.name=lc->md.asText(data, lc->precision);
+
       GuiObj *menu  =this,
              *parent=menu->parent();
       for(; parent->is(GO_MENU); )
@@ -145,7 +152,7 @@ void Menu::push(C Str &elm)
          Menu &parent_menu=parent->asMenu();
          FREP( parent_menu.elms())if(parent_menu.elm(i).menu()==menu)
          {
-            path=parent_menu.elm(i).name+'\\'+path;
+            mps.New().set(i, parent_menu.elm(i).name);
             goto found;
          }
          return;
@@ -153,8 +160,9 @@ void Menu::push(C Str &elm)
          menu  =parent;
          parent=parent->parent();
       }
-      DEBUG_BYTE_LOCK(_used); go->asMenu()._func(path, go->asMenu()._func_user);
-      break;
+      mps.reverseOrder(); // reverse to have parents first
+      DEBUG_BYTE_LOCK(_used); go->asMenu()._func(mps, go->asMenu()._func_user);
+      break; // stop on first found !! ALSO REMEMBER THAT WE'VE REVERSED ORDER, SO CONTINUING WOULD HAVE THEM REVERSED !!
    }
 }
 /******************************************************************************/
@@ -284,6 +292,7 @@ Menu& Menu::setData(CChar8 *data[], Int elms, C CMemPtr<Bool> &visible, Bool kee
    columns[0].width  =LCW_MAX_DATA_PARENT;
    columns[0].md.type=DATA_CHAR8_PTR;
 
+   // _elms.del called in 'setColumns'
    setColumns(columns, Elms(columns), true);
    setData<CChar8*>(data, elms, visible, keep_cur); // call not self but the template
    return T;
@@ -297,6 +306,7 @@ Menu& Menu::setData(CChar *data[], Int elms, C CMemPtr<Bool> &visible, Bool keep
    columns[0].width  =LCW_MAX_DATA_PARENT;
    columns[0].md.type=DATA_CHAR_PTR;
 
+   // _elms.del called in 'setColumns'
    setColumns(columns, Elms(columns), true);
    setData<CChar*>(data, elms, visible, keep_cur); // call not self but the template
    return T;
@@ -476,7 +486,7 @@ Menu& Menu::show()
 Menu& Menu::clearElmSelectable(                ) {_selectable_offset=-1                        ; return T;}
 Menu& Menu::  setElmSelectable(Bool &selectable) {_selectable_offset=UInt(UIntPtr(&selectable)); return T;}
 /******************************************************************************/
-Menu& Menu::func(void (*func)(C Str &path, Ptr user), Ptr user)
+Menu& Menu::func(void (*func)(C CMemPtr<MenuPush> &path, Ptr user), Ptr user)
 {
    T._func     =func;
    T._func_user=user;
@@ -529,14 +539,14 @@ void Menu::checkKeyboardShortcuts()
             DEBUG_BYTE_LOCK(_used);
             e._kbsc.eat();
             e.push();
-              push(e.name);
+              push(i);
          }else
          if(e._kbsc2.pd())
          {
             DEBUG_BYTE_LOCK(_used);
             e._kbsc2.eat();
             e.push();
-              push(e.name);
+              push(i);
          }
          if(Menu *menu=e.menu())menu->checkKeyboardShortcuts();
       }
@@ -651,17 +661,16 @@ void Menu::update(C GuiPC &gpc)
                         }else
                         {
                            e->push();
-                              push(e->name);
+                              push(list.visToAbs(list.cur));
                            if(!(e->flag()&(MENU_TOGGLABLE|MENU_NO_CLOSE)) && Gui.menu()==this)hideAll();
                         }
                      }
                   }else
                   {
-                     if(Ptr data=list.visToData(list.cur))
-                     {
-                        if(_selectable_offset>=0 && !*(Bool*)((Byte*)data+_selectable_offset))goto skip;
-                        if(ListColumn *lc=listColumn())push(lc->md.asText(data, lc->precision));
-                     }
+                     if(_selectable_offset>=0)
+                        if(Ptr data=list.visToData(list.cur))
+                           if(!*(Bool*)((Byte*)data+_selectable_offset))goto skip;
+                     push(list.visToAbs(list.cur));
                      hideAll();
                   skip:;
                   }

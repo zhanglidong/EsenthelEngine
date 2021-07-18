@@ -47,7 +47,7 @@ const_mem_addr struct ComboBox : Button // Gui ComboBox !! must be stored in con
            ComboBox&   setText(C Str  &text, Bool force, SET_MODE mode=SET_DEFAULT);                                                              // set     active          selection from text, if 'text' not found : -1 is set and text is set depending on 'force' (false: set(""), true: set(text))
            ComboBox& resetText(                                                   );                                                              // reset   text from active selection
 #if EE_PRIVATE
-           ComboBox&   setPath(C Str &start, C Str &end                           );
+           ComboBox& setAbsText(Int abs, C Str &text);
 #endif
    virtual ComboBox& rect     (C Rect &rect                                       )override; C Rect&       rect()C {return super::rect();} // set/get rectangle
            ComboBox& skin     (C GuiSkinPtr &skin, Bool sub_objects=true          );         C GuiSkinPtr& skin()C {return super::skin  ;} // set/get skin override, default=null (if set to null then current value of 'Gui.skin' is used), 'sub_objects'=if additionally change the skin of sub-menus

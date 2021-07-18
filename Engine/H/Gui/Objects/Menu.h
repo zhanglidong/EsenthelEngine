@@ -16,6 +16,14 @@ enum MENU_COLUMN // List columns available when creating 'Menu' from 'Node<MenuE
    MENU_COLUMN_NUM  , // number of menu list columns
 };
 /******************************************************************************/
+struct MenuPush
+{
+   Int abs ; // absolute index
+   Str name; // name
+
+   void set(Int abs, C Str &name) {T.abs=abs; T.name=name;}
+};
+/******************************************************************************/
 struct MenuElm // Menu Element
 {
    Str  name        , //         name (used for code commands)
@@ -85,9 +93,9 @@ const_mem_addr struct Menu : GuiObj // Gui Menu !! must be stored in constant me
    Bool operator()(C Str &command                                    )C; // if  'command' is on      (checked), sample usage:       ("View/Wireframe")
    Bool exists    (C Str &command                                    )C; // if  'command' exists in menu      , sample usage: exists("File/Exit")
 
-            Menu& func(void (*func)(C Str &path, Ptr   user), Ptr   user=null);                                                    // set function called when any sub-element is pushed, with 'user' as its parameter
-   T1(TYPE) Menu& func(void (*func)(C Str &path, TYPE *user), TYPE *user     ) {return T.func((void(*)(C Str&, Ptr))func,  user);} // set function called when any sub-element is pushed, with 'user' as its parameter
-   T1(TYPE) Menu& func(void (*func)(C Str &path, TYPE &user), TYPE &user     ) {return T.func((void(*)(C Str&, Ptr))func, &user);} // set function called when any sub-element is pushed, with 'user' as its parameter
+            Menu& func(void (*func)(C CMemPtr<MenuPush> &path, Ptr   user), Ptr   user=null);                                                                  // set function called when any sub-element is pushed, with 'user' as its parameter
+   T1(TYPE) Menu& func(void (*func)(C CMemPtr<MenuPush> &path, TYPE *user), TYPE *user     ) {return T.func((void(*)(C CMemPtr<MenuPush>&, Ptr))func,  user);} // set function called when any sub-element is pushed, with 'user' as its parameter
+   T1(TYPE) Menu& func(void (*func)(C CMemPtr<MenuPush> &path, TYPE &user), TYPE &user     ) {return T.func((void(*)(C CMemPtr<MenuPush>&, Ptr))func, &user);} // set function called when any sub-element is pushed, with 'user' as its parameter
 
    Menu& setData(CChar8 *data[], Int elms, C CMemPtr<Bool> &visible=null, Bool keep_cur=false); // set columns and data from text array
    Menu& setData(CChar  *data[], Int elms, C CMemPtr<Bool> &visible=null, Bool keep_cur=false); // set columns and data from text array
@@ -147,7 +155,7 @@ const_mem_addr struct Menu : GuiObj // Gui Menu !! must be stored in constant me
    void        zero      ();
    GuiObj*     Owner     ()C {return _owner ? _owner : _parent;}
    ListColumn* listColumn();
-   void        push      (C Str &elm);
+   void        push      (Int abs);
    void        hideAll   ();
 #endif
 
@@ -164,7 +172,7 @@ private:
    Mems<MenuElm> _elms;
    GuiSkinPtr    _skin;
    Ptr           _func_user;
-   void        (*_func)(C Str &path, Ptr user);
+   void        (*_func)(C CMemPtr<MenuPush> &path, Ptr user);
 
 protected:
    virtual GuiObj* owner()C override;
