@@ -1613,6 +1613,130 @@ UInt ComputeShaderGL::compile(MemPtr<ShaderSubGL> cs_array, ShaderFile *shader, 
    return prog;
 }
 /******************************************************************************/
+static void GetProgramUniforms(UInt prog, MemtN<SamplerImageLink, 256> &images, MemtN<RWImageLink, 256> &rw_images, MemtN<BufferLink, 256> &buffers, Mems<ShaderBuffer*> &all_buffers)
+{
+   Int  params=0; glGetProgramiv(prog, GL_ACTIVE_UNIFORMS, &params);
+   FREP(params)
+   {
+      Char8 name[1024]; name[0]=0; Int elms=0; GLenum type=0; glGetActiveUniform(prog, i, Elms(name), null, &elms, &type, name);
+      switch(type)
+      {
+       /*case GL_SAMPLER:
+         {
+            Int location=glGetUniformLocation(prog, name);
+            LogN(S+"SAMPLER:"+location+" "+name);
+         }break;*/
+
+         case GL_SAMPLER_2D:
+         case GL_SAMPLER_CUBE:
+      #ifdef GL_SAMPLER_3D
+         case GL_SAMPLER_3D:
+      #endif
+      #ifdef GL_SAMPLER_2D_SHADOW
+         case GL_SAMPLER_2D_SHADOW:
+      #endif
+      #if defined GL_SAMPLER_2D_SHADOW_EXT && GL_SAMPLER_2D_SHADOW_EXT!=GL_SAMPLER_2D_SHADOW
+         case GL_SAMPLER_2D_SHADOW_EXT:
+      #endif
+         {
+            if(name[0]!='S' || name[2]!='_')Exit("Invalid Sampler name"); // all GL buffers assume to start with 'S' this is adjusted in 'ShaderCompiler' #SamplerName
+            Int tex_unit=images.elms(); if(!InRange(tex_unit, Tex))Exit(S+"Texture index: "+tex_unit+", is too big");
+            Int location=glGetUniformLocation(prog, name); if(location<0)Exit(S+"Invalid Uniform Location ("+location+") of GLSL Parameter \""+name+"\"");
+            Int sampler_index=TextInt(name+1);
+            images.New().set(tex_unit, sampler_index, *GetShaderImage(name+3));
+          //LogN(S+"IMAGE: "+name+", location:"+location+", tex_unit:"+tex_unit);
+
+            glUseProgram(prog);
+            glUniform1i (location, tex_unit); // set 'location' sampler to use 'tex_unit' texture unit
+         }break;
+
+         case GL_IMAGE_2D:
+         {
+            Int uav_unit=rw_images.elms(); if(!InRange(uav_unit, UAV))Exit(S+"Texture index: "+uav_unit+", is too big");
+            Int location=glGetUniformLocation(prog, name); if(location<0)Exit(S+"Invalid Uniform Location ("+location+") of GLSL Parameter \""+name+"\"");
+            rw_images.New().set(uav_unit, *GetShaderRWImage(name));
+
+            glUseProgram(prog);
+            glUniform1i (location, uav_unit); // set 'location' image to use 'uav_unit' UAV unit
+         }break;
+      }
+   }
+
+   Int variable_slot_index=SBI_NUM;
+        params=0; glGetProgramiv(prog, GL_ACTIVE_UNIFORM_BLOCKS, &params); all_buffers.setNum(params);
+   FREP(params)
+   {
+      Char8 _name[256]; _name[0]='\0'; Int length=0;
+      glGetActiveUniformBlockName(prog, i, Elms(_name), &length, _name);
+      CChar8 *name;
+      if(D.SpirVAvailable())
+      {
+         name=TextPos(_name, '.'); if(!name)Exit("Invalid buffer name"); // SPIR-V generates buffer names as "type_NAME.NAME", so just get after '.'
+         name++;
+      }else
+      {
+         if(_name[0]!='_')Exit("Invalid buffer name"); // all GL buffers assume to start with '_' this is adjusted in 'ShaderCompiler' #UBOName
+         name=_name+1; // skip '_'
+      }
+      ShaderBuffer *buffer=all_buffers[i]=GetShaderBuffer(name);
+   #if GL_MULTIPLE_UBOS
+      glUniformBlockBinding(prog, i, i);
+   #else
+      if(buffer->explicit_bind_slot>=0)glUniformBlockBinding(prog, i, buffer->explicit_bind_slot);else // explicit bind slot buffers are always bound to the same slot, and linked with the GL program
+      { // non-explicit buffers will be assigned to slots starting from SBI_NUM (to avoid conflict with explicits)
+         glUniformBlockBinding(prog, i, variable_slot_index); // link with 'variable_slot_index' slot
+         buffers.New().set(variable_slot_index, buffer->buffer.buffer); // request linking buffer with 'variable_slot_index' slot
+         variable_slot_index++;
+      }
+   #endif
+   #if DEBUG // verify sizes and offsets
+      GLint size=0; glGetActiveUniformBlockiv(prog, i, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
+      DYNAMIC_ASSERT(Ceil16(size)==Ceil16(buffer->full_size), S+"UBO \""+name+"\" has different size: "+size+", than expected: "+buffer->full_size/*+"\n"+source()*/);
+      GLint uniforms=0; glGetActiveUniformBlockiv(prog, i, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &uniforms);
+      MemtN<GLint, 256> uniform; uniform.setNum(uniforms); glGetActiveUniformBlockiv(prog, i, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, uniform.data());
+      REPA(uniform)
+      {
+         Char8 name[1024]; name[0]=0; Int elms=0; GLenum type=0; glGetActiveUniform(prog, uniform[i], Elms(name), null, &elms, &type, name); GLuint uni=uniform[i];
+         GLint offset       =-1; glGetActiveUniformsiv(prog, 1, &uni, GL_UNIFORM_OFFSET       , &offset       );
+         GLint  array_stride=-1; glGetActiveUniformsiv(prog, 1, &uni, GL_UNIFORM_ARRAY_STRIDE , & array_stride);
+         GLint matrix_stride=-1; glGetActiveUniformsiv(prog, 1, &uni, GL_UNIFORM_MATRIX_STRIDE, &matrix_stride);
+         if(elms>1)
+            if(ShaderParam *param=FindShaderParam((Str8)SkipEnd(name, "[0]"))) // GL may add [0] to name when using arrays
+         {
+            DYNAMIC_ASSERT(param->_elements       ==elms        , "Invalid ShaderParam array elements");
+            DYNAMIC_ASSERT(param->gpuArrayStride()==array_stride, "Invalid ShaderParam array stride");
+         }
+         if(ShaderParam *param=FindShaderParam(name))
+         {
+            DYNAMIC_ASSERT(param->_changed==&buffer->changed, "ShaderParam does not belong to ShaderBuffer");
+            DYNAMIC_ASSERT(param->_full_translation.elms(), "ShaderParam has no translation");
+            Int gpu_offset=param->_full_translation[0].gpu_offset+(param->_data-buffer->data);
+            DYNAMIC_ASSERT(offset==gpu_offset, "Invalid ShaderParam gpu_offset");
+            UInt size; switch(type)
+            {
+               case GL_INT              : size=SIZE(Int    ); break;
+               case GL_UNSIGNED_INT     : size=SIZE(UInt   ); break;
+               case GL_INT_VEC2         : size=SIZE(VecI2  ); break;
+               case GL_INT_VEC3         : size=SIZE(VecI   ); break;
+               case GL_INT_VEC4         : size=SIZE(VecI4  ); break;
+               case GL_UNSIGNED_INT_VEC2: size=SIZE(VecI2  ); break;
+               case GL_UNSIGNED_INT_VEC3: size=SIZE(VecI   ); break;
+               case GL_UNSIGNED_INT_VEC4: size=SIZE(VecI4  ); break;
+               case GL_FLOAT            : size=SIZE(Flt    ); break;
+               case GL_FLOAT_VEC2       : size=SIZE(Vec2   ); break;
+               case GL_FLOAT_VEC3       : size=SIZE(Vec    ); break;
+               case GL_FLOAT_VEC4       : size=SIZE(Vec4   ); break;
+               case GL_FLOAT_MAT3       : size=SIZE(Matrix3); DYNAMIC_ASSERT(matrix_stride==SIZE(Vec4), S+"Invalid ShaderParam \""+name+"\" matrix stride: "+matrix_stride); break;
+               case GL_FLOAT_MAT4       : size=SIZE(Matrix4); DYNAMIC_ASSERT(matrix_stride==SIZE(Vec4), S+"Invalid ShaderParam \""+name+"\" matrix stride: "+matrix_stride); break;
+               case GL_FLOAT_MAT4x3     : size=SIZE(Matrix ); DYNAMIC_ASSERT(matrix_stride==SIZE(Vec4), S+"Invalid ShaderParam \""+name+"\" matrix stride: "+matrix_stride); break;
+               default                  : Exit("Invalid ShaderParam type"); break;
+            }
+            DYNAMIC_ASSERT(size==param->_cpu_data_size, "Invalid ShaderParam size");
+         }//else Exit(S+"ShaderParam \""+name+"\" not found"); disable because currently 'FindShaderParam' does not support finding members, such as "Viewport.size_fov_tan" etc.
+      }
+   #endif
+   }
+}
 Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function should be multi-threaded safe
 {
    if(prog || !D.created())return true; // needed for APP_ALLOW_NO_GPU/APP_ALLOW_NO_XDISPLAY, skip shader compilation if we don't need it (this is because compiling shaders on Linux with no GPU can exit the app with a message like "Xlib:  extension "XFree86-VidModeExtension" missing on display ":99".")
@@ -1620,119 +1744,11 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
    if(!prog)
       if(UInt prog=compile(shader._vs, shader._ps, &shader, messages)) // create into temp var first and set to this only after fully initialized
    {
-      MemtN<SamplerImageLink, 256> images;
-      Int  params=0; glGetProgramiv(prog, GL_ACTIVE_UNIFORMS, &params);
-      FREP(params)
-      {
-         Char8 name[1024]; name[0]=0; Int elms=0; GLenum type=0; glGetActiveUniform(prog, i, Elms(name), null, &elms, &type, name);
-         switch(type)
-         {
-          /*case GL_SAMPLER:
-            {
-               Int location=glGetUniformLocation(prog, name);
-               LogN(S+"SAMPLER:"+location+" "+name);
-            }break;*/
-
-            case GL_SAMPLER_2D:
-            case GL_SAMPLER_CUBE:
-         #ifdef GL_SAMPLER_3D
-            case GL_SAMPLER_3D:
-         #endif
-         #ifdef GL_SAMPLER_2D_SHADOW
-            case GL_SAMPLER_2D_SHADOW:
-         #endif
-         #if defined GL_SAMPLER_2D_SHADOW_EXT && GL_SAMPLER_2D_SHADOW_EXT!=GL_SAMPLER_2D_SHADOW
-            case GL_SAMPLER_2D_SHADOW_EXT:
-         #endif
-            {
-               if(name[0]!='S' || name[2]!='_')Exit("Invalid Sampler name"); // all GL buffers assume to start with 'S' this is adjusted in 'ShaderCompiler' #SamplerName
-               Int tex_unit=images.elms(); if(!InRange(tex_unit, Tex))Exit(S+"Texture index: "+tex_unit+", is too big");
-               Int location=glGetUniformLocation(prog, name); if(location<0)Exit(S+"Invalid Uniform Location ("+location+") of GLSL Parameter \""+name+"\"");
-               Int sampler_index=TextInt(name+1);
-               images.New().set(tex_unit, sampler_index, *GetShaderImage(name+3));
-             //LogN(S+"IMAGE: "+name+", location:"+location+", tex_unit:"+tex_unit);
-
-               glUseProgram(prog);
-               glUniform1i (location, tex_unit); // set 'location' sampler to use 'tex_unit' texture unit
-            }break;
-         }
-      }
-      T.images=images;
-
-      MemtN<BufferLink, 256> buffers; Int variable_slot_index=SBI_NUM;
-           params=0; glGetProgramiv(prog, GL_ACTIVE_UNIFORM_BLOCKS, &params); all_buffers.setNum(params);
-      FREP(params)
-      {
-         Char8 _name[256]; _name[0]='\0'; Int length=0;
-         glGetActiveUniformBlockName(prog, i, Elms(_name), &length, _name);
-         CChar8 *name;
-         if(D.SpirVAvailable())
-         {
-            name=TextPos(_name, '.'); if(!name)Exit("Invalid buffer name"); // SPIR-V generates buffer names as "type_NAME.NAME", so just get after '.'
-            name++;
-         }else
-         {
-            if(_name[0]!='_')Exit("Invalid buffer name"); // all GL buffers assume to start with '_' this is adjusted in 'ShaderCompiler' #UBOName
-            name=_name+1; // skip '_'
-         }
-         ShaderBuffer *buffer=all_buffers[i]=GetShaderBuffer(name);
-      #if GL_MULTIPLE_UBOS
-         glUniformBlockBinding(prog, i, i);
-      #else
-         if(buffer->explicit_bind_slot>=0)glUniformBlockBinding(prog, i, buffer->explicit_bind_slot);else // explicit bind slot buffers are always bound to the same slot, and linked with the GL program
-         { // non-explicit buffers will be assigned to slots starting from SBI_NUM (to avoid conflict with explicits)
-            glUniformBlockBinding(prog, i, variable_slot_index); // link with 'variable_slot_index' slot
-            buffers.New().set(variable_slot_index, buffer->buffer.buffer); // request linking buffer with 'variable_slot_index' slot
-            variable_slot_index++;
-         }
-      #endif
-      #if DEBUG // verify sizes and offsets
-         GLint size=0; glGetActiveUniformBlockiv(prog, i, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
-         DYNAMIC_ASSERT(Ceil16(size)==Ceil16(buffer->full_size), S+"UBO \""+name+"\" has different size: "+size+", than expected: "+buffer->full_size+"\n"+source());
-         GLint uniforms=0; glGetActiveUniformBlockiv(prog, i, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &uniforms);
-         MemtN<GLint, 256> uniform; uniform.setNum(uniforms); glGetActiveUniformBlockiv(prog, i, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, uniform.data());
-         REPA(uniform)
-         {
-            Char8 name[1024]; name[0]=0; Int elms=0; GLenum type=0; glGetActiveUniform(prog, uniform[i], Elms(name), null, &elms, &type, name); GLuint uni=uniform[i];
-            GLint offset       =-1; glGetActiveUniformsiv(prog, 1, &uni, GL_UNIFORM_OFFSET       , &offset       );
-            GLint  array_stride=-1; glGetActiveUniformsiv(prog, 1, &uni, GL_UNIFORM_ARRAY_STRIDE , & array_stride);
-            GLint matrix_stride=-1; glGetActiveUniformsiv(prog, 1, &uni, GL_UNIFORM_MATRIX_STRIDE, &matrix_stride);
-            if(elms>1)
-               if(ShaderParam *param=FindShaderParam((Str8)SkipEnd(name, "[0]"))) // GL may add [0] to name when using arrays
-            {
-               DYNAMIC_ASSERT(param->_elements       ==elms        , "Invalid ShaderParam array elements");
-               DYNAMIC_ASSERT(param->gpuArrayStride()==array_stride, "Invalid ShaderParam array stride");
-            }
-            if(ShaderParam *param=FindShaderParam(name))
-            {
-               DYNAMIC_ASSERT(param->_changed==&buffer->changed, "ShaderParam does not belong to ShaderBuffer");
-               DYNAMIC_ASSERT(param->_full_translation.elms(), "ShaderParam has no translation");
-               Int gpu_offset=param->_full_translation[0].gpu_offset+(param->_data-buffer->data);
-               DYNAMIC_ASSERT(offset==gpu_offset, "Invalid ShaderParam gpu_offset");
-               UInt size; switch(type)
-               {
-                  case GL_INT              : size=SIZE(Int    ); break;
-                  case GL_UNSIGNED_INT     : size=SIZE(UInt   ); break;
-                  case GL_INT_VEC2         : size=SIZE(VecI2  ); break;
-                  case GL_INT_VEC3         : size=SIZE(VecI   ); break;
-                  case GL_INT_VEC4         : size=SIZE(VecI4  ); break;
-                  case GL_UNSIGNED_INT_VEC2: size=SIZE(VecI2  ); break;
-                  case GL_UNSIGNED_INT_VEC3: size=SIZE(VecI   ); break;
-                  case GL_UNSIGNED_INT_VEC4: size=SIZE(VecI4  ); break;
-                  case GL_FLOAT            : size=SIZE(Flt    ); break;
-                  case GL_FLOAT_VEC2       : size=SIZE(Vec2   ); break;
-                  case GL_FLOAT_VEC3       : size=SIZE(Vec    ); break;
-                  case GL_FLOAT_VEC4       : size=SIZE(Vec4   ); break;
-                  case GL_FLOAT_MAT3       : size=SIZE(Matrix3); DYNAMIC_ASSERT(matrix_stride==SIZE(Vec4), S+"Invalid ShaderParam \""+name+"\" matrix stride: "+matrix_stride); break;
-                  case GL_FLOAT_MAT4       : size=SIZE(Matrix4); DYNAMIC_ASSERT(matrix_stride==SIZE(Vec4), S+"Invalid ShaderParam \""+name+"\" matrix stride: "+matrix_stride); break;
-                  case GL_FLOAT_MAT4x3     : size=SIZE(Matrix ); DYNAMIC_ASSERT(matrix_stride==SIZE(Vec4), S+"Invalid ShaderParam \""+name+"\" matrix stride: "+matrix_stride); break;
-                  default                  : Exit("Invalid ShaderParam type"); return false;
-               }
-               DYNAMIC_ASSERT(size==param->_cpu_data_size, "Invalid ShaderParam size");
-            }//else Exit(S+"ShaderParam \""+name+"\" not found"); disable because currently 'FindShaderParam' does not support finding members, such as "Viewport.size_fov_tan" etc.
-         }
-      #endif
-      }
+      MemtN<SamplerImageLink, 256>    images;
+      MemtN<     RWImageLink, 256> rw_images;
+      MemtN<      BufferLink, 256>   buffers;
+      GetProgramUniforms(prog, images, rw_images, buffers, all_buffers);
+      T. images= images;
       T.buffers=buffers;
 
       // !! at the end !!
@@ -1749,78 +1765,11 @@ Bool ComputeShaderGL::validate(ShaderFile &shader, Str *messages) // this functi
    {
       MemtN<SamplerImageLink, 256>    images;
       MemtN<     RWImageLink, 256> rw_images;
-      Int  params=0; glGetProgramiv(prog, GL_ACTIVE_UNIFORMS, &params);
-      FREP(params)
-      {
-         Char8 name[1024]; name[0]=0; Int elms=0; GLenum type=0; glGetActiveUniform(prog, i, Elms(name), null, &elms, &type, name);
-         switch(type)
-         {
-            case GL_SAMPLER_2D:
-            case GL_SAMPLER_CUBE:
-         #ifdef GL_SAMPLER_3D
-            case GL_SAMPLER_3D:
-         #endif
-         #ifdef GL_SAMPLER_2D_SHADOW
-            case GL_SAMPLER_2D_SHADOW:
-         #endif
-         #if defined GL_SAMPLER_2D_SHADOW_EXT && GL_SAMPLER_2D_SHADOW_EXT!=GL_SAMPLER_2D_SHADOW
-            case GL_SAMPLER_2D_SHADOW_EXT:
-         #endif
-            {
-               if(name[0]!='S' || name[2]!='_')Exit("Invalid Sampler name"); // all GL buffers assume to start with 'S' this is adjusted in 'ShaderCompiler' #SamplerName
-               Int tex_unit=images.elms(); if(!InRange(tex_unit, Tex))Exit(S+"Texture index: "+tex_unit+", is too big");
-               Int location=glGetUniformLocation(prog, name); if(location<0)Exit(S+"Invalid Uniform Location ("+location+") of GLSL Parameter \""+name+"\"");
-               Int sampler_index=TextInt(name+1);
-               images.New().set(tex_unit, sampler_index, *GetShaderImage(name+3));
-             //LogN(S+"IMAGE: "+name+", location:"+location+", tex_unit:"+tex_unit);
-
-               glUseProgram(prog);
-               glUniform1i (location, tex_unit); // set 'location' sampler to use 'tex_unit' texture unit
-            }break;
-
-            case GL_IMAGE_2D:
-            {
-               Int tex_unit=rw_images.elms(); if(!InRange(tex_unit, UAV))Exit(S+"Texture index: "+tex_unit+", is too big");
-               Int location=glGetUniformLocation(prog, name); if(location<0)Exit(S+"Invalid Uniform Location ("+location+") of GLSL Parameter \""+name+"\"");
-               rw_images.New().set(tex_unit, *GetShaderRWImage(name));
-
-               glUseProgram(prog);
-               glUniform1i (location, tex_unit); // set 'location' sampler to use 'tex_unit' texture unit
-            }break;
-         }
-      }
+      MemtN<      BufferLink, 256>   buffers;
+      GetProgramUniforms(prog, images, rw_images, buffers, all_buffers);
       T.   images=   images;
       T.rw_images=rw_images;
-
-      MemtN<BufferLink, 256> buffers; Int variable_slot_index=SBI_NUM;
-           params=0; glGetProgramiv(prog, GL_ACTIVE_UNIFORM_BLOCKS, &params); all_buffers.setNum(params);
-      FREP(params)
-      {
-         Char8 _name[256]; _name[0]='\0'; Int length=0;
-         glGetActiveUniformBlockName(prog, i, Elms(_name), &length, _name);
-         CChar8 *name;
-         if(D.SpirVAvailable())
-         {
-            name=TextPos(_name, '.'); if(!name)Exit("Invalid buffer name"); // SPIR-V generates buffer names as "type_NAME.NAME", so just get after '.'
-            name++;
-         }else
-         {
-            if(_name[0]!='_')Exit("Invalid buffer name"); // all GL buffers assume to start with '_' this is adjusted in 'ShaderCompiler' #UBOName
-            name=_name+1; // skip '_'
-         }
-         ShaderBuffer *buffer=all_buffers[i]=GetShaderBuffer(name);
-      #if GL_MULTIPLE_UBOS
-         glUniformBlockBinding(prog, i, i);
-      #else
-         if(buffer->explicit_bind_slot>=0)glUniformBlockBinding(prog, i, buffer->explicit_bind_slot);else // explicit bind slot buffers are always bound to the same slot, and linked with the GL program
-         { // non-explicit buffers will be assigned to slots starting from SBI_NUM (to avoid conflict with explicits)
-            glUniformBlockBinding(prog, i, variable_slot_index); // link with 'variable_slot_index' slot
-            buffers.New().set(variable_slot_index, buffer->buffer.buffer); // request linking buffer with 'variable_slot_index' slot
-            variable_slot_index++;
-         }
-      #endif
-      }
-      T.buffers=buffers;
+      T.  buffers=  buffers;
 
       // !! at the end !!
       T.prog=prog; // set to this only after all finished, so if another thread runs this method, it will detect 'prog' presence only after it was fully initialized
