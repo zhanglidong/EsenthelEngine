@@ -53,7 +53,7 @@ VecH4 PS
    MaterialAlphaTestDither(Tex(Col, I.uv).a, pixel.xy, I.face_id);
 #endif
 
-   Half alpha=Sat((Half(I.pos.z-TexDepthPoint(PixelToUV(pixel)))-BehindBias)/0.3);
+   Half alpha=Sat((Half(I.pos.z-TexDepthPix(pixel.xy))-BehindBias)/0.3);
 
    VecH4  col   =Lerp(Color[0], Color[1], Abs(Normalize(I.nrm).z));
           col.a*=alpha;

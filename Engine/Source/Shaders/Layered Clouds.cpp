@@ -30,7 +30,7 @@ VecH4 LayeredClouds_PS(Vec   pos  :POS  ,
    alpha=Sat(alpha);
    if(BLEND)
    {
-      Flt range=TexDepthPoint(PixelToUV(pixel))/Normalize(pos).z; // 0..Viewport.range
+      Flt range=TexDepthPix(pixel.xy)/Normalize(pos).z; // 0..Viewport.range
          alpha*=Sat(range*LCRange.x+LCRange.y);
    }
    Vec2  uv=Normalize(uvw).xz;

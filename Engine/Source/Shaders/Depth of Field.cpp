@@ -170,8 +170,8 @@ VecH4 DofBlurX_PS(NOPERSP Vec2 uv:UV,
    UNROLL for(Int i=-RANGE; i<=RANGE; i++)if(i)
    {
       t.x=uv.x+RTSize.x*i;
-      Vec4 c=TexPoint(Img, t);
-      Flt  test_blur=OPT(c.a*2-1, TexPoint(ImgX, t).x),
+      Vec4 c=                     TexPoint(Img , t);    // need UV clamp support
+      Flt  test_blur=OPT(c.a*2-1, TexPoint(ImgX, t).x), // need UV clamp support
            w=Weight(center_blur, test_blur, Abs(i), RANGE);
       weight  +=w;
       color   +=w*c;
@@ -218,8 +218,8 @@ VecH4 DofBlurY_PS(NOPERSP Vec2 uv:UV,
    UNROLL for(Int i=-RANGE; i<=RANGE; i++)if(i)
    {
       t.y=uv.y+RTSize.y*i;
-      Vec4 c=TexPoint(Img, t);
-      Flt  test_blur=OPT(c.a*2-1, TexPoint(ImgX, t).x),
+      Vec4 c=                     TexPoint(Img , t);    // need UV clamp support
+      Flt  test_blur=OPT(c.a*2-1, TexPoint(ImgX, t).x), // need UV clamp support
            w=Weight(center_blur, test_blur, Abs(i), RANGE);
       weight  +=w;
       color   +=w*c;
@@ -251,7 +251,7 @@ VecH4 DofBlurY_PS(NOPERSP Vec2 uv:UV,
 VecH4 Dof_PS(NOPERSP Vec2 uv:UV,
              NOPERSP PIXEL     ):TARGET
 {
-   Flt z=TexDepthPoint(uv),
+   Flt z=TexDepthPoint(uv), // use UV in case Depth is different size
        b=Blur(z);
 #if SHOW_BLUR
    b=1-Abs(b); return Vec4(b, b, b, 1);

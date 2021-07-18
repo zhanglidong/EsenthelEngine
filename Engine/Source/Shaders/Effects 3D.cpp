@@ -61,7 +61,7 @@ void Volume_PS
    out VecH4 mask :TARGET1
 )
 {
-   Flt z  =TexDepthPoint(PixelToUV(pixel));
+   Flt z  =TexDepthPix(pixel.xy);
    Vec pos=inTex;
    Vec dir=Normalize(inPos); dir*=Min((SQRT3*2)*Max(Volume.size), (z-(INSIDE ? Viewport.from : inPos.z))/dir.z);
        dir=TransformTP(dir, mtrx); // convert to box space

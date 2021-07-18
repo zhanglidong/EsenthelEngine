@@ -187,7 +187,7 @@ Half ShdBlurJitter_PS
    }else
    {
       weight=1;
-      color =TexPoint(ImgX, uv).x;
+      color =            TexPoint  (ImgX, uv).x;
       z     =LinearDepth(TexDepthRawPoint(uv));
       dw_mad=DepthWeightMADPoint(z);
       Int min, max; // inclusive
@@ -203,11 +203,10 @@ Half ShdBlurJitter_PS
 /******************************************************************************/
 Half ShdBlur_PS
 (
-#if GL_ES && GEOM // doesn't support NOPERSP
-   PIXEL // 3D
-#else
-   NOPERSP Vec2 uv:UV
+#if !(GL_ES && GEOM) // doesn't support NOPERSP
+   NOPERSP Vec2 uv:UV,
 #endif
+   PIXEL // 3D
 ):TARGET
 {
 #if GL_ES && GEOM // doesn't support NOPERSP
@@ -215,8 +214,8 @@ Half ShdBlur_PS
 #endif
 
    Half weight=0.25,
-        color =TexPoint(ImgX, uv).x*weight;
-   Flt  z     =LinearDepth(TexDepthRawPoint(uv));
+        color =             ImgX[pixel.xy].x*weight;
+   Flt  z     =LinearDepth(Depth[pixel.xy]);
    Vec2 dw_mad=DepthWeightMADLinear(z);
    UNROLL for(Int i=0; i<SAMPLES; i++)
    {
@@ -236,11 +235,10 @@ Half ShdBlur_PS
 /******************************************************************************/
 Half ShdBlurX_PS
 (
-#if GL_ES && GEOM // doesn't support NOPERSP
-   PIXEL // 3D
-#else
-   NOPERSP Vec2 uv:UV
+#if !(GL_ES && GEOM) // doesn't support NOPERSP
+   NOPERSP Vec2 uv:UV,
 #endif
+   PIXEL // 3D
 ):TARGET
 {
 #if GL_ES && GEOM // doesn't support NOPERSP
@@ -248,8 +246,8 @@ Half ShdBlurX_PS
 #endif
 
    Half weight=0.5,
-        color =TexPoint(ImgX, uv).x*weight;
-   Flt  z     =LinearDepth(TexDepthRawPoint(uv));
+        color =             ImgX[pixel.xy].x*weight;
+   Flt  z     =LinearDepth(Depth[pixel.xy]);
    Vec2 dw_mad=DepthWeightMADLinear(z), t; t.y=uv.y;
    UNROLL for(Int i=-RANGE; i<=RANGE; i++)if(i)
    {
@@ -262,11 +260,10 @@ Half ShdBlurX_PS
 /******************************************************************************/
 Half ShdBlurY_PS
 (
-#if GL_ES && GEOM // doesn't support NOPERSP
-   PIXEL // 3D
-#else
-   NOPERSP Vec2 uv:UV
+#if !(GL_ES && GEOM) // doesn't support NOPERSP
+   NOPERSP Vec2 uv:UV,
 #endif
+   PIXEL // 3D
 ):TARGET
 {
 #if GL_ES && GEOM // doesn't support NOPERSP
@@ -274,8 +271,8 @@ Half ShdBlurY_PS
 #endif
 
    Half weight=0.5,
-        color =TexPoint(ImgX, uv).x*weight;
-   Flt  z     =LinearDepth(TexDepthRawPoint(uv));
+        color =             ImgX[pixel.xy].x*weight;
+   Flt  z     =LinearDepth(Depth[pixel.xy]);
    Vec2 dw_mad=DepthWeightMADLinear(z), t; t.x=uv.x;
    UNROLL for(Int i=-RANGE; i<=RANGE; i++)if(i)
    {

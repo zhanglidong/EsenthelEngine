@@ -142,8 +142,8 @@ VecH4 Particle_PS(PIXEL,
    {
       Flt z0    =depth_size.x-tex.a*depth_size.y,
           z1    =depth_size.x+tex.a*depth_size.y;
-          tex.a*=Sat((TexDepthPoint(PixelToUV(pixel))-z0)/depth_size.y); // fade out at occluder
-          tex.a*=Sat(z1/(z1-z0+HALF_MIN));                               // smooth visibility fraction when particle near (or behind) camera, NaN
+          tex.a*=Sat((TexDepthPix(pixel.xy)-z0)/depth_size.y); // fade out at occluder
+          tex.a*=Sat(z1/(z1-z0+HALF_MIN));                     // smooth visibility fraction when particle near (or behind) camera, NaN
    }
    #endif
    if(PALETTE)col*=tex.a;

@@ -307,28 +307,28 @@ VecH4 EdgeDetect_PS(NOPERSP Vec2 uv   :UV    ,
 VecH4 EdgeDetectApply_PS(NOPERSP Vec2 uv:UV):TARGET // use VecH4 because we apply this directly onto RGBA destination
 {
    const Int  samples=4;
-         Half color  =TexPoint(ImgX, uv).x;
+         Half color  =TexLod(ImgX, uv).x; // use linear filtering because we may be drawing to a higher res RT
    for(Int i=0; i<samples; i++)
    {
       Vec2 t=uv+BlendOfs4[i]*ImgSize.xy;
-      color+=TexLod(ImgX, t).x; // use linear filtering because texcoords aren't rounded
+      color+=TexLod(ImgX, t).x; // use linear filtering because we may be drawing to a higher res RT and texcoords aren't rounded
    }
    return color/(samples+1); // Sqr could be used on the result, to make darkening much stronger
 }
 /******************************************************************************/
 // COMBINE
 /******************************************************************************/
-Half SetAlphaFromDepth_PS(NOPERSP Vec2 uv:UV):TARGET
+Half SetAlphaFromDepth_PS(NOPERSP PIXEL):TARGET
 {
-   return DEPTH_FOREGROUND(TexDepthRawPoint(uv));
+   return DEPTH_FOREGROUND(Depth[pixel.xy]);
 }
 #if 1 // this is needed
-Half SetAlphaFromDepthMS_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL, UInt index:SV_SampleIndex):TARGET
+Half SetAlphaFromDepthMS_PS(NOPERSP PIXEL, UInt index:SV_SampleIndex):TARGET
 {
    return DEPTH_FOREGROUND(TexDepthRawMS(pixel.xy, index));
 }
 #else
-Half SetAlphaFromDepthMS_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL):TARGET
+Half SetAlphaFromDepthMS_PS(NOPERSP PIXEL):TARGET
 {
    Half   alpha=0; UNROLL for(Int i=0; i<MS_SAMPLES; i++)alpha+=DEPTH_FOREGROUND(TexDepthRawMS(pixel.xy, i));
    return alpha/MS_SAMPLES;
@@ -337,11 +337,11 @@ Half SetAlphaFromDepthMS_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL):TARGET
 
 Half SetAlphaFromDepthAndCol_PS(NOPERSP Vec2 uv:UV):TARGET
 {
-   return Max(Max(TexLod(Img, uv).rgb), DEPTH_FOREGROUND(TexDepthRawPoint(uv))); // treat luminance as opacity
+   return Max(Max(TexLod(Img, uv).rgb), DEPTH_FOREGROUND(TexDepthRawPoint(uv))); // treat luminance as opacity, use UV in case Col/Depth are different size
 }
 Half SetAlphaFromDepthAndColMS_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL, UInt index:SV_SampleIndex):TARGET
 {
-   return Max(Max(TexLod(Img, uv).rgb), DEPTH_FOREGROUND(TexDepthRawMS(pixel.xy, index))); // treat luminance as opacity
+   return Max(Max(TexLod(Img, uv).rgb), DEPTH_FOREGROUND(TexDepthRawMS(pixel.xy, index))); // treat luminance as opacity, use UV in case Col/Depth are different size
 }
 
 VecH4 CombineAlpha_PS(NOPERSP Vec2 uv:UV):TARGET

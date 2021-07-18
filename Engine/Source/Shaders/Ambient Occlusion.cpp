@@ -162,8 +162,9 @@ Half AO_PS
 {
    //Flt x=uv.x*2-1; return ((uv.y>=0.5 ? rsqrt(x) : RsqrtFast1(x)))/10;
 
-   Vec pos; pos.z=TexDepthRawPoint(uv); // !! for AO shader depth is already linearized !!
-   Flt raw_z=DelinearizeDepth(pos.z);
+   VecI2 pix=pixel.xy;
+   Vec   pos; pos.z=Depth[pix]; // !! for AO shader depth is already linearized !!
+   Flt   raw_z=DelinearizeDepth(pos.z);
    DEPTH_INC(raw_z, 0.00000007); // value tested on fov 25 deg, 1000 view range
    if(DEPTH_BACKGROUND(raw_z))return 1; // test after increase because we have raw Z from linear Z, so it may not return exactly background depth
    Flt z_eps=LinearizeDepth(raw_z)-pos.z+0.001; // convert back to linear, get delta from bigger value and original + 1 extra mm to make sure we will skip flat surfaces due to precision issues (will improve performance)
@@ -222,18 +223,16 @@ Half AO_PS
       /*if(R)
       {
          //if(W){Flt a=Abs(nrm_eye_dir), min=64.0/256; if(a<min)nrm_eye_dir*=min/a;}
-         nrm_scaled=nrm/nrm_eye_dir; // FIXME NaN
+         nrm_scaled=nrm/nrm_eye_dir; NaN
          flip_tan=(nrm_eye_dir>0);
       }*/
    }
 #endif
 
-   Vec2  cos_sin;
-   Flt   jitter_angle, jitter_step, jitter_half;
-   VecI2 pix;
+   Vec2 cos_sin;
+   Flt  jitter_angle, jitter_step, jitter_half;
    if(JITTER)
    {
-      pix=pixel.xy;
       if(JITTER_RANGE==3)
       {
          pix%=3;

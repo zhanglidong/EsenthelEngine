@@ -175,11 +175,12 @@ void CloudsDraw_VS(VtxInput vtx,
 }
 VecH4 CloudsDraw_PS(NOPERSP Vec2  uv   :UV,
                     NOPERSP Vec2  posXY:POS_XY,
+                    NOPERSP PIXEL,
                         out VecH4 mask :TARGET1):TARGET
 {
    VecH2 clouds=TexLod(ImgXY, uv).xy; // can't use TexPoint because image may be smaller
 #if 1
-   clouds.y*=Sat(TexDepthPoint(uv)*Length(Vec(posXY, 1))*SkyFracMulAdd.x+SkyFracMulAdd.y);
+   clouds.y*=Sat(TexDepthPix(pixel.xy)*Length(Vec(posXY, 1))*SkyFracMulAdd.x+SkyFracMulAdd.y);
 #else
    Vec pos=GetPosPix(pixel.xy, posXY); clouds.y*=Sat(Length(pos)*SkyFracMulAdd.x+SkyFracMulAdd.y);
 #endif

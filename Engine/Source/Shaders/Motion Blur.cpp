@@ -278,11 +278,11 @@ VecH4 Dilate_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL):TARGET
 #if !FAST_COMPILE && RANGE<=(GL ? 5 : 7) // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range, for GL limit to 5 because compilation is very slow
    UNROLL for(Int y=-RANGE; y<=RANGE; y++)
    UNROLL for(Int x=-RANGE; x<=RANGE; x++)
-      if(x || y)Process(motion, length2, TexPointOfs(Img, uv, VecI2(x, y)), VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size);
+      if(x || y)Process(motion, length2, TexPointOfs(Img, uv, VecI2(x, y)), VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size); // need UV clamp
 #else
    LOOP for(Int y=-RANGE; y<=RANGE; y++)
    LOOP for(Int x=-RANGE; x<=RANGE; x++)
-      if(x || y)Process(motion, length2, TexPoint(Img, uv+Vec2(x, y)*RTSize.xy), VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size);
+      if(x || y)Process(motion, length2, TexPoint(Img, uv+Vec2(x, y)*RTSize.xy), VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size); // need UV clamp
 #endif
    return motion;
 }
@@ -360,7 +360,7 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:UV,
          VecH2 base_uv_motion;
          Half  base_uv_motion_len;
          if(HAS_TAA) // in TAA the color RT is already adjusted by UV (to be always the same each frame), but depth and motion RT's are jittered every frame, which gives inconsistency between color and DepthMotion.
-          {// to workaround this problem, DepthMotion are taken from the pixel that's closest to camera and has highest motion
+         {  // to workaround this problem, DepthMotion are taken from the pixel that's closest to camera and has highest motion
             // TODO: Warning: these ignore UVClamp/UVInView
             if(GATHER)
             { 
@@ -388,8 +388,8 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:UV,
                FAST_UNROLL for(Int y=0; y<=1; y++)
                FAST_UNROLL for(Int x=0; x<=1; x++)
                {
-                  Flt   test_depth    =TexDepthRawPointOfs(test_uv, VecI2(x, y));
-                  VecH2 test_uv_motion=TexPointOfs (ImgXY, test_uv, VecI2(x, y));
+                  Flt   test_depth    =TexDepthRawPointOfs(test_uv, VecI2(x, y)); // need UV clamp
+                  VecH2 test_uv_motion=TexPointOfs (ImgXY, test_uv, VecI2(x, y)); // need UV clamp
                   Half  test_len      =Length2     (test_uv_motion);
                   if((x==0 && y==0) // first sample
                   || (DEPTH_SMALLER(test_depth, base_depth)
@@ -404,8 +404,8 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:UV,
             base_uv_motion_len=Sqrt(base_uv_motion_len)*MotionScale_2;
          }else
          {
-            base_depth        =TexDepthRawPoint(uv0);
-            base_uv_motion    =TexPoint(ImgXY,  uv0);
+            base_depth        =TexDepthRawPoint(uv0); // Tex in case src is super sampled
+            base_uv_motion    =TexPoint(ImgXY,  uv0); // Tex in case src is super sampled
             base_uv_motion_len=UVMotionLength(base_uv_motion);
          }
          base_depth=LinearizeDepth(base_depth);
@@ -439,8 +439,8 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:UV,
             uv1+=dir.zw;
 
             // need to disable filtering to avoid ghosting on borders
-            VecH2 sample0_uv_motion=TexPoint(ImgXY, uv0).xy; Flt sample0_depth=TexDepthPoint(uv0);
-            VecH2 sample1_uv_motion=TexPoint(ImgXY, uv1).xy; Flt sample1_depth=TexDepthPoint(uv1);
+            VecH2 sample0_uv_motion=TexPoint(ImgXY, uv0).xy; Flt sample0_depth=TexDepthPoint(uv0); // Tex in case src is super sampled
+            VecH2 sample1_uv_motion=TexPoint(ImgXY, uv1).xy; Flt sample1_depth=TexDepthPoint(uv1); // Tex in case src is super sampled
 
             Half sample0_uv_motion_len=UVMotionLength(sample0_uv_motion);
             Half sample1_uv_motion_len=UVMotionLength(sample1_uv_motion);
@@ -448,8 +448,8 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:UV,
             VecH2 w0=SampleWeight(base_depth, sample0_depth, base_uv_motion_len, sample0_uv_motion_len, uv_motion_len_to_step0, step0); w0.x*=UVInsideView(uv0);
             VecH2 w1=SampleWeight(base_depth, sample1_depth, base_uv_motion_len, sample1_uv_motion_len, uv_motion_len_to_step1, step1); w1.x*=UVInsideView(uv1);
 
-            COLH col0=TexPoint(Img, uv0).MASK,
-                 col1=TexPoint(Img, uv1).MASK;
+            COLH col0=TexPoint(Img, uv0).MASK, // Tex in case src is super sampled
+                 col1=TexPoint(Img, uv1).MASK; // Tex in case src is super sampled
 
             if(PRECISE)
             {

@@ -173,8 +173,8 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 
       src.New("Dither", "DrawUV_VS", "Dither_PS");
 
-            src.New("SetAlphaFromDepth"        , "DrawUV_VS", "SetAlphaFromDepth_PS");
-      if(ms)src.New("SetAlphaFromDepthMS"      , "DrawUV_VS", "SetAlphaFromDepthMS_PS").multiSample();
+            src.New("SetAlphaFromDepth"        , "Draw_VS"  , "SetAlphaFromDepth_PS");
+      if(ms)src.New("SetAlphaFromDepthMS"      , "Draw_VS"  , "SetAlphaFromDepthMS_PS").multiSample();
             src.New("SetAlphaFromDepthAndCol"  , "DrawUV_VS", "SetAlphaFromDepthAndCol_PS");
       if(ms)src.New("SetAlphaFromDepthAndColMS", "DrawUV_VS", "SetAlphaFromDepthAndColMS_PS").multiSample();
             src.New("CombineAlpha"             , "DrawUV_VS", "CombineAlpha_PS");
