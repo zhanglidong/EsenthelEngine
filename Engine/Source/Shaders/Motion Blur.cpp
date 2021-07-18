@@ -268,9 +268,9 @@ void Convert_CS
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
 // Dilate doesn't use UV clamping, instead border around viewport is cleared
-VecH4 Dilate_PS(NOPERSP Vec2 uv:UV):TARGET
+VecH4 Dilate_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL):TARGET
 {
-   VecH4 motion =TexPoint(Img, uv);
+   VecH4 motion =Img[pixel.xy];
    VecH2 length2=VecH2(ScreenLength2(motion.xy), ScreenLength2(motion.zw));
    VecH2 uv_to_pixel=RTSize.zw, pixel_motion, pixel_motion_perp, pixel_motion_size;
    GetPixelMotion(motion.xy, uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size);

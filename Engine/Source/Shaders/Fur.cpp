@@ -155,7 +155,7 @@ VecH4 Soft_PS
    outAlpha=color.a;
    
    if(DIFFUSE)color.rgb*=Tex(Col, uv).rgb;
-              color.rgb =(color.rgb*Material.color.rgb+Highlight.rgb)*TexPoint(FurLight, ProjectedPosXYWToUV(orig_pos)).rgb; // we need to access the un-expanded pixel and not current pixel
+              color.rgb =(color.rgb*Material.color.rgb+Highlight.rgb)*TexPoint(FurLight, ProjectedPosXYWToUV(orig_pos)).rgb; // we need to access the un-expanded pixel and not current pixel, 'TexPoint' is used in case it can offer faster performance
    return     color;
 }
 /******************************************************************************/

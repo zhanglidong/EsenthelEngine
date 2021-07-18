@@ -92,7 +92,7 @@ VecH4 TexCubicPlus(Vec2 uv)
       Half w=offset_weight[x].x+offset_weight[y].y; if(w<Sqr(CUBIC_RANGE))
       {
          w=CubicMed(Sqrt(w));
-         color +=w*TexPoint(Img, Vec2(offset[x].x, offset[y].y)); // don't use "color+=w*Img.Load(VecI(offset[x].x without scale, offset[y].y without scale, 0)); because it is slower and doesn't support wrap/clamp
+         color +=w*TexPoint(Img, Vec2(offset[x].x, offset[y].y)); // don't use "color+=w*Img[VecI2(offset[x].x without scale, offset[y].y without scale)]; because it doesn't support wrap/clamp
          weight+=w;
       }
    }
@@ -142,7 +142,7 @@ VecH TexCubicPlusRGB(Vec2 uv) // ignores alpha channel
       Half w=offset_weight[x].x+offset_weight[y].y; if(w<Sqr(CUBIC_RANGE))
       {
          w=CubicMed(Sqrt(w));
-         color +=w*TexPoint(Img, Vec2(offset[x].x, offset[y].y)).rgb; // don't use "color+=w*Img.Load(VecI(offset[x].x without scale, offset[y].y without scale, 0)).rgb; because it is slower and doesn't support wrap/clamp
+         color +=w*TexPoint(Img, Vec2(offset[x].x, offset[y].y)).rgb; // don't use "color+=w*Img[VecI2(offset[x].x without scale, offset[y].y without scale)].rgb; because it doesn't support wrap/clamp
          weight+=w;
       }
    }

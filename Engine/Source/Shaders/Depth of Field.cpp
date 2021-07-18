@@ -150,15 +150,16 @@ Flt FinalBlur(Flt blur, Flt blur_smooth) // 'blur'=-1..1, 'blur_smooth'=0..1
 // Use HighPrec because we operate on lot of samples
 // ALPHA, RANGE
 
-VecH4 DofBlurX_PS(NOPERSP Vec2 uv:UV
+VecH4 DofBlurX_PS(NOPERSP Vec2 uv:UV,
+                  NOPERSP PIXEL
                    #if ALPHA
                     , out Half outBlur:TARGET1
                    #endif
 ):TARGET
 {  //  INPUT: Img: RGB         , Blur
    // OUTPUT:      RGB BlurredX, BlurSmooth
-   Vec4 center     =TexPoint(Img, uv); // 'center' will be added to 'color' later, based on remaining weight
-   Flt  center_blur=OPT(center.a*2-1, TexPoint(ImgX, uv).x),
+   Vec4 center     =                  Img [pixel.xy]; // 'center' will be added to 'color' later, based on remaining weight
+   Flt  center_blur=OPT(center.a*2-1, ImgX[pixel.xy].x),
         weight=0,
      #if ALPHA
         blur=0,
@@ -197,15 +198,16 @@ VecH4 DofBlurX_PS(NOPERSP Vec2 uv:UV
 #endif
    return color;
 }
-VecH4 DofBlurY_PS(NOPERSP Vec2 uv:UV
+VecH4 DofBlurY_PS(NOPERSP Vec2 uv:UV,
+                  NOPERSP PIXEL
                    #if ALPHA
                     , out Half outBlur:TARGET1
                    #endif
 ):TARGET
 {  //  INPUT: Img: RGB BlurredX , BlurSmooth
    // OUTPUT:      RGB BlurredXY, BlurSmooth
-   Vec4 center     =TexPoint(Img, uv); // 'center' will be added to 'color' later, based on remaining weight
-   Flt  center_blur=OPT(center.a*2-1, TexPoint(ImgX, uv).x),
+   Vec4 center     =                  Img [pixel.xy]; // 'center' will be added to 'color' later, based on remaining weight
+   Flt  center_blur=OPT(center.a*2-1, ImgX[pixel.xy].x),
         weight=0,
      #if ALPHA
         blur=0,

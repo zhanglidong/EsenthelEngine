@@ -47,7 +47,7 @@ Flt HdrDS_PS(NOPERSP Vec2 uv:UV):TARGET
 /******************************************************************************/
 Flt HdrUpdate_PS():TARGET // here use full precision
 {
-   Flt lum=TexPoint(ImgXF, Vec2(0, 0)).x; // new luminance
+   Flt lum=ImgXF[VecI2(0, 0)].x; // new luminance
 
    // adjustment restore
 #if GEOMETRIC
@@ -62,7 +62,7 @@ Flt HdrUpdate_PS():TARGET // here use full precision
    lum=HdrBrightness/Max(lum, EPS_COL); // desired scale
 
    lum=Mid(lum, HdrMaxDark, HdrMaxBright);
-   return Lerp(lum, TexPoint(ImgXF1, Vec2(0, 0)).x, Step); // lerp new with old
+   return Lerp(lum, ImgXF1[VecI2(0, 0)].x, Step); // lerp new with old
 }
 /******************************************************************************/
 void Hdr_VS(VtxInput vtx,
