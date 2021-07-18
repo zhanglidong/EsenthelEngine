@@ -803,6 +803,27 @@ Half LerpR (Half from, Half to, Half v) {return     (v-from)/(to-from) ;}
 Flt  LerpR (Flt  from, Flt  to, Flt  v) {return     (v-from)/(to-from) ;}
 Half LerpRS(Half from, Half to, Half v) {return Sat((v-from)/(to-from));}
 Flt  LerpRS(Flt  from, Flt  to, Flt  v) {return Sat((v-from)/(to-from));}
+
+Half Angle1Fast(Half x, Half y)
+{
+   Half r=Abs(x)+Abs(y); return r ? ((y>=0) ? 1-x/r : x/r-1) : 0;
+}
+VecH2 Angle1FastToPos(Half angle_fast)
+{
+   return (angle_fast>=0) ? (angle_fast<= 1) ? VecH2(1-angle_fast,    angle_fast)
+                                             : VecH2(1-angle_fast,  2-angle_fast)
+                          : (angle_fast>=-1) ? VecH2(1+angle_fast,    angle_fast)
+                                             : VecH2(1+angle_fast, -2-angle_fast);
+}
+VecH2 ToLen2Angle1Fast(VecH2 v) // 'v'=pos XY, returns (X=length2, Y=Angle1Fast)
+{
+   Half r=Abs(v.x)+Abs(v.y); return r ? VecH2(Length2(v), (v.y>=0) ? 1-v.x/r : v.x/r-1) : 0;
+}
+VecH2 FromLen2Angle1Fast(VecH2 v) // 'v'=(X=length2, Y=Angle1Fast), returns pos XY
+{
+   VecH2  p=Angle1FastToPos(v.y); // never zero
+   return p*Sqrt(v.x/Length2(p));
+}
 /******************************************************************************/
 #include "Fast Math.h"
 /******************************************************************************/

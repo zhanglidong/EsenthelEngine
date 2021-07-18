@@ -25,7 +25,7 @@
 #endif
 
 #ifndef RANGE
-#define RANGE 0
+#define RANGE 1
 #endif
 
 #ifndef SAMPLES
@@ -57,7 +57,7 @@
    #define COLH VecH
 #endif
 
-#if 0 // use only for testing for fast compilation
+#if 1 // use only for testing for fast compilation
    #define FAST_COMPILE 1
    #define UNROLL LOOP
 #endif
@@ -70,6 +70,7 @@ BUFFER_END
 #include "!Set Prec Default.h"
 /******************************************************************************/
 VecH2 UVToScreen   (VecH2 uv) {return VecH2(uv.x*AspectRatio, uv.y);} // this is only to maintain XY proportions (it does not convert to screen coordinates)
+VecH2 ScreenToUV   (VecH2 uv) {return VecH2(uv.x/AspectRatio, uv.y);} // this is only to maintain XY proportions (it does not convert to screen coordinates)
 Half  ScreenLength2(VecH2 uv) {return Length2(UVToScreen(uv));}
 /******************************************************************************/
 VecH2 GetMotionCameraOnly(Vec view_pos, Vec2 uv)
@@ -169,7 +170,7 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
    #endif
          Process(motion, length2, TexLod(ImgXY, UVInView(uv+Vec2(x, y)*ImgSize.xy, VIEW_FULL)).xy);
 #endif
-   motion*=MotionScale_2; // for best precision this should be done for every sample, however doing it here just once, increases performance
+   motion*=MotionScale_2;
    { // limit max length - this prevents stretching objects to distances the blur can't handle anyway, making only certain samples of it visible but not all
       length2*=Sqr(MotionScale_2); // since we've scaled 'motion' above after setting 'length2', then we have to scale 'length2' too
       Half max_length=0.2/2; // #MaxMotionBlurLength
@@ -178,6 +179,86 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
    }
  //if(length2.x<ScreenLength2(ImgSize.xy)*Sqr(0.5))motion=0; // motions less than 0.5 pixel size force to 0 (ignore this code because this is done faster by just setting initial value of 'length2.x')
    return motion;
+}
+/******************************************************************************/
+#define THREAD_SIZE_X RANGE
+#define THREAD_SIZE_Y RANGE
+#define THREAD_SIZE   (THREAD_SIZE_X*THREAD_SIZE_Y)
+
+RWTexture2D<VecH4> RWImg;
+
+  groupshared VecH4 SharedMotion [THREAD_SIZE];
+//groupshared VecH2 SharedLength2[THREAD_SIZE];
+
+void Process(uint i, uint j)
+{
+   if(SharedMotion[i].x<SharedMotion[j].x)SharedMotion[i].xy=SharedMotion[j].xy; // XY=biggest
+   if(SharedMotion[i].z>SharedMotion[j].z)SharedMotion[i].zw=SharedMotion[j].zw; // ZW=smallest
+
+/* if(ScreenLength2(SharedMotion[i].xy)<ScreenLength2(SharedMotion[j].xy))SharedMotion[i].xy=SharedMotion[j].xy;
+   if(ScreenLength2(SharedMotion[i].zw)>ScreenLength2(SharedMotion[j].zw))SharedMotion[i].zw=SharedMotion[j].zw;
+
+   VecH4(ScreenLength2(a.xy)>ScreenLength2(b.xy) ? a.xy : b.xy,
+         ScreenLength2(a.zw)<ScreenLength2(b.zw) ? a.zw : b.zw);
+
+   if(SharedLength2[i].x<SharedLength2[j].x){SharedLength2[i].x=SharedLength2[j].x; SharedMotion[i].xy=SharedMotion[j].xy;}
+   if(SharedLength2[i].y>SharedLength2[j].y){SharedLength2[i].y=SharedLength2[j].y; SharedMotion[i].zw=SharedMotion[j].zw;}*/
+}
+[numthreads(THREAD_SIZE_X, THREAD_SIZE_Y, 1)]
+void Convert_CS
+(
+   VecU  GroupPos  :SV_GroupID,
+   VecU GlobalPos  :SV_DispatchThreadID,
+   uint  LocalIndex:SV_GroupIndex
+)
+{
+ //VecU2 PixelPos=GlobalPos+ViewportMin; bool inside=all(PixelPos<ViewportMax);
+   VecH4 motion=(ImgXY[GlobalPos.xy].xy*MotionScale_2).xyxy; // XY=biggest, ZW=smallest
+
+#if THREAD_SIZE>1
+ //SharedMotion [LocalIndex]=motion;
+ //SharedLength2[LocalIndex]=length2;
+   SharedMotion [LocalIndex]=ToLen2Angle1Fast(UVToScreen(motion.xy)).xyxy;
+   GroupMemoryBarrierWithGroupSync();
+
+   if(THREAD_SIZE>512){if(LocalIndex<512)Process(LocalIndex, LocalIndex+512); GroupMemoryBarrierWithGroupSync();}
+   if(THREAD_SIZE>256){if(LocalIndex<256)Process(LocalIndex, LocalIndex+256); GroupMemoryBarrierWithGroupSync();}
+   if(THREAD_SIZE>128){if(LocalIndex<128)Process(LocalIndex, LocalIndex+128); GroupMemoryBarrierWithGroupSync();}
+   if(THREAD_SIZE> 64){if(LocalIndex< 64)Process(LocalIndex, LocalIndex+ 64); GroupMemoryBarrierWithGroupSync();}
+   // no sync needed
+   if(THREAD_SIZE> 32){if(LocalIndex< 32)Process(LocalIndex, LocalIndex+ 32);}
+   if(THREAD_SIZE> 16){if(LocalIndex< 16)Process(LocalIndex, LocalIndex+ 16);}
+   if(THREAD_SIZE>  8){if(LocalIndex<  8)Process(LocalIndex, LocalIndex+  8);}
+   if(THREAD_SIZE>  4){if(LocalIndex<  4)Process(LocalIndex, LocalIndex+  4);}
+   if(THREAD_SIZE>  2){if(LocalIndex<  2)Process(LocalIndex, LocalIndex+  2);}
+   if(THREAD_SIZE>  1){if(LocalIndex<  1)Process(LocalIndex, LocalIndex+  1);}
+
+   if(LocalIndex==0)
+   {
+    //motion =SharedMotion [0];
+    //length2=SharedLength2[0];
+    //motion =VecH4(ScreenToUV(FromLen2Angle1Fast(SharedMotion[0].xy)), ScreenToUV(FromLen2Angle1Fast(SharedMotion[0].zw)));
+    //length2=VecH2(ScreenLength2(motion.xy), ScreenLength2(motion.zw));
+
+            motion =VecH4(FromLen2Angle1Fast(SharedMotion[0].xy), FromLen2Angle1Fast(SharedMotion[0].zw));
+      VecH2 length2=VecH2(Length2(motion.xy), Length2(motion.zw));
+            motion =VecH4(ScreenToUV(motion.xy), ScreenToUV(motion.zw));
+#else
+      VecH2 length2=ScreenLength2(motion.xy);
+#endif
+
+      { // limit max length - this prevents stretching objects to distances the blur can't handle anyway, making only certain samples of it visible but not all
+         Half max_length=0.2/2; // #MaxMotionBlurLength
+         if(length2.x>Sqr(max_length))motion.xy*=max_length/Sqrt(length2.x);
+       //if(length2.y>Sqr(max_length))motion.zw*=max_length/Sqrt(length2.y); don't have to scale Min motion, because it's only used to detect fast/simple blur
+      }
+      if(length2.x<ScreenLength2(ImgSize.xy)*Sqr(0.5))motion=0; // motions less than 0.5 pixel size force to 0 (ignore this code because this is done faster by just setting initial value of 'length2.x')
+
+      RWImg[GroupPos.xy]=motion;
+
+#if THREAD_SIZE>1
+   }
+#endif
 }
 /******************************************************************************
 
