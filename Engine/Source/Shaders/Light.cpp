@@ -52,7 +52,7 @@ VecH LightDir_PS
 (
    NOPERSP Vec2 posXY:POS_XY,
    NOPERSP PIXEL // 2D
-#if MULTI_SAMPLE
+#if MULTI_SAMPLE==2
  ,         UInt index:SV_SampleIndex
 #endif
  , out VecH outSpec:TARGET1
@@ -60,18 +60,20 @@ VecH LightDir_PS
 {
    VecI2 pix=pixel.xy;
    // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
-#if MULTI_SAMPLE
-   Half shadow; if(SHADOW)shadow=TexSample(ImgXMS, pix, index).x;
-#else
+#if MULTI_SAMPLE<=1
    Half shadow; if(SHADOW)shadow=ImgX[pix];
+#else
+   Half shadow; if(SHADOW)shadow=TexSample(ImgXMS, pix, index).x;
 #endif
    if(SHADOW && shadow<=EPS_LUM)discard;
 
    // normal
-#if MULTI_SAMPLE
-   Vec4 nrm=GetNormalMS(pix, index);
-#else
+#if MULTI_SAMPLE==0
    Vec4 nrm=GetNormal(pix);
+#elif MULTI_SAMPLE==1
+   Vec4 nrm=GetNormalMS(pix, 0);
+#else
+   Vec4 nrm=GetNormalMS(pix, index);
 #endif
 
    // light
@@ -88,12 +90,15 @@ VecH LightDir_PS
 #if WATER
    VecH2 ext     ={WaterMaterial.rough, WaterMaterial.reflect}; // #RTOutput Water doesn't have Ext Texture #WaterExt
    Half  base_col= WaterMaterial.reflect; // this is used for calculation of final reflectivity, just copy from water reflectivity #WaterExt
-#elif MULTI_SAMPLE
-   VecH2 ext     =GetExtMS (pix, index);
-   VecH  base_col=TexSample(ImgMS1, pix, index).rgb;
-#else
+#elif MULTI_SAMPLE==0
    VecH2 ext     =GetExt (pix);
    VecH  base_col=   Img1[pix].rgb;
+#elif MULTI_SAMPLE==1
+   VecH2 ext     =GetExtMS (        pix, 0);
+   VecH  base_col=TexSample(ImgMS1, pix, 0).rgb;
+#else
+   VecH2 ext     =GetExtMS (        pix, index);
+   VecH  base_col=TexSample(ImgMS1, pix, index).rgb;
 #endif
 
    // light #1
@@ -111,7 +116,7 @@ VecH LightPoint_PS
    NOPERSP Vec2 posXY:POS_XY,
 #endif
    PIXEL // 3D
-#if MULTI_SAMPLE
+#if MULTI_SAMPLE==2
  ,         UInt index:SV_SampleIndex
 #endif
  , out VecH outSpec:TARGET1
@@ -124,27 +129,29 @@ VecH LightPoint_PS
 #endif
 
    // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
-#if MULTI_SAMPLE
-   Half shadow; if(SHADOW)shadow=ShadowFinal(TexSample(ImgXMS, pix, index).x);
-#else
+#if MULTI_SAMPLE<=1
    Half shadow; if(SHADOW)shadow=ShadowFinal(ImgX[pix]);
+#else
+   Half shadow; if(SHADOW)shadow=ShadowFinal(TexSample(ImgXMS, pix, index).x);
 #endif
    if(SHADOW && shadow<=EPS_LUM)discard;
 
    // distance
-#if MULTI_SAMPLE
-   Vec pos=GetPosMS(pix, index, posXY);
-#else
+#if MULTI_SAMPLE<=1
    Vec pos=GetPosPix(pix, posXY);
+#else
+   Vec pos=GetPosMS(pix, index, posXY);
 #endif
    Vec  delta=LightPoint.pos-pos; Flt inv_dist2=1/Length2(delta);
    Half lum  =LightPointDist(inv_dist2); if(SHADOW)lum*=shadow; if(lum<=EPS_LUM)discard;
 
    // normal
-#if MULTI_SAMPLE
-   Vec4 nrm=GetNormalMS(pix, index);
-#else
+#if MULTI_SAMPLE==0
    Vec4 nrm=GetNormal(pix);
+#elif MULTI_SAMPLE==1
+   Vec4 nrm=GetNormalMS(pix, 0);
+#else
+   Vec4 nrm=GetNormalMS(pix, index);
 #endif
 
    // light
@@ -161,12 +168,15 @@ VecH LightPoint_PS
 #if WATER
    VecH2 ext     ={WaterMaterial.rough, WaterMaterial.reflect}; // #RTOutput Water doesn't have Ext Texture #WaterExt
    Half  base_col= WaterMaterial.reflect; // this is used for calculation of final reflectivity, just copy from water reflectivity #WaterExt
-#elif MULTI_SAMPLE
-   VecH2 ext     =GetExtMS (pix, index);
-   VecH  base_col=TexSample(ImgMS1, pix, index).rgb;
-#else
+#elif MULTI_SAMPLE==0
    VecH2 ext     =GetExt (pix);
    VecH  base_col=   Img1[pix].rgb;
+#elif MULTI_SAMPLE==1
+   VecH2 ext     =GetExtMS (        pix, 0);
+   VecH  base_col=TexSample(ImgMS1, pix, 0).rgb;
+#else
+   VecH2 ext     =GetExtMS (        pix, index);
+   VecH  base_col=TexSample(ImgMS1, pix, index).rgb;
 #endif
 
    // light #1
@@ -184,7 +194,7 @@ VecH LightLinear_PS
    NOPERSP Vec2 posXY:POS_XY,
 #endif
    PIXEL // 3D
-#if MULTI_SAMPLE
+#if MULTI_SAMPLE==2
  ,         UInt index:SV_SampleIndex
 #endif
  , out VecH outSpec:TARGET1
@@ -197,27 +207,29 @@ VecH LightLinear_PS
 #endif
 
    // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
-#if MULTI_SAMPLE
-   Half shadow; if(SHADOW)shadow=ShadowFinal(TexSample(ImgXMS, pix, index).x);
-#else
+#if MULTI_SAMPLE<=1
    Half shadow; if(SHADOW)shadow=ShadowFinal(ImgX[pix]);
+#else
+   Half shadow; if(SHADOW)shadow=ShadowFinal(TexSample(ImgXMS, pix, index).x);
 #endif
    if(SHADOW && shadow<=EPS_LUM)discard;
 
    // distance
-#if MULTI_SAMPLE
-   Vec pos=GetPosMS(pix, index, posXY);
-#else
+#if MULTI_SAMPLE<=1
    Vec pos=GetPosPix(pix, posXY);
+#else
+   Vec pos=GetPosMS(pix, index, posXY);
 #endif
    Vec  delta=LightLinear.pos-pos; Flt dist=Length(delta);
    Half lum  =LightLinearDist(dist); if(SHADOW)lum*=shadow; if(lum<=EPS_LUM)discard;
 
    // normal
-#if MULTI_SAMPLE
-   Vec4 nrm=GetNormalMS(pix, index);
-#else
+#if MULTI_SAMPLE==0
    Vec4 nrm=GetNormal(pix);
+#elif MULTI_SAMPLE==1
+   Vec4 nrm=GetNormalMS(pix, 0);
+#else
+   Vec4 nrm=GetNormalMS(pix, index);
 #endif
 
    // light
@@ -234,12 +246,15 @@ VecH LightLinear_PS
 #if WATER
    VecH2 ext     ={WaterMaterial.rough, WaterMaterial.reflect}; // #RTOutput Water doesn't have Ext Texture #WaterExt
    Half  base_col= WaterMaterial.reflect; // this is used for calculation of final reflectivity, just copy from water reflectivity #WaterExt
-#elif MULTI_SAMPLE
-   VecH2 ext     =GetExtMS (pix, index);
-   VecH  base_col=TexSample(ImgMS1, pix, index).rgb;
-#else
+#elif MULTI_SAMPLE==0
    VecH2 ext     =GetExt (pix);
    VecH  base_col=   Img1[pix].rgb;
+#elif MULTI_SAMPLE==1
+   VecH2 ext     =GetExtMS (        pix, 0);
+   VecH  base_col=TexSample(ImgMS1, pix, 0).rgb;
+#else
+   VecH2 ext     =GetExtMS (        pix, index);
+   VecH  base_col=TexSample(ImgMS1, pix, index).rgb;
 #endif
 
    // light #1
@@ -257,7 +272,7 @@ VecH LightCone_PS
    NOPERSP Vec2 posXY:POS_XY,
 #endif
    PIXEL // 3D
-#if MULTI_SAMPLE
+#if MULTI_SAMPLE==2
  ,         UInt index:SV_SampleIndex
 #endif
  , out VecH outSpec:TARGET1
@@ -270,18 +285,18 @@ VecH LightCone_PS
 #endif
 
    // shadow (start with shadows because they're IMAGE_R8 and have small bandwidth)
-#if MULTI_SAMPLE
-   Half shadow; if(SHADOW)shadow=ShadowFinal(TexSample(ImgXMS, pix, index).x);
-#else
+#if MULTI_SAMPLE<=1
    Half shadow; if(SHADOW)shadow=ShadowFinal(ImgX[pix]);
+#else
+   Half shadow; if(SHADOW)shadow=ShadowFinal(TexSample(ImgXMS, pix, index).x);
 #endif
    if(SHADOW && shadow<=EPS_LUM)discard;
 
    // distance & angle
-#if MULTI_SAMPLE
-   Vec pos=GetPosMS(pix, index, posXY);
-#else
+#if MULTI_SAMPLE<=1
    Vec pos=GetPosPix(pix, posXY);
+#else
+   Vec pos=GetPosMS(pix, index, posXY);
 #endif
    Vec  delta=LightCone.pos-pos,
         dir  =TransformTP(delta, LightCone.mtrx); dir.xy/=dir.z; clip(Vec(1-Abs(dir.xy), dir.z));
@@ -289,10 +304,12 @@ VecH LightCone_PS
    Half lum  =LightConeAngle(dir.xy)*LightConeDist(dist); if(SHADOW)lum*=shadow; if(lum<=EPS_LUM)discard;
 
    // normal
-#if MULTI_SAMPLE
-   Vec4 nrm=GetNormalMS(pix, index);
-#else
+#if MULTI_SAMPLE==0
    Vec4 nrm=GetNormal(pix);
+#elif MULTI_SAMPLE==1
+   Vec4 nrm=GetNormalMS(pix, 0);
+#else
+   Vec4 nrm=GetNormalMS(pix, index);
 #endif
 
    // light
@@ -318,12 +335,15 @@ VecH LightCone_PS
 #if WATER
    VecH2 ext     ={WaterMaterial.rough, WaterMaterial.reflect}; // #RTOutput Water doesn't have Ext Texture #WaterExt
    Half  base_col= WaterMaterial.reflect; // this is used for calculation of final reflectivity, just copy from water reflectivity #WaterExt
-#elif MULTI_SAMPLE
-   VecH2 ext     =GetExtMS (pix, index);
-   VecH  base_col=TexSample(ImgMS1, pix, index).rgb;
-#else
+#elif MULTI_SAMPLE==0
    VecH2 ext     =GetExt (pix);
    VecH  base_col=   Img1[pix].rgb;
+#elif MULTI_SAMPLE==1
+   VecH2 ext     =GetExtMS (        pix, 0);
+   VecH  base_col=TexSample(ImgMS1, pix, 0).rgb;
+#else
+   VecH2 ext     =GetExtMS (        pix, index);
+   VecH  base_col=TexSample(ImgMS1, pix, index).rgb;
 #endif
 
    // light #1

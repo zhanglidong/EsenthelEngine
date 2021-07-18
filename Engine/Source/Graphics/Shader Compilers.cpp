@@ -259,16 +259,16 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       ShaderCompiler::Source &src=compiler.New(src_path+"Light.cpp");
       REPD(diffuse     , DIFFUSE_NUM)
       REPD(shadow      , 2)
-      REPD(multi_sample, ms ? 2 : 1)
+      REPD(multi_sample, ms ? 3 : 1)
       REPD(water       , 2)
       {
-                           src.New("DrawLightDir"     , "DrawPosXY_VS", "LightDir_PS"   ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water); // Directional light is always fullscreen, so can use 2D shader
+                           src.New("DrawLightDir"     , "DrawPosXY_VS", "LightDir_PS"   ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "MULTI_SAMPLE", multi_sample, "SHADOW", shadow, "WATER", water); // Directional light is always fullscreen, so can use 2D shader
          REPD(gl_es, (api==API_GL) ? 2 : 1) // GL ES doesn't support NOPERSP and 'D.depthClip'
          {
-                           src.New("DrawLightPoint"   , "Geom_VS"     , "LightPoint_PS" ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water)(                "GL_ES", gl_es).extra("CLAMP_DEPTH", gl_es);  // 3D Geom Mesh (only ball based are depth-clamped, because Dir is fullscreen and Cone has too many artifacts when depth clamping)
-                           src.New("DrawLightLinear"  , "Geom_VS"     , "LightLinear_PS").multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water)(                "GL_ES", gl_es).extra("CLAMP_DEPTH", gl_es);  // 3D Geom Mesh (only ball based are depth-clamped, because Dir is fullscreen and Cone has too many artifacts when depth clamping)
-            REPD(image, 2){src.New("DrawLightCone"    , "Geom_VS"     , "LightCone_PS"  ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water)("IMAGE", image, "GL_ES", gl_es)                            ;  // 3D Geom Mesh
-                  if(gl_es)src.New("DrawLightConeFlat", "DrawPosXY_VS", "LightCone_PS"  ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "WATER", water)("IMAGE", image                )                            ;} // 2D Flat
+                           src.New("DrawLightPoint"   , "Geom_VS"     , "LightPoint_PS" ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "MULTI_SAMPLE", multi_sample, "SHADOW", shadow, "WATER", water)(                "GL_ES", gl_es).extra("CLAMP_DEPTH", gl_es);  // 3D Geom Mesh (only ball based are depth-clamped, because Dir is fullscreen and Cone has too many artifacts when depth clamping)
+                           src.New("DrawLightLinear"  , "Geom_VS"     , "LightLinear_PS").multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "MULTI_SAMPLE", multi_sample, "SHADOW", shadow, "WATER", water)(                "GL_ES", gl_es).extra("CLAMP_DEPTH", gl_es);  // 3D Geom Mesh (only ball based are depth-clamped, because Dir is fullscreen and Cone has too many artifacts when depth clamping)
+            REPD(image, 2){src.New("DrawLightCone"    , "Geom_VS"     , "LightCone_PS"  ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "MULTI_SAMPLE", multi_sample, "SHADOW", shadow, "WATER", water)("IMAGE", image, "GL_ES", gl_es)                            ;  // 3D Geom Mesh
+                  if(gl_es)src.New("DrawLightConeFlat", "DrawPosXY_VS", "LightCone_PS"  ).multiSample(multi_sample)("DIFFUSE_MODE", diffuse, "MULTI_SAMPLE", multi_sample, "SHADOW", shadow, "WATER", water)("IMAGE", image                )                            ;} // 2D Flat
          }
       }
    }

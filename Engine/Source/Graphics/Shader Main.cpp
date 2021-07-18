@@ -346,12 +346,12 @@ Shader* MainShaderClass::getShdDir  (Int map_num, Bool clouds, Bool multi_sample
 Shader* MainShaderClass::getShdPoint(                          Bool multi_sample) {return get(S8+"ShdPoint"+multi_sample);}
 Shader* MainShaderClass::getShdCone (                          Bool multi_sample) {return get(S8+"ShdCone" +multi_sample);}
 
-Shader* MainShaderClass::getDrawLightDir   (Int diffuse, Bool shadow, Bool multi_sample, Bool water            ) {return get(S8+"DrawLightDir"   +diffuse+shadow+multi_sample+water            );}
-Shader* MainShaderClass::getDrawLightPoint (Int diffuse, Bool shadow, Bool multi_sample, Bool water            ) {return get(S8+"DrawLightPoint" +diffuse+shadow+multi_sample+water      +GL_ES);}
-Shader* MainShaderClass::getDrawLightLinear(Int diffuse, Bool shadow, Bool multi_sample, Bool water            ) {return get(S8+"DrawLightLinear"+diffuse+shadow+multi_sample+water      +GL_ES);}
-Shader* MainShaderClass::getDrawLightCone  (Int diffuse, Bool shadow, Bool multi_sample, Bool water, Bool image) {return get(S8+"DrawLightCone"  +diffuse+shadow+multi_sample+water+image+GL_ES);}
+Shader* MainShaderClass::getDrawLightDir   (Int diffuse, Int multi_sample, Bool shadow, Bool water            ) {return get(S8+"DrawLightDir"   +diffuse+multi_sample+shadow+water            );}
+Shader* MainShaderClass::getDrawLightPoint (Int diffuse, Int multi_sample, Bool shadow, Bool water            ) {return get(S8+"DrawLightPoint" +diffuse+multi_sample+shadow+water      +GL_ES);}
+Shader* MainShaderClass::getDrawLightLinear(Int diffuse, Int multi_sample, Bool shadow, Bool water            ) {return get(S8+"DrawLightLinear"+diffuse+multi_sample+shadow+water      +GL_ES);}
+Shader* MainShaderClass::getDrawLightCone  (Int diffuse, Int multi_sample, Bool shadow, Bool water, Bool image) {return get(S8+"DrawLightCone"  +diffuse+multi_sample+shadow+water+image+GL_ES);}
 #if !DEPTH_CLIP_SUPPORTED
-Shader* MainShaderClass::getDrawLightConeFlat(Int diffuse, Bool shadow, Bool multi_sample, Bool water, Bool image) {return get(S8+"DrawLightConeFlat"+diffuse+shadow+multi_sample+water+image);}
+Shader* MainShaderClass::getDrawLightConeFlat(Int diffuse, Int multi_sample, Bool shadow, Bool water, Bool image) {return get(S8+"DrawLightConeFlat"+diffuse+multi_sample+shadow+water+image);}
 #endif
 
 Shader* MainShaderClass::getApplyLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade, Bool glow, Bool reflect) {return get(S8+"ApplyLight"+multi_sample+ao+cel_shade+night_shade+glow+reflect);}
@@ -757,16 +757,16 @@ void MainShaderClass::getTechniques()
 
       // LIGHT
       REPD(diffuse     , DIFFUSE_NUM)
-      REPD(multi_sample, (D.shaderModel()>=SM_4_1) ? 2 : 1)
+      REPD(multi_sample, (D.shaderModel()>=SM_4_1) ? 3 : 1)
       REPD(shadow      , 2)
       REPD(water       , 2)
       {
-                        DrawLightDir   [diffuse][shadow][multi_sample][water]       =getDrawLightDir   (diffuse, shadow, multi_sample, water);
-                        DrawLightPoint [diffuse][shadow][multi_sample][water]       =getDrawLightPoint (diffuse, shadow, multi_sample, water);
-                        DrawLightLinear[diffuse][shadow][multi_sample][water]       =getDrawLightLinear(diffuse, shadow, multi_sample, water);
-         REPD(image, 2){DrawLightCone  [diffuse][shadow][multi_sample][water][image]=getDrawLightCone  (diffuse, shadow, multi_sample, water, image);
+                        DrawLightDir   [diffuse][multi_sample][shadow][water]       =getDrawLightDir   (diffuse, multi_sample, shadow, water);
+                        DrawLightPoint [diffuse][multi_sample][shadow][water]       =getDrawLightPoint (diffuse, multi_sample, shadow, water);
+                        DrawLightLinear[diffuse][multi_sample][shadow][water]       =getDrawLightLinear(diffuse, multi_sample, shadow, water);
+         REPD(image, 2){DrawLightCone  [diffuse][multi_sample][shadow][water][image]=getDrawLightCone  (diffuse, multi_sample, shadow, water, image);
                      #if !DEPTH_CLIP_SUPPORTED
-                        DrawLightConeFlat[diffuse][shadow][multi_sample][water][image]=getDrawLightConeFlat(diffuse, shadow, multi_sample, water, image);
+                        DrawLightConeFlat[diffuse][multi_sample][shadow][water][image]=getDrawLightConeFlat(diffuse, multi_sample, shadow, water, image);
                      #endif
                        }
       }
