@@ -1407,16 +1407,25 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    spvc_compiler_build_combined_image_samplers(spirv_compiler);
    const spvc_combined_image_sampler *samplers=null; size_t num_samplers=0;
    spvc_compiler_get_combined_image_samplers(spirv_compiler, &samplers, &num_samplers);
-      // FIXME rw images
    FREP(num_samplers)
    {
     C spvc_combined_image_sampler &cis=samplers[i];
-      CChar8 *  image_name =spvc_compiler_get_name(spirv_compiler, cis.  image_id);
+      Str8      image_name =spvc_compiler_get_name(spirv_compiler, cis.  image_id);
       CChar8 *sampler_name =spvc_compiler_get_name(spirv_compiler, cis.sampler_id);
       Int     sampler_index=((cis.sampler_id==dummy_sampler) ? SSI_POINT : GetSamplerIndex(sampler_name)); // use PointSampler as dummy because it's not needed anyway
       if(     sampler_index<0)Exit(S+"Unknown sampler for '"+image_name+"'");
       spvc_compiler_set_name(spirv_compiler, cis.combined_id, S8+'S'+sampler_index+'_'+image_name); // use S sampler_index _ image_name format, so we can use SkipStart when loading shaders without having to allocate memory for Str, so the name must be at the end, and sampler index before that, since name can't start with a number then S is also added at the start #SamplerName
-      {SyncLocker lock(cc.lock); compiler.images.binaryInclude(Str8(image_name), CompareCS);}
+      {SyncLocker lock(cc.lock); compiler.images.binaryInclude(image_name, CompareCS);}
+   }
+
+   list=null; count=0; spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_STORAGE_IMAGE, &list, &count); FREP(count)
+   {
+    C spvc_reflected_resource &res=list[i];
+    //Int                loc=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationLocation);
+    //CChar8 *base_type_name=spvc_compiler_get_name(spirv_compiler, res.base_type_id);
+    //CChar8 *     type_name=spvc_compiler_get_name(spirv_compiler, res.type_id);
+      Str8        image_name=spvc_compiler_get_name(spirv_compiler, res.id);
+      {SyncLocker lock(cc.lock); compiler.rw_images.binaryInclude(image_name, CompareCS);}
    }
 
    Str8 code;
