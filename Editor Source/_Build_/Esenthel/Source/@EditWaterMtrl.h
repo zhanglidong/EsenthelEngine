@@ -4,14 +4,14 @@ class EditWaterMtrl : EditMaterial
 {
    flt density, density_add,
        scale_color, scale_normal, scale_bump,
-       refract, refract_reflection, refract_underwater,
+       refract, refract_reflection,
        wave_scale;
    Vec color_underwater0,
        color_underwater1;
 
    TimeStamp density_time,
              scale_color_time, scale_normal_time, scale_bump_time,
-             refract_time, refract_reflection_time, refract_underwater_time,
+             refract_time, refract_reflection_time,
              wave_scale_time,
              color_underwater_time;
 
@@ -41,7 +41,6 @@ class EditWaterMtrl : EditMaterial
       density_add           =src.density_add; density_time=time;
       refract               =src.refract; refract_time=time;
       refract_reflection    =src.refract_reflection; refract_reflection_time=time;
-      refract_underwater    =src.refract_underwater; refract_underwater_time=time;
       color_underwater0     =src.colorUnderwater0S(); color_underwater_time=time;
       color_underwater1     =src.colorUnderwater1S();
       base_0_tex=src. colorMap().id();

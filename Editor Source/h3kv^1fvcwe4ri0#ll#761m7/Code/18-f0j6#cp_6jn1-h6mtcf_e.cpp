@@ -100,9 +100,6 @@ class WaterMtrlRegion : MaterialRegion
    static Str  ColorUnderwater1(C WaterMtrlRegion &mr          ) {return mr.edit.color_underwater1;}
    static void ColorUnderwater1(  WaterMtrlRegion &mr, C Str &t) {mr.edit.color_underwater1=TextVec(t); mr.edit.color_underwater_time.getUTC();}
 
-   static Str  RefractUnderwater(C WaterMtrlRegion &mr          ) {return mr.edit.refract_underwater;}
-   static void RefractUnderwater(  WaterMtrlRegion &mr, C Str &t) {mr.edit.refract_underwater=TextFlt(t); mr.edit.refract_underwater_time.getUTC();}
-
    // #MaterialTextureLayoutWater
    virtual   EditMaterial& getEditMtrl()override  {return edit;}
    virtual C ImagePtr    & getBase0   ()override  {return game->    colorMap();}
@@ -139,8 +136,6 @@ class WaterMtrlRegion : MaterialRegion
 
       props.New().create("Underwater Surface Color", MemberDesc(DATA_VEC ).setFunc(ColorUnderwater0 , ColorUnderwater0 )).setColor();
       props.New().create("Underwater Depths Color" , MemberDesc(DATA_VEC ).setFunc(ColorUnderwater1 , ColorUnderwater1 )).setColor();
-
-      props.New().create("Refraction Underwater"   , MemberDesc(DATA_REAL).setFunc(RefractUnderwater, RefractUnderwater)).range(0, 0.04).mouseEditSpeed(0.02);
 
       Rect prop_rect=AddProperties(props, sub, 0, prop_height, 0.135, &ts); REPAO(props).autoData(this).changed(Changed, PreChanged);
 

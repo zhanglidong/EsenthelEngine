@@ -3,14 +3,14 @@
 /******************************************************************************/
 
 /******************************************************************************/
-   EditWaterMtrl::EditWaterMtrl() : density(0.3f), density_add(0.45f), scale_color(1.0f/200), scale_normal(1.0f/10), scale_bump(1.0f/100), refract(0.10f), refract_reflection(0.06f), refract_underwater(0.01f), wave_scale(0.25f), color_underwater0(0.26f, 0.35f, 0.42f), color_underwater1(0.10f, 0.20f, 0.30f) {smooth=1; reflect_min=0.02f;}
+   EditWaterMtrl::EditWaterMtrl() : density(0.3f), density_add(0.45f), scale_color(1.0f/200), scale_normal(1.0f/10), scale_bump(1.0f/100), refract(0.10f), refract_reflection(0.06f), wave_scale(0.25f), color_underwater0(0.26f, 0.35f, 0.42f), color_underwater1(0.10f, 0.20f, 0.30f) {smooth=1; reflect_min=0.02f;}
    bool EditWaterMtrl::usesTexBump()C {return wave_scale>EPSL && hasBumpMap();}
    bool EditWaterMtrl::equal(C EditWaterMtrl &src)C
    {
       return super::equal(src)
          && density_time==src.density_time
          && scale_color_time==src.scale_color_time && scale_normal_time==src.scale_normal_time && scale_bump_time==src.scale_bump_time
-         && refract_time==src.refract_time && refract_reflection_time==src.refract_reflection_time && refract_underwater_time==src.refract_underwater_time
+         && refract_time==src.refract_time && refract_reflection_time==src.refract_reflection_time
          && wave_scale_time==src.wave_scale_time
          && color_underwater_time==src.color_underwater_time;
    }
@@ -19,7 +19,7 @@
       return super::newer(src)
          || density_time>src.density_time
          || scale_color_time>src.scale_color_time || scale_normal_time>src.scale_normal_time || scale_bump_time>src.scale_bump_time
-         || refract_time>src.refract_time || refract_reflection_time>src.refract_reflection_time || refract_underwater_time>src.refract_underwater_time
+         || refract_time>src.refract_time || refract_reflection_time>src.refract_reflection_time
          || wave_scale_time>src.wave_scale_time
          || color_underwater_time>src.color_underwater_time;
    }
@@ -29,7 +29,7 @@
       super::newData();
       density_time++;
       scale_color_time++; scale_normal_time++; scale_bump_time++;
-      refract_time++; refract_reflection_time++; refract_underwater_time++;
+      refract_time++; refract_reflection_time++;
       wave_scale_time++;
       color_underwater_time++;
    }
@@ -47,7 +47,6 @@
       dest.density_add           =density_add       ;
       dest.refract               =refract           ;
       dest.refract_reflection    =refract_reflection;
-      dest.refract_underwater    =refract_underwater;
       dest.colorUnderwater0S     (color_underwater0);
       dest.colorUnderwater1S     (color_underwater1);
       dest. colorMap(proj.texPath(base_0_tex))
@@ -65,7 +64,6 @@
       changed|=Sync(scale_bump_time        , src.scale_bump_time        , scale_bump        , src.scale_bump        )*CHANGED_PARAM;
       changed|=Sync(refract_time           , src.refract_time           , refract           , src.refract           )*CHANGED_PARAM;
       changed|=Sync(refract_reflection_time, src.refract_reflection_time, refract_reflection, src.refract_reflection)*CHANGED_PARAM;
-      changed|=Sync(refract_underwater_time, src.refract_underwater_time, refract_underwater, src.refract_underwater)*CHANGED_PARAM;
       if(Sync(density_time, src.density_time))
       {
          changed|=CHANGED_PARAM;
@@ -89,7 +87,6 @@
       changed|=Undo(scale_bump_time        , src.scale_bump_time        , scale_bump        , src.scale_bump        )*CHANGED_PARAM;
       changed|=Undo(refract_time           , src.refract_time           , refract           , src.refract           )*CHANGED_PARAM;
       changed|=Undo(refract_reflection_time, src.refract_reflection_time, refract_reflection, src.refract_reflection)*CHANGED_PARAM;
-      changed|=Undo(refract_underwater_time, src.refract_underwater_time, refract_underwater, src.refract_underwater)*CHANGED_PARAM;
       if(Undo(density_time, src.density_time))
       {
          changed|=CHANGED_PARAM;
@@ -120,6 +117,7 @@
    }
    bool EditWaterMtrl::save(File &f)C
    {
+      flt refract_underwater=0.01f; TimeStamp refract_underwater_time;
       f.cmpUIntV(2); // version
       super::save(f);
       f<<density<<density_add
@@ -137,6 +135,7 @@
    }
    bool EditWaterMtrl::load(File &f)
    {
+      flt refract_underwater; TimeStamp refract_underwater_time;
       switch(f.decUIntV()) // version
       {
          case 2: if(super::load(f))

@@ -58,9 +58,6 @@ class WaterMtrlRegion : MaterialRegion
    static Str  ColorUnderwater1(C WaterMtrlRegion &mr          );
    static void ColorUnderwater1(  WaterMtrlRegion &mr, C Str &t);
 
-   static Str  RefractUnderwater(C WaterMtrlRegion &mr          );
-   static void RefractUnderwater(  WaterMtrlRegion &mr, C Str &t);
-
    // #MaterialTextureLayoutWater
    virtual   EditMaterial& getEditMtrl()override; 
    virtual C ImagePtr    & getBase0   ()override; 
