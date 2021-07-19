@@ -68,7 +68,7 @@ void Render()
 {
    switch(Renderer())
    {
-      case RM_CLOUD: // clouds in order to affect the sun rays must be drawn in RM_CLOUD mode
+      case RM_BLEND: // draw clouds in RM_BLEND mode
       {
          // clouds are transparent so they need to be sorted before rendering
          clouds.sort(Compare);

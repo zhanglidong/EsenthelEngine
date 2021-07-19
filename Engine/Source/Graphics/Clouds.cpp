@@ -688,22 +688,8 @@ void AllClouds::drawAll()
 {
    if(draw)
    {
-      if(Renderer.canReadDepth())
-      {
-         volumetric.draw();
-      }
-
-      layered.draw();
-
-      if(Renderer.canReadDepth())
-      {
-         Sky.setFracMulAdd();
-
-         Renderer.set(Renderer._col, Renderer._alpha, null, null, Renderer._ds, true, WANT_DEPTH_READ); Renderer.setDSLookup(); // we may use soft cloud, 'setDSLookup' after 'set' #RTOutput.Blend
-         D.alpha     (ALPHA_RENDER_BLEND);
-         D.depthWrite(false); REPS(Renderer._eye, Renderer._eye_num){Renderer.setEyeViewportCam(); Renderer.mode(RM_CLOUD); Renderer._render();}
-         D.depthWrite(true );
-      }
+      if(Renderer.canReadDepth())volumetric.draw();
+                                    layered.draw();
    }
 }
 /******************************************************************************/

@@ -26,7 +26,6 @@ enum RENDER_MODE : Byte // Rendering Mode, rendering phase of the rendering proc
    RM_BLEND   , // alpha blending
    RM_SHADOW  , // shadow map, render all shadow casting objects here using 'Mesh.drawShadow', objects not rendered in this phase will not cast shadows
    RM_EARLY_Z , // early z
-   RM_CLOUD   , // clouds
    RM_WATER   , // water surfaces
    RM_PALETTE , // color palette #0 (rendering is performed using 'D.colorPalette'  texture)
    RM_PALETTE1, // color palette #1 (rendering is performed using 'D.colorPalette1' texture)

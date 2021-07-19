@@ -601,7 +601,7 @@ struct Image // Image (Texture)
    // draw in 3D space
    void draw3D(C Color &color, Flt size, Flt angle, C Vec &pos)C; // draw as 3D billboard, this can be called in RM_BLEND mode or outside rendering function (in drawing function), this method supports only IMAGE_2D images, this relies on active object matrix which can be set using 'SetMatrix' function
 
-   void drawVolume(C Color &color, C Color &color_add, C OBox &obox, Flt voxel_density_factor=0.01f, Flt precision=1.0f, Int min_steps=2, Int max_steps=64)C; // draw as 3D volumetric image, 'voxel_density_factor'=density factor of a single voxel (0..1), 'precision'=number of steps per voxel (0..Inf), 'min_steps max_steps'=minimum and maximum number of steps (2..1024), this method can be called in RM_CLOUD or RM_BLEND rendering modes, this method supports only IMAGE_3D images
+   void drawVolume(C Color &color, C Color &color_add, C OBox &obox, Flt voxel_density_factor=0.01f, Flt precision=1.0f, Int min_steps=2, Int max_steps=64)C; // draw as 3D volumetric image, 'voxel_density_factor'=density factor of a single voxel (0..1), 'precision'=number of steps per voxel (0..Inf), 'min_steps max_steps'=minimum and maximum number of steps (2..1024), this method can be called in RM_BLEND rendering mode, this method supports only IMAGE_3D images
 
    // io
    void operator=(C Str  &name) ; // load, Exit  on fail
