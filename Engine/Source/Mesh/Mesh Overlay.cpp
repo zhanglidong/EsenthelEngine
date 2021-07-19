@@ -301,7 +301,7 @@ Bool MeshOverlay::createAnimated(C Mesh &mesh, C MaterialPtr &material, C Matrix
 void MeshOverlay::setShader()
 {
   _shader=null;
-   if(_lods.elms() && _material && _material->base_0)_shader=ShaderFiles("Overlay")->get(ShaderOverlay(false, D.bumpMode()>BUMP_FLAT && _material->normal>EPS_COL8 && _material->base_1!=null, (_material->base_2!=null) ? 2 : 1)); // #MaterialTextureLayout
+   if(_lods.elms() && _material && _material->base_0)_shader=ShaderFiles("Mesh Overlay")->get(ShaderMeshOverlay(false, D.bumpMode()>BUMP_FLAT && _material->normal>EPS_COL8 && _material->base_1!=null, (_material->base_2!=null) ? 2 : 1)); // #MaterialTextureLayout
 }
 MeshOverlay& MeshOverlay::material(C MaterialPtr &material)
 {

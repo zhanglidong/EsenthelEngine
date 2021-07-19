@@ -2301,7 +2301,7 @@
     <ClInclude Include="Source\Shaders\Fur.h" />
     <ClInclude Include="Source\Shaders\Hdr.h" />
     <ClInclude Include="Source\Shaders\Layered Clouds.h" />
-    <ClInclude Include="Source\Shaders\Overlay.h" />
+    <ClInclude Include="Source\Shaders\Mesh Overlay.h" />
     <ClInclude Include="Source\Shaders\Sky.h" />
     <ClInclude Include="Source\Shaders\SMAA.h" />
     <ClInclude Include="Source\Shaders\Water.h" />
@@ -4507,7 +4507,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|NX64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Source\Shaders\Overlay.cpp">
+    <ClCompile Include="Source\Shaders\Mesh Overlay.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
@@ -4603,7 +4603,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|NX64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Source\Shaders\Tattoo.cpp">
+    <ClCompile Include="Source\Shaders\Overlay.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>

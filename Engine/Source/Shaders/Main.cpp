@@ -6,7 +6,7 @@
 #include "Hdr.h"
 #include "Fog.h"
 #include "Fur.h"
-#include "Overlay.h"
+#include "Mesh Overlay.h"
 #include "Light Apply.h"
 /******************************************************************************/
 #ifdef MODE

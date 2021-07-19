@@ -42,20 +42,20 @@ namespace EE{
 /******************************************************************************/
 // SHADER NAMES
 /******************************************************************************/
-Str8 ShaderDeferred  (Int skin, Int materials, Int layout, Int bump_mode, Int alpha_test, Int detail, Int macro, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tesselate) {return S8+skin+materials+layout+bump_mode+alpha_test+detail+macro+color+mtrl_blend+heightmap+fx+tesselate;}
-Str8 ShaderBlendLight(Int skin, Int color    , Int layout, Int bump_mode, Int alpha_test, Int alpha, Int reflect, Int emissive_map, Int fx, Int per_pixel, Int shadow_maps, Int tesselate) {return S8+skin+color+layout+bump_mode+alpha_test+alpha+reflect+emissive_map+fx+per_pixel+shadow_maps+tesselate;}
-Str8 ShaderForward   (Int skin, Int materials, Int layout, Int bump_mode, Int alpha_test, Int reflect, Int emissive_map, Int detail, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tesselate) {return S8+skin+materials+layout+bump_mode+alpha_test+reflect+emissive_map+detail+color+mtrl_blend+heightmap+fx+per_pixel+light_dir+light_dir_shd+light_dir_shd_num+light_point+light_point_shd+light_linear+light_linear_shd+light_cone+light_cone_shd+tesselate;}
+Str8 ShaderDeferred   (Int skin, Int materials, Int layout, Int bump_mode, Int alpha_test, Int detail, Int macro, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tesselate) {return S8+skin+materials+layout+bump_mode+alpha_test+detail+macro+color+mtrl_blend+heightmap+fx+tesselate;}
+Str8 ShaderBlendLight (Int skin, Int color    , Int layout, Int bump_mode, Int alpha_test, Int alpha, Int reflect, Int emissive_map, Int fx, Int per_pixel, Int shadow_maps, Int tesselate) {return S8+skin+color+layout+bump_mode+alpha_test+alpha+reflect+emissive_map+fx+per_pixel+shadow_maps+tesselate;}
+Str8 ShaderForward    (Int skin, Int materials, Int layout, Int bump_mode, Int alpha_test, Int reflect, Int emissive_map, Int detail, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tesselate) {return S8+skin+materials+layout+bump_mode+alpha_test+reflect+emissive_map+detail+color+mtrl_blend+heightmap+fx+per_pixel+light_dir+light_dir_shd+light_dir_shd_num+light_point+light_point_shd+light_linear+light_linear_shd+light_cone+light_cone_shd+tesselate;}
 
-Str8 ShaderBehind    (Int skin, Int alpha_test) {return S8+skin+alpha_test;}
-Str8 ShaderBlend     (Int skin, Int color, Int layout, Int bump_mode, Int reflect, Int emissive_map) {return S8+skin+color+layout+bump_mode+reflect+emissive_map;}
-Str8 ShaderEarlyZ    (Int skin) {return S8+skin;}
-Str8 ShaderEmissive  (Int skin, Int alpha_test, Int emissive_map, Int fx, Int tesselate) {return S8+skin+alpha_test+emissive_map+fx+tesselate;}
-Str8 ShaderFurBase   (Int skin, Int size, Int diffuse) {return S8+"Base"+skin+size+diffuse;}
-Str8 ShaderFurSoft   (Int skin, Int size, Int diffuse) {return S8+"Soft"+skin+size+diffuse;}
-Str8 ShaderOverlay   (Int skin, Int normal, Int layout) {return S8+skin+normal+layout;}
-Str8 ShaderPosition  (Int skin, Int alpha_test, Int test_blend, Int fx, Int tesselate) {return S8+skin+alpha_test+test_blend+fx+tesselate;}
-Str8 ShaderSetColor  (Int skin, Int alpha_test, Int tesselate) {return S8+skin+alpha_test+tesselate;}
-Str8 ShaderTattoo    (Int skin, Int tesselate) {return S8+skin+tesselate;}
+Str8 ShaderBehind     (Int skin, Int alpha_test) {return S8+skin+alpha_test;}
+Str8 ShaderBlend      (Int skin, Int color, Int layout, Int bump_mode, Int reflect, Int emissive_map) {return S8+skin+color+layout+bump_mode+reflect+emissive_map;}
+Str8 ShaderEarlyZ     (Int skin) {return S8+skin;}
+Str8 ShaderEmissive   (Int skin, Int alpha_test, Int emissive_map, Int fx, Int tesselate) {return S8+skin+alpha_test+emissive_map+fx+tesselate;}
+Str8 ShaderFurBase    (Int skin, Int size, Int diffuse) {return S8+"Base"+skin+size+diffuse;}
+Str8 ShaderFurSoft    (Int skin, Int size, Int diffuse) {return S8+"Soft"+skin+size+diffuse;}
+Str8 ShaderMeshOverlay(Int skin, Int normal, Int layout) {return S8+skin+normal+layout;}
+Str8 ShaderPosition   (Int skin, Int alpha_test, Int test_blend, Int fx, Int tesselate) {return S8+skin+alpha_test+test_blend+fx+tesselate;}
+Str8 ShaderSetColor   (Int skin, Int alpha_test, Int tesselate) {return S8+skin+alpha_test+tesselate;}
+Str8 ShaderOverlay    (Int skin, Int tesselate) {return S8+skin+tesselate;}
 /******************************************************************************/
 #if COMPILE_DX || COMPILE_GL || COMPILE_GL_SPIRV
 /******************************************************************************/
@@ -595,14 +595,14 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 
 #ifdef OVERLAY
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Overlay", model, api, flag).New(src_path+"Overlay.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Mesh Overlay", model, api, flag).New(src_path+"Mesh Overlay.cpp");
    REPD(skin  , 2)
    REPD(normal, 2)
    for(Int layout=1; layout<=2; layout++)
       src.New()("SKIN", skin, "NORMALS", normal, "LAYOUT", layout);
 }
 {
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Tattoo", model, api, flag).New(src_path+"Tattoo.cpp");
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Overlay", model, api, flag).New(src_path+"Overlay.cpp");
    REPD(tesselate, tess ? 2 : 1)
    REPD(skin     , 2           )src.New()("SKIN", skin).tesselate(tesselate);
 }

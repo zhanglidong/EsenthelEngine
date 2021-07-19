@@ -184,7 +184,7 @@ Shader* DefaultShaders::Opaque(Bool mirror)C
 }
 Shader* DefaultShaders::Overlay()C
 {
-   if(valid && !fx)return ShaderFiles("Tattoo")->get(ShaderTattoo(skin, tesselate));
+   if(valid && !fx)return ShaderFiles("Overlay")->get(ShaderOverlay(skin, tesselate));
    return null;
 }
 Shader* DefaultShaders::Emissive()C
