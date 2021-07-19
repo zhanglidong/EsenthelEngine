@@ -310,7 +310,7 @@ MeshOverlay& MeshOverlay::material(C MaterialPtr &material)
    return T;
 }
 #pragma pack(push, 4)
-struct GOverlayClass
+struct GPUOverlayClass
 {
    Vec4   param;
    Matrix mtrx ;
@@ -318,7 +318,7 @@ struct GOverlayClass
 #pragma pack(pop)
 void MeshOverlay::setParams(Flt alpha)C // this is called only inside 'draw' methods, so '_material' is assumed to be != null
 {
-   GOverlayClass overlay_params;
+   GPUOverlayClass overlay_params;
    overlay_params.param.set(0.8f, alpha, 0, 0);
    overlay_params.mtrx=_matrix;
    Sh.OverlayParams->set(overlay_params);
