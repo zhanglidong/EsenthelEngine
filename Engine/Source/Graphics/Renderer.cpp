@@ -295,7 +295,7 @@ void RendererClass::adaptEye(ImageRTC &src, ImageRT &dest)
    ImageRTPtr cur=&src;
    VecI2    size=RoundPos(fx()*(D.viewRect().size()/D.size2())); // calculate viewport size in pixels
    Int  max_size=size.min()/4;
-   Int  s=1, num=1; for(;;){Int next_size=s*4; if(next_size>max_size)break; s=next_size; num++;} // go from 1 up to 'max_size', inrease *4 in each step
+   Int  s=1, num=1; for(;;){Int next_size=s*4; if(next_size>max_size)break; s=next_size; num++;} // go from 1 up to 'max_size', increase *4 in each step
    FREP(num) // now go backward, from up to 'max_size' to 1 inclusive
    {
       ImageRTPtr next=cur; next.get(ImageRTDesc(s, s, IMAGERT_F32)); s/=4; // we could use 16-bit as according to calculations, the max error for 1920x1080, starting with 256x256 as first step and going down to 1x1, with average luminance of 1.0 (255 byte) is 0.00244140625 at the final stage, which gives 410 possible colors, however we may use some special tricks in the shader that requires higher precision (for example BRIGHT with Sqr and Sqrt later, or use Linear/sRGB)
@@ -308,6 +308,7 @@ void RendererClass::adaptEye(ImageRTC &src, ImageRT &dest)
    Sh.Step->set(Pow(Mid(1/D.eyeAdaptationSpeed(), EPS, 1.0f), Time.d())); // can use EPS and not EPS_GPU because we're using Pow here and not on GPU
    Sh.ImgXF[0]->set(cur); Sh.ImgXF[1]->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.HdrUpdate                                                      ->draw();
                           Sh.ImgX [0]->set(_eye_adapt_scale[_eye_adapt_scale_cur]);                                                                            set(&dest                                  , null, true ); Hdr.Hdr[D.dither() && src.highPrecision() && !dest.highPrecision()]->draw(src);
+   // even though in the shader we just multiply by luminance, in tests it was faster to always write to new RT rather than do ALPHA_MUL and write to existing RT
 }
 INLINE Shader* GetBloomDS(Bool glow  , Bool view_full, Bool half_res) {Shader* &s=Sh.BloomDS[glow  ][view_full][half_res]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow  , view_full, half_res); return s;}
 INLINE Shader* GetBloom  (Bool dither, Bool alpha                   ) {Shader* &s=Sh.Bloom  [dither][alpha    ]          ; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloom  (dither, alpha              ); return s;}
