@@ -322,7 +322,7 @@ Half IsForeground(Flt raw_z, Vec2 posXY)
 {
 #if 0 // simple version, uses planar distance from camera
    return DEPTH_FOREGROUND(raw_z);
-#else // uses radial distance from camera, works better for sun rays
+#else // uses radial distance from camera, works better for sun rays with sky (this will ignore rendered pixels in the viewport but outside of sky ball)
    #if REVERSE_DEPTH // we can use the simple version for REVERSE_DEPTH
       return                            Length2(GetPos(LinearizeDepth(raw_z), posXY))<Sqr(Viewport.range);
    #else // need safer
