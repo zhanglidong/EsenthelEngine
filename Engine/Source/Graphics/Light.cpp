@@ -1564,16 +1564,16 @@ void Light::drawForward(ALPHA_MODE alpha)
             Renderer.mode(RM_PREPARE); Renderer._render();
             D.clipAllow(true);
          }
-         Renderer.mode(RM_SOLID);
+         Renderer.mode(RM_OPAQUE);
          REPS(Renderer._eye, Renderer._eye_num)
          {
             Renderer.setEyeViewportCam();
             if(CurrentLight.shadow)SetShdMatrix();
             CurrentLight.dir.set();
             if(Renderer.secondaryPass())D.clip(Renderer._clip); // clip rendering to area affected by the light
-            DrawSolidInstances(); Renderer._render();
+            DrawOpaqueInstances(); Renderer._render();
          }
-         ClearSolidInstances();
+         ClearOpaqueInstances();
          D.set2D();
 
          if(Renderer.firstPass()){D.stencil(STENCIL_NONE); Renderer.resolveDepth();}
@@ -1634,7 +1634,7 @@ void Light::drawForward(ALPHA_MODE alpha)
             if(ALWAYS_RESTORE_FRUSTUM)Frustum.clearExtraBall();
             D.clipAllow(true);
          }
-         Renderer.mode(RM_SOLID);
+         Renderer.mode(RM_OPAQUE);
          REPS(Renderer._eye, Renderer._eye_num)
          {
             Renderer.setEyeViewportCam();
@@ -1643,10 +1643,10 @@ void Light::drawForward(ALPHA_MODE alpha)
                if(CurrentLight.shadow)SetShdMatrix();
                CurrentLight.point.set(CurrentLight.shadow_opacity);
                if(Renderer.secondaryPass())D.clip(CurrentLight.rect&Renderer._clip); // clip rendering to area affected by the light
-               DrawSolidInstances(); Renderer._render();
+               DrawOpaqueInstances(); Renderer._render();
             }
          }
-         ClearSolidInstances();
+         ClearOpaqueInstances();
          D.set2D();
 
          if(Renderer.firstPass()){D.stencil(STENCIL_NONE); Renderer.resolveDepth();}
@@ -1711,7 +1711,7 @@ void Light::drawForward(ALPHA_MODE alpha)
             if(ALWAYS_RESTORE_FRUSTUM)Frustum.clearExtraBall();
             D.clipAllow(true);
          }
-         Renderer.mode(RM_SOLID);
+         Renderer.mode(RM_OPAQUE);
          REPS(Renderer._eye, Renderer._eye_num)
          {
             Renderer.setEyeViewportCam();
@@ -1720,10 +1720,10 @@ void Light::drawForward(ALPHA_MODE alpha)
                if(CurrentLight.shadow)SetShdMatrix();
                CurrentLight.linear.set(CurrentLight.shadow_opacity);
                if(Renderer.secondaryPass())D.clip(CurrentLight.rect&Renderer._clip); // clip rendering to area affected by the light
-               DrawSolidInstances(); Renderer._render();
+               DrawOpaqueInstances(); Renderer._render();
             }
          }
-         ClearSolidInstances();
+         ClearOpaqueInstances();
          D.set2D();
 
          if(Renderer.firstPass()){D.stencil(STENCIL_NONE); Renderer.resolveDepth();}
@@ -1785,7 +1785,7 @@ void Light::drawForward(ALPHA_MODE alpha)
             if(ALWAYS_RESTORE_FRUSTUM)Frustum=FrustumMain;
             D.clipAllow(true);
          }
-         Renderer.mode(RM_SOLID);
+         Renderer.mode(RM_OPAQUE);
          REPS(Renderer._eye, Renderer._eye_num)
          {
             Renderer.setEyeViewportCam();
@@ -1794,10 +1794,10 @@ void Light::drawForward(ALPHA_MODE alpha)
                if(CurrentLight.shadow)SetShdMatrix();
                CurrentLight.cone.set(CurrentLight.shadow_opacity);
                if(Renderer.secondaryPass())D.clip(CurrentLight.rect&Renderer._clip); // clip rendering to area affected by the light
-               DrawSolidInstances(); Renderer._render();
+               DrawOpaqueInstances(); Renderer._render();
             }
          }
-         ClearSolidInstances();
+         ClearOpaqueInstances();
          D.set2D();
 
          if(Renderer.firstPass()){D.stencil(STENCIL_NONE); Renderer.resolveDepth();}

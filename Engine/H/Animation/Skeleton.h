@@ -401,8 +401,8 @@ private:
  C Skeleton *_skeleton;
    struct Instance
    {
-      Int solid, blend, shadow;
-      Instance() {solid=blend=shadow=-1;}
+      Int opaque, blend, shadow;
+      Instance() {opaque=blend=shadow=-1;}
    }mutable _instance;
 };
 /******************************************************************************/

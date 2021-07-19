@@ -119,7 +119,7 @@ RendererClass::RendererClass() : material_color_l(null), highlight(null)
    target=null;
    taa_id=null;
 
-  _mode=RM_SOLID;
+  _mode=RM_OPAQUE;
   _mesh_blend_alpha=ALPHA_NONE;
   _has_glow=_has_fur=_mirror=_mirror_want=_mirror_shadows=_palette_mode=_eye_adapt_scale_cur=_t_measure=_set_depth_needed=_get_target=_stereo=_mesh_early_z=_mesh_shader_vel=_taa_use=_taa_reset=false;
   _outline=_clear=0;
@@ -135,11 +135,11 @@ RendererClass::RendererClass() : material_color_l(null), highlight(null)
   _shader_param_changes=null;
    REPAO(_t_measures)=0;
   _t_last_measure=0;
-   REPAO(_t_reflection)=0; REPAO(_t_prepare)=0; REPAO(_t_solid)=0; REPAO(_t_overlay)=0; REPAO(_t_water)=0; REPAO(_t_light)=0; REPAO(_t_emissive)=0; REPAO(_t_sky)=0; REPAO(_t_edge_detect)=0; REPAO(_t_blend)=0; REPAO(_t_palette)=0; REPAO(_t_behind)=0; REPAO(_t_rays)=0; REPAO(_t_refract)=0; REPAO(_t_volumetric)=0; REPAO(_t_post_process)=0; REPAO(_t_gpu_wait)=0;
+   REPAO(_t_reflection)=0; REPAO(_t_prepare)=0; REPAO(_t_opaque)=0; REPAO(_t_overlay)=0; REPAO(_t_water)=0; REPAO(_t_light)=0; REPAO(_t_emissive)=0; REPAO(_t_sky)=0; REPAO(_t_water_under)=0; REPAO(_t_edge_detect)=0; REPAO(_t_blend)=0; REPAO(_t_palette)=0; REPAO(_t_behind)=0; REPAO(_t_rays)=0; REPAO(_t_volumetric)=0; REPAO(_t_post_process)=0; REPAO(_t_gpu_wait)=0;
   _ctx=null;
 #endif
 
-  _solid_mode_index=RM_SOLID;
+  _opaque_mode_index=RM_OPAQUE;
 
    allow_taa=true;
   _ctx_sub=&_ctx_sub_dummy;
@@ -227,10 +227,10 @@ RendererClass& RendererClass::type(RENDER_TYPE type)
 }
 void RendererClass::mode(RENDER_MODE mode)
 {
-   T._mode            =mode;
-   T._palette_mode    =(mode==RM_PALETTE || mode==RM_PALETTE1);
-   T._mesh_shader_vel =(_vel && (mode==RM_SOLID || mode==RM_SOLID_M || mode==RM_BLEND)); // only these modes use velocity
-   T._solid_mode_index=(mirror() ? RM_SOLID_M : RM_SOLID);
+   T._mode             =mode;
+   T._palette_mode     =(mode==RM_PALETTE || mode==RM_PALETTE1);
+   T._mesh_shader_vel  =(_vel && (mode==RM_OPAQUE || mode==RM_OPAQUE_M || mode==RM_BLEND)); // only these modes use velocity
+   T._opaque_mode_index=(mirror() ? RM_OPAQUE_M : RM_OPAQUE);
    D.setFrontFace();
    MaterialClear(); // must be called when changing rendering modes, because when setting materials, we may set only some of their shader values depending on mode
 }
@@ -596,10 +596,10 @@ RendererClass& RendererClass::operator()(void (&render)())
       if(reflection())goto finished; MEASURE(_t_reflection[1])
 
       prepare(); MEASURE(_t_prepare[1])
-      solid  (); MEASURE(_t_solid  [1])
-   #if GL && TILE_BASED_GPU && !WEB // we need to make sure that depth RT is flushed to depth texture on tile-based deferred renderers, this is because on those devices the RT's (including depth buffer) are stored in fast on-chip memory and to be able to read from them, we need to flush them to the texture memory. This is done after reading solid's and before we may read from the depth buffer. No need to do on WEB because there we can never read from depth while writing to it.
+      opaque (); MEASURE(_t_opaque [1])
+   #if GL && TILE_BASED_GPU && !WEB // we need to make sure that depth RT is flushed to depth texture on tile-based deferred renderers, this is because on those devices the RT's (including depth buffer) are stored in fast on-chip memory and to be able to read from them, we need to flush them to the texture memory. This is done after reading opaque's and before we may read from the depth buffer. No need to do on WEB because there we can never read from depth while writing to it.
       if(canReadDepth())
-         if(D.edgeDetect() || D.particlesSoft() || Sky.wantDepth() || Clouds.wantDepth() || Fog.draw/* || Sun.wantDepth()*/) // here we need to check only effects that may read from depth without changing any RT's, because on any RT change the depth is flushed. Sun doesn't bind DS to FBO when drawing rays. TODO: we wouldn't need to do this if all shaders reading from the depth would use gl_LastFragDepth - https://www.khronos.org/registry/OpenGL/extensions/ARM/ARM_shader_framebuffer_fetch_depth_stencil.txt
+         if(D.edgeDetect() || D.particlesSoft() || Sky.wantDepth() || Clouds.wantDepth() || Fog.draw || Water._under_mtrl/* || Sun.wantDepth()*/) // here we need to check only effects that may read from depth without changing any RT's, because on any RT change the depth is flushed. Sun doesn't bind DS to FBO when drawing rays. TODO: we wouldn't need to do this if all shaders reading from the depth would use gl_LastFragDepth - https://www.khronos.org/registry/OpenGL/extensions/ARM/ARM_shader_framebuffer_fetch_depth_stencil.txt
       { // unbinding will force the flush (calling just 'glFlush' was not enough)
          glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT  , GL_RENDERBUFFER, 0);
          glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, 0);
@@ -685,6 +685,7 @@ RendererClass& RendererClass::operator()(void (&render)())
          case RS_EMISSIVE: if(_cur_type==RT_DEFERRED && show(_col, true           ))goto finished; break; // only on deferred renderer
       }
       sky       (); MEASURE(_t_sky[1])
+      waterUnder(); MEASURE(_t_water_under[1])
       edgeDetect(); MEASURE(_t_edge_detect[1])
       blend     (); MEASURE(_t_blend[1])
       if(hasDof())resolveDepth1();
@@ -706,7 +707,6 @@ RendererClass& RendererClass::operator()(void (&render)())
       // all following effects below that modify '_col' (and not create new '_col') should call 'downSample' first, otherwise they should call 'resolveMultiSample'
       if(AstroDrawRays())goto finished; MEASURE(_t_rays[1])
       volumetric  (); MEASURE(_t_volumetric[1])
-      refract     (); MEASURE(_t_refract[1])
       postProcess (); MEASURE(_t_post_process[1])
    finished:;
    }
@@ -719,7 +719,7 @@ RendererClass& RendererClass::operator()(void (&render)())
      _ctx    =null;
      _render =null; // this specifies that we're outside of Rendering
      _final  =null;
-      D.alpha(ALPHA_BLEND); mode(RM_SOLID);
+      D.alpha(ALPHA_BLEND); mode(RM_OPAQUE);
       set(_cur_main, _cur_main_ds, true);
 
       Sky.setFracMulAdd(); // in case user draws billboards/particles outside of Renderer, call before 'cleanup' because this relies on depth buffer being available
@@ -783,7 +783,7 @@ Bool RendererClass::reflection()
 
       // render !! adding new modes here will require setting there D.clipPlane !!
       prepare();
-      solid  ();
+      opaque ();
       light  ();
       sky    ();
       blend  ();
@@ -1141,19 +1141,19 @@ void RendererClass::aoApply()
       }
    }
 }
-void RendererClass::solid()
+void RendererClass::opaque()
 {
    switch(_cur_type)
    {
       case RT_DEFERRED:
       {
-         D.stencil(STENCIL_ALWAYS_SET, 0); D.set3D(); D.depth(true); mode(RM_SOLID);
+         D.stencil(STENCIL_ALWAYS_SET, 0); D.set3D(); D.depth(true); mode(RM_OPAQUE);
          REPS(_eye, _eye_num)
          {
             setEyeViewportCam();
-            DrawSolidInstances(); _render();
+            DrawOpaqueInstances(); _render();
          }
-         ClearSolidInstances();
+         ClearOpaqueInstances();
          D.stencil(STENCIL_NONE); D.set2D();
 
          resolveDepth();
@@ -1189,13 +1189,13 @@ void RendererClass::solid()
             setForwardCol();
            _frst_light_offset=OFFSET(FRST, none);
             D.alpha(alpha);
-            D.stencil(STENCIL_ALWAYS_SET, 0); D.set3D(); D.depth(true); mode(RM_SOLID);
+            D.stencil(STENCIL_ALWAYS_SET, 0); D.set3D(); D.depth(true); mode(RM_OPAQUE);
             REPS(_eye, _eye_num)
             {
                setEyeViewportCam();
-               DrawSolidInstances(); _render();
+               DrawOpaqueInstances(); _render();
             }
-            ClearSolidInstances();
+            ClearOpaqueInstances();
             D.stencil(STENCIL_NONE); D.set2D();
 
             resolveDepth();
@@ -1298,7 +1298,7 @@ void RendererClass::waterPreLight()
    Water._use_secondary_rt=(!Water.max1Light()
                           && canReadDepth()
                           && D._max_rt>=2 // col+nrm #RTOutput
-                          && _cur_type!=RT_FORWARD); // for forward for the moment we can't do it, because all lights have already been applied, but in current mode we expect solids to be drawn (so we have depth set because we copy it, and stencil set because we swap DS to preserve it and restore later)
+                          && _cur_type!=RT_FORWARD); // for forward for the moment we can't do it, because all lights have already been applied, but in current mode we expect opaques to be drawn (so we have depth set because we copy it, and stencil set because we swap DS to preserve it and restore later)
    if(Water._use_secondary_rt)Water.drawSurfaces(); // if we use secondary RT's then we need to draw water surfaces before we calculate lights (otherwise setup lights first and then draw surfaces having shadow-maps known)
 }
 inline Shader* AmbientOcclusion::get(Int quality, Bool jitter, Bool normal)
@@ -1330,7 +1330,7 @@ void RendererClass::ao()
    }
    Sh.Depth->set(ao_depth);
    Bool foreground=_ao->compatible(*_ds_1s);
-   if(_col->multiSample())foreground&=Sky.isActual(); // when having multi-sampling, then allow this optimization only if we're rendering Sky, this is related to smooth edges between solid and sky pixels
+   if(_col->multiSample())foreground&=Sky.isActual(); // when having multi-sampling, then allow this optimization only if we're rendering Sky, this is related to smooth edges between opaque and sky pixels
    if(stage)if(stage==RS_AO || stage==RS_LIGHT_AO)foreground=false; // if we will display AO then set fully
 
    if(foreground)D.depth2DOn(); // this enables depth but disables 'D.depthWrite'
@@ -1416,7 +1416,7 @@ INLINE Shader* GetApplyLight(Int multi_sample, Bool ao, Bool cel_shade, Bool nig
 void RendererClass::light()
 {
    if(processAlpha() && D.independentBlendAvailable())setAlphaFromDepth(); // setup alpha before applying lights instead of after, because after we end up with '_col' already bound, so doing this before will reduce RT changes
-   if(_cur_type==RT_DEFERRED) // on other renderers light is applied when rendering solid
+   if(_cur_type==RT_DEFERRED) // on other renderers light is applied when rendering opaque
    {
       /*
       -set '_ao' as Ambient Occlusion (one channel, without D.ambientColor)
@@ -1537,7 +1537,7 @@ Bool RendererClass::waterPostLight()
          src->copyMs(*temp, false, false, D.viewRect()); Swap(src, temp);
          D.depthLock (true); // we need depth testing
          D.depthWrite(false); // disable depth writing because we can't read and write to same DS
-         if(FUNC_DEFAULT!=FUNC_LESS)D.depthFunc(FUNC_LESS); // process only pixels that are closer (which means water on top of existing solid)
+         if(FUNC_DEFAULT!=FUNC_LESS)D.depthFunc(FUNC_LESS); // process only pixels that are closer (which means water on top of existing opaque)
       }
       if(_col==src)_col.get(ImageRTDesc(_col->w(), _col->h(), GetImageRTType(_col->type()), _col->samples())); // can't read and write to same RT, in multi-sampling we're writing back to '_col' as it's not changed
 
@@ -1617,6 +1617,27 @@ void RendererClass::sky()
    if(!mirror())AstroDraw();
    Clouds.drawAll();
       Fog.Draw(true);
+}
+void RendererClass::waterUnder()
+{
+   if(Water._under_mtrl && canReadDepth() && !fastCombine())
+   {
+      WS.load();
+    C WaterMtrl &under=*Water._under_mtrl;
+
+      Flt under_step=Sat(Water._under_step);
+
+      set(_col, null, true);
+      D .alpha(ALPHA_BLEND_DEC);
+      Sh.Step->set(Time.time());
+      under.set();
+      WS.WaterPlanePos          ->set(Water._under_plane.pos   *CamMatrixInv      );
+      WS.WaterPlaneNrm          ->set(Water._under_plane.normal*CamMatrixInv.orn());
+      WS.WaterUnderStep         ->set(under_step);
+      WS.Water_color_underwater0->set(under.color_underwater0);
+      WS.Water_color_underwater1->set(under.color_underwater1);
+      REPS(_eye, _eye_num)WS.Under->draw(setEyeParams());
+   }
 }
 void RendererClass::tAA()
 {
@@ -2032,34 +2053,6 @@ void RendererClass::volumetric()
       D.alpha(D.volAdd() ? ALPHA_ADD      : ALPHA_BLEND_DEC);
              (D.volAdd() ? VL.VolumetricA : VL.Volumetric)->draw(_vol);
      _vol.clear();
-   }
-}
-void RendererClass::refract() // !! assumes that 'finalizeGlow' was called !!
-{
-   if(Water._under_mtrl && canReadDepth() && !fastCombine())
-   {
-      WS.load();
-    C WaterMtrl &under=*Water._under_mtrl;
-
-      Flt   under_step =Sat(Water._under_step),
-            refract_val=under_step*under.refract_underwater;
-      Bool  refract=(refract_val>EPS_MATERIAL_BUMP);
-      if(  !refract)downSample        (); // we're modifying existing RT, so downSample if needed
-      else          resolveMultiSample(); // we're writing to new RT so resolve the old first
-      ImageRTPtr src=_col;
-      if(   refract)_col.get(ImageRTDesc(Min(_col->w(), _final->w()), Min(_col->h(), _final->h()), GetImageRTType(_has_glow, D.litColRTPrecision()))); // #RTOutput
-
-      set(_col, null, true);
-      D .alpha(refract ? ALPHA_NONE : ALPHA_BLEND_DEC);
-      Sh.Step->set(Time.time());
-      under.set();
-      WS.WaterPlanePos           ->set(Water._under_plane.pos   *CamMatrixInv      );
-      WS.WaterPlaneNrm           ->set(Water._under_plane.normal*CamMatrixInv.orn());
-      WS.WaterUnderStep          ->set(under_step);
-      WS.Water_refract_underwater->set(refract_val);
-      WS.Water_color_underwater0 ->set(under.color_underwater0);
-      WS.Water_color_underwater1 ->set(under.color_underwater1);
-      REPS(_eye, _eye_num)WS.Under[refract]->draw(src, setEyeParams());
    }
 }
 void RendererClass::postProcess()

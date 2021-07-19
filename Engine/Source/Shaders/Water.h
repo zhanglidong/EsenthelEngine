@@ -31,7 +31,6 @@ BUFFER(Water)
    VecH Water_color_underwater0,
         Water_color_underwater1;
    Half WaterUnderStep;
-   Flt  Water_refract_underwater;
    Flt  WaterFlow,
         WaterOfsNrm,
         WaterOfsBump;

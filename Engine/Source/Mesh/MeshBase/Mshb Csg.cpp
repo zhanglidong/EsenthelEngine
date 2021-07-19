@@ -576,7 +576,7 @@ struct CSG // Constructive Solid Geometry
          }
       }
    }
-   void setSolid(MeshBase &mshb, C MeshBase &a, C MeshBase &b)
+   void setOpaque(MeshBase &mshb, C MeshBase &a, C MeshBase &b)
    {
       mshb.setVtxDup().setAdjacencies(true, false);
 
@@ -770,7 +770,7 @@ struct CSG // Constructive Solid Geometry
       Bool               id=FlagTest(a.flag()|b.flag(), FACE_ID);
       MeshBase           temp;
       build             (temp, ((a.flag()|b.flag())&VTX_ALL) | TRI_FLAG | (id ? FACE_ID : MESH_NONE));
-      setSolid          (temp, a, b);
+      setOpaque         (temp, a, b);
    #if DEBUG
       if(!Kb.b(KB_R))
    #endif

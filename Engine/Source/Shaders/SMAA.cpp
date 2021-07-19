@@ -31,7 +31,7 @@ void SMAAEdge_VS(VtxInput vtx,
      NOPERSP out Vec4 offset[3]:OFFSET,
      NOPERSP out Vec4 position :POSITION)
 {
-   position=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+   position=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
    uv      =vtx.uv();
    SMAAEdgeDetectionVS(uv, offset);
 }
@@ -47,7 +47,7 @@ void SMAABlend_VS(VtxInput vtx,
       NOPERSP out Vec4 offset[3]:OFFSET,
       NOPERSP out Vec4 position :POSITION)
 {
-   position=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+   position=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
    uv      =vtx.uv();
    SMAABlendingWeightCalculationVS(uv, pixcoord, offset);
 }
@@ -63,7 +63,7 @@ void SMAA_VS(VtxInput vtx,
  NOPERSP out Vec4 offset  :OFFSET,
  NOPERSP out Vec4 position:POSITION)
 {
-   position=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+   position=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
    uv      =vtx.uv();
    SMAANeighborhoodBlendingVS(uv, offset);
 }
@@ -99,7 +99,7 @@ void MLAA_VS(VtxInput vtx,
  NOPERSP out Vec4 outTexOffset[2]:TEXCOORD1,
  NOPERSP out Vec4 pixel          :POSITION )
 {
-   pixel          =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+   pixel          =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
    outTex         =vtx.uv();
    outTexOffset[0]=RTSize.xyxy*Vec4(-1, 0, 0,-1)+outTex.xyxy;
    outTexOffset[1]=RTSize.xyxy*Vec4( 1, 0, 0, 1)+outTex.xyxy;

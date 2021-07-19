@@ -32,7 +32,7 @@ void Color_PS
 #endif
    VecH  nrm:NORMAL,
 
-   out DeferredSolidOutput output
+   out DeferredOutput output
 )
 {
 #if VTX_COL

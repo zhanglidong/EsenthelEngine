@@ -977,20 +977,19 @@ void WaterShader::load()
 {
    if(!shader)if(shader=ShaderFiles("Water"))
    {
-      WaterMaterial           =GetShaderParam("WaterMaterial");
-      Water_color_underwater0 =GetShaderParam("Water_color_underwater0");
-      Water_color_underwater1 =GetShaderParam("Water_color_underwater1");
-      Water_refract_underwater=GetShaderParam("Water_refract_underwater");
-      WaterUnderStep          =GetShaderParam("WaterUnderStep");
-      WaterOfsCol             =GetShaderParam("WaterOfsCol");
-      WaterOfsNrm             =GetShaderParam("WaterOfsNrm");
-      WaterOfsBump            =GetShaderParam("WaterOfsBump");
-      WaterYMulAdd            =GetShaderParam("WaterYMulAdd");
-      WaterPlanePos           =GetShaderParam("WaterPlanePos");
-      WaterPlaneNrm           =GetShaderParam("WaterPlaneNrm");
-      WaterFlow               =GetShaderParam("WaterFlow");
-      WaterReflectMulAdd      =GetShaderParam("WaterReflectMulAdd");
-      WaterClamp              =GetShaderParam("WaterClamp");
+      WaterMaterial          =GetShaderParam("WaterMaterial");
+      Water_color_underwater0=GetShaderParam("Water_color_underwater0");
+      Water_color_underwater1=GetShaderParam("Water_color_underwater1");
+      WaterUnderStep         =GetShaderParam("WaterUnderStep");
+      WaterOfsCol            =GetShaderParam("WaterOfsCol");
+      WaterOfsNrm            =GetShaderParam("WaterOfsNrm");
+      WaterOfsBump           =GetShaderParam("WaterOfsBump");
+      WaterYMulAdd           =GetShaderParam("WaterYMulAdd");
+      WaterPlanePos          =GetShaderParam("WaterPlanePos");
+      WaterPlaneNrm          =GetShaderParam("WaterPlaneNrm");
+      WaterFlow              =GetShaderParam("WaterFlow");
+      WaterReflectMulAdd     =GetShaderParam("WaterReflectMulAdd");
+      WaterClamp             =GetShaderParam("WaterClamp");
 
       Bool gather=D.gatherAvailable();
       Lake =shader->get(S8+"Lake" +0+0+0+0+0+0);
@@ -1010,8 +1009,8 @@ void WaterShader::load()
             }
             REPD(depth, 2)Apply[depth][reflect_env][reflect_mirror][refract]=shader->get(S8+"Apply"+depth+reflect_env+reflect_mirror+refract+gather);
          }
-         Under[refract]=shader->get(S8+"Under"+refract);
       }
+      Under=shader->get("Under");
    }
 }
 /******************************************************************************/

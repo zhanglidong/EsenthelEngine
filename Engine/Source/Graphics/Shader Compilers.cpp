@@ -680,8 +680,8 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
          REPD(set_depth, 2)
             src.New("Apply", "DrawUVPosXY_VS", "Apply_PS")("SET_DEPTH", set_depth)("REFLECT_ENV", reflect_env, "REFLECT_MIRROR", reflect_mirror, "REFRACT", refract, "GATHER", gather).gather(gather);
       }
-      src.New("Under", refract ? "DrawUVPosXY_VS" : "DrawPosXY_VS", "Under_PS")("REFRACT", refract);
    }
+   src.New("Under", "DrawPosXY_VS", "Under_PS");
 }
 #endif
 

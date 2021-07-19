@@ -28,7 +28,7 @@ namespace EE{
 
    '_gui' is set to '_main', unless stereoscopic rendering is enabled then it's set to VR RT
 
-   If using Renderer.combine or Renderer.alpha (Renderer.processAlpha && D.independentBlendAvailable) #RTOutput.Blend then after all non-blended meshes are drawn:
+   If using Renderer.combine or Renderer.alpha (Renderer.processAlpha && D.independentBlendAvailable) #RTOutput.Blend then after all opaque meshes are drawn:
      -'_alpha' RT is created and set as RT2
      -ALPHA_MODE states such as ALPHA_BLEND_DEC ALPHA_BLEND_FACTOR are set to Increase RT2
      -all alpha-blended effects output alpha into RT2:
@@ -251,18 +251,18 @@ void RendererClass::update()
 
         _t_reflection  [0]=_t_reflection  [1]*mul;            _t_reflection  [1]=0;
         _t_prepare     [0]=_t_prepare     [1]*mul;            _t_prepare     [1]=0;
-        _t_solid       [0]=_t_solid       [1]*mul;            _t_solid       [1]=0;
+        _t_opaque      [0]=_t_opaque      [1]*mul;            _t_opaque      [1]=0;
         _t_overlay     [0]=_t_overlay     [1]*mul;            _t_overlay     [1]=0;
         _t_water       [0]=_t_water       [1]*mul;            _t_water       [1]=0;
         _t_light       [0]=_t_light       [1]*mul;            _t_light       [1]=0;
         _t_emissive    [0]=_t_emissive    [1]*mul;            _t_emissive    [1]=0;
         _t_sky         [0]=_t_sky         [1]*mul;            _t_sky         [1]=0;
+        _t_water_under [0]=_t_water_under [1]*mul;            _t_water_under [1]=0;
         _t_edge_detect [0]=_t_edge_detect [1]*mul;            _t_edge_detect [1]=0;
         _t_blend       [0]=_t_blend       [1]*mul;            _t_blend       [1]=0;
         _t_palette     [0]=_t_palette     [1]*mul;            _t_palette     [1]=0;
         _t_behind      [0]=_t_behind      [1]*mul;            _t_behind      [1]=0;
         _t_rays        [0]=_t_rays        [1]*mul;            _t_rays        [1]=0;
-        _t_refract     [0]=_t_refract     [1]*mul;            _t_refract     [1]=0;
         _t_volumetric  [0]=_t_volumetric  [1]*mul;            _t_volumetric  [1]=0;
         _t_post_process[0]=_t_post_process[1]*mul;            _t_post_process[1]=0;
         _t_gpu_wait    [0]=_t_gpu_wait    [1]/_t_measures[1]; _t_gpu_wait    [1]=0; // '_t_gpu_wait' has it's own counter (_t_measures[1]) because it's called once per frame, while others can be called multiple times per frame

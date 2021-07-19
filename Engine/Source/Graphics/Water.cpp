@@ -38,7 +38,6 @@ WaterMtrl::WaterMtrl()
 
    refract           =0.10f;
    refract_reflection=0.06f;
-   refract_underwater=0.01f;
 }
 /******************************************************************************/
 WaterMtrl& WaterMtrl:: colorMap(C ImagePtr &image) {T. _color_map=image; return T;}
@@ -70,6 +69,7 @@ Bool WaterMtrl::save(File &f, CChar *path)C
 {
    f.cmpUIntV(2); // version
 
+   Flt refract_underwater=0.01f;
    f<<SCAST(C WaterMtrlParams, T)
     <<color_underwater0
     <<color_underwater1
@@ -85,6 +85,7 @@ Bool WaterMtrl::save(File &f, CChar *path)C
 Bool WaterMtrl::load(File &f, CChar *path)
 {
    Char temp[MAX_LONG_PATH];
+   Flt  refract_underwater;
    switch(f.decUIntV()) // version
    {
       case 2:
@@ -332,7 +333,7 @@ void WaterClass::begin()
          }
 
          // set RT's and depth buffer
-         if(Shader *shader=Sh.SetDepth) // if we can copy depth buffer from existing solid's, then do it, to prevent drawing water pixels if they're occluded
+         if(Shader *shader=Sh.SetDepth) // if we can copy depth buffer from existing opaque's, then do it, to prevent drawing water pixels if they're occluded
          {
             Renderer.set(null, Renderer._water_ds, true);
             D.depthLock  (true); D.depthFunc(FUNC_ALWAYS ); D.stencil(STENCIL_ALWAYS_SET, 0); shader->draw();

@@ -22,9 +22,8 @@ struct WaterMtrlParams // Water Material Parameters
 };
 struct WaterMtrl : WaterMtrlParams // Water Material
 {
-   Vec color_underwater0 , // color when viewed underwater on surface Linear Gamma, (0,0,0)..(1,1,1)
-       color_underwater1 ; // color when viewed underwater deep       Linear Gamma, (0,0,0)..(1,1,1)
-   Flt refract_underwater; // refraction when viewed underwater                   ,       0..1      , default=0.01 (0 is the fastest)
+   Vec color_underwater0, // color when viewed underwater on surface Linear Gamma, (0,0,0)..(1,1,1)
+       color_underwater1; // color when viewed underwater deep       Linear Gamma, (0,0,0)..(1,1,1)
 
  C Vec& colorUnderwater0L()C {return color_underwater0;}   void colorUnderwater0L(C Vec &color_l) {T.color_underwater0=color_l;} // get/set Linear Gamma color
    Vec  colorUnderwater0S()C;                              void colorUnderwater0S(C Vec &color_s);                               // get/set sRGB   Gamma color, default=(0.26, 0.35, 0.42)

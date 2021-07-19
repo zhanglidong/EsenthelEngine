@@ -254,7 +254,7 @@ void PS
 #if FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
  , IS_FRONT
 #endif
- , out DeferredSolidOutput output
+ , out DeferredOutput output
 )
 {
    VecH col, nrm;

@@ -324,7 +324,7 @@ static void SetRandomBend(MeshBase &mesh)
 // MANAGE
 /******************************************************************************/
      MeshPart::Variation::Variation() {zero();}
-void MeshPart::Variation::zero     () {last_solid_instance=last_shadow_instance=-1; REPAO(shader)=null; frst=null; blst=null;}
+void MeshPart::Variation::zero     () {last_opaque_instance=last_shadow_instance=-1; REPAO(shader)=null; frst=null; blst=null;}
 void MeshPart::Variation::del      () {material.clear(); zero();}
 Bool MeshPart::Variation::save     (File &f, CChar *path)C {f.putAsset(material.id());              return f.ok();}
 Bool MeshPart::Variation::load     (File &f, CChar *path)  {material.require(f.getAssetID(), path); return f.ok();}
@@ -879,7 +879,7 @@ MeshPart& MeshPart::operator+=(C MeshPart &src)
    return T;
 }
 /******************************************************************************/
-void MeshPart::unlinkSolid ()C {_variation.unlinkSolid (); REPAO(_variations).unlinkSolid ();}
+void MeshPart::unlinkOpaque()C {_variation.unlinkOpaque(); REPAO(_variations).unlinkOpaque();}
 void MeshPart::unlinkShadow()C {_variation.unlinkShadow(); REPAO(_variations).unlinkShadow();}
 void MeshPart::unlink      ()C {_variation.unlink      (); REPAO(_variations).unlink      ();}
 /******************************************************************************/

@@ -108,7 +108,7 @@ void FogBoxI_VS(VtxInput vtx,
    mtrx[2]=ViewMatrixZ(); size.z=Length(mtrx[2]); mtrx[2]/=size.z;
                           size.w=Max(size.xyz);
 
-   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
    posXY=UVToPosXY(vtx.uv());
 }
 void FogBoxI_PS
@@ -208,7 +208,7 @@ void FogBallI_VS(VtxInput vtx,
     NOINTERP out Flt  size :SIZE,
     NOPERSP  out Vec4 pixel:POSITION)
 {
-   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
    posXY=UVToPosXY(vtx.uv());
    size =Length(ViewMatrixX());
 }

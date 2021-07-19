@@ -105,27 +105,27 @@ void ShaderMaterial::unlink()
 #endif
 }
 /******************************************************************************/
-Memc<Material::MaterialShader        > MaterialShaders;
-Memc<      ShaderDraw                > ShaderDraws, MultiMaterialShaderDraws;
-Memc<      ShaderMaterial            >       ShaderMaterials;
-Memc<      ShaderMaterialMesh        >       ShaderMaterialMeshes;
-Memc< SolidShaderMaterialMeshInstance>  SolidShaderMaterialMeshInstances;
-Memc<ShadowShaderMaterialMeshInstance> ShadowShaderMaterialMeshInstances;
-Memc<                EmissiveInstance>                 EmissiveInstances;
+Memc<Material::MaterialShader         > MaterialShaders;
+Memc<       ShaderDraw                > ShaderDraws, MultiMaterialShaderDraws;
+Memc<       ShaderMaterial            >       ShaderMaterials;
+Memc<       ShaderMaterialMesh        >       ShaderMaterialMeshes;
+Memc< OpaqueShaderMaterialMeshInstance> OpaqueShaderMaterialMeshInstances;
+Memc< ShadowShaderMaterialMeshInstance> ShadowShaderMaterialMeshInstances;
+Memc<                 EmissiveInstance>                 EmissiveInstances;
 
-Memc<     SkeletonShader                    > SkeletonShaders;
-Memc<     SkeletonBlendShader               > SkeletonBlendShaders;
-Memc<     SkeletonShaderMaterial            > SkeletonShaderMaterials, SkeletonBlendShaderMaterials;
-Memc<     SkeletonShaderMaterialMeshInstance> SkeletonShadowShaderMaterialMeshInstances;
-Memc<SkeletonSolidShaderMaterialMeshInstance>  SkeletonSolidShaderMaterialMeshInstances;
-Memc<SkeletonBlendShaderMaterialMeshInstance>  SkeletonBlendShaderMaterialMeshInstances;
-     SkeletonInstances                         SkeletonSolidInstances, SkeletonShadowInstances;
-Memc<SkeletonEmissiveInstance               >  SkeletonEmissiveInstances;
+Memc<      SkeletonShader                    > SkeletonShaders;
+Memc<      SkeletonBlendShader               > SkeletonBlendShaders;
+Memc<      SkeletonShaderMaterial            > SkeletonShaderMaterials, SkeletonBlendShaderMaterials;
+Memc<      SkeletonShaderMaterialMeshInstance> SkeletonShadowShaderMaterialMeshInstances;
+Memc<SkeletonOpaqueShaderMaterialMeshInstance> SkeletonOpaqueShaderMaterialMeshInstances;
+Memc< SkeletonBlendShaderMaterialMeshInstance>  SkeletonBlendShaderMaterialMeshInstances;
+      SkeletonInstances                         SkeletonOpaqueInstances, SkeletonShadowInstances;
+Memc< SkeletonEmissiveInstance               >  SkeletonEmissiveInstances;
 
 BlendInstancesClass BlendInstances;
-//ClothInstances      SolidClothInstances, ShadowClothInstances;
+//ClothInstances      OpaqueClothInstances, ShadowClothInstances;
 
-GameObjects PaletteObjects, Palette1Objects, OverlayObjects, SolidObjects, EmissiveObjects, OutlineObjects, BehindObjects;
+GameObjects PaletteObjects, Palette1Objects, OverlayObjects, OpaqueObjects, EmissiveObjects, OutlineObjects, BehindObjects;
 GameAreas   PaletteAreas  , Palette1Areas;
 /******************************************************************************/
 #if 0 // this doesn't work, because we need to adjust ViewMatrix and not ProjMatrix (for example Shadows in Forward Renderer will not work, because 'Data.pos' in shaders depends on ViewMatrix only, it affects shadows, and reflections, etc.)
@@ -199,14 +199,14 @@ void ClearEarlyZInstances()
 }
 #endif
 /******************************************************************************/
-// SOLID
+// OPAQUE
 /******************************************************************************/
-static INLINE void DrawSolidInstances(Bool forward) // !! this function should be safe to call 2 times in a row for both eyes, so can't do any clearing/unlinking that would break things !!
+static INLINE void DrawOpaqueInstances(Bool forward) // !! this function should be safe to call 2 times in a row for both eyes, so can't do any clearing/unlinking that would break things !!
 {
    SetViewOffset();
    BeginPrecomputedViewMatrix();
 
-   // solid
+   // opaque
  //SetMatrixCount(); not needed since we always call this before drawing
    DisableSkinning();
    FREPA(ShaderDraws)
@@ -222,20 +222,20 @@ static INLINE void DrawSolidInstances(Bool forward) // !! this function should b
        C MeshPart::Variation *variation           =&shader_material_mesh->Variation(); // have to access 'variation' here, because we need it to access 'material' since we're not storing it in the 'ShaderMaterial'
        C Material            &material            = variation->getMaterial();
       #endif
-         material.unlinkSolid(); material.setSolid(); D.cull(material.cull); shader.commitTex();
+         material.unlinkOpaque(); material.setOpaque(); D.cull(material.cull); shader.commitTex();
 
          for(;;)
          {
           C MeshPart   &mesh=*shader_material_mesh->mesh;
          #if SUPPORT_MATERIAL_CHANGE_IN_RENDERING
-            mesh.unlinkSolid();
+            mesh.unlinkOpaque();
          #else
-            variation->unlinkSolid();
+            variation->unlinkOpaque();
          #endif
           C MeshRender &render=mesh.render.set();
           C Bool        instancing_mesh=!(render.flag()&VTX_SKIN); // can do instancing only if mesh doesn't have skinning (otherwise a skinned shader is set which does not use instancing)
 
-            for(SolidShaderMaterialMeshInstance *instance=&SolidShaderMaterialMeshInstances[shader_material_mesh->first_instance]; ; )
+            for(OpaqueShaderMaterialMeshInstance *instance=&OpaqueShaderMaterialMeshInstances[shader_material_mesh->first_instance]; ; )
             {
                             SetViewMatrix        (instance->view_matrix.cur     ); Sh.ViewMatrix    ->setChanged();
                if(!forward){SetViewMatrixPrev    (instance->view_matrix.prev    ); Sh.ViewMatrixPrev->setChanged();}
@@ -245,7 +245,7 @@ static INLINE void DrawSolidInstances(Bool forward) // !! this function should b
                Int instances=1;
                if( instancing_mesh)for(; instance->next_instance>=0; )
                {
-                  SolidShaderMaterialMeshInstance &next=SolidShaderMaterialMeshInstances[instance->next_instance];
+                  OpaqueShaderMaterialMeshInstance &next=OpaqueShaderMaterialMeshInstances[instance->next_instance];
                   if(next.highlight           ==instance->highlight
                   && next.shader_param_changes==instance->shader_param_changes
                   && next.stencil_value       ==instance->stencil_value)
@@ -258,8 +258,8 @@ static INLINE void DrawSolidInstances(Bool forward) // !! this function should b
                }
                SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.draw();
 
-                                                       if(instance->next_instance<0)break;
-               instance=&SolidShaderMaterialMeshInstances[instance->next_instance];
+                                                        if(instance->next_instance<0)break;
+               instance=&OpaqueShaderMaterialMeshInstances[instance->next_instance];
             }
                                                     if(shader_material_mesh->next_shader_material_mesh<0)break;
             shader_material_mesh=&ShaderMaterialMeshes[shader_material_mesh->next_shader_material_mesh];
@@ -280,24 +280,24 @@ static INLINE void DrawSolidInstances(Bool forward) // !! this function should b
 
    // skeleton
    EnableSkinning();
-   FREPA(SkeletonSolidInstances)
+   FREPA(SkeletonOpaqueInstances)
    {
-          SkeletonInstance &skel=SkeletonSolidInstances[i]; skel.unlinkSolid(); skel.anim_skel->setMatrix();
+          SkeletonInstance &skel=SkeletonOpaqueInstances[i]; skel.unlinkOpaque(); skel.anim_skel->setMatrix();
       for(SkeletonShader   *skel_shader=&skel.skel_shader; ; )
       {
          Shader &shader=skel_shader->shader->getShader(forward); shader.start();
          for(SkeletonShaderMaterial *skel_shader_material=&skel_shader->material; ; )
          {
-          C Material &material=*skel_shader_material->material; material.setSolid(); D.cull(material.cull); shader.commitTex();
+          C Material &material=*skel_shader_material->material; material.setOpaque(); D.cull(material.cull); shader.commitTex();
             Bool shader_params_changed=true;
-            for(SkeletonSolidShaderMaterialMeshInstance *instance=&SkeletonSolidShaderMaterialMeshInstances[skel_shader_material->first_mesh_instance]; ; )
+            for(SkeletonOpaqueShaderMaterialMeshInstance *instance=&SkeletonOpaqueShaderMaterialMeshInstances[skel_shader_material->first_mesh_instance]; ; )
             {
                   shader_params_changed|=_SetHighlight         (instance->highlight);
                   shader_params_changed|= SetShaderParamChanges(instance->shader_param_changes);
                if(shader_params_changed){shader_params_changed=false; shader.commit();}
                instance->mesh->set().draw();
-                                                               if(instance->next_instance<0)break;
-               instance=&SkeletonSolidShaderMaterialMeshInstances[instance->next_instance];
+                                                                if(instance->next_instance<0)break;
+               instance=&SkeletonOpaqueShaderMaterialMeshInstances[instance->next_instance];
             }
             SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
                                                        if(skel_shader_material->next_skeleton_shader_material<0)break;
@@ -307,19 +307,19 @@ static INLINE void DrawSolidInstances(Bool forward) // !! this function should b
          skel_shader=&SkeletonShaders[skel_shader->next_skeleton_shader];
       }
    }
-   // can't clear 'SkeletonSolidInstances' because we might need it for second eye rendering
+   // can't clear 'SkeletonOpaqueInstances' because we might need it for second eye rendering
 
    /*// cloth
-   if(SolidClothInstances.elms())
+   if(OpaqueClothInstances.elms())
    {
       SetOneMatrixAndPrev(); // current cloth shaders might use velocity
       {
          SetDefaultVAO(); D.vf(VI._vf3D_cloth.vf); // OpenGL requires setting 1)VAO 2)VB+IB 3)VF
-         FREPA(SolidClothInstances)
+         FREPA(OpaqueClothInstances)
          {
-            ClothInstance &ci=SolidClothInstances[i];
+            ClothInstance &ci=OpaqueClothInstances[i];
             Shader   &shader  = ci.shader  ->getShader(forward);
-          C Material &material=*ci.material; material.setSolid(); D.cull(material.cull);
+          C Material &material=*ci.material; material.setOpaque(); D.cull(material.cull);
            _SetHighlight(ci.highlight);
             shader.begin(); ci.cloth->_drawPhysical();
          }
@@ -357,15 +357,15 @@ static INLINE void DrawSolidInstances(Bool forward) // !! this function should b
           C MeshPart            &mesh     =*shader_material_mesh->mesh;
           C MeshRender          &render   = mesh.render.set();
          #if SUPPORT_MATERIAL_CHANGE_IN_RENDERING
-            mesh.unlinkSolid();
+            mesh.unlinkOpaque();
          #else
-          C MeshPart::Variation &variation= shader_material_mesh->Variation(); variation.unlinkSolid();
+          C MeshPart::Variation &variation= shader_material_mesh->Variation(); variation.unlinkOpaque();
          #endif
          #if MULTI_MATERIAL_INSTANCING
           C Bool                 instancing_mesh=!(render.flag()&VTX_SKIN); // can do instancing only if mesh doesn't have skinning (otherwise a skinned shader is set which does not use instancing)
          #endif
 
-            for(SolidShaderMaterialMeshInstance *instance=&SolidShaderMaterialMeshInstances[shader_material_mesh->first_instance]; ; )
+            for(OpaqueShaderMaterialMeshInstance *instance=&OpaqueShaderMaterialMeshInstances[shader_material_mesh->first_instance]; ; )
             {
                             SetViewMatrix        (instance->view_matrix.cur     ); Sh.ViewMatrix    ->setChanged();
                if(!forward){SetViewMatrixPrev    (instance->view_matrix.prev    ); Sh.ViewMatrixPrev->setChanged();}
@@ -376,7 +376,7 @@ static INLINE void DrawSolidInstances(Bool forward) // !! this function should b
             #if MULTI_MATERIAL_INSTANCING
                if( instancing_mesh)for(; instance->next_instance>=0; )
                {
-                  SolidShaderMaterialMeshInstance &next=SolidShaderMaterialMeshInstances[instance->next_instance];
+                  OpaqueShaderMaterialMeshInstance &next=OpaqueShaderMaterialMeshInstances[instance->next_instance];
                   if(next.highlight           ==instance->highlight
                   && next.shader_param_changes==instance->shader_param_changes
                   && next.stencil_value       ==instance->stencil_value)
@@ -391,8 +391,8 @@ static INLINE void DrawSolidInstances(Bool forward) // !! this function should b
             #endif
                shader.commit(); if(instances>1)render.drawInstanced(instances);else render.draw();
 
-                                                       if(instance->next_instance<0)break;
-               instance=&SolidShaderMaterialMeshInstances[instance->next_instance];
+                                                        if(instance->next_instance<0)break;
+               instance=&OpaqueShaderMaterialMeshInstances[instance->next_instance];
             }
 
                                                     if(shader_material_mesh->next_shader_material_mesh<0)break;
@@ -411,28 +411,28 @@ static INLINE void DrawSolidInstances(Bool forward) // !! this function should b
   _SetHighlight(TRANSPARENT);
    EndPrecomputedViewMatrix();
 
-   FREPAO(SolidObjects)->drawSolid();
+   FREPAO(OpaqueObjects)->drawOpaque();
 }
-void ClearSolidInstances()
+void ClearOpaqueInstances()
 {
    MaterialShaders                    .clear();
            ShaderDraws                .clear(); MultiMaterialShaderDraws.clear();
            ShaderMaterials            .clear();
            ShaderMaterialMeshes       .clear();
-      SolidShaderMaterialMeshInstances.clear();
+     OpaqueShaderMaterialMeshInstances.clear();
 
-   SkeletonShaders                         .clear();
-   SkeletonShaderMaterials                 .clear();
-   SkeletonSolidShaderMaterialMeshInstances.clear();
-   SkeletonSolidInstances                  .clear();
+   SkeletonShaders                          .clear();
+   SkeletonShaderMaterials                  .clear();
+   SkeletonOpaqueShaderMaterialMeshInstances.clear();
+   SkeletonOpaqueInstances                  .clear();
 
- //SolidClothInstances.clear();
-          SolidObjects.clear();
+ //OpaqueClothInstances.clear();
+          OpaqueObjects.clear();
 }
-void DrawSolidInstances()
+void DrawOpaqueInstances()
 {
-   if(Renderer._cur_type!=RT_FORWARD)DrawSolidInstances(false);
-   else                              DrawSolidInstances(true );
+   if(Renderer._cur_type!=RT_FORWARD)DrawOpaqueInstances(false);
+   else                              DrawOpaqueInstances(true );
 }
 /******************************************************************************/
 // AMBIENT
@@ -546,7 +546,7 @@ void DrawShadowInstances() // this is called only 1 time and not for each eye
 {
    // this doesn't require 'ViewOffset' and 'BeginPrecomputedViewMatrix' because shadows are drawn only 1 time, and not for each eye
 
-   // solid
+   // opaque
    SetMatrixCount();
    DisableSkinning();
    for(Int i=ShaderDrawsNum; i<ShaderDraws.elms(); i++)
@@ -641,7 +641,7 @@ void DrawShadowInstances() // this is called only 1 time and not for each eye
       }
    }
 
-   // we can't just clear all containers, because in Forward renderer there's still data needed for solid shaders which are processed after shadows, so restore to what we had before drawing shadows
+   // we can't just clear all containers, because in Forward renderer there's still data needed for opaque shaders which are processed after shadows, so restore to what we had before drawing shadows
    MaterialShaders                    .setNum(MaterialShadersNum);
            ShaderDraws                .setNum(        ShaderDrawsNum);
            ShaderMaterials            .setNum(        ShaderMaterialsNum);
@@ -677,13 +677,13 @@ void DrawShadowInstances() // this is called only 1 time and not for each eye
 /******************************************************************************/
 Int Compare(C BlendInstance &a, C BlendInstance &b)
 {
-   if(Int z=Compare   (a.z         , b.z         ))return z;
+   if(Int z=Compare   (a.z            , b.z            ))return z;
    // compare other values in case 'z' is the same (which means the same object draws many parts with the same matrix, which may cause flickering)
    // compare by shader, material, mesh, because that's the order of rendering
-   if(Int c=ComparePtr(a.s.shader  , b.s.shader  ))return c;
-   if(Int c=ComparePtr(a.s.material, b.s.material))return c;
-   if(Int c=ComparePtr(a.s.mesh    , b.s.mesh    ))return c;
-                                                   return 0;
+   if(Int c=ComparePtr(a.stat.shader  , b.stat.shader  ))return c;
+   if(Int c=ComparePtr(a.stat.material, b.stat.material))return c;
+   if(Int c=ComparePtr(a.stat.mesh    , b.stat.mesh    ))return c;
+                                                         return 0;
 }
 void ClearBlendInstances()
 {
@@ -702,38 +702,38 @@ void DrawBlendInstances() // !! this function should be safe to call 2 times in 
    {
       BlendInstance *object=&BlendInstances[i]; switch(object->type)
       {
-         case BlendInstance::SOLID:
+         case BlendInstance::STATIC:
          {
             ec.BeginPrecomputedViewMatrix();
             DisableSkinning();
             // this doesn't use velocities
-            Shader     &shader  =*object->s.shader  ; shader.start();
-         solid_shader:
-          C Material   &material=*object->s.material; material.setBlend(); D.cull(material.cull); D.depthWrite(material._depth_write); Renderer.needDepthTest(); shader.commitTex(); // !! 'needDepthTest' after 'depthWrite' !!
-         solid_shader_material:
-          C MeshRender &render  = object->s.mesh->render.set();
-           _SetHighlight         (object->s.highlight);
-            D.stencil            (object->s.stencil_mode);
-            SetShaderParamChanges(object->s.shader_param_changes);
-            SetViewMatrix        (object->s.view_matrix.cur ); Sh.ViewMatrix    ->setChanged();
-            SetViewMatrixPrev    (object->s.view_matrix.prev); Sh.ViewMatrixPrev->setChanged();
+            Shader     &shader  =*object->stat.shader  ; shader.start();
+         opaque_shader:
+          C Material   &material=*object->stat.material; material.setBlend(); D.cull(material.cull); D.depthWrite(material._depth_write); Renderer.needDepthTest(); shader.commitTex(); // !! 'needDepthTest' after 'depthWrite' !!
+         opaque_shader_material:
+          C MeshRender &render  = object->stat.mesh->render.set();
+           _SetHighlight         (object->stat.highlight);
+            D.stencil            (object->stat.stencil_mode);
+            SetShaderParamChanges(object->stat.shader_param_changes);
+            SetViewMatrix        (object->stat.view_matrix.cur ); Sh.ViewMatrix    ->setChanged();
+            SetViewMatrixPrev    (object->stat.view_matrix.prev); Sh.ViewMatrixPrev->setChanged();
             const Bool instancing_mesh=!(render.flag()&VTX_SKIN); // can do instancing only if mesh doesn't have skinning (otherwise a skinned shader is set which does not use instancing)
             Int instances=1;
             for(; i; ) // if there's next one
             {
                BlendInstance &next=BlendInstances[i-1]; // grab next
-               if(next.s.shader==&shader // same shader
-             //&& next.type==BlendInstance::SOLID not needed since if the shader is the same, then type should be the same too, make debug assertion below just in case
+               if(next.stat.shader==&shader // same shader
+             //&& next.type==BlendInstance::STATIC not needed since if the shader is the same, then type should be the same too, make debug assertion below just in case
                )
                {
-                  DEBUG_ASSERT(next.type==BlendInstance::SOLID, "Blend Instance type");
+                  DEBUG_ASSERT(next.type==BlendInstance::STATIC, "Blend Instance type");
                   i--; // we will process this instance
-                  if(next.s.material==&material) // same material
+                  if(next.stat.material==&material) // same material
                   {
-                     if(&next.s.mesh->render==&render
-                     &&  next.s.highlight==Highlight
-                     &&  next.s.shader_param_changes==LastChanges
-                     &&  next.s.stencil_mode==D._stencil)
+                     if(&next.stat.mesh->render==&render
+                     &&  next.stat.highlight==Highlight
+                     &&  next.stat.shader_param_changes==LastChanges
+                     &&  next.stat.stencil_mode==D._stencil)
                      {
                         if(instancing_mesh)
                         {
@@ -744,25 +744,25 @@ void DrawBlendInstances() // !! this function should be safe to call 2 times in 
                               Sh.ViewMatrix    ->setChanged(); // mark as modified
                               Sh.ViewMatrixPrev->setChanged(); // mark as modified
                            }
-                           SetViewMatrix    (next.s.view_matrix.cur , instances);
-                           SetViewMatrixPrev(next.s.view_matrix.prev, instances);
+                           SetViewMatrix    (next.stat.view_matrix.cur , instances);
+                           SetViewMatrixPrev(next.stat.view_matrix.prev, instances);
                            instances++;
                         }else
                         {
                            SetMatrixCount(); shader.commit(); render.draw(); // draw what we have
-                           SetViewMatrix    (next.s.view_matrix.cur ); Sh.ViewMatrix    ->setChanged();
-                           SetViewMatrixPrev(next.s.view_matrix.prev); Sh.ViewMatrixPrev->setChanged();
+                           SetViewMatrix    (next.stat.view_matrix.cur ); Sh.ViewMatrix    ->setChanged();
+                           SetViewMatrixPrev(next.stat.view_matrix.prev); Sh.ViewMatrixPrev->setChanged();
                         }
                      }else // we have the same shader/material, but different mesh/params
                      {
                         SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.draw(); // draw what we have
-                        object=&next; goto solid_shader_material;
+                        object=&next; goto opaque_shader_material;
                      }
                   }else // we have the same shader, but different material/mesh/params
                   {
                      SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.draw(); // draw what we have
                      SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
-                     object=&next; goto solid_shader;
+                     object=&next; goto opaque_shader;
                   }
                }else break;
             }
@@ -770,37 +770,37 @@ void DrawBlendInstances() // !! this function should be safe to call 2 times in 
             SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
          }break;
 
-         case BlendInstance::SOLID_BLST:
+         case BlendInstance::STATIC_BLST:
          {
             ec.BeginPrecomputedViewMatrix();
             DisableSkinning();
-            Shader     &shader  = object->s.shader->asBlendShader(); shader.start();
-         solid_blst_shader:
-          C Material   &material=*object->s.material; material.setBlend(); D.cull(material.cull); D.depthWrite(material._depth_write); Renderer.needDepthTest(); shader.commitTex(); // !! 'needDepthTest' after 'depthWrite' !!
-         solid_blst_shader_material:
-          C MeshRender &render  = object->s.mesh->render.set();
-           _SetHighlight         (object->s.highlight);
-            D.stencil            (object->s.stencil_mode);
-            SetShaderParamChanges(object->s.shader_param_changes);
-            SetViewMatrix        (object->s.view_matrix.cur ); Sh.ViewMatrix    ->setChanged();
-            SetViewMatrixPrev    (object->s.view_matrix.prev); Sh.ViewMatrixPrev->setChanged();
+            Shader     &shader  = object->stat.shader->asBlendShader(); shader.start();
+         opaque_blst_shader:
+          C Material   &material=*object->stat.material; material.setBlend(); D.cull(material.cull); D.depthWrite(material._depth_write); Renderer.needDepthTest(); shader.commitTex(); // !! 'needDepthTest' after 'depthWrite' !!
+         opaque_blst_shader_material:
+          C MeshRender &render  = object->stat.mesh->render.set();
+           _SetHighlight         (object->stat.highlight);
+            D.stencil            (object->stat.stencil_mode);
+            SetShaderParamChanges(object->stat.shader_param_changes);
+            SetViewMatrix        (object->stat.view_matrix.cur ); Sh.ViewMatrix    ->setChanged();
+            SetViewMatrixPrev    (object->stat.view_matrix.prev); Sh.ViewMatrixPrev->setChanged();
             const Bool instancing_mesh=!(render.flag()&VTX_SKIN); // can do instancing only if mesh doesn't have skinning (otherwise a skinned shader is set which does not use instancing)
             Int instances=1;
             for(; i; ) // if there's next one
             {
                BlendInstance &next=BlendInstances[i-1]; // grab next
-               if(next.s.blst==object->s.blst // same shader
-             //&& next.type==BlendInstance::SOLID_BLST not needed since if the shader is the same, then type should be the same too, make debug assertion below just in case
+               if(next.stat.blst==object->stat.blst // same shader
+             //&& next.type==BlendInstance::STATIC_BLST not needed since if the shader is the same, then type should be the same too, make debug assertion below just in case
                )
                {
-                  DEBUG_ASSERT(next.type==BlendInstance::SOLID_BLST, "Blend Instance type");
+                  DEBUG_ASSERT(next.type==BlendInstance::STATIC_BLST, "Blend Instance type");
                   i--; // we will process this instance
-                  if(next.s.material==&material) // same material
+                  if(next.stat.material==&material) // same material
                   {
-                     if(&next.s.mesh->render        ==&render
-                     &&  next.s.highlight           ==Highlight
-                     &&  next.s.shader_param_changes==LastChanges
-                     &&  next.s.stencil_mode        ==D._stencil)
+                     if(&next.stat.mesh->render        ==&render
+                     &&  next.stat.highlight           ==Highlight
+                     &&  next.stat.shader_param_changes==LastChanges
+                     &&  next.stat.stencil_mode        ==D._stencil)
                      {
                         if(instancing_mesh)
                         {
@@ -811,25 +811,25 @@ void DrawBlendInstances() // !! this function should be safe to call 2 times in 
                               Sh.ViewMatrix    ->setChanged(); // mark as modified
                               Sh.ViewMatrixPrev->setChanged(); // mark as modified
                            }
-                           SetViewMatrix    (next.s.view_matrix.cur , instances);
-                           SetViewMatrixPrev(next.s.view_matrix.prev, instances);
+                           SetViewMatrix    (next.stat.view_matrix.cur , instances);
+                           SetViewMatrixPrev(next.stat.view_matrix.prev, instances);
                            instances++;
                         }else
                         {
                            SetMatrixCount(); shader.commit(); render.draw(); // draw what we have
-                           SetViewMatrix    (next.s.view_matrix.cur ); Sh.ViewMatrix    ->setChanged();
-                           SetViewMatrixPrev(next.s.view_matrix.prev); Sh.ViewMatrixPrev->setChanged();
+                           SetViewMatrix    (next.stat.view_matrix.cur ); Sh.ViewMatrix    ->setChanged();
+                           SetViewMatrixPrev(next.stat.view_matrix.prev); Sh.ViewMatrixPrev->setChanged();
                         }
                      }else // we have the same shader/material, but different mesh/params
                      {
                         SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.draw(); // draw what we have
-                        object=&next; goto solid_blst_shader_material;
+                        object=&next; goto opaque_blst_shader_material;
                      }
                   }else // we have the same shader, but different material/mesh/params
                   {
                      SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.draw(); // draw what we have
                      SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
-                     object=&next; goto solid_blst_shader;
+                     object=&next; goto opaque_blst_shader;
                   }
                }else break;
             }
@@ -837,22 +837,22 @@ void DrawBlendInstances() // !! this function should be safe to call 2 times in 
             SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
          }break;
 
-         case BlendInstance::SOLID_FUR:
+         case BlendInstance::STATIC_FUR:
          {
             ec.BeginPrecomputedViewMatrix();
             DisableSkinning();
-            Flt scale=object->s.view_matrix.cur.x.length()/D._view_active.fov_tan.y; if(FovPerspective(D.viewFovMode()))scale/=object->s.view_matrix.cur.pos.z;
+            Flt scale=object->stat.view_matrix.cur.x.length()/D._view_active.fov_tan.y; if(FovPerspective(D.viewFovMode()))scale/=object->stat.view_matrix.cur.pos.z;
             D.stencil            (STENCIL_NONE);
             SetMatrixCount       ();
             SetFurVelCount       ();
-            SetViewMatrix        (object->s.view_matrix.cur ); Sh.ViewMatrix    ->setChanged();
-            SetViewMatrixPrev    (object->s.view_matrix.prev); Sh.ViewMatrixPrev->setChanged();
-           _SetHighlight         (object->s.highlight);
-            SetShaderParamChanges(object->s.shader_param_changes);
+            SetViewMatrix        (object->stat.view_matrix.cur ); Sh.ViewMatrix    ->setChanged();
+            SetViewMatrixPrev    (object->stat.view_matrix.prev); Sh.ViewMatrixPrev->setChanged();
+           _SetHighlight         (object->stat.highlight);
+            SetShaderParamChanges(object->stat.shader_param_changes);
 
-            Shader     &shader  =*object->s.shader;
-          C Material   &material=*object->s.material; material.setBlend(); D.cull(material.cull); D.depthWrite(material._depth_write); Renderer.needDepthTest(); // !! 'needDepthTest' after 'depthWrite' !!
-          C MeshRender &render  = object->s.mesh->render.set();
+            Shader     &shader  =*object->stat.shader;
+          C Material   &material=*object->stat.material; material.setBlend(); D.cull(material.cull); D.depthWrite(material._depth_write); Renderer.needDepthTest(); // !! 'needDepthTest' after 'depthWrite' !!
+          C MeshRender &render  = object->stat.mesh->render.set();
             shader.begin(); DrawFur(render, shader, scale);
             SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
          }break;
@@ -864,12 +864,12 @@ void DrawBlendInstances() // !! this function should be safe to call 2 times in 
                 SkeletonBlendInstance &skel=object->skeleton; skel.unlinkBlend(); skel.anim_skel->setMatrix(); Bool fur_set=false; Flt fur_scale;
             for(SkeletonBlendShader   *skel_shader=&skel.skel_shader; ; )
             {
-               if(skel_shader->type==BlendInstance::SOLID_FUR && !fur_set)
+               if(skel_shader->type==BlendInstance::STATIC_FUR && !fur_set)
                {
                   fur_set=true; skel.anim_skel->setFurVel(); // !! needs to be called before 'shader.start' !!
                   fur_scale=skel.anim_skel->matrix().x.length()/D._view_active.fov_tan.y; if(FovPerspective(D.viewFovMode()))fur_scale/=DistPointActiveCamPlaneZ(skel.anim_skel->pos());
                }
-               Shader &shader=skel_shader->shader->getBlendShader(skel_shader->type==BlendInstance::SOLID_BLST); shader.start();
+               Shader &shader=skel_shader->shader->getBlendShader(skel_shader->type==BlendInstance::STATIC_BLST); shader.start();
                for(SkeletonShaderMaterial *skel_shader_material=&skel_shader->material; ; )
                {
                 C Material &material=*skel_shader_material->material; material.setBlend(); D.cull(material.cull); D.depthWrite(material._depth_write); Renderer.needDepthTest(); shader.commitTex(); // !! 'needDepthTest' after 'depthWrite' !!
@@ -880,9 +880,9 @@ void DrawBlendInstances() // !! this function should be safe to call 2 times in 
                         shader_params_changed|=_SetHighlight         (instance->highlight);
                         shader_params_changed|= SetShaderParamChanges(instance->shader_param_changes);
                      if(shader_params_changed){shader_params_changed=false; shader.commit();}
-                                                                    instance->mesh->set();
-                     if(skel_shader->type!=BlendInstance::SOLID_FUR)instance->mesh->draw();
-                     else                                  DrawFur(*instance->mesh, shader, fur_scale);
+                                                                     instance->mesh->set();
+                     if(skel_shader->type!=BlendInstance::STATIC_FUR)instance->mesh->draw();
+                     else                                   DrawFur(*instance->mesh, shader, fur_scale);
                                                                      if(instance->next_instance<0)break;
                      instance=&SkeletonBlendShaderMaterialMeshInstances[instance->next_instance];
                   }
@@ -951,7 +951,7 @@ void ShutInstances()
     MultiMaterialShaderDraws                .del();
                  ShaderMaterials            .del();
                  ShaderMaterialMeshes       .del();
-            SolidShaderMaterialMeshInstances.del();
+           OpaqueShaderMaterialMeshInstances.del();
            ShadowShaderMaterialMeshInstances.del();
                            EmissiveInstances.del();
    SkeletonShaders                          .del();
@@ -959,17 +959,17 @@ void ShutInstances()
    SkeletonShaderMaterials                  .del();
    SkeletonBlendShaderMaterials             .del();
    SkeletonShadowShaderMaterialMeshInstances.del();
-   SkeletonSolidShaderMaterialMeshInstances .del();
+   SkeletonOpaqueShaderMaterialMeshInstances.del();
    SkeletonBlendShaderMaterialMeshInstances .del();
-   SkeletonSolidInstances                   .del();
+   SkeletonOpaqueInstances                  .del();
    SkeletonShadowInstances                  .del();
    SkeletonEmissiveInstances                .del();
 
    BlendInstances.del();
 
-   //SolidClothInstances.del(); ShadowClothInstances.del();
+   //OpaqueClothInstances.del(); ShadowClothInstances.del();
 
-   PaletteObjects.del(); Palette1Objects.del(); OverlayObjects.del(); SolidObjects.del(); EmissiveObjects.del(); OutlineObjects.del(); BehindObjects.del();
+   PaletteObjects.del(); Palette1Objects.del(); OverlayObjects.del(); OpaqueObjects.del(); EmissiveObjects.del(); OutlineObjects.del(); BehindObjects.del();
    PaletteAreas  .del(); Palette1Areas  .del();
 }
 void InitInstances()
@@ -979,16 +979,16 @@ void InitInstances()
     MultiMaterialShaderDraws                .reserve( 4);
                  ShaderMaterials            .reserve(16);
                  ShaderMaterialMeshes       .reserve(16);
-            SolidShaderMaterialMeshInstances.reserve(16);
+           OpaqueShaderMaterialMeshInstances.reserve(16);
            ShadowShaderMaterialMeshInstances.reserve(16);
    SkeletonShaders                          .reserve(16);
    SkeletonBlendShaders                     .reserve(16);
    SkeletonShaderMaterials                  .reserve(16);
    SkeletonBlendShaderMaterials             .reserve(16);
    SkeletonShadowShaderMaterialMeshInstances.reserve(16);
-   SkeletonSolidShaderMaterialMeshInstances .reserve(16);
+   SkeletonOpaqueShaderMaterialMeshInstances.reserve(16);
    SkeletonBlendShaderMaterialMeshInstances .reserve(16);
-   SkeletonSolidInstances                   .reserve(16);
+   SkeletonOpaqueInstances                  .reserve(16);
    SkeletonShadowInstances                  .reserve(16);
    BlendInstances                           .reserve(16);
 }
@@ -1006,7 +1006,7 @@ void ClearInstances()
    REPAO(MultiMaterialShaderDraws         ).unlink(); MultiMaterialShaderDraws                .clear();
    REPAO(             ShaderMaterials     ).unlink();              ShaderMaterials            .clear(); // !! unlink before 'ShaderMaterialMeshes' !! because 'ShaderMaterial.unlink' makes use of 'ShaderMaterialMeshes'
    REPAO(             ShaderMaterialMeshes).unlink();              ShaderMaterialMeshes       .clear(); // !! unlink after  'ShaderMaterials'      !!
-                                                              SolidShaderMaterialMeshInstances.clear();
+                                                             OpaqueShaderMaterialMeshInstances.clear();
                                                              ShadowShaderMaterialMeshInstances.clear();
                                                                              EmissiveInstances.clear();
 
@@ -1015,17 +1015,17 @@ void ClearInstances()
                                                   SkeletonShaderMaterials                  .clear();
                                                   SkeletonBlendShaderMaterials             .clear();
                                                   SkeletonShadowShaderMaterialMeshInstances.clear();
-                                                  SkeletonSolidShaderMaterialMeshInstances .clear();
+                                                  SkeletonOpaqueShaderMaterialMeshInstances.clear();
                                                   SkeletonBlendShaderMaterialMeshInstances .clear();
-   REPAO(SkeletonSolidInstances ).unlinkSolid (); SkeletonSolidInstances                   .clear();
+   REPAO(SkeletonOpaqueInstances).unlinkOpaque(); SkeletonOpaqueInstances                  .clear();
    REPAO(SkeletonShadowInstances).unlinkShadow(); SkeletonShadowInstances                  .clear();
                                                   SkeletonEmissiveInstances                .clear();
 
    REPAO(BlendInstances).unlink(); BlendInstances.clear();
 
-   //SolidClothInstances.clear(); ShadowClothInstances.clear();
+   //OpaqueClothInstances.clear(); ShadowClothInstances.clear();
 
-   PaletteObjects.clear(); Palette1Objects.clear(); OverlayObjects.clear(); SolidObjects.clear(); EmissiveObjects.clear(); OutlineObjects.clear(); BehindObjects.clear();
+   PaletteObjects.clear(); Palette1Objects.clear(); OverlayObjects.clear(); OpaqueObjects.clear(); EmissiveObjects.clear(); OutlineObjects.clear(); BehindObjects.clear();
    PaletteAreas  .clear(); Palette1Areas  .clear();
 
 #if DEBUG && 0

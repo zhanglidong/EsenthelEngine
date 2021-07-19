@@ -865,8 +865,8 @@ void DisplayState::create()
          for(Int i=1; i<Elms(desc.RenderTarget); i++)desc.RenderTarget[i]=desc.RenderTarget[0];
          desc.RenderTarget[2]. SrcBlend     =D3D11_BLEND_INV_DEST_COLOR;
          desc.RenderTarget[2].DestBlend     =D3D11_BLEND_ONE           ;
-         desc.RenderTarget[2]. SrcBlendAlpha=D3D11_BLEND_ZERO          ;
-         desc.RenderTarget[2].DestBlendAlpha=D3D11_BLEND_ONE           ;
+         desc.RenderTarget[2]. SrcBlendAlpha=D3D11_BLEND_ZERO          ; // these are ignored because alpha RT is R8
+         desc.RenderTarget[2].DestBlendAlpha=D3D11_BLEND_ONE           ; // these are ignored because alpha RT is R8
       }
       BlendStates[ALPHA_BLEND_DEC].create(desc);
    }
@@ -949,8 +949,8 @@ void DisplayState::create()
          for(Int i=1; i<Elms(desc.RenderTarget); i++)desc.RenderTarget[i]=desc.RenderTarget[0];
          desc.RenderTarget[2]. SrcBlend     =D3D11_BLEND_INV_DEST_COLOR;
          desc.RenderTarget[2].DestBlend     =D3D11_BLEND_ONE           ;
-         desc.RenderTarget[2]. SrcBlendAlpha=D3D11_BLEND_ZERO          ;
-         desc.RenderTarget[2].DestBlendAlpha=D3D11_BLEND_ONE           ;
+         desc.RenderTarget[2]. SrcBlendAlpha=D3D11_BLEND_ZERO          ; // these are ignored because alpha RT is R8
+         desc.RenderTarget[2].DestBlendAlpha=D3D11_BLEND_ONE           ; // these are ignored because alpha RT is R8
       }
       BlendStates[ALPHA_BLEND_FACTOR].create(desc);
    }

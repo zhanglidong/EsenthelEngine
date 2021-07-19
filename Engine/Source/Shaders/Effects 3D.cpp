@@ -156,11 +156,11 @@ void Laser_VS(VtxInput vtx,
 #endif
    pixel=Project(outPos=TransformPos(vtx.pos()));
 }
-void Laser_PS(Vec                 inPos:TEXCOORD0,
+void Laser_PS(Vec            inPos:TEXCOORD0,
            #if NORMALS
-              VecH                inNrm:TEXCOORD1,
+              VecH           inNrm:TEXCOORD1,
            #endif
-          out DeferredSolidOutput output         )
+          out DeferredOutput output         )
 {
 #if NORMALS
          inNrm=Normalize(inNrm);
@@ -213,7 +213,7 @@ void Decal_VS(VtxInput vtx,
 #endif
 
 #if FULLSCREEN
-   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
 #else
    pixel=Project(TransformPos(vtx.pos()));
 #endif

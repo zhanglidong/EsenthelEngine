@@ -1373,14 +1373,14 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
 void Draw_VS(VtxInput vtx,
           NOPERSP out Vec4 pixel:POSITION)
 {
-   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
 }
 void DrawUV_VS(VtxInput vtx,
    NOPERSP out Vec2 uv   :UV,
    NOPERSP out Vec4 pixel:POSITION)
 {
    uv   =vtx.uv();
-   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
 }
 void DrawUVPosXY_VS(VtxInput vtx,
         NOPERSP out Vec2 uv   :UV    ,
@@ -1389,14 +1389,14 @@ void DrawUVPosXY_VS(VtxInput vtx,
 {
    uv   =vtx.uv();
    posXY=UVToPosXY(uv);
-   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
 }
 void DrawPosXY_VS(VtxInput vtx,
       NOPERSP out Vec2 posXY:POS_XY,
       NOPERSP out Vec4 pixel:POSITION)
 {
    posXY=UVToPosXY(vtx.uv());
-   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
 }
 void Draw2DTex_VS(VtxInput vtx,
       NOPERSP out Vec2 uv   :UV,
@@ -2250,7 +2250,7 @@ Half ShadowConeValue(Vec pos, Vec2 jitter_value, Bool jitter)
    return CompareDepth(p.xyz, jitter_value, jitter);
 }
 /******************************************************************************/
-struct DeferredSolidOutput // use this structure in Pixel Shader for setting the output of RT_DEFERRED solid modes
+struct DeferredOutput // use this structure in Pixel Shader for setting the output of RT_DEFERRED modes
 {
    // #RTOutput
    VecH4 out0:TARGET0; // Col, Glow

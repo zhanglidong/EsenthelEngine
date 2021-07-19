@@ -171,7 +171,7 @@ Shader* DefaultShaders::EarlyZ()C
 #endif
    return null;
 }
-Shader* DefaultShaders::Solid(Bool mirror)C
+Shader* DefaultShaders::Opaque(Bool mirror)C
 {
    if(valid && !alpha_blend && Renderer.anyDeferred())
    {
@@ -226,8 +226,8 @@ Shader* DefaultShaders::get(RENDER_MODE mode)C
    {
       default         : return null;
       case RM_EARLY_Z : return EarlyZ();
-      case RM_SOLID   : return Solid();
-      case RM_SOLID_M : return Solid(true);
+      case RM_OPAQUE  : return Opaque();
+      case RM_OPAQUE_M: return Opaque(true);
       case RM_OVERLAY : return Overlay();
       case RM_EMISSIVE: return Emissive();
       case RM_OUTLINE : return Outline();
@@ -290,8 +290,8 @@ void DefaultShaders::set(Shader *shader[RM_SHADER_NUM], FRST **frst, BLST **blst
    if(shader)
    {
       shader[RM_EARLY_Z ]=EarlyZ();
-      shader[RM_SOLID   ]=Solid();
-      shader[RM_SOLID_M ]=Solid(true);
+      shader[RM_OPAQUE  ]=Opaque();
+      shader[RM_OPAQUE_M]=Opaque(true);
       shader[RM_OVERLAY ]=Overlay();
       shader[RM_EMISSIVE]=Emissive();
       shader[RM_OUTLINE ]=Outline();

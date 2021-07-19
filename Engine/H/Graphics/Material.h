@@ -6,7 +6,7 @@
 /******************************************************************************/
 enum MATERIAL_TECHNIQUE : Byte // Material Techniques
 {
-   MTECH_DEFAULT               , // standard rendering of solid (opaque) materials
+   MTECH_DEFAULT               , // standard rendering of opaque materials
    MTECH_ALPHA_TEST            , // indicates that textures alpha channel will be used as models transparency (this is slightly slower than Default as alpha testing may disable some hardware-level optimizations)
    MTECH_FUR                   , // mesh will be rendered with fur effect, the mesh will be wrapped with additional fur imitating textures, in this technique "detail scale" specifies fur intensity, "detail power" specifies fur length, supported only in Deferred Renderer
    MTECH_GRASS                 , // mesh vertexes will bend on the wind like grass, bending intensity is determined by mesh vertex source Y position, which should be in the range from 0 to 1
@@ -121,7 +121,7 @@ struct Material : MaterialParams // Mesh Rendering Material - contains render pa
    Bool hasLeaf2D           ()C;                                          // if material technique involves 2D Leaf  Bending
    Bool hasLeaf3D           ()C;                                          // if material technique involves 3D Leaf  Bending
 
-   void setSolid     (     )C;
+   void setOpaque    (     )C;
    void setEmissive  (     )C;
    void setBlend     (     )C;
    void setBlendForce(     )C;
@@ -154,7 +154,7 @@ private:
       void unlink()  {shader=null; /*next_material_shader=-1;*/} // clearing 'next_material_shader' is not needed, because we check it only when "shader!=null"
       Bool empty ()C {return shader==null;}
    #endif
-   }mutable _solid_material_shader, _shadow_material_shader; // have to keep 2 separate, because in forward renderer we queue solid draw calls, but before we draw them, we process shadows first. These store information about the first shader for this material (most materials will use only one shader during rendering), but if there are more shaders needed, then they contain indexes to next shaders in 'MaterialShaders' container
+   }mutable _opaque_material_shader, _shadow_material_shader; // have to keep 2 separate, because in forward renderer we queue opaque draw calls, but before we draw them, we process shadows first. These store information about the first shader for this material (most materials will use only one shader during rendering), but if there are more shaders needed, then they contain indexes to next shaders in 'MaterialShaders' container
 #if COUNT_MATERIAL_USAGE
     mutable Int _usage;
 #endif
@@ -170,13 +170,13 @@ private:
    void   decUsage()C {}
    Bool emptyUsage()C {return true;}
 #endif
-   void  clearSolid ()C { _solid_material_shader.clear();}
+   void  clearOpaque()C {_opaque_material_shader.clear();}
    void  clearShadow()C {_shadow_material_shader.clear();}
-   void  clear      ()C {clearSolid(); clearShadow(); clearUsage();}
-   void unlinkSolid ()C { _solid_material_shader.unlink();}
+   void  clear      ()C {clearOpaque(); clearShadow(); clearUsage();}
+   void unlinkOpaque()C {_opaque_material_shader.unlink();}
    void unlinkShadow()C {_shadow_material_shader.unlink();}
-   void unlink      ()C {unlinkSolid(); unlinkShadow();}
-   Bool canBeRemoved()C {return _solid_material_shader.empty() && _shadow_material_shader.empty() && emptyUsage();}
+   void unlink      ()C {unlinkOpaque(); unlinkShadow();}
+   Bool canBeRemoved()C {return _opaque_material_shader.empty() && _shadow_material_shader.empty() && emptyUsage();}
 #endif
 };
 #if EE_PRIVATE

@@ -68,7 +68,7 @@ void Base_PS
 #if USE_VEL
    PIXEL,
 #endif
-   out DeferredSolidOutput output
+   out DeferredOutput output
 )
 {
    Half fur=Tex(FurCol, I.uv*Material.det_uv_scale).r;

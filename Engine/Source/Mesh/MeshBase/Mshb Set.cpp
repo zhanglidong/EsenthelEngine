@@ -426,7 +426,7 @@ MeshBase& MeshBase::setAutoTanBin()
    return T;
 }
 /******************************************************************************
-MeshBase& setSolid      (                            ); // fill 'edge.flag' EDGE_FLAG with solid info
+MeshBase& setSolid(); // fill 'edge.flag' EDGE_FLAG with solid info
 
 MeshBase& MeshBase::setSolid()
 {

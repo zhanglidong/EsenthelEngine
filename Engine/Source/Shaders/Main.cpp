@@ -468,11 +468,11 @@ void ClearDeferred_VS(VtxInput vtx,
    Vec prev_pos=Transform3(view_pos, ViewToViewPrev); // view_pos/ViewMatrix*ViewMatrixPrev, use 'Transform3' to rotate only (angular velocity) and skip movement (linear velocity)
    projected_prev_pos_xyw=ProjectPrevXYW(prev_pos);
 
-   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
 }
 void ClearDeferred_PS(NOPERSP Vec2 uv                    :UV,
                       NOPERSP Vec  projected_prev_pos_xyw:PREV_POS,
-           out DeferredSolidOutput output) // #RTOutput
+                out DeferredOutput output) // #RTOutput
 {
    output.color      (0);
    output.glow       (0);

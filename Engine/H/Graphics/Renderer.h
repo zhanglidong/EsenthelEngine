@@ -16,9 +16,9 @@ ASSERT(RT_DEFERRED==0); // keep Deferred as the first value as it's the most imp
 #endif
 enum RENDER_MODE : Byte // Rendering Mode, rendering phase of the rendering process
 {
-   RM_SOLID   , // solid
-   RM_SOLID_M , // solid in mirrors/reflections
-   RM_OVERLAY , // overlay mode for rendering semi transparent surfaces onto solid meshes (like bullet holes)
+   RM_OPAQUE  , // opaque
+   RM_OPAQUE_M, // opaque in mirrors/reflections
+   RM_OVERLAY , // overlay mode for rendering semi transparent surfaces onto opaque meshes (like bullet holes)
    RM_EMISSIVE, // emissive
    RM_OUTLINE , // here you can optionally draw outlines of meshes using 'Mesh.drawOutline'
    RM_BEHIND  , // here you can optionally draw meshes which are behind the visible meshes using 'Mesh.drawBehind'
@@ -32,7 +32,7 @@ enum RENDER_MODE : Byte // Rendering Mode, rendering phase of the rendering proc
    RM_PALETTE1, // color palette #1 (rendering is performed using 'D.colorPalette1' texture)
    RM_PREPARE , // render all objects here using 'Mesh.draw', and add all lights to the scene using 'Light*.add'
 
-   RM_SHADER_NUM=RM_EARLY_Z+SUPPORT_EARLY_Z, // all modes from start RM_SOLID to RM_EARLY_Z are included in the 'MeshPart' shader lookup list
+   RM_SHADER_NUM=RM_EARLY_Z+SUPPORT_EARLY_Z, // all modes from start RM_OPAQUE to RM_EARLY_Z are included in the 'MeshPart' shader lookup list
 };
 enum RENDER_STAGE : Byte // Rendering Stage, allows displaying only desired rendering stages
 {
@@ -146,18 +146,18 @@ struct RendererClass // handles rendering
    Bool timeMeasure    (       )C {return _t_measure        ;}
    Flt  timeReflection (       )C {return _t_reflection  [0];}
    Flt  timePrepare    (       )C {return _t_prepare     [0];}
-   Flt  timeSolid      (       )C {return _t_solid       [0];}
+   Flt  timeOpaque     (       )C {return _t_opaque      [0];}
    Flt  timeOverlay    (       )C {return _t_overlay     [0];}
    Flt  timeWater      (       )C {return _t_water       [0];}
    Flt  timeLight      (       )C {return _t_light       [0];}
    Flt  timeEmissive   (       )C {return _t_emissive    [0];}
    Flt  timeSky        (       )C {return _t_sky         [0];}
+   Flt  timeWaterUnder (       )C {return _t_water_under [0];}
    Flt  timeEdgeDetect (       )C {return _t_edge_detect [0];}
    Flt  timeBlend      (       )C {return _t_blend       [0];}
    Flt  timePalette    (       )C {return _t_palette     [0];}
    Flt  timeBehind     (       )C {return _t_behind      [0];}
    Flt  timeRays       (       )C {return _t_rays        [0];}
-   Flt  timeRefract    (       )C {return _t_refract     [0];}
    Flt  timeVolumetric (       )C {return _t_volumetric  [0];}
    Flt  timePostProcess(       )C {return _t_post_process[0];}
    Flt  timeGpuWait    (       )C {return _t_gpu_wait    [0];}
@@ -192,13 +192,14 @@ struct RendererClass // handles rendering
    Bool reflection        ();
    void prepare           ();
    void setForwardCol     ();
-   void solid             ();
+   void opaque            ();
    void overlay           ();
    void waterPreLight     ();
    void light             ();
    Bool waterPostLight    ();
    void emissive          ();
    void sky               ();
+   void waterUnder        ();
    void edgeDetect        ();
    void tAACheck          ();
    void tAA               ();
@@ -214,7 +215,6 @@ struct RendererClass // handles rendering
    void downSample        ();
    void applyOutline      ();
    void volumetric        ();
-   void refract           ();
    void postProcess       ();
    void cleanup           ();
    void cleanup1          ();
@@ -289,7 +289,7 @@ private:
    RENDER_MODE           _mode;
    ALPHA_MODE            _mesh_blend_alpha;
    Bool                  _has_glow, _has_fur, _forward_prec, _mirror, _mirror_want, _mirror_shadows, _first_pass, _palette_mode, _eye_adapt_scale_cur, _t_measure, _set_depth_needed, _get_target, _stereo, _mesh_early_z, _mesh_shader_vel, _taa_use, _taa_reset;
-   Byte                  _solid_mode_index, _mesh_stencil_value, _mesh_stencil_mode, _outline, _clear;
+   Byte                  _opaque_mode_index, _mesh_stencil_value, _mesh_stencil_mode, _outline, _clear;
    Int                   _eye, _eye_num, _mirror_priority, _mirror_resolution, _mesh_variation_1;
    UInt                  _frst_light_offset, _blst_light_offset, _mesh_draw_mask;
    Color                 _mesh_highlight;
@@ -332,7 +332,7 @@ private:
 
    Int                   _t_measures[2];
    Dbl                   _t_last_measure;
-   Flt                   _t_reflection[2], _t_prepare[2], _t_solid[2], _t_overlay[2], _t_water[2], _t_light[2], _t_emissive[2], _t_sky[2], _t_edge_detect[2], _t_blend[2], _t_palette[2], _t_behind[2], _t_rays[2], _t_refract[2], _t_volumetric[2], _t_post_process[2], _t_gpu_wait[2];
+   Flt                   _t_reflection[2], _t_prepare[2], _t_opaque[2], _t_overlay[2], _t_water[2], _t_light[2], _t_emissive[2], _t_sky[2], _t_water_under[2], _t_edge_detect[2], _t_blend[2], _t_palette[2], _t_behind[2], _t_rays[2], _t_volumetric[2], _t_post_process[2], _t_gpu_wait[2];
 
    RendererClass();
 }extern

@@ -476,13 +476,12 @@ struct WaterShader
               *LakeL [7][2][2][2][2], // [Shadows] [Soft ] [ReflectEnv] [ReflectMirror] [Refract]
               *RiverL[7][2][2][2][2], // [Shadows] [Soft ] [ReflectEnv] [ReflectMirror] [Refract]
               *Apply    [2][2][2][2], //           [Depth] [ReflectEnv] [ReflectMirror] [Refract]
-              *Under             [2]; //                                                [Refract]
+              *Under                ;
 
    ShaderParam
       *WaterMaterial,
       *Water_color_underwater0,
       *Water_color_underwater1,
-      *Water_refract_underwater,
       *WaterUnderStep,
       *WaterOfsCol,
       *WaterOfsNrm,
@@ -536,7 +535,7 @@ struct DefaultShaders
    DefaultShaders(C Material *material   , MESH_FLAG mesh_flag, Int lod_index, Bool heightmap);
 
    Shader* EarlyZ  ()C;
-   Shader* Solid   (Bool mirror=false)C;
+   Shader* Opaque  (Bool mirror=false)C;
    Shader* Overlay ()C;
    Shader* Emissive()C;
    Shader* Outline ()C;

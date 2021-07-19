@@ -579,14 +579,14 @@ void Cloth::drawPhysical()C
     C Material &material=GetMaterial(_cloth_mesh->material()());
       switch(Renderer._cur_type)
       {
-         case RT_DEFERRED: if(Shader *shader=_cloth_mesh->_phys_shader[Renderer._solid_mode_index])
+         case RT_DEFERRED: if(Shader *shader=_cloth_mesh->_phys_shader[Renderer._opaque_mode_index])
          {
-            SolidClothInstances.add(T, *shader, material);
+            OpaqueClothInstances.add(T, *shader, material);
          }break;
 
          case RT_FORWARD: if(FRST *frst=_cloth_mesh->_phys_frst)if(Renderer.firstPass() || frst->all_passes)//if(Shader *shader=frst->getShader())
          {
-            SolidClothInstances.add(T, *frst, material); // velocities not needed in forward renderer
+            OpaqueClothInstances.add(T, *frst, material); // velocities not needed in forward renderer
          }break;
       }
    }

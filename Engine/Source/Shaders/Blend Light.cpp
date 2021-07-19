@@ -404,8 +404,9 @@ void PS
 #endif
    I.col.rgb+=I.col_add; // add after lighting and reflection because this could have fog
 
+   // can't output glow because we use alpha-blending here
    outCol  =I.col;
-   outAlpha=I.col.a; // can't output glow because we use alpha-blending here
+   outAlpha=I.col.a;
 
 #if USE_VEL
    outVel.xy=GetMotionPixel(I.projected_prev_pos_xyw, pixel); outVel.z=0; outVel.w=I.col.a; // alpha needed because of blending, Z needed because have to write all channels

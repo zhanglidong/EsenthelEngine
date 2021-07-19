@@ -402,7 +402,7 @@ Material& Material::validate() // #MaterialTextureLayout
    return T;
 }
 /******************************************************************************/
-void Material::setSolid()C
+void Material::setOpaque()C
 {
    if(MaterialLast!=this)
    {
@@ -430,7 +430,7 @@ void Material::setEmissive()C
       MaterialLast4[0]=null; // because they use the same shader images
 
       // textures needed for alpha-test #MaterialTextureLayout
-    //if(_has_glow)Renderer._has_glow=true; already processed in 'setSolid'
+    //if(_has_glow)Renderer._has_glow=true; already processed in 'setOpaque'
       Sh.Col[0]  ->set(base_0      ());
       Sh.Lum     ->set(emissive_map());
       Sh.Material->set<MaterialParams>(T); // params needed for alpha-test and emissive
@@ -542,8 +542,8 @@ void Material::setAuto()C
    switch(Renderer())
    {
       case RM_PREPARE :
-      case RM_SOLID   :
-      case RM_SOLID_M : setSolid(); break;
+      case RM_OPAQUE  :
+      case RM_OPAQUE_M: setOpaque(); break;
 
       case RM_EMISSIVE: setEmissive(); break;
 

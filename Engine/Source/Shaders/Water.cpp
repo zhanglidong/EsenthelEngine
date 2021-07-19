@@ -391,7 +391,7 @@ VecH4 Under_PS
 ):TARGET
 {
    // underwater refraction
-   #if REFRACT
+   #if 0 && REFRACT
    {
       Flt dist      =Viewport.range;
       Flt to_surface=-DistPointPlaneRay(Vec(0, 0, 0), WaterPlanePos, WaterPlaneNrm, Normalize(Vec(posXY, 1)));
@@ -409,7 +409,7 @@ VecH4 Under_PS
    }
    #endif
 
-#if REFRACT
+#if 0 && REFRACT
    Vec pos=GetPosLinear(uv);
 #else
    Vec pos=GetPosPix(pixel.xy, posXY);
@@ -455,7 +455,7 @@ VecH4 Under_PS
 
    VecH water_col=Lerp(Water_color_underwater0, Water_color_underwater1, water_density);
 
-#if REFRACT
+#if 0 && REFRACT
    return Lerp(TexLod(Img, uv), VecH4(water_col, 0), opacity);
 #else
    return                       VecH4(water_col    , opacity);
