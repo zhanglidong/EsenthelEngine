@@ -75,10 +75,11 @@ VideoOptions VidOpt;
          "Light + AO"       , // 10
          "Ambient Occlusion", // 11
          "Color (Lit)"      , // 12
-         "Reflection"       , // 13
-         "Water Color"      , // 14
-         "Water Normal"     , // 15
-         "Water Light"      , // 16
+         "Alpha"            , // 13
+         "Reflection"       , // 14
+         "Water Color"      , // 15
+         "Water Normal"     , // 16
+         "Water Light"      , // 17
       };
       cchar8 *VideoOptions::Advanced::ShadowReduceFlicker_t[]=
       {

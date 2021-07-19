@@ -6,7 +6,7 @@
 /******************************************************************************/
 enum MATERIAL_TECHNIQUE : Byte // Material Techniques
 {
-   MTECH_DEFAULT               , // standard rendering of opaque materials
+   MTECH_OPAQUE                , // standard rendering of opaque materials
    MTECH_ALPHA_TEST            , // indicates that textures alpha channel will be used as models transparency (this is slightly slower than Default as alpha testing may disable some hardware-level optimizations)
    MTECH_FUR                   , // mesh will be rendered with fur effect, the mesh will be wrapped with additional fur imitating textures, in this technique "detail scale" specifies fur intensity, "detail power" specifies fur length, supported only in Deferred Renderer
    MTECH_GRASS                 , // mesh vertexes will bend on the wind like grass, bending intensity is determined by mesh vertex source Y position, which should be in the range from 0 to 1
@@ -78,7 +78,7 @@ struct Material : MaterialParams // Mesh Rendering Material - contains render pa
                       macro_map, // macro    texture   , default=null
                    emissive_map; // emissive texture   , default=null
    Bool               cull     ; // face     culling   , default=true
-   MATERIAL_TECHNIQUE technique; // material technique , default=MTECH_DEFAULT
+   MATERIAL_TECHNIQUE technique; // material technique , default=MTECH_OPAQUE
 
    // get
    Bool needTanBin()C; // if this Material needs tangent/binormals

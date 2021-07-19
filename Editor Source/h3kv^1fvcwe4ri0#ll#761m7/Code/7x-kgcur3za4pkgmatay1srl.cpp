@@ -1,7 +1,7 @@
 /******************************************************************************/
 class EditMaterial
 {
-   MATERIAL_TECHNIQUE        tech=MTECH_DEFAULT;
+   MATERIAL_TECHNIQUE        tech=MTECH_OPAQUE;
    Edit.Material.TEX_QUALITY tex_quality=Edit.Material.MEDIUM;
    bool                      flip_normal_y=false, smooth_is_rough=false, cull=true;
    byte                      downsize_tex_mobile=0;
@@ -89,8 +89,8 @@ class EditMaterial
    bool     hasBase2Tex    ()C {return smooth_map.is() || metal_map.is() || hasBumpMap() || glow_map.is();} // #MaterialTextureLayout
    TEX_FLAG textures       ()C {TEX_FLAG tf=TEXF_NONE; if(color_map.is())tf|=TEXF_COLOR; if(alpha_map.is())tf|=TEXF_ALPHA; if(hasBumpMap ())tf|=TEXF_BUMP; if(hasNormalMap ())tf|=TEXF_NORMAL; if(smooth_map.is())tf|=TEXF_SMOOTH; if(metal_map.is())tf|=TEXF_METAL; if(glow_map.is())tf|=TEXF_GLOW; if(emissive_map.is())tf|=TEXF_EMISSIVE; return tf;}
    TEX_FLAG texturesUsed   ()C {TEX_FLAG tf=TEXF_NONE; if(color_map.is())tf|=TEXF_COLOR; if(usesTexAlpha())tf|=TEXF_ALPHA; if(usesTexBump())tf|=TEXF_BUMP; if(usesTexNormal())tf|=TEXF_NORMAL; if(usesTexSmooth())tf|=TEXF_SMOOTH; if(usesTexMetal())tf|=TEXF_METAL; if(usesTexGlow())tf|=TEXF_GLOW; if(usesTexEmissive())tf|=TEXF_EMISSIVE; return tf;}
-   bool     usesTexColAlpha()C {return tech!=MTECH_DEFAULT                                  &&   (color_map.is() || alpha_map.is());} // alpha may come from color
-   bool     usesTexAlpha   ()C {return tech!=MTECH_DEFAULT                                  &&    alpha_map.is();} // check only alpha
+   bool     usesTexColAlpha()C {return tech!=MTECH_OPAQUE                                   &&   (color_map.is() || alpha_map.is());} // alpha may come from color
+   bool     usesTexAlpha   ()C {return tech!=MTECH_OPAQUE                                   &&    alpha_map.is();} // check only alpha
    bool     usesTexBump    ()C {return    (bump        >EPS_MATERIAL_BUMP || 1)             && hasBumpMap     ();} // always keep bump map because it can be used for multi-material per-pixel blending
    bool     usesTexNormal  ()C {return     normal      >EPS_COL                             && hasNormalMap   ();}
    bool     usesTexSmooth  ()C {return Abs(smoothMul())>EPS_COL                             &&   smooth_map.is();}
@@ -495,7 +495,7 @@ class EditMaterial
       // ALPHA
       if(!(new_textures&(TEXF_COLOR|TEXF_ALPHA))) // there are no color/alpha maps specified
       {
-         disable_alpha: if(HasAlphaTest(tech) || HasAlphaBlend(tech) && color_s.w>=1-EPS_COL8){tech=MTECH_DEFAULT; tech_time=time;} // disable alpha technique if alpha-test, or alpha-blend with full alpha
+         disable_alpha: if(HasAlphaTest(tech) || HasAlphaBlend(tech) && color_s.w>=1-EPS_COL8){tech=MTECH_OPAQUE; tech_time=time;} // disable alpha technique if alpha-test, or alpha-blend with full alpha
       }else
       if(known_textures&TEXF_ALPHA)
       {

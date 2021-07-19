@@ -16,7 +16,7 @@ XMaterial::XMaterial()
 {
    cull         =true;
    flip_normal_y=false;
-   technique    =MTECH_DEFAULT;
+   technique    =MTECH_OPAQUE;
    color        =1;
    emissive     =0;
    emissive_glow=0;

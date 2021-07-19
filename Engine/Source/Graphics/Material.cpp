@@ -179,7 +179,7 @@ Bool HasDepthWrite(MATERIAL_TECHNIQUE technique)
 {
    switch(technique)
    {
-      case MTECH_DEFAULT               :
+      case MTECH_OPAQUE                :
       case MTECH_ALPHA_TEST            :
       case MTECH_ALPHA_TEST_DITHER     :
       case MTECH_FUR                   :
@@ -222,7 +222,7 @@ Material::Material()
        uv_scale =1.0f;
 
    cull     =true;
-   technique=MTECH_DEFAULT;
+   technique=MTECH_OPAQUE;
 
    clear();
    validate();
@@ -761,7 +761,7 @@ Bool Material::loadData(File &f, CChar *path)
          f>>color_l>>smooth>>glow>>normal>>bump>>det_uv_scale>>det_power>>reflect>>cull; sss=0; emissive_l=0; uv_scale=1; colorS(color_l); emissive_glow=0;
          switch(f.getByte())
          {
-            default: technique=MTECH_DEFAULT   ; break;
+            default: technique=MTECH_OPAQUE    ; break;
             case 1 : technique=MTECH_ALPHA_TEST; break;
             case 4 : technique=MTECH_FUR       ; break;
             case 5 : technique=MTECH_GRASS     ; break;

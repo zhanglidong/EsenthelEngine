@@ -415,7 +415,7 @@ class ConvertToAtlasClass : PropWin
          atlas.glow=0;
          atlas.emissive=0;
          atlas.emissive_glow=0;
-         flt      alpha=0; int alpha_num=0; MATERIAL_TECHNIQUE tech=MTECH_DEFAULT; // parameters for alpha materials
+         flt      alpha=0; int alpha_num=0; MATERIAL_TECHNIQUE tech=MTECH_OPAQUE; // parameters for alpha materials
          flt      reflect_min=0, reflect_max=0;
          TEX_FLAG tex_wrote     =TEXF_NONE; // what textures we wrote to atlas
          TEX_FLAG tex_force_size=TEXF_NONE; // what textures need size forced

@@ -58,8 +58,8 @@
    bool     EditMaterial::hasBase2Tex()C {return smooth_map.is() || metal_map.is() || hasBumpMap() || glow_map.is();}
    TEX_FLAG EditMaterial::textures()C {TEX_FLAG tf=TEXF_NONE; if(color_map.is())tf|=TEXF_COLOR; if(alpha_map.is())tf|=TEXF_ALPHA; if(hasBumpMap ())tf|=TEXF_BUMP; if(hasNormalMap ())tf|=TEXF_NORMAL; if(smooth_map.is())tf|=TEXF_SMOOTH; if(metal_map.is())tf|=TEXF_METAL; if(glow_map.is())tf|=TEXF_GLOW; if(emissive_map.is())tf|=TEXF_EMISSIVE; return tf;}
    TEX_FLAG EditMaterial::texturesUsed()C {TEX_FLAG tf=TEXF_NONE; if(color_map.is())tf|=TEXF_COLOR; if(usesTexAlpha())tf|=TEXF_ALPHA; if(usesTexBump())tf|=TEXF_BUMP; if(usesTexNormal())tf|=TEXF_NORMAL; if(usesTexSmooth())tf|=TEXF_SMOOTH; if(usesTexMetal())tf|=TEXF_METAL; if(usesTexGlow())tf|=TEXF_GLOW; if(usesTexEmissive())tf|=TEXF_EMISSIVE; return tf;}
-   bool     EditMaterial::usesTexColAlpha()C {return tech!=MTECH_DEFAULT                                  &&   (color_map.is() || alpha_map.is());}
-   bool     EditMaterial::usesTexAlpha()C {return tech!=MTECH_DEFAULT                                  &&    alpha_map.is();}
+   bool     EditMaterial::usesTexColAlpha()C {return tech!=MTECH_OPAQUE                                   &&   (color_map.is() || alpha_map.is());}
+   bool     EditMaterial::usesTexAlpha()C {return tech!=MTECH_OPAQUE                                   &&    alpha_map.is();}
    bool     EditMaterial::usesTexBump()C {return    (bump        >EPS_MATERIAL_BUMP || 1)             && hasBumpMap     ();}
    bool     EditMaterial::usesTexNormal()C {return     normal      >EPS_COL                             && hasNormalMap   ();}
    bool     EditMaterial::usesTexSmooth()C {return Abs(smoothMul())>EPS_COL                             &&   smooth_map.is();}
@@ -450,7 +450,7 @@
       // ALPHA
       if(!(new_textures&(TEXF_COLOR|TEXF_ALPHA))) // there are no color/alpha maps specified
       {
-         disable_alpha: if(HasAlphaTest(tech) || HasAlphaBlend(tech) && color_s.w>=1-EPS_COL8){tech=MTECH_DEFAULT; tech_time=time;} // disable alpha technique if alpha-test, or alpha-blend with full alpha
+         disable_alpha: if(HasAlphaTest(tech) || HasAlphaBlend(tech) && color_s.w>=1-EPS_COL8){tech=MTECH_OPAQUE; tech_time=time;} // disable alpha technique if alpha-test, or alpha-blend with full alpha
       }else
       if(known_textures&TEXF_ALPHA)
       {
@@ -927,6 +927,6 @@
       File f; if(f.readTry(name))return load(f);
       reset(); return false;
    }
-EditMaterial::EditMaterial() : tech(MTECH_DEFAULT), tex_quality(Edit::Material::MEDIUM), flip_normal_y(false), smooth_is_rough(false), cull(true), downsize_tex_mobile(0), color_s(1, 1, 1, 1), emissive_s(0, 0, 0), emissive_glow(0), smooth(0), reflect_min(MATERIAL_REFLECT), reflect_max(1), glow(0), normal(0), bump(0), uv_scale(1), det_uv_scale(4), det_power(0.3f), base_0_tex(UIDZero), base_1_tex(UIDZero), base_2_tex(UIDZero), detail_tex(UIDZero), macro_tex(UIDZero), emissive_tex(UIDZero) {}
+EditMaterial::EditMaterial() : tech(MTECH_OPAQUE), tex_quality(Edit::Material::MEDIUM), flip_normal_y(false), smooth_is_rough(false), cull(true), downsize_tex_mobile(0), color_s(1, 1, 1, 1), emissive_s(0, 0, 0), emissive_glow(0), smooth(0), reflect_min(MATERIAL_REFLECT), reflect_max(1), glow(0), normal(0), bump(0), uv_scale(1), det_uv_scale(4), det_power(0.3f), base_0_tex(UIDZero), base_1_tex(UIDZero), base_2_tex(UIDZero), detail_tex(UIDZero), macro_tex(UIDZero), emissive_tex(UIDZero) {}
 
 /******************************************************************************/

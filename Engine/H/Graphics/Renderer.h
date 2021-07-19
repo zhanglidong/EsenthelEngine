@@ -49,11 +49,11 @@ enum RENDER_STAGE : Byte // Rendering Stage, allows displaying only desired rend
    RS_LIGHT_AO    , // display combined Light+AO  (available only in RT_DEFERRED)
    RS_AO          , // display Ambient Occlusion
    RS_LIT_COLOR   , // display Lit Color
+   RS_ALPHA       , // display Alpha
    RS_REFLECTION  , // display Reflection         (available if Water reflection is visible)
    RS_WATER_COLOR , // display Water Unlit Color  (available only in RT_DEFERRED and if 'Water.max1Light' is disabled)
    RS_WATER_NORMAL, // display Water       Normal (available only in RT_DEFERRED and if 'Water.max1Light' is disabled)
    RS_WATER_LIGHT , // display Water       Light  (available only in RT_DEFERRED and if 'Water.max1Light' is disabled)
-   RS_ALPHA       , // display Alpha
 #if EE_PRIVATE
    RS_VEL_CONVERT , // display Converted Velocity (available only in RT_DEFERRED)
    RS_VEL_DILATED , // display Dilated   Velocity (available only in RT_DEFERRED)

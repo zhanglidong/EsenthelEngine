@@ -158,6 +158,7 @@ void AstroDraw()
 {
    if(AstrosDraw)
    {
+      // !! THIS MUST NOT MODIFY 'Renderer._alpha' BECAUSE THAT WOULD DISABLE SUN RAYS !!
       Renderer.set(Renderer._col, Renderer._ds, true); // use DS for depth tests
       SetOneMatrix(MatrixM(CamMatrix.pos)); // normally we have to set matrixes after 'setEyeViewportCam', however since matrixes are always relative to the camera, and here we set exactly at the camera position, so the matrix will be the same for both eyes
       Sh.SkyFracMulAdd->set(Vec2(0, 1)); // astronomical objects are drawn as billboards which make use of sky fraction, so be sure to disable it before drawing

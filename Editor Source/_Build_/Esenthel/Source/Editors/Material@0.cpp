@@ -3,29 +3,28 @@
 /******************************************************************************/
 MaterialRegion MtrlEdit;
 /******************************************************************************/
-MaterialTech mtrl_techs[]=
-{
-   {"Default"               , u"Standard rendering of solid (opaque) materials."},
-   {"Alpha Test"            , u"Indicates that color texture alpha channel will be used as models transparency.\nThis is slightly slower than Default as alpha testing may disable some hardware-level optimizations."},
-   {"Fur"                   , u"Mesh will be rendered with fur effect, the mesh will be wrapped with additional fur imitating textures.\nDetail Scale specifies fur intensity, Detail Power specifies fur length.\nSupported only in Deferred Renderer!"},
-   {"Grass"                 , u"Mesh vertexes will bend on the wind like grass,\nbending intensity is determined by mesh vertex source Y position,\nwhich should be in the range from 0 to 1.\nGrass is made out of billboard instead of 3D geometric Mesh."},
-   {"Leaf"                  , u"Mesh vertexes will bend on the wind like tree leafs,\nto use this technique mesh must also contain leaf attachment positions,\nwhich can be generated in the Model Editor tool through menu options."},
-   {"Blend"                 , u"Mesh will be smoothly blended on the screen using alpha values,\nmesh will not be affected by lighting or shadowing."},
-   {"Blend Light"           , u"Works like Blend technique except that mesh will be affected by lighting or shadowing,\nhowever only the most significant directional light will be used (all other lights are ignored)\nDue to additional lighting calculations this is slower than Blend technique."},
-   {"Blend Light Grass"     , u"Combination of Blend Light and Grass techniques."},
-   {"Blend Light Leaf"      , u"Combination of Blend Light and Leaf techniques."},
-   {"Test Blend Light"      , u"Works like Blend Light technique with additional Alpha-Testing and Depth-Writing which enables correct Depth-Sorting."},
-   {"Test Blend Light Grass", u"Works like Blend Light Grass technique with additional Alpha-Testing and Depth-Writing which enables correct Depth-Sorting."},
-   {"Test Blend Light Leaf" , u"Works like Blend Light Leaf technique with additional Alpha-Testing and Depth-Writing which enables correct Depth-Sorting."},
-   {"Grass 3D"              , u"Mesh vertexes will bend on the wind like grass,\nbending intensity is determined by mesh vertex source Y position,\nwhich should be in the range from 0 to 1.\nGrass is made out of 3D geometric Mesh instead of billboard."},
-   {"Leaf 2D"               , u"Mesh vertexes will bend on the wind like tree leafs,\nto use this technique mesh must also contain leaf attachment positions,\nwhich can be generated in the Model Editor tool through menu options.\nLeafs are made out of 2D billboards instead 3D geometric Mesh."},
-   {"Depth Blend"           , u"Works like Blend technique with additional Depth-Writing which enables correct Depth-Sorting."},
-   {"Alpha Test Dither"     , u"Indicates that color texture alpha channel will be used as models transparency with dithering.\nThis is slightly slower than Default as alpha testing may disable some hardware-level optimizations."},
-};                                                                                                                                                                                                                                     
-/******************************************************************************/
 
 /******************************************************************************/
    cchar8 *MaterialRegion::auto_reload_name="Reload on Change";
+   ::MaterialRegion::MaterialTech MaterialRegion::mtrl_techs[]=
+   {
+      {MTECH_OPAQUE                , "Opaque"                , u"Standard rendering of opaque materials."},
+      {MTECH_ALPHA_TEST            , "Alpha Test"            , u"Indicates that color texture alpha channel will be used as models transparency.\nThis is slightly slower than Default as alpha testing may disable some hardware-level optimizations."},
+      {MTECH_ALPHA_TEST_DITHER     , "Alpha Test Dither"     , u"Indicates that color texture alpha channel will be used as models transparency with dithering.\nThis is slightly slower than Default as alpha testing may disable some hardware-level optimizations."},
+      {MTECH_FUR                   , "Fur"                   , u"Mesh will be rendered with fur effect, the mesh will be wrapped with additional fur imitating textures.\nDetail Scale specifies fur intensity, Detail Power specifies fur length.\nSupported only in Deferred Renderer!"},
+      {MTECH_GRASS                 , "Grass"                 , u"Mesh vertexes will bend on the wind like grass,\nbending intensity is determined by mesh vertex source Y position,\nwhich should be in the range from 0 to 1.\nGrass is made out of billboard instead of 3D geometric Mesh."},
+      {MTECH_GRASS_3D              , "Grass 3D"              , u"Mesh vertexes will bend on the wind like grass,\nbending intensity is determined by mesh vertex source Y position,\nwhich should be in the range from 0 to 1.\nGrass is made out of 3D geometric Mesh instead of billboard."},
+      {MTECH_LEAF                  , "Leaf"                  , u"Mesh vertexes will bend on the wind like tree leafs,\nto use this technique mesh must also contain leaf attachment positions,\nwhich can be generated in the Model Editor tool through menu options."},
+      {MTECH_LEAF_2D               , "Leaf 2D"               , u"Mesh vertexes will bend on the wind like tree leafs,\nto use this technique mesh must also contain leaf attachment positions,\nwhich can be generated in the Model Editor tool through menu options.\nLeafs are made out of 2D billboards instead 3D geometric Mesh."},
+      {MTECH_BLEND                 , "Blend"                 , u"Mesh will be smoothly blended on the screen using alpha values,\nmesh will not be affected by lighting or shadowing."},
+      {MTECH_DEPTH_BLEND           , "Depth Blend"           , u"Works like Blend technique with additional Depth-Writing which enables correct Depth-Sorting."},
+      {MTECH_BLEND_LIGHT           , "Blend Light"           , u"Works like Blend technique except that mesh will be affected by lighting or shadowing,\nhowever only the most significant directional light will be used (all other lights are ignored)\nDue to additional lighting calculations this is slower than Blend technique."},
+      {MTECH_BLEND_LIGHT_GRASS     , "Blend Light Grass"     , u"Combination of Blend Light and Grass techniques."},
+      {MTECH_BLEND_LIGHT_LEAF      , "Blend Light Leaf"      , u"Combination of Blend Light and Leaf techniques."},
+      {MTECH_TEST_BLEND_LIGHT      , "Test Blend Light"      , u"Works like Blend Light technique with additional Alpha-Testing and Depth-Writing which enables correct Depth-Sorting."},
+      {MTECH_TEST_BLEND_LIGHT_GRASS, "Test Blend Light Grass", u"Works like Blend Light Grass technique with additional Alpha-Testing and Depth-Writing which enables correct Depth-Sorting."},
+      {MTECH_TEST_BLEND_LIGHT_LEAF , "Test Blend Light Leaf" , u"Works like Blend Light Leaf technique with additional Alpha-Testing and Depth-Writing which enables correct Depth-Sorting."},
+   };
    cchar8 *MaterialRegion::DownsizeTexMobileText[]=
    {
       "Full",
@@ -359,8 +358,8 @@ MaterialTech mtrl_techs[]=
    }
    void MaterialRegion::PreChanged(C Property &prop) {cptr change_type=&prop; if(change_type==MtrlEdit.green || change_type==MtrlEdit.blue)change_type=MtrlEdit.red; MtrlEdit.undos.set(change_type);}
    void    MaterialRegion::Changed(C Property &prop) {MtrlEdit.setChanged();}
-   Str  MaterialRegion::Tech(C MaterialRegion &mr          ) {return mr.edit.tech;}
-   void MaterialRegion::Tech(  MaterialRegion &mr, C Str &t) {mr.edit.tech=MATERIAL_TECHNIQUE(TextInt(t)); mr.edit.tech_time.now(); mr.setChanged(); D.setShader(mr.game());}
+   Str  MaterialRegion::Tech(C MaterialRegion &mr          ) {REPA(mtrl_techs)if(mtrl_techs[i].tech==mr.edit.tech)return i; return S;}
+   void MaterialRegion::Tech(  MaterialRegion &mr, C Str &t) {int i=TextInt(t); if(InRange(i, mtrl_techs)){mr.edit.tech=mtrl_techs[i].tech; mr.edit.tech_time.now(); mr.setChanged(); D.setShader(mr.game());}}
    Str  MaterialRegion::DownsizeTexMobile(C MaterialRegion &mr          ) {return mr.edit.downsize_tex_mobile;}
    void MaterialRegion::DownsizeTexMobile(  MaterialRegion &mr, C Str &t) {mr.edit.downsize_tex_mobile=TextInt(t); mr.edit.downsize_tex_mobile_time.getUTC();}
    Str  MaterialRegion::TexQuality(C MaterialRegion &mr          ) {REPA(TexQualities)if(TexQualities[i].quality==mr.edit.tex_quality)return i; return S;}

@@ -125,7 +125,7 @@ static void Decode(File &f, MemPtr<FileParams>  file_params) {file_params=FilePa
 /******************************************************************************/
 Material& Material::reset()
 {
-   technique=MTECH_DEFAULT;
+   technique=MTECH_OPAQUE;
    tex_quality=MEDIUM;
    cull=true;
    flip_normal_y=false;

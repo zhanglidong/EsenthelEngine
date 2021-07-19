@@ -80,6 +80,14 @@ public:
    static void PreChanged(C Property &prop); // set all RGB props to have the same change_type so they will not create too manu undos
    static void    Changed(C Property &prop);
 
+   class MaterialTech
+   {
+      MATERIAL_TECHNIQUE tech;
+      cchar8            *name;
+      cchar             *desc;
+   };
+   static MaterialTech mtrl_techs[]
+; ASSERT(MTECH_NUM==16);
    static Str  Tech(C MaterialRegion &mr          );
    static void Tech(  MaterialRegion &mr, C Str &t);
 
