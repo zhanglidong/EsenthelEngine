@@ -76,7 +76,7 @@ SunClass::SunClass()
 
    rays_color   =0.12f; // !! if changing then also change 'Environment.Sun' !! don't set more than (LINEAR_FILTER ? 0.15 : 0.1) because it will require jittering
    rays_jitter  =-1   ; // auto
-   rays_mode    =SUN_RAYS_HIGH;
+   rays_mode    =SUN_RAYS_OPAQUE_BLEND;
   _rays_res     =FltToByteScale(0.25f);
   _rays_mask_res=FltToByteScale(1.0f ); // we can use full res because it makes a small performance difference
 }
@@ -96,10 +96,9 @@ struct GpuSun
 };
 #pragma pack(pop)
 
-static INLINE Shader* GetSunRaysMask(Bool mask                                      ) {Shader* &s=Sh.SunRaysMask[mask]                       ; if(SLOW_SHADER_LOAD && !s)s=Sh.getSunRaysMask(mask                       ); return s;}
-static INLINE Shader* GetSunRays    (Bool mask, Bool dither, Bool jitter, Bool gamma) {Shader* &s=Sh.SunRays    [mask][dither][jitter][gamma]; if(SLOW_SHADER_LOAD && !s)s=Sh.getSunRays    (mask, dither, jitter, gamma); return s;}
+static INLINE Shader* GetSunRays(Bool alpha, Bool dither, Bool jitter, Bool gamma) {Shader* &s=Sh.SunRays[alpha][dither][jitter][gamma]; if(SLOW_SHADER_LOAD && !s)s=Sh.getSunRays(alpha, dither, jitter, gamma); return s;}
 
-void SunClass::drawRays(Image *coverage, Vec &color)
+void SunClass::drawRays(Vec &color)
 {
    GpuSun sun;
    sun.pos =pos*CamMatrixInv.orn();
@@ -135,11 +134,8 @@ void SunClass::drawRays(Image *coverage, Vec &color)
       }
       Sh.Sun->set(sun);
       Bool jitter=((rays_jitter<0) ? rays_color.max()>(LINEAR_GAMMA ? 0.15f : 0.1f)+EPS_COL8_NATIVE : rays_jitter!=0); // for auto, enable jittering only if rays have a high brightness
-      switch(_actual_rays_mode)
-      {
-         case SUN_RAYS_HIGH: Sh.ImgX[0]->set(coverage); GetSunRays(true , dither, jitter, gamma)->draw(rect); break;
-         default           :                            GetSunRays(false, dither, jitter, gamma)->draw(rect); break;
-      }
+      if(Renderer._alpha){Sh.ImgX[0]->set(Renderer._alpha); GetSunRays(true , dither, jitter, gamma)->draw(rect);}
+      else               {                                  GetSunRays(false, dither, jitter, gamma)->draw(rect);}
    }
 }
 /******************************************************************************/
@@ -154,7 +150,7 @@ void AstroPrepare()
       && PosToFullScreen(CamMatrix.pos+Sun.pos*D.viewRange(), Sun._pos2) && FovPerspective(D.viewFovMode())
       && !(Fog.draw && Fog.affect_sky && VisibleOpacity(Fog.density, D.viewRange())<=EPS_COL8_NATIVE) // if fog is too dense then don't draw sun rays
       )
-         Sun._actual_rays_mode=((Sun.rays_mode==SUN_RAYS_HIGH && D._max_rt>=2) ? SUN_RAYS_HIGH : SUN_RAYS_LOW); // Alpha RT is on #1 #RTOutput.Blend
+         Sun._actual_rays_mode=((Sun.rays_mode==SUN_RAYS_OPAQUE_BLEND && D._max_rt>=2) ? SUN_RAYS_OPAQUE_BLEND : SUN_RAYS_OPAQUE); // Alpha RT is on #1 #RTOutput.Blend
       Sun.light(); FREPAO(Astros).light();
    }
 }
@@ -173,36 +169,14 @@ void AstroDrawRays()
 {
    if(Sun._actual_rays_mode)
    {
-      /*Renderer.downSample(); // we're modifying existing RT, so downSample if needed
-
-      if(Renderer._sky_coverage) // apply mask based on depth tests, have to do this at the end, once we have depth buffer set (including from blend phase), no need to check for 'canReadDepth' because that was already checked when setting '_sky_coverage'
-      {
-         const VecI2 res=ByteScaleRes(Renderer.fx(), Sun._rays_mask_res);
-         if(res!=Renderer._sky_coverage->size()) // draw to smaller RT, and combine sky coverage with depth tests
-         {
-            D.alpha(ALPHA_NONE);
-            ImageRTPtr temp; temp.get(ImageRTDesc(res.x, res.y, IMAGERT_ONE));
-            Renderer.set(temp, null, true);
-            Sh.ImgX[0]->set(Renderer._sky_coverage);
-            GetSunRaysMask(true)->draw();
-            Swap(temp, Renderer._sky_coverage);
-         }else // apply depth tests to existing sky coverage
-         {
-            Renderer.set(Renderer._sky_coverage, Renderer._ds, true, NEED_DEPTH_READ); // '_ds' needed for 'depth2D' optimization
-            D.alpha     (ALPHA_MUL);
-            D.depth2DOn (); GetSunRaysMask(false)->draw();
-            D.depth2DOff();
-         }
-      }
-
       const VecI2 res=ByteScaleRes(Renderer.fx(), Sun._rays_res);
       ImageRTPtr rt0; if(res!=Renderer._col->size())rt0.get(ImageRTDesc(res.x, res.y, IMAGERT_ONE));
 
       Renderer.set(rt0 ? rt0 : Renderer._col, null, rt0==null); // set viewport only when drawing to 'Renderer._col'
       SetOneMatrix();
-      D.alpha(rt0 ? ALPHA_NONE : ALPHA_ADD); // if drawing to rt0 then set, if drawing to Renderer._col then add
+      D.alpha(rt0 ? ALPHA_NONE : ALPHA_ADD); // if drawing to rt0 then SET, if drawing to Renderer._col then ADD
 
-      Vec color; Sun.drawRays(Renderer._sky_coverage, color);
+      Vec color; Sun.drawRays(color);
       if(rt0)
       {
        /*if(Sun.rays_soft && shift>=2)
@@ -217,7 +191,7 @@ void AstroDrawRays()
           //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
             Renderer.set(rt1, null, false); Sh.ImgX->set(rt0); Sh.BlurX_X->draw(&D.viewRect());
             Renderer.set(rt0, null, false); Sh.ImgX->set(rt1); Sh.BlurY_X->draw(&D.viewRect());
-         }*
+         }*/
          Renderer.set(Renderer._col, null, true);
          D.alpha(ALPHA_ADD);
          Sh.Color[0]->set(Vec4(color, 0)); // we've rendered the sun with full intensity, so now we need to make it darker
@@ -228,7 +202,7 @@ void AstroDrawRays()
        //if(Sun.rays_soft && shift==1){shader=Sh.SunRaysSoft; Sh.imgSize(*rt0);}else
                                        shader=Sh.DrawXC[dither][LINEAR_GAMMA];
          REPS(Renderer._eye, Renderer._eye_num)shader->draw(Renderer._stereo ? &D._view_eye_rect[Renderer._eye] : &D.viewRect());
-      }*/
+      }
       if(!Renderer.processAlphaFinal())Renderer._alpha.clear(); // if we don't need alpha anymore then clear it
    }
 }

@@ -881,8 +881,8 @@ Bool RendererClass:: hasAO      ()C {return D.aoWant() && canReadDepth() && !fas
 
 Bool RendererClass::fastCombine      ()C {return combine && _col==_final;}
 Bool RendererClass::slowCombine      ()C {return combine && !fastCombine() && canReadDepth();}
-Bool RendererClass::processAlpha     ()C {return ((alpha && (_get_target || target) || Sun._actual_rays_mode==SUN_RAYS_HIGH || stage==RS_ALPHA) && canReadDepth()) || slowCombine();}
-Bool RendererClass::processAlphaFinal()C {return ((alpha && (_get_target || target)                                         || stage==RS_ALPHA) && canReadDepth()) || slowCombine();}
+Bool RendererClass::processAlpha     ()C {return ((alpha && (_get_target || target) || Sun._actual_rays_mode==SUN_RAYS_OPAQUE_BLEND || stage==RS_ALPHA) && canReadDepth()) || slowCombine();}
+Bool RendererClass::processAlphaFinal()C {return ((alpha && (_get_target || target)                                                 || stage==RS_ALPHA) && canReadDepth()) || slowCombine();}
 Bool RendererClass::hasVolLight      ()C {return D.volLight() && canReadDepth();}
 Bool RendererClass::anyDeferred      ()C {return type()==RT_DEFERRED || Water.reflectionRenderer()==RT_DEFERRED;}
 Bool RendererClass::anyForward       ()C {return type()==RT_FORWARD  || Water.reflectionRenderer()==RT_FORWARD ;}

@@ -13,33 +13,6 @@ BUFFER(Sun)
 BUFFER_END
 #include "!Set Prec Default.h"
 /******************************************************************************/
-Half SunRaysMask_PS
-(
-#if MASK
-   NOPERSP Vec2 uv:UV,
-#endif
-   NOPERSP Vec2 posXY:POS_XY,
-   NOPERSP PIXEL
-):TARGET
-{
-#if MASK // for this version we have to use linear depth filtering, because RT is of different size, and otherwise too much artifacts/flickering is generated
-   #if REVERSE_DEPTH // we can use the simple version for REVERSE_DEPTH
-      Half m=(Length2(GetPosLinear(uv, posXY))>=Sqr(Viewport.range));
-   #else // need safer
-      Flt  z=TexDepthRawLinear(uv);
-      Half m=(DEPTH_BACKGROUND(z) || Length2(GetPos(LinearizeDepth(z), posXY))>=Sqr(Viewport.range));
-   #endif
-      return m*TexLod(ImgX, uv).x; // use linear filtering because 'ImgX' can be of different size
-#else // can use point filtering here
-   #if REVERSE_DEPTH // we can use the simple version for REVERSE_DEPTH
-      return Length2(GetPosPix(pixel.xy, posXY))>=Sqr(Viewport.range);
-   #else // need safer
-      Flt z=Depth[pixel.xy];
-      return DEPTH_BACKGROUND(z) || Length2(GetPos(LinearizeDepth(z), posXY))>=Sqr(Viewport.range);
-   #endif
-#endif
-}
-/******************************************************************************/
 /*Vec4 SunRaysSoft_PS(NOPERSP Vec2 uv:UV):TARGET
 {
    const Int samples=6;
@@ -53,6 +26,7 @@ Half SunRaysMask_PS
 }
 TECHNIQUE(SunRaysSoft, DrawUV_VS(), SunRaysSoft_PS());*/
 /******************************************************************************/
+// ALPHA, DITHER, JITTER, GAMMA
 VecH4 SunRays_PS(NOPERSP Vec2 uv   :UV,
                  NOPERSP Vec2 posXY:POS_XY,
                  NOPERSP PIXEL            ):TARGET
@@ -68,30 +42,46 @@ VecH4 SunRays_PS(NOPERSP Vec2 uv   :UV,
    BRANCH if(power>EPS_COL)
 #endif
    {
-      const Int  steps  =40;
-            Flt  light  =0; // use HP because we're iterating lot of samples
-            Vec2 sun_pos=Sun.pos2;
+      const Int steps=40;
 
-   // limit sun position
-   Vec2 delta=uv-sun_pos; // towards viewport
-   Flt  frac=ViewportClamp(sun_pos, delta); // returns 0 if already inside viewport
-   sun_pos+=frac*delta; // move towards viewport
- //power  *=(1-frac);
+      // limit sun position
+      Vec2 sun_pos=Sun.pos2;
+      Vec2 delta=uv-sun_pos; // towards viewport
+      Flt  frac=ViewportClamp(sun_pos, delta); // returns 0 if already inside viewport
+      sun_pos+=frac*delta; // move towards viewport
+    //power  *=(1-frac);
 
    #if JITTER
       uv+=(sun_pos-uv)*(Noise1D(pixel.xy)*(3.0/steps)); // a good value is 2.5 or 3.0 (3.0 was slightly better)
    #endif
 
+   #if ALPHA
+      Flt occl=0; // use HP because we're iterating lot of samples
+   #else
+      Flt back=0; // use HP because we're iterating lot of samples
+   #endif
+
       UNROLL for(Int i=0; i<steps; i++)
       {
          Vec2 t=Lerp(uv, sun_pos, i/Flt(steps)); // /(steps) worked better than /(steps-1)
-         if(MASK)light+=TexLod(ImgX, t).x; // pos and clouds combined together, use linear filtering because texcoords aren't rounded
-         else    light+=DEPTH_BACKGROUND(TexDepthRawPoint(t)); // use simpler version here unlike in 'SunRaysPre_PS' because this one is called for each step for each pixel
+      #if ALPHA
+         occl+=TexLod(ImgX, t).x; // depth and clouds combined together, use linear filtering because texcoords aren't rounded
+      #else
+         back+=DEPTH_BACKGROUND(TexDepthRawPoint(t)); // use simpler version here unlike in 'SunRaysMask_PS' because this one is called for each step for each pixel
+      #endif
       }
-      col.rgb=Half(light*power/steps)*Sun.color;
+
+   #if ALPHA
+      Half light=1-occl/steps;
+   #else
+      Half light=  back/steps;
+   #endif
+      col.rgb=(light*power)*Sun.color;
+
    #if DITHER
       ApplyDither(col.rgb, pixel.xy, false); // here we're always in sRGB gamma
    #endif
+
    #if GAMMA
       col.rgb=SRGBToLinearFast(col.rgb); // 'SRGBToLinearFast' works better here than 'SRGBToLinear' (gives high contrast, dark colors remain darker, while 'SRGBToLinear' highlights them more)
    #endif

@@ -356,8 +356,7 @@ Shader* MainShaderClass::getDrawLightConeFlat(Int diffuse, Int multi_sample, Boo
 
 Shader* MainShaderClass::getApplyLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade, Bool glow, Bool reflect) {return get(S8+"ApplyLight"+multi_sample+ao+cel_shade+night_shade+glow+reflect);}
 
-Shader* MainShaderClass::getSunRaysMask(Bool mask                                      ) {return get(S8+"SunRaysMask"+mask);}
-Shader* MainShaderClass::getSunRays    (Bool mask, Bool dither, Bool jitter, Bool gamma) {return get(S8+"SunRays"    +mask+dither+jitter+gamma);}
+Shader* MainShaderClass::getSunRays(Bool alpha, Bool dither, Bool jitter, Bool gamma) {return get(S8+"SunRays"+alpha+dither+jitter+gamma);}
 
 Shader* MainShaderClass::getSky(Int multi_sample, Bool flat, Bool density, Int textures, Bool stars, Bool dither, Bool per_vertex, Bool cloud) {return get(S8+"Sky"+multi_sample+flat+density+textures+stars+dither+per_vertex+cloud);}
 
@@ -704,13 +703,11 @@ void MainShaderClass::getTechniques()
       }
    }
 
-   REPD(m, 2)SunRaysMask[m]=getSunRaysMask(m);
-
-   REPD(m, 2)
-   REPD(d, 2)
-   REPD(j, 2)
-   REPD(g, 2)
-      SunRays[m][d][j][g]=getSunRays(m, d, j, g);
+   REPD(alpha , 2)
+   REPD(dither, 2)
+   REPD(jitter, 2)
+   REPD(gamma , 2)
+      SunRays[alpha][dither][jitter][gamma]=getSunRays(alpha, dither, jitter, gamma);
  //SunRaysSoft=get("SunRaysSoft");
 #endif
 

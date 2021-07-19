@@ -318,31 +318,51 @@ VecH4 EdgeDetectApply_PS(NOPERSP Vec2 uv:UV):TARGET // use VecH4 because we appl
 /******************************************************************************/
 // COMBINE
 /******************************************************************************/
-Half SetAlphaFromDepth_PS(NOPERSP PIXEL):TARGET
+Half IsForeground(Flt raw_z, Vec2 posXY)
 {
-   return DEPTH_FOREGROUND(Depth[pixel.xy]);
+#if 0 // simple version, uses planar distance from camera
+   return DEPTH_FOREGROUND(raw_z);
+#else // uses radial distance from camera, works better for sun rays
+   #if REVERSE_DEPTH // we can use the simple version for REVERSE_DEPTH
+      return                            Length2(GetPos(LinearizeDepth(raw_z), posXY))<Sqr(Viewport.range);
+   #else // need safer
+      return DEPTH_FOREGROUND(raw_z) && Length2(GetPos(LinearizeDepth(raw_z), posXY))<Sqr(Viewport.range);
+   #endif
+#endif
+}
+Half SetAlphaFromDepth_PS(NOPERSP Vec2 posXY:POS_XY, NOPERSP PIXEL):TARGET
+{
+   return IsForeground(Depth[pixel.xy], posXY);
 }
 #if 1 // this is needed
-Half SetAlphaFromDepthMS_PS(NOPERSP PIXEL, UInt index:SV_SampleIndex):TARGET
+Half SetAlphaFromDepthMS_PS(NOPERSP Vec2 posXY:POS_XY, NOPERSP PIXEL, UInt index:SV_SampleIndex):TARGET
 {
-   return DEPTH_FOREGROUND(TexDepthRawMS(pixel.xy, index));
+   return IsForeground(TexDepthRawMS(pixel.xy, index), posXY);
 }
 #else
-Half SetAlphaFromDepthMS_PS(NOPERSP PIXEL):TARGET
+Half SetAlphaFromDepthMS_PS(NOPERSP Vec2 posXY:POS_XY, NOPERSP PIXEL):TARGET
 {
-   Half   alpha=0; UNROLL for(Int i=0; i<MS_SAMPLES; i++)alpha+=DEPTH_FOREGROUND(TexDepthRawMS(pixel.xy, i));
+   Half   alpha=0; VecI2 pix=pixel.xy; UNROLL for(Int i=0; i<MS_SAMPLES; i++)alpha+=IsForeground(TexDepthRawMS(pix, i), posXY);
    return alpha/MS_SAMPLES;
 }
 #endif
 
-Half SetAlphaFromDepthAndCol_PS(NOPERSP Vec2 uv:UV):TARGET
+Half SetAlphaFromDepthAndCol_PS(NOPERSP Vec2 uv:UV, NOPERSP Vec2 posXY:POS_XY, NOPERSP PIXEL):TARGET
 {
-   return Max(Max(TexLod(Img, uv).rgb), DEPTH_FOREGROUND(TexDepthRawPoint(uv))); // treat luminance as opacity, use UV in case Col/Depth are different size
+   return Max(Max(TexLod(Img, uv).rgb), IsForeground(Depth[pixel.xy], posXY)); // treat luminance as opacity, use UV in case Col/Depth are different size
 }
-Half SetAlphaFromDepthAndColMS_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL, UInt index:SV_SampleIndex):TARGET
+#if 1 // this is needed
+Half SetAlphaFromDepthAndColMS_PS(NOPERSP Vec2 uv:UV, NOPERSP Vec2 posXY:POS_XY, NOPERSP PIXEL, UInt index:SV_SampleIndex):TARGET
 {
-   return Max(Max(TexLod(Img, uv).rgb), DEPTH_FOREGROUND(TexDepthRawMS(pixel.xy, index))); // treat luminance as opacity, use UV in case Col/Depth are different size
+   return Max(Max(TexLod(Img, uv).rgb), IsForeground(TexDepthRawMS(pixel.xy, index), posXY)); // treat luminance as opacity, use UV in case Col/Depth are different size
 }
+#else
+Half SetAlphaFromDepthAndColMS_PS(NOPERSP Vec2 uv:UV, NOPERSP Vec2 posXY:POS_XY, NOPERSP PIXEL):TARGET
+{
+   Half   alpha=0; VecI2 pix=pixel.xy; UNROLL for(Int i=0; i<MS_SAMPLES; i++)alpha+=IsForeground(TexDepthRawMS(pix, i), posXY);
+   return Max(Max(TexLod(Img, uv).rgb), alpha/MS_SAMPLES); // treat luminance as opacity, use UV in case Col/Depth are different size
+}
+#endif
 
 VecH4 CombineAlpha_PS(NOPERSP Vec2 uv:UV):TARGET
 {

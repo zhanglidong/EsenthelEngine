@@ -52,10 +52,10 @@ Str8 ShaderEarlyZ     (Int skin) {return S8+skin;}
 Str8 ShaderEmissive   (Int skin, Int alpha_test, Int emissive_map, Int fx, Int tesselate) {return S8+skin+alpha_test+emissive_map+fx+tesselate;}
 Str8 ShaderFurBase    (Int skin, Int size, Int diffuse) {return S8+"Base"+skin+size+diffuse;}
 Str8 ShaderFurSoft    (Int skin, Int size, Int diffuse) {return S8+"Soft"+skin+size+diffuse;}
-Str8 ShaderMeshOverlay(Int skin, Int normal, Int layout) {return S8+skin+normal+layout;}
 Str8 ShaderPosition   (Int skin, Int alpha_test, Int test_blend, Int fx, Int tesselate) {return S8+skin+alpha_test+test_blend+fx+tesselate;}
 Str8 ShaderSetColor   (Int skin, Int alpha_test, Int tesselate) {return S8+skin+alpha_test+tesselate;}
 Str8 ShaderOverlay    (Int skin, Int tesselate) {return S8+skin+tesselate;}
+Str8 ShaderMeshOverlay(Int skin, Int normal, Int layout) {return S8+skin+normal+layout;}
 /******************************************************************************/
 #if COMPILE_DX || COMPILE_GL || COMPILE_GL_SPIRV
 /******************************************************************************/
@@ -173,12 +173,12 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 
       src.New("Dither", "DrawUV_VS", "Dither_PS");
 
-            src.New("SetAlphaFromDepth"        , "Draw_VS"  , "SetAlphaFromDepth_PS");
-      if(ms)src.New("SetAlphaFromDepthMS"      , "Draw_VS"  , "SetAlphaFromDepthMS_PS").multiSample();
-            src.New("SetAlphaFromDepthAndCol"  , "DrawUV_VS", "SetAlphaFromDepthAndCol_PS");
-      if(ms)src.New("SetAlphaFromDepthAndColMS", "DrawUV_VS", "SetAlphaFromDepthAndColMS_PS").multiSample();
-            src.New("CombineAlpha"             , "DrawUV_VS", "CombineAlpha_PS");
-            src.New("ReplaceAlpha"             , "DrawUV_VS", "ReplaceAlpha_PS");
+            src.New("SetAlphaFromDepth"        , "DrawPosXY_VS"  , "SetAlphaFromDepth_PS");
+      if(ms)src.New("SetAlphaFromDepthMS"      , "DrawPosXY_VS"  , "SetAlphaFromDepthMS_PS").multiSample();
+            src.New("SetAlphaFromDepthAndCol"  , "DrawUVPosXY_VS", "SetAlphaFromDepthAndCol_PS");
+      if(ms)src.New("SetAlphaFromDepthAndColMS", "DrawUVPosXY_VS", "SetAlphaFromDepthAndColMS_PS").multiSample();
+            src.New("CombineAlpha"             , "DrawUV_VS"     , "CombineAlpha_PS");
+            src.New("ReplaceAlpha"             , "DrawUV_VS"     , "ReplaceAlpha_PS");
 
       if(ms)src.New("ResolveDepth", "Draw_VS", "ResolveDepth_PS");
       src.New("SetDepth", "DrawUV_VS", "SetDepth_PS");
@@ -364,13 +364,12 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    }
    { // SUN
       ShaderCompiler::Source &src=compiler.New(src_path+"Sun.cpp");
-      REPD(mask, 2)src.New("SunRaysMask", mask ? "DrawUVPosXY_VS" : "DrawPosXY_VS", "SunRaysMask_PS")("MASK", mask);
 
-      REPD(mask  , 2)
+      REPD(alpha , 2)
       REPD(dither, 2)
       REPD(jitter, 2)
       REPD(gamma , 2)
-         src.New("SunRays", "DrawUVPosXY_VS", "SunRays_PS")("MASK", mask, "DITHER", dither, "JITTER", jitter, "GAMMA", gamma);
+         src.New("SunRays", "DrawUVPosXY_VS", "SunRays_PS")("ALPHA", alpha, "DITHER", dither, "JITTER", jitter, "GAMMA", gamma);
    }
    { // TAA
       ShaderCompiler::Source &src=compiler.New(src_path+"TAA.cpp");

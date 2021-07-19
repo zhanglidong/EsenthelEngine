@@ -341,11 +341,8 @@ struct MainShaderClass
    Shader* getBloom  (Bool dither, Bool alpha);
 
    // SUN
-   Shader
-      *SunRaysMask[2]      , // [Mask]
-      *SunRays [2][2][2][2]; // [Mask] [Dither] [Jitter] [Gamma]
-   Shader* getSunRaysMask(Bool mask);
-   Shader* getSunRays    (Bool mask, Bool dither, Bool jitter, Bool gamma);
+   Shader *SunRays[2][2][2][2]; // [Alpha] [Dither] [Jitter] [Gamma]
+   Shader* getSunRays(Bool alpha, Bool dither, Bool jitter, Bool gamma);
 
    // SKY
    Shader
