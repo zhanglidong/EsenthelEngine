@@ -122,7 +122,7 @@ void LayeredClouds::draw()
    {
       commit();
 
-      Renderer.set(Renderer._col, Renderer._sky_coverage, null, null, Renderer._ds, true, WANT_DEPTH_READ); // use DS for depth tests
+      Renderer.set(Renderer._col, null, Renderer._alpha, null, Renderer._ds, true, WANT_DEPTH_READ); // use DS for depth tests #RTOutput.Blend
       Flt from=D.viewRange()*frac(),
           to  =D.viewRange();
       MAX(from, Frustum.view_quad_max_dist/CLOUD_MESH_MIN_DIST); // make sure we don't intersect with the near plane
@@ -646,7 +646,7 @@ void VolumetricClouds::draw()
       VolCloud.Clouds->draw(rect);
 
       Bool gamma=LINEAR_GAMMA, swap=(gamma && Renderer._col->canSwapRTV()); if(swap){gamma=false; Renderer._col->swapRTV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
-      Renderer.set(Renderer._col, Renderer._sky_coverage, null, null, null, true);
+      Renderer.set(Renderer._col, null, Renderer._alpha, null, null, true);// #RTOutput.Blend
       D.alpha(ALPHA_BLEND_DEC);
 
       Flt to=D.viewRange(), from=Min(to*Sky.frac(), to-0.01f);
@@ -699,7 +699,7 @@ void AllClouds::drawAll()
       {
          Sky.setFracMulAdd();
 
-         Renderer.set(Renderer._col, Renderer._sky_coverage, null, null, Renderer._ds, true, WANT_DEPTH_READ); Renderer.setDSLookup(); // we may use soft cloud, 'setDSLookup' after 'set'
+         Renderer.set(Renderer._col, null, Renderer._alpha, null, Renderer._ds, true, WANT_DEPTH_READ); Renderer.setDSLookup(); // we may use soft cloud, 'setDSLookup' after 'set' #RTOutput.Blend
          D.alpha     (ALPHA_BLEND_DEC);
          D.depthWrite(false); REPS(Renderer._eye, Renderer._eye_num){Renderer.setEyeViewportCam(); Renderer.mode(RM_CLOUD); Renderer._render();}
          D.depthWrite(true );

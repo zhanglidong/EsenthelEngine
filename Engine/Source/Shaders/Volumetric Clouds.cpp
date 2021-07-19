@@ -173,10 +173,13 @@ void CloudsDraw_VS(VtxInput vtx,
    posXY=UVToPosXY(vtx.uv());
    pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
 }
-VecH4 CloudsDraw_PS(NOPERSP Vec2  uv   :UV,
-                    NOPERSP Vec2  posXY:POS_XY,
-                    NOPERSP PIXEL,
-                        out VecH4 mask :TARGET1):TARGET
+VecH4 CloudsDraw_PS
+(
+   NOPERSP Vec2 uv   :UV,
+   NOPERSP Vec2 posXY:POS_XY,
+   NOPERSP PIXEL,
+       out Half alpha:TARGET2 // #RTOutput.Blend
+):TARGET
 {
    VecH2 clouds=TexLod(ImgXY, uv).xy; // can't use TexPoint because image may be smaller
 #if 1
@@ -188,7 +191,7 @@ VecH4 CloudsDraw_PS(NOPERSP Vec2  uv   :UV,
 #if GAMMA
    c=SRGBToLinear(c);
 #endif
-   mask.rgb=0; mask.a=clouds.y;
+   alpha=clouds.y;
    return VecH4(c, clouds.y);
 }
 /******************************************************************************/

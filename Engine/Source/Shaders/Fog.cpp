@@ -63,7 +63,7 @@ NOINTERP Matrix3 mtrx :MATRIX   ,
          PIXEL,
 
    out VecH4 color:TARGET0,
-   out VecH4 mask :TARGET1
+   out Half  alpha:TARGET2 // #RTOutput.Blend
 )
 {
    Flt z  =TexDepthPix(pixel.xy);
@@ -94,7 +94,7 @@ NOINTERP Matrix3 mtrx :MATRIX   ,
 
    color.rgb=LocalFogColor;
    color.a  =AccumulatedDensity(dns, len);
-   mask.rgb=0; mask.a=color.a;
+   alpha=color.a;
 }
 /******************************************************************************/
 void FogBoxI_VS(VtxInput vtx,
@@ -119,7 +119,7 @@ void FogBoxI_PS
    NOPERSP  PIXEL,
 
    out VecH4 color:TARGET0,
-   out VecH4 mask :TARGET1
+   out Half  alpha:TARGET2 // #RTOutput.Blend
 )
 {
    Vec pos=GetPosPix  (pixel.xy, posXY),
@@ -159,7 +159,7 @@ void FogBoxI_PS
 
    color.rgb=LocalFogColor;
    color.a  =AccumulatedDensity(dns, len);
-   mask.rgb=0; mask.a=color.a;
+   alpha=color.a;
 }
 /******************************************************************************/
 void FogBall_VS(VtxInput vtx,
@@ -180,7 +180,7 @@ void FogBall_PS
             PIXEL,
 
    out VecH4 color:TARGET0,
-   out VecH4 mask :TARGET1
+   out Half  alpha:TARGET2 // #RTOutput.Blend
 )
 {
    Flt z  =TexDepthPix(pixel.xy);
@@ -200,7 +200,7 @@ void FogBall_PS
 
    color.rgb=LocalFogColor;
    color.a  =AccumulatedDensity(dns, len);
-   mask.rgb=0; mask.a=color.a;
+   alpha=color.a;
 }
 /******************************************************************************/
 void FogBallI_VS(VtxInput vtx,
@@ -219,7 +219,7 @@ void FogBallI_PS
    NOPERSP  PIXEL,
 
    out VecH4 color:TARGET0,
-   out VecH4 mask :TARGET1
+   out Half  alpha:TARGET2 // #RTOutput.Blend
 )
 {
    Vec pos=GetPosPix (pixel.xy, posXY),
@@ -240,6 +240,6 @@ void FogBallI_PS
 
    color.rgb=LocalFogColor;
    color.a  =AccumulatedDensity(dns, len);
-   mask.rgb=0; mask.a=color.a;
+   alpha=color.a;
 }
 /******************************************************************************/

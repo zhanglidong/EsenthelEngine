@@ -236,7 +236,7 @@ void PS
 
   out VecH4 outCol  :TARGET0
 #if USE_VEL
-, out VecH4 outVel  :TARGET1
+, out VecH4 outVel  :TARGET1 // #RTOutput.Vel
 #endif
 , out Half  outAlpha:TARGET2 // #RTOutput.Blend
 ) // #RTOutput

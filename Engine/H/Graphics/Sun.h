@@ -75,6 +75,6 @@ extern Memc<Astro> Astros    ; // container of astronomical objects
 #if EE_PRIVATE
 void AstroPrepare ();
 void AstroDraw    ();
-Bool AstroDrawRays();
+void AstroDrawRays();
 #endif
 /******************************************************************************/

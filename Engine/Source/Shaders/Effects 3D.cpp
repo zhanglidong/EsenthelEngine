@@ -58,7 +58,7 @@ void Volume_PS
    NOINTERP Matrix3 mtrx :MATRIX,
 
    out VecH4 color:TARGET0,
-   out VecH4 mask :TARGET1
+   out Half  alpha:TARGET2 // #RTOutput.Blend
 )
 {
    Flt z  =TexDepthPix(pixel.xy);
@@ -139,7 +139,7 @@ void Volume_PS
 
       color=col*Color[0]+Color[1];
    }
-   mask.rgb=0; mask.a=color.a;
+   alpha=color.a;
 }
 /******************************************************************************/
 // LASER

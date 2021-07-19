@@ -154,14 +154,7 @@ void AstroPrepare()
       && PosToFullScreen(CamMatrix.pos+Sun.pos*D.viewRange(), Sun._pos2) && FovPerspective(D.viewFovMode())
       && !(Fog.draw && Fog.affect_sky && VisibleOpacity(Fog.density, D.viewRange())<=EPS_COL8_NATIVE) // if fog is too dense then don't draw sun rays
       )
-      {
-         if(Sun.rays_mode==SUN_RAYS_HIGH && D._max_rt>=2)
-         {
-            Renderer._sky_coverage.get(ImageRTDesc(Renderer._col->w(), Renderer._col->h(), IMAGERT_ONE, Renderer._col->samples()));
-            Renderer._sky_coverage->clearViewport(1); // set full initially, which we will decrease with clouds and finally depth tests
-               Sun._actual_rays_mode=SUN_RAYS_HIGH;
-         }else Sun._actual_rays_mode=SUN_RAYS_LOW;
-      }
+         Sun._actual_rays_mode=((Sun.rays_mode==SUN_RAYS_HIGH && D._max_rt>=3) ? SUN_RAYS_HIGH : SUN_RAYS_LOW); // Alpha RT is on #2 #RTOutput.Blend
       Sun.light(); FREPAO(Astros).light();
    }
 }
@@ -176,7 +169,7 @@ void AstroDraw()
       D.depthOnWriteFunc(false, true , FUNC_DEFAULT   );
    }
 }
-Bool AstroDrawRays()
+void AstroDrawRays()
 {
    if(Sun._actual_rays_mode)
    {
@@ -200,8 +193,6 @@ Bool AstroDrawRays()
             D.depth2DOn (); GetSunRaysMask(false)->draw();
             D.depth2DOff();
          }
-
-         if(Renderer.stage==RS_SKY_COVERAGE && Renderer.show(Renderer._sky_coverage, false))return true;
       }
 
       const VecI2 res=ByteScaleRes(Renderer.fx(), Sun._rays_res);
@@ -238,9 +229,8 @@ Bool AstroDrawRays()
                                        shader=Sh.DrawXC[dither][LINEAR_GAMMA];
          REPS(Renderer._eye, Renderer._eye_num)shader->draw(Renderer._stereo ? &D._view_eye_rect[Renderer._eye] : &D.viewRect());
       }
-      Renderer._sky_coverage.clear();
+      if(!Renderer.processAlphaFinal())Renderer._alpha.clear(); // if we don't need alpha anymore then clear it
    }
-   return false;
 }
 /******************************************************************************/
 }

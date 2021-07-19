@@ -1593,7 +1593,7 @@ void MeshPart::drawOverlay(C Image &image, C Color &color)C
     C Variation &variation=getVariation(); if(Shader *shader=variation.shader[RM_OVERLAY])
       {
          SetSkinning();
-       //D .alpha      (ALPHA_BLEND_FACTOR); not needed because ALPHA_BLEND_FACTOR is used everywhere in RM_OVERLAY
+       //D .alpha      (ALPHA_OVERLAY); not needed because ALPHA_OVERLAY is used everywhere in RM_OVERLAY
          D .alphaFactor(TRANSPARENT); // 'MaterialClear' called below
          D .depth      (true);
          D .cull       (true);

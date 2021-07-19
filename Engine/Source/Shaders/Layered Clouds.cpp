@@ -21,11 +21,14 @@ void LayeredClouds_VS
    pixel=Project(pos);
 }
 /******************************************************************************/
-VecH4 LayeredClouds_PS(Vec   pos  :POS  ,
-                       Vec   uvw  :UVW  ,
-                       Half  alpha:ALPHA,
-                       PIXEL            ,
-                   out VecH4 mask :TARGET1):TARGET
+VecH4 LayeredClouds_PS
+(
+    Vec     pos  :POS  ,
+    Vec     uvw  :UVW  ,
+    Half    alpha:ALPHA,
+    PIXEL              ,
+out Half outAlpha:TARGET2 // #RTOutput.Blend
+):TARGET
 {
    alpha=Sat(alpha);
    if(BLEND)
@@ -41,7 +44,7 @@ VecH4 LayeredClouds_PS(Vec   pos  :POS  ,
    if(NUM>=1){VecH4 tex=Tex(Img , uv*CL[0].scale + CL[0].position)*CL[0].color; if(NUM==1)color=tex;else color=Lerp(color, tex, tex.a);}
 
    color.a*=alpha;
-   mask.rgb=0; mask.a=color.a;
+   outAlpha=color.a;
    return color;
 }
 /******************************************************************************/

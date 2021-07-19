@@ -490,30 +490,29 @@ INLINE Shader* GetReplaceAlpha             () {Shader* &s=Sh.ReplaceAlpha       
 void RendererClass::cleanup()
 {
   _has_fur=false; // do not clear '_has_glow' because this is called also for reflections, but if reflections have glow, then it means final result should have glow too
-//_final       =null   ; do not clear '_final' because this is called also for reflections, after which we still need '_final'
-  _ds          .clear();
-//_ds_1s       .clear(); do not clear '_ds_1s' because 'setDepthForDebugDrawing' may be called after rendering finishes, also 'capture' makes use of it
+//_final     =null   ; do not clear '_final' because this is called also for reflections, after which we still need '_final'
+  _ds        .clear();
+//_ds_1s     .clear(); do not clear '_ds_1s' because 'setDepthForDebugDrawing' may be called after rendering finishes, also 'capture' makes use of it
    if(!_get_target)_col.clear();
-  _nrm         .clear();
-  _ext         .clear();
-  _vel         .clear();
-  _alpha       .clear();
-  _lum         .clear();
-  _lum_1s      .clear();
-  _spec        .clear();
-  _spec_1s     .clear();
-  _shd_1s      .clear();
-  _shd_ms      .clear();
-  _water_col   .clear();
-  _water_nrm   .clear();
-  _water_ds    .clear();
-  _water_lum   .clear();
-  _water_spec  .clear();
-  _vol         .clear();
-  _ao          .clear();
-  _mirror_rt   .clear();
-  _outline_rt  .clear();
-  _sky_coverage.clear();
+  _nrm       .clear();
+  _ext       .clear();
+  _vel       .clear();
+  _alpha     .clear();
+  _lum       .clear();
+  _lum_1s    .clear();
+  _spec      .clear();
+  _spec_1s   .clear();
+  _shd_1s    .clear();
+  _shd_ms    .clear();
+  _water_col .clear();
+  _water_nrm .clear();
+  _water_ds  .clear();
+  _water_lum .clear();
+  _water_spec.clear();
+  _vol       .clear();
+  _ao        .clear();
+  _mirror_rt .clear();
+  _outline_rt.clear();
    Lights.clear();
    ClearInstances();
 }
@@ -700,14 +699,20 @@ RendererClass& RendererClass::operator()(void (&render)())
       outline( );
 
       // 2D
-      finalizeGlow(); // !! assume that nothing below can trigger glow on the scene !!
-      applyOutline();
-      edgeSoften  (); MEASURE(temp)
-      tAA         ();
+      finalizeGlow (); // !! assume that nothing below can trigger glow on the scene !!
+      applyOutline ();
+
+      if(stage)switch(stage)
+      {
+         case RS_ALPHA: if(show(_alpha, false))goto finished; break;
+      }
+
+      edgeSoften   (); MEASURE(temp)
+      tAA          ();
       // all following effects below that modify '_col' (and not create new '_col') should call 'downSample' first, otherwise they should call 'resolveMultiSample'
-      if(AstroDrawRays())goto finished; MEASURE(_t_rays[1])
-      volumetric  (); MEASURE(_t_volumetric[1])
-      postProcess (); MEASURE(_t_post_process[1])
+      AstroDrawRays(); MEASURE(_t_rays[1])
+      volumetric   (); MEASURE(_t_volumetric[1])
+      postProcess  (); MEASURE(_t_post_process[1])
    finished:;
    }
 
@@ -876,7 +881,8 @@ Bool RendererClass:: hasAO      ()C {return D.aoWant() && canReadDepth() && !fas
 
 Bool RendererClass::fastCombine      ()C {return combine && _col==_final;}
 Bool RendererClass::slowCombine      ()C {return combine && !fastCombine() && canReadDepth();}
-Bool RendererClass::processAlpha     ()C {return (alpha && (_get_target || target) && canReadDepth()) || slowCombine();}
+Bool RendererClass::processAlpha     ()C {return ((alpha && (_get_target || target) || Sun._actual_rays_mode==SUN_RAYS_HIGH || stage==RS_ALPHA) && canReadDepth()) || slowCombine();}
+Bool RendererClass::processAlphaFinal()C {return ((alpha && (_get_target || target)                                         || stage==RS_ALPHA) && canReadDepth()) || slowCombine();}
 Bool RendererClass::hasVolLight      ()C {return D.volLight() && canReadDepth();}
 Bool RendererClass::anyDeferred      ()C {return type()==RT_DEFERRED || Water.reflectionRenderer()==RT_DEFERRED;}
 Bool RendererClass::anyForward       ()C {return type()==RT_FORWARD  || Water.reflectionRenderer()==RT_FORWARD ;}
@@ -1237,8 +1243,8 @@ void RendererClass::resolveDepth()
       D.alpha(ALPHA_NONE);
 
       // set multi-sampled '_ds' MSAA
-      if(_cur_type==RT_DEFERRED                        // for     deferred set it always (needed for lighting)
-      || Fog.draw || Sky.isActual() || processAlpha()) // for non-deferred it will be used only for fog, sky and alpha
+      if(_cur_type==RT_DEFERRED                             // for     deferred set it always (needed for lighting)
+      || Fog.draw || Sky.isActual() || processAlphaFinal()) // for non-deferred it will be used only for fog, sky and alpha
       {
          D.stencil(STENCIL_MSAA_SET, STENCIL_REF_MSAA);
          set(null, _ds, true);
@@ -1253,8 +1259,8 @@ void RendererClass::resolveDepth()
       D.depthFunc(FUNC_DEFAULT); D.depthUnlock(    );
 
       // set 1-sampled '_ds_1s' MSAA
-      if(_cur_type==RT_DEFERRED                // for     deferred set it always (needed for lighting)
-      || processAlpha() || ms_samples_color.a) // for non-deferred it will be used only for alpha and visualizing multi-samples
+      if(_cur_type==RT_DEFERRED                     // for     deferred set it always (needed for lighting)
+      || processAlphaFinal() || ms_samples_color.a) // for non-deferred it will be used only for alpha and visualizing multi-samples
       {
          D.stencilRef(STENCIL_REF_MSAA);
        //if(_nrm){Sh.ImgMS[0]->set(_nrm); Sh.DetectMSNrm->draw();}else 'DetectMSNrm' generates too many MS pixels, making rendering slower, so don't use
@@ -1281,7 +1287,7 @@ void RendererClass::overlay()
 
    set(_col, D.bumpMode()>BUMP_FLAT ? _nrm() : null, _ext, null, _ds, true, WANT_DEPTH_READ); // #RTOutput
    setDSLookup(); // 'setDSLookup' after 'set'
-   D.alpha(ALPHA_BLEND_FACTOR);
+   D.alpha(ALPHA_OVERLAY);
    D.set3D(); D.depthOnWriteFunc(true, false, FUNC_LESS_EQUAL); D.depthBias(BIAS_OVERLAY); mode(RM_OVERLAY); // overlay requires BIAS because we may use 'MeshOverlay' which generates triangles by clipping existing ones
    REPS(_eye, _eye_num)
    {
@@ -1658,7 +1664,7 @@ void RendererClass::tAA()
       This way we're sure that the RT's contain only 8 last frames of data.
       */
       ImageRTDesc  rt_desc(_col->w(), _col->h(), IMAGERT_ONE);
-      Bool         alpha=processAlpha(),
+      Bool         alpha=processAlphaFinal(),
             merged_alpha=(!TAA_SEPARATE_ALPHA && alpha),
           separate_alpha=( TAA_SEPARATE_ALPHA && alpha),
                     dual=(!alpha && D.tAADualHistory()); // dual incompatible with alpha #TAADualAlpha
@@ -1809,7 +1815,7 @@ void RendererClass::blend()
    D.stencilRef(STENCIL_REF_TERRAIN); // set in case draw codes will use stencil
 
    const Bool blend_affect_vel=true;
-   set(_col,  blend_affect_vel ? _vel() : null, _alpha, null, _ds, true); setDSLookup(); // 'setDSLookup' after 'set' #RTOutput.Blend, needed for 'DrawBlendInstances'
+   set(_col,  blend_affect_vel ? _vel() : null, _alpha, null, _ds, true); setDSLookup(); // 'setDSLookup' after 'set' #RTOutput.Vel #RTOutput.Blend, needed for 'DrawBlendInstances'
    D.alpha(Renderer.fastCombine() ? ALPHA_BLEND : ALPHA_BLEND_FACTOR);
    D.set3D(); D.depthOnWriteFunc(true, false, FUNC_LESS_EQUAL); mode(RM_BLEND); // use LESS_EQUAL for blend because we may want to draw blend graphics on top of existing pixels (for example world editor terrain highlight)
    SortBlendInstances();
@@ -2057,12 +2063,12 @@ void RendererClass::volumetric()
 }
 void RendererClass::postProcess()
 {
-   Bool eye_adapt= hasEyeAdapt (),
-        bloom    =(hasBloom    () || _has_glow),
-        motion   = hasMotion   (),
-        dof      = hasDof      (),
-        alpha    = processAlpha(), // this is always enabled for 'slowCombine'
-        combine  = slowCombine (),
+   Bool eye_adapt= hasEyeAdapt      (),
+        bloom    =(hasBloom         () || _has_glow),
+        motion   = hasMotion        (),
+        dof      = hasDof           (),
+        alpha    = processAlphaFinal(), // this is always enabled for 'slowCombine'
+        combine  = slowCombine      (),
         upscale  =(_final->w()>_col->w() || _final->h()>_col->h()), // we're going to upscale at the end
         alpha_set=fastCombine(); // if alpha channel is set properly in the RT, skip this if we're doing 'fastCombine' because we're rendering to existing RT which has its Alpha already set
    ImageRTDesc rt_desc(_col->w(), _col->h(), IMAGERT_SRGBA); MIN(rt_desc.size.x, _final->w()); MIN(rt_desc.size.y, _final->h()); // don't do post-process at higher res than needed

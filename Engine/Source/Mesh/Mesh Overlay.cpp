@@ -325,7 +325,7 @@ void MeshOverlay::setParams(Flt alpha)C // this is called only inside 'draw' met
   _material        ->setBlend();
    D.depth(true);
    D.cull (true);
- //D.alpha(ALPHA_BLEND_FACTOR); not needed because ALPHA_BLEND_FACTOR is used everywhere in RM_OVERLAY
+ //D.alpha(ALPHA_OVERLAY); not needed because ALPHA_OVERLAY is used everywhere in RM_OVERLAY
  /*D.depthWrite(false); not needed because false is used everywhere in RM_OVERLAY*/ Renderer.needDepthTest(); // !! 'needDepthTest' after 'depthWrite' !!
 }
 /******************************************************************************/

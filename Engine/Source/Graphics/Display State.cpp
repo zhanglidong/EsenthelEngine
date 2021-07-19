@@ -520,7 +520,7 @@ ALPHA_MODE DisplayState::alpha(ALPHA_MODE alpha)
          glEnable           (GL_BLEND);
          glBlendEquation    (GL_FUNC_ADD);
          glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
-         if(glBlendFunci)glBlendFunci(2, GL_ONE_MINUS_DST_COLOR, GL_ONE); // #RTOutput.Blend set RT2 Alpha as Increase
+         if(glBlendFunci)glBlendFunci(2, GL_ONE_MINUS_DST_COLOR, GL_ONE); // #RTOutput.Blend set RT2 as Increase
       break;
 
       case ALPHA_ADD:
@@ -554,18 +554,16 @@ ALPHA_MODE DisplayState::alpha(ALPHA_MODE alpha)
          glEnable           (GL_BLEND);
          glBlendEquation    (GL_FUNC_ADD);
          glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_CONSTANT_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-         if(glBlendFunci)glBlendFunci(2, GL_ONE_MINUS_DST_COLOR, GL_ONE); // #RTOutput.Blend set RT2 Alpha as Increase
+         if(glBlendFunci)glBlendFunci(2, GL_ONE_MINUS_DST_COLOR, GL_ONE); // #RTOutput.Blend set RT2 as Increase
       break;
-    /*case ALPHA_ADD_FACTOR:
+
+      case ALPHA_OVERLAY:
+      {
          glEnable           (GL_BLEND);
          glBlendEquation    (GL_FUNC_ADD);
-         glBlendFuncSeparate(GL_ONE, GL_ONE, GL_CONSTANT_ALPHA, GL_ONE);
-      break;*/
-      case ALPHA_SETBLEND_SET:
-         glEnable           (GL_BLEND);
-         glBlendEquation    (GL_FUNC_ADD);
-         glBlendFuncSeparate(GL_SRC_ALPHA, GL_ZERO, GL_ONE, GL_ZERO);
-      break;
+         glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_CONSTANT_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      }break;
+
       case ALPHA_FACTOR:
          glEnable       (GL_BLEND);
          glBlendEquation(GL_FUNC_ADD);
@@ -594,12 +592,6 @@ ALPHA_MODE DisplayState::alpha(ALPHA_MODE alpha)
          glBlendEquation    (GL_FUNC_ADD);
          glBlendFuncSeparate(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO);
       break;
-
-      /*case ALPHA_NONE_ADD:
-         glEnable           (GL_BLEND);
-         glBlendEquation    (GL_FUNC_ADD);
-         glBlendFuncSeparate(GL_ONE, GL_ZERO, GL_ONE, GL_ONE);
-      break;*/
    }
 #endif
    return prev;
@@ -859,7 +851,7 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ZERO;
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_INV_SRC_ALPHA;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      if(D.independentBlendAvailable()) // #RTOutput.Blend set RT2 Alpha as Increase
+      if(D.independentBlendAvailable()) // #RTOutput.Blend set RT2 as Increase
       {
          desc.IndependentBlendEnable=true;
          for(Int i=1; i<Elms(desc.RenderTarget); i++)desc.RenderTarget[i]=desc.RenderTarget[0];
@@ -943,7 +935,7 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_BLEND_FACTOR ;
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_INV_SRC_ALPHA;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      if(D.independentBlendAvailable()) // #RTOutput.Blend set RT2 Alpha as Increase
+      if(D.independentBlendAvailable()) // #RTOutput.Blend set RT2 as Increase
       {
          desc.IndependentBlendEnable=true;
          for(Int i=1; i<Elms(desc.RenderTarget); i++)desc.RenderTarget[i]=desc.RenderTarget[0];
@@ -954,31 +946,18 @@ void DisplayState::create()
       }
       BlendStates[ALPHA_BLEND_FACTOR].create(desc);
    }
-   /*{
-      D3D11_BLEND_DESC desc; Zero(desc);
-      desc.AlphaToCoverageEnable =false;
-      desc.IndependentBlendEnable=false;
-      desc.RenderTarget[0].BlendEnable=true;
-      desc.RenderTarget[0].BlendOp       =desc.RenderTarget[0].BlendOpAlpha=D3D11_BLEND_OP_ADD;
-      desc.RenderTarget[0]. SrcBlend     =D3D11_BLEND_ONE;
-      desc.RenderTarget[0].DestBlend     =D3D11_BLEND_ONE;
-      desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_BLEND_FACTOR;
-      desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ONE;
-      desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BlendStates[ALPHA_ADD_FACTOR].create(desc);
-   }*/
    {
       D3D11_BLEND_DESC desc; Zero(desc);
       desc.AlphaToCoverageEnable =false;
       desc.IndependentBlendEnable=false;
       desc.RenderTarget[0].BlendEnable=true;
       desc.RenderTarget[0].BlendOp       =desc.RenderTarget[0].BlendOpAlpha=D3D11_BLEND_OP_ADD;
-      desc.RenderTarget[0]. SrcBlend     =D3D11_BLEND_SRC_ALPHA;
-      desc.RenderTarget[0].DestBlend     =D3D11_BLEND_ZERO;
-      desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ONE;
-      desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ZERO;
+      desc.RenderTarget[0]. SrcBlend     =D3D11_BLEND_SRC_ALPHA    ;
+      desc.RenderTarget[0].DestBlend     =D3D11_BLEND_INV_SRC_ALPHA;
+      desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_BLEND_FACTOR ;
+      desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_INV_SRC_ALPHA;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BlendStates[ALPHA_SETBLEND_SET].create(desc);
+      BlendStates[ALPHA_OVERLAY].create(desc);
    }
    {
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -1039,55 +1018,6 @@ void DisplayState::create()
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALPHA;
       BlendStates[ALPHA_KEEP_SET].create(desc);
    }
-   /*{
-      D3D11_BLEND_DESC desc; Zero(desc);
-      desc.AlphaToCoverageEnable =false;
-      desc.IndependentBlendEnable=false;
-      desc.RenderTarget[0].BlendEnable=false;
-      desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_RED|D3D11_COLOR_WRITE_ENABLE_GREEN|D3D11_COLOR_WRITE_ENABLE_BLUE;
-      BlendStates[ALPHA_SET_KEEP].create(desc);
-   }*/
-   /*{
-      D3D11_BLEND_DESC desc; Zero(desc);
-      desc.AlphaToCoverageEnable =true;
-      desc.IndependentBlendEnable=true;
-      REPAO(desc.RenderTarget  ).BlendEnable=false;
-      REPAO(desc.RenderTarget  ).RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-            desc.RenderTarget[0].BlendEnable=true;
-            desc.RenderTarget[0].BlendOp=desc.RenderTarget[0].BlendOpAlpha=D3D11_BLEND_OP_ADD;
-            desc.RenderTarget[0]. SrcBlend     =D3D11_BLEND_ONE ;
-            desc.RenderTarget[0].DestBlend     =D3D11_BLEND_ZERO;
-            desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ZERO;
-            desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ZERO;
-      BlendStates[ALPHA_NONE_COVERAGE].create(desc);
-   }*/
-   /*{
-      D3D11_BLEND_DESC desc; Zero(desc);
-      desc.AlphaToCoverageEnable =true;
-      desc.IndependentBlendEnable=true;
-      REPAO(desc.RenderTarget  ).BlendEnable=false;
-      REPAO(desc.RenderTarget  ).RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-            desc.RenderTarget[0].BlendEnable=true;
-            desc.RenderTarget[0].BlendOp=desc.RenderTarget[0].BlendOpAlpha=D3D11_BLEND_OP_ADD;
-            desc.RenderTarget[0]. SrcBlend     =D3D11_BLEND_ONE ;
-            desc.RenderTarget[0].DestBlend     =D3D11_BLEND_ONE ;
-            desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ZERO;
-            desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ONE ;
-      BlendStates[ALPHA_ADD_COVERAGE].create(desc);
-   }*/
-   /*{
-      D3D11_BLEND_DESC desc; Zero(desc);
-      desc.AlphaToCoverageEnable =false;
-      desc.IndependentBlendEnable=false;
-      desc.RenderTarget[0].BlendEnable=true;
-      desc.RenderTarget[0].BlendOp       =desc.RenderTarget[0].BlendOpAlpha=D3D11_BLEND_OP_ADD;
-      desc.RenderTarget[0]. SrcBlend     =D3D11_BLEND_ONE ;
-      desc.RenderTarget[0].DestBlend     =D3D11_BLEND_ZERO;
-      desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ONE ;
-      desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ONE ;
-      desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BlendStates[ALPHA_NONE_ADD].create(desc);
-   }*/
 
    // depth stencil state
    REPD(stencil    , STENCIL_NUM)

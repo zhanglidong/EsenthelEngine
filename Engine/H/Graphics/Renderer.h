@@ -53,10 +53,10 @@ enum RENDER_STAGE : Byte // Rendering Stage, allows displaying only desired rend
    RS_WATER_COLOR , // display Water Unlit Color  (available only in RT_DEFERRED and if 'Water.max1Light' is disabled)
    RS_WATER_NORMAL, // display Water       Normal (available only in RT_DEFERRED and if 'Water.max1Light' is disabled)
    RS_WATER_LIGHT , // display Water       Light  (available only in RT_DEFERRED and if 'Water.max1Light' is disabled)
+   RS_ALPHA       , // display Alpha
 #if EE_PRIVATE
    RS_VEL_CONVERT , // display Converted Velocity (available only in RT_DEFERRED)
    RS_VEL_DILATED , // display Dilated   Velocity (available only in RT_DEFERRED)
-   RS_SKY_COVERAGE, // display Sky Coverage
 #endif
 };
 #if EE_PRIVATE
@@ -109,13 +109,14 @@ struct RendererClass // handles rendering
    Bool wantTAA       ()C;   Bool hasTAA       ()C;
                              Bool hasAO        ()C;
 
-   Bool fastCombine ()C;
-   Bool slowCombine ()C;
-   Bool processAlpha()C;
-   Bool hasVolLight ()C;
-   Bool anyDeferred ()C;
-   Bool anyForward  ()C;
-   Bool ambientInLum()C;
+   Bool fastCombine      ()C;
+   Bool slowCombine      ()C;
+   Bool processAlpha     ()C;
+   Bool processAlphaFinal()C;
+   Bool hasVolLight      ()C;
+   Bool anyDeferred      ()C;
+   Bool anyForward       ()C;
+   Bool ambientInLum     ()C;
 #endif
 
    // get / set
@@ -317,7 +318,7 @@ private:
                          _col, _ds, _ds_1s, _nrm, _ext, _vel, _alpha,
                          _lum, _lum_1s, _spec, _spec_1s, _shd_1s, _shd_ms,
                          _water_col, _water_nrm, _water_ds, _water_lum, _water_spec,
-                         _vol, _ao, _fade, _back, _back_ds, _mirror_rt, _outline_rt, _sky_coverage;
+                         _vol, _ao, _fade, _back, _back_ds, _mirror_rt, _outline_rt;
    Memx<ImageRTC>        _rts;
    Map<CPtr, Context>    _ctxs;
    Context              *_ctx;
