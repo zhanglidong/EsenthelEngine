@@ -173,7 +173,7 @@ void AstroDrawRays()
 {
    if(Sun._actual_rays_mode)
    {
-      Renderer.downSample(); // we're modifying existing RT, so downSample if needed
+      /*Renderer.downSample(); // we're modifying existing RT, so downSample if needed
 
       if(Renderer._sky_coverage) // apply mask based on depth tests, have to do this at the end, once we have depth buffer set (including from blend phase), no need to check for 'canReadDepth' because that was already checked when setting '_sky_coverage'
       {
@@ -217,7 +217,7 @@ void AstroDrawRays()
           //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
             Renderer.set(rt1, null, false); Sh.ImgX->set(rt0); Sh.BlurX_X->draw(&D.viewRect());
             Renderer.set(rt0, null, false); Sh.ImgX->set(rt1); Sh.BlurY_X->draw(&D.viewRect());
-         }*/
+         }*
          Renderer.set(Renderer._col, null, true);
          D.alpha(ALPHA_ADD);
          Sh.Color[0]->set(Vec4(color, 0)); // we've rendered the sun with full intensity, so now we need to make it darker
@@ -228,7 +228,7 @@ void AstroDrawRays()
        //if(Sun.rays_soft && shift==1){shader=Sh.SunRaysSoft; Sh.imgSize(*rt0);}else
                                        shader=Sh.DrawXC[dither][LINEAR_GAMMA];
          REPS(Renderer._eye, Renderer._eye_num)shader->draw(Renderer._stereo ? &D._view_eye_rect[Renderer._eye] : &D.viewRect());
-      }
+      }*/
       if(!Renderer.processAlphaFinal())Renderer._alpha.clear(); // if we don't need alpha anymore then clear it
    }
 }

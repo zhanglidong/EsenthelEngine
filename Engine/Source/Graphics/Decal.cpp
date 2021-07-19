@@ -75,7 +75,7 @@ void Decal::drawStatic()C
           //Bool cwrt; Byte cwrt_old; if(cwrt=(Renderer.cur[1] && tech!=Sh.DecalN)){cwrt_old=D._cwrt[1]; D.colWrite(0, 1);} it looks like if the shader doesn't write to RT then it's not applied
 
             Renderer.needDepthRead();
-            D.alpha(Renderer._palette_mode ? ALPHA_ADD : ALPHA_BLEND_FACTOR);
+            D.alpha(Renderer._palette_mode ? ALPHA_ADD : ALPHA_RENDER_BLEND_FACTOR);
             if(inside)
             {
                shader->draw();
@@ -111,7 +111,7 @@ void Decal::drawAnimated(C Matrix &object_world_matrix)C
           //Bool cwrt; Byte cwrt_old; if(cwrt=(Renderer.cur[1] && tech!=Sh.DecalN)){cwrt_old=D._cwrt[1]; D.colWrite(0, 1);} it looks like if the shader doesn't write to RT then it's not applied
 
             Renderer.needDepthRead();
-            D.alpha(Renderer._palette_mode ? ALPHA_ADD : ALPHA_BLEND_FACTOR);
+            D.alpha(Renderer._palette_mode ? ALPHA_ADD : ALPHA_RENDER_BLEND_FACTOR);
             if(inside)
             {
                shader->draw();
