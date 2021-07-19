@@ -708,8 +708,6 @@ RendererClass& RendererClass::operator()(void (&render)())
       }
 
       edgeSoften   (); MEASURE(temp)
-      tAA          ();
-      // all following effects below that modify '_col' (and not create new '_col') should call 'downSample' first, otherwise they should call 'resolveMultiSample'
       AstroDrawRays(); MEASURE(_t_rays[1])
       volumetric   (); MEASURE(_t_volumetric[1])
       postProcess  (); MEASURE(_t_post_process[1])
@@ -1645,13 +1643,12 @@ void RendererClass::waterUnder()
       REPS(_eye, _eye_num)WS.Under->draw(setEyeParams());
    }
 }
-void RendererClass::tAA()
+void RendererClass::tAA() // !! assumes 'resolveMultiSample' was already called !!
 {
    if(_taa_use) // hasTAA()
-   {
-      resolveMultiSample(); // process MSAA but not 'downSample' (Super-Sampling) because quality will suffer
+   { /*
+      Don't 'downSample' (Super-Sampling) because quality will suffer
 
-      /*
       by default 1 previous frame of color RT is used that continously gets updated with new data, simplified:
          old=Lerp(old, cur, 1.0/8) which is make 'old' look more like 'cur'
       So even after 100 frames, it still contains some tiny amount of data from the first frame
@@ -1922,7 +1919,7 @@ void RendererClass::applyOutline()
       D.sampler2D ();
       D.depthOnWriteFunc(false, true, FUNC_DEFAULT); // restore default
 
-      resolveMultiSample(); // don't do 'downSample' here because 'edgeSoften' will be called later and it requires to operate on full-sampled data
+      resolveMultiSample(); // don't do 'downSample' here because 'edgeSoften' and 'tAA' will be called later and they require to operate on full-sampled data
       ImageRT *ds=_ds_1s; // we've resolved multi-sample so have to use 1-sample
 
       if(!Sh.Outline)
@@ -1985,7 +1982,7 @@ void RendererClass::resolveMultiSample() // !! assumes that 'finalizeGlow' was c
       src->copyMs(*_col, false, true, D.viewRect());
    }
 }
-void RendererClass::downSample() // !! assumes that 'finalizeGlow' was called !!
+/*void RendererClass::downSample() // !! assumes that 'finalizeGlow' was called !!
 {
    resolveMultiSample();
    if(_col->w()>_final->w()) // if down-sample is needed
@@ -1993,7 +1990,7 @@ void RendererClass::downSample() // !! assumes that 'finalizeGlow' was called !!
       ImageRTPtr src=_col; _col.get(ImageRTDesc(_final->w(), _final->h(), GetImageRTType(_has_glow, D.litColRTPrecision())));
       src->copyHw(*_col, false, D.viewRect());
    }
-}
+}*/
 void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
 {
    if(hasEdgeSoften())
@@ -2052,7 +2049,6 @@ void RendererClass::volumetric()
 {
    if(_vol)
    {
-      downSample(); // we're modifying existing RT, so downSample if needed
       set(_col, null, true);
       SPSet("VolMax", Vec(D.volMax()));
       Sh.imgSize(*_vol);
@@ -2063,7 +2059,8 @@ void RendererClass::volumetric()
 }
 void RendererClass::postProcess()
 {
-   Bool eye_adapt= hasEyeAdapt      (),
+   Bool taa      =_taa_use,
+        eye_adapt= hasEyeAdapt      (),
         bloom    =(hasBloom         () || _has_glow),
         motion   = hasMotion        (),
         dof      = hasDof           (),
@@ -2071,11 +2068,13 @@ void RendererClass::postProcess()
         combine  = slowCombine      (),
         upscale  =(_final->w()>_col->w() || _final->h()>_col->h()), // we're going to upscale at the end
         alpha_set=fastCombine(); // if alpha channel is set properly in the RT, skip this if we're doing 'fastCombine' because we're rendering to existing RT which has its Alpha already set
-   ImageRTDesc rt_desc(_col->w(), _col->h(), IMAGERT_SRGBA); MIN(rt_desc.size.x, _final->w()); MIN(rt_desc.size.y, _final->h()); // don't do post-process at higher res than needed
+   ImageRTDesc rt_desc(_col->w(), _col->h(), IMAGERT_SRGBA/*this is changed later*/); MIN(rt_desc.size.x, _final->w()); MIN(rt_desc.size.y, _final->h()); // don't do post-process at higher res than needed
    ImageRTPtr  dest;
 
-   if(eye_adapt || bloom || alpha || motion || dof || _get_target)resolveMultiSample(); // we need to resolve the MS Image so it's smooth for the effects
+   if(taa || eye_adapt || bloom || alpha || motion || dof || _get_target)resolveMultiSample(); // we need to resolve the MS Image so it's 1-sample for effects
    if(alpha && !_alpha)setAlphaFromDepthAndCol(); // create '_alpha' if not yet available
+
+   tAA();
 
    Int fxs=((upscale || _get_target) ? -1 : eye_adapt+(bloom|alpha)+motion+dof); // this counter specifies how many effects are still left in the queue, and if we can render directly to '_final', when up sampling then don't render to '_final', 'bloom' already handles merging alpha for 'alpha'
    Sh.ImgClamp->setConditional(ImgClamp(rt_desc.size)); // set 'ImgClamp' that may be needed for Bloom, DoF, MotionBlur, this is the viewport rect within texture, so reading will be clamped to what was rendered inside the viewport
