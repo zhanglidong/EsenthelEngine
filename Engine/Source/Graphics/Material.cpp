@@ -548,7 +548,6 @@ void Material::setAuto()C
       case RM_EMISSIVE: setEmissive(); break;
 
       case RM_FUR     :
-      case RM_CLOUD   :
       case RM_BLEND   :
       case RM_PALETTE :
       case RM_PALETTE1:
