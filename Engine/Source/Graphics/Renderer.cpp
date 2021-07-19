@@ -699,8 +699,8 @@ RendererClass& RendererClass::operator()(void (&render)())
       outline( );
 
       // 2D
-      finalizeGlow (); // !! assume that nothing below can trigger glow on the scene !!
-      applyOutline ();
+      finalizeGlow(); // !! assume that nothing below can trigger glow on the scene !!
+      applyOutline();
 
       if(stage)switch(stage)
       {
