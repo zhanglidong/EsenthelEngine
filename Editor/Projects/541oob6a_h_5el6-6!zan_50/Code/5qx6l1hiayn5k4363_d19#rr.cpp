@@ -50,19 +50,19 @@ class Item : Game.Item // extend items
       }
       return false;
    }
-   virtual uint drawPrepare() // extend drawing  to include request for the RM_OVERLAY mode
+   virtual uint drawPrepare() // extend drawing to include request for the RM_OVERLAY mode
    {
       uint modes=super.drawPrepare();
       if(decals.elms())modes|=IndexToFlag(RM_OVERLAY); // include request for additional render mode
       return modes;
    }
-   virtual void drawOverlay() // extend drawing  to include rendering of 'decals'
+   virtual void drawOverlay() // extend drawing to include rendering of 'decals'
    {
       REPAO(decals).draw(matrixScaled()); // draw mesh_overlays with the same matrix used for default item drawing
    }
 
    // io
-   virtual bool save(File &f) // extend saving  to include members saving
+   virtual bool save(File &f) // extend saving to include members saving
    {
       if(super.save(f))
       {

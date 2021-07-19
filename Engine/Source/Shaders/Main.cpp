@@ -438,7 +438,7 @@ Flt LinearizeDepth2_PS(NOPERSP PIXEL,
 // PALETTE
 /******************************************************************************/
 VecH4 PaletteDraw_PS(NOPERSP Vec2 uv   :UV,
-                         out Half alpha:TARGET2 // #RTOutput.Blend
+                         out Half alpha:TARGET1 // #RTOutput.Blend
                     ):TARGET
 {
    VecH4 particle=TexLod(Img, uv); // use linear filtering in case in the future we support downsized palette intensities (for faster fill-rate)

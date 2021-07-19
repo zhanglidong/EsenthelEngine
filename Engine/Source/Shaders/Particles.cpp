@@ -130,7 +130,7 @@ VecH4 Particle_PS(PIXEL,
                 , Vec anim:UV1
                #endif
                #if !PALETTE
-                , out Half alpha:TARGET2 // #RTOutput.Blend
+                , out Half alpha:TARGET1 // #RTOutput.Blend
                #endif
                  ):TARGET
 {

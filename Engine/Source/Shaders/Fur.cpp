@@ -138,7 +138,7 @@ VecH4 Soft_PS
 #if SIZE
  , Half length  :LENGTH
 #endif
-, out Half outAlpha:TARGET2 // #RTOutput.Blend
+, out Half outAlpha:TARGET1 // #RTOutput.Blend
 ):TARGET
 {
    Half fur=Tex(FurCol, uv*Material.det_uv_scale).r;

@@ -122,7 +122,7 @@ void LayeredClouds::draw()
    {
       commit();
 
-      Renderer.set(Renderer._col, null, Renderer._alpha, null, Renderer._ds, true, WANT_DEPTH_READ); // use DS for depth tests #RTOutput.Blend
+      Renderer.set(Renderer._col, Renderer._alpha, null, null, Renderer._ds, true, WANT_DEPTH_READ); // use DS for depth tests #RTOutput.Blend
       Flt from=D.viewRange()*frac(),
           to  =D.viewRange();
       MAX(from, Frustum.view_quad_max_dist/CLOUD_MESH_MIN_DIST); // make sure we don't intersect with the near plane
@@ -139,7 +139,7 @@ void LayeredClouds::draw()
       MIN(from, to*EPS_SKY_MIN_VIEW_RANGE);
    #endif
       SetOneMatrix(MatrixM(from, CamMatrix.pos));
-      D.alpha           (ALPHA_BLEND_DEC);
+      D.alpha           (ALPHA_RENDER_BLEND);
       D.depthOnWriteFunc(true, false, FUNC_LESS_EQUAL); // to make sure we draw at the end of viewRange
       D.cull            (true);
       D.sampler3D       ();
@@ -646,8 +646,8 @@ void VolumetricClouds::draw()
       VolCloud.Clouds->draw(rect);
 
       Bool gamma=LINEAR_GAMMA, swap=(gamma && Renderer._col->canSwapRTV()); if(swap){gamma=false; Renderer._col->swapRTV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
-      Renderer.set(Renderer._col, null, Renderer._alpha, null, null, true);// #RTOutput.Blend
-      D.alpha(ALPHA_BLEND_DEC);
+      Renderer.set(Renderer._col, Renderer._alpha, null, null, null, true);// #RTOutput.Blend
+      D.alpha(ALPHA_RENDER_BLEND);
 
       Flt to=D.viewRange(), from=Min(to*Sky.frac(), to-0.01f);
       Vec2 mul_add; mul_add.x=1/(to-from); mul_add.y=-from*mul_add.x;
@@ -699,8 +699,8 @@ void AllClouds::drawAll()
       {
          Sky.setFracMulAdd();
 
-         Renderer.set(Renderer._col, null, Renderer._alpha, null, Renderer._ds, true, WANT_DEPTH_READ); Renderer.setDSLookup(); // we may use soft cloud, 'setDSLookup' after 'set' #RTOutput.Blend
-         D.alpha     (ALPHA_BLEND_DEC);
+         Renderer.set(Renderer._col, Renderer._alpha, null, null, Renderer._ds, true, WANT_DEPTH_READ); Renderer.setDSLookup(); // we may use soft cloud, 'setDSLookup' after 'set' #RTOutput.Blend
+         D.alpha     (ALPHA_RENDER_BLEND);
          D.depthWrite(false); REPS(Renderer._eye, Renderer._eye_num){Renderer.setEyeViewportCam(); Renderer.mode(RM_CLOUD); Renderer._render();}
          D.depthWrite(true );
       }

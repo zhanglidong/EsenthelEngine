@@ -178,7 +178,7 @@ VecH4 CloudsDraw_PS
    NOPERSP Vec2 uv   :UV,
    NOPERSP Vec2 posXY:POS_XY,
    NOPERSP PIXEL,
-       out Half alpha:TARGET2 // #RTOutput.Blend
+       out Half alpha:TARGET1 // #RTOutput.Blend
 ):TARGET
 {
    VecH2 clouds=TexLod(ImgXY, uv).xy; // can't use TexPoint because image may be smaller

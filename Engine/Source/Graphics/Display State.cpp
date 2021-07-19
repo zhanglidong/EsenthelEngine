@@ -516,11 +516,11 @@ ALPHA_MODE DisplayState::alpha(ALPHA_MODE alpha)
          glBlendEquation    (GL_FUNC_ADD);
          glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA, GL_ONE);
       break;
-      case ALPHA_BLEND_DEC:
+      case ALPHA_RENDER_BLEND:
          glEnable           (GL_BLEND);
          glBlendEquation    (GL_FUNC_ADD);
          glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
-         if(glBlendFunci)glBlendFunci(2, GL_ONE_MINUS_DST_COLOR, GL_ONE); // #RTOutput.Blend set RT2 as Increase
+         if(glBlendFunci)glBlendFunci(1, GL_ONE_MINUS_DST_COLOR, GL_ONE); // #RTOutput.Blend set RT1 as Increase
       break;
 
       case ALPHA_ADD:
@@ -550,11 +550,11 @@ ALPHA_MODE DisplayState::alpha(ALPHA_MODE alpha)
          glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ZERO, GL_ONE);
       break;
 
-      case ALPHA_BLEND_FACTOR:
+      case ALPHA_RENDER_BLEND_FACTOR:
          glEnable           (GL_BLEND);
          glBlendEquation    (GL_FUNC_ADD);
          glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_CONSTANT_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-         if(glBlendFunci)glBlendFunci(2, GL_ONE_MINUS_DST_COLOR, GL_ONE); // #RTOutput.Blend set RT2 as Increase
+         if(glBlendFunci)glBlendFunci(1, GL_ONE_MINUS_DST_COLOR, GL_ONE); // #RTOutput.Blend set RT1 as Increase
       break;
 
       case ALPHA_OVERLAY:
@@ -851,16 +851,17 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ZERO;
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_INV_SRC_ALPHA;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      if(D.independentBlendAvailable()) // #RTOutput.Blend set RT2 as Increase
+      if(D.independentBlendAvailable()) // #RTOutput.Blend set RT1 as Increase
       {
          desc.IndependentBlendEnable=true;
          for(Int i=1; i<Elms(desc.RenderTarget); i++)desc.RenderTarget[i]=desc.RenderTarget[0];
-         desc.RenderTarget[2]. SrcBlend     =D3D11_BLEND_INV_DEST_COLOR;
-         desc.RenderTarget[2].DestBlend     =D3D11_BLEND_ONE           ;
-         desc.RenderTarget[2]. SrcBlendAlpha=D3D11_BLEND_ZERO          ; // these are ignored because alpha RT is R8
-         desc.RenderTarget[2].DestBlendAlpha=D3D11_BLEND_ONE           ; // these are ignored because alpha RT is R8
+
+         desc.RenderTarget[1]. SrcBlend     =D3D11_BLEND_INV_DEST_COLOR;
+         desc.RenderTarget[1].DestBlend     =D3D11_BLEND_ONE           ;
+         desc.RenderTarget[1]. SrcBlendAlpha=D3D11_BLEND_ZERO          ; // these are ignored because alpha RT is R8
+         desc.RenderTarget[1].DestBlendAlpha=D3D11_BLEND_ONE           ; // these are ignored because alpha RT is R8
       }
-      BlendStates[ALPHA_BLEND_DEC].create(desc);
+      BlendStates[ALPHA_RENDER_BLEND].create(desc);
    }
    {
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -935,16 +936,17 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_BLEND_FACTOR ;
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_INV_SRC_ALPHA;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      if(D.independentBlendAvailable()) // #RTOutput.Blend set RT2 as Increase
+      if(D.independentBlendAvailable()) // #RTOutput.Blend set RT1 as Increase
       {
          desc.IndependentBlendEnable=true;
          for(Int i=1; i<Elms(desc.RenderTarget); i++)desc.RenderTarget[i]=desc.RenderTarget[0];
-         desc.RenderTarget[2]. SrcBlend     =D3D11_BLEND_INV_DEST_COLOR;
-         desc.RenderTarget[2].DestBlend     =D3D11_BLEND_ONE           ;
-         desc.RenderTarget[2]. SrcBlendAlpha=D3D11_BLEND_ZERO          ; // these are ignored because alpha RT is R8
-         desc.RenderTarget[2].DestBlendAlpha=D3D11_BLEND_ONE           ; // these are ignored because alpha RT is R8
+
+         desc.RenderTarget[1]. SrcBlend     =D3D11_BLEND_INV_DEST_COLOR;
+         desc.RenderTarget[1].DestBlend     =D3D11_BLEND_ONE           ;
+         desc.RenderTarget[1]. SrcBlendAlpha=D3D11_BLEND_ZERO          ; // these are ignored because alpha RT is R8
+         desc.RenderTarget[1].DestBlendAlpha=D3D11_BLEND_ONE           ; // these are ignored because alpha RT is R8
       }
-      BlendStates[ALPHA_BLEND_FACTOR].create(desc);
+      BlendStates[ALPHA_RENDER_BLEND_FACTOR].create(desc);
    }
    {
       D3D11_BLEND_DESC desc; Zero(desc);

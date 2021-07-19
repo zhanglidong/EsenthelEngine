@@ -28,7 +28,7 @@ void FogClass::Draw(Bool after_sky)
          Renderer.setMainViewportCam();
          Sh.FogColor  ->set(colorD());
          Sh.FogDensity->set(Mid(density, 0.0f, MAX_DENSITY)); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
-         D .alpha(ALPHA_BLEND_DEC);
+         D .alpha(ALPHA_RENDER_BLEND);
          if(multi && Sh.Fog[multi])
          {
             if(Renderer.hasStencilAttached())
@@ -66,7 +66,7 @@ void FogDraw(C OBox &obox, Flt density, C Vec &color_l)
    {
       Sh.loadFogBoxShaders();
       Renderer.needDepthRead();
-      D .alpha(ALPHA_BLEND_DEC);
+      D .alpha(ALPHA_RENDER_BLEND);
       Sh.LocalFogColor  ->set(LinearToDisplay(color_l));
       Sh.LocalFogDensity->set(Mid(density, 0.0f, MAX_DENSITY)); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
 
@@ -108,7 +108,7 @@ void FogDraw(C Ball &ball, Flt density, C Vec &color_l)
    {
       Sh.loadFogBallShaders();
       Renderer.needDepthRead();
-      D .alpha(ALPHA_BLEND_DEC);
+      D .alpha(ALPHA_RENDER_BLEND);
       Sh.LocalFogColor  ->set(LinearToDisplay(color_l));
       Sh.LocalFogDensity->set(Mid(density, 0.0f, MAX_DENSITY)); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
 
@@ -142,7 +142,7 @@ void HeightFogDraw(C OBox &obox, Flt density, C Vec &color_l)
    {
       Sh.loadFogHeightShaders();
       Renderer.needDepthRead();
-      D .alpha(ALPHA_BLEND_DEC);
+      D .alpha(ALPHA_RENDER_BLEND);
       Sh.LocalFogColor  ->set(LinearToDisplay(color_l));
       Sh.LocalFogDensity->set(Mid(density, 0.0f, MAX_DENSITY)); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
 

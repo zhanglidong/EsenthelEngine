@@ -208,7 +208,7 @@ void SkyClass::draw()
       MIN(sky_ball_mesh_size, to*EPS_SKY_MIN_VIEW_RANGE); // alternatively we could try using D3DRS_CLIPPING, DepthClipEnable, GL_DEPTH_CLAMP
    #endif
       Renderer.set(Renderer._col, Renderer._ds, true, blend ? NEED_DEPTH_READ : NO_DEPTH_READ); // specify correct mode because without it the sky may cover everything completely
-      D.alpha           (blend ? ALPHA_BLEND_DEC : ALPHA_NONE);
+      D.alpha           (blend ? ALPHA_RENDER_BLEND : ALPHA_NONE);
       D.depthOnWriteFunc(ds, false, FUNC_LESS_EQUAL); // to make sure we draw at the end of viewRange
     //D.cull            (true); ignore changing culling, because we're inside the sky ball, so we will always see its faces, we could potentially set false (to ignore overhead on the GPU for cull testing if any) however we choose to just ignore it to reduce GPU state changes on the CPU which are probably more costly
       D.sampler3D       (    ); // set in case of drawing clouds

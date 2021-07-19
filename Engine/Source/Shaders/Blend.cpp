@@ -125,7 +125,7 @@ VecH4 PS
 /*#if PIXEL_NORMAL && FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
    IS_FRONT,
 #endif*/
-   out Half outAlpha:TARGET2 // #RTOutput.Blend
+   out Half outAlpha:TARGET1 // #RTOutput.Blend
 ):TARGET
 {
    Half rough, reflect;

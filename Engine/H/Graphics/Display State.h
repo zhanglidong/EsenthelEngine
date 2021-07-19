@@ -9,8 +9,8 @@ enum ALPHA_MODE : Byte // Alpha Blending Modes
    ALPHA_ADD_KEEP     , // Color:add                      , Alpha:keep
    ALPHA_ADDBLEND_KEEP, // Color:add blended              , Alpha:keep
 
-   ALPHA_BLEND_FACTOR , // Color:blend                    , Alpha:blend with factor
-   ALPHA_BLEND_DEC    , // Color:blend                    , Alpha:decrease
+   ALPHA_RENDER_BLEND       , // Color:blend, Alpha:decrease         ,   RT1: Color: increase,   RT2: Color:blend   #RTOutput.Blend
+   ALPHA_RENDER_BLEND_FACTOR, // Color:blend, Alpha:blend with factor,   RT1: Color: increase,   RT2: Color:blend   #RTOutput.Blend
 #if EE_PRIVATE
    ALPHA_OVERLAY      , // Color:blend                    , Alpha:blend with factor !! #RTOutput WARNING: this uses factor for #0 RT Color glow, but also for #1 Nrm and #2 Ext (currently unused) !!
    ALPHA_FACTOR       , // Color:factor                   , Alpha:factor

@@ -235,10 +235,10 @@ void PS
 #endif
 
   out VecH4 outCol  :TARGET0
+, out Half  outAlpha:TARGET1 // #RTOutput.Blend
 #if USE_VEL
-, out VecH4 outVel  :TARGET1 // #RTOutput.Vel
+, out VecH4 outVel  :TARGET2 // #RTOutput.Blend
 #endif
-, out Half  outAlpha:TARGET2 // #RTOutput.Blend
 ) // #RTOutput
 {
    Half rough, reflect, glow;

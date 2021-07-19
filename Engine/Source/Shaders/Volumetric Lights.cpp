@@ -150,7 +150,7 @@ VecH4 Volumetric_PS(NOPERSP Vec2 uv:UV):TARGET
 #if ADD
    return VecH4(vol, 0); // alpha blending : ALPHA_ADD
 #else
-   Half max=Max(vol); return VecH4(vol/(HALF_MIN+max), max); // alpha blending : ALPHA_BLEND_DEC
+   Half max=Max(vol); return VecH4(vol/(HALF_MIN+max), max); // alpha blending : ALPHA_RENDER_BLEND
 #endif
 }
 /******************************************************************************/

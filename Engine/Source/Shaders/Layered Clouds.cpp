@@ -27,7 +27,7 @@ VecH4 LayeredClouds_PS
     Vec     uvw  :UVW  ,
     Half    alpha:ALPHA,
     PIXEL              ,
-out Half outAlpha:TARGET2 // #RTOutput.Blend
+out Half outAlpha:TARGET1 // #RTOutput.Blend
 ):TARGET
 {
    alpha=Sat(alpha);

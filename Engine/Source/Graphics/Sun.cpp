@@ -39,7 +39,7 @@ void Astro::Draw()
       // TODO: apply per-pixel softing based on depth buffer, exactly like particle softing (draw closer to camera, but scale XY size, along CamMatrix.xy) and modify pixel shader
       Renderer._has_glow|=(glow!=0);
       D .alphaFactor(VecB4(0, 0, 0, glow)); MaterialClear(); // 'MaterialClear' must be called when changing 'D.alphaFactor'
-      D .alpha      (Renderer.fastCombine() ? ALPHA_BLEND : ALPHA_BLEND_FACTOR);
+      D .alpha      (Renderer.fastCombine() ? ALPHA_BLEND : ALPHA_RENDER_BLEND_FACTOR);
       VI.image      (image());
       VI.setType    (VI_3D_TEX_COL, VI_STRIP);
       if(Vtx3DTexCol *v=(Vtx3DTexCol*)VI.addVtx(4))
@@ -154,7 +154,7 @@ void AstroPrepare()
       && PosToFullScreen(CamMatrix.pos+Sun.pos*D.viewRange(), Sun._pos2) && FovPerspective(D.viewFovMode())
       && !(Fog.draw && Fog.affect_sky && VisibleOpacity(Fog.density, D.viewRange())<=EPS_COL8_NATIVE) // if fog is too dense then don't draw sun rays
       )
-         Sun._actual_rays_mode=((Sun.rays_mode==SUN_RAYS_HIGH && D._max_rt>=3) ? SUN_RAYS_HIGH : SUN_RAYS_LOW); // Alpha RT is on #2 #RTOutput.Blend
+         Sun._actual_rays_mode=((Sun.rays_mode==SUN_RAYS_HIGH && D._max_rt>=2) ? SUN_RAYS_HIGH : SUN_RAYS_LOW); // Alpha RT is on #1 #RTOutput.Blend
       Sun.light(); FREPAO(Astros).light();
    }
 }

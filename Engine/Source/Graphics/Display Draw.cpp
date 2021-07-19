@@ -988,10 +988,10 @@ void Image::drawCubeFace(C Color &color, C Color &color_add, C Rect &rect, DIR_E
    }
 }
 /******************************************************************************/
-void Image::draw3D(C Color &color, Flt size, Flt angle, C Vec &pos, ALPHA_MODE alpha)C
+void Image::draw3D(C Color &color, Flt size, Flt angle, C Vec &pos)C
 {
-   D .alpha  (alpha);
-   VI.image  (this );
+   D .alpha  (ALPHA_RENDER_BLEND);
+   VI.image  (this);
    VI.setType(VI_3D_BILB, VI_STRIP);
    if(Vtx3DBilb *v=(Vtx3DBilb*)VI.addVtx(4))
    {
@@ -1067,7 +1067,7 @@ void Image::drawVolume(C Color &color, C Color &color_add, C OBox &obox, Flt vox
       Sh.Volume  ->set(v);
 
       D.cull (true);
-      D.alpha(ALPHA_BLEND_DEC);
+      D.alpha(ALPHA_RENDER_BLEND);
       Renderer.needDepthRead();
 
       Flt e=Frustum.view_quad_max_dist;

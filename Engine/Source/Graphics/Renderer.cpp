@@ -152,7 +152,7 @@ RendererClass::RendererClass() : material_color_l(null), highlight(null)
   _type=_cur_type=RT_DEFERRED;
   _forward_prec=!MOBILE;
 
-  _mesh_blend_alpha  =ALPHA_BLEND_FACTOR;
+  _mesh_blend_alpha  =ALPHA_RENDER_BLEND_FACTOR;
   _mesh_stencil_value=STENCIL_REF_ZERO;
   _mesh_stencil_mode =STENCIL_NONE;
   _mesh_highlight    .zero();
@@ -1634,7 +1634,7 @@ void RendererClass::waterUnder()
       Flt under_step=Sat(Water._under_step);
 
       set(_col, null, true);
-      D .alpha(ALPHA_BLEND_DEC);
+      D .alpha(ALPHA_RENDER_BLEND);
       Sh.Step->set(Time.time());
       under.set();
       WS.WaterPlanePos          ->set(Water._under_plane.pos   *CamMatrixInv      );
@@ -1815,8 +1815,8 @@ void RendererClass::blend()
    D.stencilRef(STENCIL_REF_TERRAIN); // set in case draw codes will use stencil
 
    const Bool blend_affect_vel=true;
-   set(_col,  blend_affect_vel ? _vel() : null, _alpha, null, _ds, true); setDSLookup(); // 'setDSLookup' after 'set' #RTOutput.Vel #RTOutput.Blend, needed for 'DrawBlendInstances'
-   D.alpha(Renderer.fastCombine() ? ALPHA_BLEND : ALPHA_BLEND_FACTOR);
+   set(_col, _alpha, blend_affect_vel ? _vel() : null, null, _ds, true); setDSLookup(); // 'setDSLookup' after 'set' #RTOutput.Blend, needed for 'DrawBlendInstances'
+   D.alpha(Renderer.fastCombine() ? ALPHA_BLEND : ALPHA_RENDER_BLEND);
    D.set3D(); D.depthOnWriteFunc(true, false, FUNC_LESS_EQUAL); mode(RM_BLEND); // use LESS_EQUAL for blend because we may want to draw blend graphics on top of existing pixels (for example world editor terrain highlight)
    SortBlendInstances();
    REPS(_eye, _eye_num)
@@ -1860,8 +1860,8 @@ void RendererClass::palette(Int index)
 
       D.stencil(STENCIL_NONE); // disable any stencil that might have been enabled
 
-      set(_col, null, _alpha, null, null, true); // #RTOutput.Blend
-      D .alpha(ALPHA_BLEND_DEC);
+      set(_col, _alpha, null, null, null, true); // #RTOutput.Blend
+      D .alpha(ALPHA_RENDER_BLEND);
       Sh.Img[1]->set(palette());
       Sh.PaletteDraw->draw(intensity);
    }
@@ -1882,7 +1882,7 @@ void RendererClass::behind()
       Sky.setFracMulAdd();
 
       set(_col, _ds, true, NEED_DEPTH_READ); // we will read from the depth buffer
-      D.alpha(ALPHA_BLEND_DEC);
+      D.alpha(ALPHA_RENDER_BLEND);
       D.set3D(); D.depthOnWriteFunc(true, false, FUNC_GREATER); mode(RM_BEHIND);
       REPS(_eye, _eye_num)
       {
@@ -1941,7 +1941,7 @@ void RendererClass::applyOutline()
             set(_col, (ds && ds->compatible(*_col)) ? ds : null, true);
             D.depth2DOn (); // this enables depth but disables 'D.depthWrite'
             D.stencil   ((_cur_ds==_ds) ? STENCIL_OUTLINE_TEST : STENCIL_NONE); // we can use the stencil optimization only if we will use the DS to which we've written stencil to
-            D.alpha     (ALPHA_BLEND_DEC);
+            D.alpha     (ALPHA_RENDER_BLEND);
             Sh.OutlineClip->draw(_outline_rt);
             D.stencil   (STENCIL_NONE);
             D.depth2DOff();
@@ -1954,8 +1954,8 @@ void RendererClass::applyOutline()
             D.alpha(ALPHA_NONE);
             ((temp->w()<_outline_rt->w()) ? Sh.OutlineDS : Sh.Outline)->draw(_outline_rt);
             set(_col, (ds && ds->compatible(*_col)) ? ds : null, true);
-            D .alpha    (ALPHA_BLEND_DEC);
-          //D.depth2DOn(); can't enable because we need to affect sky
+            D .alpha    (ALPHA_RENDER_BLEND);
+          //D .depth2DOn(); can't enable because we need to affect sky
             Sh.imgSize(*temp); Sh.OutlineApply->draw(temp);
           //D.depth2DOff();
          }break;
@@ -2056,7 +2056,7 @@ void RendererClass::volumetric()
       set(_col, null, true);
       SPSet("VolMax", Vec(D.volMax()));
       Sh.imgSize(*_vol);
-      D.alpha(D.volAdd() ? ALPHA_ADD      : ALPHA_BLEND_DEC);
+      D.alpha(D.volAdd() ? ALPHA_ADD      : ALPHA_RENDER_BLEND);
              (D.volAdd() ? VL.VolumetricA : VL.Volumetric)->draw(_vol);
      _vol.clear();
    }

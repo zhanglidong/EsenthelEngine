@@ -29,8 +29,8 @@ namespace EE{
    '_gui' is set to '_main', unless stereoscopic rendering is enabled then it's set to VR RT
 
    If using Renderer.combine or Renderer.alpha (Renderer.processAlpha && D.independentBlendAvailable) #RTOutput.Blend then after all opaque meshes are drawn:
-     -'_alpha' RT is created and set as RT2
-     -ALPHA_MODE states such as ALPHA_BLEND_DEC ALPHA_BLEND_FACTOR are set to Increase RT2
+     -'_alpha' RT is created and set as RT1
+     -ALPHA_MODE states such as ALPHA_RENDER_BLEND ALPHA_RENDER_BLEND_FACTOR are set to Increase RT1
      -all alpha-blended effects output alpha into RT2:
          -Mesh 3D Shaders (Blend, BlendLight)
          -Particles

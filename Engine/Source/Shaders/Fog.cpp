@@ -63,7 +63,7 @@ NOINTERP Matrix3 mtrx :MATRIX   ,
          PIXEL,
 
    out VecH4 color:TARGET0,
-   out Half  alpha:TARGET2 // #RTOutput.Blend
+   out Half  alpha:TARGET1 // #RTOutput.Blend
 )
 {
    Flt z  =TexDepthPix(pixel.xy);
@@ -119,7 +119,7 @@ void FogBoxI_PS
    NOPERSP  PIXEL,
 
    out VecH4 color:TARGET0,
-   out Half  alpha:TARGET2 // #RTOutput.Blend
+   out Half  alpha:TARGET1 // #RTOutput.Blend
 )
 {
    Vec pos=GetPosPix  (pixel.xy, posXY),
@@ -180,7 +180,7 @@ void FogBall_PS
             PIXEL,
 
    out VecH4 color:TARGET0,
-   out Half  alpha:TARGET2 // #RTOutput.Blend
+   out Half  alpha:TARGET1 // #RTOutput.Blend
 )
 {
    Flt z  =TexDepthPix(pixel.xy);
@@ -219,7 +219,7 @@ void FogBallI_PS
    NOPERSP  PIXEL,
 
    out VecH4 color:TARGET0,
-   out Half  alpha:TARGET2 // #RTOutput.Blend
+   out Half  alpha:TARGET1 // #RTOutput.Blend
 )
 {
    Vec pos=GetPosPix (pixel.xy, posXY),
