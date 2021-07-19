@@ -246,12 +246,12 @@ WorldView WorldEdit;
       flt   unit=area_size, y=grid_plane_level;
       Rect  v=visibleArea(); v.max.x++; v.max.y++; v*=unit;
       SetMatrix();
-      ALPHA_MODE alpha=D.alpha(ALPHA_BLEND_DEC); bool line_smooth=D.lineSmooth(false      ), depth_write=D.depthWrite(false      ); Plane(Vec(0, y, 0), Vec(0, 1, 0)).drawInfiniteBySize(color, unit); Quad(Vec(v.min.x, y, v.min.y), Vec(v.min.x, y, v.max.y), Vec(v.max.x, y, v.max.y), Vec(v.max.x, y, v.min.y)).draw(color2, false); // disable line smoothing because it can be very slow for lots of full-screen lines
-                       D.alpha(alpha          );                  D.lineSmooth(line_smooth);             D.depthWrite(depth_write);
+      ALPHA_MODE alpha=D.alpha(ALPHA_RENDER_BLEND); bool line_smooth=D.lineSmooth(false      ), depth_write=D.depthWrite(false      ); Plane(Vec(0, y, 0), Vec(0, 1, 0)).drawInfiniteBySize(color, unit); Quad(Vec(v.min.x, y, v.min.y), Vec(v.min.x, y, v.max.y), Vec(v.max.x, y, v.max.y), Vec(v.max.x, y, v.min.y)).draw(color2, false); // disable line smoothing because it can be very slow for lots of full-screen lines
+                       D.alpha(alpha             );                  D.lineSmooth(line_smooth);             D.depthWrite(depth_write);
    }
    void WorldView::drawAreaSelection()
    {
-      SetMatrix(); ALPHA_MODE alpha=D.alpha(ALPHA_BLEND_DEC);
+      SetMatrix(); ALPHA_MODE alpha=D.alpha(ALPHA_RENDER_BLEND);
       flt x0=(cur.area().x-hm_sel_size)*areaSize(), x1=x0+areaSize()*(hm_sel_size*2+1),
           z0=(cur.area().y-hm_sel_size)*areaSize(), z1=z0+areaSize()*(hm_sel_size*2+1), y=grid_plane_level;
       Quad(Vec(x0,y,z0), Vec(x0,y,z1), Vec(x1,y,z1), Vec(x1,y,z0)).draw(Color(255, 255, 255, 128), false);
@@ -261,7 +261,7 @@ WorldView WorldEdit;
    {
       if(ImportTerrain.areaRectValid())
       {
-         SetMatrix(); ALPHA_MODE alpha=D.alpha(ALPHA_BLEND_DEC);
+         SetMatrix(); ALPHA_MODE alpha=D.alpha(ALPHA_RENDER_BLEND);
          flt  y=grid_plane_level;
          Rect r=ImportTerrain.areaRect(); if(!r.validX())Swap(r.min.x, r.max.x); if(!r.validY())Swap(r.min.y, r.max.y); r.max.x++; r.max.y++; r*=area_size;
          Vec2 h=ImportTerrain.heightRange();

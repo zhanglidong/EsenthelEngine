@@ -30,7 +30,7 @@ struct Decal // Decal
 
 private:
    MaterialPtr _material;
-   Shader     *_shader[2][2]; // [F][P] F-Fullscreen, P-Palette
+   Shader     *_shader[3][2]; // [Mode][Fullscreen]
 };
 /******************************************************************************/
 struct ElectricityFx // Electricity Effect

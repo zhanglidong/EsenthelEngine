@@ -183,7 +183,7 @@ void Laser_PS(Vec            inPos:TEXCOORD0,
 /******************************************************************************/
 // DECAL
 /******************************************************************************/
-// FULLSCREEN, LAYOUT, MODE 0-default, 1-normals, 2-palette
+// MODE 0-overlay, 1-blend, 2-palette, FULLSCREEN, LAYOUT, NORMALS
 #include "!Set Prec Struct.h"
 BUFFER(Decal)
    VecH2 DecalParams; // x=OpaqueFracMul, y=OpaqueFracAdd
@@ -193,23 +193,39 @@ BUFFER_END
 Half DecalOpaqueFracMul() {return DecalParams.x;}
 Half DecalOpaqueFracAdd() {return DecalParams.y;}
 
-void Decal_VS(VtxInput vtx,
-          out Vec4     pixel    :POSITION,
-          out Matrix  outMatrix :TEXCOORD0
-       #if MODE==1
-        , out Matrix3 outMatrixN:TEXCOORD3
-       #endif
+struct Data
+{
+   Matrix pos_mtrx:POS_MATRIX;
+
+#if MODE==0
+#if NORMALS
+   MatrixH3 nrm_mtrx:NRM_MATRIX;
+#else
+   VecH nrm:NORMAL;
+#endif
+#endif
+};
+
+void Decal_VS
+(
+    VtxInput vtx,
+out Data     D,
+out Vec4     pixel:POSITION
 )
 {
-   outMatrix=GetViewMatrix();
-   outMatrix[0]/=Length2(outMatrix[0]);
-   outMatrix[1]/=Length2(outMatrix[1]);
-   outMatrix[2]/=Length2(outMatrix[2]);
+   D.pos_mtrx=GetViewMatrix();
+   D.pos_mtrx[0]/=Length2(D.pos_mtrx[0]);
+   D.pos_mtrx[1]/=Length2(D.pos_mtrx[1]);
+   D.pos_mtrx[2]/=Length2(D.pos_mtrx[2]);
 
-#if MODE==1 // normal
-   outMatrixN[0]=Normalize(outMatrix[0]);
-   outMatrixN[1]=Normalize(outMatrix[1]);
-   outMatrixN[2]=Normalize(outMatrix[2]);
+#if MODE==0
+#if NORMALS
+   D.nrm_mtrx[0]=Normalize(D.pos_mtrx[0]);
+   D.nrm_mtrx[1]=Normalize(D.pos_mtrx[1]);
+   D.nrm_mtrx[2]=Normalize(D.pos_mtrx[2]);
+#else
+   D.nrm=Normalize(D.pos_mtrx[2]);
+#endif
 #endif
 
 #if FULLSCREEN
@@ -218,53 +234,79 @@ void Decal_VS(VtxInput vtx,
    pixel=Project(TransformPos(vtx.pos()));
 #endif
 }
-VecH4 Decal_PS(PIXEL,
-               Matrix  inMatrix :TEXCOORD0
-            #if MODE==1
-         ,     Matrix3 inMatrixN:TEXCOORD3
-         , out VecH4   outNrm   :TARGET1
-            #endif
-              ):TARGET // #RTOutput
+VecH4 Decal_PS
+(
+   Data D,
+   PIXEL
+#if MODE==0 // overlay
+, out VecH4 outNrm:TARGET1
+, out VecH4 outExt:TARGET2
+#elif MODE==1 // blend
+, out Half alpha:TARGET1 // #RTOutput.Blend
+#endif
+):TARGET // #RTOutput
 {
-   Vec  pos  =GetPosPoint(PixelToUV(pixel));
-        pos  =TransformTP(pos-inMatrix[3], (Matrix3)inMatrix);
-   Half alpha=Sat(Abs(pos.z)*DecalOpaqueFracMul()+DecalOpaqueFracAdd());
+   Vec  pos =GetPosPoint(PixelToUV(pixel));
+        pos =TransformTP(pos-D.pos_mtrx[3], (Matrix3)D.pos_mtrx);
+   Half fade=Sat(Abs(pos.z)*DecalOpaqueFracMul()+DecalOpaqueFracAdd());
 
-   clip(Vec(1-Abs(pos.xy), alpha-EPS_COL));
+   clip(Vec(1-Abs(pos.xy), fade-EPS_COL));
 
-   pos.xy=pos.xy*0.5+0.5;
+   Vec2 uv=pos.xy*0.5+0.5;
 
-   VecH4 col=Tex(Col, pos.xy);
-         col.a*=alpha;
+   VecH4 col=Tex(Col, uv);
+         col.a*=fade;
 
-#if MODE==2 // palette
-   return (col.a*Material.color.a)*Color[0];
-#else
+#if MODE==0 // overlay
    col*=Material.color*Color[0];
 
-   #if MODE==1 // normal
-      VecH nrm;
-         #if 0
-            nrm.xy =Tex(Nrm, pos.xy).BASE_CHANNEL_NORMAL*Material.normal; // #MaterialTextureLayout
+   // Nrm
+   VecH nrm;
+   #if NORMALS
+      #if 0
+         nrm.xy =Tex(Nrm, uv).BASE_CHANNEL_NORMAL*Material.normal; // #MaterialTextureLayout
 //if(DETAIL)nrm.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
-            nrm.z  =CalcZ(nrm.xy);
-         #else
-            nrm.xy =Tex(Nrm, pos.xy).BASE_CHANNEL_NORMAL; // #MaterialTextureLayout
-            nrm.z  =CalcZ(nrm.xy);
-            nrm.xy*=Material.normal;
-//if(DETAIL)nrm.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
-         #endif
-            nrm=Normalize(Transform(nrm, inMatrixN));
-
-      #if SIGNED_NRM_RT
-         outNrm.xyz=nrm;
+         nrm.z  =CalcZ(nrm.xy);
       #else
-         outNrm.xyz=nrm*0.5+0.5;
+         nrm.xy =Tex(Nrm, uv).BASE_CHANNEL_NORMAL; // #MaterialTextureLayout
+         nrm.z  =CalcZ(nrm.xy);
+         nrm.xy*=Material.normal;
+//if(DETAIL)nrm.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
       #endif
-         outNrm.w=col.a; // alpha
+         nrm=Normalize(Transform(nrm, D.nrm_mtrx));
+   #else
+         nrm=Normalize(D.nrm);
    #endif
 
+   #if SIGNED_NRM_RT
+      outNrm.xyz=nrm;
+   #else
+      outNrm.xyz=nrm*0.5+0.5;
+   #endif
+      outNrm.w=col.a; // alpha needed because of blending
+
+   // Ext
+   Half rough, reflect;
+#if LAYOUT==2 // #MaterialTextureLayout
+   VecH2 ext=Tex(Ext, uv).xy;
+   rough  =Sat(ext.BASE_CHANNEL_ROUGH*Material.  rough_mul+Material.  rough_add); // need to saturate to avoid invalid values. Even though we store values in 0..1 RT, we use alpha blending which may produce different results if values are outside 0..1
+   reflect=    ext.BASE_CHANNEL_METAL*Material.reflect_mul+Material.reflect_add ;
+#else
+   rough  =Material.  rough_add;
+   reflect=Material.reflect_add;
+#endif
+   outExt.x=rough;
+   outExt.y=reflect;
+   outExt.z=0;
+   outExt.w=col.a; // alpha needed because of blending
+
    return col;
+#elif MODE==1 // blend
+   col*=Material.color*Color[0];
+   alpha=col.a;
+   return col;
+#else // palette
+   return (col.a*Material.color.a)*Color[0];
 #endif
 }
 /******************************************************************************/

@@ -74,16 +74,6 @@ out VecH4 outExt:TARGET2
    col  *=Material.color;
    col.a*=Sat(D.alpha)*OverlayAlpha();
 
-   Half rough, reflect;
-#if LAYOUT==2 // #MaterialTextureLayout
-   VecH2 ext=Tex(Ext, D.uv).xy;
-   rough  =Sat(ext.BASE_CHANNEL_ROUGH*Material.  rough_mul+Material.  rough_add); // need to saturate to avoid invalid values. Even though we store values in 0..1 RT, we use alpha blending which may produce different results if values are outside 0..1
-   reflect=    ext.BASE_CHANNEL_METAL*Material.reflect_mul+Material.reflect_add ;
-#else
-   rough  =Material.  rough_add;
-   reflect=Material.reflect_add;
-#endif
-
    VecH nrm;
 #if NORMALS
    #if 0
@@ -110,6 +100,15 @@ out VecH4 outExt:TARGET2
    outNrm.w=col.a; // alpha needed because of blending
 
    // Ext
+   Half rough, reflect;
+#if LAYOUT==2 // #MaterialTextureLayout
+   VecH2 ext=Tex(Ext, D.uv).xy;
+   rough  =Sat(ext.BASE_CHANNEL_ROUGH*Material.  rough_mul+Material.  rough_add); // need to saturate to avoid invalid values. Even though we store values in 0..1 RT, we use alpha blending which may produce different results if values are outside 0..1
+   reflect=    ext.BASE_CHANNEL_METAL*Material.reflect_mul+Material.reflect_add ;
+#else
+   rough  =Material.  rough_add;
+   reflect=Material.reflect_add;
+#endif
    outExt.x=rough;
    outExt.y=reflect;
    outExt.z=0;

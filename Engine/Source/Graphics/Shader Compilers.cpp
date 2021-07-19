@@ -487,10 +487,11 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 
    REPD(normals, 2)src.New("Laser", "Laser_VS", "Laser_PS")("NORMALS", normals);
 
+   REPD(mode      , 3) // 0-overlay, 1-blend, 2-palette
    REPD(fullscreen, 2)
-   for(Int layout=1; layout<=2; layout++)
-   REPD(mode      , 3) // 0-default, 1-normals, 2-palette
-      src.New("Decal", "Decal_VS", "Decal_PS")("FULLSCREEN", fullscreen, "LAYOUT", layout, "MODE", mode);
+   for(Int layout=1; layout<=((mode==0) ? 2 : 1); layout++)
+   REPD(normal    ,          ((mode==0) ? 2 : 1))
+      src.New("Decal", "Decal_VS", "Decal_PS")("MODE", mode, "FULLSCREEN", fullscreen, "LAYOUT", layout, "NORMALS", normal);
 }
 #endif
 
