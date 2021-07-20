@@ -117,7 +117,7 @@ void Volume_PS
 
       col.r/=col.g+HALF_MIN; // NaN
 
-      if(LINEAR_GAMMA)col.r=SRGBToLinearFast(col.r);
+      if(LINEAR_GAMMA)col.r=SRGBToLinearFast(col.r); // for best precision this could be 'SRGBToLinear', however this is used for clouds, and slightly different gamma is acceptable
 
       color=col.rrrg*Color[0]+Color[1];
    }else
