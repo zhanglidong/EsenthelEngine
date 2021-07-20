@@ -249,9 +249,11 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
    DisplayClass& particlesSmoothAnim(Bool on);   Bool particlesSmoothAnim()C {return _particles_smooth;} // set/get Particles Smooth Animation (true/false, default=true (false for Mobile)), if enabled then particles with animated images will be displayed with better quality by smooth blending between animation frames, the change is instant, you can call it real-time
 
    // Temporal Anti-Aliasing
-   DisplayClass& tAA           (Bool on);   Bool tAA           ()C {return _taa     ;} // set/get Temporal Anti-Aliasing              (true/false, default=false), this is Anti-Aliasing that jitters projection matrix per-frame, moving it slightly with every frame and accumulating rendering results over time
+   DisplayClass& tAA     (Bool on);   Bool tAA()C {return _taa;} // set/get Temporal Anti-Aliasing (true/false, default=false), this is Anti-Aliasing that jitters projection matrix per-frame, moving it slightly with every frame and accumulating rendering results over time
+   DisplayClass& tAAReset(       );                              // reset   Temporal Anti-Aliasing history                    , call this method if you want to clear the history of previous rendering results
+#if EE_PRIVATE
    DisplayClass& tAADualHistory(Bool on);   Bool tAADualHistory()C {return _taa_dual;} // set/get Temporal Anti-Aliasing dual history (true/false, default=false), enabling dual history reduces performance, increases memory usage, however minimizes ghosting
-   DisplayClass& tAAReset      (       );                                              // reset   Temporal Anti-Aliasing history                                 , call this method if you want to clear the history of previous rendering results
+#endif
 
    // Bloom, setting 'original' value to 1 and 'scale' to 0 disables bloom and increases rendering performance, optionally you can disable it with "bloomAllow(false)"
 #if EE_PRIVATE

@@ -441,8 +441,6 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool alpha, Bool com
    Sh.Img[1]->set(small_motion);
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
    Mtn.getBlur(Round(fx.y*(7.0f/1080)), D.dither() /*&& src.highPrecision()*/ && !dest.highPrecision(), alpha)->draw(src); // here blurring may generate high precision values, use 7 samples on a 1080 resolution #MotionBlurSamples
-
-  _vel.clear(); // won't be needed anymore
    return false;
 }
 INLINE Shader* GetDofDS(Bool view_full, Bool realistic, Bool alpha, Bool half_res) {Shader* &s=Dof.DofDS[view_full][realistic][alpha][half_res]; if(SLOW_SHADER_LOAD && !s)s=Dof.getDS(view_full, realistic, alpha, half_res); return s;}
@@ -1665,7 +1663,7 @@ void RendererClass::tAA() // !! assumes 'resolveMultiSample' was already called 
       Bool         alpha=processAlphaFinal(),
             merged_alpha=(!TAA_SEPARATE_ALPHA && alpha),
           separate_alpha=( TAA_SEPARATE_ALPHA && alpha),
-                    dual=(!alpha && D.tAADualHistory()); // dual incompatible with alpha #TAADualAlpha
+                    dual=false;//(!alpha && D.tAADualHistory()); // dual incompatible with alpha #TAADual
       IMAGERT_TYPE col_type=GetImageRTType(D.glowAllow(), D.litColRTPrecision()); // #RTOutput
       if(!_ctx->taa_new_data) // doesn't have new RT's yet
       {
@@ -1709,9 +1707,7 @@ void RendererClass::tAA() // !! assumes 'resolveMultiSample' was already called 
            _ctx->taa_old_alpha->clearViewport(); // here clear only for current viewport
          }
       }
-      // TODO: this could output only 1 color RT if (not final, not get target, and following post process did not modify it but always output to new RT)
-      ImageRTPtr screen(rt_desc.type(col_type)); // TAA needs to output color results into 2 RT's: 'screen' and 'taa_new_col', this is because 'taa_new_col' is needed for the next frame as 'taa_old_col' to compare the results, and 'screen' is used to add post process, UI and display on the screen
-      set(_ctx->taa_new_data, screen, _ctx->taa_new_col, separate_alpha ? _ctx->taa_new_alpha : _ctx->taa_new_col1, null, true); // #TAADualAlpha
+      set(_ctx->taa_new_data, _ctx->taa_new_alpha, _ctx->taa_new_col, null, null, true); // #TAADual
       D.alpha(ALPHA_NONE);
 
       if(merged_alpha)
@@ -1732,13 +1728,13 @@ void RendererClass::tAA() // !! assumes 'resolveMultiSample' was already called 
       #endif
 
       Sh.imgSize(*_col); // this is needed for Cubic Sampler
-      Shader *shader=Sh.TAA[D._view_main.full][alpha][dual];
+      Shader *shader=Sh.TAA[D._view_main.full][alpha]; // #TAADual
       REPS(_eye, _eye_num)
       {
          Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), rt_desc.size));
          shader->draw(_stereo ? &D._view_eye_rect[_eye] : null);
       }
-      Swap(screen, _col);
+     _col=_ctx->taa_new_col;
       if(alpha)_alpha=(TAA_SEPARATE_ALPHA ? _ctx->taa_new_alpha : _ctx->taa_new_data); // !! Warning: for TAA_SEPARATE_ALPHA=0 '_alpha' may point to multi-channel "Alpha, Weight, Flicker", this assumes that '_alpha' will not be further modified, we can't do the same for '_col' because we may modify it !!
 
       tAAFinish();
@@ -2058,8 +2054,12 @@ void RendererClass::volumetric()
      _vol.clear();
    }
 }
+static Bool ColConst() {return Renderer._col==Renderer._ctx->taa_new_col;} // if '_col' points to 'taa_new_col' then we can't modify it
 void RendererClass::postProcess()
 {
+   // !! WARNING: EFFECTS SHOULD NEVER MODIFY '_col' IF 'ColConst' !!
+   // !! WARNING: TAA might output '_col' that points to 'taa_new_col', in that case it can't be modified because it's needed for the next frame !!
+   // !! so if any effect wants to modify '_col' instead of drawing to another RT, it first must check it for 'ColConst' !!
    Bool taa      =_taa_use,
         eye_adapt= hasEyeAdapt      (),
         bloom    =(hasBloom         () || _has_glow),
@@ -2073,7 +2073,7 @@ void RendererClass::postProcess()
    if(taa || eye_adapt || bloom || alpha || motion || dof || _get_target)resolveMultiSample(); // we need to resolve the MS Image so it's 1-sample for effects
    if(alpha && !_alpha)setAlphaFromDepthAndCol(); // create '_alpha' if not yet available
 
-   tAA();
+   tAA(); // !! AFTER TAA we must be checking for 'ColConst' !!
 
    ImageRTDesc rt_desc(_col->w(), _col->h(), IMAGERT_SRGBA/*this is changed later*/); MIN(rt_desc.size.x, _final->w()); MIN(rt_desc.size.y, _final->h()); // don't do post-process at higher res than needed
    ImageRTPtr  dest;
@@ -2112,7 +2112,7 @@ void RendererClass::postProcess()
          GetCombineAlpha()->draw();
         _col=_final;
       }else
-      if(_col->hwTypeInfo().a>=8) // if '_col' already has alpha-channel, then just reuse it and replace that channel
+      if(_col->hwTypeInfo().a>=8 && !ColConst()) // if '_col' already has alpha-channel, then just reuse it and replace that channel
       {
          set(_col, null, true); D.alpha(ALPHA_KEEP_SET);
          GetReplaceAlpha()->draw();
@@ -2131,7 +2131,8 @@ void RendererClass::postProcess()
    {
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
       if(T.motionBlur(*_col, *dest, alpha, combine))return; alpha_set=true; Swap(_col, dest); // Motion Blur sets Alpha
-   }else _vel.clear(); // velocity could've been used for TAA, but after this stage we no longer need it
+   }
+  _vel.clear(); // velocity could've been used for MotionBlur or TAA, but after this stage we no longer need it
 
    if(dof) // after Motion Blur
    {

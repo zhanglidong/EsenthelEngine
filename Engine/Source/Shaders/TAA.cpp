@@ -75,7 +75,7 @@ ALPHA=1
 #endif
 
 #if ALPHA
-   #undef DUAL_HISTORY // #TAADualAlpha
+   #undef DUAL_HISTORY // #TAADual
 #endif
 
 #define MERGE_CUBIC_MIN_MAX 0 // Actually disable since it causes ghosting (visible when rotating camera around a character in the dungeons, perhaps range for MIN MAX can't be big), enable since this version is slightly better because: uses 12 tex reads (4*4 -4 corners), uses 12 samples for MIN/MAX which reduces flickering a bit, however has a lot more arithmetic calculations because of min/max x12 and each sample color is multiplied by weight separately
@@ -239,13 +239,12 @@ void TAA_PS(NOPERSP Vec2 uv   :UV,
              #else
                 out VecH2 outData  :TARGET0,
              #endif
-                out VecH4 outScreen:TARGET1,
-                out VecH4 outCol   :TARGET2
              #if SEPARATE_ALPHA
-              , out Half  outAlpha :TARGET3 // #TAADualAlpha
+                out Half  outAlpha :TARGET1,
              #endif
+                out VecH4 outCol   :TARGET2
              #if DUAL_HISTORY
-              , out VecH4 outCol1  :TARGET3
+              , out VecH4 outCol1  :TARGET3 // #TAADual
              #endif
             )
 {
@@ -578,9 +577,9 @@ void TAA_PS(NOPERSP Vec2 uv   :UV,
       #endif
    #endif
 
-      outCol=outScreen=old      *old_weight_1 + cur      *cur_weight_1;
+              outCol=old      *old_weight_1 + cur      *cur_weight_1;
    #if ALPHA
-      Half   new_alpha=old_alpha*old_weight_1 + cur_alpha*cur_weight_1;
+      Half new_alpha=old_alpha*old_weight_1 + cur_alpha*cur_weight_1;
    #endif
    #if MERGED_ALPHA
       outData.x=new_alpha; // !! STORE ALPHA IN X CHANNEL SO IT CAN BE USED FOR '_alpha' RT !!

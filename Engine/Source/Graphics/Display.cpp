@@ -2748,11 +2748,10 @@ DisplayClass& DisplayClass::tAA(Bool on)
    if(tAA()!=on)
    {
      _taa=on;
-      if(!Sh.TAA[0][0][0] && on && created())
+      if(!Sh.TAA[0][0] && on && created())
          REPD(view_full, 2)
          REPD(alpha    , 2)
-         REPD(dual     , 2)
-            Sh.TAA[view_full][alpha][dual]=Sh.get(S+"TAA"+view_full+alpha+dual+D.gatherChannelAvailable()+D.filterMinMaxAvailable());
+            Sh.TAA[view_full][alpha]=Sh.get(S+"TAA"+view_full+alpha+D.gatherChannelAvailable()+D.filterMinMaxAvailable());
       tAAReset(); // clear RT's and make sure enabling will start from zero 'frame' index
    }
    return T;

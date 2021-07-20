@@ -66,10 +66,10 @@ PreviewClass Preview;
             // particle
          }break;
       }
-      if(Renderer()==RM_BLEND && elm_type==ELM_OBJ   && body)body->drawBlend(MatrixMIdentity, &NoTemp(Vec4(1, 1, 1, 0.32f)));
-      if(Renderer()==RM_CLOUD && elm_type==ELM_IMAGE && image && image->mode()==IMAGE_3D)
+      if(Renderer()==RM_BLEND)
       {
-         image->drawVolume(WHITE, TRANSPARENT, OBox(Box(1)), 0.05f);
+         if(elm_type==ELM_OBJ   && body                            )body ->drawBlend (MatrixMIdentity, &NoTemp(Vec4(1, 1, 1, 0.32f)));
+         if(elm_type==ELM_IMAGE && image && image->mode()==IMAGE_3D)image->drawVolume(WHITE, TRANSPARENT, OBox(Box(1)), 0.05f);
       }
    }
    void PreviewClass::closeElm(C UID &elm_id)

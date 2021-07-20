@@ -375,10 +375,10 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       ShaderCompiler::Source &src=compiler.New(src_path+"TAA.cpp");
       REPD(view_full     , 2)
       REPD(alpha         , 2)
-      REPD(dual          , 2)
+    //REPD(dual          , 2) // #TAADual
       REPD(gather        , 2)
       REPD(filter_min_max, 2)
-         src.New("TAA", "DrawUV_VS", "TAA_PS")("VIEW_FULL", view_full, "ALPHA", alpha, "DUAL_HISTORY", dual, "GATHER", gather)("FILTER_MIN_MAX", filter_min_max).gatherChannel(gather);
+         src.New("TAA", "DrawUV_VS", "TAA_PS")("VIEW_FULL", view_full, "ALPHA", alpha, /*"DUAL_HISTORY", dual,*/ "GATHER", gather)("FILTER_MIN_MAX", filter_min_max).gatherChannel(gather);
    }
    { // VIDEO
       ShaderCompiler::Source &src=compiler.New(src_path+"Video.cpp");
