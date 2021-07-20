@@ -2126,12 +2126,12 @@ void RendererClass::postProcess()
      _alpha.clear(); alpha_set=true; // Combine sets Alpha
    }
 
-   if(stage==RS_VEL && show(_vel, false, D.signedVelRT()))return; // velocity could've been used for MotionBlur or TAA
    if(motion) // tests have shown that it's better to do Motion Blur before Depth of Field
    {
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
       if(T.motionBlur(*_col, *dest, alpha, combine))return; alpha_set=true; Swap(_col, dest); // Motion Blur sets Alpha
    }
+   if(stage==RS_VEL && show(_vel, false, D.signedVelRT()))return; // velocity could've been used for MotionBlur or TAA, check it after 'motionBlur' because it might generate it for MOTION_CAMERA
   _vel.clear(); // velocity could've been used for MotionBlur or TAA, but after this stage we no longer need it
 
    if(dof) // after Motion Blur
