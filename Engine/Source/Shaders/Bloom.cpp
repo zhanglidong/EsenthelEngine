@@ -19,7 +19,7 @@ BUFFER_END
 #ifndef DITHER
    #define DITHER 0
 #endif
-#define BLOOM_GLOW_GAMMA_PER_PIXEL 0 // #BloomGlowGammaPerPixel can be disabled because it will be faster but visual difference will be minimal
+#define BLOOM_GLOW_GAMMA_PER_PIXEL 0 // #BloomGlowGammaPerPixel can be disabled because it will be faster and visual difference is minimal
 /******************************************************************************/
 void BloomDS_VS(VtxInput vtx,
     NOPERSP out Vec2 uv   :UV,
