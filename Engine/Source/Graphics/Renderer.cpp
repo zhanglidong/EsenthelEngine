@@ -2137,20 +2137,21 @@ void RendererClass::postProcess()
             GetCombineAlpha()->draw();
            _col=dest;
          }
-        _alpha.clear(); fxs--; // got merged so clear it, and dec 'fxs' because processed 'alpha'
       }
+      if(_alpha)fxs--; // motion blur always merges '_alpha' so remove it from list
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
-      if(T.motionBlur(*_col, *dest, bloom_glow, alpha, combine))return; alpha_set=true; Swap(_col, dest); // Motion Blur sets Alpha
-      if(_alpha){_alpha.clear(); fxs--;} // got merged so clear it, and dec 'fxs' because processed 'alpha'
+      if(T.motionBlur(*_col, *dest, bloom_glow, alpha, combine))return; Swap(_col, dest); alpha_set=true; // Motion Blur sets Alpha
+     _alpha.clear(); // got merged so clear it
    }
    if(stage==RS_VEL && show(_vel, false, D.signedVelRT()))return; // velocity could've been used for MotionBlur or TAA, check it after 'motionBlur' because it might generate it for MOTION_CAMERA
   _vel.clear(); // velocity could've been used for MotionBlur or TAA, but after this stage we no longer need it
 
    if(bloom) // bloom needs to be done before dof because of per-pixel glow
    {
+      if(_alpha)fxs--; // bloom always merges '_alpha' so remove it from list
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
-      T.bloom(*_col, *dest, bloom_glow, alpha, combine); alpha_set=true; Swap(_col, dest); // Bloom sets Alpha
-      if(_alpha){_alpha.clear(); fxs--;} // got merged so clear it, and dec 'fxs' because processed 'alpha'
+      T.bloom(*_col, *dest, bloom_glow, alpha, combine); Swap(_col, dest); alpha_set=true; // Bloom sets Alpha
+     _alpha.clear(); // got merged so clear it
    }
 
    if(_alpha) // merge '_col' with '_alpha'
@@ -2175,14 +2176,14 @@ void RendererClass::postProcess()
          GetCombineAlpha()->draw();
         _col=dest;
       }
-     _alpha.clear(); fxs--; // got merged so clear it, and dec 'fxs' because processed 'alpha'
       alpha_set=true; // Combine sets Alpha
+     _alpha.clear(); // got merged so clear it
    }
 
    if(dof) // after Motion Blur
    {
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
-      T.dof(*_col, *dest, alpha, combine); alpha_set=true; Swap(_col, dest); // DoF sets Alpha
+      T.dof(*_col, *dest, alpha, combine); Swap(_col, dest); alpha_set=true; // DoF sets Alpha
    }
    if(ms_samples_color.a && D.multiSample())
    {
