@@ -432,13 +432,13 @@ struct MotionBlur
    struct BlurRange
    {
       Int     samples;
-      Shader *Blur[2][2][2][2][2]; // [Dither][Jitter][Alpha][TAA][ViewFull]
+      Shader *Blur[2][2][2][2][2][2]; // [Dither][Jitter][Glow][Alpha][TAA][ViewFull]
    }Blurs[4];
 
    void load();
    Shader     * getConvert(Int range);
  C DilateRange& getDilate (Int range);
-   Shader     * getBlur   (Int samples, Bool dither, Bool alpha);
+   Shader     * getBlur   (Int samples, Bool dither, Bool glow, Bool alpha);
 }extern
    Mtn;
 

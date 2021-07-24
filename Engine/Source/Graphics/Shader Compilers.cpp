@@ -584,12 +584,13 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    const Int samples[]={5, 7, 9, 14}; ASSERT(Elms(samples)==Elms(Mtn.Blurs)); // 5-720, 7-1080, 9-1440, 14-2160 #MotionBlurSamples
    REPD (dither   , 2)
    REPD (jitter   , 2)
+   REPD (glow     , 2)
    REPD (alpha    , 2)
    REPD (taa      , 2)
    REPD (view_full, 2)
    REPD (gather   , taa ? 2 : 1) // gather only needed for TAA
    REPAD(sample   , samples)
-      src.New("Blur", "DrawUV_VS", "Blur_PS")("DITHER", dither, "JITTER", jitter, "ALPHA", alpha)("HAS_TAA", taa, "VIEW_FULL", view_full, "GATHER", gather)("SAMPLES", samples[sample]).gatherChannel(gather);
+      src.New("Blur", "DrawUV_VS", "Blur_PS")("DITHER", dither, "JITTER", jitter, "GLOW", glow, "ALPHA", alpha)("HAS_TAA", taa, "VIEW_FULL", view_full, "GATHER", gather)("SAMPLES", samples[sample]).gatherChannel(gather);
 }
 #endif
 

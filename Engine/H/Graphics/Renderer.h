@@ -182,9 +182,9 @@ struct RendererClass // handles rendering
    void   resolveDepth ();
    void   resolveDepth1();
    void adaptEye       (ImageRTC &src, ImageRT &dest);
-   void bloom          (ImageRT  &src, ImageRT &dest, Bool combine);
-   Bool motionBlur     (ImageRT  &src, ImageRT &dest, Bool alpha, Bool combine);
-   void dof            (ImageRT  &src, ImageRT &dest, Bool alpha, Bool combine);
+   Bool motionBlur     (ImageRT  &src, ImageRT &dest, ImageRTPtr &bloom_glow, Bool alpha, Bool combine);
+   void bloom          (ImageRT  &src, ImageRT &dest, ImageRTPtr &bloom_glow,             Bool combine);
+   void dof            (ImageRT  &src, ImageRT &dest,                         Bool alpha, Bool combine);
 
    void setAlphaFromDepth      ();
    void setAlphaFromDepthAndCol();

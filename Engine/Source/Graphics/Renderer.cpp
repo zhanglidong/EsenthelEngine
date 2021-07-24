@@ -313,28 +313,30 @@ void RendererClass::adaptEye(ImageRTC &src, ImageRT &dest)
 INLINE Shader* GetBloomDS(Bool glow  , Bool view_full, Bool half_res) {Shader* &s=Sh.BloomDS[glow  ][view_full][half_res]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow  , view_full, half_res); return s;}
 INLINE Shader* GetBloom  (Bool dither, Bool alpha                   ) {Shader* &s=Sh.Bloom  [dither][alpha    ]          ; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloom  (dither, alpha              ); return s;}
 // !! Assumes that 'ImgClamp' was already set !!
-void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
+void RendererClass::bloom(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_glow, Bool combine)
 {
    // '_alpha' RT from 'processAlpha' can't be used/modified because Bloom works by ADDING blurred results on top of existing background, NOT BLENDING (which is used for applying renderer results onto existing background when combining), we could potentially use a secondary RT to store bloom and add it on top of render, however that uses more memory, slower, and problematic with Motion Blur and DoF
    const Bool    half =true;
    const Int     shift=(half ? 1 : 2);
-   ImageRTDesc   rt_desc(fxW()>>shift, fxH()>>shift, IMAGERT_SRGB); // using IMAGERT_SRGB will clip to 0..1 range !! using high precision would require clamping in the shader to make sure values don't go below 0 !!
-   ImageRTPtrRef rt0(half ? _h0 : _q0); rt0.get(rt_desc);
-   ImageRTPtrRef rt1(half ? _h1 : _q1); rt1.get(rt_desc); Bool discard=false; // we've already discarded in 'get' so no need to do it again
+   ImageRTPtrRef rt0(half ? _h0 : _q0);
 
-   #define BLOOM_GLOW_GAMMA_PER_PIXEL 0 // #BloomGlowGammaPerPixel
    D.alpha(ALPHA_NONE);
    if(_has_glow || D.bloomScale()) // if we have something there
    {
+      ImageRTDesc rt_desc(fxW()>>shift, fxH()>>shift, IMAGERT_SRGB); // using IMAGERT_SRGB will clip to 0..1 range !! using high precision would require clamping in the shader to make sure values don't go below 0 !!
+                                           rt0.get(rt_desc);
+      ImageRTPtrRef rt1(half ? _h1 : _q1); rt1.get(rt_desc); Bool discard=false; // we've already discarded in 'get' so no need to do it again
+
       set(rt0, null, false);
 
-      Rect ext_rect, *rect=null; // set rect, after setting render target
       const Int blurs=1;
+      Rect ext_rect, *rect=null; // set rect, after setting render target
       if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(pixelToScreenSize(blurs*SHADER_BLUR_RANGE+1));} // when not rendering entire viewport, then extend the rectangle, add +1 because of texture filtering, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
 
       const Bool half_res=(Flt(src.h())/rt0->h() <= 2.5f); // half_res=scale 2, ..3.., quarter=scale 4, 2.5 was the biggest scale that didn't cause jittering when using half down-sampling
       const Int       res=(half_res ? 2 : 4), res2=Sqr(res);
 
+      #define BLOOM_GLOW_GAMMA_PER_PIXEL 0 // #BloomGlowGammaPerPixel
       Sh.BloomParams->setConditional(Vec4(D.bloomOriginal(), _has_glow ? D.bloomScale()/res2
                                                             : half_res ? D.bloomScale()
                                                                        : D.bloomScale()/4,
@@ -350,17 +352,17 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool combine)
       }
    }else
    {
-      rt0->clearViewport();
+      rt0.get(ImageRTDesc(1, 1, IMAGERT_SRGB));
+      rt0->clearFull();
       Sh.BloomParams->setConditional(D.bloomOriginal());
    }
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
    Sh.Img [1]->set( rt0  );
    Sh.ImgX[0]->set(_alpha);
    GetBloom(D.dither() /*&& (src.highPrecision() || rt0->highPrecision())*/ && !dest.highPrecision(), _alpha!=null)->draw(src); // merging 2 RT's ('src' and 'rt0') with some scaling factors will give us high precision
-  _alpha.clear(); // already merged with '_col'
 }
 // !! Assumes that 'ImgClamp' was already set !!
-Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool alpha, Bool combine)
+Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_glow, Bool alpha, Bool combine)
 {
    Mtn.load();
    D.alpha(ALPHA_NONE);
@@ -438,9 +440,15 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool alpha, Bool com
    }
    #endif
 
-   Sh.Img[1]->set(small_motion);
-   set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
-   Mtn.getBlur(Round(fx.y*(7.0f/1080)), D.dither() /*&& src.highPrecision()*/ && !dest.highPrecision(), alpha)->draw(src); // here blurring may generate high precision values, use 7 samples on a 1080 resolution #MotionBlurSamples
+   if(_has_glow)
+   {
+      Sh.BloomParams->setConditional(Vec4(D.bloomOriginal(), D.bloomScale(), D.bloomAdd(), D.bloomGlow()));
+      bloom_glow.get(ImageRTDesc(dest.w(), dest.h(), IMAGERT_SRGB));
+   }
+   Sh.Img [1]->set(small_motion);
+   Sh.ImgX[0]->set(_alpha);
+   set(&dest, bloom_glow, null, null, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
+   Mtn.getBlur(Round(fx.y*(7.0f/1080)), D.dither() /*&& src.highPrecision()*/ && !dest.highPrecision(), _has_glow, alpha)->draw(src); // here blurring may generate high precision values, use 7 samples on a 1080 resolution #MotionBlurSamples
    return false;
 }
 INLINE Shader* GetDofDS(Bool view_full, Bool realistic, Bool alpha, Bool half_res) {Shader* &s=Dof.DofDS[view_full][realistic][alpha][half_res]; if(SLOW_SHADER_LOAD && !s)s=Dof.getDS(view_full, realistic, alpha, half_res); return s;}
@@ -2060,25 +2068,28 @@ void RendererClass::postProcess()
    // !! WARNING: EFFECTS SHOULD NEVER MODIFY '_col' IF 'ColConst' !!
    // !! WARNING: TAA might output '_col' that points to 'taa_new_col', in that case it can't be modified because it's needed for the next frame !!
    // !! so if any effect wants to modify '_col' instead of drawing to another RT, it first must check it for 'ColConst' !!
-   Bool taa      =_taa_use,
-        eye_adapt= hasEyeAdapt      (),
-        bloom    =(hasBloom         () || _has_glow),
-        alpha    = processAlphaFinal(), // this is always enabled for 'slowCombine'
-        motion   = hasMotion        (),
-        dof      = hasDof           (),
-        combine  = slowCombine      (),
-        upscale  =(_final->w()>_col->w() || _final->h()>_col->h()), // we're going to upscale at the end
-        alpha_set=fastCombine(); // if alpha channel is set properly in the RT, skip this if we're doing 'fastCombine' because we're rendering to existing RT which has its Alpha already set
+   Bool taa        =_taa_use            , // hasTAA()
+        alpha      = processAlphaFinal(), // this is always enabled for 'slowCombine'
+        eye_adapt  = hasEyeAdapt      (),
+        motion     = hasMotion        (),
+        bloom      =(hasBloom         () || _has_glow),
+        dof        = hasDof           (),
+        combine    = slowCombine      (),
+        upscale    =(_final->w()>_col->w() || _final->h()>_col->h()), // we're going to upscale at the end
+        alpha_set  =fastCombine(); // if alpha channel is set properly in the RT, skip this if we're doing 'fastCombine' because we're rendering to existing RT which has its Alpha already set
 
-   if(taa || eye_adapt || bloom || alpha || motion || dof || _get_target)resolveMultiSample(); // we need to resolve the MS Image so it's 1-sample for effects
-   if(alpha && !_alpha)setAlphaFromDepthAndCol(); // create '_alpha' if not yet available
+   if(taa || alpha || eye_adapt || motion || bloom || dof || _get_target)resolveMultiSample(); // we need to resolve the MS Image so it's 1-sample for effects
+   if(alpha){if(!_alpha)setAlphaFromDepthAndCol();} // create '_alpha' if not yet available
+   else          _alpha.clear(); // make sure to clear if we don't use it
 
    tAA(); // !! AFTER TAA we must be checking for 'ColConst' !!
 
    ImageRTDesc rt_desc(_col->w(), _col->h(), IMAGERT_SRGBA/*this is changed later*/); MIN(rt_desc.size.x, _final->w()); MIN(rt_desc.size.y, _final->h()); // don't do post-process at higher res than needed
-   ImageRTPtr  dest;
+   ImageRTPtr  dest, bloom_glow;
 
-   Int fxs=((upscale || _get_target) ? -1 : eye_adapt+(bloom|alpha)+motion+dof); // this counter specifies how many effects are still left in the queue, and if we can render directly to '_final', when up sampling then don't render to '_final', 'bloom' already handles merging alpha for 'alpha'
+   Int fxs= // this counter specifies how many effects are still left in the queue, and if we can render directly to '_final'
+      ((upscale || _get_target) ? -1 // when up-sampling then don't render to '_final' (we can check this separately because this is the last effect to process)
+      : alpha+eye_adapt+motion+bloom+dof);
    Sh.ImgClamp->setConditional(ImgClamp(rt_desc.size)); // set 'ImgClamp' that may be needed for Bloom, DoF, MotionBlur, this is the viewport rect within texture, so reading will be clamped to what was rendered inside the viewport
 
    IMAGE_PRECISION rt_prec=D.litColRTPrecision();
@@ -2094,14 +2105,42 @@ void RendererClass::postProcess()
       T.adaptEye(*_col, *dest); Swap(_col, dest); // Eye Adaptation keeps Alpha
    }
 
-   rt_desc.type(GetImageRTType(alpha, rt_prec)); // we need alpha channel after bloom only if we use alpha
+   rt_desc.type(GetImageRTType(alpha, rt_prec)); // we need alpha channel after this stage only if we use alpha
 
-   if(bloom) // bloom needs to be done before motion/dof especially because of per-pixel glow
+   if(motion) // tests have shown that it's better to do Motion Blur before Depth of Field
+   {
+      if(_alpha && !_has_glow) // if we have separate alpha image, and not using glow, then it's better to put alpha image to alpha channel to avoid doing multiple texture reads in the motion blur shader #AlphaGlow
+      {
+         Sh.ImgX[0]->set(_alpha);
+         if(_col->hwTypeInfo().a>=8 && !ColConst()) // if '_col' already has alpha-channel, then just reuse it and replace that channel
+         {
+            set(_col, null, true); D.alpha(ALPHA_KEEP_SET);
+            GetReplaceAlpha()->draw();
+         }else
+         {
+            Sh.Img[0]->set(_col);
+            dest.get(rt_desc);
+            set(dest, null, true); D.alpha(ALPHA_NONE);
+            GetCombineAlpha()->draw();
+           _col=dest;
+         }
+        _alpha.clear(); fxs--; // got merged so clear it, and dec 'fxs' because processed 'alpha'
+      }
+      if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
+      if(T.motionBlur(*_col, *dest, bloom_glow, alpha, combine))return; alpha_set=true; Swap(_col, dest); // Motion Blur sets Alpha
+      if(_alpha){_alpha.clear(); fxs--;} // got merged so clear it, and dec 'fxs' because processed 'alpha'
+   }
+   if(stage==RS_VEL && show(_vel, false, D.signedVelRT()))return; // velocity could've been used for MotionBlur or TAA, check it after 'motionBlur' because it might generate it for MOTION_CAMERA
+  _vel.clear(); // velocity could've been used for MotionBlur or TAA, but after this stage we no longer need it
+
+   if(bloom) // bloom needs to be done before dof because of per-pixel glow
    {
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
-      T.bloom(*_col, *dest, combine); alpha_set=true; Swap(_col, dest); // Bloom sets Alpha
-   }else
-   if(alpha) // merge '_col' with '_alpha' (only if no bloom, because bloom already merged)
+      T.bloom(*_col, *dest, bloom_glow, combine); alpha_set=true; Swap(_col, dest); // Bloom sets Alpha
+      if(_alpha){_alpha.clear(); fxs--;} // got merged so clear it, and dec 'fxs' because processed 'alpha'
+   }
+
+   if(_alpha) // merge '_col' with '_alpha'
    {
       // TODO: when using multi-sampling and 'D.particlesSoft' then there can be outlines around objects touching particles, this is because Particle soft shader uses TexDepthPoint
       Sh.Img [0]->set(_col  );
@@ -2123,16 +2162,9 @@ void RendererClass::postProcess()
          GetCombineAlpha()->draw();
         _col=dest;
       }
-     _alpha.clear(); alpha_set=true; // Combine sets Alpha
+     _alpha.clear(); fxs--; // got merged so clear it, and dec 'fxs' because processed 'alpha'
+      alpha_set=true; // Combine sets Alpha
    }
-
-   if(motion) // tests have shown that it's better to do Motion Blur before Depth of Field
-   {
-      if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
-      if(T.motionBlur(*_col, *dest, alpha, combine))return; alpha_set=true; Swap(_col, dest); // Motion Blur sets Alpha
-   }
-   if(stage==RS_VEL && show(_vel, false, D.signedVelRT()))return; // velocity could've been used for MotionBlur or TAA, check it after 'motionBlur' because it might generate it for MOTION_CAMERA
-  _vel.clear(); // velocity could've been used for MotionBlur or TAA, but after this stage we no longer need it
 
    if(dof) // after Motion Blur
    {

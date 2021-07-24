@@ -1080,6 +1080,9 @@
     <ClInclude Include="..\NintendoSwitch\Switch.h">
       <Filter>H\Platforms</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Shaders\Bloom.h">
+      <Filter>Source\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

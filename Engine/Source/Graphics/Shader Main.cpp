@@ -903,18 +903,18 @@ C MotionBlur::DilateRange& MotionBlur::getDilate(Int range)
    if(!shader)shader=T.shader->get(S8+"Dilate"+dr->range);
    return *dr;
 }
-Shader* MotionBlur::getBlur(Int samples, Bool dither, Bool alpha)
+Shader* MotionBlur::getBlur(Int samples, Bool dither, Bool glow, Bool alpha)
 {
    BlurRange *b; FREPA(Blurs) // start from the smallest to find exact match or bigger, order is important
    {
       b=&Blurs[i]; if(b->samples>=samples)break; // if this covers desired samples
    }
-   Bool jitter=D.motionJitter(), taa=Renderer.hasTAA(), view_full=D._view_main.full;
-   Shader* &shader=b->Blur[dither][jitter][alpha][taa][view_full];
+   Bool jitter=D.motionJitter(), taa=Renderer._taa_use, view_full=D._view_main.full; // hasTAA()
+   Shader* &shader=b->Blur[dither][jitter][glow][alpha][taa][view_full];
    if(!shader)
    {
       Bool gather=(taa && D.gatherChannelAvailable()); // gather only needed for TAA
-      shader=T.shader->get(S8+"Blur"+dither+jitter+alpha+taa+view_full+gather+b->samples);
+      shader=T.shader->get(S8+"Blur"+dither+jitter+glow+alpha+taa+view_full+gather+b->samples);
    }
    return shader;
 }

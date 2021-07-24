@@ -201,7 +201,7 @@ DisplayClass::Viewport& DisplayClass::Viewport::setShader(Flt *offset)
     //v.ProjectedPosToUV   [1].x this shouldn't be modified because we're referring to screen which is already offsetted (this was tested on rendering fur)
    }
 
-   if(Renderer._taa_use && Renderer()!=RM_SHADOW)
+   if(Renderer._taa_use && Renderer()!=RM_SHADOW) // hasTAA()
    {
       Vec2 offset=Sh.TAAOffset->getVec2()*v.UVToPosXY[0];
       v.        FracToPosXY[1]-=offset;

@@ -2133,7 +2133,7 @@ VecH ReflectTex(Vec reflect_dir, Half rough)
 void ProcessGlow(inout Half glow, inout Half diffuse)
 {
    glow=SRGBToLinearFast(glow); // have to convert to linear because small glow of 1/255 would give 12.7/255 sRGB (Glow was sampled from non-sRGB texture and stored in RT alpha channel without any gamma conversions), this has to be done first before using glow and before adjusting 'diffuse' (if it's done after 'diffuse' then 'glow' could actually darken colors)
-   diffuse*=Max(0, 1-glow); // focus on glow reducing 'lit_col' where glow is present, glowable pixels should not be affected by lighting (for example if glow light is half covered by shadow, and half not, then half will be darker and half brighter which will look bad)
+   diffuse*=Max(0, 1-glow); // focus on glow by reducing 'lit_col' where glow is present, glowable pixels should not be affected by lighting (for example if glow light is half covered by shadow, and half not, then half will be darker and half brighter which will look bad)
 }
 void ProcessGlow(Half glow, VecH base_col, inout VecH col)
 {

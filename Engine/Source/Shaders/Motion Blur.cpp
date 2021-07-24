@@ -6,6 +6,7 @@
 
 /******************************************************************************/
 #include "!Header.h"
+#include "Bloom.h"
 /******************************************************************************
 
    Motion Blur is blurred in both ways:
@@ -40,22 +41,12 @@
 #define HAS_TAA 0
 #endif
 
-// disable PRECISE because for it to work best 'color_near' would have to be processed along 'base_uv_motion' line, however right now: PRECISE=1 improves moving background around moving object, however it has negative effect of unnatural blurring FPP weapons when rotating camera fast left/right constantly with a key, and with mouse up/down (while weapon rotates slightly based on up/down angle) in that case the weapons get blurred way too much
+// disable PRECISE because for it to work best 'near' would have to be processed along 'base_uv_motion' line, however right now: PRECISE=1 improves moving background around moving object, however it has negative effect of unnatural blurring FPP weapons when rotating camera fast left/right constantly with a key, and with mouse up/down (while weapon rotates slightly based on up/down angle) in that case the weapons get blurred way too much
 #define PRECISE 0 // if precisely (separately) calculate samples for far and near (base/center), this is to solve the problem of rotating camera in FPP view, with weapon attached to player/camera. in that case background is rotating, and on the background blur line it encounters an object (weapon) that is in focus. Blur algorithm counts the far samples that move over the base center, and then lerps to the near samples that move over the base center.
 
 #define DEPTH_TOLERANCE 0.2 // 20 cm
 
 #define SHOW_BLUR_PIXELS 0 // show what pixels actually get blurred (they will be set to GREEN for fast blur and RED for slow blur) use only for debugging
-
-#if ALPHA
-   #define MASK rgba
-   #define COL  Vec4
-   #define COLH VecH4
-#else
-   #define MASK rgb
-   #define COL  Vec
-   #define COLH VecH
-#endif
 
 #if 1 // use only for testing for fast compilation
    #define FAST_COMPILE 1
@@ -297,7 +288,7 @@ VecH2 SampleWeight(Flt base_depth, Flt sample_depth, Half base_uv_motion_len, Ha
  //depth_weight.x*motion_weight.x = this is needed for cases where base is the moving object     and sample is a static background (base  =object is in front, so depth_weight.x=1, base  =object is moving so motion_weight.x=1), we're returning weight=1 so background sample will be used on the object     position, which will make it appear semi-transparent
  //depth_weight.y*motion_weight.y = this is needed for cases where base is the static background and sample is a moving object     (sample=object is in front, so depth_weight.y=1, sample=object is moving so motion_weight.y=1), we're returning weight=1 so object     sample will be used on the background position, which will draw object on top of background
    Half weight=Dot(depth_weight, motion_weight); // return sum of both cases, this will always be 0..1, because even if both base and sample have motion_weight, then depth weight is always X=1-Y
-   return VecH2(weight, PRECISE ? motion_weight.x*depth_weight.x : motion_weight.x); // for PRECISE also mul by base depth_weight, because 'color_near' would have to be processed along 'base_uv_motion' line to don't do extra mul, but now we always do along biggest motion line, so treat as far only if depth is good, because without it, it just increases weight of fast moving objects when rotating camera around them
+   return VecH2(weight, PRECISE ? motion_weight.x*depth_weight.x : motion_weight.x); // for PRECISE also mul by base depth_weight, because 'near' would have to be processed along 'base_uv_motion' line to don't do extra mul, but now we always do along biggest motion line, so treat as far only if depth is good, because without it, it just increases weight of fast moving objects when rotating camera around them
 }
 Half UVMotionLength(VecH2 uv_motion)
 {
@@ -306,18 +297,111 @@ Half UVMotionLength(VecH2 uv_motion)
 }
 /******************************************************************************
 
+   Img   = color (W channel can be empty, alpha or glow)
+   ImgX  = alpha
    Img1  = dilated = downsampled Max Min UV Motion * MotionScale
    ImgXY =              full-res         UV Motion      (unscaled)
 
 /******************************************************************************/
-VecH4 Blur_PS(NOPERSP Vec2 uv0:UV,
-              NOPERSP PIXEL      ):TARGET
-{
-   VecH4 dilated=TexLod(Img1, uv0); // dilated motion (XY=biggest, ZW=smallest), use linear filtering because 'Img1' may be smaller
-   VecH4 base_color; base_color.MASK=TexLod(Img, uv0).MASK; // can't use 'TexPoint' because 'Img' can be supersampled
-#if !ALPHA
-   base_color.a=1; // force full alpha so back buffer effects can work ok
+struct Pixel
+{ // normally this should be done in full precision because we operate on many samples, however motion blur is slow, so use half
+   VecH rgb;
+#if ALPHA
+   Half alpha;
 #endif
+#if GLOW
+   VecH glow;
+#endif
+
+   void zero()
+   {
+      rgb=0;
+   #if ALPHA
+      alpha=0;
+   #endif
+   #if GLOW
+      glow=0;
+   #endif
+   }
+   void set(Vec2 uv, Bool filter)
+   {
+      VecH4 tex=(filter ? TexLod(Img, uv) : TexPoint(Img, uv));
+      rgb=tex.rgb;
+   // #AlphaGlow
+   #if GLOW // alpha channel=glow
+         Half glow_a=tex.a;
+         glow_a=SRGBToLinearFast(glow_a); // have to convert to linear because small glow of 1/255 would give 12.7/255 sRGB (Glow was sampled from non-sRGB texture and stored in RT alpha channel without any gamma conversions)
+         glow=rgb*((glow_a*BloomParams.w)/Max(Max(rgb), HALF_MIN)); // #Glow
+      #if ALPHA // alpha stored separately
+         alpha=(filter ? TexLod(ImgX, uv) : TexPoint(ImgX, uv));
+      #endif
+   #elif ALPHA // alpha channel=alpha
+      alpha=tex.a;
+   #endif
+   }
+   void mul(Half weight)
+   {
+      rgb*=weight;
+   #if ALPHA
+      alpha*=weight;
+   #endif
+   #if GLOW
+      glow*=weight;
+   #endif
+   }
+   void div(Half weight)
+   {
+      rgb/=weight;
+   #if ALPHA
+      alpha/=weight;
+   #endif
+   #if GLOW
+      glow/=weight;
+   #endif
+   }
+   void add(Pixel p)
+   {
+      rgb+=p.rgb;
+   #if ALPHA
+      alpha+=p.alpha;
+   #endif
+   #if GLOW
+      glow+=p.glow;
+   #endif
+   }
+   void add(Pixel p, Half weight)
+   {
+      rgb+=p.rgb*weight;
+   #if ALPHA
+      alpha+=p.alpha*weight;
+   #endif
+   #if GLOW
+      glow+=p.glow*weight;
+   #endif
+   }
+   void mulAdd(Half weight, Pixel p)
+   {
+      rgb=rgb*weight+p.rgb;
+   #if ALPHA
+      alpha=alpha*weight+p.alpha;
+   #endif
+   #if GLOW
+      glow=glow*weight+p.glow;
+   #endif
+   }
+};
+/******************************************************************************/
+VecH4 Blur_PS
+(
+   NOPERSP Vec2 uv0:UV,
+   NOPERSP PIXEL
+#if GLOW
+     , out VecH bloom:TARGET1
+#endif
+):TARGET
+{
+   Pixel base; base.set(uv0, true); // here use linear filtering in case 'Img' is super-sampled and we're just down-sampling without any motion blur
+   VecH4 dilated=TexLod(Img1, uv0); // dilated motion (XY=biggest, ZW=smallest), use linear filtering because 'Img1' may be smaller
    //return VecH4(SRGBToLinear(Vec(Length(dilated.xy)*10,Length(dilated.zw)*10,0)),1);
 
    BRANCH if(any(dilated.xy)) // XY=biggest, can use 'any' because small motions were already forced to 0 in 'Convert'
@@ -330,8 +414,8 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:UV,
 
       BRANCH if(Length2(dilated.zw)>Length2(dilated.xy)*Sqr(0.5)) // if smallest motion is close to biggest motion then just do a fast and simple blur, ignoring depths and precise motions
       {
-         COL color_blur=JITTER ? 0 : base_color.MASK; // use HP because we operate on many samples (when using JITTER the base sample has to be jittered too so we can't use 'base_color')
-         Flt weight    =                           0; // use HP because we operate on many samples
+         Half  weight=  JITTER ?    0      :            1; // when using JITTER the base sample has to be jittered too so 'base' can't be used
+         Pixel blur; if(JITTER)blur.zero();else blur=base; // when using JITTER the base sample has to be jittered too so 'base' can't be used
          if(JITTER) // for JITTER we have to process steps starting from 0.5 because we're not leaving extra weight for the base sample (since it has to be jittered too), so move the starting UV's by 0.5 back and apply jitter offset
          {
             Half step0=(/*i=0*/-0.5)+jitter; uv0+=step0*dir.xy;
@@ -339,21 +423,18 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:UV,
          }
          UNROLL for(Int i=1; i<=steps; i++) // start from 1 because we've already got #0 before
          {
-            Half w0=UVInsideView(uv0+=dir.xy);
-            Half w1=UVInsideView(uv1+=dir.zw);
-            color_blur+=w0*TexLod(Img, uv0).MASK  // use linear filtering
-                       +w1*TexLod(Img, uv1).MASK; // use linear filtering
+            Half w0=UVInsideView(uv0+=dir.xy); Pixel p0; p0.set(uv0, true); blur.add(p0, w0); // can use linear filtering because this is fast mode ignoring depths/motions
+            Half w1=UVInsideView(uv1+=dir.zw); Pixel p1; p1.set(uv1, true); blur.add(p1, w1); // can use linear filtering because this is fast mode ignoring depths/motions
             weight+=w0+w1;
          }
          if(!JITTER || weight>0.5) // update only if have any samples
-            base_color.MASK=color_blur/(weight+(JITTER ? 0 : 1)); // already have 1 sample (only used without JITTER)
+            {blur.div(weight); base=blur;}
 
-         if(SHOW_BLUR_PIXELS)base_color.g+=0.1;
+         if(SHOW_BLUR_PIXELS)base.rgb.g+=0.1;
       }else
       {
-         COL  color_near=0; // use HP because we operate on many samples
-         COL  color_far =0; // use HP because we operate on many samples
-         Vec2 weight    =0; // use HP because we operate on many samples (X=near, Y=far)
+         VecH2 weight=0; // X=near, Y=far
+         Pixel near, far; near.zero(); far.zero();
 
          // GET DEPTH + MOTION
          Flt   base_depth;
@@ -429,8 +510,8 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:UV,
                uv1  =start+step1*dir.zw;
                step0=Max(0, step0+step_add);
                step1=Max(0, step1+step_add);*/
-               step0=Max(0, (i-0.5+step_add)+jitter);
-               step1=Max(0, (i-0.5+step_add)-jitter);
+               step0=Max(0, Half(i-0.5+step_add)+jitter);
+               step1=Max(0, Half(i-0.5+step_add)-jitter);
             }else
             {
                step0=step1=Max(0, i+step_add);
@@ -448,77 +529,87 @@ VecH4 Blur_PS(NOPERSP Vec2 uv0:UV,
             VecH2 w0=SampleWeight(base_depth, sample0_depth, base_uv_motion_len, sample0_uv_motion_len, uv_motion_len_to_step0, step0); w0.x*=UVInsideView(uv0);
             VecH2 w1=SampleWeight(base_depth, sample1_depth, base_uv_motion_len, sample1_uv_motion_len, uv_motion_len_to_step1, step1); w1.x*=UVInsideView(uv1);
 
-            COLH col0=TexPoint(Img, uv0).MASK, // Tex in case src is super sampled
-                 col1=TexPoint(Img, uv1).MASK; // Tex in case src is super sampled
+            Pixel p0, p1;
+            p0.set(uv0, false); // here can't use filtering because we need precise per-pixel data to avoid leaking
+            p1.set(uv1, false); // here can't use filtering because we need precise per-pixel data to avoid leaking
 
             if(PRECISE)
             {
                w0=w0.x*VecH2(w0.y, 1-w0.y); // adjust X weight to be sample weight * near weight, Y weight to be sample weight * far weight (1-near)
                w1=w1.x*VecH2(w1.y, 1-w1.y); // adjust X weight to be sample weight * near weight, Y weight to be sample weight * far weight (1-near)
-               color_near+=col0*w0.x + col1*w1.x;
-               color_far +=col0*w0.y + col1*w1.y;
+               near.add(p0, w0.x); near.add(p1, w1.x); // near+=p0*w0.x + p1*w1.x;
+               far .add(p0, w0.y); far .add(p1, w1.y); // far +=p0*w0.y + p1*w1.y;
             }else
             {
-               color_near+=col0*w0.x + col1*w1.x; // in !PRECISE we just need one color (doesn't matter if we operate on 'color_far' or 'color_near', so just choose any)
                w0.y=Max(w0.y, w0.x); // adjust Y weight to be maximum of (near weight (Y) and sample weight (X)), it works as if sample weight but if it's near then it's always 1 (to ignore depth: anything covering the base sample), this weight will be used to blend with the final color and the base color
                w1.y=Max(w1.y, w1.x);
+               near.add(p0, w0.x); near.add(p1, w1.x); // near+=p0*w0.x + p1*w1.x; // in !PRECISE we just need one data (doesn't matter if we operate on 'far' or 'near', so just choose any)
             }
             weight+=w0+w1;
          }
+         Half mul=1.0/(steps*2+(JITTER ? 0 : 1)); // in every step we have 2 samples + 1 to make room for base sample (can't do that for JITTER because when base is moving then it has to be jittered too, so it has to be processed by codes in the loop)
          if(PRECISE)
          {
-            // FIXME optimize
             // Warning: these codes don't adjust 'weight.x'
             if(JITTER)
             {
-               if(weight.x<1)color_near.MASK+=(1-weight.x)*base_color.MASK; // if gathered near colors are less than 1 full sample, then increase to 'base_color' (use it only if necessary because we want 'base_color' to be jittered)
-               else          color_near/=weight.x; // otherwise normalize
+               if(weight.x<1)near.add(base, 1-weight.x); // if gathered near colors are less than 1 full sample, then increase to 'base' (use it only if necessary because we want 'base' to be jittered)
+               else          near.div(        weight.x); // otherwise normalize
             }else
             {
-               color_near.MASK+=base_color.MASK; // here we can always add base sample because we don't need it to be jittered
-               color_near/=(weight.x+1); // normalize including base sample
+               near.add(base); // here we can always add base sample because we don't need it to be jittered
+               near.div(weight.x+1); // normalize including base sample
             }
          #if 0 // original
-            if(weight.y)color_far/=weight.y; // normalize
-            weight.y*=1.0/(steps*2+(JITTER ? 0 : 1)); // in every step we have 2 samples + 1 to make room for base sample (can't do that for JITTER because when base is moving then it has to be jittered too, so it has to be processed by codes in the loop)
-            base_color.MASK=Lerp(color_near, color_far, weight.y);
+            if(weight.y)far/=weight.y; // normalize
+            weight.y*=mul;
+            base=Lerp(near, far, weight.y);
          #else // optimized
-            color_far*=1.0/(steps*2+(JITTER ? 0 : 1)); // in every step we have 2 samples + 1 to make room for base sample (can't do that for JITTER because when base is moving then it has to be jittered too, so it has to be processed by codes in the loop)
-            weight.y *=1.0/(steps*2+(JITTER ? 0 : 1)); // in every step we have 2 samples + 1 to make room for base sample (can't do that for JITTER because when base is moving then it has to be jittered too, so it has to be processed by codes in the loop)
-            base_color.MASK=color_near*(1-weight.y) + color_far;
+            far  .mul(mul);
+            weight.y*=mul ;
+            near.mulAdd(1-weight.y, far); base=near; // base=near*(1-weight.y) + far;
          #endif
          }else
          if(1) // process using near/far weights
          {
-            if(weight.x) // process if we've got any samples (if not then just keep 'base_color' as is)
+            if(weight.x) // process if we've got any samples (if not then just keep 'base' as is)
             {
-               weight.y*=1.0/(steps*2+(JITTER ? 0 : 1)); // in every step we have 2 samples + 1 to make room for base sample (can't do that for JITTER because when base is moving then it has to be jittered too, so it has to be processed by codes in the loop)
+               weight.y*=mul;
             #if 0 // original
-               color_near/=weight.x; // normalize
-               base_color.MASK=Lerp(base_color.MASK, color_near.MASK, weight.y);
+               near/=weight.x; // normalize
+               base=Lerp(base, near, weight.y);
             #else // optimized
-               base_color.MASK=base_color.MASK*(1-weight.y) + color_near.MASK*(weight.y/weight.x);
+               near.mul(weight.y/weight.x); base.mulAdd(1-weight.y, near); // base=base*(1-weight.y) + near*(weight.y/weight.x);
             #endif
             }
          }else // simple mode ignoring near/far
          {
-            color_near*=1.0/(steps*2+(JITTER ? 0 : 1)); // in every step we have 2 samples + 1 to make room for base sample (can't do that for JITTER because when base is moving then it has to be jittered too, so it has to be processed by codes in the loop)
-            weight.x  *=1.0/(steps*2+(JITTER ? 0 : 1)); // in every step we have 2 samples + 1 to make room for base sample (can't do that for JITTER because when base is moving then it has to be jittered too, so it has to be processed by codes in the loop)
-            base_color.MASK=base_color.MASK*(1-weight.x) + color_near.MASK;
+            near .mul(mul);
+            weight.x*=mul ;
+            base.mulAdd(1-weight.x, near); // base=base*(1-weight.x) + near;
          }
 
-         if(SHOW_BLUR_PIXELS)base_color.r+=0.1;
+         if(SHOW_BLUR_PIXELS)base.rgb.r+=0.1;
       }
 
    #if 0 // test how many samples were used for blurring
-      base_color.rgb=steps/Half(SAMPLES);
+      base.rgb=steps/Half(SAMPLES);
    #endif
 
    #if DITHER
-      ApplyDither(base_color.rgb, pixel.xy);
+      ApplyDither(base.rgb, pixel.xy);
    #endif
    }
-   return base_color;
+
+#if GLOW
+   bloom=BloomColor(base.rgb)+base.glow;
+#endif
+
+#if ALPHA
+   return VecH4(base.rgb, base.alpha);
+#else
+   return VecH4(base.rgb, 1); // force full alpha so back buffer effects can work ok
+#endif
 }
 /******************************************************************************
 void Explosion_VS(VtxInput vtx,
