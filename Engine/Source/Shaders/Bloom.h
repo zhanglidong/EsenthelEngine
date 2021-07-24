@@ -5,8 +5,9 @@ BUFFER(Bloom)
 BUFFER_END
 #include "!Set Prec Default.h"
 /******************************************************************************/
-VecH BloomColor(VecH color)
+VecH BloomColor(VecH color, Bool precomputed=false)
 {
+   if(precomputed)return color;
    Half col_lum=Max(color), lum=col_lum*BloomParams.y+BloomParams.z;
    return (lum>0) ? color*(Sqr(lum)/col_lum) : VecH(0, 0, 0);
 }

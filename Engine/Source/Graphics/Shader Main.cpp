@@ -339,8 +339,8 @@ void MainShaderClass::draw (C Image &image                  ,                   
 void MainShaderClass::draw (C Image &image, C   Vec4  &color, C   Vec4  &color_add, C Rect *rect) {Sh.Color[0]->set(color); Sh.Color[1]->set(color_add); Sh.DrawC ->draw(image, rect);}
 void MainShaderClass::draw (C Image &image, C ::Color &color, C ::Color &color_add, C Rect *rect) {Sh.Color[0]->set(color); Sh.Color[1]->set(color_add); Sh.DrawC ->draw(image, rect);}
 /******************************************************************************/
-Shader* MainShaderClass::getBloomDS(Bool glow  , Bool view_full, Bool half_res) {return get(S8+"BloomDS"+glow+view_full+half_res);}
-Shader* MainShaderClass::getBloom  (Bool dither, Bool alpha                   ) {return get(S8+"Bloom"  +dither+alpha);}
+Shader* MainShaderClass::getBloomDS(Int mode , Bool view_full, Bool half_res) {return get(S8+"BloomDS"+mode+view_full+half_res);}
+Shader* MainShaderClass::getBloom  (Int alpha, Bool dither                  ) {return get(S8+"Bloom"  +alpha+dither);}
 
 Shader* MainShaderClass::getShdDir  (Int map_num, Bool clouds, Bool multi_sample) {return get(S8+"ShdDir"  +multi_sample+map_num+clouds);}
 Shader* MainShaderClass::getShdPoint(                          Bool multi_sample) {return get(S8+"ShdPoint"+multi_sample);}
@@ -629,14 +629,14 @@ void MainShaderClass::getTechniques()
    // BLOOM
    BloomParams=GetShaderParam("BloomParams");
 #if !SLOW_SHADER_LOAD
-   REPD(glow     , 2)
+   REPD(mode     , 3)
    REPD(view_full, 2)
    REPD(half     , 2)
-      BloomDS[glow][view_full][half]=getBloomDS(glow, view_full, half);
+      BloomDS[mode][view_full][half]=getBloomDS(mode, view_full, half);
 
+   REPD(alpha , 3)
    REPD(dither, 2)
-   REPD(alpha , 2)
-      Bloom[dither][alpha]=getBloom(dither, alpha);
+      Bloom[alpha][dither]=getBloom(alpha, dither);
 #endif
 
    // BLUR

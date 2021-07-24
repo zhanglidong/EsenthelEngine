@@ -335,10 +335,10 @@ struct MainShaderClass
    ShaderParam
       *BloomParams;
    Shader
-      *BloomDS[2][2][2], // [Glow] [ViewFull] [HalfRes]
-      *Bloom  [2][2]   ; // [Dither] [Alpha]
-   Shader* getBloomDS(Bool glow  , Bool view_full, Bool half_res);
-   Shader* getBloom  (Bool dither, Bool alpha);
+      *BloomDS[3][2][2], // [Mode] [ViewFull] [HalfRes]
+      *Bloom  [3][2]   ; // [Alpha] [Dither]
+   Shader* getBloomDS(Int mode , Bool view_full, Bool half_res);
+   Shader* getBloom  (Int alpha, Bool dither);
 
    // SUN
    Shader *SunRays[2][2][2][2]; // [Alpha] [Dither] [Jitter] [Gamma]

@@ -403,10 +403,10 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_gl
    return false;
 }
 /******************************************************************************/
-INLINE Shader* GetBloomDS(Bool glow  , Bool view_full, Bool half_res) {Shader* &s=Sh.BloomDS[glow  ][view_full][half_res]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow  , view_full, half_res); return s;}
-INLINE Shader* GetBloom  (Bool dither, Bool alpha                   ) {Shader* &s=Sh.Bloom  [dither][alpha    ]          ; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloom  (dither, alpha              ); return s;}
+INLINE Shader* GetBloomDS(Int mode , Bool view_full, Bool half_res) {Shader* &s=Sh.BloomDS[mode ][view_full][half_res]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(mode , view_full, half_res); return s;}
+INLINE Shader* GetBloom  (Int alpha, Bool dither                  ) {Shader* &s=Sh.Bloom  [alpha][dither]             ; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloom  (alpha, dither             ); return s;}
 // !! Assumes that 'ImgClamp' was already set !!
-void RendererClass::bloom(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_glow, Bool combine)
+void RendererClass::bloom(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_glow, Bool alpha, Bool combine)
 {
    // '_alpha' RT from 'processAlpha' can't be used/modified because Bloom works by ADDING blurred results on top of existing background, NOT BLENDING (which is used for applying renderer results onto existing background when combining), we could potentially use a secondary RT to store bloom and add it on top of render, however that uses more memory, slower, and problematic with Motion Blur and DoF
    const Bool    half =true;
@@ -429,15 +429,22 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_glow, B
       const Bool half_res=(Flt(src.h())/rt0->h() <= 2.5f); // half_res=scale 2, ..3.., quarter=scale 4, 2.5 was the biggest scale that didn't cause jittering when using half down-sampling
       const Int       res=(half_res ? 2 : 4), res2=Sqr(res);
 
-      #define BLOOM_GLOW_GAMMA_PER_PIXEL 0 // #BloomGlowGammaPerPixel
-      Sh.BloomParams->setConditional(Vec4(D.bloomOriginal(), _has_glow ? D.bloomScale()/res2
-                                                            : half_res ? D.bloomScale()
-                                                                       : D.bloomScale()/4,
-                                                                         D.bloomAdd  (),
-                                                                         D.bloomGlow ()/(BLOOM_GLOW_GAMMA_PER_PIXEL ? res2 : Sqr(res2)))); // for !BLOOM_GLOW_GAMMA_PER_PIXEL we need to square res2 because of "glow.a=SRGBToLinearFast(glow.a)" in the shader which is before "glow.a/=res2;", so "SRGBToLinearFast(glow.a/res2)=SRGBToLinearFast(glow.a)/Sqr(res2)"
-      Sh.imgSize( src); GetBloomDS(_has_glow, D._view_main.full, half_res)->draw(src, rect);
-    //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
+      if(bloom_glow)
+      {
+         Sh.BloomParams->setConditional(D.bloomOriginal());
+         GetBloomDS(2, D._view_main.full, half_res)->draw(bloom_glow, rect);
+      }else
+      {
+         #define BLOOM_GLOW_GAMMA_PER_PIXEL 0 // #BloomGlowGammaPerPixel
+         Sh.BloomParams->setConditional(Vec4(D.bloomOriginal(), _has_glow ? D.bloomScale()/res2
+                                                               : half_res ? D.bloomScale()
+                                                                          : D.bloomScale()/4,
+                                                                            D.bloomAdd  (),
+                                                                            D.bloomGlow ()/(BLOOM_GLOW_GAMMA_PER_PIXEL ? res2 : Sqr(res2)))); // for !BLOOM_GLOW_GAMMA_PER_PIXEL we need to square res2 because of "glow.a=SRGBToLinearFast(glow.a)" in the shader which is before "glow.a/=res2;", so "SRGBToLinearFast(glow.a/res2)=SRGBToLinearFast(glow.a)/Sqr(res2)"
+         Sh.imgSize(src); GetBloomDS(_has_glow, D._view_main.full, half_res)->draw(src, rect);
+      }
 
+    //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
       REP(blurs)
       { // 'discard' before 'set' because it already may have requested discard, and if we 'discard' manually after 'set' then we might discard 2 times
          if(discard)rt1->discard(); set(rt1, null, false); Sh.BlurX[1]->draw(rt0, rect); discard=true; // discard next time
@@ -452,7 +459,8 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_glow, B
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
    Sh.Img [1]->set( rt0  );
    Sh.ImgX[0]->set(_alpha);
-   GetBloom(D.dither() /*&& (src.highPrecision() || rt0->highPrecision())*/ && !dest.highPrecision(), _alpha!=null)->draw(src); // merging 2 RT's ('src' and 'rt0') with some scaling factors will give us high precision
+   GetBloom(_alpha ? 2 : alpha ? 1 : 0, D.dither() /*&& (src.highPrecision() || rt0->highPrecision())*/ && !dest.highPrecision())->draw(src); // merging 2 RT's ('src' and 'rt0') with some scaling factors will give high precision
+   bloom_glow.clear(); // not needed anymore
 }
 /******************************************************************************/
 INLINE Shader* GetDofDS(Bool view_full, Bool realistic, Bool alpha, Bool half_res) {Shader* &s=Dof.DofDS[view_full][realistic][alpha][half_res]; if(SLOW_SHADER_LOAD && !s)s=Dof.getDS(view_full, realistic, alpha, half_res); return s;}
@@ -2141,7 +2149,7 @@ void RendererClass::postProcess()
    if(bloom) // bloom needs to be done before dof because of per-pixel glow
    {
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
-      T.bloom(*_col, *dest, bloom_glow, combine); alpha_set=true; Swap(_col, dest); // Bloom sets Alpha
+      T.bloom(*_col, *dest, bloom_glow, alpha, combine); alpha_set=true; Swap(_col, dest); // Bloom sets Alpha
       if(_alpha){_alpha.clear(); fxs--;} // got merged so clear it, and dec 'fxs' because processed 'alpha'
    }
 

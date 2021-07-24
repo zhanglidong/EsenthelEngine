@@ -205,14 +205,14 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    }
    { // BLOOM
       ShaderCompiler::Source &src=compiler.New(src_path+"Bloom.cpp");
-      REPD(glow     , 2)
+      REPD(mode     , 3)
       REPD(view_full, 2)
       REPD(half_res , 2)
-         src.New("BloomDS", "BloomDS_VS", "BloomDS_PS")("GLOW", glow, "VIEW_FULL", view_full, "HALF_RES", half_res);
+         src.New("BloomDS", "BloomDS_VS", "BloomDS_PS")("MODE", mode, "VIEW_FULL", view_full, "HALF_RES", half_res);
 
+      REPD(alpha , 3)
       REPD(dither, 2)
-      REPD(alpha , 2)
-         src.New("Bloom", "DrawUV_VS", "Bloom_PS")("DITHER", dither, "ALPHA", alpha);
+         src.New("Bloom", "DrawUV_VS", "Bloom_PS")("ALPHA", alpha, "DITHER", dither);
    }
    { // BLUR
       ShaderCompiler::Source &src=compiler.New(src_path+"Blur.cpp");
