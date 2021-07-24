@@ -909,7 +909,7 @@ Shader* MotionBlur::getBlur(Int samples, Bool dither, Bool glow, Bool alpha)
    {
       b=&Blurs[i]; if(b->samples>=samples)break; // if this covers desired samples
    }
-   Bool jitter=D.motionJitter(), taa=Renderer._taa_use, view_full=D._view_main.full; // hasTAA()
+   Bool jitter=D.motionJitter(), taa=Renderer.hasTAA(), view_full=D._view_main.full; // this must check for 'hasTAA' because '_taa_use' could already got disabled
    Shader* &shader=b->Blur[dither][jitter][glow][alpha][taa][view_full];
    if(!shader)
    {
