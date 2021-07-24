@@ -339,7 +339,7 @@ struct Pixel
       alpha=tex.a;
    #endif
    }
-   void mul(Half weight)
+   void mul(Half weight) // T*=weight
    {
       rgb*=weight;
    #if ALPHA
@@ -349,7 +349,7 @@ struct Pixel
       glow*=weight;
    #endif
    }
-   void div(Half weight)
+   void div(Half weight) // T/=weight
    {
       rgb/=weight;
    #if ALPHA
@@ -359,7 +359,17 @@ struct Pixel
       glow/=weight;
    #endif
    }
-   void add(Pixel p)
+   void setDiv(Pixel p, Half weight) // T=p/weight
+   {
+      rgb=p.rgb/weight;
+   #if ALPHA
+      alpha=p.alpha/weight;
+   #endif
+   #if GLOW
+      glow=p.glow/weight;
+   #endif
+   }
+   void add(Pixel p) // T+=p
    {
       rgb+=p.rgb;
    #if ALPHA
@@ -369,7 +379,7 @@ struct Pixel
       glow+=p.glow;
    #endif
    }
-   void add(Pixel p, Half weight)
+   void add(Pixel p, Half weight) // T+=p*weight
    {
       rgb+=p.rgb*weight;
    #if ALPHA
@@ -379,14 +389,24 @@ struct Pixel
       glow+=p.glow*weight;
    #endif
    }
-   void mulAdd(Half weight, Pixel p)
+   void mulAdd(Half mul, Pixel add) // T=T*mul+add
    {
-      rgb=rgb*weight+p.rgb;
+      rgb=rgb*mul+add.rgb;
    #if ALPHA
-      alpha=alpha*weight+p.alpha;
+      alpha=alpha*mul+add.alpha;
    #endif
    #if GLOW
-      glow=glow*weight+p.glow;
+      glow=glow*mul+add.glow;
+   #endif
+   }
+   void setMulAdd(Pixel p, Half mul, Pixel add) // T=p*mul+add
+   {
+      rgb=p.rgb*mul+add.rgb;
+   #if ALPHA
+      alpha=p.alpha*mul+add.alpha;
+   #endif
+   #if GLOW
+      glow=p.glow*mul+add.glow;
    #endif
    }
 };
@@ -427,8 +447,7 @@ VecH4 Blur_PS
             Half w1=UVInsideView(uv1+=dir.zw); Pixel p1; p1.set(uv1, true); blur.add(p1, w1); // can use linear filtering because this is fast mode ignoring depths/motions
             weight+=w0+w1;
          }
-         if(!JITTER || weight>0.5) // update only if have any samples
-            {blur.div(weight); base=blur;}
+         if(!JITTER || weight>0.5)base.setDiv(blur, weight); // update only if have any samples, base=blur/weight
 
          if(SHOW_BLUR_PIXELS)base.rgb.g+=0.1;
       }else
@@ -567,7 +586,7 @@ VecH4 Blur_PS
          #else // optimized
             far  .mul(mul);
             weight.y*=mul ;
-            near.mulAdd(1-weight.y, far); base=near; // base=near*(1-weight.y) + far;
+            base.setMulAdd(near, 1-weight.y, far); // base=near*(1-weight.y) + far;
          #endif
          }else
          if(1) // process using near/far weights
