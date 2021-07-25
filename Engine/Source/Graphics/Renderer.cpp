@@ -427,14 +427,13 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_glow, B
       if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(pixelToScreenSize(blurs*SHADER_BLUR_RANGE+1));} // when not rendering entire viewport, then extend the rectangle, add +1 because of texture filtering, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
 
       const Bool half_res=(Flt(src.h())/rt0->h() <= 2.5f); // half_res=scale 2, ..3.., quarter=scale 4, 2.5 was the biggest scale that didn't cause jittering when using half down-sampling
-      const Int       res=(half_res ? 2 : 4), res2=Sqr(res);
-
       if(bloom_glow)
       {
          Sh.BloomParams->setConditional(D.bloomOriginal());
          GetBloomDS(2, D._view_main.full, half_res)->draw(bloom_glow, rect);
       }else
       {
+         const Int res=(half_res ? 2 : 4), res2=Sqr(res);
          #define BLOOM_GLOW_GAMMA_PER_PIXEL 0 // #BloomGlowGammaPerPixel
          Sh.BloomParams->setConditional(Vec4(D.bloomOriginal(), _has_glow ? D.bloomScale()/res2
                                                                : half_res ? D.bloomScale()
