@@ -2080,15 +2080,15 @@ void RendererClass::postProcess()
    // !! WARNING: EFFECTS SHOULD NEVER MODIFY '_col' IF 'ColConst' !!
    // !! WARNING: TAA might output '_col' that points to 'taa_new_col', in that case it can't be modified because it's needed for the next frame !!
    // !! so if any effect wants to modify '_col' instead of drawing to another RT, it first must check it for 'ColConst' !!
-   Bool taa        =_taa_use            , // hasTAA()
-        alpha      = processAlphaFinal(), // this is always enabled for 'slowCombine'
-        eye_adapt  = hasEyeAdapt      (),
-        motion     = hasMotion        (),
-        bloom      =(hasBloom         () || _has_glow),
-        dof        = hasDof           (),
-        combine    = slowCombine      (),
-        upscale    =(_final->w()>_col->w() || _final->h()>_col->h()), // we're going to upscale at the end
-        alpha_set  =fastCombine(); // if alpha channel is set properly in the RT, skip this if we're doing 'fastCombine' because we're rendering to existing RT which has its Alpha already set
+   Bool taa      =_taa_use            , // hasTAA()
+        alpha    = processAlphaFinal(), // this is always enabled for 'slowCombine'
+        eye_adapt= hasEyeAdapt      (),
+        motion   = hasMotion        (),
+        bloom    =(hasBloom         () || _has_glow),
+        dof      = hasDof           (),
+        combine  = slowCombine      (),
+        upscale  =(_final->w()>_col->w() || _final->h()>_col->h()), // we're going to upscale at the end
+        alpha_set=fastCombine(); // if alpha channel is set properly in the RT, skip this if we're doing 'fastCombine' because we're rendering to existing RT which has its Alpha already set
 
    if(taa || alpha || eye_adapt || motion || bloom || dof || _get_target)resolveMultiSample(); // we need to resolve the MS Image so it's 1-sample for effects
    if(alpha){if(!_alpha)setAlphaFromDepthAndCol();} // create '_alpha' if not yet available
@@ -2303,7 +2303,7 @@ void RenderIcon(void (&render)(), C ViewSettings *view, ImageRTC &image, C VecI2
 {
    if(image_size.x>0 && image_size.y>0)
    {
-      Int shift=((super_sample<=1) ? 0 : Log2Ceil(UInt(super_sample)));
+      Int shift=((super_sample<=1) ? 0 : Log2Ceil(Unsigned(super_sample)));
       if(image.create(image_size, IMAGE_R8G8B8A8_SRGB))
       {
          ImageRTC temp;
