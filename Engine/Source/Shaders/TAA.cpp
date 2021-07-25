@@ -1,7 +1,10 @@
 /******************************************************************************/
 #include "!Header.h"
 /******************************************************************************
-VIEW_FULL, ALPHA, DUAL_HISTORY, GATHER, FILTER_MIN_MAX
+SUPER, VIEW_FULL, ALPHA, DUAL_HISTORY, GATHER, FILTER_MIN_MAX
+
+ImgSize=src
+ RTSize=dest (is 2x bigger for SUPER)
 
 Img=Cur (ImgSize), Img1=Old (RTSize), ImgXY=CurVel (ImgSize), Depth (ImgSize)
 
@@ -254,7 +257,7 @@ void TAA_PS(NOPERSP Vec2 uv   :UV,
    else                      depth=TexDepthRawPoint(uv);
 
    // GET VEL
-   VecH2 vel=TexPoint(ImgXY, NEAREST_DEPTH_VEL ? UVInView(uv+ofs*RTSize.xy, VIEW_FULL) : uv).xy;
+   VecH2 vel=TexPoint(ImgXY, NEAREST_DEPTH_VEL ? UVInView(uv+ofs*ImgSize.xy, VIEW_FULL) : uv).xy;
 
    Vec2 cur_tex=uv+TAAOffset,
         old_tex=uv+vel;
@@ -315,7 +318,7 @@ void TAA_PS(NOPERSP Vec2 uv   :UV,
       CubicFastSampler cs;
       VecH4 old, old1;
 #if CUBIC
-      cs.set(old_tex); if(!VIEW_FULL)cs.UVClamp(ImgClamp.xy, ImgClamp.zw); // here do clamping because for CUBIC we check many samples around texcoord
+      cs.set(old_tex, RTSize); if(!VIEW_FULL)cs.UVClamp(ImgClamp.xy, ImgClamp.zw); // here do clamping because for CUBIC we check many samples around texcoord
       old =Max(VecH4(0,0,0,0), cs.tex(Img1)); // use Max(0) because of cubic sharpening potentially giving negative values
    #if DUAL_HISTORY
       old1=Max(VecH4(0,0,0,0), cs.tex(Img2)); // use Max(0) because of cubic sharpening potentially giving negative values
@@ -337,7 +340,7 @@ void TAA_PS(NOPERSP Vec2 uv   :UV,
 
    // CUR COLOR + CUR ALPHA
 #if CUBIC
-   cs.set(cur_tex); if(!VIEW_FULL)cs.UVClamp(ImgClamp.xy, ImgClamp.zw);
+   cs.set(cur_tex, ImgSize); if(!VIEW_FULL)cs.UVClamp(ImgClamp.xy, ImgClamp.zw);
    #if ALPHA
       Half cur_alpha=Sat(cs.texX(ImgX)); // use Sat because of cubic sharpening potentially giving negative values
    #endif
