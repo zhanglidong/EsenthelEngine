@@ -1,6 +1,6 @@
 /******************************************************************************
 
-   !! Using Cubic Sampler requires setting ImgSize !!
+   !! Using Cubic Sampler requires setting 'ImgSize' !!
 
 /******************************************************************************/
 struct CubicFastSampler
@@ -81,9 +81,9 @@ struct CubicFastSampler
 
    Vec2 uv    (Int x, Int y) {return Vec2(tc[x].x, tc[y].y);}
    Half weight(Int x, Int y) {return w[x].x*w[y].y;}
-   void set(Vec2 uv)
+   void set(Vec2 uv, Vec4 img_size)
    {
-      uv*=ImgSize.zw;
+      uv*=img_size.zw;
       Vec2 uvc=Floor(uv-0.5)+0.5;
       VecH2 f=uv-uvc, f2=f*f, f3=f2*f;
 
@@ -94,12 +94,12 @@ struct CubicFastSampler
       w[3]=0.5*(f3-f2); w[2]=1-w[0]-w[1]-w[3];
    #endif
 
-      tc[1]=uvc  *ImgSize.xy;
-      tc[0]=tc[1]-ImgSize.xy;
-      tc[2]=tc[1]+ImgSize.xy;
-      tc[3]=tc[1]+ImgSize.xy*2;
+      tc[1]=uvc  *img_size.xy;
+      tc[0]=tc[1]-img_size.xy;
+      tc[2]=tc[1]+img_size.xy;
+      tc[3]=tc[1]+img_size.xy*2;
 
-      VecH2 w12=w[1]+w[2]; c=tc[1]+(w[2]/w12)*ImgSize.xy;
+      VecH2 w12=w[1]+w[2]; c=tc[1]+(w[2]/w12)*img_size.xy;
       wu=w12.x*w[0].y; wd=w12.x*w[3].y; wl=w12.y*w[0].x; wr=w12.y*w[3].x; wc=w12.x*w12.y;
       Half sum=wc+wl+wr+wu+wd;
       wc/=sum;
@@ -108,6 +108,7 @@ struct CubicFastSampler
       wu/=sum; u=Vec2(    c.x, tc[0].y);
       wd/=sum; d=Vec2(    c.x, tc[3].y);
    }
+   void set(Vec2 uv) {set(uv, ImgSize);}
    void UVClamp(Vec2 min, Vec2 max)
    {
       UNROLL for(Int i=0; i<4; i++)tc[i]=Mid(tc[i], min, max);
