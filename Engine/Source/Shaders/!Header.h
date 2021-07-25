@@ -1283,7 +1283,7 @@ Vec2 Noise2D(VecI2 pixel) // (-0.5, -0.5) .. (0.5, 0.5)
 void ApplyDither(inout VecH col, Vec2 pixel, Bool linear_gamma=LINEAR_GAMMA)
 {
    if(linear_gamma)col=LinearToSRGBFast(col);
-   col+=Noise3D(pixel)*((4.0/3)/255); // 4.0/3 was the biggest value that didn't introduce artifacts (1.35 already had them), 1.5 is good however has some artifacts
+   col+=Noise3D(pixel)*(1.0/255); // use 1.0 because any bigger generates too much noise on repeated dither calls, 4.0/3 was the biggest value that didn't introduce artifacts (1.35 already had them), 1.5 is good however has some artifacts
    if(linear_gamma)col=SRGBToLinearFast(col);
 }
 /******************************************************************************/

@@ -307,8 +307,8 @@ void RendererClass::adaptEye(ImageRTC &src, ImageRT &dest)
       cur=next;
    }
    Sh.Step->set(Pow(Mid(1/D.eyeAdaptationSpeed(), EPS, 1.0f), Time.d())); // can use EPS and not EPS_GPU because we're using Pow here and not on GPU
-   Sh.ImgXF[0]->set(cur); Sh.ImgXF[1]->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.HdrUpdate                                                      ->draw();
-                          Sh.ImgX [0]->set(_eye_adapt_scale[_eye_adapt_scale_cur]);                                                                            set(&dest                                  , null, true ); Hdr.Hdr[D.dither() && src.highPrecision() && !dest.highPrecision()]->draw(src);
+   Sh.ImgXF[0]->set(cur); Sh.ImgXF[1]->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.HdrUpdate                                                          ->draw();
+                          Sh.ImgX [0]->set(_eye_adapt_scale[_eye_adapt_scale_cur]);                                                                            set(&dest                                  , null, true ); Hdr.Hdr[D.dither() /*&& src.highPrecision()*/ && !dest.highPrecision()]->draw(src);
    // even though in the shader we just multiply by luminance, in tests it was faster to always write to new RT rather than do ALPHA_MUL and write to existing RT
 }
 /******************************************************************************/
