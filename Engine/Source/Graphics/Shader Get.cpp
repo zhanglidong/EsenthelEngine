@@ -176,7 +176,7 @@ Shader* DefaultShaders::Opaque(Bool mirror)C
    if(valid && !alpha_blend && Renderer.anyDeferred())
    {
       // !! Never return the same shader for Multi-Materials as Single-Materials !!
-      if(fur)return ShaderFiles("Fur")->get(ShaderFurBase(skin, size, layout>0));
+      //if(fur)return ShaderFiles("Fur")->get(ShaderFurBase(skin, size, layout>0)); don't use FurBase because it's unfinished (doesn't use smooth/rough/normal maps) and the only difference is being affected by FurCol however difference is minimal
       Bool detail=T.detail, tesselate=T.tesselate; Byte bump=T.bump; if(mirror){detail=tesselate=false; MIN(bump, SBUMP_NORMAL);} // disable detail, tesselation and fancy bump for mirror
       return ShaderFiles("Deferred")->get(ShaderDeferred(skin, materials, layout, bump, alpha_test, detail, macro, color, mtrl_blend, heightmap, fx, tesselate));
    }
