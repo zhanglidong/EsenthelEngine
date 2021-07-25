@@ -3,18 +3,18 @@
 /******************************************************************************
 VIEW_FULL, ALPHA, DUAL_HISTORY, GATHER, FILTER_MIN_MAX
 
-Img=Cur, Img1=Old, ImgXY=CurVel
+Img=Cur (ImgSize), Img1=Old (RTSize), ImgXY=CurVel (ImgSize), Depth (ImgSize)
 
 TAA_OLD_VEL=1
-   ImgXY1=OldVel
+   ImgXY1=OldVel (ImgSize)
 
 DUAL_HISTORY=1
-   Img2=Old1
+   Img2=Old1 (RTSize)
 
 ALPHA=0
    ImgXY2=Weight, Flicker
 ALPHA=1
-   ImgX=CurAlpha
+   ImgX=CurAlpha (ImgSize)
       MERGED_ALPHA=1
          Img3=Alpha, Weight, Flicker
       SEPARATE_ALPHA=1
