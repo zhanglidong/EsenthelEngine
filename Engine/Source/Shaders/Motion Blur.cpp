@@ -331,7 +331,7 @@ struct Pixel
    #if GLOW // alpha channel=glow
          Half glow_a=tex.a;
          glow_a=SRGBToLinearFast(glow_a); // have to convert to linear because small glow of 1/255 would give 12.7/255 sRGB (Glow was sampled from non-sRGB texture and stored in RT alpha channel without any gamma conversions)
-         glow=rgb*((glow_a*BloomParams.w)/Max(Max(rgb), HALF_MIN)); // #Glow
+         glow=rgb*((glow_a*BloomGlow())/Max(Max(rgb), HALF_MIN)); // #Glow
       #if ALPHA // alpha stored separately
          alpha=(filter ? TexLod(ImgX, uv) : TexPoint(ImgX, uv));
       #endif
@@ -614,11 +614,11 @@ VecH4 Blur_PS
    #if 0 // test how many samples were used for blurring
       base.rgb=steps/Half(SAMPLES);
    #endif
-
-   #if DITHER
-      ApplyDither(base.rgb, pixel.xy);
-   #endif
    }
+
+#if DITHER
+   ApplyDither(base.rgb, pixel.xy);
+#endif
 
 #if GLOW
    bloom=BloomColor(base.rgb)+base.glow;

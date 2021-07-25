@@ -47,7 +47,7 @@ VecH BloomDS_PS(NOPERSP Vec2 uv:UV):TARGET // "Max(0, " of the result is not nee
          glow.a  +=c.a;
       }
       if(!BLOOM_GLOW_GAMMA_PER_PIXEL)glow.a=SRGBToLinearFast(glow.a); // have to convert to linear because small glow of 1/255 would give 12.7/255 sRGB (Glow was sampled from non-sRGB texture and stored in RT alpha channel without any gamma conversions)
-      glow.rgb*=(glow.a*BloomParams.w)/Max(Max(glow.rgb), HALF_MIN); // #Glow
+      glow.rgb*=(glow.a*BloomGlow())/Max(Max(glow.rgb), HALF_MIN); // #Glow
       color =BloomColor(color, PRECOMPUTED);
       color+=glow.rgb;
       return color;

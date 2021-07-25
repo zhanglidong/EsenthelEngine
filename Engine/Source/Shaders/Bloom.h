@@ -5,6 +5,8 @@ BUFFER(Bloom)
 BUFFER_END
 #include "!Set Prec Default.h"
 /******************************************************************************/
+Half BloomGlow() {return BloomParams.w;}
+/******************************************************************************/
 VecH BloomColor(VecH color, Bool precomputed=false)
 {
    if(precomputed)return color;

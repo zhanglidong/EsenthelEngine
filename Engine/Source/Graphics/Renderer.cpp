@@ -496,7 +496,7 @@ void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool alpha, Bool combine)
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
    Sh.Img [1]->set(          rt0 );
    Sh.ImgX[0]->set(blur_smooth[0]);
-   GetDof(D.dither() && (src.highPrecision() || rt0->highPrecision()) && !dest.highPrecision(), D.dofFocusMode(), alpha)->draw(src);
+   GetDof(D.dither() /*&& (src.highPrecision() || rt0->highPrecision())*/ && !dest.highPrecision(), D.dofFocusMode(), alpha)->draw(src);
 }
 /******************************************************************************/
 INLINE Shader* GetSetAlphaFromDepth        () {Shader* &s=Sh.SetAlphaFromDepth        ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("SetAlphaFromDepth"        ); return s;}
@@ -2104,20 +2104,13 @@ void RendererClass::postProcess()
       : alpha+eye_adapt+motion+bloom+dof);
    Sh.ImgClamp->setConditional(ImgClamp(rt_desc.size)); // set 'ImgClamp' that may be needed for Bloom, DoF, MotionBlur, this is the viewport rect within texture, so reading will be clamped to what was rendered inside the viewport
 
-   IMAGE_PRECISION rt_prec=D.litColRTPrecision();
-   if(!_get_target) // if we're going to output to '_final'
-   {
-      IMAGE_PRECISION  final_prec=_final->precision();
-      if(D.dither() && final_prec<=IMAGE_PRECISION_8)final_prec=IMAGE_PRECISION_10; // if we allow dither and it will be used (only for 8-bit) then operate on little better (10-bit) precision from which we can generate the dither
-      MIN(rt_prec,     final_prec);
-   }
    if(eye_adapt)
    {
-      if(!--fxs)dest=_final;else dest.get(rt_desc.type(GetImageRTType(_has_glow, rt_prec))); // can't read and write to the same RT, glow requires Alpha channel
+      if(!--fxs)dest=_final;else dest.get(rt_desc.type(GetImageRTType(_has_glow, D.litColRTPrecision()))); // can't read and write to the same RT, glow requires Alpha channel
       T.adaptEye(*_col, *dest); Swap(_col, dest); // Eye Adaptation keeps Alpha
    }
 
-   rt_desc.type(GetImageRTType(alpha, rt_prec)); // we need alpha channel after this stage only if we use alpha
+   rt_desc.type(GetImageRTType(alpha, D.litColRTPrecision())); // we need alpha channel after this stage only if we use alpha
 
    if(motion) // tests have shown that it's better to do Motion Blur before Depth of Field
    {
