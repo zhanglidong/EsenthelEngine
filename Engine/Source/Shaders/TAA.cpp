@@ -208,7 +208,7 @@ void NearestDepthRaw(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather) // get 
    {
       ofs=VecI2(-1, 1); depth=TexDepthRawPointOfs(uv, ofs         );                     // -1,  1,  left-top
               TestDepth(depth,TexDepthRawPointOfs(uv, VecI2(1, -1)), ofs, VecI2(1, -1)); //  1, -1, right-bottom
-      Vec2 tex=uv-RTSize.xy*0.5; // move to center between -1,-1 and 0,0 texels
+      Vec2 tex=uv-(SUPER ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
       Vec4 d=TexDepthRawGather(tex); // get -1,-1 to 0,0 texels
       TestDepth(depth, d.x, ofs, VecI2(-1,  0));
       TestDepth(depth, d.y, ofs, VecI2( 0,  0));
@@ -289,7 +289,7 @@ void TAA_PS(NOPERSP Vec2 uv   :UV,
    #if GATHER
       TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2(-1,  1)).xy, max_delta_vel_len2); // -1,  1,  left-top
       TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2( 1, -1)).xy, max_delta_vel_len2); //  1, -1, right-bottom
-      old_tex_vel-=RTSize.xy*0.5; // move to center between -1,-1 and 0,0 texels
+      old_tex_vel-=(SUPER ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
       VecH4 r=TexGatherR(ImgXY1, old_tex_vel); // get -1,-1 to 0,0 texels
       VecH4 g=TexGatherG(ImgXY1, old_tex_vel); // get -1,-1 to 0,0 texels
       TestVel(vel, VecH2(r.x, g.x), max_delta_vel_len2);
@@ -413,11 +413,11 @@ void TAA_PS(NOPERSP Vec2 uv   :UV,
    {
       Vec2 uv_clamp[2];
    #if VIEW_FULL
-      uv_clamp[0]=uv-RTSize.xy/2;
-      uv_clamp[1]=uv+RTSize.xy/2;
+      uv_clamp[0]=uv-(SUPER ? RTSize.xy : ImgSize.xy/2);
+      uv_clamp[1]=uv+(SUPER ? RTSize.xy : ImgSize.xy/2);
    #else
-      uv_clamp[0]=Vec2(Max(uv.x-RTSize.x/2, ImgClamp.x), Max(uv.y-RTSize.y/2, ImgClamp.y));
-      uv_clamp[1]=Vec2(Min(uv.x+RTSize.x/2, ImgClamp.z), Min(uv.y+RTSize.y/2, ImgClamp.w));
+      uv_clamp[0]=Vec2(Max(uv.x-(SUPER ? RTSize.x : ImgSize.x/2), ImgClamp.x), Max(uv.y-(SUPER ? RTSize.y : ImgSize.y/2), ImgClamp.y));
+      uv_clamp[1]=Vec2(Min(uv.x+(SUPER ? RTSize.x : ImgSize.x/2), ImgClamp.z), Min(uv.y+(SUPER ? RTSize.y : ImgSize.y/2), ImgClamp.w));
    #endif
       UNROLL for(Int y=0; y<=1; y++)
       UNROLL for(Int x=0; x<=1; x++)
@@ -450,8 +450,8 @@ void TAA_PS(NOPERSP Vec2 uv   :UV,
    {
    #if !VIEW_FULL
       Vec2 uv_clamp[3];
-           uv_clamp[0]=Vec2(Max(uv.x-RTSize.x, ImgClamp.x), Max(uv.y-RTSize.y, ImgClamp.y)); uv_clamp[1]=uv;
-           uv_clamp[2]=Vec2(Min(uv.x+RTSize.x, ImgClamp.z), Min(uv.y+RTSize.y, ImgClamp.w));
+           uv_clamp[0]=Vec2(Max(uv.x-ImgSize.x, ImgClamp.x), Max(uv.y-ImgSize.y, ImgClamp.y)); uv_clamp[1]=uv;
+           uv_clamp[2]=Vec2(Min(uv.x+ImgSize.x, ImgClamp.z), Min(uv.y+ImgSize.y, ImgClamp.w));
    #endif
       UNROLL for(Int y=-1; y<=1; y++)
       UNROLL for(Int x=-1; x<=1; x++)
