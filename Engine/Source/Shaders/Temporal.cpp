@@ -228,7 +228,6 @@ void NearestDepth(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather)
    depth=LinearizeDepth(depth);
 }
 /******************************************************************************/
-Flt Q;
 void Temporal_PS
 (
    NOPERSP Vec2 uv:UV,
