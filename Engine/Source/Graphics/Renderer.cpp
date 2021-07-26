@@ -1067,7 +1067,7 @@ start:
    if(HasEarlyZInstances())
    {
       set(null, _ds, true);
-      tAACheck(); D.clearDS(); clear_ds=false; // already cleared so no need anymore, 'tAACheck' and 'D.clearDS' are paired to make sure 'tAACheck' is called only once
+      temporalCheck(); D.clearDS(); clear_ds=false; // already cleared so no need anymore, 'temporalCheck' and 'D.clearDS' are paired to make sure 'temporalCheck' is called only once
       D.set3D(); D.depth(true); if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthBias(BIAS_EARLY_Z); // one option is to write Z+1 values for EarlyZ using depth bias, so we can use FUNC_LESS for depth tests (better), another option is to don't use depth bias, but use FUNC_LESS_EQUAL for depth tests (potentially slower due to potential overdraw)
 
    early_z:
@@ -1088,12 +1088,12 @@ start:
          ImageRTDesc rt_desc(_col->w(), _col->h(), IMAGERT_SRGBA, _col->samples());
 
          if(D.motionMode()==MOTION_CAMERA_OBJECT && hasMotion() // motion blur
-         || hasTAA())                                           // TAA
-            if(!mirror()) // not for reflections (there motion is disabled, and TAA may be enabled so we can apply offsets, however we don't want velocity RT, also it would be set to 'taa_new_vel' which we don't want)
+         || hasTemporal())                                      // Temporal
+            if(!mirror()) // not for reflections (there motion is disabled, and Temporal may be enabled so we can apply offsets, however we don't want velocity RT, also it would be set to 'new_vel' which we don't want)
          {
-         #if TAA_OLD_VEL
-            if(!_ctx->taa_new_vel)_ctx->taa_new_vel.get(rt_desc.type(IMAGERT_TWO_H));
-           _vel=_ctx->taa_new_vel;
+         #if TEMPORAL_OLD_VEL
+            if(!_ctx->new_vel)_ctx->new_vel.get(rt_desc.type(IMAGERT_TWO_H));
+           _vel=_ctx->new_vel;
          #else
            _vel.get(rt_desc.type(IMAGERT_TWO_H));
          #endif
@@ -1129,7 +1129,7 @@ start:
             }else
             if(clear_col || clear_nrm || clear_ext || clear_vel)Sh.ClearDeferred->draw();
          }
-         if(clear_ds){tAACheck(); D.clearDS();} // 'tAACheck' and 'D.clearDS' are paired to make sure 'tAACheck' is called only once
+         if(clear_ds){temporalCheck(); D.clearDS();} // 'temporalCheck' and 'D.clearDS' are paired to make sure 'temporalCheck' is called only once
       }break;
 
       case RT_FORWARD:
@@ -1145,7 +1145,7 @@ void RendererClass::setForwardCol()
    if(_clear) // need to clear something
    {
       if(_clear&1) D.clearCol(combine ? TRANSPARENT : Color(clear_color.r, clear_color.g, clear_color.b, 0));
-      if(_clear&2){D.clearDS (); tAACheck();} // 'tAACheck' and 'D.clearDS' are paired to make sure 'tAACheck' is called only once
+      if(_clear&2){D.clearDS (); temporalCheck();} // 'temporalCheck' and 'D.clearDS' are paired to make sure 'temporalCheck' is called only once
      _clear=0; // cleared
    }
 }
@@ -1326,12 +1326,8 @@ void RendererClass::waterPreLight()
 }
 inline Shader* AmbientOcclusion::get(Int quality, Bool jitter, Bool normal)
 {
-   Shader* &s=AO[quality][jitter][normal]; if(!s)
-   {
-      if(!shader)shader=ShaderFiles("Ambient Occlusion");
-      s=shader->get(S8+"AO"+quality+jitter+normal);
-   }
-   return s;
+   Shader* &s=AO[quality][jitter][normal]; if(!s)s=ShaderFiles("Ambient Occlusion")->get(S8+"AO"+quality+jitter+normal);
+   return   s;
 }
 void RendererClass::ao()
 {
@@ -1662,9 +1658,9 @@ void RendererClass::waterUnder()
       REPS(_eye, _eye_num)WS.Under->draw(setEyeParams());
    }
 }
-void RendererClass::tAA() // !! assumes 'resolveMultiSample' was already called !!
+void RendererClass::temporal() // !! assumes 'resolveMultiSample' was already called !!
 {
-   if(_taa_use) // hasTAA()
+   if(_temporal_use) // hasTemporal()
    { /*
       Don't 'downSample' (Super-Sampling) because quality will suffer
 
@@ -1672,7 +1668,7 @@ void RendererClass::tAA() // !! assumes 'resolveMultiSample' was already called 
          old=Lerp(old, cur, 1.0/8) which is make 'old' look more like 'cur'
       So even after 100 frames, it still contains some tiny amount of data from the first frame
 
-      'D.tAADualHistory' works by using 2 color RT history, both get updated like this:
+      'D.temporalDualHistory' works by using 2 color RT history, both get updated like this:
       old =Lerp(old , cur, 1.0/8)
       old1=Lerp(old1, cur, 1.0/8)
       and weight is increased (weight+=1/8) to know how much data we have for those RT's
@@ -1680,91 +1676,92 @@ void RendererClass::tAA() // !! assumes 'resolveMultiSample' was already called 
       This way we're sure that the RT's contain only 8 last frames of data.
       */
       ImageRTDesc  rt_desc(_col->w(), _col->h(), IMAGERT_ONE);
+      ImageRTDesc  rt_desc(_col->w(), _col->h(), IMAGERT_ONE); if(D.temporalSuperRes())rt_desc.size*=2;
       Bool         alpha=processAlphaFinal(),
-            merged_alpha=(!TAA_SEPARATE_ALPHA && alpha),
-          separate_alpha=( TAA_SEPARATE_ALPHA && alpha),
-                    dual=false;//(!alpha && D.tAADualHistory()); // dual incompatible with alpha #TAADual
+            merged_alpha=(!TEMPORAL_SEPARATE_ALPHA && alpha),
+          separate_alpha=( TEMPORAL_SEPARATE_ALPHA && alpha),
+                    dual=false;//(!alpha && D.temporalDualHistory()); // dual incompatible with alpha #TemporalDual
       IMAGERT_TYPE col_type=GetImageRTType(D.glowAllow(), D.litColRTPrecision()); // #RTOutput
-      if(!_ctx->taa_new_data) // doesn't have new RT's yet
+      if(!_ctx->new_data) // doesn't have new RT's yet
       {
          IMAGERT_TYPE data_type=(merged_alpha ? IMAGERT_RGB : IMAGERT_TWO); // merged_alpha ? (X=alpha, Y=weight, Z=flicker) : (X=weight, Y=flicker); !! STORE ALPHA IN X SO IT CAN BE USED FOR '_alpha' RT !!
-         if(!_ctx->taa_old_data) // doesn't have a previous frame yet
+         if(!_ctx->old_data) // doesn't have a previous frame yet
          {
-           _ctx->taa_old_data.get(rt_desc.type(data_type))->clearViewport();
-           _ctx->taa_old_col .get(rt_desc.type( col_type))->clearViewport(); if(dual)_ctx->taa_old_col1.get(rt_desc)->clearViewport(); // !! HERE 'col1' REUSES 'rt_desc.type' !!
+           _ctx->old_data.get(rt_desc.type(data_type))->clearViewport();
+           _ctx->old_col .get(rt_desc.type( col_type))->clearViewport(); if(dual)_ctx->old_col1.get(rt_desc)->clearViewport(); // !! HERE 'col1' REUSES 'rt_desc.type' !!
          }else
-         if((_ctx->taa_old_data->typeChannels()>=3)!=merged_alpha) // format doesn't match
+         if((_ctx->old_data->typeChannels()>=3)!=merged_alpha) // format doesn't match
          {
-           _ctx->taa_old_data.get(rt_desc.type(data_type))->clearViewport();
+           _ctx->old_data.get(rt_desc.type(data_type))->clearViewport();
          }else
-         if(_taa_reset) // want to reset
+         if(_temporal_reset) // want to reset
          {
-           _ctx->taa_old_data->clearViewport(); // here clear only for current viewport
+           _ctx->old_data->clearViewport(); // here clear only for current viewport
          }
-        _ctx->taa_new_data.get(rt_desc.type(data_type));
-        _ctx->taa_new_col .get(rt_desc.type( col_type)); if(dual)_ctx->taa_new_col1.get(rt_desc); // !! HERE 'col1' REUSES 'rt_desc.type' !!
+        _ctx->new_data.get(rt_desc.type(data_type));
+        _ctx->new_col .get(rt_desc.type( col_type)); if(dual)_ctx->new_col1.get(rt_desc); // !! HERE 'col1' REUSES 'rt_desc.type' !!
       }else
-      if(_taa_reset)
+      if(_temporal_reset)
       {
-        _ctx->taa_old_data->clearViewport(); // here clear only for current viewport
+        _ctx->old_data->clearViewport(); // here clear only for current viewport
       }
       if(separate_alpha)
       {
-         if(!_ctx->taa_new_alpha) // doesn't have new RT's yet
+         if(!_ctx->new_alpha) // doesn't have new RT's yet
          {
-            if(!_ctx->taa_old_alpha) // doesn't have a previous frame yet
+            if(!_ctx->old_alpha) // doesn't have a previous frame yet
             {
-              _ctx->taa_old_alpha.get(rt_desc.type(IMAGERT_ONE))->clearViewport();
+              _ctx->old_alpha.get(rt_desc.type(IMAGERT_ONE))->clearViewport();
             }else
-            if(_taa_reset) // want to reset
+            if(_temporal_reset) // want to reset
             {
-              _ctx->taa_old_alpha->clearViewport(); // here clear only for current viewport
+              _ctx->old_alpha->clearViewport(); // here clear only for current viewport
             }
-           _ctx->taa_new_alpha.get(rt_desc.type(IMAGERT_ONE));
+           _ctx->new_alpha.get(rt_desc.type(IMAGERT_ONE));
          }else
-         if(_taa_reset)
+         if(_temporal_reset)
          {
-           _ctx->taa_old_alpha->clearViewport(); // here clear only for current viewport
+           _ctx->old_alpha->clearViewport(); // here clear only for current viewport
          }
       }
-      set(_ctx->taa_new_data, _ctx->taa_new_alpha, _ctx->taa_new_col, null, null, true); // #TAADual
+      set(_ctx->new_data, _ctx->new_alpha, _ctx->new_col, null, null, true); // #TemporalDual
       D.alpha(ALPHA_NONE);
 
       if(merged_alpha)
       {
-         Sh.Img  [3]->set(_ctx->taa_old_data ); // old data with alpha
+         Sh.Img  [3]->set(_ctx->old_data ); // old data with alpha
       }else
       {
-         Sh.ImgXY[2]->set(_ctx->taa_old_data ); // old data
-         Sh.ImgX [1]->set(_ctx->taa_old_alpha); // old alpha
+         Sh.ImgXY[2]->set(_ctx->old_data ); // old data
+         Sh.ImgX [1]->set(_ctx->old_alpha); // old alpha
       }
-         Sh.Img  [0]->set(_col               ); // cur
-         Sh.ImgX [0]->set(_alpha             ); // cur alpha
-         Sh.Img  [1]->set(_ctx->taa_old_col  ); // old
-         Sh.Img  [2]->set(_ctx->taa_old_col1 ); // old1
-         Sh.ImgXY[0]->set(_vel               ); // velocity
-      #if TAA_OLD_VEL
-         Sh.ImgXY[1]->set(_ctx->taa_old_vel  ); // old velocity
+         Sh.Img  [0]->set(_col           ); // cur
+         Sh.ImgX [0]->set(_alpha         ); // cur alpha
+         Sh.Img  [1]->set(_ctx->old_col  ); // old
+         Sh.Img  [2]->set(_ctx->old_col1 ); // old1
+         Sh.ImgXY[0]->set(_vel           ); // velocity
+      #if TEMPORAL_OLD_VEL
+         Sh.ImgXY[1]->set(_ctx->old_vel  ); // old velocity
       #endif
 
-      Sh.imgSize(*_col); // this is needed for Cubic Sampler
-      Shader *shader=Sh.TAA[D._view_main.full][alpha]; // #TAADual
+      Sh.imgSize(*_col); // this is needed for Cubic Sampler and SUPER
+      Shader *shader=Sh.Temporal[D.temporalSuperRes()][D._view_main.full][alpha]; // #TemporalDual
       REPS(_eye, _eye_num)
       {
          Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), rt_desc.size));
          shader->draw(_stereo ? &D._view_eye_rect[_eye] : null);
       }
-     _col=_ctx->taa_new_col;
-      if(alpha)_alpha=(TAA_SEPARATE_ALPHA ? _ctx->taa_new_alpha : _ctx->taa_new_data); // !! Warning: for TAA_SEPARATE_ALPHA=0 '_alpha' may point to multi-channel "Alpha, Weight, Flicker", this assumes that '_alpha' will not be further modified, we can't do the same for '_col' because we may modify it !!
+     _col=_ctx->new_col;
+      if(alpha)_alpha=(TEMPORAL_SEPARATE_ALPHA ? _ctx->new_alpha : _ctx->new_data); // !! Warning: for TEMPORAL_SEPARATE_ALPHA=0 '_alpha' may point to multi-channel "Alpha, Weight, Flicker", this assumes that '_alpha' will not be further modified, we can't do the same for '_col' because we may modify it !!
 
-      tAAFinish();
+      temporalFinish();
    }
 }
-void RendererClass::tAAFinish()
+void RendererClass::temporalFinish()
 {
-   if(_taa_use) // hasTAA()
+   if(_temporal_use) // hasTemporal()
    {
-     _taa_use=false; D._view_active.setShader(); SetProjMatrix();
+     _temporal_use=false; D._view_active.setShader(); SetProjMatrix();
    }
 }
 void RendererClass::edgeDetect()
@@ -1936,7 +1933,7 @@ void RendererClass::applyOutline()
       D.sampler2D ();
       D.depthOnWriteFunc(false, true, FUNC_DEFAULT); // restore default
 
-      resolveMultiSample(); // don't do 'downSample' here because 'edgeSoften' and 'tAA' will be called later and they require to operate on full-sampled data
+      resolveMultiSample(); // don't do 'downSample' here because 'edgeSoften' and 'temporal' will be called later and they require to operate on full-sampled data
       ImageRT *ds=_ds_1s; // we've resolved multi-sample so have to use 1-sample
 
       if(!Sh.Outline)
@@ -2074,13 +2071,13 @@ void RendererClass::volumetric()
      _vol.clear();
    }
 }
-static Bool ColConst() {return Renderer._col==Renderer._ctx->taa_new_col;} // if '_col' points to 'taa_new_col' then we can't modify it
+static Bool ColConst() {return Renderer._col==Renderer._ctx->new_col;} // if '_col' points to 'new_col' then we can't modify it
 void RendererClass::postProcess()
 {
    // !! WARNING: EFFECTS SHOULD NEVER MODIFY '_col' IF 'ColConst' !!
-   // !! WARNING: TAA might output '_col' that points to 'taa_new_col', in that case it can't be modified because it's needed for the next frame !!
+   // !! WARNING: 'temporal' might output '_col' that points to 'new_col', in that case it can't be modified because it's needed for the next frame !!
    // !! so if any effect wants to modify '_col' instead of drawing to another RT, it first must check it for 'ColConst' !!
-   Bool taa      =_taa_use            , // hasTAA()
+   Bool temporal =_temporal_use       , // hasTemporal()
         alpha    = processAlphaFinal(), // this is always enabled for 'slowCombine'
         eye_adapt= hasEyeAdapt      (),
         motion   = hasMotion        (),
@@ -2090,11 +2087,11 @@ void RendererClass::postProcess()
         upscale  =(_final->w()>_col->w() || _final->h()>_col->h()), // we're going to upscale at the end
         alpha_set=fastCombine(); // if alpha channel is set properly in the RT, skip this if we're doing 'fastCombine' because we're rendering to existing RT which has its Alpha already set
 
-   if(taa || alpha || eye_adapt || motion || bloom || dof || _get_target)resolveMultiSample(); // we need to resolve the MS Image so it's 1-sample for effects
+   if(temporal || alpha || eye_adapt || motion || bloom || dof || _get_target)resolveMultiSample(); // we need to resolve the MS Image so it's 1-sample for effects
    if(alpha){if(!_alpha)setAlphaFromDepthAndCol();} // create '_alpha' if not yet available
    else          _alpha.clear(); // make sure to clear if we don't use it
 
-   tAA(); // !! AFTER TAA we must be checking for 'ColConst' !!
+   T.temporal(); // !! AFTER 'temporal' we must be checking for 'ColConst' !!
 
    ImageRTDesc rt_desc(_col->w(), _col->h(), IMAGERT_SRGBA/*this is changed later*/); MIN(rt_desc.size.x, _final->w()); MIN(rt_desc.size.y, _final->h()); // don't do post-process at higher res than needed
    ImageRTPtr  dest, bloom_glow;
@@ -2135,8 +2132,8 @@ void RendererClass::postProcess()
       if(T.motionBlur(*_col, *dest, bloom_glow, alpha, combine))return; Swap(_col, dest); alpha_set=true; // Motion Blur sets Alpha
      _alpha.clear(); // got merged so clear it
    }
-   if(stage==RS_VEL && show(_vel, false, D.signedVelRT()))return; // velocity could've been used for MotionBlur or TAA, check it after 'motionBlur' because it might generate it for MOTION_CAMERA
-  _vel.clear(); // velocity could've been used for MotionBlur or TAA, but after this stage we no longer need it
+   if(stage==RS_VEL && show(_vel, false, D.signedVelRT()))return; // velocity could've been used for MotionBlur or Temporal, check it after 'motionBlur' because it might generate it for MOTION_CAMERA
+  _vel.clear(); // velocity could've been used for MotionBlur or Temporal, but after this stage we no longer need it
 
    if(bloom) // bloom needs to be done before dof because of per-pixel glow
    {
@@ -2307,13 +2304,13 @@ void RenderIcon(void (&render)(), C ViewSettings *view, ImageRTC &image, C VecI2
 
          SyncLocker lock(D._lock);
 
-         auto    density=D.densityFast   (); D.densityFast1();
-         auto    amb_res=D.ambientResFast(); D.ambientResFast1();
-         auto max_lights=D.maxLights     (); D.maxLights(0);
-         auto  eye_adapt=D.eyeAdaptation (); D.eyeAdaptation(false);
-         auto lod_factor=D.lodFactor     (); D.lodFactor(0);
-         auto     motion=D.motionMode    (); D.motionMode(MOTION_NONE);
-         auto  allow_taa=Renderer.allow_taa; Renderer.allow_taa=false;
+         auto        density=D.densityFast        (); D.densityFast1();
+         auto        amb_res=D.ambientResFast     (); D.ambientResFast1();
+         auto     max_lights=D.maxLights          (); D.maxLights(0);
+         auto      eye_adapt=D.eyeAdaptation      (); D.eyeAdaptation(false);
+         auto     lod_factor=D.lodFactor          (); D.lodFactor(0);
+         auto         motion=D.motionMode         (); D.motionMode(MOTION_NONE);
+         auto allow_temporal=Renderer.allow_temporal; Renderer.allow_temporal=false;
 
          DisplayClass::ViewportSettings cur_view; cur_view.get();
        //Bool                           view_force_square=D._view_square_pixel; D.viewForceSquarePixel(true); not needed because FOV_XY is used
@@ -2327,7 +2324,7 @@ void RenderIcon(void (&render)(), C ViewSettings *view, ImageRTC &image, C VecI2
          Renderer.target=null;
 
          D.motionMode(motion).maxLights(max_lights).eyeAdaptation(eye_adapt).lodFactor(lod_factor); D.densityFast(density); D.ambientResFast(amb_res);
-         Renderer.allow_taa=allow_taa;
+         Renderer.allow_temporal=allow_temporal;
 
          if(shift)
          {
