@@ -57,9 +57,7 @@ ALPHA=1
 #define SEPARATE_ALPHA ( TEMPORAL_SEPARATE_ALPHA && ALPHA)
 #define   MERGED_ALPHA (!TEMPORAL_SEPARATE_ALPHA && ALPHA)
 
-#define CYCLE 8
-#define CUR_WEIGHT   (1.0/ CYCLE)
-#define FLICKER_STEP (1.0/(CYCLE*2-2))
+#define OLD_WEIGHT (1-1.0/8)
 
 #define FLICKER_WEIGHT 0 // if flicker should be affected by weight (disable because if enabled then a lot of pixels at the screen edge get marked as flickering when rotating the camera)
 #define FLICKER_EPS    0.2 // this is value for color distance ~0..1 in sRGB gamma (lower numbers increase detection of flicker, higher numbers decrease detection of flicker), 0.2 was the smallest value that didn't cause noticable artifacts/blurriness on a particle fire effect
@@ -174,7 +172,7 @@ Half GetBlend(VecH old, VecH cur, VecH min, VecH max) // 'cur' should be somewhe
     inv_dir=((dir!=0) ? rcp(dir) : HALF_MAX), // NaN, this is a per-component operation
    min_step=(min-old)*inv_dir, // how much travel needed to reach 'min' boundary
    max_step=(max-old)*inv_dir; // how much travel needed to reach 'max' boundary
-   return Max(Min(min_step, max_step)); // don't 'Sat' to allow reporting high >1 differences (Warning: <0 can also be reported)
+   return Max(Min(min_step, max_step));
 }
 Half GetBlend(VecH4 old, VecH4 cur, VecH4 min, VecH4 max) // 'cur' should be somewhere within 'min', 'max' (however due to cubic filtering it can be outside)
 {
@@ -182,7 +180,7 @@ Half GetBlend(VecH4 old, VecH4 cur, VecH4 min, VecH4 max) // 'cur' should be som
      inv_dir=((dir!=0) ? rcp(dir) : HALF_MAX), // NaN, this is a per-component operation
     min_step=(min-old)*inv_dir, // how much travel needed to reach 'min' boundary
     max_step=(max-old)*inv_dir; // how much travel needed to reach 'max' boundary
-   return Max(Min(min_step, max_step)); // don't 'Sat' to allow reporting high >1 differences (Warning: <0 can also be reported)
+   return Max(Min(min_step, max_step));
 }
 /******************************************************************************/
 void TestVel(VecH2 vel, VecH2 test_vel, inout Half max_delta_vel_len2)
@@ -481,7 +479,7 @@ void Temporal_PS
    #endif
 #endif
 
-   // when there are pixels moving in different directions fast, then restart Temporal
+   // when there are pixels moving in different directions fast, then reduce old weight
    Half max_delta_vel_len=Sqrt(max_delta_vel_len2),
         blend_move=Sat(1-max_delta_vel_len/VEL_EPS);
 #if DUAL_HISTORY
@@ -509,68 +507,52 @@ void Temporal_PS
       // calculate difference between 'old' and 'cur'
       Half difference=Dist(LinearToSRGBFast(old.rgb), LinearToSRGBFast(cur.rgb)); // it's better to use 'Dist' rather than 'Dist2', because it will prevent smooth changes from particles (like fire effect) being reported as flickering (if fire is reported as flickering then it will look very blurry)
            difference=Sat(difference/FLICKER_EPS);
-
-    /*{ no because results are too sharp
-         new_flicker=old_flicker + Lerp(-CUR_WEIGHT, CUR_WEIGHT, difference);
-         Half flicker=                                    new_flicker  ; // too sharp
-         Half flicker=Sat(LerpR(CUR_WEIGHT,            1, new_flicker)); // too sharp!
-         Half flicker=Sat(LerpR(CUR_WEIGHT, CUR_WEIGHT*2, new_flicker)); // too sharp!!
-      }
-      {
-         new_flicker=old_flicker + Lerp(-FLICKER_STEP, 0.5, difference);
-         Half flicker=                                 new_flicker  ; // too sharp
-         Half flicker=Sat(LerpR(0.5, 1               , new_flicker)); // too sharp!
-         Half flicker=Sat(LerpR(0.5, 0.5+FLICKER_STEP, new_flicker)); // too sharp!!
-      }*/
    #if FLICKER_WEIGHT
-      new_flicker=old_flicker*old_weight_1 + difference*cur_weight_1; // always 0..1
+      new_flicker=old_flicker*old_weight + difference*cur_weight; // always 0..1
    #else
-      new_flicker=Lerp(old_flicker, difference, CUR_WEIGHT); // always 0..1
+      new_flicker=Lerp(difference, old_flicker, OLD_WEIGHT); // always 0..1
    #endif
 
-    //Half     flicker=Sat(LerpR(CUR_WEIGHT, 1, new_flicker)); // cut-off small differences
+    //Half     flicker=Sat(LerpR(1-OLD_WEIGHT, 1, new_flicker)); // cut-off small differences
       Half     flicker=new_flicker; // faster
       Half not_flicker=1-Sqr(flicker); // use Sqr to consider only big flickering
 
-      blend*=not_flicker;
+      blend*=not_flicker; // reduce Lerp to 'cur' for flickering pixels
    }else
    {
       new_flicker=0; // always disable flickering for sky because on cam zoom in/out the sky motion vectors don't change, and it could retain some flicker from another object that wouldn't get cleared
    }
 
-   blend=Sat(blend); // this needs to affect 'old_weight_1' and not ('old_weight' and 'new_weight') because that would increase flickering and in some tests it caused jittered ghosting (some pixels will look brighter and some look darker, depending on the color difference between old and new)
+   old_weight*=1-blend;
 
 #if !DUAL_HISTORY
-   Half old_weight_1; // old_weight_1+cur_weight_1=1
 #if SUPER
    VecI2 pix=pixel.xy; pix&=1;
-   if(all(pix==TemporalCurPixel))
+   if(all(pix==TemporalCurPixel)) // this pixel has latest data
    {
-      if(ANTI_ALIAS)
+      if(ANTI_ALIAS) // for anti-alias
       {
-         Half new_weight=old_weight+CUR_WEIGHT;
-         old_weight_1=(old_weight/new_weight)*(1-blend);
+         old_weight*=OLD_WEIGHT; // smoothly blend with new
       }else
       {
-         old_weight_1=0;
+         old_weight=0; // completely ignore old
       }
    }else
    {
-      old_weight_1=old_weight*(1-blend);
+      // try to keep old
    }
 #else
-   Half new_weight=old_weight+CUR_WEIGHT;
-   old_weight_1=(old_weight/new_weight)*(1-blend);
+   old_weight*=OLD_WEIGHT; // smoothly blend with new
 #endif
-   Half cur_weight_1=1-old_weight_1;
+   Half cur_weight=1-old_weight; // old_weight+cur_weight=1
 
    #if YCOCG && 0
-              outCol=VecH4(YCoCg4ToRGB(ycocg_old*old_weight_1 + ycocg_cur*cur_weight_1), old.a*old_weight_1 + cur.a*cur_weight_1);
+              outCol=VecH4(YCoCg4ToRGB(ycocg_old*old_weight + ycocg_cur*cur_weight), old.a*old_weight + cur.a*cur_weight);
    #else
-              outCol=old      *old_weight_1 + cur      *cur_weight_1;
+              outCol=old      *old_weight + cur      *cur_weight;
    #endif
    #if ALPHA
-      Half new_alpha=old_alpha*old_weight_1 + cur_alpha*cur_weight_1;
+      Half new_alpha=old_alpha*old_weight + cur_alpha*cur_weight;
    #endif
    #if MERGED_ALPHA
       outData.x=new_alpha; // !! STORE ALPHA IN X CHANNEL SO IT CAN BE USED FOR '_alpha' RT !!
