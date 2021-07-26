@@ -343,9 +343,7 @@ void Temporal_PS
    VecH4 cur;
 
    // CUR COLOR + CUR ALPHA
-#if SUPER // this works well for both ANTI_ALIAS 1 and 0
-   Half cur_alpha=TexPoint(ImgX, cur_tex);
-#elif CUBIC
+#if CUBIC
    cs.set(cur_tex, ImgSize); if(!VIEW_FULL)cs.UVClamp(ImgClamp.xy, ImgClamp.zw);
    #if ALPHA
       Half cur_alpha=Sat(cs.texX(ImgX)); // use Sat because of cubic sharpening potentially giving negative values
@@ -408,9 +406,7 @@ void Temporal_PS
    }*/
    cur=Max(VecH4(0,0,0,0), cur); // use Max(0) because of cubic sharpening potentially giving negative values
 #else // this version uses 5 tex reads for CUBIC and 8 (or 9 if FILTER_MIN_MAX unavailable) tex reads for MIN MAX (13 total)
-   #if SUPER // this works well for both ANTI_ALIAS 1 and 0 (in SUPER mode the src image is lower resolution so using linear/cubic sampler returns 2x bigger range blurs, and cubic has too visible sharpening)
-      cur=TexPoint(Img, cur_tex);
-   #elif CUBIC
+   #if CUBIC
       cur=Max(VecH4(0,0,0,0), cs.tex(Img)); // use Max(0) because of cubic sharpening potentially giving negative values
    #else
       cur=TexLod(Img, cur_tex);
