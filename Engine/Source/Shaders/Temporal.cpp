@@ -321,8 +321,8 @@ void Temporal_PS
       TestVel(vel, TexPointOfs(ImgXY, uv, VecI2(x, y)).xy, max_delta_vel_len2);*/
 
    // OLD COLOR
-      CubicFastSampler cs;
-      VecH4 old, old1;
+   CubicFastSampler cs;
+   VecH4 old, old1;
 #if CUBIC
       cs.set(old_tex, RTSize); if(!VIEW_FULL)cs.UVClamp(ImgClamp.xy, ImgClamp.zw); // here do clamping because for CUBIC we check many samples around texcoord
       old =Max(VecH4(0,0,0,0), cs.tex(Img1)); // use Max(0) because of cubic sharpening potentially giving negative values
@@ -410,7 +410,7 @@ void Temporal_PS
    }*/
    cur=Max(VecH4(0,0,0,0), cur); // use Max(0) because of cubic sharpening potentially giving negative values
 #else // this version uses 5 tex reads for CUBIC and 8 (or 9 if FILTER_MIN_MAX unavailable) tex reads for MIN MAX (13 total)
-   #if SUPER // this works well for both ANTI_ALIAS 1 and 0
+   #if SUPER // this works well for both ANTI_ALIAS 1 and 0 (in SUPER mode the src image is lower resolution so using linear/cubic sampler returns 2x bigger range blurs, and cubic has too visible sharpening)
       cur=TexPoint(Img, cur_tex);
    #elif CUBIC
       cur=Max(VecH4(0,0,0,0), cs.tex(Img)); // use Max(0) because of cubic sharpening potentially giving negative values
