@@ -236,8 +236,10 @@ void NearestDepth(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather)
 /******************************************************************************/
 void Temporal_PS
 (
-   NOPERSP Vec2 uv   :UV,
- //NOPERSP Vec2 posXY:POS_XY,
+   NOPERSP Vec2 uv:UV,
+#if SUPER
+   NOPERSP PIXEL,
+#endif
     #if MERGED_ALPHA
        out VecH  outData  :TARGET0,
     #else
