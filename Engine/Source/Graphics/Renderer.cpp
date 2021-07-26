@@ -22,7 +22,7 @@ static inline Bool NeedBackgroundExt() {return (!Sky.isActual() && D.envMap()) |
 /******************************************************************************/
 static const  Byte  TemporalSuperResIndex[]={0, 3, 1, 2};
 static inline VecI2 TemporalSuperResIndexToOfsI(Byte i) {return VecI2(i&1, i>>1);}
-static inline Vec2  TemporalSuperResIndexToOfs (Byte i) {return Vec2 ((i&1)-0.5f, (i>>1)-0.5f);}
+static inline Vec2  TemporalSuperResIndexToOfs (Byte i) {return Vec2 (-(i&1)+0.5f, (i>>1)-0.5f);}
 static const  Vec2  TemporalSuperResOffsets[]=
 {
    TemporalSuperResIndexToOfs(TemporalSuperResIndex[0]),
