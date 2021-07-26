@@ -499,6 +499,7 @@ void Temporal_PS
 #else
    Half blend=GetBlend(old.rgb, cur.rgb, col_min.rgb, col_max.rgb);
 #endif
+   blend=Sat(blend);
 
    // update flicker
    Half new_flicker;
