@@ -1081,7 +1081,6 @@ start:
 
    // now 'col' and 'ds' are known, including their sizes
 
-   // FIXME should this check for temporalAntiAlias? what about frame index?
    Sh.NoiseOffset->set(hasTemporal() ? NoiseOffsets[Time.frame()%Elms(NoiseOffsets)] : VecI2Zero); // use a set of predefined repeating offsets, because using always random generates too much flickering
    
    D.alpha(ALPHA_NONE);
