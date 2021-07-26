@@ -1081,6 +1081,7 @@ start:
 
    // now 'col' and 'ds' are known, including their sizes
 
+   // FIXME should this check for temporalAntiAlias? what about frame index?
    Sh.NoiseOffset->set(hasTemporal() ? NoiseOffsets[Time.frame()%Elms(NoiseOffsets)] : VecI2Zero); // use a set of predefined repeating offsets, because using always random generates too much flickering
    
    D.alpha(ALPHA_NONE);
@@ -1772,7 +1773,7 @@ void RendererClass::temporal() // !! assumes 'resolveMultiSample' was already ca
       #endif
 
       Sh.imgSize(*_col); // this is needed for Cubic Sampler and SUPER
-      Shader *shader=Sh.Temporal[D.temporalSuperRes()][D._view_main.full][alpha]; // #TemporalDual
+      Shader *shader=Sh.Temporal[D.temporalAntiAlias()+2*D.temporalSuperRes()-1][D._view_main.full][alpha]; // #TemporalDual
       REPS(_eye, _eye_num)
       {
          Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), rt_desc.size));

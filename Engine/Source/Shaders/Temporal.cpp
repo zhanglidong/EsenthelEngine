@@ -2,7 +2,7 @@
 #include "!Header.h"
 #include "Temporal.h"
 /******************************************************************************
-SUPER, VIEW_FULL, ALPHA, DUAL_HISTORY, GATHER, FILTER_MIN_MAX
+MODE, VIEW_FULL, ALPHA, DUAL_HISTORY, GATHER, FILTER_MIN_MAX
 
 ImgSize=src
  RTSize=dest (is 2x bigger for SUPER)
@@ -54,6 +54,9 @@ ALPHA=1
       old=cur;
    }
 /******************************************************************************/
+#define ANTI_ALIAS (((MODE+1)&1)!=0)
+#define SUPER      (((MODE+1)&2)!=0)
+
 #define SEPARATE_ALPHA ( TEMPORAL_SEPARATE_ALPHA && ALPHA)
 #define   MERGED_ALPHA (!TEMPORAL_SEPARATE_ALPHA && ALPHA)
 
@@ -342,7 +345,9 @@ void Temporal_PS
    VecH4 cur;
 
    // CUR COLOR + CUR ALPHA
-#if CUBIC
+#if SUPER // this works well for both ANTI_ALIAS 1 and 0
+   Half cur_alpha=TexPoint(ImgX, cur_tex);
+#elif CUBIC
    cs.set(cur_tex, ImgSize); if(!VIEW_FULL)cs.UVClamp(ImgClamp.xy, ImgClamp.zw);
    #if ALPHA
       Half cur_alpha=Sat(cs.texX(ImgX)); // use Sat because of cubic sharpening potentially giving negative values
@@ -405,7 +410,9 @@ void Temporal_PS
    }*/
    cur=Max(VecH4(0,0,0,0), cur); // use Max(0) because of cubic sharpening potentially giving negative values
 #else // this version uses 5 tex reads for CUBIC and 8 (or 9 if FILTER_MIN_MAX unavailable) tex reads for MIN MAX (13 total)
-   #if CUBIC
+   #if SUPER // this works well for both ANTI_ALIAS 1 and 0
+      cur=TexPoint(Img, cur_tex);
+   #elif CUBIC
       cur=Max(VecH4(0,0,0,0), cs.tex(Img)); // use Max(0) because of cubic sharpening potentially giving negative values
    #else
       cur=TexLod(Img, cur_tex);

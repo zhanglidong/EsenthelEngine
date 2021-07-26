@@ -2749,10 +2749,10 @@ static void LoadTemporal()
    if(!Sh.TemporalOffset && D.temporal() && D.created())
    {
       ShaderFile &sf=*ShaderFiles("Temporal");
-      REPD(Super    , 2)
+      REPD(mode     , 3)
       REPD(view_full, 2)
       REPD(alpha    , 2)
-         Sh.Temporal[Super][view_full][alpha]=sf.get(S+"Temporal"+Super+view_full+alpha+D.gatherChannelAvailable()+D.filterMinMaxAvailable());
+         Sh.Temporal[mode][view_full][alpha]=sf.get(S+"Temporal"+mode+view_full+alpha+D.gatherChannelAvailable()+D.filterMinMaxAvailable());
 
       Sh.TemporalOffset           =GetShaderParam   ("TemporalOffset");
       Sh.TemporalOffsetCurToPrev  =GetShaderParam   ("TemporalOffsetCurToPrev");

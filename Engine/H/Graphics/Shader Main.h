@@ -280,7 +280,7 @@ struct MainShaderClass
       *SMAAEdge[2], // [Gamma]
       *SMAABlend  ,
       *SMAA       ,
-      *Temporal[2][2][2], // [Super][ViewFull][Alpha]
+      *Temporal[3][2][2], // [Mode][ViewFull][Alpha]
 
       // PARTICLE
       *Bilb                ,

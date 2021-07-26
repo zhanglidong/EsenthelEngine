@@ -630,13 +630,13 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 #ifdef TEMPORAL
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Temporal", model, api, flag).New(src_path+"Temporal.cpp");
-      REPD(Super         , 2)
+      REPD(mode          , 3)
       REPD(view_full     , 2)
       REPD(alpha         , 2)
     //REPD(dual          , 2) // #TemporalDual
       REPD(gather        , 2)
       REPD(filter_min_max, 2)
-         src.New("Temporal", "DrawUV_VS", "Temporal_PS")("SUPER", Super, "VIEW_FULL", view_full, "ALPHA", alpha, /*"DUAL_HISTORY", dual,*/ "GATHER", gather)("FILTER_MIN_MAX", filter_min_max).gatherChannel(gather);
+         src.New("Temporal", "DrawUV_VS", "Temporal_PS")("MODE", mode, "VIEW_FULL", view_full, "ALPHA", alpha, /*"DUAL_HISTORY", dual,*/ "GATHER", gather)("FILTER_MIN_MAX", filter_min_max).gatherChannel(gather);
 }
 #endif
 
