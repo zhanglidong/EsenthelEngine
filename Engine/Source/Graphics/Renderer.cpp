@@ -1709,11 +1709,13 @@ void RendererClass::temporal() // !! assumes 'resolveMultiSample' was already ca
       and weight is increased (weight+=1/8) to know how much data we have for those RT's
       once both RT's get full, then we can completely discard 'old', treat it as empty, and use data from 'old1' (this actually works by moving 'old1' into 'old': "old=old1" and treating 'old1' as empty, by settings its weight=0)
       This way we're sure that the RT's contain only 8 last frames of data.
+
+      FIXME: TODO: Warning: there might be an issue if using the same context, and rendering to multiple viewports, and then suddenly changing 'processAlphaFinal' in some of them
       */
-      ImageRTDesc  rt_desc(_col->w(), _col->h(), IMAGERT_ONE); if(D.temporalSuperRes())rt_desc.size*=2;
-      Bool         alpha=processAlphaFinal(),
-            merged_alpha=(!TEMPORAL_SEPARATE_ALPHA && alpha),
-          separate_alpha=( TEMPORAL_SEPARATE_ALPHA && alpha);
+      ImageRTDesc rt_desc(_col->w(), _col->h(), IMAGERT_ONE); if(D.temporalSuperRes())rt_desc.size*=2;
+      Bool        alpha=processAlphaFinal(),
+           merged_alpha=(!TEMPORAL_SEPARATE_ALPHA && alpha),
+         separate_alpha=( TEMPORAL_SEPARATE_ALPHA && alpha);
       if(!_ctx->new_data) // doesn't have new RT's yet
       {
         _ctx->new_data.get(rt_desc.type(merged_alpha ? IMAGERT_TWO : IMAGERT_ONE)); // merged_alpha ? (X=alpha, Y=flicker) : (X=flicker); !! STORE ALPHA IN X SO IT CAN BE USED FOR '_alpha' RT !!
