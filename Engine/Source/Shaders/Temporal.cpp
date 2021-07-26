@@ -552,14 +552,30 @@ void Temporal_PS
       new_flicker=0; // always disable flickering for sky because on cam zoom in/out the sky motion vectors don't change, and it could retain some flicker from another object that wouldn't get cleared
    }
 
-   blend=Sat(blend);
+   blend=Sat(blend); // this needs to affect 'old_weight_1' and not ('old_weight' and 'new_weight') because that would increase flickering and in some tests it caused jittered ghosting (some pixels will look brighter and some look darker, depending on the color difference between old and new)
 
 #if !DUAL_HISTORY
    Half cur_weight=CUR_WEIGHT, new_weight=old_weight+cur_weight,
-        old_weight_1=old_weight/new_weight; // old_weight_1+cur_weight_1=1
-
-   // this needs to modify 'old_weight_1' and not ('old_weight' and 'new_weight') because that would increase flickering and in some tests it caused jittered ghosting (some pixels will look brighter and some look darker, depending on the color difference between old and new)
-   old_weight_1*=1-blend;
+        old_weight_1; // old_weight_1+cur_weight_1=1
+#if SUPER
+   VecI2 pix=pixel.xy; pix&=1;
+   if(all(pix==TemporalCurPixel))
+   {
+      if(ANTI_ALIAS)
+      {
+         old_weight_1=(old_weight/new_weight)*(1-blend);
+      }else
+      {
+         old_weight_1=0;
+         new_weight  =1;
+      }
+   }else
+   {
+      old_weight_1=old_weight*(1-blend);
+   }
+#else
+   old_weight_1=(old_weight/new_weight)*(1-blend);
+#endif
    Half cur_weight_1=1-old_weight_1;
 
    #if YCOCG && 0
