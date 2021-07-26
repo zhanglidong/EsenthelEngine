@@ -20,10 +20,21 @@ namespace EE{
 static inline Bool NeedBackgroundNrm() {return (!Sky.isActual() && D.envMap()) || D.aoWant() && D.ambientNormal() || Renderer.stage==RS_NORMAL;}
 static inline Bool NeedBackgroundExt() {return (!Sky.isActual() && D.envMap()) || Renderer.stage==RS_SMOOTH || Renderer.stage==RS_REFLECT || Renderer.stage==RS_LIT_COLOR;}
 /******************************************************************************/
-static const Vec2 TemporalOffsets[]=
+static const  Byte  TemporalSuperResIndex[]={0, 3, 1, 2};
+static inline VecI2 TemporalSuperResIndexToOfsI(Byte i) {return VecI2(i&1, i>>1);}
+static inline Vec2  TemporalSuperResIndexToOfs (Byte i) {return Vec2 ((i&1)-0.5f, (i>>1)-0.5f);}
+static const  Vec2  TemporalSuperResOffsets[]=
+{
+   TemporalSuperResIndexToOfs(TemporalSuperResIndex[0]),
+   TemporalSuperResIndexToOfs(TemporalSuperResIndex[1]),
+   TemporalSuperResIndexToOfs(TemporalSuperResIndex[2]),
+   TemporalSuperResIndexToOfs(TemporalSuperResIndex[3])
+};
+/******************************************************************************/
+static const Vec2 TemporalAntiAliasOffsets[]=
 {
 #if 1 // 8 samples (good enough quality and smaller flickering)
-   #if 1 // Halton (smaller flickering), REPAO(TemporalOffsets).set(Halton(i+1, 2)*2-1, Halton(i+1, 3)*2-1)
+   #if 1 // Halton (smaller flickering), REPAO(TemporalAntiAliasOffsets).set(Halton(i+1, 2)*2-1, Halton(i+1, 3)*2-1)
       #define TEMPORAL_MUL 1.1f // this makes AA more smooth
       { 0.000f*TEMPORAL_MUL, -0.333333313f*TEMPORAL_MUL},
       {-0.500f*TEMPORAL_MUL,  0.333333373f*TEMPORAL_MUL},
@@ -970,9 +981,26 @@ void RendererClass::temporalCheck() // needs to be called after RT and viewport 
 {
    if(hasTemporal())
    {
+      Vec2 offset, prev_offset;
+      auto frame=Unsigned(Time.frame()), prev_frame=Unsigned(Time.frame()-1);
+      if(D.temporalSuperRes())
+      {
+         Byte i=TemporalSuperResIndex[frame%Elms(TemporalSuperResIndex)];
+         Sh.TemporalCurPixel->set(TemporalSuperResIndexToOfsI(i));
+              offset=TemporalSuperResOffsets[     frame%Elms(TemporalSuperResOffsets)];
+         prev_offset=TemporalSuperResOffsets[prev_frame%Elms(TemporalSuperResOffsets)];
+         if(D.temporalAntiAlias())
+         {
+                 offset+=TemporalAntiAliasOffsets[(     frame/Elms(TemporalSuperResIndex))%Elms(TemporalAntiAliasOffsets)]*0.5f;
+            prev_offset+=TemporalAntiAliasOffsets[(prev_frame/Elms(TemporalSuperResIndex))%Elms(TemporalAntiAliasOffsets)]*0.5f;
+         }
+      }else
+      {
+              offset=TemporalAntiAliasOffsets[     frame%Elms(TemporalAntiAliasOffsets)];
+         prev_offset=TemporalAntiAliasOffsets[prev_frame%Elms(TemporalAntiAliasOffsets)];
+      }
+
     C VecI2 &size       =res();
-    C Vec2  &offset     =TAAOffsets[         Time.frame()   %Elms(TAAOffsets)];
-    C Vec2  &offset_prev=TAAOffsets[Unsigned(Time.frame()-1)%Elms(TAAOffsets)];
       RectI  viewport   =(_stereo ? screenToPixelI(D._view_eye_rect[0]) : D._view_active.recti);
       Vec2   mul        =Vec2(0.5f, -0.5f)/size;
         _temporal_use   =true;
@@ -980,7 +1008,7 @@ void RendererClass::temporalCheck() // needs to be called after RT and viewport 
       Vec2 shader_offset=offset*mul;
       Sh.TemporalOffset         ->set(shader_offset); // this always changes so don't use 'setConditional'
    #if TEMPORAL_OLD_VEL
-      Sh.TemporalOffsetCurToPrev->set((offset_prev-offset)*mul); // this always changes so don't use 'setConditional', 'offset_prev' because we're using this to access 'old_vel' texture from a previous frame that was not offseted, and "-offset" because we're comparing results to 'vel' accessed with 'inTex' instead of "inTex+TemporalOffset". We should be accessing "vel inTex+TemporalOffset" and "old_vel inTex+TemporalOffsetPrev", however we're accessing "vel inTex" so access "old_vel inTex+TemporalOffsetPrev-TemporalOffset"
+      Sh.TemporalOffsetCurToPrev->set((prev_offset-offset)*mul); // this always changes so don't use 'setConditional', 'prev_offset' because we're using this to access 'old_vel' texture from a previous frame that was not offseted, and "-offset" because we're comparing results to 'vel' accessed with 'inTex' instead of "inTex+TemporalOffset". We should be accessing "vel inTex+TemporalOffset" and "old_vel inTex+TemporalOffsetPrev", however we're accessing "vel inTex" so access "old_vel inTex+TemporalOffsetPrev-TemporalOffset"
    #endif
 
       /*Select index to point to the component as if we were accessing without TemporalOffset - TexPoint(uv)
