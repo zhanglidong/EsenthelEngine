@@ -87,8 +87,6 @@ ALPHA=1
 
 #define MERGE_CUBIC_MIN_MAX 0 // Actually disable since it causes ghosting (visible when rotating camera around a character in the dungeons, perhaps range for MIN MAX can't be big), enable since this version is slightly better because: uses 12 tex reads (4*4 -4 corners), uses 12 samples for MIN/MAX which reduces flickering a bit, however has a lot more arithmetic calculations because of min/max x12 and each sample color is multiplied by weight separately
 
-#define MERGE_ADJUST_OLD 1 // 1=faster
-
 #define DUAL_ADJUST_OLD 1
 /******************************************************************************/
 VecH RGBToYCoCg(VecH col)
@@ -511,17 +509,11 @@ void Temporal_PS
 
    // NEIGHBOR CLAMP
 #if YCOCG
-      VecH ycocg_old=RGBToYCoCg4(old.rgb);
-      VecH ycocg_cur=RGBToYCoCg4(cur.rgb);
-      Half     blend=GetBlend(ycocg_old, ycocg_cur, ycocg_min.rgb, ycocg_max.rgb);
-   #if !MERGE_ADJUST_OLD
-      Half glow_clamp=Mid(old.a, ycocg_min.a, ycocg_max.a); // glow in Alpha Channel #RTOutput
-   #endif
+   VecH ycocg_old=RGBToYCoCg4(old.rgb);
+   VecH ycocg_cur=RGBToYCoCg4(cur.rgb);
+   Half     blend=GetBlend(ycocg_old, ycocg_cur, ycocg_min.xyz, ycocg_max.xyz);
 #else
-      Half blend=GetBlend(old.rgb, cur.rgb, col_min.rgb, col_max.rgb);
-   #if !MERGE_ADJUST_OLD
-      Half glow_clamp=Mid(old.a, col_min.a, col_max.a); // glow in Alpha Channel #RTOutput
-   #endif
+   Half blend=GetBlend(old.rgb, cur.rgb, col_min.rgb, col_max.rgb);
 #endif
 
    // update flicker
@@ -554,43 +546,27 @@ void Temporal_PS
       Half     flicker=new_flicker; // faster
       Half not_flicker=1-Sqr(flicker); // use Sqr to consider only big flickering
 
-   #if !MERGE_ADJUST_OLD
-      old.a=Lerp(old.a, glow_clamp, not_flicker); // glow in Alpha Channel #RTOutput
-   #endif
       blend*=not_flicker;
    }else
    {
       new_flicker=0; // always disable flickering for sky because on cam zoom in/out the sky motion vectors don't change, and it could retain some flicker from another object that wouldn't get cleared
-   #if !MERGE_ADJUST_OLD
-      old.a=glow_clamp; // glow in Alpha Channel #RTOutput
-   #endif
    }
 
    blend=Sat(blend);
 
 #if !DUAL_HISTORY
    Half cur_weight=CUR_WEIGHT, new_weight=old_weight+cur_weight,
-        old_weight_1=old_weight/new_weight, // old_weight_1+cur_weight_1=1
-        cur_weight_1;
+        old_weight_1=old_weight/new_weight; // old_weight_1+cur_weight_1=1
 
-   // adjust 'old' towards 'cur'
-   #if MERGE_ADJUST_OLD // instead of adjusting 'old' we can just tweak its weight because it gets combined later with 'cur' anyway
-      // this needs to modify 'old_weight_1' and not ('old_weight' and 'new_weight') because that would increase flickering and in some tests it caused jittered ghosting (some pixels will look brighter and some look darker, depending on the color difference between old and new)
-      old_weight_1*=1-blend;
-      cur_weight_1 =1-old_weight_1;
+   // this needs to modify 'old_weight_1' and not ('old_weight' and 'new_weight') because that would increase flickering and in some tests it caused jittered ghosting (some pixels will look brighter and some look darker, depending on the color difference between old and new)
+   old_weight_1*=1-blend;
+   Half cur_weight_1=1-old_weight_1;
+
+   #if YCOCG && 0
+              outCol=VecH4(YCoCg4ToRGB(ycocg_old*old_weight_1 + ycocg_cur*cur_weight_1), old.a*old_weight_1 + cur.a*cur_weight_1);
    #else
-      cur_weight_1=cur_weight/new_weight; // could be "1-old_weight_1" but then it won't be calculated in parallel
-      #if YCOCG
-         old.rgb=YCoCg4ToRGB(Lerp(ycocg_old, ycocg_cur, blend));
-      #else
-         old.rgb=Lerp(old.rgb, cur.rgb, blend); // old=Max(Min(old, col_max), col_min) is not enough because it can distort colors, what needs to be done is interpolation from 'old' to 'cur'
-      #endif
-      #if ALPHA
-         old_alpha=Lerp(old_alpha, cur_alpha, blend);
-      #endif
-   #endif
-
               outCol=old      *old_weight_1 + cur      *cur_weight_1;
+   #endif
    #if ALPHA
       Half new_alpha=old_alpha*old_weight_1 + cur_alpha*cur_weight_1;
    #endif
