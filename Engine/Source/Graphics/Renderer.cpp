@@ -23,16 +23,6 @@ static inline Bool NeedBackgroundExt() {return (!Sky.isActual() && D.envMap()) |
 static const Vec2 TemporalOffsets[]=
 {
 #if 1 // 8 samples (good enough quality and smaller flickering)
-   #if 1 // Halton (smaller flickering), REPAO(TAAOffsets).set(Halton(i+1, 2)*2-1, Halton(i+1, 3)*2-1)
-      #define TAA_MUL 1.1f // this makes AA more smooth
-      { 0.000f*TAA_MUL, -0.333333313f*TAA_MUL},
-      {-0.500f*TAA_MUL,  0.333333373f*TAA_MUL},
-      { 0.500f*TAA_MUL, -0.777777791f*TAA_MUL},
-      {-0.750f*TAA_MUL, -0.111111045f*TAA_MUL},
-      { 0.250f*TAA_MUL,  0.555555582f*TAA_MUL},
-      {-0.250f*TAA_MUL, -0.555555522f*TAA_MUL},
-      { 0.750f*TAA_MUL,  0.111111164f*TAA_MUL},
-      {-0.875f*TAA_MUL,  0.777777910f*TAA_MUL},
    #if 1 // Halton (smaller flickering), REPAO(TemporalOffsets).set(Halton(i+1, 2)*2-1, Halton(i+1, 3)*2-1)
       #define TEMPORAL_MUL 1.1f // this makes AA more smooth
       { 0.000f*TEMPORAL_MUL, -0.333333313f*TEMPORAL_MUL},
