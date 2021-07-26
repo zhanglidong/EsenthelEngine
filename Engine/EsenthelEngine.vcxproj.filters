@@ -2171,7 +2171,7 @@
     <ClCompile Include="Source\Graphics\ImageFilterWaifu.cpp">
       <Filter>Source\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Shaders\TAA.cpp">
+    <ClCompile Include="Source\Shaders\Temporal.cpp">
       <Filter>Source\Shaders</Filter>
     </ClCompile>
     <ClCompile Include="Source\Graphics\Import\HEIF.cpp">

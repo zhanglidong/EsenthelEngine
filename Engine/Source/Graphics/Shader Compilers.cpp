@@ -33,6 +33,7 @@ namespace EE{
 #define OVERLAY
 #define POSITION
 #define SET_COLOR
+#define TEMPORAL
 #define VOLUMETRIC_CLOUDS
 #define VOLUMETRIC_LIGHTS
 #define WATER
@@ -371,15 +372,6 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       REPD(gamma , 2)
          src.New("SunRays", "DrawUVPosXY_VS", "SunRays_PS")("ALPHA", alpha, "DITHER", dither, "JITTER", jitter, "GAMMA", gamma);
    }
-   { // TAA
-      ShaderCompiler::Source &src=compiler.New(src_path+"TAA.cpp");
-      REPD(view_full     , 2)
-      REPD(alpha         , 2)
-    //REPD(dual          , 2) // #TAADual
-      REPD(gather        , 2)
-      REPD(filter_min_max, 2)
-         src.New("TAA", "DrawUV_VS", "TAA_PS")("VIEW_FULL", view_full, "ALPHA", alpha, /*"DUAL_HISTORY", dual,*/ "GATHER", gather)("FILTER_MIN_MAX", filter_min_max).gatherChannel(gather);
-   }
    { // VIDEO
       ShaderCompiler::Source &src=compiler.New(src_path+"Video.cpp");
       REPD(gamma    , 2)
@@ -586,11 +578,11 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    REPD (jitter   , 2)
    REPD (glow     , 2)
    REPD (alpha    , 2)
-   REPD (taa      , 2)
+   REPD (temporal , 2)
    REPD (view_full, 2)
-   REPD (gather   , taa ? 2 : 1) // gather only needed for TAA
+   REPD (gather   , temporal ? 2 : 1) // gather only needed for Temporal
    REPAD(sample   , samples)
-      src.New("Blur", "DrawUV_VS", "Blur_PS")("DITHER", dither, "JITTER", jitter, "GLOW", glow, "ALPHA", alpha)("HAS_TAA", taa, "VIEW_FULL", view_full, "GATHER", gather)("SAMPLES", samples[sample]).gatherChannel(gather);
+      src.New("Blur", "DrawUV_VS", "Blur_PS")("DITHER", dither, "JITTER", jitter, "GLOW", glow, "ALPHA", alpha)("TEMPORAL", temporal, "VIEW_FULL", view_full, "GATHER", gather)("SAMPLES", samples[sample]).gatherChannel(gather);
 }
 #endif
 
@@ -632,6 +624,19 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    REPD(skin      , 2)
    REPD(alpha_test, ALPHA_TEST_NUM)
       src.New()("SKIN", skin, "ALPHA_TEST", alpha_test).tesselate(tesselate);
+}
+#endif
+
+#ifdef TEMPORAL
+{
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Temporal", model, api, flag).New(src_path+"Temporal.cpp");
+      REPD(Super         , 2)
+      REPD(view_full     , 2)
+      REPD(alpha         , 2)
+    //REPD(dual          , 2) // #TemporalDual
+      REPD(gather        , 2)
+      REPD(filter_min_max, 2)
+         src.New("Temporal", "DrawUV_VS", "Temporal_PS")("SUPER", Super, "VIEW_FULL", view_full, "ALPHA", alpha, /*"DUAL_HISTORY", dual,*/ "GATHER", gather)("FILTER_MIN_MAX", filter_min_max).gatherChannel(gather);
 }
 #endif
 

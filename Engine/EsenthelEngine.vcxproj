@@ -3763,7 +3763,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|NX64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Source\Shaders\TAA.cpp">
+    <ClCompile Include="Source\Shaders\Temporal.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
