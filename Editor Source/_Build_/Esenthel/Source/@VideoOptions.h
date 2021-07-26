@@ -170,40 +170,42 @@ public:
    static Skin skins[]
 ;
 
-   static void Mode       (  VideoOptions &vo, C Str &t);
-   static Str  Full       (C VideoOptions &vo          );
-   static void Full       (  VideoOptions &vo, C Str &t);
-   static Str  Sync       (C VideoOptions &vo          );
-   static void Sync       (  VideoOptions &vo, C Str &t);
-   static Str  Render     (C VideoOptions &vo          );
-   static void Render     (  VideoOptions &vo, C Str &t);
-   static Str  TAA        (C VideoOptions &vo          );
-   static void TAA        (  VideoOptions &vo, C Str &t);
-   static Str  EdgeSoft   (C VideoOptions &vo          );
-   static void EdgeSoft   (  VideoOptions &vo, C Str &t);
-   static Str  Shadow     (C VideoOptions &vo          );
-   static void Shadow     (  VideoOptions &vo, C Str &t);
-   static Str  ShadowSize (C VideoOptions &vo          ); // go from end to check biggest first
-   static void ShadowSize (  VideoOptions &vo, C Str &t);
-   static Str  ShadowNum  (C VideoOptions &vo          );
-   static void ShadowNum  (  VideoOptions &vo, C Str &t);
-   static Str  ShadowSoft (C VideoOptions &vo          );
-   static void ShadowSoft (  VideoOptions &vo, C Str &t);
-   static Str  ShadowJit  (C VideoOptions &vo          );
-   static void ShadowJit  (  VideoOptions &vo, C Str &t);
-   static Str  BumpMode   (C VideoOptions &vo          );
-   static void BumpMode   (  VideoOptions &vo, C Str &t);
-   static Str  MotionMode (C VideoOptions &vo          );
-   static void MotionMode (  VideoOptions &vo, C Str &t);
-   static Str  AO         (C VideoOptions &vo          );
-   static void AO         (  VideoOptions &vo, C Str &t);
-   static Str  EyeAdapt   (C VideoOptions &vo          );
-   static void EyeAdapt   (  VideoOptions &vo, C Str &t);
-   static Str  Scale      (C VideoOptions &vo          );
-   static void Scale      (  VideoOptions &vo, C Str &t);
-   static Str  ScaleWin   (C VideoOptions &vo          );
-   static void ScaleWin   (  VideoOptions &vo, C Str &t);
-   static void SkinChanged(  VideoOptions &vo          );
+   static void Mode        (  VideoOptions &vo, C Str &t);
+   static Str  Full        (C VideoOptions &vo          );
+   static void Full        (  VideoOptions &vo, C Str &t);
+   static Str  Sync        (C VideoOptions &vo          );
+   static void Sync        (  VideoOptions &vo, C Str &t);
+   static Str  Render      (C VideoOptions &vo          );
+   static void Render      (  VideoOptions &vo, C Str &t);
+   static Str  TAA         (C VideoOptions &vo          );
+   static void TAA         (  VideoOptions &vo, C Str &t);
+   static Str  TempSuperRes(C VideoOptions &vo          );
+   static void TempSuperRes(  VideoOptions &vo, C Str &t);
+   static Str  EdgeSoft    (C VideoOptions &vo          );
+   static void EdgeSoft    (  VideoOptions &vo, C Str &t);
+   static Str  Shadow      (C VideoOptions &vo          );
+   static void Shadow      (  VideoOptions &vo, C Str &t);
+   static Str  ShadowSize  (C VideoOptions &vo          ); // go from end to check biggest first
+   static void ShadowSize  (  VideoOptions &vo, C Str &t);
+   static Str  ShadowNum   (C VideoOptions &vo          );
+   static void ShadowNum   (  VideoOptions &vo, C Str &t);
+   static Str  ShadowSoft  (C VideoOptions &vo          );
+   static void ShadowSoft  (  VideoOptions &vo, C Str &t);
+   static Str  ShadowJit   (C VideoOptions &vo          );
+   static void ShadowJit   (  VideoOptions &vo, C Str &t);
+   static Str  BumpMode    (C VideoOptions &vo          );
+   static void BumpMode    (  VideoOptions &vo, C Str &t);
+   static Str  MotionMode  (C VideoOptions &vo          );
+   static void MotionMode  (  VideoOptions &vo, C Str &t);
+   static Str  AO          (C VideoOptions &vo          );
+   static void AO          (  VideoOptions &vo, C Str &t);
+   static Str  EyeAdapt    (C VideoOptions &vo          );
+   static void EyeAdapt    (  VideoOptions &vo, C Str &t);
+   static Str  Scale       (C VideoOptions &vo          );
+   static void Scale       (  VideoOptions &vo, C Str &t);
+   static Str  ScaleWin    (C VideoOptions &vo          );
+   static void ScaleWin    (  VideoOptions &vo, C Str &t);
+   static void SkinChanged (  VideoOptions &vo          );
 
    Property *full, *mode, *shd_siz, *shd_num, *shd_sft, *shd_jit, *skin;
    Button    advanced_show;
@@ -214,9 +216,11 @@ public:
    static void ShowAdvanced(VideoOptions &vo);
 
    void setScale();
-   void setScale   (flt  scale); 
-   void setScaleWin(bool scale); 
-   void tAA        (bool on   )C; // !! Warning: this might still be used even though 'Renderer.allow_taa' is off !! use only -0.5 because for movement when TAA gets disabled, we would get flickering if value was smaller
+   void setScale         (flt  scale); 
+   void setScaleWin      (bool scale); 
+   void setTexMipBias    (          )C; // !! Warning: this might still be used even though 'Renderer.allow_temporal' is off !! use only -0.5 because for movement when Temporal gets disabled, we would get flickering if value was smaller
+   void temporalAntiAlias(bool on   )C;
+   void temporalSuperRes (bool on   )C;
 
    UID  skinID   (C Str &name)C;
    int  skinIndex(C UID &id  )C;

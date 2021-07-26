@@ -391,40 +391,42 @@ sky_night_light=&props.New().create("Sky Night Light"            , MemberDesc(DA
       {"Neon+ (Slower)" , UID(1080853348, 1102506000, 3817480329, 1344453301)},
    };
 
-   static void Mode       (  VideoOptions &vo, C Str &t) {int m=TextInt(t); if(InRange(m, D.modes()))D.mode(D.modes()[m].x, D.modes()[m].y);}
-   static Str  Full       (C VideoOptions &vo          ) {return D.full();}
-   static void Full       (  VideoOptions &vo, C Str &t) {       D.full(TextBool(t));}
-   static Str  Sync       (C VideoOptions &vo          ) {return D.sync();}
-   static void Sync       (  VideoOptions &vo, C Str &t) {       D.sync(TextBool(t));}
-   static Str  Render     (C VideoOptions &vo          ) {return Renderer.type();}
-   static void Render     (  VideoOptions &vo, C Str &t) {       Renderer.type(RENDER_TYPE(TextInt(t))); vo.setVis();}
-   static Str  TAA        (C VideoOptions &vo          ) {return D.tAA();}
-   static void TAA        (  VideoOptions &vo, C Str &t) {       vo.tAA(TextBool(t));}
-   static Str  EdgeSoft   (C VideoOptions &vo          ) {return D.edgeSoften();}
-   static void EdgeSoft   (  VideoOptions &vo, C Str &t) {       D.edgeSoften(EDGE_SOFTEN_MODE(TextInt(t)));}
-   static Str  Shadow     (C VideoOptions &vo          ) {return D.shadowMode()==SHADOW_MAP;}
-   static void Shadow     (  VideoOptions &vo, C Str &t) {       D.shadowMode(TextBool(t) ? SHADOW_MAP : SHADOW_NONE); vo.setVis();}
-   static Str  ShadowSize (C VideoOptions &vo          ) {REPA(ShadowSize_t)if(D.shadowMapSize()>=TextInt(ShadowSize_t[i]))return i; return "2";} // go from end to check biggest first
-   static void ShadowSize (  VideoOptions &vo, C Str &t) {int s=TextInt(t); if(InRange(s, ShadowSize_t))D.shadowMapSize(TextInt(ShadowSize_t[s]));}
-   static Str  ShadowNum  (C VideoOptions &vo          ) {return D.shadowMapNum()-1;}
-   static void ShadowNum  (  VideoOptions &vo, C Str &t) {       D.shadowMapNum(TextInt(t)+1);}
-   static Str  ShadowSoft (C VideoOptions &vo          ) {return D.shadowSoft();}
-   static void ShadowSoft (  VideoOptions &vo, C Str &t) {       D.shadowSoft(TextInt(t));}
-   static Str  ShadowJit  (C VideoOptions &vo          ) {return D.shadowJitter();}
-   static void ShadowJit  (  VideoOptions &vo, C Str &t) {       D.shadowJitter(TextBool(t));}
-   static Str  BumpMode   (C VideoOptions &vo          ) {return D.bumpMode();}
-   static void BumpMode   (  VideoOptions &vo, C Str &t) {       D.bumpMode(BUMP_MODE(TextInt(t)));}
-   static Str  MotionMode (C VideoOptions &vo          ) {return D.motionMode();}
-   static void MotionMode (  VideoOptions &vo, C Str &t) {       D.motionMode(MOTION_MODE(TextInt(t))); vo.setVis();}
-   static Str  AO         (C VideoOptions &vo          ) {return D.ambientMode();}
-   static void AO         (  VideoOptions &vo, C Str &t) {       D.ambientMode(AMBIENT_MODE(TextInt(t)));}
-   static Str  EyeAdapt   (C VideoOptions &vo          ) {return D.eyeAdaptation();}
-   static void EyeAdapt   (  VideoOptions &vo, C Str &t) {       D.eyeAdaptation(TextBool(t));}
-   static Str  Scale      (C VideoOptions &vo          ) {return vo.scale;}
-   static void Scale      (  VideoOptions &vo, C Str &t) {       vo.setScale(TextFlt(t));}
-   static Str  ScaleWin   (C VideoOptions &vo          ) {return vo.scale_win;}
-   static void ScaleWin   (  VideoOptions &vo, C Str &t) {       vo.setScaleWin(TextBool(t));}
-   static void SkinChanged(  VideoOptions &vo          ) {if(vo.skin && InRange(vo.skin.combobox(), skins))SetGuiSkin(skins[vo.skin.combobox()].id);}
+   static void Mode        (  VideoOptions &vo, C Str &t) {int m=TextInt(t); if(InRange(m, D.modes()))D.mode(D.modes()[m].x, D.modes()[m].y);}
+   static Str  Full        (C VideoOptions &vo          ) {return D.full();}
+   static void Full        (  VideoOptions &vo, C Str &t) {       D.full(TextBool(t));}
+   static Str  Sync        (C VideoOptions &vo          ) {return D.sync();}
+   static void Sync        (  VideoOptions &vo, C Str &t) {       D.sync(TextBool(t));}
+   static Str  Render      (C VideoOptions &vo          ) {return Renderer.type();}
+   static void Render      (  VideoOptions &vo, C Str &t) {       Renderer.type(RENDER_TYPE(TextInt(t))); vo.setVis();}
+   static Str  TAA         (C VideoOptions &vo          ) {return D .temporalAntiAlias();}
+   static void TAA         (  VideoOptions &vo, C Str &t) {       vo.temporalAntiAlias(TextBool(t));}
+   static Str  TempSuperRes(C VideoOptions &vo          ) {return D .temporalSuperRes();}
+   static void TempSuperRes(  VideoOptions &vo, C Str &t) {       vo.temporalSuperRes(TextBool(t));}
+   static Str  EdgeSoft    (C VideoOptions &vo          ) {return D.edgeSoften();}
+   static void EdgeSoft    (  VideoOptions &vo, C Str &t) {       D.edgeSoften(EDGE_SOFTEN_MODE(TextInt(t)));}
+   static Str  Shadow      (C VideoOptions &vo          ) {return D.shadowMode()==SHADOW_MAP;}
+   static void Shadow      (  VideoOptions &vo, C Str &t) {       D.shadowMode(TextBool(t) ? SHADOW_MAP : SHADOW_NONE); vo.setVis();}
+   static Str  ShadowSize  (C VideoOptions &vo          ) {REPA(ShadowSize_t)if(D.shadowMapSize()>=TextInt(ShadowSize_t[i]))return i; return "2";} // go from end to check biggest first
+   static void ShadowSize  (  VideoOptions &vo, C Str &t) {int s=TextInt(t); if(InRange(s, ShadowSize_t))D.shadowMapSize(TextInt(ShadowSize_t[s]));}
+   static Str  ShadowNum   (C VideoOptions &vo          ) {return D.shadowMapNum()-1;}
+   static void ShadowNum   (  VideoOptions &vo, C Str &t) {       D.shadowMapNum(TextInt(t)+1);}
+   static Str  ShadowSoft  (C VideoOptions &vo          ) {return D.shadowSoft();}
+   static void ShadowSoft  (  VideoOptions &vo, C Str &t) {       D.shadowSoft(TextInt(t));}
+   static Str  ShadowJit   (C VideoOptions &vo          ) {return D.shadowJitter();}
+   static void ShadowJit   (  VideoOptions &vo, C Str &t) {       D.shadowJitter(TextBool(t));}
+   static Str  BumpMode    (C VideoOptions &vo          ) {return D.bumpMode();}
+   static void BumpMode    (  VideoOptions &vo, C Str &t) {       D.bumpMode(BUMP_MODE(TextInt(t)));}
+   static Str  MotionMode  (C VideoOptions &vo          ) {return D.motionMode();}
+   static void MotionMode  (  VideoOptions &vo, C Str &t) {       D.motionMode(MOTION_MODE(TextInt(t))); vo.setVis();}
+   static Str  AO          (C VideoOptions &vo          ) {return D.ambientMode();}
+   static void AO          (  VideoOptions &vo, C Str &t) {       D.ambientMode(AMBIENT_MODE(TextInt(t)));}
+   static Str  EyeAdapt    (C VideoOptions &vo          ) {return D.eyeAdaptation();}
+   static void EyeAdapt    (  VideoOptions &vo, C Str &t) {       D.eyeAdaptation(TextBool(t));}
+   static Str  Scale       (C VideoOptions &vo          ) {return vo.scale;}
+   static void Scale       (  VideoOptions &vo, C Str &t) {       vo.setScale(TextFlt(t));}
+   static Str  ScaleWin    (C VideoOptions &vo          ) {return vo.scale_win;}
+   static void ScaleWin    (  VideoOptions &vo, C Str &t) {       vo.setScaleWin(TextBool(t));}
+   static void SkinChanged (  VideoOptions &vo          ) {if(vo.skin && InRange(vo.skin.combobox(), skins))SetGuiSkin(skins[vo.skin.combobox()].id);}
 
    Property *full=null, *mode=null, *shd_siz=null, *shd_num=null, *shd_sft=null, *shd_jit=null, *skin=null;
    Button    advanced_show;
@@ -438,9 +440,11 @@ sky_night_light=&props.New().create("Sky Night Light"            , MemberDesc(DA
    {
       D.scale(scale_win ? scale*D.screenH()/flt(D.resH())*(0.79) : scale);
    }
-   void setScale   (flt  scale)  {T.scale    =scale; setScale();}
-   void setScaleWin(bool scale)  {T.scale_win=scale; setScale();}
-   void tAA        (bool on   )C {D.tAA(on); D.texMipBias(D.tAA() ? -0.5 : 0);} // !! Warning: this might still be used even though 'Renderer.allow_taa' is off !! use only -0.5 because for movement when TAA gets disabled, we would get flickering if value was smaller
+   void setScale         (flt  scale)  {T.scale    =scale; setScale();}
+   void setScaleWin      (bool scale)  {T.scale_win=scale; setScale();}
+   void setTexMipBias    (          )C {D.texMipBias(D.temporalAntiAlias() ? -0.5 : 0);} // !! Warning: this might still be used even though 'Renderer.allow_temporal' is off !! use only -0.5 because for movement when Temporal gets disabled, we would get flickering if value was smaller
+   void temporalAntiAlias(bool on   )C {D.temporalAntiAlias(on); setTexMipBias();}
+   void temporalSuperRes (bool on   )C {D.temporalSuperRes (on); setTexMipBias();}
 
    UID  skinID   (C Str &name)C {REPA(skins)if(skins[i].name==name)return skins[i].id; return UIDZero;}
    int  skinIndex(C UID &id  )C {REPA(skins)if(skins[i].id  ==id  )return i; return -1;}
@@ -468,23 +472,24 @@ sky_night_light=&props.New().create("Sky Night Light"            , MemberDesc(DA
 
    #if DESKTOP
       mode   =&props.New().create("Resolution"       , MemberDesc(         ).setTextToDataFunc(Mode        )).setEnum(); mode.combobox.setColumns(mode_list_column, Elms(mode_list_column)).setData(ConstCast(D.modes()));
-      full   =&props.New().create("Fullscreen"       , MemberDesc(DATA_BOOL).setFunc(Full      , Full      ))                                          .desc("Enable full screen mode");
-               props.New().create("Synchronization"  , MemberDesc(DATA_BOOL).setFunc(Sync      , Sync      ))                                          .desc("Enable screen synchronization\nLimits framerate to screen refresh rate to increase smoothness.");
+      full   =&props.New().create("Fullscreen"       , MemberDesc(DATA_BOOL).setFunc(Full        , Full        ))                                          .desc("Enable full screen mode");
+               props.New().create("Synchronization"  , MemberDesc(DATA_BOOL).setFunc(Sync        , Sync        ))                                          .desc("Enable screen synchronization\nLimits framerate to screen refresh rate to increase smoothness.");
    #endif
-               props.New().create("Renderer"         , MemberDesc(         ).setFunc(Render    , Render    )).setEnum(Render_t    , Elms(Render_t    )).desc("Renderer type\nForward renderer may work faster, but has limited number of special effects.");
-               props.New().create("Temporal AA"      , MemberDesc(DATA_BOOL).setFunc(TAA       , TAA       ))                                          .desc("Enable Temporal Anti-Aliasing");
-               props.New().create("Edge Softening"   , MemberDesc(         ).setFunc(EdgeSoft  , EdgeSoft  )).setEnum(EdgeSoften_t, Elms(EdgeSoften_t)).desc("Set edge softening");
-               props.New().create("Shadows"          , MemberDesc(DATA_BOOL).setFunc(Shadow    , Shadow    ))                                          .desc("Enable shadows");
-      shd_siz=&props.New().create("Shadowmap Size"   , MemberDesc(         ).setFunc(ShadowSize, ShadowSize)).setEnum(ShadowSize_t, Elms(ShadowSize_t)).desc("Shadow map resolution\nhigher resolutions reduce blockiness of shadows.");
-      shd_num=&props.New().create("Shadowmap Number" , MemberDesc(         ).setFunc(ShadowNum , ShadowNum )).setEnum(ShadowNum_t , Elms(ShadowNum_t )).desc("Shadow map number,\ndetermines the number of shadow maps used during rendering.");
-      shd_sft=&props.New().create("Shadows Softing"  , MemberDesc(         ).setFunc(ShadowSoft, ShadowSoft)).setEnum(ShadowSoft_t, Elms(ShadowSoft_t)).desc("Enable shadows softing");
-      shd_jit=&props.New().create("Shadows Jittering", MemberDesc(DATA_BOOL).setFunc(ShadowJit , ShadowJit ))                                          .desc("Enable jittering on shadows,\nworks best when enabled with shadow softing.");
-               props.New().create("Bump Mapping"     , MemberDesc(         ).setFunc(BumpMode  , BumpMode  )).setEnum(BumpMode_t  , Elms(BumpMode_t  )).desc("Simulate bumpy surfaces");
-               props.New().create("Motion Blur"      , MemberDesc(         ).setFunc(MotionMode, MotionMode)).setEnum(MotionMode_t, Elms(MotionMode_t)).desc("Blur fast moving objects");
-               props.New().create("Ambient Occlusion", MemberDesc(         ).setFunc(AO        , AO        )).setEnum(AO_t        , Elms(AO_t        )).desc("Darkens occluded areas");
-               props.New().create("Eye Adaptation"   , MemberDesc(DATA_BOOL).setFunc(EyeAdapt  , EyeAdapt  ))                                          .desc("Enables automatic screen brightness adjustment");
+               props.New().create("Renderer"         , MemberDesc(         ).setFunc(Render      , Render      )).setEnum(Render_t    , Elms(Render_t    )).desc("Renderer type\nForward renderer may work faster, but has limited number of special effects.");
+               props.New().create("Temporal AA"      , MemberDesc(DATA_BOOL).setFunc(TAA         , TAA         ))                                          .desc("Enable Temporal Anti-Aliasing");
+               props.New().create("Temporal SuperRes", MemberDesc(DATA_BOOL).setFunc(TempSuperRes, TempSuperRes))                                          .desc("Enable Temporal Super Resolution");
+               props.New().create("Edge Softening"   , MemberDesc(         ).setFunc(EdgeSoft    , EdgeSoft    )).setEnum(EdgeSoften_t, Elms(EdgeSoften_t)).desc("Set edge softening");
+               props.New().create("Shadows"          , MemberDesc(DATA_BOOL).setFunc(Shadow      , Shadow      ))                                          .desc("Enable shadows");
+      shd_siz=&props.New().create("Shadowmap Size"   , MemberDesc(         ).setFunc(ShadowSize  , ShadowSize  )).setEnum(ShadowSize_t, Elms(ShadowSize_t)).desc("Shadow map resolution\nhigher resolutions reduce blockiness of shadows.");
+      shd_num=&props.New().create("Shadowmap Number" , MemberDesc(         ).setFunc(ShadowNum   , ShadowNum   )).setEnum(ShadowNum_t , Elms(ShadowNum_t )).desc("Shadow map number,\ndetermines the number of shadow maps used during rendering.");
+      shd_sft=&props.New().create("Shadows Softing"  , MemberDesc(         ).setFunc(ShadowSoft  , ShadowSoft  )).setEnum(ShadowSoft_t, Elms(ShadowSoft_t)).desc("Enable shadows softing");
+      shd_jit=&props.New().create("Shadows Jittering", MemberDesc(DATA_BOOL).setFunc(ShadowJit   , ShadowJit   ))                                          .desc("Enable jittering on shadows,\nworks best when enabled with shadow softing.");
+               props.New().create("Bump Mapping"     , MemberDesc(         ).setFunc(BumpMode    , BumpMode    )).setEnum(BumpMode_t  , Elms(BumpMode_t  )).desc("Simulate bumpy surfaces");
+               props.New().create("Motion Blur"      , MemberDesc(         ).setFunc(MotionMode  , MotionMode  )).setEnum(MotionMode_t, Elms(MotionMode_t)).desc("Blur fast moving objects");
+               props.New().create("Ambient Occlusion", MemberDesc(         ).setFunc(AO          , AO          )).setEnum(AO_t        , Elms(AO_t        )).desc("Darkens occluded areas");
+               props.New().create("Eye Adaptation"   , MemberDesc(DATA_BOOL).setFunc(EyeAdapt    , EyeAdapt    ))                                          .desc("Enables automatic screen brightness adjustment");
 //if(D.shaderModel()>=SM_5)props.New().create("Tesselation", MemberDesc(DATA_BOOL).setFunc(Tesselation, Tesselation))                                  ;
-               props.New().create("Gui Scale"        , MemberDesc(DATA_REAL).setFunc(Scale     , Scale     )).mouseEditSpeed(0.5)
+               props.New().create("Gui Scale"        , MemberDesc(DATA_REAL).setFunc(Scale       , Scale       )).mouseEditSpeed(0.5)
                #if MOBILE
                   .range(0.9, 3.0);
                #else

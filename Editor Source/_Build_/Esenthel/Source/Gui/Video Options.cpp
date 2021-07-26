@@ -369,8 +369,10 @@ sky_night_light=&props.New().create("Sky Night Light"            , MemberDesc(DA
    void VideoOptions::Sync(  VideoOptions &vo, C Str &t) {       D.sync(TextBool(t));}
    Str  VideoOptions::Render(C VideoOptions &vo          ) {return Renderer.type();}
    void VideoOptions::Render(  VideoOptions &vo, C Str &t) {       Renderer.type(RENDER_TYPE(TextInt(t))); vo.setVis();}
-   Str  VideoOptions::TAA(C VideoOptions &vo          ) {return D.tAA();}
-   void VideoOptions::TAA(  VideoOptions &vo, C Str &t) {       vo.tAA(TextBool(t));}
+   Str  VideoOptions::TAA(C VideoOptions &vo          ) {return D .temporalAntiAlias();}
+   void VideoOptions::TAA(  VideoOptions &vo, C Str &t) {       vo.temporalAntiAlias(TextBool(t));}
+   Str  VideoOptions::TempSuperRes(C VideoOptions &vo          ) {return D .temporalSuperRes();}
+   void VideoOptions::TempSuperRes(  VideoOptions &vo, C Str &t) {       vo.temporalSuperRes(TextBool(t));}
    Str  VideoOptions::EdgeSoft(C VideoOptions &vo          ) {return D.edgeSoften();}
    void VideoOptions::EdgeSoft(  VideoOptions &vo, C Str &t) {       D.edgeSoften(EDGE_SOFTEN_MODE(TextInt(t)));}
    Str  VideoOptions::Shadow(C VideoOptions &vo          ) {return D.shadowMode()==SHADOW_MAP;}
@@ -403,7 +405,9 @@ sky_night_light=&props.New().create("Sky Night Light"            , MemberDesc(DA
    }
    void VideoOptions::setScale(flt  scale)  {T.scale    =scale; setScale();}
    void VideoOptions::setScaleWin(bool scale)  {T.scale_win=scale; setScale();}
-   void VideoOptions::tAA(bool on   )C {D.tAA(on); D.texMipBias(D.tAA() ? -0.5f : 0);}
+   void VideoOptions::setTexMipBias(          )C {D.texMipBias(D.temporalAntiAlias() ? -0.5f : 0);}
+   void VideoOptions::temporalAntiAlias(bool on   )C {D.temporalAntiAlias(on); setTexMipBias();}
+   void VideoOptions::temporalSuperRes(bool on   )C {D.temporalSuperRes (on); setTexMipBias();}
    UID  VideoOptions::skinID(C Str &name)C {REPA(skins)if(skins[i].name==name)return skins[i].id; return UIDZero;}
    int  VideoOptions::skinIndex(C UID &id  )C {REPA(skins)if(skins[i].id  ==id  )return i; return -1;}
    Str  VideoOptions::skinName(           )C {return skin ? skin->combobox.text : S;}
@@ -429,23 +433,24 @@ sky_night_light=&props.New().create("Sky Night Light"            , MemberDesc(DA
 
    #if DESKTOP
       mode   =&props.New().create("Resolution"       , MemberDesc(         ).setTextToDataFunc(Mode        )).setEnum(); mode->combobox.setColumns(mode_list_column, Elms(mode_list_column)).setData(ConstCast(D.modes()));
-      full   =&props.New().create("Fullscreen"       , MemberDesc(DATA_BOOL).setFunc(Full      , Full      ))                                          .desc("Enable full screen mode");
-               props.New().create("Synchronization"  , MemberDesc(DATA_BOOL).setFunc(Sync      , Sync      ))                                          .desc("Enable screen synchronization\nLimits framerate to screen refresh rate to increase smoothness.");
+      full   =&props.New().create("Fullscreen"       , MemberDesc(DATA_BOOL).setFunc(Full        , Full        ))                                          .desc("Enable full screen mode");
+               props.New().create("Synchronization"  , MemberDesc(DATA_BOOL).setFunc(Sync        , Sync        ))                                          .desc("Enable screen synchronization\nLimits framerate to screen refresh rate to increase smoothness.");
    #endif
-               props.New().create("Renderer"         , MemberDesc(         ).setFunc(Render    , Render    )).setEnum(Render_t    , Elms(Render_t    )).desc("Renderer type\nForward renderer may work faster, but has limited number of special effects.");
-               props.New().create("Temporal AA"      , MemberDesc(DATA_BOOL).setFunc(TAA       , TAA       ))                                          .desc("Enable Temporal Anti-Aliasing");
-               props.New().create("Edge Softening"   , MemberDesc(         ).setFunc(EdgeSoft  , EdgeSoft  )).setEnum(EdgeSoften_t, Elms(EdgeSoften_t)).desc("Set edge softening");
-               props.New().create("Shadows"          , MemberDesc(DATA_BOOL).setFunc(Shadow    , Shadow    ))                                          .desc("Enable shadows");
-      shd_siz=&props.New().create("Shadowmap Size"   , MemberDesc(         ).setFunc(ShadowSize, ShadowSize)).setEnum(ShadowSize_t, Elms(ShadowSize_t)).desc("Shadow map resolution\nhigher resolutions reduce blockiness of shadows.");
-      shd_num=&props.New().create("Shadowmap Number" , MemberDesc(         ).setFunc(ShadowNum , ShadowNum )).setEnum(ShadowNum_t , Elms(ShadowNum_t )).desc("Shadow map number,\ndetermines the number of shadow maps used during rendering.");
-      shd_sft=&props.New().create("Shadows Softing"  , MemberDesc(         ).setFunc(ShadowSoft, ShadowSoft)).setEnum(ShadowSoft_t, Elms(ShadowSoft_t)).desc("Enable shadows softing");
-      shd_jit=&props.New().create("Shadows Jittering", MemberDesc(DATA_BOOL).setFunc(ShadowJit , ShadowJit ))                                          .desc("Enable jittering on shadows,\nworks best when enabled with shadow softing.");
-               props.New().create("Bump Mapping"     , MemberDesc(         ).setFunc(BumpMode  , BumpMode  )).setEnum(BumpMode_t  , Elms(BumpMode_t  )).desc("Simulate bumpy surfaces");
-               props.New().create("Motion Blur"      , MemberDesc(         ).setFunc(MotionMode, MotionMode)).setEnum(MotionMode_t, Elms(MotionMode_t)).desc("Blur fast moving objects");
-               props.New().create("Ambient Occlusion", MemberDesc(         ).setFunc(AO        , AO        )).setEnum(AO_t        , Elms(AO_t        )).desc("Darkens occluded areas");
-               props.New().create("Eye Adaptation"   , MemberDesc(DATA_BOOL).setFunc(EyeAdapt  , EyeAdapt  ))                                          .desc("Enables automatic screen brightness adjustment");
+               props.New().create("Renderer"         , MemberDesc(         ).setFunc(Render      , Render      )).setEnum(Render_t    , Elms(Render_t    )).desc("Renderer type\nForward renderer may work faster, but has limited number of special effects.");
+               props.New().create("Temporal AA"      , MemberDesc(DATA_BOOL).setFunc(TAA         , TAA         ))                                          .desc("Enable Temporal Anti-Aliasing");
+               props.New().create("Temporal SuperRes", MemberDesc(DATA_BOOL).setFunc(TempSuperRes, TempSuperRes))                                          .desc("Enable Temporal Super Resolution");
+               props.New().create("Edge Softening"   , MemberDesc(         ).setFunc(EdgeSoft    , EdgeSoft    )).setEnum(EdgeSoften_t, Elms(EdgeSoften_t)).desc("Set edge softening");
+               props.New().create("Shadows"          , MemberDesc(DATA_BOOL).setFunc(Shadow      , Shadow      ))                                          .desc("Enable shadows");
+      shd_siz=&props.New().create("Shadowmap Size"   , MemberDesc(         ).setFunc(ShadowSize  , ShadowSize  )).setEnum(ShadowSize_t, Elms(ShadowSize_t)).desc("Shadow map resolution\nhigher resolutions reduce blockiness of shadows.");
+      shd_num=&props.New().create("Shadowmap Number" , MemberDesc(         ).setFunc(ShadowNum   , ShadowNum   )).setEnum(ShadowNum_t , Elms(ShadowNum_t )).desc("Shadow map number,\ndetermines the number of shadow maps used during rendering.");
+      shd_sft=&props.New().create("Shadows Softing"  , MemberDesc(         ).setFunc(ShadowSoft  , ShadowSoft  )).setEnum(ShadowSoft_t, Elms(ShadowSoft_t)).desc("Enable shadows softing");
+      shd_jit=&props.New().create("Shadows Jittering", MemberDesc(DATA_BOOL).setFunc(ShadowJit   , ShadowJit   ))                                          .desc("Enable jittering on shadows,\nworks best when enabled with shadow softing.");
+               props.New().create("Bump Mapping"     , MemberDesc(         ).setFunc(BumpMode    , BumpMode    )).setEnum(BumpMode_t  , Elms(BumpMode_t  )).desc("Simulate bumpy surfaces");
+               props.New().create("Motion Blur"      , MemberDesc(         ).setFunc(MotionMode  , MotionMode  )).setEnum(MotionMode_t, Elms(MotionMode_t)).desc("Blur fast moving objects");
+               props.New().create("Ambient Occlusion", MemberDesc(         ).setFunc(AO          , AO          )).setEnum(AO_t        , Elms(AO_t        )).desc("Darkens occluded areas");
+               props.New().create("Eye Adaptation"   , MemberDesc(DATA_BOOL).setFunc(EyeAdapt    , EyeAdapt    ))                                          .desc("Enables automatic screen brightness adjustment");
 //if(D.shaderModel()>=SM_5)props.New().create("Tesselation", MemberDesc(DATA_BOOL).setFunc(Tesselation, Tesselation))                                  ;
-               props.New().create("Gui Scale"        , MemberDesc(DATA_REAL).setFunc(Scale     , Scale     )).mouseEditSpeed(0.5f)
+               props.New().create("Gui Scale"        , MemberDesc(DATA_REAL).setFunc(Scale       , Scale       )).mouseEditSpeed(0.5f)
                #if MOBILE
                   .range(0.9f, 3.0f);
                #else

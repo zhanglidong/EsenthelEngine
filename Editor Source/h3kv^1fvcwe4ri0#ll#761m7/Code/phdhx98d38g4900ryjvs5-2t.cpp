@@ -109,9 +109,9 @@ class MiniMapEditor : PropWin
          D.viewFrom (ActiveCam.dist*0.01)  // set high 'from' to reduce depth buffer precision issues
           .viewRange(ActiveCam.dist*2   ); // set viewport range to cover the range from sky to ground and ground to underground
 
-         Renderer.allow_taa=false;
+         Renderer.allow_temporal=false;
          Renderer(MiniMapEditor.Render);
-         Renderer.allow_taa=true;
+         Renderer.allow_temporal=true;
 
          if(!final)D.pixelToScreen(RectI(viewport.centerI()).extend(res/2)).draw(RED, false);
 

@@ -462,13 +462,13 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       if(lodEditDist())
       {
          //D.motionMode(MOTION_NONE);
-         Renderer.allow_taa=false;
+         Renderer.allow_temporal=false;
       }
 
       Renderer(ObjView::Render);
 
       D.motionMode(motion);
-      Renderer.allow_taa=true;
+      Renderer.allow_temporal=true;
       Renderer.wire=false;
       AstrosDraw=astros;
       Water.draw=ocean;

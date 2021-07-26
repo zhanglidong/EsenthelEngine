@@ -337,7 +337,7 @@ IconEditor IconEdit;
       if(settings.auto_center)Cam.at+=(box()*matrix()).center();
       Cam.setSpherical(Cam.at, settings.cam_angle.x+PI, settings.cam_angle.y, settings.cam_angle.z, getDist()).set();
 
-      Renderer.allow_taa=false;
+      Renderer.allow_temporal=false;
       if(!final)Renderer(IconEditor::Render);else
       if(data)
       {
@@ -416,7 +416,7 @@ IconEditor IconEdit;
          setChanged(true);
          Save(col, Proj.gamePath(*elm)); Proj.savedGame(*elm);
       }
-      Renderer.allow_taa=true;
+      Renderer.allow_temporal=true;
 
       D.viewForceSquarePixel(false).viewFrom(view_from).viewRange(view_range).viewFov(view_fov);
       D.       shadowMode(shadow    ).shadowSoft(shadow_soft).shadowJitter(shadow_jitter).shadowMapNum(shd_map_num);

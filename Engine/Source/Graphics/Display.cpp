@@ -2912,6 +2912,7 @@ DisplayClass& DisplayClass::texMipMin(Byte min)
 }
 DisplayClass& DisplayClass::texMipBias(Flt bias)
 {
+   Clamp(bias, -16, 16);
    if(T._tex_mip_bias!=bias)
    {
       T._tex_mip_bias=bias;
@@ -2921,6 +2922,7 @@ DisplayClass& DisplayClass::texMipBias(Flt bias)
 }
 DisplayClass& DisplayClass::imageMipBias(Flt bias)
 {
+   Clamp(bias, -16, 16);
    if(T._image_mip_bias!=bias)
    {
       T._image_mip_bias=bias;
@@ -2930,6 +2932,7 @@ DisplayClass& DisplayClass::imageMipBias(Flt bias)
 }
 DisplayClass& DisplayClass::fontMipBias(Flt bias)
 {
+   Clamp(bias, -16, 16);
    if(T._font_mip_bias!=bias)
    {
       T._font_mip_bias=bias;
