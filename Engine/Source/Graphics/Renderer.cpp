@@ -410,7 +410,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_gl
    Sh.Img [1]->set(small_motion);
    Sh.ImgX[0]->set(_alpha);
    set(&dest, bloom_glow, null, null, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
-   Mtn.getBlur(Round(fx.y*(7.0f/1080)), D.dither() /*&& src.highPrecision()*/ && !dest.highPrecision(), _has_glow, alpha)->draw(src); // here blurring may generate high precision values, use 7 samples on a 1080 resolution #MotionBlurSamples
+   Mtn.getBlur(Round(fx.y*(7.0f/1080)), (D.dither() && !dest.highPrecision()) ? src.highPrecision() ? 1/*always: should be 2 but disabled because rarely used*/ : 1/*only in blur*/ : 0, _has_glow, alpha)->draw(src); // here blurring may generate high precision values, use 7 samples on a 1080 resolution #MotionBlurSamples
    return false;
 }
 /******************************************************************************/

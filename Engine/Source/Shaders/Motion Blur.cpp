@@ -612,12 +612,16 @@ VecH4 Blur_PS
          if(SHOW_BLUR_PIXELS)base.rgb.r+=0.1;
       }
 
+   #if DITHER==1 // only in blur
+      ApplyDither(base.rgb, pixel.xy);
+   #endif
+
    #if 0 // test how many samples were used for blurring
       base.rgb=steps/Half(SAMPLES);
    #endif
    }
 
-#if DITHER
+#if DITHER==2 // always
    ApplyDither(base.rgb, pixel.xy);
 #endif
 
