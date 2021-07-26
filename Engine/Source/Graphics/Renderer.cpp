@@ -1081,7 +1081,7 @@ start:
 
    // now 'col' and 'ds' are known, including their sizes
 
-   Sh.NoiseOffset->set(hasTemporal() ? NoiseOffsets[Time.frame()%Elms(NoiseOffsets)] : VecI2Zero); // use a set of predefined repeating offsets, because using always random generates too much flickering
+   Sh.NoiseOffset->set((hasTemporal() && D.temporalAntiAlias()) ? NoiseOffsets[Time.frame()%Elms(NoiseOffsets)] : VecI2Zero); // use a set of predefined repeating offsets, because using always random generates too much flickering
    
    D.alpha(ALPHA_NONE);
 
