@@ -557,7 +557,6 @@ void RendererClass::cleanup1()
       ctx.old_alpha=ctx.new_alpha; ctx.new_alpha.clear();
    #endif
       ctx.old_col  =ctx.new_col  ; ctx.new_col  .clear();
-      ctx.old_col1 =ctx.new_col1 ; ctx.new_col1 .clear();
    #if TEMPORAL_OLD_VEL
       ctx.old_vel  =ctx.new_vel  ; ctx.new_vel  .clear();
    #endif
@@ -982,22 +981,28 @@ void RendererClass::temporalCheck() // needs to be called after RT and viewport 
    if(hasTemporal())
    {
       Vec2 offset, prev_offset;
-      auto frame=Unsigned(Time.frame()), prev_frame=Unsigned(Time.frame()-1);
-      if(D.temporalSuperRes())
+      if(_temporal_reset) // if doesn't have previous RT
       {
-         Byte i=TemporalSuperResIndex[frame%Elms(TemporalSuperResIndex)];
-         Sh.TemporalCurPixel->set(TemporalSuperResIndexToOfsI(i));
-              offset=TemporalSuperResOffsets[     frame%Elms(TemporalSuperResOffsets)];
-         prev_offset=TemporalSuperResOffsets[prev_frame%Elms(TemporalSuperResOffsets)];
-         if(D.temporalAntiAlias())
-         {
-                 offset+=TemporalAntiAliasOffsets[(     frame/Elms(TemporalSuperResIndex))%Elms(TemporalAntiAliasOffsets)]*0.5f;
-            prev_offset+=TemporalAntiAliasOffsets[(prev_frame/Elms(TemporalSuperResIndex))%Elms(TemporalAntiAliasOffsets)]*0.5f;
-         }
+         offset.zero(); prev_offset.zero(); // render at center
       }else
       {
-              offset=TemporalAntiAliasOffsets[     frame%Elms(TemporalAntiAliasOffsets)];
-         prev_offset=TemporalAntiAliasOffsets[prev_frame%Elms(TemporalAntiAliasOffsets)];
+         auto frame=Unsigned(Time.frame()), prev_frame=Unsigned(Time.frame()-1);
+         if(D.temporalSuperRes())
+         {
+            Byte i=TemporalSuperResIndex[frame%Elms(TemporalSuperResIndex)];
+            Sh.TemporalCurPixel->set(TemporalSuperResIndexToOfsI(i));
+                 offset=TemporalSuperResOffsets[     frame%Elms(TemporalSuperResOffsets)];
+            prev_offset=TemporalSuperResOffsets[prev_frame%Elms(TemporalSuperResOffsets)];
+            if(D.temporalAntiAlias())
+            {
+                    offset+=TemporalAntiAliasOffsets[(     frame/Elms(TemporalSuperResIndex))%Elms(TemporalAntiAliasOffsets)]*0.5f;
+               prev_offset+=TemporalAntiAliasOffsets[(prev_frame/Elms(TemporalSuperResIndex))%Elms(TemporalAntiAliasOffsets)]*0.5f;
+            }
+         }else
+         {
+                 offset=TemporalAntiAliasOffsets[     frame%Elms(TemporalAntiAliasOffsets)];
+            prev_offset=TemporalAntiAliasOffsets[prev_frame%Elms(TemporalAntiAliasOffsets)];
+         }
       }
 
     C VecI2 &size       =res();
@@ -1708,18 +1713,17 @@ void RendererClass::temporal() // !! assumes 'resolveMultiSample' was already ca
       ImageRTDesc  rt_desc(_col->w(), _col->h(), IMAGERT_ONE); if(D.temporalSuperRes())rt_desc.size*=2;
       Bool         alpha=processAlphaFinal(),
             merged_alpha=(!TEMPORAL_SEPARATE_ALPHA && alpha),
-          separate_alpha=( TEMPORAL_SEPARATE_ALPHA && alpha),
-                    dual=false;//(!alpha && D.temporalDualHistory()); // dual incompatible with alpha #TemporalDual
+          separate_alpha=( TEMPORAL_SEPARATE_ALPHA && alpha);
       IMAGERT_TYPE col_type=GetImageRTType(D.glowAllow(), D.litColRTPrecision()); // #RTOutput
       if(!_ctx->new_data) // doesn't have new RT's yet
       {
-         IMAGERT_TYPE data_type=(merged_alpha ? IMAGERT_RGB : IMAGERT_TWO); // merged_alpha ? (X=alpha, Y=weight, Z=flicker) : (X=weight, Y=flicker); !! STORE ALPHA IN X SO IT CAN BE USED FOR '_alpha' RT !!
+         IMAGERT_TYPE data_type=(merged_alpha ? IMAGERT_TWO : IMAGERT_ONE); // merged_alpha ? (X=alpha, Y=flicker) : (X=flicker); !! STORE ALPHA IN X SO IT CAN BE USED FOR '_alpha' RT !!
          if(!_ctx->old_data) // doesn't have a previous frame yet
          {
            _ctx->old_data.get(rt_desc.type(data_type))->clearViewport();
-           _ctx->old_col .get(rt_desc.type( col_type))->clearViewport(); if(dual)_ctx->old_col1.get(rt_desc)->clearViewport(); // !! HERE 'col1' REUSES 'rt_desc.type' !!
+           _ctx->old_col .get(rt_desc.type( col_type))->clearViewport();
          }else
-         if((_ctx->old_data->typeChannels()>=3)!=merged_alpha) // format doesn't match
+         if((_ctx->old_data->typeChannels()>=2)!=merged_alpha) // format doesn't match
          {
            _ctx->old_data.get(rt_desc.type(data_type))->clearViewport();
          }else
@@ -1728,7 +1732,7 @@ void RendererClass::temporal() // !! assumes 'resolveMultiSample' was already ca
            _ctx->old_data->clearViewport(); // here clear only for current viewport
          }
         _ctx->new_data.get(rt_desc.type(data_type));
-        _ctx->new_col .get(rt_desc.type( col_type)); if(dual)_ctx->new_col1.get(rt_desc); // !! HERE 'col1' REUSES 'rt_desc.type' !!
+        _ctx->new_col .get(rt_desc.type( col_type));
       }else
       if(_temporal_reset)
       {
@@ -1758,11 +1762,11 @@ void RendererClass::temporal() // !! assumes 'resolveMultiSample' was already ca
 
       if(merged_alpha)
       {
-         Sh.Img  [3]->set(_ctx->old_data ); // old data with alpha
+         Sh.ImgXY[2]->set(_ctx->old_data ); // old data with alpha
       }else
       {
-         Sh.ImgXY[2]->set(_ctx->old_data ); // old data
-         Sh.ImgX [1]->set(_ctx->old_alpha); // old alpha
+         Sh.ImgX [1]->set(_ctx->old_data ); // old data
+         Sh.ImgX [2]->set(_ctx->old_alpha); // old alpha
       }
          Sh.Img  [0]->set(_col           ); // cur
          Sh.ImgX [0]->set(_alpha         ); // cur alpha
@@ -1781,7 +1785,7 @@ void RendererClass::temporal() // !! assumes 'resolveMultiSample' was already ca
          shader->draw(_stereo ? &D._view_eye_rect[_eye] : null);
       }
      _col=_ctx->new_col;
-      if(alpha)_alpha=(TEMPORAL_SEPARATE_ALPHA ? _ctx->new_alpha : _ctx->new_data); // !! Warning: for TEMPORAL_SEPARATE_ALPHA=0 '_alpha' may point to multi-channel "Alpha, Weight, Flicker", this assumes that '_alpha' will not be further modified, we can't do the same for '_col' because we may modify it !!
+      if(alpha)_alpha=(TEMPORAL_SEPARATE_ALPHA ? _ctx->new_alpha : _ctx->new_data); // !! Warning: for TEMPORAL_SEPARATE_ALPHA=0 '_alpha' may point to multi-channel "Alpha, Flicker", this assumes that '_alpha' will not be further modified, we can't do the same for '_col' because we may modify it !!
 
       temporalFinish();
    }

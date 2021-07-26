@@ -12,18 +12,15 @@ Img=Cur (ImgSize), Img1=Old (RTSize), ImgXY=CurVel (ImgSize), Depth (ImgSize)
 TEMPORAL_OLD_VEL=1
    ImgXY1=OldVel (ImgSize)
 
-DUAL_HISTORY=1
-   Img2=Old1 (RTSize)
-
 ALPHA=0
-   ImgXY2=Weight, Flicker
+   ImgX1=Flicker
 ALPHA=1
    ImgX=CurAlpha (ImgSize)
       MERGED_ALPHA=1
-         Img3=Alpha, Weight, Flicker
+         ImgXY2=Alpha, Flicker
       SEPARATE_ALPHA=1
-         ImgXY2=Weight, Flicker
-         ImgX1=Old Alpha
+         ImgX1=Flicker
+         ImgX2=Old Alpha
 
 
    Following code is used for flicker detection (assuming at least 2 big changes are needed in a cycle)
@@ -235,6 +232,7 @@ void NearestDepth(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather)
    depth=LinearizeDepth(depth);
 }
 /******************************************************************************/
+Flt Q;
 void Temporal_PS
 (
    NOPERSP Vec2 uv:UV,
@@ -242,9 +240,9 @@ void Temporal_PS
    NOPERSP PIXEL,
 #endif
     #if MERGED_ALPHA
-       out VecH  outData  :TARGET0,
-    #else
        out VecH2 outData  :TARGET0,
+    #else
+       out Half  outData  :TARGET0,
     #endif
     #if SEPARATE_ALPHA
        out Half  outAlpha :TARGET1,
@@ -267,14 +265,14 @@ void Temporal_PS
         old_tex=uv+vel;
 
    // OLD DATA (WEIGHT + FLICKER + ALPHA)
+   Half  old_weight=1;
 #if MERGED_ALPHA
-   VecH  old_data=TexLod(Img3, old_tex).xyz;
-   Half  old_alpha=old_data.x, old_weight=old_data.y, old_flicker=old_data.z;
+   VecH2 old_data=TexLod(ImgXY2, old_tex);
+   Half  old_alpha=old_data.x, old_flicker=old_data.y;
 #else
-   VecH2 old_data=TexLod(ImgXY2, old_tex).xy;
-   Half  old_weight=old_data.x, old_flicker=old_data.y;
+   Half  old_flicker=TexLod(ImgX1, old_tex);
 #if ALPHA
-   Half  old_alpha=TexLod(ImgX1, old_tex).x;
+   Half  old_alpha=TexLod(ImgX2, old_tex);
 #endif
 #endif
 
@@ -551,25 +549,25 @@ void Temporal_PS
    blend=Sat(blend); // this needs to affect 'old_weight_1' and not ('old_weight' and 'new_weight') because that would increase flickering and in some tests it caused jittered ghosting (some pixels will look brighter and some look darker, depending on the color difference between old and new)
 
 #if !DUAL_HISTORY
-   Half cur_weight=CUR_WEIGHT, new_weight=old_weight+cur_weight,
-        old_weight_1; // old_weight_1+cur_weight_1=1
+   Half old_weight_1; // old_weight_1+cur_weight_1=1
 #if SUPER
    VecI2 pix=pixel.xy; pix&=1;
    if(all(pix==TemporalCurPixel))
    {
       if(ANTI_ALIAS)
       {
+         Half new_weight=old_weight+CUR_WEIGHT;
          old_weight_1=(old_weight/new_weight)*(1-blend);
       }else
       {
          old_weight_1=0;
-         new_weight  =1;
       }
    }else
    {
       old_weight_1=old_weight*(1-blend);
    }
 #else
+   Half new_weight=old_weight+CUR_WEIGHT;
    old_weight_1=(old_weight/new_weight)*(1-blend);
 #endif
    Half cur_weight_1=1-old_weight_1;
@@ -584,11 +582,9 @@ void Temporal_PS
    #endif
    #if MERGED_ALPHA
       outData.x=new_alpha; // !! STORE ALPHA IN X CHANNEL SO IT CAN BE USED FOR '_alpha' RT !!
-      outData.y=new_weight;
-      outData.z=new_flicker;
-   #else
-      outData.x=new_weight;
       outData.y=new_flicker;
+   #else
+      outData=new_flicker;
    #if ALPHA
       outAlpha=new_alpha;
    #endif
