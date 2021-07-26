@@ -154,7 +154,7 @@ void ApplyVideoSettings(C TextData &data)
       if(C TextParam *p=video->findNode("ColorSpace"              ))D.colorSpace((COLOR_SPACE)p->asInt());
       if(C TextParam *p=video->findNode("Synchronization"         ))D.sync(p->asBool());
       if(C TextParam *p=video->findNode("Renderer"                ))Renderer.type(RENDER_TYPE(p->asInt()));
-      if(C TextParam *p=video->findNode("TemporalAntiAliasing"    ))VidOpt.temporalAntiAlias(p->asBool());
+      if(C TextParam *p=video->findNode("TemporalAntiAliasing"    ))D.temporalAntiAlias(p->asBool());
       if(C TextParam *p=video->findNode("EdgeSoftening"           ))D.edgeSoften(EDGE_SOFTEN_MODE(p->asInt()));
       if(C TextParam *p=video->findNode("Shadows"                 ))D.shadowMode(p->asBool() ? SHADOW_MAP : SHADOW_NONE);
       if(C TextParam *p=video->findNode("ShadowMapSize"           ))D.shadowMapSize(p->asInt());

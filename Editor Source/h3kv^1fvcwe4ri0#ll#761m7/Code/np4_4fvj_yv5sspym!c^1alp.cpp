@@ -398,10 +398,10 @@ sky_night_light=&props.New().create("Sky Night Light"            , MemberDesc(DA
    static void Sync        (  VideoOptions &vo, C Str &t) {       D.sync(TextBool(t));}
    static Str  Render      (C VideoOptions &vo          ) {return Renderer.type();}
    static void Render      (  VideoOptions &vo, C Str &t) {       Renderer.type(RENDER_TYPE(TextInt(t))); vo.setVis();}
-   static Str  TAA         (C VideoOptions &vo          ) {return D .temporalAntiAlias();}
-   static void TAA         (  VideoOptions &vo, C Str &t) {       vo.temporalAntiAlias(TextBool(t));}
-   static Str  TempSuperRes(C VideoOptions &vo          ) {return D .temporalSuperRes();}
-   static void TempSuperRes(  VideoOptions &vo, C Str &t) {       vo.temporalSuperRes(TextBool(t));}
+   static Str  TAA         (C VideoOptions &vo          ) {return D.temporalAntiAlias();}
+   static void TAA         (  VideoOptions &vo, C Str &t) {       D.temporalAntiAlias(TextBool(t));}
+   static Str  TempSuperRes(C VideoOptions &vo          ) {return D.temporalSuperRes();}
+   static void TempSuperRes(  VideoOptions &vo, C Str &t) {       D.temporalSuperRes(TextBool(t));}
    static Str  EdgeSoft    (C VideoOptions &vo          ) {return D.edgeSoften();}
    static void EdgeSoft    (  VideoOptions &vo, C Str &t) {       D.edgeSoften(EDGE_SOFTEN_MODE(TextInt(t)));}
    static Str  Shadow      (C VideoOptions &vo          ) {return D.shadowMode()==SHADOW_MAP;}
@@ -440,11 +440,8 @@ sky_night_light=&props.New().create("Sky Night Light"            , MemberDesc(DA
    {
       D.scale(scale_win ? scale*D.screenH()/flt(D.resH())*(0.79) : scale);
    }
-   void setScale         (flt  scale)  {T.scale    =scale; setScale();}
-   void setScaleWin      (bool scale)  {T.scale_win=scale; setScale();}
-   void setTexMipBias    (          )C {D.texMipBias(D.temporalAntiAlias() ? -0.5 : 0);} // !! Warning: this might still be used even though 'Renderer.allow_temporal' is off !! use only -0.5 because for movement when Temporal gets disabled, we would get flickering if value was smaller
-   void temporalAntiAlias(bool on   )C {D.temporalAntiAlias(on); setTexMipBias();}
-   void temporalSuperRes (bool on   )C {D.temporalSuperRes (on); setTexMipBias();}
+   void setScale   (flt  scale) {T.scale    =scale; setScale();}
+   void setScaleWin(bool scale) {T.scale_win=scale; setScale();}
 
    UID  skinID   (C Str &name)C {REPA(skins)if(skins[i].name==name)return skins[i].id; return UIDZero;}
    int  skinIndex(C UID &id  )C {REPA(skins)if(skins[i].id  ==id  )return i; return -1;}

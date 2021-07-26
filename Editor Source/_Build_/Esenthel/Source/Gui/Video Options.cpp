@@ -369,10 +369,10 @@ sky_night_light=&props.New().create("Sky Night Light"            , MemberDesc(DA
    void VideoOptions::Sync(  VideoOptions &vo, C Str &t) {       D.sync(TextBool(t));}
    Str  VideoOptions::Render(C VideoOptions &vo          ) {return Renderer.type();}
    void VideoOptions::Render(  VideoOptions &vo, C Str &t) {       Renderer.type(RENDER_TYPE(TextInt(t))); vo.setVis();}
-   Str  VideoOptions::TAA(C VideoOptions &vo          ) {return D .temporalAntiAlias();}
-   void VideoOptions::TAA(  VideoOptions &vo, C Str &t) {       vo.temporalAntiAlias(TextBool(t));}
-   Str  VideoOptions::TempSuperRes(C VideoOptions &vo          ) {return D .temporalSuperRes();}
-   void VideoOptions::TempSuperRes(  VideoOptions &vo, C Str &t) {       vo.temporalSuperRes(TextBool(t));}
+   Str  VideoOptions::TAA(C VideoOptions &vo          ) {return D.temporalAntiAlias();}
+   void VideoOptions::TAA(  VideoOptions &vo, C Str &t) {       D.temporalAntiAlias(TextBool(t));}
+   Str  VideoOptions::TempSuperRes(C VideoOptions &vo          ) {return D.temporalSuperRes();}
+   void VideoOptions::TempSuperRes(  VideoOptions &vo, C Str &t) {       D.temporalSuperRes(TextBool(t));}
    Str  VideoOptions::EdgeSoft(C VideoOptions &vo          ) {return D.edgeSoften();}
    void VideoOptions::EdgeSoft(  VideoOptions &vo, C Str &t) {       D.edgeSoften(EDGE_SOFTEN_MODE(TextInt(t)));}
    Str  VideoOptions::Shadow(C VideoOptions &vo          ) {return D.shadowMode()==SHADOW_MAP;}
@@ -403,11 +403,8 @@ sky_night_light=&props.New().create("Sky Night Light"            , MemberDesc(DA
    {
       D.scale(scale_win ? scale*D.screenH()/flt(D.resH())*(0.79f) : scale);
    }
-   void VideoOptions::setScale(flt  scale)  {T.scale    =scale; setScale();}
-   void VideoOptions::setScaleWin(bool scale)  {T.scale_win=scale; setScale();}
-   void VideoOptions::setTexMipBias(          )C {D.texMipBias(D.temporalAntiAlias() ? -0.5f : 0);}
-   void VideoOptions::temporalAntiAlias(bool on   )C {D.temporalAntiAlias(on); setTexMipBias();}
-   void VideoOptions::temporalSuperRes(bool on   )C {D.temporalSuperRes (on); setTexMipBias();}
+   void VideoOptions::setScale(flt  scale) {T.scale    =scale; setScale();}
+   void VideoOptions::setScaleWin(bool scale) {T.scale_win=scale; setScale();}
    UID  VideoOptions::skinID(C Str &name)C {REPA(skins)if(skins[i].name==name)return skins[i].id; return UIDZero;}
    int  VideoOptions::skinIndex(C UID &id  )C {REPA(skins)if(skins[i].id  ==id  )return i; return -1;}
    Str  VideoOptions::skinName(           )C {return skin ? skin->combobox.text : S;}

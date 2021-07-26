@@ -216,11 +216,8 @@ public:
    static void ShowAdvanced(VideoOptions &vo);
 
    void setScale();
-   void setScale         (flt  scale); 
-   void setScaleWin      (bool scale); 
-   void setTexMipBias    (          )C; // !! Warning: this might still be used even though 'Renderer.allow_temporal' is off !! use only -0.5 because for movement when Temporal gets disabled, we would get flickering if value was smaller
-   void temporalAntiAlias(bool on   )C;
-   void temporalSuperRes (bool on   )C;
+   void setScale   (flt  scale);
+   void setScaleWin(bool scale);
 
    UID  skinID   (C Str &name)C;
    int  skinIndex(C UID &id  )C;

@@ -2744,29 +2744,33 @@ DisplayClass& DisplayClass::smaaThreshold(Flt threshold)
 {
    SAT(threshold); _smaa_threshold=threshold; Sh.SMAAThreshold->setConditional(_smaa_threshold); return T;
 }
-static void LoadTemporal()
+static void ChangedTemporal()
 {
-   if(!Sh.TemporalOffset && D.temporal() && D.created())
+   if(D.created())
    {
-      ShaderFile &sf=*ShaderFiles("Temporal");
-      REPD(mode     , 3)
-      REPD(view_full, 2)
-      REPD(alpha    , 2)
-         Sh.Temporal[mode][view_full][alpha]=sf.get(S+"Temporal"+mode+view_full+alpha+D.gatherChannelAvailable()+D.filterMinMaxAvailable());
+      if(!Sh.TemporalOffset && D.temporal())
+      {
+         ShaderFile &sf=*ShaderFiles("Temporal");
+         REPD(mode     , 3)
+         REPD(view_full, 2)
+         REPD(alpha    , 2)
+            Sh.Temporal[mode][view_full][alpha]=sf.get(S+"Temporal"+mode+view_full+alpha+D.gatherChannelAvailable()+D.filterMinMaxAvailable());
 
-      Sh.TemporalOffset           =GetShaderParam   ("TemporalOffset");
-      Sh.TemporalOffsetCurToPrev  =GetShaderParam   ("TemporalOffsetCurToPrev");
-      Sh.TemporalOffsetGatherIndex=GetShaderParamInt("TemporalOffsetGatherIndex");
-      Sh.TemporalCurPixel         =GetShaderParamInt("TemporalCurPixel");
+         Sh.TemporalOffset           =GetShaderParam   ("TemporalOffset");
+         Sh.TemporalOffsetCurToPrev  =GetShaderParam   ("TemporalOffsetCurToPrev");
+         Sh.TemporalOffsetGatherIndex=GetShaderParamInt("TemporalOffsetGatherIndex");
+         Sh.TemporalCurPixel         =GetShaderParamInt("TemporalCurPixel");
+      }
+      D.temporalReset();
    }
+   D.texMipBias(D.temporalAntiAlias()*-0.5f + D.temporalSuperRes()*-1);
 }
 DisplayClass& DisplayClass::temporalAntiAlias(Bool on)
 {
    if(temporalAntiAlias()!=on)
    {
      _temp_anti_alias=on;
-      LoadTemporal();
-      temporalReset();
+      ChangedTemporal();
    }
    return T;
 }
@@ -2775,8 +2779,7 @@ DisplayClass& DisplayClass::temporalSuperRes(Bool on)
    if(temporalSuperRes()!=on)
    {
      _temp_super_res=on;
-      LoadTemporal();
-      temporalReset();
+      ChangedTemporal();
    }
    return T;
 }
