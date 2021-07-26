@@ -1727,7 +1727,9 @@ void RendererClass::temporal() // !! assumes 'resolveMultiSample' was already ca
          }
       }
       if(_temporal_reset // RT's just got created or rendering to new sub-context (viewport)
-   #if !TEMPORAL_SEPARATE_ALPHA
+   #if TEMPORAL_SEPARATE_ALPHA
+      || alpha && !_ctx->old_alpha // want alpha but doesn't have old
+   #else
       || (_ctx->old_data->typeChannels()>=2)!=merged_alpha // format doesn't match
    #endif
       )
