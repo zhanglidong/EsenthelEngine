@@ -156,10 +156,11 @@ struct ShaderCompiler
       Shader& gatherChannel(       ) {MAX(model, SM_5  );    return T;} // SM_5   needed for Texture Gather per-channel
       Shader& gatherChannel(Bool on) {if(on)gatherChannel(); return T;} // SM_5   needed for Texture Gather per-channel
 
-      Shader& operator()(C Str &n0, C Str &v0                                                                     ) {params.New().set(n0, v0);                                                                               return T;}
-      Shader& operator()(C Str &n0, C Str &v0,  C Str &n1, C Str &v1                                              ) {params.New().set(n0, v0); params.New().set(n1, v1);                                                     return T;}
-      Shader& operator()(C Str &n0, C Str &v0,  C Str &n1, C Str &v1,  C Str &n2, C Str &v2                       ) {params.New().set(n0, v0); params.New().set(n1, v1); params.New().set(n2, v2);                           return T;}
-      Shader& operator()(C Str &n0, C Str &v0,  C Str &n1, C Str &v1,  C Str &n2, C Str &v2,  C Str &n3, C Str &v3) {params.New().set(n0, v0); params.New().set(n1, v1); params.New().set(n2, v2); params.New().set(n3, v3); return T;}
+      Shader& operator()(C Str &n0, C Str &v0                                                                                            ) {params.New().set(n0, v0);                                                                                                         return T;}
+      Shader& operator()(C Str &n0, C Str &v0,  C Str &n1, C Str &v1                                                                     ) {params.New().set(n0, v0); params.New().set(n1, v1);                                                                               return T;}
+      Shader& operator()(C Str &n0, C Str &v0,  C Str &n1, C Str &v1,  C Str &n2, C Str &v2                                              ) {params.New().set(n0, v0); params.New().set(n1, v1); params.New().set(n2, v2);                                                     return T;}
+      Shader& operator()(C Str &n0, C Str &v0,  C Str &n1, C Str &v1,  C Str &n2, C Str &v2,  C Str &n3, C Str &v3                       ) {params.New().set(n0, v0); params.New().set(n1, v1); params.New().set(n2, v2); params.New().set(n3, v3);                           return T;}
+      Shader& operator()(C Str &n0, C Str &v0,  C Str &n1, C Str &v1,  C Str &n2, C Str &v2,  C Str &n3, C Str &v3,  C Str &n4, C Str &v4) {params.New().set(n0, v0); params.New().set(n1, v1); params.New().set(n2, v2); params.New().set(n3, v3); params.New().set(n4, v4); return T;}
 
       Shader& extra(C Str &n0, C Str &v0                                                                     ) {extra_params.New().set(n0, v0);                                                                                                 return T;}
       Shader& extra(C Str &n0, C Str &v0,  C Str &n1, C Str &v1                                              ) {extra_params.New().set(n0, v0); extra_params.New().set(n1, v1);                                                                 return T;}

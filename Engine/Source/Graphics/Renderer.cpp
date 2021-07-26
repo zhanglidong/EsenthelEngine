@@ -1714,75 +1714,64 @@ void RendererClass::temporal() // !! assumes 'resolveMultiSample' was already ca
       Bool         alpha=processAlphaFinal(),
             merged_alpha=(!TEMPORAL_SEPARATE_ALPHA && alpha),
           separate_alpha=( TEMPORAL_SEPARATE_ALPHA && alpha);
-      IMAGERT_TYPE col_type=GetImageRTType(D.glowAllow(), D.litColRTPrecision()); // #RTOutput
       if(!_ctx->new_data) // doesn't have new RT's yet
       {
-         IMAGERT_TYPE data_type=(merged_alpha ? IMAGERT_TWO : IMAGERT_ONE); // merged_alpha ? (X=alpha, Y=flicker) : (X=flicker); !! STORE ALPHA IN X SO IT CAN BE USED FOR '_alpha' RT !!
-         if(!_ctx->old_data) // doesn't have a previous frame yet
-         {
-           _ctx->old_data.get(rt_desc.type(data_type))->clearViewport();
-           _ctx->old_col .get(rt_desc.type( col_type))->clearViewport();
-         }else
-         if((_ctx->old_data->typeChannels()>=2)!=merged_alpha) // format doesn't match
-         {
-           _ctx->old_data.get(rt_desc.type(data_type))->clearViewport();
-         }else
-         if(_temporal_reset) // want to reset
-         {
-           _ctx->old_data->clearViewport(); // here clear only for current viewport
-         }
-        _ctx->new_data.get(rt_desc.type(data_type));
-        _ctx->new_col .get(rt_desc.type( col_type));
-      }else
-      if(_temporal_reset)
-      {
-        _ctx->old_data->clearViewport(); // here clear only for current viewport
+        _ctx->new_data.get(rt_desc.type(merged_alpha ? IMAGERT_TWO : IMAGERT_ONE)); // merged_alpha ? (X=alpha, Y=flicker) : (X=flicker); !! STORE ALPHA IN X SO IT CAN BE USED FOR '_alpha' RT !!
+        _ctx->new_col .get(rt_desc.type(GetImageRTType(D.glowAllow(), D.litColRTPrecision()))); // #RTOutput
       }
       if(separate_alpha)
       {
          if(!_ctx->new_alpha) // doesn't have new RT's yet
          {
-            if(!_ctx->old_alpha) // doesn't have a previous frame yet
-            {
-              _ctx->old_alpha.get(rt_desc.type(IMAGERT_ONE))->clearViewport();
-            }else
-            if(_temporal_reset) // want to reset
-            {
-              _ctx->old_alpha->clearViewport(); // here clear only for current viewport
-            }
            _ctx->new_alpha.get(rt_desc.type(IMAGERT_ONE));
-         }else
-         if(_temporal_reset)
-         {
-           _ctx->old_alpha->clearViewport(); // here clear only for current viewport
          }
       }
-      set(_ctx->new_data, _ctx->new_alpha, _ctx->new_col, null, null, true); // #TemporalDual
-      D.alpha(ALPHA_NONE);
-
-      if(merged_alpha)
+      if(_temporal_reset // RT's just got created or rendering to new sub-context (viewport)
+      || (_ctx->old_data->typeChannels()>=2)!=merged_alpha) // format doesn't match
       {
-         Sh.ImgXY[2]->set(_ctx->old_data ); // old data with alpha
+         REPS(_eye, _eye_num)
+         {
+          C Rect &rect=(_stereo ? D._view_eye_rect[_eye] : D.viewRect());
+           _col->copyHw(*_ctx->new_col, false, rect);
+            if(merged_alpha)
+            {
+               if(_alpha)_alpha->copyHw(*_ctx->new_data, false, rect);else _ctx->new_data->clearViewport();
+            }else
+            {
+                                                                                                _ctx->new_data ->clearViewport();
+               if(_ctx->new_alpha){if(_alpha)_alpha->copyHw(*_ctx->new_alpha, false, rect);else _ctx->new_alpha->clearViewport();}
+            }
+         }
       }else
       {
-         Sh.ImgX [1]->set(_ctx->old_data ); // old data
-         Sh.ImgX [2]->set(_ctx->old_alpha); // old alpha
-      }
-         Sh.Img  [0]->set(_col           ); // cur
-         Sh.ImgX [0]->set(_alpha         ); // cur alpha
-         Sh.Img  [1]->set(_ctx->old_col  ); // old
-         Sh.ImgXY[0]->set(_vel           ); // velocity
-      #if TEMPORAL_OLD_VEL
-         Sh.ImgXY[1]->set(_ctx->old_vel  ); // old velocity
-      #endif
+         set(_ctx->new_data, _ctx->new_alpha, _ctx->new_col, null, null, true);
+         D.alpha(ALPHA_NONE);
 
-      Sh.imgSize(*_col); // this is needed for Cubic Sampler and SUPER
-      Shader *shader=Sh.Temporal[D.temporalAntiAlias()+2*D.temporalSuperRes()-1][D._view_main.full][alpha]; // #TemporalDual
-      REPS(_eye, _eye_num)
-      {
-         Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), rt_desc.size));
-         shader->draw(_stereo ? &D._view_eye_rect[_eye] : null);
+         if(merged_alpha)
+         {
+            Sh.ImgXY[2]->set(_ctx->old_data ); // old data with alpha
+         }else
+         {
+            Sh.ImgX [1]->set(_ctx->old_data ); // old data
+            Sh.ImgX [2]->set(_ctx->old_alpha); // old alpha
+         }
+            Sh.Img  [0]->set(_col           ); // cur
+            Sh.ImgX [0]->set(_alpha         ); // cur alpha
+            Sh.Img  [1]->set(_ctx->old_col  ); // old
+            Sh.ImgXY[0]->set(_vel           ); // velocity
+         #if TEMPORAL_OLD_VEL
+            Sh.ImgXY[1]->set(_ctx->old_vel  ); // old velocity
+         #endif
+
+         Sh.imgSize(*_col); // this is needed for Cubic Sampler and SUPER
+         Shader *shader=Sh.Temporal[D.temporalAntiAlias()+2*D.temporalSuperRes()-1][D._view_main.full][alpha];
+         REPS(_eye, _eye_num)
+         {
+            Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), rt_desc.size));
+            shader->draw(_stereo ? &D._view_eye_rect[_eye] : null);
+         }
       }
+
      _col=_ctx->new_col;
       if(alpha)_alpha=(TEMPORAL_SEPARATE_ALPHA ? _ctx->new_alpha : _ctx->new_data); // !! Warning: for TEMPORAL_SEPARATE_ALPHA=0 '_alpha' may point to multi-channel "Alpha, Flicker", this assumes that '_alpha' will not be further modified, we can't do the same for '_col' because we may modify it !!
 

@@ -78,10 +78,6 @@ ALPHA=1
    #include "Cubic.h"
 #endif
 
-#if ALPHA
-   #undef DUAL_HISTORY // #TemporalDual
-#endif
-
 #define MERGE_CUBIC_MIN_MAX 0 // Actually disable since it causes ghosting (visible when rotating camera around a character in the dungeons, perhaps range for MIN MAX can't be big), enable since this version is slightly better because: uses 12 tex reads (4*4 -4 corners), uses 12 samples for MIN/MAX which reduces flickering a bit, however has a lot more arithmetic calculations because of min/max x12 and each sample color is multiplied by weight separately
 
 #define DUAL_ADJUST_OLD 1
@@ -239,18 +235,15 @@ void Temporal_PS
 #if SUPER
    NOPERSP PIXEL,
 #endif
-    #if MERGED_ALPHA
-       out VecH2 outData  :TARGET0,
-    #else
-       out Half  outData  :TARGET0,
-    #endif
-    #if SEPARATE_ALPHA
-       out Half  outAlpha :TARGET1,
-    #endif
-       out VecH4 outCol   :TARGET2
-    #if DUAL_HISTORY
-     , out VecH4 outCol1  :TARGET3 // #TemporalDual
-    #endif
+ #if MERGED_ALPHA
+    out VecH2 outData  :TARGET0,
+ #else
+    out Half  outData  :TARGET0,
+ #endif
+ #if SEPARATE_ALPHA
+    out Half  outAlpha :TARGET1,
+ #endif
+    out VecH4 outCol   :TARGET2
 )
 {
    // GET DEPTH
