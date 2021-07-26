@@ -1727,7 +1727,10 @@ void RendererClass::temporal() // !! assumes 'resolveMultiSample' was already ca
          }
       }
       if(_temporal_reset // RT's just got created or rendering to new sub-context (viewport)
-      || (_ctx->old_data->typeChannels()>=2)!=merged_alpha) // format doesn't match
+   #if !TEMPORAL_SEPARATE_ALPHA
+      || (_ctx->old_data->typeChannels()>=2)!=merged_alpha // format doesn't match
+   #endif
+      )
       {
          REPS(_eye, _eye_num)
          {
