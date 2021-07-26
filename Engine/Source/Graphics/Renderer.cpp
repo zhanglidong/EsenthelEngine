@@ -1771,7 +1771,6 @@ void RendererClass::temporal() // !! assumes 'resolveMultiSample' was already ca
          Sh.Img  [0]->set(_col           ); // cur
          Sh.ImgX [0]->set(_alpha         ); // cur alpha
          Sh.Img  [1]->set(_ctx->old_col  ); // old
-         Sh.Img  [2]->set(_ctx->old_col1 ); // old1
          Sh.ImgXY[0]->set(_vel           ); // velocity
       #if TEMPORAL_OLD_VEL
          Sh.ImgXY[1]->set(_ctx->old_vel  ); // old velocity
