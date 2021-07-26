@@ -20,7 +20,7 @@ namespace EE{
 static inline Bool NeedBackgroundNrm() {return (!Sky.isActual() && D.envMap()) || D.aoWant() && D.ambientNormal() || Renderer.stage==RS_NORMAL;}
 static inline Bool NeedBackgroundExt() {return (!Sky.isActual() && D.envMap()) || Renderer.stage==RS_SMOOTH || Renderer.stage==RS_REFLECT || Renderer.stage==RS_LIT_COLOR;}
 /******************************************************************************/
-static const Vec2 TAAOffsets[]=
+static const Vec2 TemporalOffsets[]=
 {
 #if 1 // 8 samples (good enough quality and smaller flickering)
    #if 1 // Halton (smaller flickering), REPAO(TAAOffsets).set(Halton(i+1, 2)*2-1, Halton(i+1, 3)*2-1)
@@ -33,38 +33,48 @@ static const Vec2 TAAOffsets[]=
       {-0.250f*TAA_MUL, -0.555555522f*TAA_MUL},
       { 0.750f*TAA_MUL,  0.111111164f*TAA_MUL},
       {-0.875f*TAA_MUL,  0.777777910f*TAA_MUL},
+   #if 1 // Halton (smaller flickering), REPAO(TemporalOffsets).set(Halton(i+1, 2)*2-1, Halton(i+1, 3)*2-1)
+      #define TEMPORAL_MUL 1.1f // this makes AA more smooth
+      { 0.000f*TEMPORAL_MUL, -0.333333313f*TEMPORAL_MUL},
+      {-0.500f*TEMPORAL_MUL,  0.333333373f*TEMPORAL_MUL},
+      { 0.500f*TEMPORAL_MUL, -0.777777791f*TEMPORAL_MUL},
+      {-0.750f*TEMPORAL_MUL, -0.111111045f*TEMPORAL_MUL},
+      { 0.250f*TEMPORAL_MUL,  0.555555582f*TEMPORAL_MUL},
+      {-0.250f*TEMPORAL_MUL, -0.555555522f*TEMPORAL_MUL},
+      { 0.750f*TEMPORAL_MUL,  0.111111164f*TEMPORAL_MUL},
+      {-0.875f*TEMPORAL_MUL,  0.777777910f*TEMPORAL_MUL},
    #else // ARM sorted
-      #define TAA_MUL (1.0f/8.0f)
-      {-1*TAA_MUL, -3*TAA_MUL},
-      { 1*TAA_MUL,  3*TAA_MUL},
-      { 5*TAA_MUL, -1*TAA_MUL},
-      {-3*TAA_MUL,  5*TAA_MUL},
-      {-7*TAA_MUL,  1*TAA_MUL},
-      {-5*TAA_MUL, -5*TAA_MUL},
-      { 3*TAA_MUL, -7*TAA_MUL},
-      { 7*TAA_MUL,  7*TAA_MUL},
+      #define TEMPORAL_MUL (1.0f/8.0f)
+      {-1*TEMPORAL_MUL, -3*TEMPORAL_MUL},
+      { 1*TEMPORAL_MUL,  3*TEMPORAL_MUL},
+      { 5*TEMPORAL_MUL, -1*TEMPORAL_MUL},
+      {-3*TEMPORAL_MUL,  5*TEMPORAL_MUL},
+      {-7*TEMPORAL_MUL,  1*TEMPORAL_MUL},
+      {-5*TEMPORAL_MUL, -5*TEMPORAL_MUL},
+      { 3*TEMPORAL_MUL, -7*TEMPORAL_MUL},
+      { 7*TEMPORAL_MUL,  7*TEMPORAL_MUL},
    #endif
 #else // 16 samples ARM (better quality however much bigger flickering)
-   #define TAA_MUL (1.0f/8.0f)
-	{-8*TAA_MUL,  0*TAA_MUL},
-	{-6*TAA_MUL, -4*TAA_MUL},
-	{-3*TAA_MUL, -2*TAA_MUL},
-	{-2*TAA_MUL, -6*TAA_MUL},
-	{ 1*TAA_MUL, -1*TAA_MUL},
-	{ 2*TAA_MUL, -5*TAA_MUL},
-	{ 6*TAA_MUL, -7*TAA_MUL},
-	{ 5*TAA_MUL, -3*TAA_MUL},
-	{ 4*TAA_MUL,  1*TAA_MUL},
-	{ 7*TAA_MUL,  4*TAA_MUL},
-	{ 3*TAA_MUL,  5*TAA_MUL},
-	{ 0*TAA_MUL,  7*TAA_MUL},
-	{-1*TAA_MUL,  3*TAA_MUL},
-	{-4*TAA_MUL,  6*TAA_MUL},
-	{-7*TAA_MUL,  8*TAA_MUL},
-   {-5*TAA_MUL,  2*TAA_MUL},
+   #define TEMPORAL_MUL (1.0f/8.0f)
+	{-8*TEMPORAL_MUL,  0*TEMPORAL_MUL},
+	{-6*TEMPORAL_MUL, -4*TEMPORAL_MUL},
+	{-3*TEMPORAL_MUL, -2*TEMPORAL_MUL},
+	{-2*TEMPORAL_MUL, -6*TEMPORAL_MUL},
+	{ 1*TEMPORAL_MUL, -1*TEMPORAL_MUL},
+	{ 2*TEMPORAL_MUL, -5*TEMPORAL_MUL},
+	{ 6*TEMPORAL_MUL, -7*TEMPORAL_MUL},
+	{ 5*TEMPORAL_MUL, -3*TEMPORAL_MUL},
+	{ 4*TEMPORAL_MUL,  1*TEMPORAL_MUL},
+	{ 7*TEMPORAL_MUL,  4*TEMPORAL_MUL},
+	{ 3*TEMPORAL_MUL,  5*TEMPORAL_MUL},
+	{ 0*TEMPORAL_MUL,  7*TEMPORAL_MUL},
+	{-1*TEMPORAL_MUL,  3*TEMPORAL_MUL},
+	{-4*TEMPORAL_MUL,  6*TEMPORAL_MUL},
+	{-7*TEMPORAL_MUL,  8*TEMPORAL_MUL},
+   {-5*TEMPORAL_MUL,  2*TEMPORAL_MUL},
 #endif
 };
-#undef TAA_MUL
+#undef TEMPORAL_MUL
 static const VecI2 NoiseOffsets[]= // these should be spread out across entire noise image and not close together
 {
    {-1*NOISE_IMAGE_RES/16, -3*NOISE_IMAGE_RES/16},
@@ -103,7 +113,7 @@ static void ShutMshr()
 RendererClass::Context::Sub::Sub()
 {
  //used=true; not needed since we always set 'used=true' when accessing/creating new subs
-   proj_matrix_prev=ProjMatrix; // copy from current (needed for MotionBlur and TAA)
+   proj_matrix_prev=ProjMatrix; // copy from current (needed for MotionBlur and Temporal)
 }
 /******************************************************************************/
 RendererClass::RendererClass() : material_color_l(null), highlight(null)
@@ -117,17 +127,17 @@ RendererClass::RendererClass() : material_color_l(null), highlight(null)
    clear_color.zero();
    ms_samples_color.zero();
    target=null;
-   taa_id=null;
+   temporal_id=null;
 
   _mode=RM_OPAQUE;
   _mesh_blend_alpha=ALPHA_NONE;
-  _has_glow=_has_fur=_mirror=_mirror_want=_mirror_shadows=_palette_mode=_eye_adapt_scale_cur=_t_measure=_set_depth_needed=_get_target=_stereo=_mesh_early_z=_mesh_shader_vel=_taa_use=_taa_reset=false;
+  _has_glow=_has_fur=_mirror=_mirror_want=_mirror_shadows=_palette_mode=_eye_adapt_scale_cur=_t_measure=_set_depth_needed=_get_target=_stereo=_mesh_early_z=_mesh_shader_vel=_temporal_use=_temporal_reset=false;
   _outline=_clear=0;
   _mirror_priority=_mirror_resolution=0;
   _frst_light_offset=_blst_light_offset=0;
   _res.zero();
   _pixel_size.zero(); _pixel_size_inv.zero();
-  _taa_offset.zero();
+  _temporal_offset.zero();
   _clip.zero();
   _mirror_plane.zero();
   _shader_early_z=_shader_shd_map=_shader_shd_map_skin=null;
@@ -141,7 +151,7 @@ RendererClass::RendererClass() : material_color_l(null), highlight(null)
 
   _opaque_mode_index=RM_OPAQUE;
 
-   allow_taa=true;
+   allow_temporal=true;
   _ctx_sub=&_ctx_sub_dummy;
 
    lowest_visible_point=-DBL_MAX;
@@ -319,7 +329,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_gl
    D.alpha(ALPHA_NONE);
 
    VecI2 fx=T.fx();
-   if(!_vel) // MOTION_CAMERA, however can already be set for TAA
+   if(!_vel) // MOTION_CAMERA, however can already be set for Temporal
    {
      _vel.get(ImageRTDesc(fx.x, fx.y, IMAGERT_TWO_H));
       set(_vel, null, true);
@@ -541,14 +551,14 @@ void RendererClass::cleanup1()
    REPA(_ctxs)
    {
       Context &ctx=_ctxs[i];
-      ctx.taa_old_data =ctx.taa_new_data ; ctx.taa_new_data .clear();
-   #if TAA_SEPARATE_ALPHA
-      ctx.taa_old_alpha=ctx.taa_new_alpha; ctx.taa_new_alpha.clear();
+      ctx.old_data =ctx.new_data ; ctx.new_data .clear();
+   #if TEMPORAL_SEPARATE_ALPHA
+      ctx.old_alpha=ctx.new_alpha; ctx.new_alpha.clear();
    #endif
-      ctx.taa_old_col  =ctx.taa_new_col  ; ctx.taa_new_col  .clear();
-      ctx.taa_old_col1 =ctx.taa_new_col1 ; ctx.taa_new_col1 .clear();
-   #if TAA_OLD_VEL
-      ctx.taa_old_vel  =ctx.taa_new_vel  ; ctx.taa_new_vel  .clear();
+      ctx.old_col  =ctx.new_col  ; ctx.new_col  .clear();
+      ctx.old_col1 =ctx.new_col1 ; ctx.new_col1 .clear();
+   #if TEMPORAL_OLD_VEL
+      ctx.old_vel  =ctx.new_vel  ; ctx.new_vel  .clear();
    #endif
       REPA(ctx.subs)
       {
@@ -595,8 +605,8 @@ RendererClass& RendererClass::operator()(void (&render)())
    }else
   _final=(_stereo ? VR.getRender() : _cur_main);
 
-  _ctx=_ctxs(taa_id);
-  _ctx_sub=_ctx->subs(D._view_main.recti, _taa_reset); _ctx_sub->used=true; // find a unique sub-context based on main viewport rectangle, set '_taa_reset' as 'just_created' to force reset TAA when creating new sub, mark that it was used in this frame
+  _ctx=_ctxs(temporal_id);
+  _ctx_sub=_ctx->subs(D._view_main.recti, _temporal_reset); _ctx_sub->used=true; // find a unique sub-context based on main viewport rectangle, set '_temporal_reset' as 'just_created' to force reset Temporal when creating new sub, mark that it was used in this frame
 
    if(VR.active())D.setViewFovTan(); // !! call after setting _stereo and _render !!
 
@@ -735,8 +745,8 @@ RendererClass& RendererClass::operator()(void (&render)())
 
    // cleanup
    {
-      tAAFinish();
-     _ctx_sub->proj_matrix_prev=ProjMatrix; // set always because needed for MotionBlur and TAA
+      temporalFinish();
+     _ctx_sub->proj_matrix_prev=ProjMatrix; // set always because needed for MotionBlur and Temporal
      _ctx_sub=&_ctx_sub_dummy;
      _ctx    =null;
      _render =null; // this specifies that we're outside of Rendering
@@ -847,8 +857,8 @@ Bool RendererClass::reflection()
    return false;
 }
 /******************************************************************************/
-Bool RendererClass::wantTAA()C {return allow_taa && D.tAA() && _cur_type==RT_DEFERRED && D._max_rt>=4;} // requires Vel RT which is only in Deferred and has slot #3 #RTOutput
-Bool RendererClass:: hasTAA()C {return wantTAA() && !fastCombine();}
+Bool RendererClass::wantTemporal()C {return allow_temporal && D.temporal() && _cur_type==RT_DEFERRED && D._max_rt>=4;} // requires Vel RT which is only in Deferred and has slot #3 #RTOutput
+Bool RendererClass:: hasTemporal()C {return wantTemporal() && !fastCombine();}
 
 Bool RendererClass:: hasEdgeSoften()C {return wantEdgeSoften() && !fastCombine();}
 Bool RendererClass::wantEdgeSoften()C
@@ -863,7 +873,7 @@ Bool RendererClass::wantEdgeSoften()C
    }
    return false;
 }
-Bool RendererClass::wantDepth         ()C {return wantTAA() || wantMotion() || wantDof() || D.aoWant() || D.edgeDetect() || D.particlesSoft() || D.volLight() || Sky.wantDepth() || Clouds.wantDepth() || Fog.draw || Sun.wantDepth() || !Water.max1Light();} // TODO: even though we check all known things here, there are still some things about we don't know up-front (like local fog, decals, Image.drawVolume, ..)
+Bool RendererClass::wantDepth         ()C {return wantTemporal() || wantMotion() || wantDof() || D.aoWant() || D.edgeDetect() || D.particlesSoft() || D.volLight() || Sky.wantDepth() || Clouds.wantDepth() || Fog.draw || Sun.wantDepth() || !Water.max1Light();} // TODO: even though we check all known things here, there are still some things about we don't know up-front (like local fog, decals, Image.drawVolume, ..)
 Bool RendererClass::canReadDepth      ()C {return        _ds->depthTexture();} // have to check '_ds' because this is the original source depth, it can be multi-sampled (in that case it's possible depth reading won't be available), but '_ds_1s' is 1-sampled (and could have depth-reads even if '_ds' doesn't)
 Bool RendererClass::safeCanReadDepth  ()C {return _ds && _ds->depthTexture();}
 Bool RendererClass::hasStencilAttached()C {return hasDepthAttached() && _cur_ds->hwTypeInfo().s;}
@@ -966,34 +976,34 @@ void RendererClass::setDS()
    if(_col== _cur_main)_ds= _cur_main_ds;else // reuse '_cur_main_ds' if we're rendering to '_cur_main'
                        _ds.getDS(_col->w(), _col->h(), _col->samples()); // create a new one
 }
-void RendererClass::tAACheck() // needs to be called after RT and viewport were set
+void RendererClass::temporalCheck() // needs to be called after RT and viewport were set
 {
-   if(hasTAA())
+   if(hasTemporal())
    {
     C VecI2 &size       =res();
     C Vec2  &offset     =TAAOffsets[         Time.frame()   %Elms(TAAOffsets)];
     C Vec2  &offset_prev=TAAOffsets[Unsigned(Time.frame()-1)%Elms(TAAOffsets)];
       RectI  viewport   =(_stereo ? screenToPixelI(D._view_eye_rect[0]) : D._view_active.recti);
       Vec2   mul        =Vec2(0.5f, -0.5f)/size;
-             _taa_use   =true;
-             _taa_offset=offset/viewport.size();
+        _temporal_use   =true;
+        _temporal_offset=offset/viewport.size();
       Vec2 shader_offset=offset*mul;
-      Sh.TAAOffset         ->set(shader_offset); // this always changes so don't use 'setConditional'
-   #if TAA_OLD_VEL
-      Sh.TAAOffsetCurToPrev->set((offset_prev-offset)*mul); // this always changes so don't use 'setConditional', 'offset_prev' because we're using this to access 'old_vel' texture from a previous frame that was not offseted, and "-offset" because we're comparing results to 'vel' accessed with 'inTex' instead of "inTex+TAAOffset". We should be accessing "vel inTex+TAAOffset" and "old_vel inTex+TAAOffsetPrev", however we're accessing "vel inTex" so access "old_vel inTex+TAAOffsetPrev-TAAOffset"
+      Sh.TemporalOffset         ->set(shader_offset); // this always changes so don't use 'setConditional'
+   #if TEMPORAL_OLD_VEL
+      Sh.TemporalOffsetCurToPrev->set((offset_prev-offset)*mul); // this always changes so don't use 'setConditional', 'offset_prev' because we're using this to access 'old_vel' texture from a previous frame that was not offseted, and "-offset" because we're comparing results to 'vel' accessed with 'inTex' instead of "inTex+TemporalOffset". We should be accessing "vel inTex+TemporalOffset" and "old_vel inTex+TemporalOffsetPrev", however we're accessing "vel inTex" so access "old_vel inTex+TemporalOffsetPrev-TemporalOffset"
    #endif
 
-      /*Select index to point to the component as if we were accessing without TAAOffset - TexPoint(uv)
+      /*Select index to point to the component as if we were accessing without TemporalOffset - TexPoint(uv)
         TEXTURE ACCESSING                 (Y^)
         GATHER returns in following order: V1 X0 Y1
                                            V0 W3 Z2
                                             + U0 U1 (X>)*/
-      Sh.TAAOffsetGatherIndex->set((shader_offset.y>=0) ? (shader_offset.x>=0) ? 3 : 2 // this is 100% correct (tested and verified), always changes so don't use 'setConditional'
-                                                        : (shader_offset.x>=0) ? 0 : 1);
+      Sh.TemporalOffsetGatherIndex->set((shader_offset.y>=0) ? (shader_offset.x>=0) ? 3 : 2 // this is 100% correct (tested and verified), always changes so don't use 'setConditional'
+                                                             : (shader_offset.x>=0) ? 0 : 1);
 
       D._view_active.setShader();
    }
-   SetProjMatrix(); // call after setting '_taa_offset', always call because needed for MotionBlur and TAA
+   SetProjMatrix(); // call after setting '_temporal_offset', always call because needed for MotionBlur and Temporal
 }
 void RendererClass::prepare()
 {
@@ -1019,7 +1029,7 @@ start:
    IMAGE_PRECISION prec=((_cur_type==RT_DEFERRED) ? D.highPrecColRT() ? IMAGE_PRECISION_10 : IMAGE_PRECISION_8 : D.litColRTPrecision()); // for deferred renderer we first render to col and only after that we mix it with light, other modes render color already mixed with light, for high precision we need only 10-bit, no need for 16-bit
    if(_cur_type==RT_DEFERRED /*|| mirror() _get_target already enabled for mirror*/ || _get_target // <- these always require
    || _final->size()!=rt_size || _final->samples()!=samples || _final->precision()<prec // if current RT does not match the requested rendering settings
-   || wantBloom() || wantEdgeSoften() || wantTAA() || wantMotion() || wantDof() || wantEyeAdapt() // if we want to perform post process effects then we will be rendering to a secondary RT anyway, so let's start with secondary with a chance that during the effect we can render directly to '_final'
+   || wantBloom() || wantEdgeSoften() || wantTemporal() || wantMotion() || wantDof() || wantEyeAdapt() // if we want to perform post process effects then we will be rendering to a secondary RT anyway, so let's start with secondary with a chance that during the effect we can render directly to '_final'
    || (D.glowAllow() && _final->hwTypeInfo().a<8) // we need alpha for glow, this check is needed for example if we have IMAGE_R10G10B10A2
    || (_final==&_main && !_main_ds.depthTexture() && wantDepth()) // if we're setting '_main' which is always paired with '_main_ds', and that is not a depth texture but we need to access depth, then try getting custom RT with depth texture (don't check for '_cur_main' and '_cur_main_ds' because depth buffers other than '_main_ds' are always tried to be created as depth texture first, so if that failed, then there's no point in trying to create one again)
    )    _col.get(ImageRTDesc(rt_size.x, rt_size.y, GetImageRTType(D.glowAllow(), prec), samples)); // here Alpha is used for glow
@@ -1053,7 +1063,7 @@ start:
 
    // now 'col' and 'ds' are known, including their sizes
 
-   Sh.NoiseOffset->set(hasTAA() ? NoiseOffsets[Time.frame()%Elms(NoiseOffsets)] : VecI2Zero); // use a set of predefined repeating offsets, because using always random generates too much flickering
+   Sh.NoiseOffset->set(hasTemporal() ? NoiseOffsets[Time.frame()%Elms(NoiseOffsets)] : VecI2Zero); // use a set of predefined repeating offsets, because using always random generates too much flickering
    
    D.alpha(ALPHA_NONE);
 
@@ -1675,7 +1685,6 @@ void RendererClass::temporal() // !! assumes 'resolveMultiSample' was already ca
       once both RT's get full, then we can completely discard 'old', treat it as empty, and use data from 'old1' (this actually works by moving 'old1' into 'old': "old=old1" and treating 'old1' as empty, by settings its weight=0)
       This way we're sure that the RT's contain only 8 last frames of data.
       */
-      ImageRTDesc  rt_desc(_col->w(), _col->h(), IMAGERT_ONE);
       ImageRTDesc  rt_desc(_col->w(), _col->h(), IMAGERT_ONE); if(D.temporalSuperRes())rt_desc.size*=2;
       Bool         alpha=processAlphaFinal(),
             merged_alpha=(!TEMPORAL_SEPARATE_ALPHA && alpha),
