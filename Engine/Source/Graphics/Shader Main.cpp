@@ -900,7 +900,7 @@ C MotionBlur::DilateRange& MotionBlur::getDilate(Int range)
    if(!shader)shader=T.shader->get(S8+"Dilate"+dr->range);
    return *dr;
 }
-Shader* MotionBlur::getBlur(Int samples, Bool dither, Bool glow, Bool alpha)
+Shader* MotionBlur::getBlur(Int samples, Int dither, Bool glow, Bool alpha)
 {
    BlurRange *b; FREPA(Blurs) // start from the smallest to find exact match or bigger, order is important
    {

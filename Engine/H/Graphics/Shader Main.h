@@ -438,7 +438,7 @@ struct MotionBlur
    void load();
    Shader     * getConvert(Int range);
  C DilateRange& getDilate (Int range);
-   Shader     * getBlur   (Int samples, Bool dither, Bool glow, Bool alpha);
+   Shader     * getBlur   (Int samples, Int dither, Bool glow, Bool alpha);
 }extern
    Mtn;
 
