@@ -12,7 +12,7 @@ Img=Nrm, Depth=depth
 #define NORMALS 1
 #endif
 
-#define TEMPORAL 0 // this would require using TAA AO RT's, old, new, and process velocities
+#define TEMPORAL 0 // this would require using Temporal AO RT's, old, new, and process velocities
 //Flt AmbientTemporalAngle, AmbientTemporalStep;
 
 #define LINEAR_FILTER 0

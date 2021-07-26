@@ -7,6 +7,7 @@
 /******************************************************************************/
 #include "!Header.h"
 #include "Bloom.h"
+#include "Temporal.h"
 /******************************************************************************
 
    Motion Blur is blurred in both ways:
@@ -37,8 +38,8 @@
 #define GATHER 0
 #endif
 
-#ifndef HAS_TAA
-#define HAS_TAA 0
+#ifndef TEMPORAL
+#define TEMPORAL 0
 #endif
 
 // disable PRECISE because for it to work best 'near' would have to be processed along 'base_uv_motion' line, however right now: PRECISE=1 improves moving background around moving object, however it has negative effect of unnatural blurring FPP weapons when rotating camera fast left/right constantly with a key, and with mouse up/down (while weapon rotates slightly based on up/down angle) in that case the weapons get blurred way too much
@@ -459,22 +460,22 @@ VecH4 Blur_PS
          Flt   base_depth;
          VecH2 base_uv_motion;
          Half  base_uv_motion_len;
-         if(HAS_TAA) // in TAA the color RT is already adjusted by UV (to be always the same each frame), but depth and motion RT's are jittered every frame, which gives inconsistency between color and DepthMotion.
+         if(TEMPORAL) // in Temporal the color RT is already adjusted by UV (to be always the same each frame), but depth and motion RT's are jittered every frame, which gives inconsistency between color and DepthMotion.
          {  // to workaround this problem, DepthMotion are taken from the pixel that's closest to camera and has highest motion
             // TODO: Warning: these ignore UVClamp/UVInView
             if(GATHER)
             { 
-               Vec2  taa_uv=uv0+TAAOffset;
-               Vec4  d=TexDepthRawGather(taa_uv);
-               VecH4 r=TexGatherR(ImgXY, taa_uv); // motion.x
-               VecH4 g=TexGatherG(ImgXY, taa_uv); // motion.y
+               Vec2  temp_uv=uv0+TemporalOffset;
+               Vec4  d=TexDepthRawGather(temp_uv);
+               VecH4 r=TexGatherR(ImgXY, temp_uv); // motion.x
+               VecH4 g=TexGatherG(ImgXY, temp_uv); // motion.y
 
                VecH2 test_uv_motion; Half test_len;
                if(1) // slower, higher quality. This improves blur on pixels around object (border). To verify improvement, set very low 'D.density', and rotate player+camera in TPP very fast left or right, object has to be fixed to the camera, and background rotating/blurry, you will see that this mode improves smoothness of object border pixels.
                {
-                 // set initial values with 'TAAOffsetGatherIndex' as if we were using 'uv0' without 'TAAOffset'
-                  base_depth        =      d[TAAOffsetGatherIndex];
-                  base_uv_motion    =VecH2(r[TAAOffsetGatherIndex], g[TAAOffsetGatherIndex]);
+                 // set initial values with 'TemporalOffsetGatherIndex' as if we were using 'uv0' without 'TemporalOffset'
+                  base_depth        =      d[TemporalOffsetGatherIndex];
+                  base_uv_motion    =VecH2(r[TemporalOffsetGatherIndex], g[TemporalOffsetGatherIndex]);
                   base_uv_motion_len=Length2(base_uv_motion);
 
                   test_uv_motion=VecH2(r.x, g.x); test_len=Length2(test_uv_motion); if(DEPTH_SMALLER(d.x, base_depth) && test_len>base_uv_motion_len){base_depth=d.x; base_uv_motion=test_uv_motion ; base_uv_motion_len=test_len;}
@@ -483,8 +484,8 @@ VecH4 Blur_PS
                   test_uv_motion=VecH2(r.z, g.z); test_len=Length2(test_uv_motion); if(DEPTH_SMALLER(d.z, base_depth) && test_len>base_uv_motion_len){base_depth=d.z; base_uv_motion=test_uv_motion ; base_uv_motion_len=test_len;}
                   test_uv_motion=VecH2(r.w, g.w); test_len=Length2(test_uv_motion); if(DEPTH_SMALLER(d.w, base_depth) && test_len>base_uv_motion_len){base_depth=d.w; base_uv_motion=test_uv_motion ; base_uv_motion_len=test_len;}
             }else
-            { // Warning: this ignores 'TAAOffsetGatherIndex'
-               Vec2 test_uv=uv0-(TAAOffset<0)*RTSize.xy; // if TAAOffset is negative, then move starting UV to negative too
+            { // Warning: this ignores 'TemporalOffsetGatherIndex'
+               Vec2 test_uv=uv0-(TemporalOffset<0)*RTSize.xy; // if TemporalOffset is negative, then move starting UV to negative too
                FAST_UNROLL for(Int y=0; y<=1; y++)
                FAST_UNROLL for(Int x=0; x<=1; x++)
                {

@@ -471,16 +471,13 @@ void MainShaderClass::getTechniques()
    Mac[3]=ShaderImages("Mac3");
    Lum   =ShaderImages("Lum" );
 
-   ImgSize             =GetShaderParam   ("ImgSize" );
-   ImgClamp            =GetShaderParam   ("ImgClamp");
-   RTSize              =GetShaderParam   ("RTSize"  );
-   Coords              =GetShaderParam   ("Coords"  );
-   Viewport            =GetShaderParam   ("Viewport");
-   AspectRatio         =GetShaderParam   ("AspectRatio");
-   TAAOffset           =GetShaderParam   ("TAAOffset");
-   TAAOffsetCurToPrev  =GetShaderParam   ("TAAOffsetCurToPrev");
-   TAAOffsetGatherIndex=GetShaderParamInt("TAAOffsetGatherIndex");
-   DepthWeightScale    =GetShaderParam   ("DepthWeightScale");
+   ImgSize         =GetShaderParam("ImgSize" );
+   ImgClamp        =GetShaderParam("ImgClamp");
+   RTSize          =GetShaderParam("RTSize"  );
+   Coords          =GetShaderParam("Coords"  );
+   Viewport        =GetShaderParam("Viewport");
+   AspectRatio     =GetShaderParam("AspectRatio");
+   DepthWeightScale=GetShaderParam("DepthWeightScale");
 
    ViewMatrix    =GetShaderParam("ViewMatrix"    );
    ViewMatrixPrev=GetShaderParam("ViewMatrixPrev");
@@ -909,12 +906,12 @@ Shader* MotionBlur::getBlur(Int samples, Bool dither, Bool glow, Bool alpha)
    {
       b=&Blurs[i]; if(b->samples>=samples)break; // if this covers desired samples
    }
-   Bool jitter=D.motionJitter(), taa=Renderer.hasTAA(), view_full=D._view_main.full; // this must check for 'hasTAA' because '_taa_use' could already got disabled
-   Shader* &shader=b->Blur[dither][jitter][glow][alpha][taa][view_full];
+   Bool jitter=D.motionJitter(), temporal=Renderer.hasTemporal(), view_full=D._view_main.full; // this must check for 'hasTemporal' because '_temporal_use' could already got disabled
+   Shader* &shader=b->Blur[dither][jitter][glow][alpha][temporal][view_full];
    if(!shader)
    {
-      Bool gather=(taa && D.gatherChannelAvailable()); // gather only needed for TAA
-      shader=T.shader->get(S8+"Blur"+dither+jitter+glow+alpha+taa+view_full+gather+b->samples);
+      Bool gather=(temporal && D.gatherChannelAvailable()); // gather only needed for Temporal
+      shader=T.shader->get(S8+"Blur"+dither+jitter+glow+alpha+temporal+view_full+gather+b->samples);
    }
    return shader;
 }

@@ -1016,8 +1016,8 @@ Vec ObjWorldPosPrev(UInt mtrx=0) {return Transform(ViewMatrixPrevPos(mtrx), CamM
 Vec4 Project(Vec pos)
 {
 #if 1 // 2x faster on Intel (made no difference for GeForce)
-   return Vec4(pos.x*ProjMatrix[0].x + pos.z*ProjMatrix[2].x, // "pos.z*ProjMatrix[2].x" only needed for Stereo or TAA
-               pos.y*ProjMatrix[1].y + pos.z*ProjMatrix[2].y, // "pos.z*ProjMatrix[2].y" only needed for           TAA
+   return Vec4(pos.x*ProjMatrix[0].x + pos.z*ProjMatrix[2].x, // "pos.z*ProjMatrix[2].x" only needed for Stereo or Temporal
+               pos.y*ProjMatrix[1].y + pos.z*ProjMatrix[2].y, // "pos.z*ProjMatrix[2].y" only needed for           Temporal
                                        pos.z*ProjMatrix[2].z + ProjMatrix[3].z,
                                        pos.z*ProjMatrix[2].w + ProjMatrix[3].w);
 #else // slower
@@ -1027,8 +1027,8 @@ Vec4 Project(Vec pos)
 Vec ProjectXYW(Vec pos)
 {
 #if 1 // 2x faster on Intel (made no difference for GeForce)
-   return Vec(pos.x*ProjMatrix[0].x + pos.z*ProjMatrix[2].x, // "pos.z*ProjMatrix[2].x" only needed for Stereo or TAA
-              pos.y*ProjMatrix[1].y + pos.z*ProjMatrix[2].y, // "pos.z*ProjMatrix[2].y" only needed for           TAA
+   return Vec(pos.x*ProjMatrix[0].x + pos.z*ProjMatrix[2].x, // "pos.z*ProjMatrix[2].x" only needed for Stereo or Temporal
+              pos.y*ProjMatrix[1].y + pos.z*ProjMatrix[2].y, // "pos.z*ProjMatrix[2].y" only needed for           Temporal
                                     //pos.z*ProjMatrix[2].z + ProjMatrix[3].z,
                                       pos.z*ProjMatrix[2].w + ProjMatrix[3].w);
 #else // slower
@@ -1038,8 +1038,8 @@ Vec ProjectXYW(Vec pos)
 Vec ProjectPrevXYW(Vec pos)
 {
 #if 1 // 2x faster on Intel (made no difference for GeForce)
-   return Vec(pos.x*ProjMatrixPrev[0].x + pos.z*ProjMatrixPrev[2].x, // "pos.z*ProjMatrixPrev[2].x" only needed for Stereo or TAA
-              pos.y*ProjMatrixPrev[1].y + pos.z*ProjMatrixPrev[2].y, // "pos.z*ProjMatrixPrev[2].y" only needed for           TAA
+   return Vec(pos.x*ProjMatrixPrev[0].x + pos.z*ProjMatrixPrev[2].x, // "pos.z*ProjMatrixPrev[2].x" only needed for Stereo or Temporal
+              pos.y*ProjMatrixPrev[1].y + pos.z*ProjMatrixPrev[2].y, // "pos.z*ProjMatrixPrev[2].y" only needed for           Temporal
                                         //pos.z*ProjMatrixPrev[2].z + ProjMatrixPrev[3].z,
                                           pos.z*ProjMatrixPrev[2].w + ProjMatrixPrev[3].w);
 #else // slower
@@ -2392,10 +2392,4 @@ void SetDSPosNrm(out Vec pos, out Vec nrm, Vec pos0, Vec pos1, Vec pos2, Vec nrm
       pos=pos0*W + pos1*U + pos2*V;
    }
 }
-/******************************************************************************/
-BUFFER(TAA)
-   Vec2 TAAOffset,
-        TAAOffsetCurToPrev;
-   UInt TAAOffsetGatherIndex; // this is index to be used for TexGather(uv+TAAOffset) that allows to get the same values as if accessing TexPoint(uv)
-BUFFER_END
 /******************************************************************************/

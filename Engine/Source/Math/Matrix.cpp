@@ -3952,7 +3952,7 @@ INLINE void TestProjMatrix(Matrix4 &m)
 #if DEBUG
    if(Any(         m.x  .y, m.x.z, m.x.w)
    || Any(m.y  .x,          m.y.z, m.y.w)
- //|| Any(m.z  .x, m.z  .y              ) // 'm.z.x' can be adjusted for VR Stereo or TAA, 'm.z.y' can be adjusted for TAA
+ //|| Any(m.z  .x, m.z  .y              ) // 'm.z.x' can be adjusted for VR Stereo or Temporal, 'm.z.y' can be adjusted for Temporal
    || Any(m.pos.x, m.pos.y              ))Exit("Shader 'Project' needs to be adjusted"); // 'm.pos.x' could be adjusted, however it's possible only for orthogonal mode, which is not used in VR (shadows are not stereo, and main view is always perspective based on VR FOV)
 #endif
 }
@@ -3963,10 +3963,10 @@ inline void FlipY(Matrix4 &m)
 //Flt cam_offset; m.pos.x+=m.x.x*cam_offset; // this matches "m=Matrix().setPos(cam_offset, 0, 0)*m"
 void SetProjMatrix() // this needs to be additionally called when switching between '_main' and some other RT on OpenGL
 {
-   if(Renderer._taa_use && Renderer()!=RM_SHADOW)
+   if(Renderer._temporal_use && Renderer()!=RM_SHADOW)
    {
-      Matrix4 m=ProjMatrix                         ; m.offsetX(Renderer._taa_offset.x); m.offsetY(Renderer._taa_offset.y);
-      Matrix4 p=Renderer._ctx_sub->proj_matrix_prev; p.offsetX(Renderer._taa_offset.x); p.offsetY(Renderer._taa_offset.y);
+      Matrix4 m=ProjMatrix                         ; m.offsetX(Renderer._temporal_offset.x); m.offsetY(Renderer._temporal_offset.y);
+      Matrix4 p=Renderer._ctx_sub->proj_matrix_prev; p.offsetX(Renderer._temporal_offset.x); p.offsetY(Renderer._temporal_offset.y);
 
       if(GL && !D.mainFBO()){FlipY(m); FlipY(p);} // in OpenGL when drawing to a RenderTarget the Y must be flipped
       Sh.ProjMatrix    ->set(m); TestProjMatrix(m);
@@ -3986,11 +3986,11 @@ void SetProjMatrix(Flt proj_offset)
 {
    Matrix4 m=ProjMatrix;
    Matrix4 p=Renderer._ctx_sub->proj_matrix_prev;
-   if(Renderer._taa_use && Renderer()!=RM_SHADOW)
+   if(Renderer._temporal_use && Renderer()!=RM_SHADOW)
    {
-      proj_offset+=Renderer._taa_offset.x;
-      m.offsetY(Renderer._taa_offset.y);
-      p.offsetY(Renderer._taa_offset.y);
+      proj_offset+=Renderer._temporal_offset.x;
+      m.offsetY(Renderer._temporal_offset.y);
+      p.offsetY(Renderer._temporal_offset.y);
    }
    m.offsetX(proj_offset);
    p.offsetX(proj_offset);

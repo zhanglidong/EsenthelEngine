@@ -884,7 +884,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _bend_leafs      =true;
   _particles_soft  =!MOBILE;
   _particles_smooth=!MOBILE;
-//_taa             =_taa_dual=false;
+//_temp_anti_alias =_temp_super_res=_temp_dual=false;
 //_shader_model    =SM_UNKNOWN;
 //_gl_ver          .zero();
 
@@ -1668,12 +1668,13 @@ _linear_gamma^=1; linearGamma(!_linear_gamma); // set after loading shaders
              Gui.create();
 
    // set default settings
-   {Byte v=texFilter   (); _tex_filter    ^=1               ; texFilter   (v);}
-   {Bool v=texMipFilter(); _tex_mip_filter^=1               ; texMipFilter(v);}
-   {auto v=edgeSoften  (); _edge_soften    =EDGE_SOFTEN_NONE; edgeSoften  (v);} // resetting will load shaders
-   {auto v=edgeDetect  (); _edge_detect    =EDGE_DETECT_NONE; edgeDetect  (v);} // resetting will load shaders
-   {auto v=tAA         (); _taa            =false           ; tAA         (v);} // resetting will load shaders
-   {Flt  v=grassRange  (); _grass_range    =-1              ; grassRange  (v);}
+   {auto v=texFilter        (); _tex_filter    ^=1               ; texFilter        (v);}
+   {auto v=texMipFilter     (); _tex_mip_filter^=1               ; texMipFilter     (v);}
+   {auto v=edgeSoften       (); _edge_soften    =EDGE_SOFTEN_NONE; edgeSoften       (v);} // resetting will load shaders
+   {auto v=edgeDetect       (); _edge_detect    =EDGE_DETECT_NONE; edgeDetect       (v);} // resetting will load shaders
+   {auto v=temporalAntiAlias(); _temp_anti_alias=false           ; temporalAntiAlias(v);} // resetting will load shaders
+   {auto v=temporalSuperRes (); _temp_super_res =false           ; temporalSuperRes (v);} // resetting will load shaders
+   {auto v=grassRange       (); _grass_range    =-1              ; grassRange       (v);}
    lod            (_lod_factor, _lod_factor_mirror);
    shadowJitterSet();
    shadowRangeSet ();
@@ -2678,7 +2679,7 @@ DisplayClass& DisplayClass::eyeDistance(Flt dist)
      _eye_dist=dist; _eye_dist_2=_eye_dist/2;
       SetEyeMatrix();
       Frustum.set();
-      tAAReset();
+      temporalReset();
    }
    return T;
 }
@@ -2743,27 +2744,50 @@ DisplayClass& DisplayClass::smaaThreshold(Flt threshold)
 {
    SAT(threshold); _smaa_threshold=threshold; Sh.SMAAThreshold->setConditional(_smaa_threshold); return T;
 }
-DisplayClass& DisplayClass::tAA(Bool on)
+static void LoadTemporal()
 {
-   if(tAA()!=on)
+   if(!Sh.TemporalOffset && D.temporal() && D.created())
    {
-     _taa=on;
-      if(!Sh.TAA[0][0] && on && created())
-         REPD(view_full, 2)
-         REPD(alpha    , 2)
-            Sh.TAA[view_full][alpha]=Sh.get(S+"TAA"+view_full+alpha+D.gatherChannelAvailable()+D.filterMinMaxAvailable());
-      tAAReset(); // clear RT's and make sure enabling will start from zero 'frame' index
+      ShaderFile &sf=*ShaderFiles("Temporal");
+      REPD(Super    , 2)
+      REPD(view_full, 2)
+      REPD(alpha    , 2)
+         Sh.Temporal[Super][view_full][alpha]=sf.get(S+"Temporal"+Super+view_full+alpha+D.gatherChannelAvailable()+D.filterMinMaxAvailable());
+
+      Sh.TemporalOffset           =GetShaderParam   ("TemporalOffset");
+      Sh.TemporalOffsetCurToPrev  =GetShaderParam   ("TemporalOffsetCurToPrev");
+      Sh.TemporalOffsetGatherIndex=GetShaderParamInt("TemporalOffsetGatherIndex");
+      Sh.TemporalCurPixel         =GetShaderParamInt("TemporalCurPixel");
+   }
+}
+DisplayClass& DisplayClass::temporalAntiAlias(Bool on)
+{
+   if(temporalAntiAlias()!=on)
+   {
+     _temp_anti_alias=on;
+      LoadTemporal();
+      temporalReset();
    }
    return T;
 }
-DisplayClass& DisplayClass::tAAReset()
+DisplayClass& DisplayClass::temporalSuperRes(Bool on)
 {
-   DYNAMIC_ASSERT(Renderer._ctx    ==                    null, "'D.tAAReset' called during rendering"); // check in case this is called during rendering
-     DEBUG_ASSERT(Renderer._ctx_sub==&Renderer._ctx_sub_dummy, "'D.tAAReset' called during rendering"); // check in case this is called during rendering
+   if(temporalSuperRes()!=on)
+   {
+     _temp_super_res=on;
+      LoadTemporal();
+      temporalReset();
+   }
+   return T;
+}
+DisplayClass& DisplayClass::temporalReset()
+{
+   DYNAMIC_ASSERT(Renderer._ctx    ==                    null, "'D.temporalReset' called during rendering"); // check in case this is called during rendering
+     DEBUG_ASSERT(Renderer._ctx_sub==&Renderer._ctx_sub_dummy, "'D.temporalReset' called during rendering"); // check in case this is called during rendering
    Renderer._ctxs.clear();
    return T;
 }
-DisplayClass& DisplayClass::tAADualHistory(Bool dual) {dual=(dual!=false); if(_taa_dual!=dual){_taa_dual=dual; tAAReset();} return T;} // make sure this is bool because this is used as array index
+DisplayClass& DisplayClass::temporalDualHistory(Bool dual) {dual=(dual!=false); if(_temp_dual!=dual){_temp_dual=dual; temporalReset();} return T;} // make sure this is bool because this is used as array index
 
 Int           DisplayClass::secondaryOpenGLContexts(             )C {return GPU_API(0, SecondaryContexts.elms());}
 DisplayClass& DisplayClass::secondaryOpenGLContexts(Byte contexts)
@@ -3016,10 +3040,10 @@ void DisplayClass::bloomScaleCut(Flt scale, Flt cut)
   _bloom_add=-scale*SRGBToLinear(cut);
   _bloom_cut= cut; // keep as copy, because we can't reconstruct from '_bloom_add' if '_bloom_mul' is zero
 }
-DisplayClass& DisplayClass:: glowAllow   (Bool allow   ) {if(_glow_allow!=allow){_glow_allow   =allow   ; tAAReset();} return T;} // 'glowAllow' affects type of TAA RT's #RTOutput
-DisplayClass& DisplayClass::bloomAllow   (Bool allow   ) {                      _bloom_allow   =allow   ;              return T;}
-DisplayClass& DisplayClass::bloomOriginal(Flt  original) {MAX(original, 0);     _bloom_original=original;              return T;}
-DisplayClass& DisplayClass::bloomGlow    (Flt  glow    ) {MAX(glow    , 0);     _bloom_glow    =glow    ;              return T;}
+DisplayClass& DisplayClass:: glowAllow   (Bool allow   ) {if(_glow_allow!=allow){_glow_allow   =allow   ; temporalReset();} return T;} // 'glowAllow' affects type of Temporal RT's #RTOutput
+DisplayClass& DisplayClass::bloomAllow   (Bool allow   ) {                      _bloom_allow   =allow   ;                   return T;}
+DisplayClass& DisplayClass::bloomOriginal(Flt  original) {MAX(original, 0);     _bloom_original=original;                   return T;}
+DisplayClass& DisplayClass::bloomGlow    (Flt  glow    ) {MAX(glow    , 0);     _bloom_glow    =glow    ;                   return T;}
 DisplayClass& DisplayClass::bloomScale   (Flt  scale   ) {bloomScaleCut(scale, bloomCut()); return T;}
 DisplayClass& DisplayClass::bloomCut     (Flt  cut     ) {bloomScaleCut(bloomScale(), cut); return T;}
 Bool          DisplayClass::bloomUsed    (             )C{return bloomAllow() && (!Equal(bloomOriginal(), 1, EPS_COL8_1_NATIVE) || !Equal(bloomScale(), 0, EPS_COL8_NATIVE));}

@@ -2182,6 +2182,7 @@
     <ClInclude Include="Source\Shaders\Cubic.h" />
     <ClInclude Include="Source\Shaders\FXAA.h" />
     <ClInclude Include="Source\Shaders\Light Apply.h" />
+    <ClInclude Include="Source\Shaders\Temporal.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="H\_\structs.h" />
     <ClInclude Include="H\_\types.h" />

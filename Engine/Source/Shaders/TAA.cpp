@@ -1,5 +1,6 @@
 /******************************************************************************/
 #include "!Header.h"
+#include "Temporal.h"
 /******************************************************************************
 SUPER, VIEW_FULL, ALPHA, DUAL_HISTORY, GATHER, FILTER_MIN_MAX
 
@@ -8,7 +9,7 @@ ImgSize=src
 
 Img=Cur (ImgSize), Img1=Old (RTSize), ImgXY=CurVel (ImgSize), Depth (ImgSize)
 
-TAA_OLD_VEL=1
+TEMPORAL_OLD_VEL=1
    ImgXY1=OldVel (ImgSize)
 
 DUAL_HISTORY=1
@@ -53,8 +54,8 @@ ALPHA=1
       old=cur;
    }
 /******************************************************************************/
-#define SEPARATE_ALPHA ( TAA_SEPARATE_ALPHA && ALPHA)
-#define   MERGED_ALPHA (!TAA_SEPARATE_ALPHA && ALPHA)
+#define SEPARATE_ALPHA ( TEMPORAL_SEPARATE_ALPHA && ALPHA)
+#define   MERGED_ALPHA (!TEMPORAL_SEPARATE_ALPHA && ALPHA)
 
 #define CYCLE 8
 #define CUR_WEIGHT   (1.0/ CYCLE)
@@ -78,7 +79,7 @@ ALPHA=1
 #endif
 
 #if ALPHA
-   #undef DUAL_HISTORY // #TAADual
+   #undef DUAL_HISTORY // #TemporalDual
 #endif
 
 #define MERGE_CUBIC_MIN_MAX 0 // Actually disable since it causes ghosting (visible when rotating camera around a character in the dungeons, perhaps range for MIN MAX can't be big), enable since this version is slightly better because: uses 12 tex reads (4*4 -4 corners), uses 12 samples for MIN/MAX which reduces flickering a bit, however has a lot more arithmetic calculations because of min/max x12 and each sample color is multiplied by weight separately
@@ -233,23 +234,23 @@ void NearestDepth(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather)
    depth=LinearizeDepth(depth);
 }
 /******************************************************************************/
-// can use 'RTSize' instead of 'ImgSize' since there's no scale
-void TAA_PS(NOPERSP Vec2 uv   :UV,
-          //NOPERSP Vec2 posXY:POS_XY,
-          //NOPERSP PIXEL,
-             #if MERGED_ALPHA
-                out VecH  outData  :TARGET0,
-             #else
-                out VecH2 outData  :TARGET0,
-             #endif
-             #if SEPARATE_ALPHA
-                out Half  outAlpha :TARGET1,
-             #endif
-                out VecH4 outCol   :TARGET2
-             #if DUAL_HISTORY
-              , out VecH4 outCol1  :TARGET3 // #TAADual
-             #endif
-            )
+void Temporal_PS
+(
+   NOPERSP Vec2 uv   :UV,
+ //NOPERSP Vec2 posXY:POS_XY,
+    #if MERGED_ALPHA
+       out VecH  outData  :TARGET0,
+    #else
+       out VecH2 outData  :TARGET0,
+    #endif
+    #if SEPARATE_ALPHA
+       out Half  outAlpha :TARGET1,
+    #endif
+       out VecH4 outCol   :TARGET2
+    #if DUAL_HISTORY
+     , out VecH4 outCol1  :TARGET3 // #TemporalDual
+    #endif
+)
 {
    // GET DEPTH
    Flt depth; VecI2 ofs;
@@ -259,7 +260,7 @@ void TAA_PS(NOPERSP Vec2 uv   :UV,
    // GET VEL
    VecH2 vel=TexPoint(ImgXY, NEAREST_DEPTH_VEL ? UVInView(uv+ofs*ImgSize.xy, VIEW_FULL) : uv).xy;
 
-   Vec2 cur_tex=uv+TAAOffset,
+   Vec2 cur_tex=uv+TemporalOffset,
         old_tex=uv+vel;
 
    // OLD DATA (WEIGHT + FLICKER + ALPHA)
@@ -283,8 +284,8 @@ void TAA_PS(NOPERSP Vec2 uv   :UV,
    }
 
    // OLD VEL TEST
-#if TAA_OLD_VEL // if old velocity is different then ignore old, !! TODO: Warning: this ignores VIEW_FULL !!
-   Vec2 old_tex_vel=old_tex+TAAOffsetCurToPrev;
+#if TEMPORAL_OLD_VEL // if old velocity is different then ignore old, !! TODO: Warning: this ignores VIEW_FULL !!
+   Vec2 old_tex_vel=old_tex+TemporalOffsetCurToPrev;
    Half max_delta_vel_len2=0;
    #if GATHER
       TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2(-1,  1)).xy, max_delta_vel_len2); // -1,  1,  left-top
@@ -487,7 +488,7 @@ void TAA_PS(NOPERSP Vec2 uv   :UV,
    #endif
 #endif
 
-   // when there are pixels moving in different directions fast, then restart TAA
+   // when there are pixels moving in different directions fast, then restart Temporal
    Half max_delta_vel_len=Sqrt(max_delta_vel_len2),
         blend_move=Sat(1-max_delta_vel_len/VEL_EPS);
 #if DUAL_HISTORY
@@ -608,7 +609,7 @@ void TAA_PS(NOPERSP Vec2 uv   :UV,
 
    old1=Lerp(old1, cur, blend); // TODO: for better precision this could use a separately calculated/processed 'blend1', and 'old1.a' glow could be processed separately too
 
-   // #TAADualAlpha
+   // #TemporalDualAlpha
    // old_weight<0.5 means 'old' is being filled from 0 (empty) .. 0.5 (full) and 'old1' is empty, old_weight>0.5 means 'old' is full and 'old1' is being filled from 0.5 (empty) .. 1 (full)
    Half cur_weight=CUR_WEIGHT/2, // since we operate on 0 (empty) .. 0.5 (full) we need to make cur weight 2x smaller
         new_weight=old_weight+cur_weight;

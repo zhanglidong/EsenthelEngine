@@ -59,8 +59,8 @@ struct MainShaderClass
       *Coords  =&Dummy,
       *Viewport=&Dummy,
       *AspectRatio,
-      *TAAOffset=&Dummy,
-      *TAAOffsetCurToPrev=&Dummy,
+      *TemporalOffset,
+      *TemporalOffsetCurToPrev,
       *DepthWeightScale=&Dummy,
 
       *ViewMatrix    =&Dummy,
@@ -158,7 +158,8 @@ struct MainShaderClass
 
    ShaderParamInt
       *NoiseOffset,
-      *TAAOffsetGatherIndex;
+      *TemporalOffsetGatherIndex,
+      *TemporalCurPixel;
 
    // SHADERS
    Shader
@@ -279,7 +280,7 @@ struct MainShaderClass
       *SMAAEdge[2], // [Gamma]
       *SMAABlend  ,
       *SMAA       ,
-      *TAA[2][2]  , // [ViewFull][Alpha]
+      *Temporal[2][2][2], // [Super][ViewFull][Alpha]
 
       // PARTICLE
       *Bilb                ,
@@ -361,8 +362,7 @@ struct MainShaderClass
 
 struct AmbientOcclusion
 {
-   ShaderFile *shader;
-   Shader     *AO[4][2][2]; // [Quality] [Jitter] [Normal]
+   Shader *AO[4][2][2]; // [Quality] [Jitter] [Normal]
 
    Shader* get(Int quality, Bool jitter, Bool normal);
 }extern
@@ -432,7 +432,7 @@ struct MotionBlur
    struct BlurRange
    {
       Int     samples;
-      Shader *Blur[2][2][2][2][2][2]; // [Dither][Jitter][Glow][Alpha][TAA][ViewFull]
+      Shader *Blur[2][2][2][2][2][2]; // [Dither][Jitter][Glow][Alpha][Temporal][ViewFull]
    }Blurs[4];
 
    void load();

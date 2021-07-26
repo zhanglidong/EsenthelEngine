@@ -868,7 +868,7 @@ Viewport4& Viewport4::setViewportCamera()
 /******************************************************************************/
 void Viewport4::update()
 {
-   REPAO(view).camera.updateBegin(); // Warning: TODO: this method calls 'updateBegin' and 'updateEnd' however 'Viewport4::Cube', 'Viewport4::Zoom' and others might modify camera outside of this function which might affect camera velocities/motion blur/taa (solution is for example move camera updates from those functions into special 'updateCam' functions and call them here)
+   REPAO(view).camera.updateBegin(); // Warning: TODO: this method calls 'updateBegin' and 'updateEnd' however 'Viewport4::Cube', 'Viewport4::Zoom' and others might modify camera outside of this function which might affect camera velocities/MotionBlur/Temporal (solution is for example move camera updates from those functions into special 'updateCam' functions and call them here)
    
    // detect highlight
    if(_focus=getView(Gui.ms()))_last=_focus;

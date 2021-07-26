@@ -248,11 +248,13 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
    DisplayClass& particlesSoft      (Bool on);   Bool particlesSoft      ()C {return _particles_soft  ;} // set/get Particles Softing          (true/false, default=true (false for Mobile)), the change is instant, you can call it real-time
    DisplayClass& particlesSmoothAnim(Bool on);   Bool particlesSmoothAnim()C {return _particles_smooth;} // set/get Particles Smooth Animation (true/false, default=true (false for Mobile)), if enabled then particles with animated images will be displayed with better quality by smooth blending between animation frames, the change is instant, you can call it real-time
 
-   // Temporal Anti-Aliasing
-   DisplayClass& tAA     (Bool on);   Bool tAA()C {return _taa;} // set/get Temporal Anti-Aliasing (true/false, default=false), this is Anti-Aliasing that jitters projection matrix per-frame, moving it slightly with every frame and accumulating rendering results over time
-   DisplayClass& tAAReset(       );                              // reset   Temporal Anti-Aliasing history                    , call this method if you want to clear the history of previous rendering results
+   // Temporal
+   DisplayClass& temporalAntiAlias(Bool on);   Bool temporalAntiAlias()C {return _temp_anti_alias;} // set/get Temporal Anti-Aliasing    (true/false, default=false), this is  Anti-Aliasing that jitters projection matrix per-frame, moving it slightly with every frame and accumulating rendering results over time
+   DisplayClass& temporalSuperRes (Bool on);   Bool temporalSuperRes ()C {return _temp_super_res ;} // set/get Temporal Super Resolution (true/false, default=false), this is Super-Sampling that jitters projection matrix per-frame, moving it slightly with every frame and accumulating rendering results over time
+   DisplayClass& temporalReset    (       );                                                        // reset   Temporal history                                     , call this method if you want to clear the history of previous rendering results
 #if EE_PRIVATE
-   DisplayClass& tAADualHistory(Bool on);   Bool tAADualHistory()C {return _taa_dual;} // set/get Temporal Anti-Aliasing dual history (true/false, default=false), enabling dual history reduces performance, increases memory usage, however minimizes ghosting
+   Bool temporal()C {return temporalAntiAlias() || temporalSuperRes();}
+   DisplayClass& temporalDualHistory(Bool on);   Bool temporalDualHistory()C {return _temp_dual;} // set/get Temporal dual history (true/false, default=false), enabling dual history reduces performance, increases memory usage, however minimizes ghosting
 #endif
 
    // Bloom, setting 'original' value to 1 and 'scale' to 0 disables bloom and increases rendering performance, optionally you can disable it with "bloomAllow(false)"
@@ -541,7 +543,7 @@ private:
                      _shd_jitter, _shd_reduce,
                      _grass_shadow, _grass_mirror,
                      _vol_light, _vol_add,
-                     _taa, _taa_dual,
+                     _temp_anti_alias, _temp_super_res, _temp_dual,
                      _glow_allow, _dither, _bend_leafs, _eye_adapt, _dof_foc_mode, _color_palette_allow, _gamma_all, _fade_get, _fade_auto_draw, _mtrl_blend, _draw_null_mtrl, _view_square_pixel, _allow_stereo, _max_lights_soft,
                      _initialized, _resetting, _no_gpu;
    Byte              _density, _samples, _max_tex_filter, _max_rt,

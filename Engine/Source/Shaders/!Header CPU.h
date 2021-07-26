@@ -40,9 +40,9 @@
 #define FX_LEAFS_2D 5
 #define FX_LEAFS_3D 6
 
-// Temporal Anti-Aliasing
-#define TAA_SEPARATE_ALPHA 1 // if store alpha in a separate TAA RT, if 0 then it's stored in TAA Data RT
-#define TAA_OLD_VEL        1
+// Temporal
+#define TEMPORAL_SEPARATE_ALPHA 1 // if store alpha in a separate Temporal RT, if 0 then it's stored in Temporal Data RT
+#define TEMPORAL_OLD_VEL        1
 
 // Buffer Indexes
 #define SBI_FRAME           0
