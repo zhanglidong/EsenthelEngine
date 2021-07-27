@@ -217,10 +217,9 @@ GATHER returns in following order: V1 X  Y
 #define TexGatherBOfs(image, uv, ofs)   image.GatherBlue (SamplerPoint, uv, ofs) // gather channel available since SM_5, GL 4.0, GL ES 3.1
 #define TexGatherAOfs(image, uv, ofs)   image.GatherAlpha(SamplerPoint, uv, ofs) // gather channel available since SM_5, GL 4.0, GL ES 3.1
 
-#define TexClamp(    image, uv )   image.Sample     (SamplerLinearClamp, uv    )
-#define TexLodClamp( image, uv )   image.SampleLevel(SamplerLinearClamp, uv , 0)
-#define TexLodWrap(  image, uv )   image.SampleLevel(SamplerLinearWrap , uv , 0)
-#define Tex3DLodWrap(image, uvw)   image.SampleLevel(SamplerLinearWrap , uvw, 0)
+#define TexLodWrap(  image, uv      )   image.SampleLevel(SamplerLinearWrap, uv , 0  )
+#define TexLodIWrap( image, uv , lod)   image.SampleLevel(SamplerLinearWrap, uv , lod)
+#define Tex3DLodWrap(image, uvw     )   image.SampleLevel(SamplerLinearWrap, uvw, 0  )
 
 #define TexSample(image, pixel, i)   image.Load(pixel, i) // access i-th sample of a multi-sampled texture
 
