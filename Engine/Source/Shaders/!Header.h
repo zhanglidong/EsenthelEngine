@@ -1597,18 +1597,8 @@ VecH2 GetExtMS   (VecI2 pixel, UInt sample) {return              TexSample(ImgXY
 /******************************************************************************/
 // LOD INDEX
 /******************************************************************************/
-Flt GetLod(Vec2 tex_coord, Flt tex_size)
-{
-   Vec2 tex=tex_coord*tex_size;
-   return 0.5*log2(Max(Length2(ddx(tex)) , Length2(ddy(tex)))); // NVIDIA
- //return 0.5*log2(Max(Sqr    (ddx(tex)) + Sqr    (ddy(tex)))); // ATI
-}
-Flt GetLod(Vec2 tex_coord, Vec2 tex_size)
-{
-   Vec2 tex=tex_coord*tex_size;
-   return 0.5*log2(Max(Length2(ddx(tex)) , Length2(ddy(tex)))); // NVIDIA
- //return 0.5*log2(Max(Sqr    (ddx(tex)) + Sqr    (ddy(tex)))); // ATI
-}
+Flt GetLod(Vec2 uv, Flt  tex_size) {Vec2 pix=uv*tex_size; return 0.5*log2(Max(Length2(ddx(pix)) , Length2(ddy(pix))));}
+Flt GetLod(Vec2 uv, Vec2 tex_size) {Vec2 pix=uv*tex_size; return 0.5*log2(Max(Length2(ddx(pix)) , Length2(ddy(pix))));}
 /******************************************************************************/
 // GRASS AND LEAF
 /******************************************************************************/
