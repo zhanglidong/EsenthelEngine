@@ -409,6 +409,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_gl
    }
    Sh.Img [1]->set(small_motion);
    Sh.ImgX[0]->set(_alpha);
+   Sh.imgSize(*_ds);
    set(&dest, bloom_glow, null, null, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
    Mtn.getBlur(Round(fx.y*(7.0f/1080)), (D.dither() && !dest.highPrecision()) ? src.highPrecision() ? 1/*always: should be 2 but disabled because rarely used*/ : 1/*only in blur*/ : 0, _has_glow, alpha)->draw(src); // here blurring may generate high precision values, use 7 samples on a 1080 resolution #MotionBlurSamples
    return false;
@@ -2024,7 +2025,7 @@ void RendererClass::resolveMultiSample() // !! assumes that 'finalizeGlow' was c
       src->copyMs(*_col, false, true, D.viewRect());
    }
 }
-/*void RendererClass::downSample() // !! assumes that 'finalizeGlow' was called !!
+void RendererClass::downSample() // !! assumes that 'finalizeGlow' was called !!
 {
    resolveMultiSample();
    if(_col->w()>_final->w()) // if down-sample is needed
@@ -2032,7 +2033,7 @@ void RendererClass::resolveMultiSample() // !! assumes that 'finalizeGlow' was c
       ImageRTPtr src=_col; _col.get(ImageRTDesc(_final->w(), _final->h(), GetImageRTType(_has_glow, D.litColRTPrecision())));
       src->copyHw(*_col, false, D.viewRect());
    }
-}*/
+}
 void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
 {
    if(hasEdgeSoften())
@@ -2121,7 +2122,7 @@ void RendererClass::postProcess()
 
    T.temporal(); // !! AFTER 'temporal' we must be checking for 'ColConst' !!
 
-   ImageRTDesc rt_desc(_col->w(), _col->h(), IMAGERT_SRGBA/*this is changed later*/); MIN(rt_desc.size.x, _final->w()); MIN(rt_desc.size.y, _final->h()); // don't do post-process at higher res than needed
+   ImageRTDesc rt_desc(fxW(), fxH(), IMAGERT_SRGBA/*this is changed later*/);
    ImageRTPtr  dest, bloom_glow;
 
    Int fxs= // this counter specifies how many effects are still left in the queue, and if we can render directly to '_final'
@@ -2139,6 +2140,7 @@ void RendererClass::postProcess()
 
    if(motion) // tests have shown that it's better to do Motion Blur before Depth of Field
    {
+      downSample(); // motion blur shader works by taking a lot of samples from src, so it's better to downsample first to make cache work faster. This will be a little slower if there's no movement on the screen (branch path using just 1 sample), but will be a lot faster when there's movement on the screen (branch path using many samples)
       if(_alpha && !_has_glow) // if we have separate alpha image, and not using glow, then it's better to put alpha image to alpha channel to avoid doing multiple texture reads in the motion blur shader #AlphaGlow
       {
          Sh.ImgX[0]->set(_alpha);

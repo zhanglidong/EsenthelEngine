@@ -485,7 +485,7 @@ VecH4 Blur_PS
                   test_uv_motion=VecH2(r.w, g.w); test_len=Length2(test_uv_motion); if(DEPTH_SMALLER(d.w, base_depth) && test_len>base_uv_motion_len){base_depth=d.w; base_uv_motion=test_uv_motion ; base_uv_motion_len=test_len;}
             }else
             { // Warning: this ignores 'TemporalOffsetGatherIndex'
-               Vec2 test_uv=uv0-(TemporalOffset<0)*RTSize.xy; // if TemporalOffset is negative, then move starting UV to negative too
+               Vec2 test_uv=uv0-(TemporalOffset<0)*ImgSize.xy; // if TemporalOffset is negative, then move starting UV to negative too, need to use 'ImgSize' in case Depth RT size is different than target
                FAST_UNROLL for(Int y=0; y<=1; y++)
                FAST_UNROLL for(Int x=0; x<=1; x++)
                {
