@@ -1597,6 +1597,7 @@ VecH2 GetExtMS   (VecI2 pixel, UInt sample) {return              TexSample(ImgXY
 /******************************************************************************/
 // LOD INDEX
 /******************************************************************************/
+// TODO: 'CalculateLevelOfDetail' could be used however it's only DX 10.1 SM_4_1 / GL 4.0+ / GL ES ?
 Flt GetLod(Vec2 uv, Flt  tex_size) {Vec2 pix=uv*tex_size; return 0.5*log2(Max(Length2(ddx(pix)) , Length2(ddy(pix))));}
 Flt GetLod(Vec2 uv, Vec2 tex_size) {Vec2 pix=uv*tex_size; return 0.5*log2(Max(Length2(ddx(pix)) , Length2(ddy(pix))));}
 /******************************************************************************/
