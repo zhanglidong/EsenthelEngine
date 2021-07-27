@@ -443,6 +443,8 @@ void MainShaderClass::getTechniques()
    ShdMap[0]=ShaderImages("ShdMap" );
    ShdMap[1]=ShaderImages("ShdMap1");
 
+   RWImg=ShaderRWImages("RWImg");
+
    // material textures
    Col[0]=ShaderImages("Col" );
    Col[1]=ShaderImages("Col1");

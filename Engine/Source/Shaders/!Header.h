@@ -56,6 +56,8 @@
 #define ImageCube   TextureCube<VecH4>
 #define ImageShadow Texture2D  <Half >
 
+#define RWImage RWTexture2D<VecH4>
+
 #define        SAMPLER(name, index) sampler                name : register(s##index) //        sampler
 #define SHADOW_SAMPLER(name, index) SamplerComparisonState name : register(s##index) // shadow sampler
 /******************************************************************************/
@@ -484,6 +486,7 @@ Image   Ext, Ext1, Ext2, Ext3,
         Det, Det1, Det2, Det3,
         Mac, Mac1, Mac2, Mac3,
         Lum;
+RWImage RWImg;
 
 // #MaterialTextureLayout
 #define BUMP_IMAGE Ext

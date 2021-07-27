@@ -1239,14 +1239,14 @@ static INLINE void SetBuffers(C BufferLinkPtr &links, ID3D11Buffer *buf[MAX_SHAD
       }
    }
 }
-static INLINE void SetImages(C ImageLinkPtr &links, ID3D11ShaderResourceView *tex[MAX_SHADER_IMAGES], void (STDMETHODCALLTYPE ID3D11DeviceContext::*SetShaderResources)(UINT StartSlot, UINT NumViews, ID3D11ShaderResourceView*C *ppShaderResourceViews)) // use INLINE to allow directly using virtual func calls
+static INLINE void SetImages(C ImageLinkPtr &links, ID3D11ShaderResourceView *tex[MAX_SHADER_IMAGES], void (STDMETHODCALLTYPE ID3D11DeviceContext::*SetShaderResources)(UINT StartSlot, UINT NumViews, ID3D11ShaderResourceView*C *ppShaderResourceViews), Bool always=false) // use INLINE to allow directly using virtual func calls
 {
    REPA(links) // go from the end
    {
     C ImageLink               &link=links[i];
       ID3D11ShaderResourceView *srv=link.image->getSRV();
       Int                last_index=link.index;
-      if(tex[last_index]!=srv || FORCE_TEX) // find first that's different
+      if(tex[last_index]!=srv || always || FORCE_TEX) // find first that's different
       {
          tex[last_index]=srv;
          Int first_index=last_index; // initially this is also the first index
@@ -1255,12 +1255,20 @@ static INLINE void SetImages(C ImageLinkPtr &links, ID3D11ShaderResourceView *te
           C ImageLink               &link=links[i];
             ID3D11ShaderResourceView *srv=link.image->getSRV();
             Int                     index=link.index;
-            if(tex[            index]!=srv || FORCE_TEX) // if another is different too
+            if(tex[            index]!=srv || always || FORCE_TEX) // if another is different too
                tex[first_index=index] =srv; // set this image and change first index
          }
          (D3DC->*SetShaderResources)(first_index, last_index-first_index+1, tex+first_index); // set all from 'first_index' until 'last_index' (inclusive) in 1 API call
          break; // finished
       }
+   }
+}
+static INLINE void SetUAV(C RWImageLink &link)
+{
+   if(C ImageRT *rt=link.image->_image)
+   {
+      D.texClear(rt->_srv);
+      REPA(Renderer._cur)if(Renderer._cur[i]==rt){Renderer._cur[i]=null; Renderer._cur_id[i]=null;}
    }
 }
 static INLINE void SetImages(C RWImageLinkPtr &links, ID3D11UnorderedAccessView *tex[MAX_SHADER_IMAGES], void (STDMETHODCALLTYPE ID3D11DeviceContext::*SetUnorderedAccessView)(UINT StartSlot, UINT NumUAVs, ID3D11UnorderedAccessView*C *ppUnorderedAccessViews, const UINT *pUAVInitialCounts)) // use INLINE to allow directly using virtual func calls
@@ -1274,13 +1282,16 @@ static INLINE void SetImages(C RWImageLinkPtr &links, ID3D11UnorderedAccessView 
       {
          tex[last_index]=uav;
          Int first_index=last_index; // initially this is also the first index
+         SetUAV(link);
          for(; --i>=0; ) // check all previous
          {
           C RWImageLink              &link=links[i];
             ID3D11UnorderedAccessView *uav=link.image->getUAV();
             Int                      index=link.index;
             if(tex[            index]!=uav || FORCE_TEX) // if another is different too
-               tex[first_index=index] =uav; // set this image and change first index
+            {  tex[first_index=index] =uav; // set this image and change first index
+               SetUAV(link);
+            }
          }
          (D3DC->*SetUnorderedAccessView)(first_index, last_index-first_index+1, tex+first_index, null); // set all from 'first_index' until 'last_index' (inclusive) in 1 API call
          break; // finished
@@ -1320,7 +1331,7 @@ INLINE void        Shader11::setVSImages()C {  SetImages(   images[ST_VS], VSTex
 INLINE void        Shader11::setHSImages()C {  SetImages(   images[ST_HS], HSTex, &ID3D11DeviceContext::HSSetShaderResources);}
 INLINE void        Shader11::setDSImages()C {  SetImages(   images[ST_DS], DSTex, &ID3D11DeviceContext::DSSetShaderResources);}
 INLINE void        Shader11::setPSImages()C {  SetImages(   images[ST_PS], PSTex, &ID3D11DeviceContext::PSSetShaderResources);}
-INLINE void ComputeShader11::setImages  ()C {  SetImages(   images       , CSTex, &ID3D11DeviceContext::CSSetShaderResources);
+INLINE void ComputeShader11::setImages  ()C {  SetImages(   images       , CSTex, &ID3D11DeviceContext::CSSetShaderResources, true); // TODO: since 'D.texClear' doesn't clear 'CSTex' for performance reasons, then always set 'CSTex'
                                                SetImages(rw_images       , CSUAV, &ID3D11DeviceContext::CSSetUnorderedAccessViews);}
 INLINE void ComputeShader11::clearImages()C {ClearImages(rw_images       , CSUAV, &ID3D11DeviceContext::CSSetUnorderedAccessViews);}
 #else // set separately

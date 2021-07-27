@@ -355,10 +355,10 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_gl
    Sh.imgSize(convert_src); // need to have full-res size
 
    /*ComputeShader *cs=Mtn.shader->computeFind(S8+"Convert"+(1<<shift)); 'shift' is unclamped
-   if(cs && small_motion->_uav && Kb.ctrl())
+   if(cs && small_motion->hasUAV() && Kb.ctrl())
    {
       need to set viewport min+size
-      GetShaderRWImage("RWImg")->set(small_motion);
+      Sh.RWImg->set(small_motion);
       cs->compute(rt_desc.size);
    }else*/
    if(D._view_main.full)REPS(_eye, _eye_num)

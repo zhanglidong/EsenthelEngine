@@ -50,6 +50,9 @@ struct MainShaderClass
       *Mac[4],
       *Lum;
 
+   ShaderRWImage
+      *RWImg;
+
    ShaderParam
        Dummy,
 

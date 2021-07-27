@@ -177,8 +177,6 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
 #define THREAD_SIZE_Y RANGE
 #define THREAD_SIZE   (THREAD_SIZE_X*THREAD_SIZE_Y)
 
-RWTexture2D<VecH4> RWImg;
-
   groupshared VecH4 SharedMotion [THREAD_SIZE];
 //groupshared VecH2 SharedLength2[THREAD_SIZE];
 
