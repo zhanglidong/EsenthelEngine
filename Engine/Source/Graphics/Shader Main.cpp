@@ -12,7 +12,7 @@ MotionBlur         Mtn;
 DepthOfField       Dof;
 WaterShader        WS;
 
-ShaderSampler SamplerPoint, SamplerLinearWrap, SamplerLinearWCC, SamplerLinearCWC, SamplerLinearCWW, SamplerLinearClamp, SamplerMinimum, SamplerMaximum, SamplerFont, SamplerAnisotropic, SamplerAnisotropicClamp, SamplerShadowMap;
+ShaderSampler SamplerPoint, SamplerLinearWrap, SamplerLinearWCC, SamplerLinearCWC, SamplerLinearCWW, SamplerLinearClamp, SamplerMinimum, SamplerMaximum, SamplerFont, SamplerRender, SamplerAnisotropicClamp, SamplerShadowMap;
 /******************************************************************************/
 // MAIN SHADER
 /******************************************************************************/
@@ -22,7 +22,7 @@ void Create2DSampler()
    D3D11_SAMPLER_DESC sd; Zero(sd);
    sd.MipLODBias    =D.imageMipBias();
    sd.MaxAnisotropy =1;
-   sd.MinLOD        =0;
+ //sd.MinLOD        =0;
    sd.MaxLOD        =FLT_MAX;
    sd.ComparisonFunc=D3D11_COMPARISON_NEVER;
    sd.Filter        =D3D11_FILTER_MIN_MAG_MIP_LINEAR;
@@ -36,12 +36,24 @@ void Create2DSampler()
    sd.AddressV=D3D11_TEXTURE_ADDRESS_CLAMP;
    sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
    SamplerLinearClamp.create(sd);
+
+   // always use best filtering instead of 'D.texFilter'
+   if(D.maxTexFilter()>1)sd.Filter=D3D11_FILTER_ANISOTROPIC;
+   else                  sd.Filter=D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+   sd.MaxAnisotropy=D.maxTexFilter();
+   sd.AddressU=D3D11_TEXTURE_ADDRESS_CLAMP;
+   sd.AddressV=D3D11_TEXTURE_ADDRESS_CLAMP;
+   sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
+   SamplerAnisotropicClamp.create(sd);
+
 #elif GL
-   if(SamplerLinearWrap .sampler)glSamplerParameterf(SamplerLinearWrap .sampler, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
-   if(SamplerLinearClamp.sampler)glSamplerParameterf(SamplerLinearClamp.sampler, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
+   if(SamplerLinearWrap      .sampler)glSamplerParameterf(SamplerLinearWrap      .sampler, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
+   if(SamplerLinearClamp     .sampler)glSamplerParameterf(SamplerLinearClamp     .sampler, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
+   if(SamplerAnisotropicClamp.sampler)glSamplerParameterf(SamplerAnisotropicClamp.sampler, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
 #if GL_ES
-   if(SamplerLinearWrap .sampler_no_filter)glSamplerParameterf(SamplerLinearWrap .sampler_no_filter, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
-   if(SamplerLinearClamp.sampler_no_filter)glSamplerParameterf(SamplerLinearClamp.sampler_no_filter, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
+   if(SamplerLinearWrap      .sampler_no_filter)glSamplerParameterf(SamplerLinearWrap      .sampler_no_filter, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
+   if(SamplerLinearClamp     .sampler_no_filter)glSamplerParameterf(SamplerLinearClamp     .sampler_no_filter, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
+   if(SamplerAnisotropicClamp.sampler_no_filter)glSamplerParameterf(SamplerAnisotropicClamp.sampler_no_filter, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
 #endif
 #endif
 }
@@ -55,7 +67,7 @@ void CreateFontSampler()
    sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
    sd.MipLODBias    =D.fontMipBias();
    sd.MaxAnisotropy =1;
-   sd.MinLOD        =0;
+ //sd.MinLOD        =0;
    sd.MaxLOD        =FLT_MAX;
    sd.ComparisonFunc=D3D11_COMPARISON_NEVER;
    SamplerFont.create(sd);
@@ -66,7 +78,7 @@ void CreateFontSampler()
 #endif
 #endif
 }
-void CreateAnisotropicSampler()
+void CreateRenderSampler()
 {
 #if DX11
    D3D11_SAMPLER_DESC  sd; Zero(sd);
@@ -81,45 +93,24 @@ void CreateAnisotropicSampler()
    sd.MinLOD        =    D.texMipMin ();
    sd.MaxLOD        =FLT_MAX;
    sd.ComparisonFunc=D3D11_COMPARISON_NEVER;
-   SamplerAnisotropic.create(sd);
-
-   sd.AddressU=D3D11_TEXTURE_ADDRESS_CLAMP;
-   sd.AddressV=D3D11_TEXTURE_ADDRESS_CLAMP;
-   sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
-   SamplerAnisotropicClamp.create(sd);
+   SamplerRender.create(sd);
 #elif GL
-   if(SamplerAnisotropic.sampler)
+   if(SamplerRender.sampler)
    {
-      glSamplerParameteri(SamplerAnisotropic.sampler, GL_TEXTURE_MAX_ANISOTROPY, Max(D.texFilter   (), 1));
-      glSamplerParameteri(SamplerAnisotropic.sampler, GL_TEXTURE_MIN_FILTER    ,     D.texMipFilter() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_NEAREST);
-      glSamplerParameteri(SamplerAnisotropic.sampler, GL_TEXTURE_MAG_FILTER    ,     D.texFilter   () ? GL_LINEAR : GL_NEAREST);
-      glSamplerParameteri(SamplerAnisotropic.sampler, GL_TEXTURE_BASE_LEVEL    ,     D.texMipMin   ());
-      glSamplerParameterf(SamplerAnisotropic.sampler, GL_TEXTURE_LOD_BIAS      ,     D.texMipBias  ());
-   }
-   if(SamplerAnisotropicClamp.sampler)
-   {
-      glSamplerParameteri(SamplerAnisotropicClamp.sampler, GL_TEXTURE_MAX_ANISOTROPY, Max(D.texFilter   (), 1));
-      glSamplerParameteri(SamplerAnisotropicClamp.sampler, GL_TEXTURE_MIN_FILTER    ,     D.texMipFilter() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_NEAREST);
-      glSamplerParameteri(SamplerAnisotropicClamp.sampler, GL_TEXTURE_MAG_FILTER    ,     D.texFilter   () ? GL_LINEAR : GL_NEAREST);
-      glSamplerParameteri(SamplerAnisotropicClamp.sampler, GL_TEXTURE_BASE_LEVEL    ,     D.texMipMin   ());
-      glSamplerParameterf(SamplerAnisotropicClamp.sampler, GL_TEXTURE_LOD_BIAS      ,     D.texMipBias  ());
+      glSamplerParameteri(SamplerRender.sampler, GL_TEXTURE_MAX_ANISOTROPY, Max(D.texFilter   (), 1));
+      glSamplerParameteri(SamplerRender.sampler, GL_TEXTURE_MIN_FILTER    ,     D.texMipFilter() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_NEAREST);
+      glSamplerParameteri(SamplerRender.sampler, GL_TEXTURE_MAG_FILTER    ,     D.texFilter   () ? GL_LINEAR : GL_NEAREST);
+      glSamplerParameteri(SamplerRender.sampler, GL_TEXTURE_BASE_LEVEL    ,     D.texMipMin   ());
+      glSamplerParameterf(SamplerRender.sampler, GL_TEXTURE_LOD_BIAS      ,     D.texMipBias  ());
    }
 #if GL_ES
-   if(SamplerAnisotropic.sampler_no_filter)
+   if(SamplerRender.sampler_no_filter)
    {
-      glSamplerParameteri(SamplerAnisotropic.sampler_no_filter, GL_TEXTURE_MAX_ANISOTROPY,        Max(D.texFilter   (), 1));
-      glSamplerParameteri(SamplerAnisotropic.sampler_no_filter, GL_TEXTURE_MIN_FILTER    , GLNoFilter(D.texMipFilter() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_NEAREST));
-      glSamplerParameteri(SamplerAnisotropic.sampler_no_filter, GL_TEXTURE_MAG_FILTER    , GLNoFilter(D.texFilter   () ? GL_LINEAR : GL_NEAREST));
-      glSamplerParameteri(SamplerAnisotropic.sampler_no_filter, GL_TEXTURE_BASE_LEVEL    ,            D.texMipMin   ());
-      glSamplerParameterf(SamplerAnisotropic.sampler_no_filter, GL_TEXTURE_LOD_BIAS      ,            D.texMipBias  ());
-   }
-   if(SamplerAnisotropicClamp.sampler_no_filter)
-   {
-      glSamplerParameteri(SamplerAnisotropicClamp.sampler_no_filter, GL_TEXTURE_MAX_ANISOTROPY,        Max(D.texFilter   (), 1));
-      glSamplerParameteri(SamplerAnisotropicClamp.sampler_no_filter, GL_TEXTURE_MIN_FILTER    , GLNoFilter(D.texMipFilter() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_NEAREST));
-      glSamplerParameteri(SamplerAnisotropicClamp.sampler_no_filter, GL_TEXTURE_MAG_FILTER    , GLNoFilter(D.texFilter   () ? GL_LINEAR : GL_NEAREST));
-      glSamplerParameteri(SamplerAnisotropicClamp.sampler_no_filter, GL_TEXTURE_BASE_LEVEL    ,            D.texMipMin   ());
-      glSamplerParameterf(SamplerAnisotropicClamp.sampler_no_filter, GL_TEXTURE_LOD_BIAS      ,            D.texMipBias  ());
+      glSamplerParameteri(SamplerRender.sampler_no_filter, GL_TEXTURE_MAX_ANISOTROPY,        Max(D.texFilter   (), 1));
+      glSamplerParameteri(SamplerRender.sampler_no_filter, GL_TEXTURE_MIN_FILTER    , GLNoFilter(D.texMipFilter() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_NEAREST));
+      glSamplerParameteri(SamplerRender.sampler_no_filter, GL_TEXTURE_MAG_FILTER    , GLNoFilter(D.texFilter   () ? GL_LINEAR : GL_NEAREST));
+      glSamplerParameteri(SamplerRender.sampler_no_filter, GL_TEXTURE_BASE_LEVEL    ,            D.texMipMin   ());
+      glSamplerParameterf(SamplerRender.sampler_no_filter, GL_TEXTURE_LOD_BIAS      ,            D.texMipBias  ());
    }
 #endif
 #endif
@@ -152,7 +143,7 @@ void MainShaderClass::del()
    SamplerMinimum         .del();
    SamplerMaximum         .del();
    SamplerFont            .del();
-   SamplerAnisotropic     .del();
+   SamplerRender          .del();
    SamplerAnisotropicClamp.del();
    SamplerShadowMap       .del();
 }
@@ -276,15 +267,19 @@ void MainShaderClass::createSamplers()
    REPAO(SamplerFont.address)=GL_CLAMP_TO_EDGE;
          SamplerFont.create();
 
-         SamplerAnisotropic.filter_min=GL_LINEAR_MIPMAP_LINEAR;
-         SamplerAnisotropic.filter_mag=GL_LINEAR;
-   REPAO(SamplerAnisotropic.address)=GL_REPEAT;
-         SamplerAnisotropic.create();
+         SamplerRender.filter_min=GL_LINEAR_MIPMAP_LINEAR;
+         SamplerRender.filter_mag=GL_LINEAR;
+   REPAO(SamplerRender.address)=GL_REPEAT;
+         SamplerRender.create();
 
          SamplerAnisotropicClamp.filter_min=GL_LINEAR_MIPMAP_LINEAR;
          SamplerAnisotropicClamp.filter_mag=GL_LINEAR;
    REPAO(SamplerAnisotropicClamp.address)=GL_CLAMP_TO_EDGE;
          SamplerAnisotropicClamp.create();
+      if(SamplerAnisotropicClamp.sampler          )glSamplerParameteri(SamplerAnisotropicClamp.sampler          , GL_TEXTURE_MAX_ANISOTROPY, D.maxTexFilter());
+   #if GL_ES
+      if(SamplerAnisotropicClamp.sampler_no_filter)glSamplerParameteri(SamplerAnisotropicClamp.sampler_no_filter, GL_TEXTURE_MAX_ANISOTROPY, D.maxTexFilter());
+   #endif
 
          SamplerShadowMap.filter_min=GL_LINEAR;
          SamplerShadowMap.filter_mag=GL_LINEAR;
@@ -303,9 +298,9 @@ void MainShaderClass::createSamplers()
       }
    #endif
 #endif
-   Create2DSampler         ();
-   CreateFontSampler       ();
-   CreateAnisotropicSampler();
+   Create2DSampler    ();
+   CreateFontSampler  ();
+   CreateRenderSampler();
 }
 void MainShaderClass::create()
 {
