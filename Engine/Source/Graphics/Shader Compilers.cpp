@@ -32,9 +32,9 @@ namespace EE{
 #define MOTION_BLUR
 #define OVERLAY
 #define POSITION
-#define SET_COLOR*/
+#define SET_COLOR
 #define TEMPORAL
-/*#define VOLUMETRIC_CLOUDS
+#define VOLUMETRIC_CLOUDS
 #define VOLUMETRIC_LIGHTS
 #define WATER
 #define WORLD_EDITOR
