@@ -110,7 +110,7 @@ Vec4 Circle_PS
 
    if(LINEAR_GAMMA)b=SRGBToLinearFast(b);
    Vec col=XZCol*b;
-   if(XZImageUse)col*=Tex(XZImage, (XZPattern ? I.pos2D*XZPatternScale : d*0.5+0.5)*Vec2(1,-1)).r; // XZImage is sRGB
+   if(XZImageUse)col*=RTex(XZImage, (XZPattern ? I.pos2D*XZPatternScale : d*0.5+0.5)*Vec2(1,-1)).r; // XZImage is sRGB
    return Vec4(col, 0);
 }
 /******************************************************************************/
@@ -129,7 +129,7 @@ Vec4 Square_PS
 
    if(LINEAR_GAMMA)b=SRGBToLinearFast(b);
    Vec col=XZCol*b;
-   if(XZImageUse)col*=Tex(XZImage, (XZPattern ? I.pos2D*XZPatternScale : d*0.5+0.5)*Vec2(1, -1)).r; // XZImage is sRGB
+   if(XZImageUse)col*=RTex(XZImage, (XZPattern ? I.pos2D*XZPatternScale : d*0.5+0.5)*Vec2(1, -1)).r; // XZImage is sRGB
    return Vec4(col, 0);
 }
 /******************************************************************************/

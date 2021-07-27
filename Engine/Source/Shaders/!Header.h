@@ -180,21 +180,21 @@
    #define TexDepthRawMin(uv)  TexMin(Depth, uv).x
    #define TexDepthRawMax(uv)  TexMax(Depth, uv).x
 #endif
-/******************************************************************************
-TEXTURE ACCESSING                 (Y^)
-GATHER returns in following order: V1 X  Y
-                                   V0 W  Z
-                                    + U0 U1 (X>)
 /******************************************************************************/
-#define Tex(    image, uv )   image.Sample(SamplerDefault, uv ) // access a 2D   texture
-#define Tex3D(  image, uvw)   image.Sample(SamplerDefault, uvw) // access a 3D   texture
-#define TexCube(image, uvw)   image.Sample(SamplerDefault, uvw) // access a Cube texture
+#define RTex(    image, uv     )   image.Sample     (SamplerRender     , uv     ) // access 2D texture                               using Render Sampler
+#define RTexLod( image, uv     )   image.SampleLevel(SamplerLinearWrap , uv,   0) // access 2D texture   0-th MipMap (LOD level=  0) using Render Sampler (however since 'SampleLevel' makes Anisotropy disabled then for possible better performance use 'SamplerLinearWrap')
+#define RTexLodI(image, uv, lod)   image.SampleLevel(SamplerLinearWrap , uv, lod) // access 2D texture lod-th MipMap (LOD level=lod) using Render Sampler (however since 'SampleLevel' makes Anisotropy disabled then for possible better performance use 'SamplerLinearWrap')
+#define  Tex(    image, uv     )   image.Sample     (SamplerLinearClamp, uv     ) // access 2D texture
+#define  TexLod( image, uv     )   image.SampleLevel(SamplerLinearClamp, uv,   0) // access 2D texture   0-th MipMap (LOD level=  0)
+#define  TexLodI(image, uv, lod)   image.SampleLevel(SamplerLinearClamp, uv, lod) // access 2D texture lod-th MipMap (LOD level=lod)
 
-#define TexLod(     image, uv      )   image.SampleLevel(SamplerDefault, uv ,   0) // access 2D   texture's   0-th MipMap (LOD level=  0)
-#define TexLodI(    image, uv , lod)   image.SampleLevel(SamplerDefault, uv , lod) // access 2D   texture's lod-th MipMap (LOD level=lod)
-#define Tex3DLod(   image, uvw     )   image.SampleLevel(SamplerDefault, uvw,   0) // access 3D   texture's   0-th MipMap (LOD level=  0)
-#define TexCubeLod( image, uvw     )   image.SampleLevel(SamplerDefault, uvw,   0) // access Cube texture's   0-th MipMap (LOD level=  0)
-#define TexCubeLodI(image, uvw, lod)   image.SampleLevel(SamplerDefault, uvw, lod) // access Cube texture's lod-th MipMap (LOD level=lod)
+#define Tex3D(   image, uvw)   image.Sample     (SamplerLinearClamp, uvw   ) // access 3D texture
+#define Tex3DLod(image, uvw)   image.SampleLevel(SamplerLinearClamp, uvw, 0) // access 3D texture 0-th MipMap (LOD level=0)
+
+#define TexCube(     image, uvw     )   image.Sample     (SamplerRender     , uvw     ) // access Cube texture
+#define TexCubeLod(  image, uvw     )   image.SampleLevel(SamplerLinearWrap , uvw,   0) // access Cube texture   0-th MipMap (LOD level=  0), since 'SampleLevel' makes Anisotropy disabled then for possible better performance instead of 'SamplerRender' use 'SamplerLinearWrap'
+#define TexCubeLodI( image, uvw, lod)   image.SampleLevel(SamplerLinearWrap , uvw, lod) // access Cube texture lod-th MipMap (LOD level=lod), since 'SampleLevel' makes Anisotropy disabled then for possible better performance instead of 'SamplerRender' use 'SamplerLinearWrap'
+#define TexCubeClamp(image, uvw     )   image.Sample     (SamplerLinearClamp, uvw     ) // access Cube texture
 
 #define TexPoint(   image, uv     )   image.SampleLevel(SamplerPoint, uv, 0)
 #define TexPointOfs(image, uv, ofs)   image.SampleLevel(SamplerPoint, uv, 0, ofs)
@@ -205,6 +205,10 @@ GATHER returns in following order: V1 X  Y
 #define TexMax(   image, uv     )   image.SampleLevel(SamplerMaximum, uv, 0)      // returns maximum out of all samples
 #define TexMaxOfs(image, uv, ofs)   image.SampleLevel(SamplerMaximum, uv, 0, ofs) // returns maximum out of all samples
 
+/* TEXTURE ACCESSING                 (Y^)
+   GATHER returns in following order: V1 X  Y
+                                      V0 W  Z
+                                       + U0 U1 (X>) */
 #define TexGather(   image, uv     )   image.Gather(SamplerPoint, uv     ) // gather available since SM_4_1, GL 4.0, GL ES 3.1
 #define TexGatherOfs(image, uv, ofs)   image.Gather(SamplerPoint, uv, ofs) // gather available since SM_4_1, GL 4.0, GL ES 3.1
 
@@ -216,10 +220,6 @@ GATHER returns in following order: V1 X  Y
 #define TexGatherGOfs(image, uv, ofs)   image.GatherGreen(SamplerPoint, uv, ofs) // gather channel available since SM_5, GL 4.0, GL ES 3.1
 #define TexGatherBOfs(image, uv, ofs)   image.GatherBlue (SamplerPoint, uv, ofs) // gather channel available since SM_5, GL 4.0, GL ES 3.1
 #define TexGatherAOfs(image, uv, ofs)   image.GatherAlpha(SamplerPoint, uv, ofs) // gather channel available since SM_5, GL 4.0, GL ES 3.1
-
-#define TexLodWrap(  image, uv      )   image.SampleLevel(SamplerLinearWrap, uv , 0  )
-#define TexLodIWrap( image, uv , lod)   image.SampleLevel(SamplerLinearWrap, uv , lod)
-#define Tex3DLodWrap(image, uvw     )   image.SampleLevel(SamplerLinearWrap, uvw, 0  )
 
 #define TexSample(image, pixel, i)   image.Load(pixel, i) // access i-th sample of a multi-sampled texture
 
@@ -1754,7 +1754,7 @@ Half DepthWeight(Flt delta, Vec2 dw_mad)
 /******************************************************************************/
 VecH4 GetDetail(Vec2 tex) // XY=nrm.xy -1..1 delta, Z=rough -1..1 delta, W=color 0..2 scale
 {
-   VecH4 det=Tex(Det, tex*Material.det_uv_scale); // XY=nrm.xy 0..1, Z=rough 0..1, W=color 0..1 #MaterialTextureLayoutDetail
+   VecH4 det=RTex(Det, tex*Material.det_uv_scale); // XY=nrm.xy 0..1, Z=rough 0..1, W=color 0..1 #MaterialTextureLayoutDetail
 
    /* unoptimized
    det.xyz                 =(det.xyz            -0.5)*2*Material.det_power;
@@ -1766,10 +1766,10 @@ VecH4 GetDetail(Vec2 tex) // XY=nrm.xy -1..1 delta, Z=rough -1..1 delta, W=color
 
    return det;
 }
-VecH4 GetDetail0(Vec2 tex) {VecH4 det=Tex(Det , tex*MultiMaterial0.det_uv_scale); det.xyz=det.xyz*MultiMaterial0.det_mul+MultiMaterial0.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial0.det_mul+MultiMaterial0.det_inv; return det;}
-VecH4 GetDetail1(Vec2 tex) {VecH4 det=Tex(Det1, tex*MultiMaterial1.det_uv_scale); det.xyz=det.xyz*MultiMaterial1.det_mul+MultiMaterial1.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial1.det_mul+MultiMaterial1.det_inv; return det;}
-VecH4 GetDetail2(Vec2 tex) {VecH4 det=Tex(Det2, tex*MultiMaterial2.det_uv_scale); det.xyz=det.xyz*MultiMaterial2.det_mul+MultiMaterial2.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial2.det_mul+MultiMaterial2.det_inv; return det;}
-VecH4 GetDetail3(Vec2 tex) {VecH4 det=Tex(Det3, tex*MultiMaterial3.det_uv_scale); det.xyz=det.xyz*MultiMaterial3.det_mul+MultiMaterial3.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial3.det_mul+MultiMaterial3.det_inv; return det;}
+VecH4 GetDetail0(Vec2 tex) {VecH4 det=RTex(Det , tex*MultiMaterial0.det_uv_scale); det.xyz=det.xyz*MultiMaterial0.det_mul+MultiMaterial0.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial0.det_mul+MultiMaterial0.det_inv; return det;}
+VecH4 GetDetail1(Vec2 tex) {VecH4 det=RTex(Det1, tex*MultiMaterial1.det_uv_scale); det.xyz=det.xyz*MultiMaterial1.det_mul+MultiMaterial1.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial1.det_mul+MultiMaterial1.det_inv; return det;}
+VecH4 GetDetail2(Vec2 tex) {VecH4 det=RTex(Det2, tex*MultiMaterial2.det_uv_scale); det.xyz=det.xyz*MultiMaterial2.det_mul+MultiMaterial2.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial2.det_mul+MultiMaterial2.det_inv; return det;}
+VecH4 GetDetail3(Vec2 tex) {VecH4 det=RTex(Det3, tex*MultiMaterial3.det_uv_scale); det.xyz=det.xyz*MultiMaterial3.det_mul+MultiMaterial3.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial3.det_mul+MultiMaterial3.det_inv; return det;}
 /******************************************************************************/
 // FACE NORMAL HANDLING
 /******************************************************************************/
@@ -2020,7 +2020,7 @@ struct LightParams
 /******************************************************************************/
 VecH2 EnvDFGTex(Half rough, Half NdotV) // uses precomputed texture
 {
-   return TexLodClamp(EnvDFG, VecH2(rough, NdotV)).xy;
+   return TexLod(EnvDFG, VecH2(rough, NdotV)).xy; // need UV clamp
 }
 /* https://blog.selfshadow.com/publications/s2013-shading-course/lazarov/s2013_pbs_black_ops_2_notes.pdf
 originally developed by Lazarov, modified by Karis */
@@ -2219,7 +2219,7 @@ Half CompareDepth(Vec pos, Vec2 jitter_value, Bool jitter)
 }
 Half CompareDepth2(Vec pos) // 'ShdMap1' is not a Shadow Map Depth Buffer but a Shadow Intensity Color RT
 {
-   return Tex(ShdMap1, pos.xy).x;
+   return TexLod(ShdMap1, pos.xy).x;
 }
 /******************************************************************************/
 Half ShadowDirValue(Vec pos, Vec2 jitter_value, Bool jitter, Int num, Bool cloud)

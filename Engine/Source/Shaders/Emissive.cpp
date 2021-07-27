@@ -94,13 +94,13 @@ VecH4 PS
 ):TARGET
 {
 #if ALPHA_TEST==ALPHA_TEST_YES
-   MaterialAlphaTest(Tex(Col, I.uv).a);
+   MaterialAlphaTest(RTex(Col, I.uv).a);
 #elif ALPHA_TEST==ALPHA_TEST_DITHER
-   MaterialAlphaTestDither(Tex(Col, I.uv).a, pixel.xy, I.face_id);
+   MaterialAlphaTestDither(RTex(Col, I.uv).a, pixel.xy, I.face_id);
 #endif
 
 #if EMISSIVE_MAP
-   VecH emissive=Tex(Lum, I.uv).rgb;
+   VecH emissive=RTex(Lum, I.uv).rgb;
    return VecH4(Material.emissive*emissive, Material.emissive_glow*Max(emissive));
 #else
    return VecH4(Material.emissive, Material.emissive_glow);

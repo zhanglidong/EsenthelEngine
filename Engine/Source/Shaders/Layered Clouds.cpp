@@ -38,10 +38,10 @@ out Half outAlpha:TARGET1 // #RTOutput.Blend
    }
    Vec2  uv=Normalize(uvw).xz;
    VecH4 color;
-   if(NUM>=4){VecH4 tex=Tex(Img3, uv*CL[3].scale + CL[3].position)*CL[3].color; if(NUM==4)color=tex;else color=Lerp(color, tex, tex.a);}
-   if(NUM>=3){VecH4 tex=Tex(Img2, uv*CL[2].scale + CL[2].position)*CL[2].color; if(NUM==3)color=tex;else color=Lerp(color, tex, tex.a);}
-   if(NUM>=2){VecH4 tex=Tex(Img1, uv*CL[1].scale + CL[1].position)*CL[1].color; if(NUM==2)color=tex;else color=Lerp(color, tex, tex.a);}
-   if(NUM>=1){VecH4 tex=Tex(Img , uv*CL[0].scale + CL[0].position)*CL[0].color; if(NUM==1)color=tex;else color=Lerp(color, tex, tex.a);}
+   if(NUM>=4){VecH4 tex=RTex(Img3, uv*CL[3].scale + CL[3].position)*CL[3].color; if(NUM==4)color=tex;else color=Lerp(color, tex, tex.a);}
+   if(NUM>=3){VecH4 tex=RTex(Img2, uv*CL[2].scale + CL[2].position)*CL[2].color; if(NUM==3)color=tex;else color=Lerp(color, tex, tex.a);}
+   if(NUM>=2){VecH4 tex=RTex(Img1, uv*CL[1].scale + CL[1].position)*CL[1].color; if(NUM==2)color=tex;else color=Lerp(color, tex, tex.a);}
+   if(NUM>=1){VecH4 tex=RTex(Img , uv*CL[0].scale + CL[0].position)*CL[0].color; if(NUM==1)color=tex;else color=Lerp(color, tex, tex.a);}
 
    color.a*=alpha;
    outAlpha=color.a;

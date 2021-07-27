@@ -142,7 +142,6 @@ DisplayState::DisplayState()
 
   _linear_gamma    =LINEAR_GAMMA;
   _clip_allow      =true;
-  _sampler2D       =true;
   _depth_write     =true;
   _depth_clip      =true;
   _depth_bias      =BIAS_ZERO;

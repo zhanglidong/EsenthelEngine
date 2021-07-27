@@ -56,7 +56,7 @@ VecH4 PS
    Data I
 ):TARGET
 {
-   return Tex(Col, I.uv)*Color[0];
+   return RTex(Col, I.uv)*Color[0];
 }
 /******************************************************************************/
 // HULL / DOMAIN

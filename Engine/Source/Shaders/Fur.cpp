@@ -71,13 +71,13 @@ void Base_PS
    out DeferredOutput output
 )
 {
-   Half fur=Tex(FurCol, I.uv*Material.det_uv_scale).r;
+   Half fur=RTex(FurCol, I.uv*Material.det_uv_scale).r;
 #if SIZE
    VecH col=Sat(I.len*-fur+1); // I.len*-fur+step+1 : fur*FACTOR+step+1, here step=0
 #else
    VecH col=Sat(fur*FACTOR+1); // I.len*-fur+step+1 : fur*FACTOR+step+1, here step=0
 #endif
-   if(DIFFUSE)col*=Tex(Col, I.uv).rgb;
+   if(DIFFUSE)col*=RTex(Col, I.uv).rgb;
    col=col*Material.color.rgb+Highlight.rgb;
 
    I.nrm=Normalize(I.nrm);
@@ -141,7 +141,7 @@ VecH4 Soft_PS
 , out Half outAlpha:TARGET1 // #RTOutput.Blend
 ):TARGET
 {
-   Half fur=Tex(FurCol, uv*Material.det_uv_scale).r;
+   Half fur=RTex(FurCol, uv*Material.det_uv_scale).r;
 
    VecH4 color;
 #if SIZE
@@ -154,7 +154,7 @@ VecH4 Soft_PS
 
    outAlpha=color.a;
    
-   if(DIFFUSE)color.rgb*=Tex(Col, uv).rgb;
+   if(DIFFUSE)color.rgb*=RTex(Col, uv).rgb;
               color.rgb =(color.rgb*Material.color.rgb+Highlight.rgb)*TexPoint(FurLight, ProjectedPosXYWToUV(orig_pos)).rgb; // we need to access the un-expanded pixel and not current pixel, 'TexPoint' is used in case it can offer faster performance
    return     color;
 }

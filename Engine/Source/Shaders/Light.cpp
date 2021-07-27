@@ -323,7 +323,7 @@ VecH LightCone_PS
          lum*=-TRANSLUCENT_VAL;
          VecH lum_rgb=LightCone.color.rgb*lum;
       #if IMAGE
-         lum_rgb*=Tex(Img2, dir.xy*(LightMapScale*0.5)+0.5).rgb;
+         lum_rgb*=RTex(Img2, dir.xy*(LightMapScale*0.5)+0.5).rgb;
       #endif
          return lum_rgb;
       }
@@ -352,7 +352,7 @@ VecH LightCone_PS
 
    VecH lum_rgb=LightCone.color.rgb*lum;
 #if IMAGE
-   lum_rgb*=Tex(Img2, dir.xy*(LightMapScale*0.5)+0.5).rgb;
+   lum_rgb*=RTex(Img2, dir.xy*(LightMapScale*0.5)+0.5).rgb;
 #endif
 
    outSpec=lum_rgb*lp.specular(ext.x, ext.y, ReflectCol(ext.y, base_col), true); // specular #RTOutput

@@ -76,8 +76,8 @@ This code calculates lighting by taking samples along the view ray, which is ref
 /******************************************************************************/
 Half Wave(Vec2 world_pos)
 {
-   return Avg(TexLodWrap(Ext, (WaterOfsBump+world_pos)*WaterMaterial.scale_bump).x,  // it's better to scale 'WaterOfsBump' too #MaterialTextureLayoutWater
-              TexLodWrap(Ext, (WaterOfsBump-world_pos)*WaterMaterial.scale_bump).x); // it's better to scale 'WaterOfsBump' too
+   return Avg(RTexLod(Ext, (WaterOfsBump+world_pos)*WaterMaterial.scale_bump).x,  // it's better to scale 'WaterOfsBump' too #MaterialTextureLayoutWater
+              RTexLod(Ext, (WaterOfsBump-world_pos)*WaterMaterial.scale_bump).x); // it's better to scale 'WaterOfsBump' too
 }
 /******************************************************************************/
 void Surface_VS
@@ -171,7 +171,7 @@ void WaterReflectColor(inout VecH total_specular, Vec nrm, Vec eye_dir, Vec2 uv,
    #endif
    #if REFLECT_MIRROR
       Vec2 reflect_tex=Mid((uv+refract*WaterMaterial.refract_reflection)*WaterReflectMulAdd.xy+WaterReflectMulAdd.zw, WaterClamp.xy, WaterClamp.zw);
-      VecH reflect_mirror=TexLodClamp(Img1, reflect_tex).rgb;
+      VecH reflect_mirror=TexLod(Img1, reflect_tex).rgb; // need UV clamp
       Half reflect_mirror_power=Sat(2-Abs(plane_dist)); // can use mirror reflection only if water position is close to water plane
    #endif
 
@@ -211,9 +211,9 @@ void Surface_PS
 {
    VecH nrm_flat; // #MaterialTextureLayoutWater
 #if DUAL_NORMAL
-   nrm_flat.xy=(Tex(Nrm, uv_nrm.xy).xy - Tex(Nrm, uv_nrm.zw).xy + Tex(Nrm, uv_nrm1.xy).xy - Tex(Nrm, uv_nrm1.zw).xy)*(WaterMaterial.normal/4); // Avg(Tex(Nrm, uv_nrm.xy).xy, -Tex(Nrm, uv_nrm.zw).xy, Tex(Nrm, uv_nrm1.xy).xy, -Tex(Nrm, uv_nrm1.zw).xy)*WaterMaterial.normal; normals from mirrored tex coordinates must be subtracted
+   nrm_flat.xy=(RTex(Nrm, uv_nrm.xy).xy - RTex(Nrm, uv_nrm.zw).xy + RTex(Nrm, uv_nrm1.xy).xy - RTex(Nrm, uv_nrm1.zw).xy)*(WaterMaterial.normal/4); // Avg(RTex(Nrm, uv_nrm.xy).xy, -RTex(Nrm, uv_nrm.zw).xy, RTex(Nrm, uv_nrm1.xy).xy, -RTex(Nrm, uv_nrm1.zw).xy)*WaterMaterial.normal; normals from mirrored tex coordinates must be subtracted
 #else
-   nrm_flat.xy=(Tex(Nrm, uv_nrm.xy).xy - Tex(Nrm, uv_nrm.zw).xy)*(WaterMaterial.normal/2); // Avg(Tex(Nrm, uv_nrm.xy).xy, -Tex(Nrm, uv_nrm.zw).xy)*WaterMaterial.normal; normals from mirrored tex coordinates must be subtracted
+   nrm_flat.xy=(RTex(Nrm, uv_nrm.xy).xy - RTex(Nrm, uv_nrm.zw).xy)*(WaterMaterial.normal/2); // Avg(RTex(Nrm, uv_nrm.xy).xy, -RTex(Nrm, uv_nrm.zw).xy)*WaterMaterial.normal; normals from mirrored tex coordinates must be subtracted
 #endif
 #if WAVES
    nrm_flat.xy+=inWaveN.xy;
@@ -222,7 +222,7 @@ void Surface_PS
    Vec nrm=Normalize(Vec(TransformDir(nrm_flat.xzy))); // convert to view space, convert to HP before Normalize
 
    VecH4 water_col;
-   water_col.rgb=Tex(Col, uv_col).rgb*WaterMaterial.color;
+   water_col.rgb=RTex(Col, uv_col).rgb*WaterMaterial.color;
    water_col.a  =0;
 
 #if !LIGHT
@@ -296,7 +296,7 @@ void Surface_PS
          Flt   back_z=LinearizeDepth(back_z_raw);
          Flt   dz=back_z-water_z;
          Half  alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add);
-         VecH4 back_col=TexLodClamp(Img2, back_uv);
+         VecH4 back_col=TexLod(Img2, back_uv); // need UV clamp
          O_col=Lerp(back_col, water_col, alpha);
       }
    }else
@@ -371,7 +371,7 @@ VecH4 Apply_PS(NOPERSP Vec2 uv   :UV,
          Flt   back_z=LinearizeDepth(back_z_raw);
          Flt   dz=back_z-water_z;
          Half  alpha=Sat(AccumulatedDensity(WaterMaterial.density, dz) + WaterMaterial.density_add);
-         VecH4 back_col=TexLodClamp(Img2, back_uv);
+         VecH4 back_col=TexLod(Img2, back_uv); // need UV clamp
          water_col=Lerp(back_col, water_col, alpha);
       }
       water_col.rgb+=spec; // independent of alpha

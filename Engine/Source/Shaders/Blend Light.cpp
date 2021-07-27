@@ -249,14 +249,14 @@ void PS
    reflect=Material.reflect_add;
    glow   =Material.       glow;
 #elif LAYOUT==1
-   VecH4 tex_col=Tex(Col, I.uv); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
+   VecH4 tex_col=RTex(Col, I.uv); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
    if(ALPHA)I.col*=tex_col;else I.col.rgb*=tex_col.rgb;
    rough  =Material.  rough_add;
    reflect=Material.reflect_add;
    glow   =Material.       glow;
 #elif LAYOUT==2
-   VecH4 tex_col=Tex(Col, I.uv); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
-   VecH4 tex_ext=Tex(Ext, I.uv);
+   VecH4 tex_col=RTex(Col, I.uv); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
+   VecH4 tex_ext=RTex(Ext, I.uv);
    if(ALPHA)I.col*=tex_col;else I.col.rgb*=tex_col.rgb;
    rough  =Sat(tex_ext.BASE_CHANNEL_ROUGH*Material.  rough_mul+Material.  rough_add); // need to saturate to avoid invalid values
    reflect=    tex_ext.BASE_CHANNEL_METAL*Material.reflect_mul+Material.reflect_add ;
@@ -272,10 +272,10 @@ void PS
       nrmh=I.Nrm();
    #else
       #if 0
-         nrmh.xy=Tex(Nrm, I.uv).BASE_CHANNEL_NORMAL*Material.normal;
+         nrmh.xy=RTex(Nrm, I.uv).BASE_CHANNEL_NORMAL*Material.normal;
          nrmh.z =CalcZ(nrmh.xy);
       #else
-         nrmh.xy =Tex(Nrm, I.uv).BASE_CHANNEL_NORMAL;
+         nrmh.xy =RTex(Nrm, I.uv).BASE_CHANNEL_NORMAL;
          nrmh.z  =CalcZ(nrmh.xy);
          nrmh.xy*=Material.normal;
       #endif
@@ -371,7 +371,7 @@ void PS
     //if(MATERIALS<=1) // emissive
       {
       #if EMISSIVE_MAP
-         VecH emissive=Tex(Lum, I.uv).rgb;
+         VecH emissive=RTex(Lum, I.uv).rgb;
          total_specular+=Material.emissive     *    emissive ;
          glow          +=Material.emissive_glow*Max(emissive);
       #else
@@ -387,7 +387,7 @@ void PS
     //if(MATERIALS<=1) glow from emissive
       {
       #if EMISSIVE_MAP
-         VecH emissive=Tex(Lum, I.uv).rgb;
+         VecH emissive=RTex(Lum, I.uv).rgb;
          glow+=Material.emissive_glow*Max(emissive);
       #else
          glow+=Material.emissive_glow;

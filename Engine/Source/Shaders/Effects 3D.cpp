@@ -106,7 +106,7 @@ void Volume_PS
 
       LOOP for(Int i=0; i<steps; i++)
       {
-         Vec2 sample=Tex3DLod(VolXY, pos).rg; // HP
+         Vec2 sample=Tex3DLod(VolXY, pos).rg; // HP, UV clamp needed
          Flt  alpha =sample.g*density_factor*(1-col.g);
 
          col.r+=alpha*sample.r;
@@ -126,7 +126,7 @@ void Volume_PS
 
       LOOP for(Int i=0; i<steps; i++)
       {
-         Vec4 sample=Tex3DLod(Vol, pos); // HP
+         Vec4 sample=Tex3DLod(Vol, pos); // HP, UV clamp needed
          Flt  alpha =sample.a*density_factor*(1-col.a);
 
          col.rgb+=alpha*sample.rgb;
@@ -254,7 +254,7 @@ VecH4 Decal_PS
 
    Vec2 uv=pos.xy*0.5+0.5;
 
-   VecH4 col=Tex(Col, uv);
+   VecH4 col=RTex(Col, uv);
          col.a*=fade;
 
 #if MODE==0 // overlay
@@ -264,11 +264,11 @@ VecH4 Decal_PS
    VecH nrm;
    #if NORMALS
       #if 0
-         nrm.xy =Tex(Nrm, uv).BASE_CHANNEL_NORMAL*Material.normal; // #MaterialTextureLayout
+         nrm.xy =RTex(Nrm, uv).BASE_CHANNEL_NORMAL*Material.normal; // #MaterialTextureLayout
 //if(DETAIL)nrm.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
          nrm.z  =CalcZ(nrm.xy);
       #else
-         nrm.xy =Tex(Nrm, uv).BASE_CHANNEL_NORMAL; // #MaterialTextureLayout
+         nrm.xy =RTex(Nrm, uv).BASE_CHANNEL_NORMAL; // #MaterialTextureLayout
          nrm.z  =CalcZ(nrm.xy);
          nrm.xy*=Material.normal;
 //if(DETAIL)nrm.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
@@ -288,7 +288,7 @@ VecH4 Decal_PS
    // Ext
    Half rough, reflect;
 #if LAYOUT==2 // #MaterialTextureLayout
-   VecH2 ext=Tex(Ext, uv).xy;
+   VecH2 ext=RTex(Ext, uv).xy;
    rough  =Sat(ext.BASE_CHANNEL_ROUGH*Material.  rough_mul+Material.  rough_add); // need to saturate to avoid invalid values. Even though we store values in 0..1 RT, we use alpha blending which may produce different results if values are outside 0..1
    reflect=    ext.BASE_CHANNEL_METAL*Material.reflect_mul+Material.reflect_add ;
 #else

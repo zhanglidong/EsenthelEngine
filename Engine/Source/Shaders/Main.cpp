@@ -199,7 +199,7 @@ VecH4 Draw3DTex_PS(Vec2  uv:UV
                 #endif
                   ):TARGET
 {
-   VecH4 col=Tex(Img, uv);
+   VecH4 col=RTex(Img, uv);
 #if ALPHA_TEST
    clip(col.a-0.5);
 #endif
@@ -259,7 +259,7 @@ void DrawCubeFace_VS(VtxInput vtx,
    uv   =Vec (vtx.uv(), vtx.size());
    pixel=Vec4(vtx.pos2()*Coords.xy+Coords.zw, Z_FRONT, 1);
 }
-VecH4 DrawCubeFace_PS(NOPERSP Vec uv:UV):TARGET {return TexCube(Cub, uv)*Color[0]+Color[1];}
+VecH4 DrawCubeFace_PS(NOPERSP Vec uv:UV):TARGET {return TexCubeClamp(Cub, uv)*Color[0]+Color[1];}
 /******************************************************************************/
 void Simple_VS(VtxInput vtx,
            out Vec2  uv   :UV,
@@ -273,7 +273,7 @@ void Simple_VS(VtxInput vtx,
 Vec4 Simple_PS(Vec2  uv :UV   ,
                VecH4 col:COLOR):TARGET
 {
-   return Tex(Img, uv)*col;
+   return RTex(Img, uv)*col;
 }
 /******************************************************************************/
 VecH4 Dither_PS(NOPERSP Vec2 uv:UV,
@@ -529,7 +529,7 @@ VecH4 ColorLUT_PS(NOPERSP Vec2 uv:UV,
 
    // now 'col' is sRGB
 
-   col.rgb=Tex3DLod(Vol, col.rgb*ImgSize.x+ImgSize.y).rgb;
+   col.rgb=Tex3DLod(Vol, col.rgb*ImgSize.x+ImgSize.y).rgb; // UV clamp needed, LUT always has only 1 LOD
 
 #if DITHER
    ApplyDither(col.rgb, pixel.xy, false); // don't perform gamma conversions inside dither, because at this stage, color is in sRGB

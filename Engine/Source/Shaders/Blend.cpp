@@ -135,12 +135,12 @@ VecH4 PS
    rough  =Material.  rough_add;
    reflect=Material.reflect_add;
 #elif LAYOUT==1
-   I.color*=Tex(Col, I.uv);
+   I.color*=RTex(Col, I.uv);
    rough  =Material.  rough_add;
    reflect=Material.reflect_add;
 #elif LAYOUT==2
-    I.color*=Tex(Col, I.uv);
-   VecH2 ext=Tex(Ext, I.uv).xy;
+    I.color*=RTex(Col, I.uv);
+   VecH2 ext=RTex(Ext, I.uv).xy;
    rough  =Sat(ext.BASE_CHANNEL_ROUGH*Material.  rough_mul+Material.  rough_add); // need to saturate to avoid invalid values
    reflect=    ext.BASE_CHANNEL_METAL*Material.reflect_mul+Material.reflect_add ;
 #endif
@@ -154,10 +154,10 @@ VecH4 PS
       nrmh=I.Nrm();
    #else
       #if 0
-         nrmh.xy=Tex(Nrm, I.uv).BASE_CHANNEL_NORMAL*Material.normal;
+         nrmh.xy=RTex(Nrm, I.uv).BASE_CHANNEL_NORMAL*Material.normal;
          nrmh.z =CalcZ(nrmh.xy);
       #else
-         nrmh.xy =Tex(Nrm, I.uv).BASE_CHANNEL_NORMAL;
+         nrmh.xy =RTex(Nrm, I.uv).BASE_CHANNEL_NORMAL;
          nrmh.z  =CalcZ(nrmh.xy);
          nrmh.xy*=Material.normal;
       #endif
@@ -189,7 +189,7 @@ VecH4 PS
 #endif
 
 #if EMISSIVE_MAP
-   VecH emissive=Tex(Lum, I.uv).rgb;
+   VecH emissive=RTex(Lum, I.uv).rgb;
    I.color.rgb+=Material.emissive*emissive;
 #else
    I.color.rgb+=Material.emissive;

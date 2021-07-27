@@ -70,18 +70,18 @@ out VecH4 outNrm:TARGET1,
 out VecH4 outExt:TARGET2
 ):TARGET // #RTOutput
 {
-   VecH4 col=Tex(Col, D.uv);
+   VecH4 col=RTex(Col, D.uv);
    col  *=Material.color;
    col.a*=Sat(D.alpha)*OverlayAlpha();
 
    VecH nrm;
 #if NORMALS
    #if 0
-                  nrm.xy =Tex(Nrm, D.uv).BASE_CHANNEL_NORMAL*Material.normal; // #MaterialTextureLayout
+                  nrm.xy =RTex(Nrm, D.uv).BASE_CHANNEL_NORMAL*Material.normal; // #MaterialTextureLayout
       //if(DETAIL)nrm.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
                   nrm.z  =CalcZ(nrm.xy);
    #else
-                  nrm.xy =Tex(Nrm, D.uv).BASE_CHANNEL_NORMAL; // #MaterialTextureLayout
+                  nrm.xy =RTex(Nrm, D.uv).BASE_CHANNEL_NORMAL; // #MaterialTextureLayout
                   nrm.z  =CalcZ(nrm.xy);
                   nrm.xy*=Material.normal;
       //if(DETAIL)nrm.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
@@ -102,7 +102,7 @@ out VecH4 outExt:TARGET2
    // Ext
    Half rough, reflect;
 #if LAYOUT==2 // #MaterialTextureLayout
-   VecH2 ext=Tex(Ext, D.uv).xy;
+   VecH2 ext=RTex(Ext, D.uv).xy;
    rough  =Sat(ext.BASE_CHANNEL_ROUGH*Material.  rough_mul+Material.  rough_add); // need to saturate to avoid invalid values. Even though we store values in 0..1 RT, we use alpha blending which may produce different results if values are outside 0..1
    reflect=    ext.BASE_CHANNEL_METAL*Material.reflect_mul+Material.reflect_add ;
 #else

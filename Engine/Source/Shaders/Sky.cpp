@@ -112,9 +112,9 @@ VecH4 Sky_PS
    VecH4 col;
 
 #if   TEXTURES==2
-   col.rgb=Lerp(TexCubeLod(Cub, uvw).rgb, TexCubeLod(Cub1, uvw).rgb, SkyBoxBlend);
+   col.rgb=Lerp(TexCube(Cub, uvw).rgb, TexCube(Cub1, uvw).rgb, SkyBoxBlend);
 #elif TEXTURES==1
-   col.rgb=TexCubeLod(Cub, uvw).rgb; // use 'TexCubeLod' in case Image is for PBR Environment Map which has blurred mip-maps
+   col.rgb=TexCube(Cub, uvw).rgb;
 #else
    #if PER_VERTEX
       col=vtx_col;
@@ -128,7 +128,7 @@ VecH4 Sky_PS
    #endif
 
    #if STARS
-      col.rgb=Lerp(TexCubeLod(Cub, uvw_star).rgb, col.rgb, col.a);
+      col.rgb=Lerp(TexCube(Cub, uvw_star).rgb, col.rgb, col.a);
    #endif
 #endif
 
@@ -136,7 +136,7 @@ VecH4 Sky_PS
 
 #if CLOUD
    Vec2  cloud_tex=Normalize(uvw_cloud).xz;
-   VecH4 cloud_col=Tex(Img, cloud_tex*CL[0].scale + CL[0].position)*col_cloud;
+   VecH4 cloud_col=RTex(Img, cloud_tex*CL[0].scale + CL[0].position)*col_cloud;
    col.rgb=Lerp(col.rgb, cloud_col.rgb, cloud_col.a);
 #endif
 

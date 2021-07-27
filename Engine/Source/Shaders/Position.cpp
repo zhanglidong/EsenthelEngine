@@ -91,11 +91,11 @@ void PS
 )
 {
 #if ALPHA_TEST && TEST_BLEND
-   clip(Tex(Col, I.uv).a + Material.color.a*0.5 - 1);
+   clip(RTex(Col, I.uv).a + Material.color.a*0.5 - 1);
 #elif ALPHA_TEST==ALPHA_TEST_YES
-   MaterialAlphaTest(Tex(Col, I.uv).a);
+   MaterialAlphaTest(RTex(Col, I.uv).a);
 #elif ALPHA_TEST==ALPHA_TEST_DITHER
-   MaterialAlphaTestDither(Tex(Col, I.uv).a, pixel.xy, I.face_id, false); // don't use noise offset for shadows because the shadow texels can be big on the screen and flickering disturbing
+   MaterialAlphaTestDither(RTex(Col, I.uv).a, pixel.xy, I.face_id, false); // don't use noise offset for shadows because the shadow texels can be big on the screen and flickering disturbing
 #endif
 }
 /******************************************************************************/

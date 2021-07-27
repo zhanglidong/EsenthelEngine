@@ -134,9 +134,9 @@ VecH4 Particle_PS(PIXEL,
                #endif
                  ):TARGET
 {
-   VecH4 tex=Tex(Img, uv);
+   VecH4 tex=RTex(Img, uv);
    #if ANIM==ANIM_SMOOTH
-      tex=Lerp(tex, Tex(Img, anim.xy), anim.z);
+      tex=Lerp(tex, RTex(Img, anim.xy), anim.z);
    #endif
    #if SOFT
    {
