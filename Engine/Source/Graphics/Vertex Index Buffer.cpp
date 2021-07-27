@@ -1696,7 +1696,7 @@ void VtxIndBuf::clear()
       if(VI._user_flag&VI_CUSTOM_SAMPLER    ) // reset the sampler
       {
          if(D._sampler2D)SamplerLinearClamp.setPS(SSI_DEFAULT);
-         else            SamplerAnisotropic.setPS(SSI_DEFAULT);
+         else            SamplerRender     .setPS(SSI_DEFAULT);
       }
       VI._user_flag=0; // clear the user flag
    }

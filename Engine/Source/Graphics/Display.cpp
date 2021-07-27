@@ -2890,7 +2890,7 @@ DisplayClass& DisplayClass::texFilter(Byte filter)
    if(T._tex_filter!=filter)
    {
       T._tex_filter=filter;
-      if(created())CreateAnisotropicSampler();
+      if(created())CreateRenderSampler();
    }
    return T;
 }
@@ -2899,7 +2899,7 @@ DisplayClass& DisplayClass::texMipFilter(Bool on)
    if(T._tex_mip_filter!=on)
    {
       T._tex_mip_filter=on;
-      if(created())CreateAnisotropicSampler();
+      if(created())CreateRenderSampler();
    }
    return T;
 }
@@ -2909,7 +2909,7 @@ DisplayClass& DisplayClass::texMipMin(Byte min)
    if(T._tex_mip_min!=min)
    {
       T._tex_mip_min=min;
-      if(created())CreateAnisotropicSampler();
+      if(created())CreateRenderSampler();
    }
    return T;
 }
@@ -2920,7 +2920,7 @@ DisplayClass& DisplayClass::texMipBias(Flt bias)
    if(T._tex_mip_bias!=bias)
    {
       T._tex_mip_bias=bias;
-      if(created())CreateAnisotropicSampler();
+      if(created())CreateRenderSampler();
    }
    return T;
 }

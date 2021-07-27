@@ -690,7 +690,7 @@ void DisplayState::sampler2D()
 void DisplayState::sampler3D()
 {
    D._sampler2D=false;
-   SamplerAnisotropic.setPS(SSI_DEFAULT);
+   SamplerRender.setPS(SSI_DEFAULT);
 }
 void DisplayState::samplerShadow()
 {
