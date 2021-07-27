@@ -1941,9 +1941,8 @@ void RendererClass::setOutline(C Color &color)
    {
      _outline_rt.get(ImageRTDesc(_col->w(), _col->h(), IMAGERT_OUTLINE, _col->samples())); // here Alpha is used for outline opacity
       set(_outline_rt, _ds, true);
-      D.clearCol  ();
-      D.alpha     (ALPHA_NONE);
-      D.sampler3D ();
+      D.clearCol        ();
+      D.alpha           (ALPHA_NONE);
       D.depthOnWriteFunc(true, false, FUNC_LESS_EQUAL);
       if(D.outlineMode()==EDGE_DETECT_THIN)D.stencil(STENCIL_OUTLINE_SET, STENCIL_REF_OUTLINE);
    }
@@ -1959,7 +1958,6 @@ void RendererClass::applyOutline()
    if(_outline_rt)
    {
      _SetHighlight(TRANSPARENT); // disable 'SetHighlight' which was called during mesh drawing
-      D.sampler2D ();
       D.depthOnWriteFunc(false, true, FUNC_DEFAULT); // restore default
 
       resolveMultiSample(); // don't do 'downSample' here because 'edgeSoften' and 'temporal' will be called later and they require to operate on full-sampled data
@@ -2008,7 +2006,7 @@ void RendererClass::outline()
    // start outline
    if(D.outlineMode())
    {
-      mode(RM_OUTLINE); // 'sampler3D/2D' is called in 'setOutline' and 'applyOutline'
+      mode(RM_OUTLINE);
       REPS(_eye, _eye_num)
       {
        //setEyeViewportCam(); viewport is set in 'setOutline' method
@@ -2232,7 +2230,7 @@ void RendererClass::postProcess()
                case FILTER_NONE:
                {
                   pixels=1; // 1 for borders
-                  SamplerPoint.setPS(SSI_DEFAULT);
+                  SamplerPoint.setPS(SSI_DEFAULT_2D);
                }break;
 
                case FILTER_CUBIC_FAST       :
@@ -2264,7 +2262,7 @@ void RendererClass::postProcess()
             }
             set(_final, null, true); D.alpha(combine ? ALPHA_MERGE : ALPHA_NONE);
             shader->draw(_col); alpha_set=true;
-            if(upscale && D.densityFilter()==FILTER_NONE)SamplerLinearClamp.setPS(SSI_DEFAULT);
+            if(upscale && D.densityFilter()==FILTER_NONE)SamplerLinearClamp.setPS(SSI_DEFAULT_2D);
          }
       }
      _col.clear(); // release as it's no longer needed

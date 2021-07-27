@@ -145,7 +145,7 @@ void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
    {
     //case FILTER_LINEAR: VI.shader(null); break;
 
-      case FILTER_NONE: VI.shader(Sh.DrawTexPoint); break; // or SamplerPoint.setPS(SSI_DEFAULT);
+      case FILTER_NONE: VI.shader(Sh.DrawTexPoint); break; // or SamplerPoint.setPS(SSI_DEFAULT_2D);
 
       case FILTER_CUBIC_FAST       :
       case FILTER_CUBIC_FAST_SMOOTH:
@@ -171,7 +171,7 @@ void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
       v[3].tex.set(_part.x, _part.y);
    }
    VI.end();
- //if(filter==FILTER_NONE)SamplerLinearClamp.setPS(SSI_DEFAULT);
+ //if(filter==FILTER_NONE)SamplerLinearClamp.setPS(SSI_DEFAULT_2D);
 }
 void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_TYPE filter)C
 {
@@ -180,7 +180,7 @@ void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_
    {
     //case FILTER_LINEAR: VI.shader(null); break;
 
-      case FILTER_NONE: VI.shader(Sh.DrawTexPointC); break; // or SamplerPoint.setPS(SSI_DEFAULT);
+      case FILTER_NONE: VI.shader(Sh.DrawTexPointC); break; // or SamplerPoint.setPS(SSI_DEFAULT_2D);
 
       case FILTER_CUBIC_FAST       :
       case FILTER_CUBIC_FAST_SMOOTH:
@@ -208,7 +208,7 @@ void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_
       v[3].tex.set(_part.x, _part.y);
    }
    VI.end();
- //if(filter==FILTER_NONE)SamplerLinearClamp.setPS(SSI_DEFAULT);
+ //if(filter==FILTER_NONE)SamplerLinearClamp.setPS(SSI_DEFAULT_2D);
 }
 /******************************************************************************
 void Image::drawOutline(C Color &color, C Rect &rect, Flt tex_range)

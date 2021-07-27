@@ -2091,7 +2091,7 @@ Int ExpectedBufferSlot(C Str8 &name)
 }
 Int GetSamplerIndex(CChar8 *name)
 {
-   if(Equal(name, "SamplerDefault"    ))return SSI_DEFAULT;
+   if(Equal(name, "SamplerRender"     ))return SSI_RENDER;
    if(Equal(name, "SamplerPoint"      ))return SSI_POINT;
    if(Equal(name, "SamplerLinearClamp"))return SSI_LINEAR_CLAMP;
    if(Equal(name, "SamplerLinearWrap" ))return SSI_LINEAR_WRAP;

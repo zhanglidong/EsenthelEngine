@@ -142,14 +142,12 @@ void LayeredClouds::draw()
       D.alpha           (ALPHA_RENDER_BLEND);
       D.depthOnWriteFunc(true, false, FUNC_LESS_EQUAL); // to make sure we draw at the end of viewRange
       D.cull            (true);
-      D.sampler3D       ();
       Shader *shader=LC.get(_layers-1, blend);
       REPS(Renderer._eye, Renderer._eye_num)
       {
          Renderer.setEyeViewportCam();
          shader->begin(); _mshr.set().draw();
       }
-      D.sampler2D();
       D.depthOnWriteFunc(false, true, FUNC_DEFAULT);
    }
 }

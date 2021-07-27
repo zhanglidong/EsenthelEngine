@@ -1693,11 +1693,7 @@ void VtxIndBuf::clear()
    if(VI._user_flag)
    {
       if(VI._user_flag&VI_CUSTOM_DEPTH_WRITE)D.depthWrite(VI._depth_write); // reset depth writing
-      if(VI._user_flag&VI_CUSTOM_SAMPLER    ) // reset the sampler
-      {
-         if(D._sampler2D)SamplerLinearClamp.setPS(SSI_DEFAULT);
-         else            SamplerRender     .setPS(SSI_DEFAULT);
-      }
+      if(VI._user_flag&VI_CUSTOM_SAMPLER    )SamplerLinearClamp.setPS(SSI_DEFAULT_2D); // reset the sampler
       VI._user_flag=0; // clear the user flag
    }
 }
@@ -1732,11 +1728,11 @@ void VtxIndBuf::alphaTest (Bool on  ) {FlagSet(VI._user_flag, VI_ALPHA_TEST, on 
 void VtxIndBuf::fog       (Bool on  ) {FlagSet(VI._user_flag, VI_FOG       , on  );}
 void VtxIndBuf::depthWrite(Bool on  ) {if(!(VI._user_flag&VI_CUSTOM_DEPTH_WRITE)){VI._depth_write=D._depth_write; VI._user_flag|=VI_CUSTOM_DEPTH_WRITE;} D.depthWrite(on);}
 
-void VtxIndBuf::clamp     () {FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER); SamplerLinearClamp     .setPS(SSI_DEFAULT);}
-void VtxIndBuf::wrap      () {FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER); SamplerLinearWrap      .setPS(SSI_DEFAULT);}
-void VtxIndBuf::wrapX     () {FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER); SamplerLinearWCC       .setPS(SSI_DEFAULT);}
-void VtxIndBuf::wrapY     () {FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER); SamplerLinearCWC       .setPS(SSI_DEFAULT);}
-void VtxIndBuf::clampAniso() {FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER); SamplerAnisotropicClamp.setPS(SSI_DEFAULT);}
+void VtxIndBuf::clamp     () {FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER); SamplerLinearClamp     .setPS(SSI_DEFAULT_2D);}
+void VtxIndBuf::wrap      () {FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER); SamplerLinearWrap      .setPS(SSI_DEFAULT_2D);}
+void VtxIndBuf::wrapX     () {FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER); SamplerLinearWCC       .setPS(SSI_DEFAULT_2D);}
+void VtxIndBuf::wrapY     () {FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER); SamplerLinearCWC       .setPS(SSI_DEFAULT_2D);}
+void VtxIndBuf::clampAniso() {FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER); SamplerAnisotropicClamp.setPS(SSI_DEFAULT_2D);}
 /******************************************************************************/
 void VtxIndBuf::flush()
 {

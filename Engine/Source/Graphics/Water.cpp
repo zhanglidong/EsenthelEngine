@@ -365,7 +365,6 @@ void WaterClass::begin()
       D.wire      (Renderer.wire);
       D.depth     (true);
       D.cull      (true);
-      D.sampler3D (    );
       D.stencil   (STENCIL_WATER_SET, STENCIL_REF_WATER);
       WS.WaterFlow   ->set(Time.time()*3);
       WS.WaterOfsCol ->set(_offset_col  );
@@ -389,9 +388,8 @@ void WaterClass::end()
    {
      _began=false;
 
-      D.wire     (false);
-      D.sampler2D();
-      D.stencil  (STENCIL_NONE);
+      D.wire   (false);
+      D.stencil(STENCIL_NONE);
 
       MaterialClear(); // clear Materials because we've potentially set WaterMaterials which share the same textures
 

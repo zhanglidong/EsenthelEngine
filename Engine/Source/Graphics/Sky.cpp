@@ -212,7 +212,6 @@ void SkyClass::draw()
       D.alpha           (blend ? ALPHA_RENDER_BLEND : ALPHA_NONE);
       D.depthOnWriteFunc(ds, false, FUNC_LESS_EQUAL); // to make sure we draw at the end of viewRange
     //D.cull            (true); ignore changing culling, because we're inside the sky ball, so we will always see its faces, we could potentially set false (to ignore overhead on the GPU for cull testing if any) however we choose to just ignore it to reduce GPU state changes on the CPU which are probably more costly
-      D.sampler3D       (    ); // set in case of drawing clouds
      _mshr.set();
       SetOneMatrix(MatrixM(sky_ball_mesh_size, CamMatrix.pos)); // normally we have to set matrixes after 'setEyeViewportCam', however since matrixes are always relative to the camera, and here we set exactly at the camera position, so the matrix will be the same for both eyes
       REPS(Renderer._eye, Renderer._eye_num)
@@ -221,7 +220,6 @@ void SkyClass::draw()
          if(shader_multi){D.depth((multi==1) ? false : ds); D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); shader_multi->begin(); _mshr.draw(); D.stencilRef(0); D.depth(ds);} // MS edges for deferred must not use depth testing, call this first to set stencil, reset stencil ref and depth for call below
                                                                                                             shader      ->begin(); _mshr.draw(); // call this next
       }
-      D.sampler2D       ();
       D.depthOnWriteFunc(false, true, FUNC_DEFAULT);
       D.stencil         (STENCIL_NONE);
    }

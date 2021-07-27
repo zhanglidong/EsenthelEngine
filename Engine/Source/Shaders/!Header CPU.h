@@ -56,7 +56,7 @@
 #define SBI_NUM             8
 
 // Sampler Indexes
-#define SSI_DEFAULT      0
+#define SSI_RENDER       0
 #define SSI_POINT        1
 #define SSI_LINEAR_CLAMP 2
 #define SSI_LINEAR_WRAP  3
@@ -66,6 +66,7 @@
 #define SSI_MINIMUM      7
 #define SSI_MAXIMUM      8
 #define SSI_NUM          9
+#define SSI_DEFAULT_2D   SSI_LINEAR_CLAMP
 
 // Material Textures
 #define TEX_IS_ROUGH 1 // if texture has roughness (if 0 then it has smoothness)

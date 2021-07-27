@@ -682,22 +682,8 @@ void DisplayState::vf(GPU_API(ID3D11InputLayout, VtxFormatGL) *vf)
 #endif
 }
 /******************************************************************************/
-void DisplayState::sampler2D()
-{
-   D._sampler2D=true;
-   SamplerLinearClamp.setPS(SSI_DEFAULT);
-}
-void DisplayState::sampler3D()
-{
-   D._sampler2D=false;
-   SamplerRender.setPS(SSI_DEFAULT);
-}
-void DisplayState::samplerShadow()
-{
-   sampler3D(); // we could potentially use a different sampler here with smaller anisotropic value, however quality does suffer (especially with filter=1, so don't go below 2), however performance difference is minimal, so for simplicity just use the default 3D sampler
-}
-void DisplayState::set2D() {                     D.clipPlane(false); D.wire(false        ); D.sampler2D();}
-void DisplayState::set3D() {if(Renderer.mirror())D.clipPlane(true ); D.wire(Renderer.wire); D.sampler3D();}
+void DisplayState::set2D() {                     D.clipPlane(false); D.wire(false        );}
+void DisplayState::set3D() {if(Renderer.mirror())D.clipPlane(true ); D.wire(Renderer.wire);}
 /******************************************************************************/
 void DisplayState::linearGamma(Bool on)
 {
@@ -732,10 +718,9 @@ Bool DisplayState::mainFBO()C
 /******************************************************************************/
 void DisplayState::setDeviceSettings()
 {
-   sampler2D();
    DisplayState old=T;
 
-   SamplerLinearClamp.set(SSI_DEFAULT);
+   SamplerRender     .set(SSI_RENDER);
    SamplerPoint      .set(SSI_POINT);
    SamplerLinearWrap .set(SSI_LINEAR_WRAP);
    SamplerLinearClamp.set(SSI_LINEAR_CLAMP);

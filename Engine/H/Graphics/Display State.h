@@ -139,9 +139,6 @@ struct DisplayState // Display States Control, this class methods can be called 
    static void stencil         (STENCIL_MODE mode, Byte ref);
    static void depth2DOn       (UInt func=FUNC_FOREGROUND); // this enables processing pixels only in foreground or background (depending on depth buffer value)
    static void depth2DOff      (                         ); //     disables processing pixels only in foreground or background
-   static void sampler2D       ();
-   static void sampler3D       ();
-   static void samplerShadow   ();
    static void linearGamma     (Bool on);
    static void primType        (UInt prim_type);
    static void set2D           ();
@@ -158,7 +155,7 @@ struct DisplayState // Display States Control, this class methods can be called 
 private:
 #endif
    ALPHA_MODE _alpha;
-   Bool       _depth_lock, _depth, _depth_write, _depth_clip, _cull, _line_smooth, _wire, _clip, _clip_allow, _clip_real, _clip_plane_allow, _front_face, _sampler2D, _linear_gamma;
+   Bool       _depth_lock, _depth, _depth_write, _depth_clip, _cull, _line_smooth, _wire, _clip, _clip_allow, _clip_real, _clip_plane_allow, _front_face, _linear_gamma;
    Byte       _depth_bias, _stencil, _stencil_ref, _col_write[4];
    UInt       _depth_func, _sample_mask, _fbo;
    RectI      _viewport, _clip_recti;

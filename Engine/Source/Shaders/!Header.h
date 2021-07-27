@@ -479,12 +479,12 @@ BUFFER(MultiMaterial3) MultiMaterialClass MultiMaterial3; BUFFER_END
 /******************************************************************************/
 #include "!Set Prec Image.h"
 // #MaterialTextureLayout
-Image     Col, Col1, Col2, Col3;
-ImageH2   Nrm, Nrm1, Nrm2, Nrm3;
-Image     Ext, Ext1, Ext2, Ext3,
-          Det, Det1, Det2, Det3,
-          Mac, Mac1, Mac2, Mac3,
-          Lum;
+Image   Col, Col1, Col2, Col3;
+ImageH2 Nrm, Nrm1, Nrm2, Nrm3;
+Image   Ext, Ext1, Ext2, Ext3,
+        Det, Det1, Det2, Det3,
+        Mac, Mac1, Mac2, Mac3,
+        Lum;
 
 // #MaterialTextureLayout
 #define BUMP_IMAGE Ext
@@ -506,7 +506,7 @@ Texture2DMS<VecH2, MS_SAMPLES> ImgXYMS;
 Texture2DMS<Flt  , MS_SAMPLES> DepthMS;
 #include "!Set Prec Default.h"
 
-       SAMPLER(SamplerDefault    , SSI_DEFAULT     );
+       SAMPLER(SamplerRender     , SSI_RENDER      );
        SAMPLER(SamplerPoint      , SSI_POINT       );
        SAMPLER(SamplerLinearClamp, SSI_LINEAR_CLAMP);
        SAMPLER(SamplerLinearWrap , SSI_LINEAR_WRAP );
