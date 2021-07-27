@@ -717,7 +717,7 @@ RendererClass& RendererClass::operator()(void (&render)())
       waterUnder(); MEASURE(_t_water_under[1])
       edgeDetect(); MEASURE(_t_edge_detect[1])
       blend     (); MEASURE(_t_blend[1])
-      if(hasDof())resolveDepth1();
+      if(hasDof()){resolveDepth1(); MEASURE(temp)}
     /*if(stage)switch(stage) check this earlier together with other stages, to avoid doing a single extra check here
       {
          case RS_DEPTH: if(show(_ds_1s, false))goto finished; break;
@@ -726,7 +726,7 @@ RendererClass& RendererClass::operator()(void (&render)())
       palette(0);
       palette(1); MEASURE(_t_palette[1])
       behind ( ); MEASURE(_t_behind [1])
-      outline( );
+      outline( ); MEASURE(temp)
 
       // 2D
       finalizeGlow(); // !! assume that nothing below can trigger glow on the scene !!
@@ -737,7 +737,7 @@ RendererClass& RendererClass::operator()(void (&render)())
          case RS_ALPHA: if(show(_alpha, false))goto finished; break;
       }
 
-      edgeSoften   (); MEASURE(temp)
+      if(!D.temporalSuperRes())edgeSoften(); MEASURE(temp) // if have temporal super-res then 'edgeSoften' must be run after upscale
       AstroDrawRays(); MEASURE(_t_rays[1])
       volumetric   (); MEASURE(_t_volumetric[1])
       postProcess  (); MEASURE(_t_post_process[1])
@@ -2070,13 +2070,14 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
 
          case EDGE_SOFTEN_SMAA:
          {
+            ImageRTPtr ds; if(_col->compatible(*_ds_1s))ds=_ds_1s;else ds.getDS(_col->w(), _col->h(), _col->samples());
             Bool gamma=LINEAR_GAMMA, swap=(gamma && _col->canSwapSRV()); if(swap){gamma=false; _col->swapSRV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
-            D.stencil(STENCIL_EDGE_SOFT_SET, STENCIL_REF_EDGE_SOFT); // have to use '_ds_1s' in write mode to be able to use stencil
-            ImageRTPtr edge(rt_desc.type(IMAGERT_TWO)); set(edge, _ds_1s, true); D.clearCol(); Sh.SMAAEdge[gamma]->draw(_col); Sh.Img[1]->set(_smaa_area); Sh.Img[2]->set(_smaa_search); D.stencil(STENCIL_EDGE_SOFT_TEST);
+            D.stencil(STENCIL_EDGE_SOFT_SET, STENCIL_REF_EDGE_SOFT); // have to use 'ds' in write mode to be able to use stencil
+            ImageRTPtr edge(rt_desc.type(IMAGERT_TWO)); set(edge, ds, true); D.clearCol(); Sh.SMAAEdge[gamma]->draw(_col); Sh.Img[1]->set(_smaa_area); Sh.Img[2]->set(_smaa_search); D.stencil(STENCIL_EDGE_SOFT_TEST);
             if(swap)_col->swapSRV(); // restore
 
             ImageRTPtr blend(rt_desc.type(IMAGERT_RGBA)); // this does not store color, but intensities how much to blend in each axis
-            set(blend, _ds_1s, true); D.clearCol(); Sh.SMAABlend->draw(edge); Sh.Img[1]->set(blend); edge.clear(); D.stencil(STENCIL_NONE);
+            set(blend, ds, true); D.clearCol(); Sh.SMAABlend->draw(edge); Sh.Img[1]->set(blend); edge.clear(); D.stencil(STENCIL_NONE);
 
             swap=(!LINEAR_GAMMA && dest->canSwapRTV() && _col->canSwapSRV()); if(swap){dest->swapRTV(); _col->swapSRV();} // this we have to perform if we're NOT using Linear Gamma, because if possible, we WANT to use it, as it will improve quality, making AA softer
             set(dest, null, true); Sh.SMAA->draw(_col);
@@ -2119,6 +2120,8 @@ void RendererClass::postProcess()
    else          _alpha.clear(); // make sure to clear if we don't use it
 
    T.temporal(); // !! AFTER 'temporal' we must be checking for 'ColConst' !!
+
+   if(D.temporalSuperRes())edgeSoften(); // if have temporal super-res then 'edgeSoften' must be run after upscale
 
    ImageRTDesc rt_desc(fxW(), fxH(), IMAGERT_SRGBA/*this is changed later*/);
    ImageRTPtr  dest, bloom_glow;
