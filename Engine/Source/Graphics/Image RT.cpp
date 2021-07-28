@@ -459,11 +459,13 @@ static Int CompareDesc(C ImageRTC &image, C ImageRTDesc &desc)
    if(Int c=Compare(image.samples(), desc.samples))return c;
    return 0;
 }
-static void Set(ImageRTPtr &p, ImageRTC &rt, Bool want_srgb) // this is called only when "_ptr_num==0"
+static void Set(ImageRTPtr &p, ImageRTC &rt, IMAGE_TYPE want_type) // this is called only when "_ptr_num==0"
 {
-#if CAN_SWAP_SRGB
-   if(want_srgb!=rt.sRGB())rt.swapSRGB();
-#endif
+   if(want_type!=rt.hwType()) // !! have to compare 'hwType' instead of 'type', because 'type' is always non-sRGB (same as 'desc._type') while 'hwType' can be sRGB-toggled in 'swapSRGB' !!
+   {
+      DEBUG_ASSERT(rt.canSwapSRGB(), "rt.canSwapSRGB");
+      rt.swapSRGB();
+   }
    rt._ptr_num++; p._data=&rt; rt.discard();
 }
 /******************************************************************************/
@@ -528,14 +530,11 @@ again:
    ConstCast(desc._type)=types.types[0];
 #endif
 
-   Bool want_srgb=false;
-#if CAN_SWAP_SRGB // try to create non-sRGB, and later swap sRGB views, this allows to potentially reduce amount of needed Render Targets, since they can reuse each other memory (instead of using 1 RGB and 1 sRGB, we can just allocate 1 RGB, and swap its views if needed)
-   IMAGE_TYPE non_srgb=ImageTypeExcludeSRGB(desc._type); if(desc._type!=non_srgb) // if we're requesting sRGB
-   {
-      ConstCast(desc._type)=non_srgb; // request non-sRGB
-      want_srgb=true; // and remember that we want sRGB
+   IMAGE_TYPE want_type=desc._type;
+   if(D.canSwapSRGB()) // if can swap sRGB, then try to create non-sRGB, and later swap sRGB views
+   { // this allows to potentially reduce amount of needed Render Targets, since they can reuse each other memory (instead of using 1 RGB and 1 sRGB, we can just allocate 1 RGB, and swap its views if needed)
+      IMAGE_TYPE non_srgb=ImageTypeExcludeSRGB(desc._type); if(desc._type!=non_srgb)ConstCast(desc._type)=non_srgb; // if we're requesting sRGB, then request non-sRGB
    }
-#endif
 
    Bool found; if(InRange(_last_index, Renderer._rts) && !CompareDesc(Renderer._rts[_last_index], desc))found=true; // in range and matches ("!CompareDesc" -> match)
    else found=Renderer._rts.binarySearch(desc, _last_index, CompareDesc);
@@ -544,21 +543,21 @@ again:
    {
       // check '_last_index' first
       ImageRTC &rt=Renderer._rts[_last_index];
-      if(rt.available()){Set(T, rt, want_srgb); return true;}
+      if(rt.available()){Set(T, rt, want_type); return true;}
 
       // check all neighbors with the same desc
-      for(Int i=_last_index-1;         i>=0             ; i--) {ImageRTC &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){T._last_index=i; Set(T, rt, want_srgb); return true;}}
-      for(Int i=_last_index+1; InRange(i, Renderer._rts); i++) {ImageRTC &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){T._last_index=i; Set(T, rt, want_srgb); return true;}}
+      for(Int i=_last_index-1;         i>=0             ; i--) {ImageRTC &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){T._last_index=i; Set(T, rt, want_type); return true;}}
+      for(Int i=_last_index+1; InRange(i, Renderer._rts); i++) {ImageRTC &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){T._last_index=i; Set(T, rt, want_type); return true;}}
    }
 #if KNOWN_IMAGE_TYPE_USAGE
    if(desc._type) // check this after 'found' because in most cases we will already return from codes above
    { // since we have KNOWN_IMAGE_TYPE_USAGE, and a valid type, then we assume that this should always succeed
-      ImageRTC &rt=Renderer._rts.NewAt(_last_index); if(rt.create(desc.size, desc._type, ImageTI[desc._type].d ? IMAGE_DS : IMAGE_RT, desc.samples)){Set(T, rt, want_srgb); return true;}
+      ImageRTC &rt=Renderer._rts.NewAt(_last_index); if(rt.create(desc.size, desc._type, ImageTI[desc._type].d ? IMAGE_DS : IMAGE_RT, desc.samples)){Set(T, rt, want_type); return true;}
       Exit(S+"Can't create Render Target "+desc.size.x+'x'+desc.size.y+' '+ImageRTName[desc.rt_type]+", samples:"+desc.samples);
    }
 #else
    ImageRTC temp; // try to create first as a standalone variable (not in 'Renderer._rts') in case it fails so we don't have to remove it
-   if(temp.create(desc.size, desc._type, ImageTI[desc._type].d ? IMAGE_DS : IMAGE_RT, desc.samples)){ImageRTC &rt=Renderer._rts.NewAt(_last_index); Swap(rt, temp); Set(T, rt, want_srgb); return true;}
+   if(temp.create(desc.size, desc._type, ImageTI[desc._type].d ? IMAGE_DS : IMAGE_RT, desc.samples)){ImageRTC &rt=Renderer._rts.NewAt(_last_index); Swap(rt, temp); Set(T, rt, want_type); return true;}
    // fail
    if(desc._type!=IMAGE_NONE) // try another type, and don't try this again
    {
