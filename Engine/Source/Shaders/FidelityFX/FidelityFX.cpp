@@ -1,8 +1,8 @@
 /******************************************************************************/
 #include "../!Header.h"
-#define Quart _Quart
+#define Quart _Quart // "ffx_a.h" has its own 'Quart'
 /******************************************************************************/
-#define A_GPU 1
+#define A_GPU  1
 #define A_HLSL 1
 #define A_HALF 1
 #include "ffx_a.h"
@@ -46,6 +46,7 @@ VecH4 EASU_PS(NOPERSP PIXEL):TARGET
    VecI2 pos=pixel.xy;
    VecH4 c; FsrEasuH(c.rgb, pos, Easu.c0, Easu.c1, Easu.c2, Easu.c3);
 #if ALPHA
+   // FIXME OPTIMIZE
    Vec2 uv=(Vec2(pos) * AF2_AU2(Easu.c0.xy) + AF2_AU2(Easu.c0.zw)) * AF2_AU2(Easu.c1.xy) + Vec2(0.5, -0.5) * AF2_AU2(Easu.c1.zw);
    c.a=Tex(Img, uv).a;
 #else
