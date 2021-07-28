@@ -714,23 +714,26 @@ private:
    VecI       _size, _hw_size, _lock_size;
    Vec        _part;
    Byte      *_data, *_data_all;
-#if EE_PRIVATE
-   #if DX11
-      ID3D11Resource           *_txtr;
-      ID3D11ShaderResourceView *_srv ;
-   #elif GL
-      union
+   union
+   {
+      struct
       {
-         struct
-         {
-            UInt _txtr, _rb;
-         };
-         Ptr _ptr[2]; // need pointers to force alignment
+      #if EE_PRIVATE && DX11
+         ID3D11Resource           *_txtr;
+         ID3D11ShaderResourceView *_srv ;
+      #else
+         Ptr _ptr[2];
+      #endif
       };
-   #endif
-#else
-   Ptr        _ptr[2];
-#endif
+      struct
+      {
+      #if EE_PRIVATE && GL
+         UInt _txtr, _rb;
+      #else
+         UInt _uint[2];
+      #endif
+      };
+   };
 };
 /******************************************************************************/
 DECLARE_CACHE(Image, Images, ImagePtr); // 'Images' cache storing 'Image' objects which can be accessed by 'ImagePtr' pointer

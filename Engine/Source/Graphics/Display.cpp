@@ -1581,10 +1581,12 @@ again:
             binary_formats=0; glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &binary_formats); LogN(S+"Device Program Binary Formats: "+binary_formats);
    }
 
-   if(!findMode())Exit("Valid display mode not found.");
-   setSync();
+   // call these as soon as possible because they affect all images (including those created in the renderer)
+	glPixelStorei(GL_PACK_ALIGNMENT  , 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-   if(LogInit)LogN("FBO");
+   glGenFramebuffers(1, &FBO); if(!FBO)Exit("Couldn't create OpenGL Frame Buffer Object (FBO)");
+   glGenVertexArrays(1, &VAO); if(!VAO)Exit("Couldn't create OpenGL Vertex Arrays (VAO)");
 #if LINEAR_GAMMA
    #ifdef        GL_FRAMEBUFFER_SRGB
         glEnable(GL_FRAMEBUFFER_SRGB);
@@ -1592,8 +1594,14 @@ again:
         glEnable(GL_FRAMEBUFFER_SRGB_EXT);
    #endif
 #endif
-   glGenFramebuffers(1, &FBO); if(!FBO)Exit("Couldn't create OpenGL Frame Buffer Object (FBO)");
-   glGenVertexArrays(1, &VAO); if(!VAO)Exit("Couldn't create OpenGL Vertex Arrays (VAO)");
+
+#if !WINDOWS
+   glTexStorage2D=(decltype(glTexStorage2D))D.glGetProcAddress("glTexStorage2D");
+   glTextureView =(decltype(glTextureView ))D.glGetProcAddress("glTextureView");
+#endif
+
+   if(!findMode())Exit("Valid display mode not found.");
+   setSync();
 
 	#if WINDOWS
       if(full()){if(!SetDisplayMode(2))Exit("Can't set fullscreen mode."); App.windowAdjust();}
@@ -1605,10 +1613,6 @@ again:
       glGenFramebuffers(1, &FBO1); if(!FBO1)Exit("Couldn't create OpenGL Frame Buffer Object (FBO)");
       fbo(FBO); // set custom frame buffer, on iOS there's only one FBO and one FBO change, and it is here, this is because there's no default(0) FBO on this platform
    #endif
-
-   // call these as soon as possible because they affect all images (including those created in the renderer)
-	glPixelStorei(GL_PACK_ALIGNMENT  , 1);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 #endif
 
 #if MOBILE

@@ -251,6 +251,7 @@ void ImageRT:: zero   () {_srv_srgb=null; _rtv=_rtv_srgb=null; _dsv=_rdsv=null; 
      ImageRT::~ImageRT() {delThis();} // delete children first, 'super.del' already called automatically in '~Image'
 void ImageRT:: delThis() // delete only this class members without super
 {
+   D.rtClear(T);
 #if DX11
    if(_srv_srgb || _rtv || _rtv_srgb || _dsv || _rdsv || _uav)
    {

@@ -2125,7 +2125,7 @@ void RendererClass::postProcess()
    ImageRTDesc rt_desc(fxW(), fxH(), IMAGERT_SRGBA/*this is changed later*/);
    ImageRTPtr  dest, bloom_glow;
 
-   Bool upscale=(_final->w()>_col->w() || _final->h()>_col->h()), // we're going to upscale at the end, this needs to be set after 'temporal' which might upscale '_col'
+   Bool upscale=(_final->w()>_col->w() || _final->h()>_col->h()); // we're going to upscale at the end, this needs to be set after 'temporal' which might upscale '_col'
    Int  fxs= // this counter specifies how many effects are still left in the queue, and if we can render directly to '_final'
       ((upscale || _get_target) ? -1 // when up-sampling then don't render to '_final' (we can check this separately because this is the last effect to process)
       : alpha+eye_adapt+motion+bloom+dof);
