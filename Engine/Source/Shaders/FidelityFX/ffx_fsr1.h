@@ -341,6 +341,7 @@ A_STATIC void FsrEasuConOffset(
   //    a b
   //    r g    <- unused (z)
   // Allowing dead-code removal to remove the 'z's.
+#if GATHER // ESENTHEL CHANGED
   AF2 p0=fp*AF2_AU2(con1.xy)+AF2_AU2(con1.zw);
   // These are from p0 to avoid pulling two constants on pre-Navi hardware.
   AF2 p1=p0+AF2_AU2(con2.xy);
@@ -358,6 +359,29 @@ A_STATIC void FsrEasuConOffset(
   AF4 zzonR=FsrEasuRF(p3);
   AF4 zzonG=FsrEasuGF(p3);
   AF4 zzonB=FsrEasuBF(p3);
+#else
+  AF2 p0=fp*AF2_AU2(con1.xy)+AF2_AU2(con1.zw)*0.5;
+  //    b c
+  //  e f g h
+  //  i j k l
+  //    n o
+                                     Vec4 b=FsrEasuF(p0, VecI2(0, 0)); Vec4 c=FsrEasuF(p0, VecI2(1, 0));
+  Vec4 e=FsrEasuF(p0, VecI2(-1, 1)); Vec4 f=FsrEasuF(p0, VecI2(0, 1)); Vec4 g=FsrEasuF(p0, VecI2(1, 1)); Vec4 h=FsrEasuF(p0, VecI2(2, 1));
+  Vec4 i=FsrEasuF(p0, VecI2(-1, 2)); Vec4 j=FsrEasuF(p0, VecI2(0, 2)); Vec4 k=FsrEasuF(p0, VecI2(1, 2)); Vec4 l=FsrEasuF(p0, VecI2(2, 2));
+                                     Vec4 n=FsrEasuF(p0, VecI2(0, 3)); Vec4 o=FsrEasuF(p0, VecI2(1, 3));
+  AF4 bczzR=Vec4(b.r, c.r,   0,   0);
+  AF4 bczzG=Vec4(b.g, c.g,   0,   0);
+  AF4 bczzB=Vec4(b.b, c.b,   0,   0);
+  AF4 ijfeR=Vec4(i.r, j.r, f.r, e.r);
+  AF4 ijfeG=Vec4(i.g, j.g, f.g, e.g);
+  AF4 ijfeB=Vec4(i.b, j.b, f.b, e.b);
+  AF4 klhgR=Vec4(k.r, l.r, h.r, g.r);
+  AF4 klhgG=Vec4(k.g, l.g, h.g, g.g);
+  AF4 klhgB=Vec4(k.b, l.b, h.b, g.b);
+  AF4 zzonR=Vec4(  0,   0, o.r, n.r);
+  AF4 zzonG=Vec4(  0,   0, o.g, n.g);
+  AF4 zzonB=Vec4(  0,   0, o.b, n.b);
+#endif
 //------------------------------------------------------------------------------------------------------------------------------
   // Simplest multi-channel approximate luma possible (luma times 2, in 2 FMA/MAD).
   AF4 bczzL=bczzB*AF4_(0.5)+(bczzR*AF4_(0.5)+bczzG);
