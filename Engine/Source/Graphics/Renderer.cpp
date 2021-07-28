@@ -2257,9 +2257,7 @@ void RendererClass::postProcess()
          case FILTER_WAIFU: // fall back to best available shader (EASU)
          case FILTER_EASU :
          {
-            // FIXME alpha
-            // FIXME dither
-            shader=Sh.EASU[alpha][dither]; if(!shader)goto cubic_fast;
+            shader=Sh.EASU[alpha][dither][gamma]; if(!shader)goto cubic_fast;
             pixels=2+1; // 2 for filtering + 1 for borders
 
             struct EASU

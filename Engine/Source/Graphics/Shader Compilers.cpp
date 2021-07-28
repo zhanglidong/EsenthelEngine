@@ -526,9 +526,9 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    REPD(alpha , 2)
    REPD(dither, 2)
    {
-      src.New("EASU", "Draw_VS", "EASU_PS")("ALPHA", alpha, "DITHER", dither).gatherChannel();
-      src.New("RCAS", "Draw_VS", "RCAS_PS")("ALPHA", alpha, "DITHER", dither);
-    //src.computeNew("EASU")("ALPHA", alpha, "DITHER", dither);
+      REPD(gamma, 2)src.New("EASU", "Draw_VS", "EASU_PS")("ALPHA", alpha, "DITHER", dither, "GAMMA", gamma).gatherChannel();
+                    src.New("RCAS", "Draw_VS", "RCAS_PS")("ALPHA", alpha, "DITHER", dither);
+    //src.computeNew("EASU")("ALPHA", alpha, "DITHER", dither, "GAMMA", gamma);
     //src.computeNew("RCAS")("ALPHA", alpha, "DITHER", dither);
    }
 }

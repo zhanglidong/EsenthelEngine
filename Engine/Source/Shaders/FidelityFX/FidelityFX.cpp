@@ -7,9 +7,15 @@
 #define A_HALF 1
 #include "ffx_a.h"
 /******************************************************************************/
+#if GAMMA
+VecH4 FsrEasuRH(Vec2 p) {return LinearToSRGBFast(TexGatherR(Img, p));}
+VecH4 FsrEasuGH(Vec2 p) {return LinearToSRGBFast(TexGatherG(Img, p));}
+VecH4 FsrEasuBH(Vec2 p) {return LinearToSRGBFast(TexGatherB(Img, p));}
+#else
 VecH4 FsrEasuRH(Vec2 p) {return TexGatherR(Img, p);}
 VecH4 FsrEasuGH(Vec2 p) {return TexGatherG(Img, p);}
 VecH4 FsrEasuBH(Vec2 p) {return TexGatherB(Img, p);}
+#endif
 
 VecH4 FsrRcasLoadH(ASW2 p) {return Img[p];}
 Vec4  FsrRcasLoadF(ASU2 p) {return Img[p];}
@@ -21,55 +27,58 @@ void FsrRcasInputF(inout AF1 r, inout AF1 g, inout AF1 b) {}
 #define FSR_RCAS_H 1
 #define FSR_RCAS_F 1
 #if ALPHA
-	#define FSR_RCAS_PASSTHROUGH_ALPHA 1
+   #define FSR_RCAS_PASSTHROUGH_ALPHA 1
 #endif
 #include "ffx_fsr1.h"
 /******************************************************************************/
 struct EASU
 {
-	AU4 c0, c1, c2, c3;
+   AU4 c0, c1, c2, c3;
 };
 BUFFER(EASU)
-	EASU Easu;
+   EASU Easu;
 BUFFER_END
 
 VecH4 EASU_PS(NOPERSP PIXEL):TARGET
 {
-	VecI2 pos=pixel.xy;
-	VecH4 c; FsrEasuH(c.rgb, pos, Easu.c0, Easu.c1, Easu.c2, Easu.c3);
+   VecI2 pos=pixel.xy;
+   VecH4 c; FsrEasuH(c.rgb, pos, Easu.c0, Easu.c1, Easu.c2, Easu.c3);
 #if ALPHA
-	Vec2 uv=(Vec2(pos) * AF2_AU2(Easu.c0.xy) + AF2_AU2(Easu.c0.zw)) * AF2_AU2(Easu.c1.xy) + Vec2(0.5, -0.5) * AF2_AU2(Easu.c1.zw);
-	c.a=Tex(Img, uv).a;
+   Vec2 uv=(Vec2(pos) * AF2_AU2(Easu.c0.xy) + AF2_AU2(Easu.c0.zw)) * AF2_AU2(Easu.c1.xy) + Vec2(0.5, -0.5) * AF2_AU2(Easu.c1.zw);
+   c.a=Tex(Img, uv).a;
 #else
-	c.a=1;
+   c.a=1;
 #endif
 #if DITHER
-	ApplyDither(c.rgb, pixel.xy, false); // here 'c' is already in gamma space
+   ApplyDither(c.rgb, pixel.xy, false); // here 'c' is already in gamma space
 #endif
-	return c;
+#if GAMMA
+   c.rgb=SRGBToLinearFast(c.rgb);
+#endif
+   return c;
 }
 /******************************************************************************/
 struct RCAS
 {
-	AU4 c0;
+   AU4 c0;
 };
 BUFFER(RCAS)
-	RCAS Rcas;
+   RCAS Rcas;
 BUFFER_END
 
 VecH4 RCAS_PS(NOPERSP PIXEL):TARGET
 {
-	VecH4 c;
-	// TODO: FIXME: should use 'FsrRcasH' however DX shader compiler is crashing
+   VecH4 c;
+   // TODO: FIXME: should use 'FsrRcasH' however DX shader compiler is crashing
 #if ALPHA
-	FsrRcasF(c.r, c.g, c.b, c.a, pixel.xy, Rcas.c0);
+   FsrRcasF(c.r, c.g, c.b, c.a, pixel.xy, Rcas.c0);
 #else
-	FsrRcasF(c.r, c.g, c.b, pixel.xy, Rcas.c0); c.a=1;
+   FsrRcasF(c.r, c.g, c.b, pixel.xy, Rcas.c0); c.a=1;
 #endif
 #if DITHER
-	ApplyDither(c.rgb, pixel.xy);
+   ApplyDither(c.rgb, pixel.xy);
 #endif
-	return c;
+   return c;
 }
 /******************************************************************************
 void Filter(int2 pos)

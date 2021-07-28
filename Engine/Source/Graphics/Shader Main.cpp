@@ -598,8 +598,8 @@ void MainShaderClass::getTechniques()
    REPD(alpha , 2)
    REPD(dither, 2)
    {
-      EASU[alpha][dither]=sf.find(S8+"EASU"+alpha+dither); // this can be null if failed to load
-      RCAS[alpha][dither]=sf.get (S8+"RCAS"+alpha+dither);
+      REPD(gamma, 2)EASU[alpha][dither][gamma]=sf.find(S8+"EASU"+alpha+dither+gamma); // this can be null if failed to load
+                    RCAS[alpha][dither]       =sf.get (S8+"RCAS"+alpha+dither);
    }
 
    // FONT
