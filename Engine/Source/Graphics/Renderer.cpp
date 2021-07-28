@@ -2064,6 +2064,7 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
       {
          case EDGE_SOFTEN_FXAA:
          {
+            // there's no need for separate in_gamma/out_gamma because they will be the same since src/dest types are the same
             Bool gamma=LINEAR_GAMMA, swap_srgb=(gamma && _col->canSwapSRV() && dest->canSwapRTV()); if(swap_srgb){gamma=false; dest->swapRTV(); _col->swapSRV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
             set(dest, null, true); Sh.FXAA[gamma]->draw(_col);
             if(swap_srgb){dest->swapRTV(); _col->swapSRV();} // restore
@@ -2083,6 +2084,7 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
          case EDGE_SOFTEN_SMAA:
          {
             ImageRTPtr ds; if(_col->compatible(*_ds_1s))ds=_ds_1s;else ds.getDS(_col->w(), _col->h(), _col->samples());
+            // there's no need for separate in_gamma/out_gamma because they will be the same since src/dest types are the same
             Bool gamma=LINEAR_GAMMA, swap_srgb=(gamma && _col->canSwapSRV()); if(swap_srgb){gamma=false; _col->swapSRV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
             D.stencil(STENCIL_EDGE_SOFT_SET, STENCIL_REF_EDGE_SOFT); // have to use 'ds' in write mode to be able to use stencil
             ImageRTPtr edge(rt_desc.type(IMAGERT_TWO)); set(edge, ds, true); D.clearCol(); Sh.SMAAEdge[gamma]->draw(_col); Sh.Img[1]->set(_smaa_area); Sh.Img[2]->set(_smaa_search); D.stencil(STENCIL_EDGE_SOFT_TEST);
