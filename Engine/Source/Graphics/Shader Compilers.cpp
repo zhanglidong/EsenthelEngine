@@ -139,6 +139,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       src.New("DrawCG"       , "DrawUV_VS", "DrawTexCG_PS");
       src.New("DrawG"        , "DrawUV_VS", "DrawTexG_PS");
       src.New("DrawA"        , "DrawUV_VS", "Draw2DTexA_PS");
+      src.New("DrawRGB"      , "DrawUV_VS", "Draw2DTexRGB_PS");
 
       src.New("DrawX" , "DrawUV_VS", "DrawX_PS" );
       src.New("DrawXG", "DrawUV_VS", "DrawXG_PS");

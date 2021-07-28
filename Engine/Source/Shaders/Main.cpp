@@ -57,9 +57,10 @@ void Draw3DCol_VS(VtxInput vtx,
 }
 VecH4 Draw3DCol_PS(VecH4 col:COLOR):TARGET {return col;}
 /******************************************************************************/
-VecH4 Draw2DTex_PS (NOPERSP Vec2 uv:UV):TARGET {return       Tex(Img, uv);}
-VecH4 Draw2DTexC_PS(NOPERSP Vec2 uv:UV):TARGET {return       Tex(Img, uv)*Color[0]+Color[1];}
-VecH4 Draw2DTexA_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(Tex(Img, uv).rgb, Step);}
+VecH4 Draw2DTex_PS   (NOPERSP Vec2 uv:UV):TARGET {return       Tex(Img, uv);}
+VecH4 Draw2DTexC_PS  (NOPERSP Vec2 uv:UV):TARGET {return       Tex(Img, uv)*Color[0]+Color[1];}
+VecH4 Draw2DTexRGB_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(Tex(Img, uv).rgb,    1);}
+VecH4 Draw2DTexA_PS  (NOPERSP Vec2 uv:UV):TARGET {return VecH4(Tex(Img, uv).rgb, Step);}
 
 VecH4 DrawTexX_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(Tex(Img, uv).xxx, 1);}
 VecH4 DrawTexY_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(Tex(Img, uv).yyy, 1);}

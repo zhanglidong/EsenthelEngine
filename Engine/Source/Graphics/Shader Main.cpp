@@ -606,13 +606,14 @@ void MainShaderClass::getTechniques()
    }
 
    // BASIC 2D
-   Dither=get("Dither");
-   SetCol=get("SetCol");
-   Draw  =get("Draw"  );
-   DrawC =get("DrawC" );
-   DrawG =get("DrawG" );
-   DrawCG=get("DrawCG");
-   DrawA =get("DrawA" );
+   Dither =get("Dither" );
+   SetCol =get("SetCol" );
+   Draw   =get("Draw"   );
+   DrawC  =get("DrawC"  );
+   DrawG  =get("DrawG"  );
+   DrawCG =get("DrawCG" );
+   DrawA  =get("DrawA"  );
+   DrawRGB=get("DrawRGB");
    if(D.shaderModel()>=SM_4)
    {
                                  DrawMs1=get("DrawMs1");

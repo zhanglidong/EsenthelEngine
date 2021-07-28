@@ -198,6 +198,7 @@ struct MainShaderClass
       // BASIC 2D
       *SetCol ,
       *Draw   ,
+      *DrawRGB,
       *DrawC  ,
       *DrawG  ,
       *DrawCG ,

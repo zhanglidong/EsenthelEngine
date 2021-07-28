@@ -2102,6 +2102,16 @@ void RendererClass::volumetric()
 static Bool ColConst() {return Renderer._col==Renderer._ctx->new_col;} // if '_col' points to 'new_col' then we can't modify it
 void RendererClass::postProcess()
 {
+   resolveMultiSample(); // we need to resolve the MS Image so it's 1-sample for effects
+   if(ms_samples_color.a && D.multiSample())
+   {
+      D.alpha(ALPHA_BLEND);
+      D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
+      set(_col, _ds_1s, true);
+      D.viewRect().draw(ms_samples_color, true);
+      D.stencil(STENCIL_NONE);
+   }
+
    // !! WARNING: EFFECTS SHOULD NEVER MODIFY '_col' IF 'ColConst' !!
    // !! WARNING: 'temporal' might output '_col' that points to 'new_col', in that case it can't be modified because it's needed for the next frame !!
    // !! so if any effect wants to modify '_col' instead of drawing to another RT, it first must check it for 'ColConst' !!
@@ -2114,21 +2124,18 @@ void RendererClass::postProcess()
         combine  = slowCombine      (),
         alpha_set= fastCombine      (); // if alpha channel is set properly in the RT, skip this if we're doing 'fastCombine' because we're rendering to existing RT which has its Alpha already set
 
-   if(temporal || alpha || eye_adapt || motion || bloom || dof || _get_target)resolveMultiSample(); // we need to resolve the MS Image so it's 1-sample for effects
    if(alpha){if(!_alpha)setAlphaFromDepthAndCol();} // create '_alpha' if not yet available
    else          _alpha.clear(); // make sure to clear if we don't use it
 
    T.temporal(); // !! AFTER 'temporal' we must be checking for 'ColConst' !!
 
-   if(D.temporalSuperRes())edgeSoften(); // if have temporal super-res then 'edgeSoften' must be run after upscale
+   if(D.temporalSuperRes())edgeSoften(); // if have temporal super-res then 'edgeSoften' must be run after temporal upscale
 
    ImageRTDesc rt_desc(fxW(), fxH(), IMAGERT_SRGBA/*this is changed later*/);
    ImageRTPtr  dest, bloom_glow;
 
    Bool upscale=(_final->w()>_col->w() || _final->h()>_col->h()); // we're going to upscale at the end, this needs to be set after 'temporal' which might upscale '_col'
-   Int  fxs= // this counter specifies how many effects are still left in the queue, and if we can render directly to '_final'
-      ((upscale || _get_target) ? -1 // when up-sampling then don't render to '_final' (we can check this separately because this is the last effect to process)
-      : alpha+eye_adapt+motion+bloom+dof);
+   Int  fxs=(_get_target ? -1 : alpha+eye_adapt+motion+bloom+dof+upscale+sharpen); // this counter specifies how many effects are still left in the queue, and if we can render directly to '_final'
    Sh.ImgClamp->setConditional(ImgClamp(rt_desc.size)); // set 'ImgClamp' that may be needed for Bloom, DoF, MotionBlur, this is the viewport rect within texture, so reading will be clamped to what was rendered inside the viewport
 
    if(eye_adapt)
@@ -2205,68 +2212,135 @@ void RendererClass::postProcess()
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
       T.dof(*_col, *dest, alpha, combine); Swap(_col, dest); alpha_set=true; // DoF sets Alpha
    }
-   if(ms_samples_color.a && D.multiSample())
+   if(upscale)
    {
-      D.alpha(ALPHA_BLEND);
-      D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
-      set(_col, _ds_1s, true);
-      D.viewRect().draw(ms_samples_color, true);
-      D.stencil(STENCIL_NONE);
-   }
+      if(!--fxs)dest=_final;else dest.get(rt_desc);
+      Bool    dither=(D.dither() && !dest->highPrecision());
+      Int     pixels=1+1; // 1 for filtering + 1 for borders (because source is smaller and may not cover the entire range for dest, for example in dest we want 100 pixels, but 1 source pixel covers 30 dest pixels, so we may get only 3 source pixels covering 90 dest pixels)
+      Shader *shader=null;
 
-   // 'upscale' will happen below
+      switch(D.densityFilter()) // remember that cubic shaders are optional and can be null if failed to load
+      {
+         case FILTER_NONE:
+         {
+            pixels=1; // 1 for borders
+            SamplerPoint.setPS(SSI_DEFAULT_2D);
+         }break;
+
+         case FILTER_CUBIC_FAST       : cubic_fast:
+         case FILTER_CUBIC_FAST_SMOOTH:
+         case FILTER_CUBIC_FAST_SHARP :
+            pixels=2+1; // 2 for filtering + 1 for borders
+            Sh.imgSize(*_col); shader=(alpha ? Sh.DrawTexCubicFastF : Sh.DrawTexCubicFastFRGB)[dither]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
+         break;
+
+         case FILTER_BEST            :
+         case FILTER_WAIFU           : // fall back to best available shaders
+
+         case FILTER_EASU:
+         {
+            // FIXME alpha
+            // FIXME dither
+            shader=Sh.EASU[alpha][dither]; if(!shader)goto cubic_fast;
+            pixels=2+1; // 2 for filtering + 1 for borders
+
+            struct EASU
+            {
+               AU1 c0[4], c1[4], c2[4], c3[4];
+            }easu;
+            FsrEasuCon(easu.c0, easu.c1, easu.c2, easu.c3,
+               _col->w(), _col->h(),  // Viewport size (top left aligned) in the input image which is to be scaled.
+               _col->w(), _col->h(),  // The size of the input image.
+               dest->w(), dest->h()); // The output resolution.
+            Sh.Easu->set(easu);
+
+      /* rt_desc.size=dest->size();
+         if(!D.canSwapSRGB())rt_desc.type(GetImageRTTypeLinear(alpha, D.litColRTPrecision())); // if can't swap sRGB then have to use linear type because UAV's don't support sRGB writes
+         dest.get(rt_desc);
+         ComputeShader *cs=ShaderFiles("FSR")->computeFind("Upscale");
+         if(cs && dest->hasUAV() && Kb.ctrl())
+         {
+            struct FSR
+            {
+               AU1 EASU0[4], EASU1[4], EASU2[4], EASU3[4];
+               AU1 RCAS[4];
+            }fsr;
+
+            // FIXME dither
+
+            // FIXME
+            FsrEasuCon(fsr.EASU0, fsr.EASU1, fsr.EASU2, fsr.EASU3,
+               _col->w(), _col->h(),  // Viewport size (top left aligned) in the input image which is to be scaled.
+               _col->w(), _col->h(),  // The size of the input image.
+               dest->w(), dest->h()); // The output resolution.
+
+            FsrRcasCon(fsr.RCAS, 0.2);
+            SPSet("FSR", fsr);
+
+            // FIXME support !full viewports
+            // FIXME when using both upscale+sharpen then don't have to perform gamma conversions on upscale output and sharpen input, but still swapRGB if possible, just not in the shader
+            set(null, null, false); is this still needed? // make sure '_col' is not bound as RT as it would prevent it from being used as src image, so just set 'dest' which is going to be used later to minimize state changes
+            _col->swapSRGB();
+            dest->swapSRGB();
+            Sh.RWImg->set(dest);
+            Sh.Img[0]->set(_col);
+            cs->compute(VecI2(DivCeil16(rt_desc.size.x), DivCeil16(rt_desc.size.y)));
+            dest->swapSRGB();
+            _col->swapSRGB();
+            Swap(_col, dest);*/
+         }break;
+
+         case FILTER_CUBIC_PLUS      :
+         case FILTER_CUBIC_PLUS_SHARP:
+            pixels=3+1; // 3 for filtering + 1 for borders
+            Sh.imgSize(*_col); Sh.loadCubicShaders(); shader=(alpha ? Sh.DrawTexCubicF : Sh.DrawTexCubicFRGB)[dither]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
+         break;
+      }
+      if(!shader)
+      {
+         if(alpha )shader=Sh.Draw   ;else
+         if(dither)shader=Sh.Dither ;else
+                   shader=Sh.DrawRGB;
+      }
+      if(!D._view_main.full)
+      {
+         set(_col, null, false); D.alpha(ALPHA_NONE); // need full viewport
+         D.viewRect().drawBorder(Vec4Zero, pixelToScreenSize(pixels)); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
+      }
+      set(dest, null, true); D.alpha((combine && dest()==_final) ? ALPHA_MERGE : ALPHA_NONE);
+      shader->draw(_col); Swap(_col, dest); alpha_set=true;
+      if(D.densityFilter()==FILTER_NONE)SamplerLinearClamp.setPS(SSI_DEFAULT_2D);
+   }
+   if(sharpen)
+   {
+      if(!--fxs)dest=_final;else dest.get(rt_desc);
+      struct RCAS
+      {
+         AU1 c0[4];
+      }rcas;
+      FsrRcasCon(rcas.c0, 0.2);
+      Sh.Rcas->set(rcas);
+      set(dest, null, true); D.alpha((combine && dest()==_final) ? ALPHA_MERGE : ALPHA_NONE);
+      Sh.RCAS[alpha][D.dither() && !dest->highPrecision()]->draw(_col);
+      alpha_set=true;
+   }
    if(!_get_target) // for '_get_target' leave the '_col' result for further processing
    {
       if(_col!=_final)
       {
-         if(_col->multiSample())
+         Bool    dither=(D.dither() && !_final->highPrecision());
+         Int     pixels=1+1; // 1 for filtering + 1 for borders (because source is smaller and may not cover the entire range for dest, for example in dest we want 100 pixels, but 1 source pixel covers 30 dest pixels, so we may get only 3 source pixels covering 90 dest pixels)
+         Shader *shader;
+         if(alpha                                                            )shader=Sh.Draw   ;else
+         if(dither && (_col->highPrecision() || _col->size()!=_final->size()))shader=Sh.Dither ;else // allow dithering only if the source has high precision, or if we're resizing (because that generates high precision too)
+                                                                              shader=Sh.DrawRGB;
+         if(!D._view_main.full)
          {
-            if(_col->size()==_final->size()){_col->copyMs(*_final, false, true, D.viewRect()); _col=_final;}else resolveMultiSample(); // if the size is the same then we can resolve directly into the '_final', otherwise resolve first to temp RT and copy will be done below
+            set(_col, null, false); D.alpha(ALPHA_NONE); // need full viewport
+            D.viewRect().drawBorder(Vec4Zero, pixelToScreenSize(pixels)); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
          }
-         if(_col!=_final) // if after resolve this is still not equal, then
-         {
-            Bool    dither=(D.dither() && !_final->highPrecision()); // disable dithering if destination has high precision
-            Int     pixels=1+1; // 1 for filtering + 1 for borders (because source is smaller and may not cover the entire range for dest, for example in dest we want 100 pixels, but 1 source pixel covers 30 dest pixels, so we may get only 3 source pixels covering 90 dest pixels)
-            Shader *shader=null;
-            if(upscale)switch(D.densityFilter()) // remember that cubic shaders are optional and can be null if failed to load
-            {
-               case FILTER_NONE:
-               {
-                  pixels=1; // 1 for borders
-                  SamplerPoint.setPS(SSI_DEFAULT_2D);
-               }break;
-
-               case FILTER_CUBIC_FAST       :
-               case FILTER_CUBIC_FAST_SMOOTH:
-               case FILTER_CUBIC_FAST_SHARP :
-                  pixels=2+1; // 2 for filtering + 1 for borders
-                  Sh.imgSize(*_col); shader=(alpha ? Sh.DrawTexCubicFastF : Sh.DrawTexCubicFastFRGB)[dither]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
-               break;
-
-               case FILTER_BEST            :
-               case FILTER_WAIFU           : // fall back to best available shaders
-
-               case FILTER_CUBIC_PLUS      :
-               case FILTER_CUBIC_PLUS_SHARP:
-                  pixels=3+1; // 3 for filtering + 1 for borders
-                  Sh.imgSize(*_col); Sh.loadCubicShaders(); shader=(alpha ? Sh.DrawTexCubicF : Sh.DrawTexCubicFRGB)[dither]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
-               break;
-            }
-            if(!shader)
-            {
-               if(alpha                                                            )shader=Sh.Draw  ;else
-               if(dither && (_col->highPrecision() || _col->size()!=_final->size()))shader=Sh.Dither;else // allow dithering only if the source has high precision, or if we're resizing (because that generates high precision too)
-                                                                  {Sh.Step->set(1); shader=Sh.DrawA ;}    // use 'DrawA' to set Alpha Channel
-            }
-            if(!D._view_main.full)
-            {
-               set(_col, null, false); D.alpha(ALPHA_NONE); // need full viewport
-               D.viewRect().drawBorder(Vec4Zero, pixelToScreenSize(pixels)); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
-            }
-            set(_final, null, true); D.alpha(combine ? ALPHA_MERGE : ALPHA_NONE);
-            shader->draw(_col); alpha_set=true;
-            if(upscale && D.densityFilter()==FILTER_NONE)SamplerLinearClamp.setPS(SSI_DEFAULT_2D);
-         }
+         set(_final, null, true); D.alpha(combine ? ALPHA_MERGE : ALPHA_NONE);
+         shader->draw(_col); alpha_set=true;
       }
      _col.clear(); // release as it's no longer needed
       if(!alpha_set && _back==_final) // if we need to have alpha channel set for back buffer effect
