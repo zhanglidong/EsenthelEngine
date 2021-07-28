@@ -525,11 +525,12 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"FidelityFX", model, api, flag).New(src_path+"FidelityFX/FidelityFX.cpp");
    REPD(alpha , 2)
    REPD(dither, 2)
+   REPD(gamma , 2)
    {
-      REPD(gamma, 2)src.New("EASU", "Draw_VS", "EASU_PS")("ALPHA", alpha, "DITHER", dither, "GAMMA", gamma).gatherChannel();
-                    src.New("RCAS", "Draw_VS", "RCAS_PS")("ALPHA", alpha, "DITHER", dither);
+      src.New("EASU", "Draw_VS", "EASU_PS")("ALPHA", alpha, "DITHER", dither, "GAMMA", gamma).gatherChannel();
+      src.New("RCAS", "Draw_VS", "RCAS_PS")("ALPHA", alpha, "DITHER", dither, "GAMMA", gamma);
     //src.computeNew("EASU")("ALPHA", alpha, "DITHER", dither, "GAMMA", gamma);
-    //src.computeNew("RCAS")("ALPHA", alpha, "DITHER", dither);
+    //src.computeNew("RCAS")("ALPHA", alpha, "DITHER", dither, "GAMMA", gamma);
    }
 }
 #endif

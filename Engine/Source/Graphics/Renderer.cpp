@@ -2315,8 +2315,11 @@ void RendererClass::postProcess()
    {
       rt_desc.size=_col->size();// RCAS operates on same size only
       if(!--fxs && _final->size()==rt_desc.size)dest=_final;else dest.get(rt_desc);
+      Bool gamma=LINEAR_GAMMA, swap_srgb=(gamma && _col->canSwapSRV() && dest->canSwapRTV()); if(swap_srgb){gamma=false; dest->swapRTV(); _col->swapSRV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
       set(dest, null, true); D.alpha((combine && dest()==_final) ? ALPHA_MERGE : ALPHA_NONE);
-      Sh.RCAS[alpha][D.dither() && !dest->highPrecision()]->draw(_col); Swap(_col, dest); alpha_set=true;
+      Sh.RCAS[alpha][D.dither() && !dest->highPrecision()][gamma]->draw(_col);
+      if(swap_srgb){dest->swapRTV(); _col->swapSRV();} // restore
+      Swap(_col, dest); alpha_set=true;
    }
    if(!_get_target) // for '_get_target' leave the '_col' result for further processing
    {

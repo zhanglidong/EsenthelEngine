@@ -7,18 +7,20 @@
 #define A_HALF 1
 #include "ffx_a.h"
 /******************************************************************************/
+VecH4 GetColor(VecH4 c)
+{
 #if GAMMA
-VecH4 FsrEasuRH(Vec2 p) {return LinearToSRGBFast(TexGatherR(Img, p));}
-VecH4 FsrEasuGH(Vec2 p) {return LinearToSRGBFast(TexGatherG(Img, p));}
-VecH4 FsrEasuBH(Vec2 p) {return LinearToSRGBFast(TexGatherB(Img, p));}
-#else
-VecH4 FsrEasuRH(Vec2 p) {return TexGatherR(Img, p);}
-VecH4 FsrEasuGH(Vec2 p) {return TexGatherG(Img, p);}
-VecH4 FsrEasuBH(Vec2 p) {return TexGatherB(Img, p);}
+   c.rgb=LinearToSRGBFast(c.rgb);
 #endif
+   return c;
+}
 
-VecH4 FsrRcasLoadH(ASW2 p) {return Img[p];}
-Vec4  FsrRcasLoadF(ASU2 p) {return Img[p];}
+VecH4 FsrEasuRH(Vec2 p) {return GetColor(TexGatherR(Img, p));}
+VecH4 FsrEasuGH(Vec2 p) {return GetColor(TexGatherG(Img, p));}
+VecH4 FsrEasuBH(Vec2 p) {return GetColor(TexGatherB(Img, p));}
+
+VecH4 FsrRcasLoadH(ASW2 p) {return GetColor(Img[p]);}
+Vec4  FsrRcasLoadF(ASU2 p) {return GetColor(Img[p]);}
 
 void FsrRcasInputH(inout AH1 r, inout AH1 g, inout AH1 b) {}
 void FsrRcasInputF(inout AF1 r, inout AF1 g, inout AF1 b) {}
@@ -76,7 +78,10 @@ VecH4 RCAS_PS(NOPERSP PIXEL):TARGET
    FsrRcasF(c.r, c.g, c.b, pixel.xy, Rcas.c0); c.a=1;
 #endif
 #if DITHER
-   ApplyDither(c.rgb, pixel.xy);
+   ApplyDither(c.rgb, pixel.xy, false); // here 'c' is already in gamma space
+#endif
+#if GAMMA
+   c.rgb=SRGBToLinearFast(c.rgb);
 #endif
    return c;
 }
@@ -84,26 +89,26 @@ VecH4 RCAS_PS(NOPERSP PIXEL):TARGET
 void Filter(int2 pos)
 {
 #if UPSCALE
-	if(0) // linear filtering
-	{
-		Vec2 pp = (Vec2(pos) * AF2_AU2(Easu.c0.xy) + AF2_AU2(Easu.c0.zw)) * AF2_AU2(Easu.c1.xy) + Vec2(0.5, -0.5) * AF2_AU2(Easu.c1.zw);
-		RWImg[pos]=TexLod(Img, pp);
-	}else
-	{
-		VecH4 c; FsrEasuH(c.rgb, pos, Easu.c0, Easu.c1, Easu.c2, Easu.c3); c.a=1; RWImg[pos]=c;
-	}
+   if(0) // linear filtering
+   {
+      Vec2 pp = (Vec2(pos) * AF2_AU2(Easu.c0.xy) + AF2_AU2(Easu.c0.zw)) * AF2_AU2(Easu.c1.xy) + Vec2(0.5, -0.5) * AF2_AU2(Easu.c1.zw);
+      RWImg[pos]=TexLod(Img, pp);
+   }else
+   {
+      VecH4 c; FsrEasuH(c.rgb, pos, Easu.c0, Easu.c1, Easu.c2, Easu.c3); c.a=1; RWImg[pos]=c;
+   }
 #else
-	VecH4 c; FsrRcasH(c.r, c.g, c.b, pos, Rcas.c0); c.a=1; RWImg[pos]=c;
+   VecH4 c; FsrRcasH(c.r, c.g, c.b, pos, Rcas.c0); c.a=1; RWImg[pos]=c;
 #endif
 }
 
 [numthreads(64, 1, 1)]
 void CS(uint3 LocalThreadId : SV_GroupThreadID, uint3 WorkGroupId : SV_GroupID, uint3 Dtid : SV_DispatchThreadID)
 {
-	AU2 gxy = ARmp8x8(LocalThreadId.x) + AU2(WorkGroupId.x << 4u, WorkGroupId.y << 4u);
-	Filter(gxy); gxy.x += 8u;
-	Filter(gxy); gxy.y += 8u;
-	Filter(gxy); gxy.x -= 8u;
-	Filter(gxy);
+   AU2 gxy = ARmp8x8(LocalThreadId.x) + AU2(WorkGroupId.x << 4u, WorkGroupId.y << 4u);
+   Filter(gxy); gxy.x += 8u;
+   Filter(gxy); gxy.y += 8u;
+   Filter(gxy); gxy.x -= 8u;
+   Filter(gxy);
 }
 /******************************************************************************/
