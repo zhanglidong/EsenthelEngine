@@ -332,6 +332,14 @@ Bool ImageRT::createViews()
             D3D->CreateRenderTargetView  (_txtr, &rtvd, &_rtv_srgb);
          #elif GL
             if(D.canSwapSRGB())
+            {
+               glGenTextures(1, &_txtr_srgb); if(_txtr_srgb)
+               {
+                  glGetError(); // clear any previous errors
+                  glTextureView(_txtr_srgb, GL_TEXTURE_2D, _txtr, ImageTI[type_srgb].format, 0, mipMaps(), 0, faces());
+                  if(glGetError()!=GL_NO_ERROR){glDeleteTextures(1, &_txtr_srgb); _txtr_srgb=0;} // delete on fail
+               }
+            }
          #endif
          }
       }break;
