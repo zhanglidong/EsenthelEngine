@@ -86,7 +86,6 @@ static IMAGE_TYPE  ImageRTTypesOK[2][IMAGERT_NUM]; // [MultiSample][IMAGERT_NUM]
 static ImageRTType ImageRTTypesOK[2][IMAGERT_NUM];
 #endif
 /******************************************************************************/
-// !! WARNING: The functions below are for SRGB ONLY !!
 static const IMAGERT_TYPE GetImageRTTypeLookup[IMAGE_PRECISION_NUM][2]= // [precision][alpha]
 {
    // no alpha   ,     alpha
@@ -97,8 +96,21 @@ static const IMAGERT_TYPE GetImageRTTypeLookup[IMAGE_PRECISION_NUM][2]= // [prec
    {IMAGERT_SRGB_F, IMAGERT_SRGBA_F}, // 4 IMAGE_PRECISION_32
    {IMAGERT_SRGB_F, IMAGERT_SRGBA_F}, // 5 IMAGE_PRECISION_64
 }; ASSERT(IMAGE_PRECISION_8==0 && IMAGE_PRECISION_10==1 && IMAGE_PRECISION_16==2 && IMAGE_PRECISION_24==3 && IMAGE_PRECISION_32==4 && IMAGE_PRECISION_64==5 && IMAGE_PRECISION_NUM==6);
-IMAGERT_TYPE GetImageRTType(                 Bool       alpha, IMAGE_PRECISION     precision) {return GetImageRTTypeLookup[precision][alpha];}
-IMAGERT_TYPE GetImageRTType(IMAGE_TYPE type, Bool allow_alpha, IMAGE_PRECISION max_precision)
+
+static const IMAGERT_TYPE GetImageRTTypeLookupLinear[IMAGE_PRECISION_NUM][2]= // [precision][alpha]
+{
+   // no alpha   ,     alpha
+   {IMAGERT_RGB  , IMAGERT_RGBA  }, // 0 IMAGE_PRECISION_8
+   {IMAGERT_RGB_P, IMAGERT_RGBA_P}, // 1 IMAGE_PRECISION_10
+   {IMAGERT_RGB_H, IMAGERT_RGBA_H}, // 2 IMAGE_PRECISION_16
+   {IMAGERT_RGB_F, IMAGERT_RGBA_F}, // 3 IMAGE_PRECISION_24
+   {IMAGERT_RGB_F, IMAGERT_RGBA_F}, // 4 IMAGE_PRECISION_32
+   {IMAGERT_RGB_F, IMAGERT_RGBA_F}, // 5 IMAGE_PRECISION_64
+}; ASSERT(IMAGE_PRECISION_8==0 && IMAGE_PRECISION_10==1 && IMAGE_PRECISION_16==2 && IMAGE_PRECISION_24==3 && IMAGE_PRECISION_32==4 && IMAGE_PRECISION_64==5 && IMAGE_PRECISION_NUM==6);
+
+IMAGERT_TYPE GetImageRTTypeLinear(                 Bool       alpha, IMAGE_PRECISION     precision) {return GetImageRTTypeLookupLinear[precision][alpha];}
+IMAGERT_TYPE GetImageRTType      (                 Bool       alpha, IMAGE_PRECISION     precision) {return GetImageRTTypeLookup      [precision][alpha];}
+IMAGERT_TYPE GetImageRTType      (IMAGE_TYPE type, Bool allow_alpha, IMAGE_PRECISION max_precision)
 {
  C ImageTypeInfo &ti=ImageTI[type]; return GetImageRTType(ti.a>=8 && allow_alpha, Min(ti.precision, max_precision)); // compare alpha as >=8 instead of >0 to treat types such as IMAGE_R10G10B10A2 as without alpha (this type is chosen for 10-bit color and ignoring alpha), because we could actually increase precision when operating on 'IMAGE_R10G10B10A2' with 'allow_alpha'=true
 }

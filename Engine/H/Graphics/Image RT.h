@@ -223,10 +223,11 @@ struct ImageRTPtrRef
    NO_COPY_CONSTRUCTOR(ImageRTPtrRef);
 };
 
-IMAGERT_TYPE GetImageRTType(                 Bool       alpha, IMAGE_PRECISION     precision);
-IMAGERT_TYPE GetImageRTType(IMAGE_TYPE type                                                 );
-IMAGERT_TYPE GetImageRTType(IMAGE_TYPE type, Bool allow_alpha                               );
-IMAGERT_TYPE GetImageRTType(IMAGE_TYPE type, Bool allow_alpha, IMAGE_PRECISION max_precision);
+IMAGERT_TYPE GetImageRTTypeLinear(                 Bool       alpha, IMAGE_PRECISION     precision);
+IMAGERT_TYPE GetImageRTType      (                 Bool       alpha, IMAGE_PRECISION     precision);
+IMAGERT_TYPE GetImageRTType      (IMAGE_TYPE type                                                 );
+IMAGERT_TYPE GetImageRTType      (IMAGE_TYPE type, Bool allow_alpha                               );
+IMAGERT_TYPE GetImageRTType      (IMAGE_TYPE type, Bool allow_alpha, IMAGE_PRECISION max_precision);
 void ResetImageTypeCreateResult();
 #endif
 /******************************************************************************/
