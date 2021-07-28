@@ -1490,6 +1490,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
       {
        C auto &rs=replace_samplers[i];
          code=Replace(code, S8+"uniform mediump sampler2D "+rs.src+";\n", S, true, WHOLE_WORD_STRICT); // remove definition
+         code=Replace(code, S8+"uniform highp sampler2D "  +rs.src+";\n", S, true, WHOLE_WORD_STRICT); // remove definition
          code=Replace(code,                                 rs.src, rs.dest, true, WHOLE_WORD_STRICT); // replace with another
       }
 
