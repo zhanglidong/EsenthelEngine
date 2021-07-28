@@ -515,6 +515,7 @@ A_STATIC void FsrEasuConOffset(
   pp-=fp;
   AH2 ppp=AH2(pp);
 //------------------------------------------------------------------------------------------------------------------------------
+#if GATHER // ESENTHEL CHANGED
   AF2 p0=fp*AF2_AU2(con1.xy)+AF2_AU2(con1.zw);
   AF2 p1=p0+AF2_AU2(con2.xy);
   AF2 p2=p0+AF2_AU2(con2.zw);
@@ -531,6 +532,29 @@ A_STATIC void FsrEasuConOffset(
   AH4 zzonR=FsrEasuRH(p3);
   AH4 zzonG=FsrEasuGH(p3);
   AH4 zzonB=FsrEasuBH(p3);
+#else
+  AF2 p0=fp*AF2_AU2(con1.xy)+AF2_AU2(con1.zw)*0.5;
+  //    b c
+  //  e f g h
+  //  i j k l
+  //    n o
+                                      VecH4 b=FsrEasuH(p0, VecI2(0, 0)); VecH4 c=FsrEasuH(p0, VecI2(1, 0));
+  VecH4 e=FsrEasuH(p0, VecI2(-1, 1)); VecH4 f=FsrEasuH(p0, VecI2(0, 1)); VecH4 g=FsrEasuH(p0, VecI2(1, 1)); VecH4 h=FsrEasuH(p0, VecI2(2, 1));
+  VecH4 i=FsrEasuH(p0, VecI2(-1, 2)); VecH4 j=FsrEasuH(p0, VecI2(0, 2)); VecH4 k=FsrEasuH(p0, VecI2(1, 2)); VecH4 l=FsrEasuH(p0, VecI2(2, 2));
+                                      VecH4 n=FsrEasuH(p0, VecI2(0, 3)); VecH4 o=FsrEasuH(p0, VecI2(1, 3));
+  AH4 bczzR=VecH4(b.r, c.r,   0,   0);
+  AH4 bczzG=VecH4(b.g, c.g,   0,   0);
+  AH4 bczzB=VecH4(b.b, c.b,   0,   0);
+  AH4 ijfeR=VecH4(i.r, j.r, f.r, e.r);
+  AH4 ijfeG=VecH4(i.g, j.g, f.g, e.g);
+  AH4 ijfeB=VecH4(i.b, j.b, f.b, e.b);
+  AH4 klhgR=VecH4(k.r, l.r, h.r, g.r);
+  AH4 klhgG=VecH4(k.g, l.g, h.g, g.g);
+  AH4 klhgB=VecH4(k.b, l.b, h.b, g.b);
+  AH4 zzonR=VecH4(  0,   0, o.r, n.r);
+  AH4 zzonG=VecH4(  0,   0, o.g, n.g);
+  AH4 zzonB=VecH4(  0,   0, o.b, n.b);
+#endif
 //------------------------------------------------------------------------------------------------------------------------------
   AH4 bczzL=bczzB*AH4_(0.5)+(bczzR*AH4_(0.5)+bczzG);
   AH4 ijfeL=ijfeB*AH4_(0.5)+(ijfeR*AH4_(0.5)+ijfeG);
