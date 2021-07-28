@@ -2112,8 +2112,7 @@ void RendererClass::postProcess()
         bloom    =(hasBloom         () || _has_glow),
         dof      = hasDof           (),
         combine  = slowCombine      (),
-        upscale  =(_final->w()>_col->w() || _final->h()>_col->h()), // we're going to upscale at the end
-        alpha_set=fastCombine(); // if alpha channel is set properly in the RT, skip this if we're doing 'fastCombine' because we're rendering to existing RT which has its Alpha already set
+        alpha_set= fastCombine      (); // if alpha channel is set properly in the RT, skip this if we're doing 'fastCombine' because we're rendering to existing RT which has its Alpha already set
 
    if(temporal || alpha || eye_adapt || motion || bloom || dof || _get_target)resolveMultiSample(); // we need to resolve the MS Image so it's 1-sample for effects
    if(alpha){if(!_alpha)setAlphaFromDepthAndCol();} // create '_alpha' if not yet available
@@ -2126,7 +2125,8 @@ void RendererClass::postProcess()
    ImageRTDesc rt_desc(fxW(), fxH(), IMAGERT_SRGBA/*this is changed later*/);
    ImageRTPtr  dest, bloom_glow;
 
-   Int fxs= // this counter specifies how many effects are still left in the queue, and if we can render directly to '_final'
+   Bool upscale=(_final->w()>_col->w() || _final->h()>_col->h()), // we're going to upscale at the end, this needs to be set after 'temporal' which might upscale '_col'
+   Int  fxs= // this counter specifies how many effects are still left in the queue, and if we can render directly to '_final'
       ((upscale || _get_target) ? -1 // when up-sampling then don't render to '_final' (we can check this separately because this is the last effect to process)
       : alpha+eye_adapt+motion+bloom+dof);
    Sh.ImgClamp->setConditional(ImgClamp(rt_desc.size)); // set 'ImgClamp' that may be needed for Bloom, DoF, MotionBlur, this is the viewport rect within texture, so reading will be clamped to what was rendered inside the viewport
