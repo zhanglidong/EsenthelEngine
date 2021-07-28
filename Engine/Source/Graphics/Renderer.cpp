@@ -2241,7 +2241,7 @@ void RendererClass::postProcess()
       Bool  in_gamma=LINEAR_GAMMA,  in_swap_srgb=false;
       Bool out_gamma=LINEAR_GAMMA, out_swap_srgb=false;
 
-      switch(D.densityFilter()) // remember that cubic shaders are optional and can be null if failed to load
+      switch(D.densityFilter())
       {
          case FILTER_NONE:
          {

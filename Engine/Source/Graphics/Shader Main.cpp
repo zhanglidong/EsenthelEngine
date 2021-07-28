@@ -576,16 +576,16 @@ void MainShaderClass::getTechniques()
    REPD(alpha, 2)
    REPD(point, 2)DrawMask[alpha][point]=get(S8+"DrawMask"+alpha+point);
 
-   // POINT (these can be null if failed to load)
-   DrawTexPoint =find("DrawTexPoint");
-   DrawTexPointC=find("DrawTexPointC");
+   // POINT
+   DrawTexPoint =get("DrawTexPoint");
+   DrawTexPointC=get("DrawTexPointC");
 
-   // CUBIC (these can be null if failed to load)
+   // CUBIC
    REPD(color , 2)DrawTexCubicFast[color]=get(S8+"DrawTexCubicFast"+color);
    REPD(dither, 2)
    {
-      DrawTexCubicFastF   [dither]=find(S8+"DrawTexCubicFastF"   +dither);
-      DrawTexCubicFastFRGB[dither]=find(S8+"DrawTexCubicFastFRGB"+dither);
+      DrawTexCubicFastF   [dither]=get(S8+"DrawTexCubicFastF"   +dither);
+      DrawTexCubicFastFRGB[dither]=get(S8+"DrawTexCubicFastFRGB"+dither);
    }
 #if !SLOW_SHADER_LOAD
    initCubicShaders();
