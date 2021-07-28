@@ -1304,7 +1304,7 @@ void RendererClass::resolveDepth()
    // this resolves the entire '_ds' into '_ds_1s' (by choosing Min of depth samples), and sets 'STENCIL_REF_MSAA' if needed
    if(_ds->multiSample() && _ds->depthTexture())
    {
-      Bool swap=(LINEAR_GAMMA && _col->canSwapSRV()); if(swap)_col->swapSRV(); // use sRGB if possible because we're interested in visual differences
+      Bool swap_srgb=(LINEAR_GAMMA && _col->canSwapSRV()); if(swap_srgb)_col->swapSRV(); // use sRGB if possible because we're interested in visual differences
       D.alpha(ALPHA_NONE);
 
       // set multi-sampled '_ds' MSAA
@@ -1333,7 +1333,7 @@ void RendererClass::resolveDepth()
       }
 
       D.stencil(STENCIL_NONE);
-      if(swap)_col->swapSRV(); // restore
+      if(swap_srgb)_col->swapSRV(); // restore
    }
 }
 void RendererClass::resolveDepth1()
@@ -2064,9 +2064,9 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
       {
          case EDGE_SOFTEN_FXAA:
          {
-            Bool gamma=LINEAR_GAMMA, swap=(gamma && _col->canSwapSRV() && dest->canSwapRTV()); if(swap){gamma=false; dest->swapRTV(); _col->swapSRV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
+            Bool gamma=LINEAR_GAMMA, swap_srgb=(gamma && _col->canSwapSRV() && dest->canSwapRTV()); if(swap_srgb){gamma=false; dest->swapRTV(); _col->swapSRV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
             set(dest, null, true); Sh.FXAA[gamma]->draw(_col);
-            if(swap){dest->swapRTV(); _col->swapSRV();} // restore
+            if(swap_srgb){dest->swapRTV(); _col->swapSRV();} // restore
          }break;
 
       #if SUPPORT_MLAA
@@ -2083,17 +2083,17 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
          case EDGE_SOFTEN_SMAA:
          {
             ImageRTPtr ds; if(_col->compatible(*_ds_1s))ds=_ds_1s;else ds.getDS(_col->w(), _col->h(), _col->samples());
-            Bool gamma=LINEAR_GAMMA, swap=(gamma && _col->canSwapSRV()); if(swap){gamma=false; _col->swapSRV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
+            Bool gamma=LINEAR_GAMMA, swap_srgb=(gamma && _col->canSwapSRV()); if(swap_srgb){gamma=false; _col->swapSRV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
             D.stencil(STENCIL_EDGE_SOFT_SET, STENCIL_REF_EDGE_SOFT); // have to use 'ds' in write mode to be able to use stencil
             ImageRTPtr edge(rt_desc.type(IMAGERT_TWO)); set(edge, ds, true); D.clearCol(); Sh.SMAAEdge[gamma]->draw(_col); Sh.Img[1]->set(_smaa_area); Sh.Img[2]->set(_smaa_search); D.stencil(STENCIL_EDGE_SOFT_TEST);
-            if(swap)_col->swapSRV(); // restore
+            if(swap_srgb)_col->swapSRV(); // restore
 
             ImageRTPtr blend(rt_desc.type(IMAGERT_RGBA)); // this does not store color, but intensities how much to blend in each axis
             set(blend, ds, true); D.clearCol(); Sh.SMAABlend->draw(edge); Sh.Img[1]->set(blend); edge.clear(); D.stencil(STENCIL_NONE);
 
-            swap=(!LINEAR_GAMMA && dest->canSwapRTV() && _col->canSwapSRV()); if(swap){dest->swapRTV(); _col->swapSRV();} // this we have to perform if we're NOT using Linear Gamma, because if possible, we WANT to use it, as it will improve quality, making AA softer
+            swap_srgb=(!LINEAR_GAMMA && dest->canSwapRTV() && _col->canSwapSRV()); if(swap_srgb){dest->swapRTV(); _col->swapSRV();} // this we have to perform if we're NOT using Linear Gamma, because if possible, we WANT to use it, as it will improve quality, making AA softer
             set(dest, null, true); Sh.SMAA->draw(_col);
-            if(swap){dest->swapRTV(); _col->swapSRV();} // restore
+            if(swap_srgb){dest->swapRTV(); _col->swapSRV();} // restore
          }break;
       }
       Swap(dest, _col);
@@ -2236,6 +2236,8 @@ void RendererClass::postProcess()
       Int     pixels=1+1; // 1 for filtering + 1 for borders (because source is smaller and may not cover the entire range for dest, for example in dest we want 100 pixels, but 1 source pixel covers 30 dest pixels, so we may get only 3 source pixels covering 90 dest pixels)
       Shader *shader=null;
 
+      Bool gamma=LINEAR_GAMMA, swap_srgb=(gamma && _col->canSwapSRV() && dest->canSwapRTV()); if(swap_srgb){gamma=false; dest->swapRTV(); _col->swapSRV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
+
       switch(D.densityFilter()) // remember that cubic shaders are optional and can be null if failed to load
       {
          case FILTER_NONE:
@@ -2251,10 +2253,9 @@ void RendererClass::postProcess()
             Sh.imgSize(*_col); shader=(alpha ? Sh.DrawTexCubicFastF : Sh.DrawTexCubicFastFRGB)[dither]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
          break;
 
-         case FILTER_BEST            :
-         case FILTER_WAIFU           : // fall back to best available shaders
-
-         case FILTER_EASU:
+         case FILTER_BEST :
+         case FILTER_WAIFU: // fall back to best available shader (EASU)
+         case FILTER_EASU :
          {
             // FIXME alpha
             // FIXME dither
@@ -2277,25 +2278,7 @@ void RendererClass::postProcess()
          ComputeShader *cs=ShaderFiles("FSR")->computeFind("Upscale");
          if(cs && dest->hasUAV() && Kb.ctrl())
          {
-            struct FSR
-            {
-               AU1 EASU0[4], EASU1[4], EASU2[4], EASU3[4];
-               AU1 RCAS[4];
-            }fsr;
-
-            // FIXME dither
-
-            // FIXME
-            FsrEasuCon(fsr.EASU0, fsr.EASU1, fsr.EASU2, fsr.EASU3,
-               _col->w(), _col->h(),  // Viewport size (top left aligned) in the input image which is to be scaled.
-               _col->w(), _col->h(),  // The size of the input image.
-               dest->w(), dest->h()); // The output resolution.
-
-            FsrRcasCon(fsr.RCAS, 0.2);
-            SPSet("FSR", fsr);
-
-            // FIXME support !full viewports
-            // FIXME when using both upscale+sharpen then don't have to perform gamma conversions on upscale output and sharpen input, but still swapRGB if possible, just not in the shader
+            support !full viewports
             set(null, null, false); is this still needed? // make sure '_col' is not bound as RT as it would prevent it from being used as src image, so just set 'dest' which is going to be used later to minimize state changes
             _col->swapSRGB();
             dest->swapSRGB();
@@ -2325,12 +2308,15 @@ void RendererClass::postProcess()
          D.viewRect().drawBorder(Vec4Zero, pixelToScreenSize(pixels)); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
       }
       set(dest, null, true); D.alpha((combine && dest()==_final) ? ALPHA_MERGE : ALPHA_NONE);
-      shader->draw(_col); Swap(_col, dest); alpha_set=true;
+      shader->draw(_col);
+      if(swap_srgb){dest->swapRTV(); _col->swapSRV();} // restore
+      Swap(_col, dest); alpha_set=true;
       if(D.densityFilter()==FILTER_NONE)SamplerLinearClamp.setPS(SSI_DEFAULT_2D);
    }
    if(sharpen)
    {
-      if(!--fxs)dest=_final;else dest.get(rt_desc);
+      rt_desc.size=_col->size();// RCAS operates on same size only
+      if(!--fxs && _final->size()==rt_desc.size)dest=_final;else dest.get(rt_desc);
       set(dest, null, true); D.alpha((combine && dest()==_final) ? ALPHA_MERGE : ALPHA_NONE);
       Sh.RCAS[alpha][D.dither() && !dest->highPrecision()]->draw(_col); Swap(_col, dest); alpha_set=true;
    }
