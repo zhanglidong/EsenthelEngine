@@ -2279,12 +2279,12 @@ void DisplayClass::flip()
          Int  res      =D._color_lut.w(); Sh.ImgSize->set(Vec2(Flt(res-1)/res, 0.5f/res)); // assumes all 3 dimensions are same size
          Bool hdr      =(src.highPrecision() && dest.highPrecision()), // need HDR only if both are high precision
               dither   =(D.dither() && !dest.highPrecision()),
-               in_gamma=LINEAR_GAMMA,  in_swap=( in_gamma && src .canSwapSRV() && !hdr); if( in_swap){ in_gamma=false; src .swapSRV();} // can't swap for 'hdr' because shader assumes that  input is Linear
-         Bool out_gamma=LINEAR_GAMMA, out_swap=(out_gamma && dest.canSwapRTV() && !hdr); if(out_swap){out_gamma=false; dest.swapRTV();} // can't swap for 'hdr' because shader assumes that output is Linear
+               in_gamma=LINEAR_GAMMA,  in_swap_srgb=( in_gamma && src .canSwapSRV() && !hdr); if( in_swap_srgb){ in_gamma=false; src .swapSRV();} // can't swap for 'hdr' because shader assumes that  input is Linear
+         Bool out_gamma=LINEAR_GAMMA, out_swap_srgb=(out_gamma && dest.canSwapRTV() && !hdr); if(out_swap_srgb){out_gamma=false; dest.swapRTV();} // can't swap for 'hdr' because shader assumes that output is Linear
          dest.discard(); Renderer.set(&dest, null, false);
          Sh.ColorLUT[hdr][dither][in_gamma][out_gamma]->draw(src);
-         if( in_swap)src .swapSRV();
-         if(out_swap)dest.swapRTV();
+         if( in_swap_srgb)src .swapSRV();
+         if(out_swap_srgb)dest.swapRTV();
          D.alpha(alpha);
          Renderer.set(Renderer._cur_main, Renderer._cur_main_ds, false);
       }

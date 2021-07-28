@@ -595,12 +595,13 @@ void MainShaderClass::getTechniques()
    ShaderFile &sf=*ShaderFiles("FidelityFX");
    Easu=GetShaderParam("Easu");
    Rcas=GetShaderParam("Rcas");
-   REPD(alpha , 2)
-   REPD(dither, 2)
-   REPD(gamma , 2)
+   REPD(alpha    , 2)
+   REPD(dither   , 2)
+   REPD( in_gamma, 2)
+   REPD(out_gamma, 2)
    {
-      EASU[alpha][dither][gamma]=sf.find(S8+"EASU"+alpha+dither+gamma); // this can be null if failed to load
-      RCAS[alpha][dither][gamma]=sf.get (S8+"RCAS"+alpha+dither+gamma);
+      EASU[alpha][dither][in_gamma][out_gamma]=sf.find(S8+"EASU"+alpha+dither+in_gamma+out_gamma); // this can be null if failed to load
+      RCAS[alpha][dither][in_gamma][out_gamma]=sf.get (S8+"RCAS"+alpha+dither+in_gamma+out_gamma);
    }
 
    // FONT

@@ -1,3 +1,5 @@
+/******************************************************************************
+ALPHA, DITHER, IN_GAMMA, OUT_GAMMA
 /******************************************************************************/
 #include "../!Header.h"
 #define Quart _Quart // "ffx_a.h" has its own 'Quart'
@@ -9,7 +11,7 @@
 /******************************************************************************/
 VecH4 GetColor(VecH4 c)
 {
-#if GAMMA
+#if IN_GAMMA
    c.rgb=LinearToSRGBFast(c.rgb);
 #endif
    return c;
@@ -55,7 +57,7 @@ VecH4 EASU_PS(NOPERSP PIXEL):TARGET
 #if DITHER
    ApplyDither(c.rgb, pixel.xy, false); // here 'c' is already in gamma space
 #endif
-#if GAMMA
+#if OUT_GAMMA
    c.rgb=SRGBToLinearFast(c.rgb);
 #endif
    return c;
@@ -81,7 +83,7 @@ VecH4 RCAS_PS(NOPERSP PIXEL):TARGET
 #if DITHER
    ApplyDither(c.rgb, pixel.xy, false); // here 'c' is already in gamma space
 #endif
-#if GAMMA
+#if OUT_GAMMA
    c.rgb=SRGBToLinearFast(c.rgb);
 #endif
    return c;

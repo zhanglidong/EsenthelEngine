@@ -208,7 +208,7 @@ struct MainShaderClass
       *DrawMsM,
       *ClearDeferred,
       *ClearLight   ,
-      *ColorLUT[2][2][2][2], // [HDR][Dither][In Gamma][Out Gamma]
+      *ColorLUT[2][2][2][2], // [HDR][Dither][InGamma][OutGamma]
 
       // BLUR
       #define SHADER_BLUR_RANGE 5 // 5 pixel range in both directions
@@ -304,8 +304,8 @@ struct MainShaderClass
       *DrawTexCubic        [2], // [Color]
       *DrawTexCubicF       [2], // [Dither]
       *DrawTexCubicFRGB    [2], // [Dither]
-      *EASU          [2][2][2], // [Alpha][Dither][Gamma]
-      *RCAS          [2][2][2]; // [Alpha][Dither][Gamma]
+      *EASU       [2][2][2][2], // [Alpha][Dither][InGamma][OutGamma]
+      *RCAS       [2][2][2][2]; // [Alpha][Dither][InGamma][OutGamma]
    void initCubicShaders();   INLINE void loadCubicShaders() {if(SLOW_SHADER_LOAD)initCubicShaders();}
 
    // SHADOWS
