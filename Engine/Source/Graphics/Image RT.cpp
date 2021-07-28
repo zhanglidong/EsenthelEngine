@@ -476,7 +476,7 @@ static void Set(ImageRTPtr &p, ImageRTC &rt, IMAGE_TYPE want_type) // this is ca
 {
    if(want_type!=rt.hwType()) // !! have to compare 'hwType' instead of 'type', because 'type' is always non-sRGB (same as 'desc._type') while 'hwType' can be sRGB-toggled in 'swapSRGB' !!
    {
-      DEBUG_ASSERT(rt.canSwapSRGB(), "Can't swap RT sRGB");
+      DYNAMIC_ASSERT(rt.canSwapSRGB(), "Can't swap RT sRGB");
       rt.swapSRGB();
    }
    rt._ptr_num++; p._data=&rt; rt.discard();
