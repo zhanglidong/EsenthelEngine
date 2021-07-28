@@ -304,6 +304,7 @@ struct MainShaderClass
       *DrawTexCubic        [2], // [Color]
       *DrawTexCubicF       [2], // [Dither]
       *DrawTexCubicFRGB    [2], // [Dither]
+      *EASUScreen          [2], // [Color]
       *EASU       [2][2][2][2], // [Alpha][Dither][InGamma][OutGamma]
       *RCAS       [2][2][2][2]; // [Alpha][Dither][InGamma][OutGamma]
    void initCubicShaders();   INLINE void loadCubicShaders() {if(SLOW_SHADER_LOAD)initCubicShaders();}

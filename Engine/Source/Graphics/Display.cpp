@@ -3442,6 +3442,10 @@ Vec2 DisplayClass::UVToScreen(C Vec2 &uv)
                D.h()-uv.y*D.h2());
 }
 
+Vec2 ScreenToPixel(C Vec2 &screen, C VecI2 &res)
+{
+   return Vec2((screen.x+D.w())*res.x/D.w2(), (D.h()-screen.y)*res.y/D.h2());
+}
 Rect ScreenToPixel(C Rect &screen, C VecI2 &res)
 {
    return Rect((screen.min.x+D.w())*res.x/D.w2(), (D.h()-screen.max.y)*res.y/D.h2(),

@@ -1,5 +1,10 @@
 /******************************************************************************/
 #include "stdafx.h"
+
+#define A_CPU 1
+#include "../Shaders/FidelityFX/ffx_a.h"
+#include "../Shaders/FidelityFX/ffx_fsr1.h"
+
 namespace EE{
 #if 0
    #define TEX_ZERO HalfZero
@@ -140,7 +145,8 @@ void Image::drawVertical(C Color &color, C Color &color_add, C Rect &rect)C
 }
 void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
 {
-   VecI2 pixel=Round(Renderer.screenToPixelSize(rect.size())).abs(); // get target pixel size
+   Vec2  pixelf=Renderer.screenToPixelSize(rect.size());
+   VecI2 pixel =Round(pixelf).abs(); // get target pixel size
    if(pixel.x>w() || pixel.y>h())switch(filter) // if that size is bigger than the image resolution
    {
     //case FILTER_LINEAR: VI.shader(null); break;
@@ -151,8 +157,28 @@ void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
       case FILTER_CUBIC_FAST_SMOOTH:
       case FILTER_CUBIC_FAST_SHARP : Sh.imgSize(T); VI.shader(Sh.DrawTexCubicFast[0]); break;
 
-      case FILTER_BEST            :
-      case FILTER_WAIFU           : // fall back to best available shaders
+      case FILTER_BEST :
+      case FILTER_WAIFU: // fall back to best available shaders
+      case FILTER_EASU :
+      {
+         VI.shader(Sh.EASUScreen[false]);
+
+         struct EASU
+         {
+            AU1 c0[4], c1[4], c2[4], c3[4];
+         }easu;
+         FsrEasuCon(easu.c0, easu.c1, easu.c2, easu.c3,
+              w(),       h(), // Viewport size (top left aligned) in the input image which is to be scaled.
+            hwW(),     hwH(), // The size of the input image.
+         pixelf.x, pixelf.y); // The output resolution.
+
+         // apply offset
+         Vec2 pixel_pos=Renderer.screenToPixel(rect.lu());
+         ((Flt&)easu.c0[2])-=pixel_pos.x*((Flt&)easu.c0[0]);
+         ((Flt&)easu.c0[3])-=pixel_pos.y*((Flt&)easu.c0[1]);
+
+         Sh.Easu->set(easu);
+      }break;
 
       case FILTER_CUBIC_PLUS      :
       case FILTER_CUBIC_PLUS_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.DrawTexCubic[0]); break;
@@ -175,7 +201,8 @@ void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
 }
 void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_TYPE filter)C
 {
-   VecI2 pixel=Round(Renderer.screenToPixelSize(rect.size())).abs(); // get target pixel size
+   Vec2  pixelf=Renderer.screenToPixelSize(rect.size());
+   VecI2 pixel =Round(pixelf).abs(); // get target pixel size
    if(pixel.x>w() || pixel.y>h())switch(filter) // if that size is bigger than the image resolution
    {
     //case FILTER_LINEAR: VI.shader(null); break;
@@ -186,8 +213,28 @@ void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_
       case FILTER_CUBIC_FAST_SMOOTH:
       case FILTER_CUBIC_FAST_SHARP : Sh.imgSize(T); VI.shader(Sh.DrawTexCubicFast[1]); break;
 
-      case FILTER_BEST            :
-      case FILTER_WAIFU           : // fall back to best available shaders
+      case FILTER_BEST :
+      case FILTER_WAIFU: // fall back to best available shaders
+      case FILTER_EASU :
+      {
+         VI.shader(Sh.EASUScreen[true]);
+
+         struct EASU
+         {
+            AU1 c0[4], c1[4], c2[4], c3[4];
+         }easu;
+         FsrEasuCon(easu.c0, easu.c1, easu.c2, easu.c3,
+              w(),       h(), // Viewport size (top left aligned) in the input image which is to be scaled.
+            hwW(),     hwH(), // The size of the input image.
+         pixelf.x, pixelf.y); // The output resolution.
+
+         // apply offset
+         Vec2 pixel_pos=Renderer.screenToPixel(rect.lu());
+         ((Flt&)easu.c0[2])-=pixel_pos.x*((Flt&)easu.c0[0]);
+         ((Flt&)easu.c0[3])-=pixel_pos.y*((Flt&)easu.c0[1]);
+
+         Sh.Easu->set(easu);
+      }break;
 
       case FILTER_CUBIC_PLUS      :
       case FILTER_CUBIC_PLUS_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.DrawTexCubic[1]); break;

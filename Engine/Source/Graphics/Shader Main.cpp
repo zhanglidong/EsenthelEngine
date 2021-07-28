@@ -602,6 +602,7 @@ void MainShaderClass::getTechniques()
       EASU[alpha][dither][in_gamma][out_gamma]=get(S8+"EASU"+alpha+dither+in_gamma+out_gamma+D.gatherChannelAvailable());
       RCAS[alpha][dither][in_gamma][out_gamma]=get(S8+"RCAS"+alpha+dither+in_gamma+out_gamma+D.gatherChannelAvailable());
    }
+   REPD(color, 2)EASUScreen[color]=get(S8+"EASUScreen"+color+D.gatherChannelAvailable());
 
    // FONT
    FontShadow  =GetShaderParam("FontShadow"  );

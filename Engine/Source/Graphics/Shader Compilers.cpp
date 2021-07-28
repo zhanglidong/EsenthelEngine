@@ -110,30 +110,30 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       src.New("Draw2DCol", "Draw2DCol_VS", "Draw2DCol_PS");
       src.New("Draw3DCol", "Draw3DCol_VS", "Draw3DCol_PS");
 
-      src.New("Draw2DTex" , "Draw2DTex_VS",  "Draw2DTex_PS");
-      src.New("Draw2DTexC", "Draw2DTex_VS", "Draw2DTexC_PS");
+      src.New("Draw2DTex" , "DrawScreenUV_VS",  "Draw2DTex_PS");
+      src.New("Draw2DTexC", "DrawScreenUV_VS", "Draw2DTexC_PS");
 
-      src.New("DrawTexX", "Draw2DTex_VS", "DrawTexX_PS");
-      src.New("DrawTexY", "Draw2DTex_VS", "DrawTexY_PS");
-      src.New("DrawTexZ", "Draw2DTex_VS", "DrawTexZ_PS");
-      src.New("DrawTexW", "Draw2DTex_VS", "DrawTexW_PS");
+      src.New("DrawTexX", "DrawScreenUV_VS", "DrawTexX_PS");
+      src.New("DrawTexY", "DrawScreenUV_VS", "DrawTexY_PS");
+      src.New("DrawTexZ", "DrawScreenUV_VS", "DrawTexZ_PS");
+      src.New("DrawTexW", "DrawScreenUV_VS", "DrawTexW_PS");
 
-      src.New("DrawTexXG", "Draw2DTex_VS", "DrawTexXG_PS");
-      src.New("DrawTexYG", "Draw2DTex_VS", "DrawTexYG_PS");
-      src.New("DrawTexZG", "Draw2DTex_VS", "DrawTexZG_PS");
-      src.New("DrawTexWG", "Draw2DTex_VS", "DrawTexWG_PS");
+      src.New("DrawTexXG", "DrawScreenUV_VS", "DrawTexXG_PS");
+      src.New("DrawTexYG", "DrawScreenUV_VS", "DrawTexYG_PS");
+      src.New("DrawTexZG", "DrawScreenUV_VS", "DrawTexZG_PS");
+      src.New("DrawTexWG", "DrawScreenUV_VS", "DrawTexWG_PS");
 
-      src.New("DrawTexXIG", "Draw2DTex_VS", "DrawTexXIG_PS");
-      src.New("DrawTexYIG", "Draw2DTex_VS", "DrawTexYIG_PS");
-      src.New("DrawTexZIG", "Draw2DTex_VS", "DrawTexZIG_PS");
-      src.New("DrawTexWIG", "Draw2DTex_VS", "DrawTexWIG_PS");
+      src.New("DrawTexXIG", "DrawScreenUV_VS", "DrawTexXIG_PS");
+      src.New("DrawTexYIG", "DrawScreenUV_VS", "DrawTexYIG_PS");
+      src.New("DrawTexZIG", "DrawScreenUV_VS", "DrawTexZIG_PS");
+      src.New("DrawTexWIG", "DrawScreenUV_VS", "DrawTexWIG_PS");
 
-      src.New("DrawTexXSG" , "Draw2DTex_VS", "DrawTexXSG_PS");
-      src.New("DrawTexXYSG", "Draw2DTex_VS", "DrawTexXYSG_PS");
-      src.New("DrawTexSG"  , "Draw2DTex_VS", "DrawTexSG_PS");
+      src.New("DrawTexXSG" , "DrawScreenUV_VS", "DrawTexXSG_PS");
+      src.New("DrawTexXYSG", "DrawScreenUV_VS", "DrawTexXYSG_PS");
+      src.New("DrawTexSG"  , "DrawScreenUV_VS", "DrawTexSG_PS");
 
-      src.New("DrawTexNrm"   , "Draw2DTex_VS", "DrawTexNrm_PS");
-      src.New("DrawTexDetNrm", "Draw2DTex_VS", "DrawTexDetNrm_PS");
+      src.New("DrawTexNrm"   , "DrawScreenUV_VS", "DrawTexNrm_PS");
+      src.New("DrawTexDetNrm", "DrawScreenUV_VS", "DrawTexDetNrm_PS");
       src.New("Draw"         , "DrawUV_VS", "Draw2DTex_PS");
       src.New("DrawC"        , "DrawUV_VS", "Draw2DTexC_PS");
       src.New("DrawCG"       , "DrawUV_VS", "DrawTexCG_PS");
@@ -146,8 +146,8 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       REPD(dither, 2)
       REPD(gamma , 2)src.New("DrawXC", "DrawUV_VS", "DrawXC_PS")("DITHER", dither, "GAMMA", gamma);
 
-      src.New("DrawTexPoint" , "Draw2DTex_VS", "DrawTexPoint_PS");
-      src.New("DrawTexPointC", "Draw2DTex_VS", "DrawTexPointC_PS");
+      src.New("DrawTexPoint" , "DrawScreenUV_VS", "DrawTexPoint_PS");
+      src.New("DrawTexPointC", "DrawScreenUV_VS", "DrawTexPointC_PS");
 
       src.New("Draw2DTexCol", "Draw2DTexCol_VS", "Draw2DTexCol_PS");
 
@@ -233,8 +233,8 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       ShaderCompiler::Source &src=compiler.New(src_path+"Cubic.cpp");
       REPD(color, 2)
       {
-         src.New("DrawTexCubicFast", "Draw2DTex_VS", "DrawTexCubicFast_PS")("COLORS", color);
-         src.New("DrawTexCubic"    , "Draw2DTex_VS", "DrawTexCubic_PS"    )("COLORS", color);
+         src.New("DrawTexCubicFast", "DrawScreenUV_VS", "DrawTexCubicFast_PS")("COLORS", color);
+         src.New("DrawTexCubic"    , "DrawScreenUV_VS", "DrawTexCubic_PS"    )("COLORS", color);
       }
       REPD(dither, 2)
       {
@@ -246,6 +246,11 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    }
    { // FIDELITY_FX
       ShaderCompiler::Source &src=compiler.New(src_path+"FidelityFX/FidelityFX.cpp");
+      REPD(color , 2)
+      REPD(gather, 2)
+      {
+         src.New("EASUScreen", "DrawScreen_VS", "EASU_PS")("COLORS", color, "GATHER", gather).extra("ALPHA", true, "DITHER", false, "IN_GAMMA", true, "OUT_GAMMA", true).gatherChannel(gather);
+      }
       REPD(alpha    , 2)
       REPD(dither   , 2)
       REPD( in_gamma, 2)
@@ -392,7 +397,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       REPD(gamma    , 2)
       REPD(alpha    , 2)
       REPD(uv_merged, 2)
-         src.New("YUV", "Draw2DTex_VS", "YUV_PS")("GAMMA", gamma, "ALPHA", alpha, "UV_MERGED", uv_merged);
+         src.New("YUV", "DrawScreenUV_VS", "YUV_PS")("GAMMA", gamma, "ALPHA", alpha, "UV_MERGED", uv_merged);
    }
 }
 #endif
@@ -479,7 +484,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 
    src.New("Fade", "DrawUV_VS", "Fade_PS");
    src.New("RadialBlur", "DrawUV_VS", "RadialBlur_PS");
-   src.New("Ripple", "Draw2DTex_VS", "Ripple_PS");
+   src.New("Ripple", "DrawScreenUV_VS", "Ripple_PS");
    src.New("Titles", "DrawUV_VS", "Titles_PS");
    src.New("Wave", "Wave_VS", "Wave_PS");
 }

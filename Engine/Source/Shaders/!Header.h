@@ -1400,7 +1400,12 @@ void DrawPosXY_VS(VtxInput vtx,
    posXY=UVToPosXY(vtx.uv());
    pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
 }
-void Draw2DTex_VS(VtxInput vtx,
+void DrawScreen_VS(VtxInput vtx,
+      NOPERSP out Vec4 pixel:POSITION)
+{
+   pixel=Vec4(vtx.pos2()*Coords.xy+Coords.zw, Z_FRONT, 1);
+}
+void DrawScreenUV_VS(VtxInput vtx,
       NOPERSP out Vec2 uv   :UV,
       NOPERSP out Vec4 pixel:POSITION)
 {

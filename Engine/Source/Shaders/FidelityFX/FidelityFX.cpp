@@ -83,6 +83,9 @@ VecH4 EASU_PS(NOPERSP PIXEL):TARGET
 #if OUT_GAMMA
    c.rgb=SRGBToLinearFast(c.rgb);
 #endif
+#if COLORS
+   c=c*Color[0]+Color[1];
+#endif
    return c;
 }
 /******************************************************************************/

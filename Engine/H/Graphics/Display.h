@@ -726,6 +726,7 @@ inline DisplayClass &Display=D; // 'Display' alias ('Display' can be used the sa
    Bool     SetDisplayMode(Int mode=1); // 0=always off (use at shutdown), 1=if want full and app is active, 2=if want full (use at init)
    void RequestDisplayMode(Int w, Int h, Int full);
 
+   Vec2  ScreenToPixel (C Vec2 &screen, C VecI2 &res);
    Rect  ScreenToPixel (C Rect &screen, C VecI2 &res);
    RectI ScreenToPixelI(C Rect &screen, C VecI2 &res);
 
