@@ -592,7 +592,6 @@ void MainShaderClass::getTechniques()
 #endif
 
    // FidelityFX
-   ShaderFile &sf=*ShaderFiles("FidelityFX");
    Easu=GetShaderParam("Easu");
    Rcas=GetShaderParam("Rcas");
    REPD(alpha    , 2)
@@ -600,8 +599,8 @@ void MainShaderClass::getTechniques()
    REPD( in_gamma, 2)
    REPD(out_gamma, 2)
    {
-      EASU[alpha][dither][in_gamma][out_gamma]=sf.get(S8+"EASU"+alpha+dither+in_gamma+out_gamma+D.gatherChannelAvailable());
-      RCAS[alpha][dither][in_gamma][out_gamma]=sf.get(S8+"RCAS"+alpha+dither+in_gamma+out_gamma+D.gatherChannelAvailable());
+      EASU[alpha][dither][in_gamma][out_gamma]=get(S8+"EASU"+alpha+dither+in_gamma+out_gamma+D.gatherChannelAvailable());
+      RCAS[alpha][dither][in_gamma][out_gamma]=get(S8+"RCAS"+alpha+dither+in_gamma+out_gamma+D.gatherChannelAvailable());
    }
 
    // FONT
