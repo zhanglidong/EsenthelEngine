@@ -888,6 +888,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _tex_mip_filter  =true;
   _tex_detail      =(MOBILE ? TEX_USE_DISABLE : TEX_USE_MULTI);
   _density_filter  =(MOBILE ? FILTER_LINEAR : FILTER_CUBIC_FAST);
+//_sharpen         =false;
 //_tex_mip_min     =0;
   _tex_macro       =true;
 //_tex_detail_lod  =false;
@@ -2635,6 +2636,7 @@ Bool DisplayClass::densityFast(Byte density)
 Flt           DisplayClass::density      (                  )C {return ByteScale2ToFlt(densityFast());}
 DisplayClass& DisplayClass::density      (Flt        density)  {if(densityFast(FltToByteScale2(density)))Renderer.rtClean(); return T;}
 DisplayClass& DisplayClass::densityFilter(FILTER_TYPE filter)  {_density_filter=filter; return T;}
+DisplayClass& DisplayClass::sharpen      (Bool       sharpen)  {_sharpen=sharpen; return T;}
 DisplayClass& DisplayClass::samples      (Byte       samples)
 {
    samples=DisplaySamples(samples);

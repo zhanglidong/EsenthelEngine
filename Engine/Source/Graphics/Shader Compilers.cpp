@@ -26,6 +26,7 @@ namespace EE{
 #define EMISSIVE
 #define FOG_LOCAL
 #define FUR
+#define FIDELITY_FX
 #define FXAA
 #define HDR
 #define LAYERED_CLOUDS
@@ -516,6 +517,20 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 
                   src.New("FogBall" , "FogBall_VS" , "FogBall_PS" );
    REPD(inside, 2)src.New("FogBallI", "FogBallI_VS", "FogBallI_PS")("INSIDE", inside);
+}
+#endif
+
+#ifdef FIDELITY_FX
+{
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"FidelityFX", model, api, flag).New(src_path+"FidelityFX/FidelityFX.cpp");
+   REPD(alpha , 2)
+   REPD(dither, 2)
+   {
+      src.New("EASU", "Draw_VS", "EASU_PS")("ALPHA", alpha, "DITHER", dither).gatherChannel();
+      src.New("RCAS", "Draw_VS", "RCAS_PS")("ALPHA", alpha, "DITHER", dither);
+    //src.computeNew("EASU")("ALPHA", alpha, "DITHER", dither);
+    //src.computeNew("RCAS")("ALPHA", alpha, "DITHER", dither);
+   }
 }
 #endif
 

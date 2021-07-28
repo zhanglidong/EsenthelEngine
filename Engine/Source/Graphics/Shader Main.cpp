@@ -591,6 +591,17 @@ void MainShaderClass::getTechniques()
    initCubicShaders();
 #endif
 
+   // FidelityFX
+   ShaderFile &sf=*ShaderFiles("FidelityFX");
+   Easu=GetShaderParam("Easu");
+   Rcas=GetShaderParam("Rcas");
+   REPD(alpha , 2)
+   REPD(dither, 2)
+   {
+      EASU[alpha][dither]=sf.find(S8+"EASU"+alpha+dither); // this can be null if failed to load
+      RCAS[alpha][dither]=sf.get (S8+"RCAS"+alpha+dither);
+   }
+
    // FONT
    FontShadow  =GetShaderParam("FontShadow"  );
    FontLum     =GetShaderParam("FontLum"     );

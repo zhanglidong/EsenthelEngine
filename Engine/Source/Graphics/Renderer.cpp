@@ -6,6 +6,11 @@
 
 /******************************************************************************/
 #include "stdafx.h"
+
+#define A_CPU 1
+#include "../Shaders/FidelityFX/ffx_a.h"
+#include "../Shaders/FidelityFX/ffx_fsr1.h"
+
 namespace EE{
 // #RTOutput
 #define SVEL_CLEAR Vec4Zero
@@ -223,6 +228,13 @@ void RendererClass::create()
 
    if(_env_dfg.load("Img/Environment DFG.img"))GetShaderImage("EnvDFG"  )->set(_env_dfg);
    if(_noise  .load("Img/Blue Noise 128.img" ))GetShaderImage("ImgNoise")->set(_noise  ); ASSERT(NOISE_IMAGE_RES==128);
+
+   struct RCAS
+   {
+      AU1 c0[4];
+   }rcas;
+   FsrRcasCon(rcas.c0, 0.2f);
+   Sh.Rcas->set(rcas);
 }
 RendererClass& RendererClass::type(RENDER_TYPE type)
 {
@@ -2122,7 +2134,8 @@ void RendererClass::postProcess()
         bloom    =(hasBloom         () || _has_glow),
         dof      = hasDof           (),
         combine  = slowCombine      (),
-        alpha_set= fastCombine      (); // if alpha channel is set properly in the RT, skip this if we're doing 'fastCombine' because we're rendering to existing RT which has its Alpha already set
+        alpha_set= fastCombine      (), // if alpha channel is set properly in the RT, skip this if we're doing 'fastCombine' because we're rendering to existing RT which has its Alpha already set
+        sharpen  = D.sharpen        ();
 
    if(alpha){if(!_alpha)setAlphaFromDepthAndCol();} // create '_alpha' if not yet available
    else          _alpha.clear(); // make sure to clear if we don't use it
@@ -2214,7 +2227,11 @@ void RendererClass::postProcess()
    }
    if(upscale)
    {
-      if(!--fxs)dest=_final;else dest.get(rt_desc);
+      if(!--fxs)dest=_final;else
+      {
+         rt_desc.size=_final->size();
+         dest.get(rt_desc);
+      }
       Bool    dither=(D.dither() && !dest->highPrecision());
       Int     pixels=1+1; // 1 for filtering + 1 for borders (because source is smaller and may not cover the entire range for dest, for example in dest we want 100 pixels, but 1 source pixel covers 30 dest pixels, so we may get only 3 source pixels covering 90 dest pixels)
       Shader *shader=null;
@@ -2314,15 +2331,8 @@ void RendererClass::postProcess()
    if(sharpen)
    {
       if(!--fxs)dest=_final;else dest.get(rt_desc);
-      struct RCAS
-      {
-         AU1 c0[4];
-      }rcas;
-      FsrRcasCon(rcas.c0, 0.2f);
-      Sh.Rcas->set(rcas);
       set(dest, null, true); D.alpha((combine && dest()==_final) ? ALPHA_MERGE : ALPHA_NONE);
-      Sh.RCAS[alpha][D.dither() && !dest->highPrecision()]->draw(_col);
-      alpha_set=true;
+      Sh.RCAS[alpha][D.dither() && !dest->highPrecision()]->draw(_col); Swap(_col, dest); alpha_set=true;
    }
    if(!_get_target) // for '_get_target' leave the '_col' result for further processing
    {
