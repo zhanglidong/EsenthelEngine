@@ -244,6 +244,11 @@ void DisplayState::uavClear(GPU_API(ID3D11UnorderedAccessView*, UInt) tex)
    if(tex)REPA(UAV)if(UAV[i]==tex)UAV[i]=~0;
 #endif
 }
+void DisplayState::rtClear(C ImageRT &image)
+{
+   REPA(Renderer._cur)if(Renderer._cur[i]==&image){Renderer._cur[i]=null; Renderer._cur_id[i]=GPU_API(null, 0);}
+                      if(Renderer._cur_ds==&image){Renderer._cur_ds=null; Renderer._cur_ds_id=GPU_API(null, 0);}
+}
 void DisplayState::texClearAll(GPU_API(ID3D11ShaderResourceView*, UInt) tex)
 {
 #if DX11
@@ -1267,8 +1272,8 @@ static INLINE void SetUAV(C RWImageLink &link)
 {
    if(C ImageRT *rt=link.image->_image)
    {
-      D.texClear(rt->_srv);
-      REPA(Renderer._cur)if(Renderer._cur[i]==rt){Renderer._cur[i]=null; Renderer._cur_id[i]=null;}
+      D.texClear( rt->_srv); // on DX11 when setting UAV, it automatically unbinds it from SRVs, so have to clear it manually
+      D. rtClear(*rt      ); // on DX11 when setting UAV, it automatically unbinds it from  RTs, so have to clear it manually
    }
 }
 static INLINE void SetImages(C RWImageLinkPtr &links, ID3D11UnorderedAccessView *tex[MAX_SHADER_IMAGES], void (STDMETHODCALLTYPE ID3D11DeviceContext::*SetUnorderedAccessView)(UINT StartSlot, UINT NumUAVs, ID3D11UnorderedAccessView*C *ppUnorderedAccessViews, const UINT *pUAVInitialCounts)) // use INLINE to allow directly using virtual func calls
@@ -1441,7 +1446,7 @@ updateBuffers();
 }
 void ComputeShader11::end()C
 {
-   clearImages(); // have to unlink UAV's after computing, because DX will fail to bind their SRV's while UAV's are still bound
+   clearImages(); // have to unlink UAVs after computing, because DX will fail to bind their SRVs while UAVs are still bound
 }
 void ComputeShader11::compute(C VecI2 &groups)C {begin(); D3DC->Dispatch(groups.x, groups.y,        1); end();}
 void ComputeShader11::compute(C VecI  &groups)C {begin(); D3DC->Dispatch(groups.x, groups.y, groups.z); end();}

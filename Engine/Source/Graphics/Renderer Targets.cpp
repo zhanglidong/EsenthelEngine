@@ -398,7 +398,7 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
                                    || depth_read_mode==WANT_DEPTH_READ && ds->_rdsv) ? ds->_rdsv : ds->_dsv : null);
 
    if(_cur_id[0]!=id0 || _cur_id[1]!=id1 || _cur_id[2]!=id2 || _cur_id[3]!=id3 || _cur_ds_id!=ids)
-   {
+   { // on DX11 when setting RT, it automatically unbinds it from SRVs, so have to clear it manually (UAVs are unbound too, however engine always resets them)
       if(id0 &&                  _cur_id[0]!=id0)D.texClear(t0->_srv);
       if(id1 &&                  _cur_id[1]!=id1)D.texClear(t1->_srv);
       if(id2 &&                  _cur_id[2]!=id2)D.texClear(t2->_srv);

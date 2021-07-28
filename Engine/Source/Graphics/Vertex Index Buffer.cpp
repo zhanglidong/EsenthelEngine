@@ -109,7 +109,7 @@ IndBuf    IndBuf16384Quads, IndBufBorder, IndBufPanel, IndBufPanelEx, IndBufRect
 VtxIndBuf VI;
 ThreadSafeMap<VtxFormatKey, VtxFormat> VtxFormats(Compare, Create);
 #if GL_ES
-static void (*glDrawElementsBaseVertex) (GLenum mode, GLsizei count, GLenum type, void *indices, GLint basevertex);
+static void (*glDrawElementsBaseVertex)(GLenum mode, GLsizei count, GLenum type, void *indices, GLint basevertex);
 #endif
 /******************************************************************************
 255.0 scales (and not 256.0) are correct:

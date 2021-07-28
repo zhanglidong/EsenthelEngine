@@ -65,7 +65,6 @@
    #endif
 
    #define LINEAR_GAMMA 1
-   #define CAN_SWAP_SRGB DX11
    #define GPU_HALF_SUPPORTED   (!GL_ES) // depends on "GL_OES_vertex_half_float" GLES extension
    #define DEPTH_CLIP_SUPPORTED (!GL_ES)
 

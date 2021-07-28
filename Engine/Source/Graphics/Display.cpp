@@ -60,6 +60,10 @@ DisplayClass D;
    #elif IOS
       UInt FBO1;
    #endif
+   #if !WINDOWS
+      void (*glTexStorage2D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height); // available on GL 4.2+, GL ES 3.0+
+      void (*glTextureView )(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers); // available on GL 4.3+, GL ES NO
+   #endif
    #if APPLE
       static CFBundleRef OpenGLBundle;
    #endif
@@ -2106,13 +2110,14 @@ void DisplayClass::getCaps()
    {
       UInt usage=0; UINT fs; if(OK(D3D->CheckFormatSupport(ImageTI[i].format, &fs)))
       {
-         if(fs&D3D11_FORMAT_SUPPORT_IA_VERTEX_BUFFER        )usage|=ImageTypeInfo::USAGE_VTX;
-         if(fs&D3D11_FORMAT_SUPPORT_TEXTURE2D               )usage|=ImageTypeInfo::USAGE_IMAGE_2D;
-         if(fs&D3D11_FORMAT_SUPPORT_TEXTURE3D               )usage|=ImageTypeInfo::USAGE_IMAGE_3D;
-         if(fs&D3D11_FORMAT_SUPPORT_TEXTURECUBE             )usage|=ImageTypeInfo::USAGE_IMAGE_CUBE;
-         if(fs&D3D11_FORMAT_SUPPORT_RENDER_TARGET           )usage|=ImageTypeInfo::USAGE_IMAGE_RT;
-         if(fs&D3D11_FORMAT_SUPPORT_DEPTH_STENCIL           )usage|=ImageTypeInfo::USAGE_IMAGE_DS;
-         if(fs&D3D11_FORMAT_SUPPORT_MULTISAMPLE_RENDERTARGET)usage|=ImageTypeInfo::USAGE_IMAGE_MS;
+         if(fs&D3D11_FORMAT_SUPPORT_IA_VERTEX_BUFFER           )usage|=ImageTypeInfo::USAGE_VTX;
+         if(fs&D3D11_FORMAT_SUPPORT_TEXTURE2D                  )usage|=ImageTypeInfo::USAGE_IMAGE_2D;
+         if(fs&D3D11_FORMAT_SUPPORT_TEXTURE3D                  )usage|=ImageTypeInfo::USAGE_IMAGE_3D;
+         if(fs&D3D11_FORMAT_SUPPORT_TEXTURECUBE                )usage|=ImageTypeInfo::USAGE_IMAGE_CUBE;
+         if(fs&D3D11_FORMAT_SUPPORT_RENDER_TARGET              )usage|=ImageTypeInfo::USAGE_IMAGE_RT;
+         if(fs&D3D11_FORMAT_SUPPORT_DEPTH_STENCIL              )usage|=ImageTypeInfo::USAGE_IMAGE_DS;
+         if(fs&D3D11_FORMAT_SUPPORT_MULTISAMPLE_RENDERTARGET   )usage|=ImageTypeInfo::USAGE_IMAGE_MS;
+         if(fs&D3D11_FORMAT_SUPPORT_TYPED_UNORDERED_ACCESS_VIEW)usage|=ImageTypeInfo::USAGE_IMAGE_UAV;
       }
       ImageTI[i]._usage=usage;
    }

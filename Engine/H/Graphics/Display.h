@@ -643,6 +643,7 @@ private:
    Bool deferredUnavailable      ()C;
    Bool deferredMSUnavailable    ()C;
    Bool SpirVAvailable           ()C;
+   Bool canSwapSRGB              ()C;
 
 #if WINDOWS_OLD
    Monitor* getMonitor(HMONITOR hmonitor);
@@ -713,6 +714,11 @@ inline DisplayClass &Display=D; // 'Display' alias ('Display' can be used the sa
    #elif ANDROID || SWITCH
       extern EGLConfig  GLConfig;
       extern EGLDisplay GLDisplay;
+   #endif
+
+   #if !WINDOWS
+      extern void (*glTexStorage2D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height); // available on GL 4.2+, GL ES 3.0+
+      extern void (*glTextureView )(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers); // available on GL 4.3+, GL ES NO
    #endif
 #endif
 

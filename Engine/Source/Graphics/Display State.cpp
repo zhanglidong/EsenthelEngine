@@ -109,7 +109,7 @@ static Bool DepthAllow=true, DepthReal;
 static Byte Col0WriteAllow=COL_WRITE_RGBA, Col0WriteReal=COL_WRITE_RGBA;
 static UInt StencilFunc=GL_ALWAYS, StencilMask=~0;
 #if !WINDOWS && !SWITCH
-static void (*glBlendFunci) (GLuint buf, GLenum src, GLenum dst); // see 'D.independentBlendAvailable'
+static void (*glBlendFunci)(GLuint buf, GLenum src, GLenum dst); // see 'D.independentBlendAvailable'
 #endif
 #endif
 

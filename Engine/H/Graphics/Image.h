@@ -182,6 +182,7 @@ struct ImageTypeInfo // Image Type Information
       USAGE_IMAGE_RT  =1<<4, // type can be used in a Render Target
       USAGE_IMAGE_DS  =1<<5, // type can be used in a Depth Stencil Buffer
       USAGE_IMAGE_MS  =1<<6, // type can be used in a Multi-Sampled Render Target or Depth Stencil (depending on USAGE_IMAGE_RT, USAGE_IMAGE_DS)
+      USAGE_IMAGE_UAV =1<<7, // type can be used in a Unordered Access View
    };
 
    const CChar8         *name          ; // type name

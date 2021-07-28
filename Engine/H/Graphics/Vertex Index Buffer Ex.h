@@ -166,7 +166,7 @@ private:
    Int       _vtx_size, _vtx_num, _lock_count;
    Byte     *_data;
 #if EE_PRIVATE
-   GPU_API(ID3D11Buffer *_buf, union{UInt _buf; Ptr buf_ptr;});
+   GPU_API(ID3D11Buffer *_buf, union{UInt _buf; Ptr _buf_ptr;});
 #else
    Ptr       _buf;
 #endif
@@ -224,7 +224,7 @@ private:
    Int       _ind_num, _lock_count;
    Byte     *_data;
 #if EE_PRIVATE
-   GPU_API(ID3D11Buffer *_buf, union{UInt _buf; Ptr buf_ptr;});
+   GPU_API(ID3D11Buffer *_buf, union{UInt _buf; Ptr _buf_ptr;});
 #else
    Ptr       _buf;
 #endif
