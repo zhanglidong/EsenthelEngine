@@ -152,6 +152,9 @@ struct MainShaderClass
 
       *DecalParams,
       *OverlayParams,
+
+      *Easu,
+      *Rcas,
       
       *SMAAThreshold=&Dummy;
 
@@ -299,7 +302,9 @@ struct MainShaderClass
       *DrawTexCubicFastFRGB[2], // [Dither]
       *DrawTexCubic        [2], // [Color]
       *DrawTexCubicF       [2], // [Dither]
-      *DrawTexCubicFRGB    [2]; // [Dither]
+      *DrawTexCubicFRGB    [2], // [Dither]
+      *EASU             [2][2], // [Alpha][Dither]
+      *RCAS             [2][2]; // [Alpha][Dither]
    void initCubicShaders();   INLINE void loadCubicShaders() {if(SLOW_SHADER_LOAD)initCubicShaders();}
 
    // SHADOWS
