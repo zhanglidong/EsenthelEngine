@@ -1238,6 +1238,10 @@ static Str8 RemoveEmptyLines(C Str8 &str)
    }
    return s;
 }
+static Str8 SamplerName(Int sampler_index, C Str8 &image_name)
+{
+   return S8+'S'+sampler_index+'_'+image_name; // use S sampler_index _ image_name format, so we can use SkipStart when loading shaders without having to allocate memory for Str, so the name must be at the end, and sampler index before that, since name can't start with a number then S is also added at the start #SamplerName
+}
 static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_index)
 {
    ShaderCompiler &compiler=cc.compiler;
@@ -1407,15 +1411,38 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    spvc_compiler_build_combined_image_samplers(spirv_compiler);
    const spvc_combined_image_sampler *samplers=null; size_t num_samplers=0;
    spvc_compiler_get_combined_image_samplers(spirv_compiler, &samplers, &num_samplers);
+   struct ReplaceSampler
+   {
+      Str8 src, dest;
+   };
+   Memc<ReplaceSampler> replace_samplers;
    FREP(num_samplers)
    {
     C spvc_combined_image_sampler &cis=samplers[i];
-      Str8      image_name =spvc_compiler_get_name(spirv_compiler, cis.  image_id);
-      CChar8 *sampler_name =spvc_compiler_get_name(spirv_compiler, cis.sampler_id);
-      Int     sampler_index=((cis.sampler_id==dummy_sampler) ? SSI_POINT : GetSamplerIndex(sampler_name)); // use PointSampler as dummy because it's not needed anyway
-      if(     sampler_index<0)Exit(S+"Unknown sampler for '"+image_name+"'");
-      spvc_compiler_set_name(spirv_compiler, cis.combined_id, S8+'S'+sampler_index+'_'+image_name); // use S sampler_index _ image_name format, so we can use SkipStart when loading shaders without having to allocate memory for Str, so the name must be at the end, and sampler index before that, since name can't start with a number then S is also added at the start #SamplerName
+      Str8      image_name=spvc_compiler_get_name(spirv_compiler, cis.  image_id);
+      CChar8 *sampler_name=spvc_compiler_get_name(spirv_compiler, cis.sampler_id);
+      Int     sampler_index;
+      if(cis.sampler_id==dummy_sampler) // if this is a dummy sampler
+      {
+         REPD(j, num_samplers)if(j!=i)
+         {
+          C spvc_combined_image_sampler &cis1=samplers[j];
+            if(cis1.image_id==cis.image_id) // find if there's another sampler using the same image
+            { // if found, then keep current name as is, and later we will replace this sampler with another
+               CChar8 *sampler_name =spvc_compiler_get_name(spirv_compiler, cis1.sampler_id);
+               Int     sampler_index=GetSamplerIndex(sampler_name);
+               auto &rs=replace_samplers.New();
+               rs.src =SamplerName(SSI_NUM      , image_name); // use SSI_NUM as invalid
+               rs.dest=SamplerName(sampler_index, image_name);
+               spvc_compiler_set_name(spirv_compiler, cis.combined_id, rs.src);
+               goto next; // proceed to the next one, don't add to 'compiler.images' because we're going to replace it
+            }
+         }
+            sampler_index=SSI_POINT; // if didn't found another image, then use PointSampler as dummy because it's not needed anyway, any could be used
+      }else{sampler_index=GetSamplerIndex(sampler_name); if(sampler_index<0)Exit(S+"Unknown sampler for '"+image_name+"'");}
+      spvc_compiler_set_name(spirv_compiler, cis.combined_id, SamplerName(sampler_index, image_name));
       {SyncLocker lock(cc.lock); compiler.images.binaryInclude(image_name, CompareCS);}
+   next:;
    }
 
    list=null; count=0; spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_STORAGE_IMAGE, &list, &count); FREP(count)
@@ -1458,6 +1485,12 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
          for(; CharFlag(code[end])&CHARF_DIG; )end++;
          if(!removed_prev && code[end]==',')end++;
          code.remove(pos, end-pos);
+      }
+      REPA(replace_samplers)
+      {
+       C auto &rs=replace_samplers[i];
+         code=Replace(code, S8+"uniform mediump sampler2D "+rs.src+";\n", S, true, WHOLE_WORD_STRICT); // remove definition
+         code=Replace(code,                                 rs.src, rs.dest, true, WHOLE_WORD_STRICT); // replace with another
       }
 
    #if FORCE_LOG_SHADER_CODE
