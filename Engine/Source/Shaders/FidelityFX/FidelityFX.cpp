@@ -9,6 +9,16 @@ ALPHA, DITHER, IN_GAMMA, OUT_GAMMA, GATHER
 #define A_HALF 1
 #include "ffx_a.h"
 /******************************************************************************/
+VecH4 GetChannel(VecH4 c)
+{
+#if IN_GAMMA
+   c.x=LinearToSRGBFast(c.x);
+   c.y=LinearToSRGBFast(c.y);
+   c.z=LinearToSRGBFast(c.z);
+   c.w=LinearToSRGBFast(c.w);
+#endif
+   return c;
+}
 VecH4 GetColor(VecH4 c)
 {
 #if IN_GAMMA
@@ -17,12 +27,12 @@ VecH4 GetColor(VecH4 c)
    return c;
 }
 
-VecH4 FsrEasuRH(Vec2 p) {return GetColor(TexGatherR(Img, p));}
-VecH4 FsrEasuGH(Vec2 p) {return GetColor(TexGatherG(Img, p));}
-VecH4 FsrEasuBH(Vec2 p) {return GetColor(TexGatherB(Img, p));}
-Vec4  FsrEasuRF(Vec2 p) {return GetColor(TexGatherR(Img, p));}
-Vec4  FsrEasuGF(Vec2 p) {return GetColor(TexGatherG(Img, p));}
-Vec4  FsrEasuBF(Vec2 p) {return GetColor(TexGatherB(Img, p));}
+VecH4 FsrEasuRH(Vec2 p) {return GetChannel(TexGatherR(Img, p));}
+VecH4 FsrEasuGH(Vec2 p) {return GetChannel(TexGatherG(Img, p));}
+VecH4 FsrEasuBH(Vec2 p) {return GetChannel(TexGatherB(Img, p));}
+Vec4  FsrEasuRF(Vec2 p) {return GetChannel(TexGatherR(Img, p));}
+Vec4  FsrEasuGF(Vec2 p) {return GetChannel(TexGatherG(Img, p));}
+Vec4  FsrEasuBF(Vec2 p) {return GetChannel(TexGatherB(Img, p));}
 
 VecH4 FsrEasuH(Vec2 p, VecI2 ofs) {return GetColor(TexPointOfs(Img, p, ofs));}
 Vec4  FsrEasuF(Vec2 p, VecI2 ofs) {return GetColor(TexPointOfs(Img, p, ofs));}
