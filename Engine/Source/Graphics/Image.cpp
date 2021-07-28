@@ -1151,7 +1151,7 @@ Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
       if(!ImageSupported(type, mode, samples))goto error;
 
       // create as new
-   #if GL
+   #if WEB && GL
       Memt<Byte> temp;
    #endif
       // hardware size (do after calculating mip-maps)
@@ -1337,7 +1337,6 @@ Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
          }break;
       #elif GL
          case IMAGE_2D:
-         case IMAGE_RT:
          {
             glGenTextures(1, &_txtr); if(_txtr)
             {
@@ -1347,11 +1346,13 @@ Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
                glGetError (); // clear any previous errors
                setGLParams(); // call this first to bind the texture
 
+               // !! WARNING: IF THIS IS REPLACED TO USE 'glTexStorage2D' THEN CAN'T USE 'glTexImage2D/glCompressedTexImage2D' TO UPDATE MIP MAPS IN UNLOCK AND 'setFrom' and .., check 'glTexSubImage' and compressed? !!
+
                UInt format=hwTypeInfo().format, gl_format=SourceGLFormat(hwType()), gl_type=SourceGLType(hwType());
                if(src_data)
                {
                #if GL_ES
-                  if(mode!=IMAGE_RT && !(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && !can_del_src)Alloc(_data_all, CeilGL(memUsage())); Byte *dest=_data_all; // create a software copy only if we want it and we're not going to take it from 'src'
+                  if(!(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && !can_del_src)Alloc(_data_all, CeilGL(memUsage())); Byte *dest=_data_all; // create a software copy only if we want it and we're not going to take it from 'src'
                #endif
                 C Byte *data=(Byte*)src_data; FREPD(m, mipMaps()) // order important
                   {
@@ -1369,31 +1370,57 @@ Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
                }else
                if(!compressed())
                {
-                  if(mode==IMAGE_RT)temp.setNumZero(CeilGL(memUsage())); // clear render targets to zero at start (especially important for floating point RT's)
-                  glTexImage2D(GL_TEXTURE_2D, 0, format, hwW(), hwH(), 0, gl_format, gl_type, temp.dataNull());
+                  glTexImage2D(GL_TEXTURE_2D, 0, format, hwW(), hwH(), 0, gl_format, gl_type, null);
                }else
                {
                   Int mip_size=ImageMipSize(hwW(), hwH(), 0, hwType());
-                  if(WEB)temp.setNumZero(CeilGL(mip_size)); // for WEB, null can't be specified in 'glCompressedTexImage'
-                  glCompressedTexImage2D(GL_TEXTURE_2D, 0, format, hwW(), hwH(), 0, mip_size, temp.dataNull());
+               #if WEB // for WEB, null can't be specified in 'glCompressedTexImage'
+                  glCompressedTexImage2D(GL_TEXTURE_2D, 0, format, hwW(), hwH(), 0, mip_size, temp.setNumZero(CeilGL(mip_size)).dataNull());
+               #else
+                  glCompressedTexImage2D(GL_TEXTURE_2D, 0, format, hwW(), hwH(), 0, mip_size, null);
+               #endif
                }
 
                if(glGetError()==GL_NO_ERROR && setInfo()) // ok
                {
                   glFlush(); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
                #if GL_ES
-                  if(mode!=IMAGE_RT)
+                  if(src_data)
                   {
-                     if(src_data)
+                     if(!(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && can_del_src) // take software copy from 'src', but only if we want it, and only on success (so if failed, then we can still use 'src', this is needed for 'Load' loading)
                      {
-                        if(!(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && can_del_src) // take software copy from 'src', but only if we want it, and only on success (so if failed, then we can still use 'src', this is needed for 'Load' loading)
-                        {
-                           DYNAMIC_ASSERT(src, "'can_del_src' without 'src' is not implemented");
-                           Image &s=ConstCast(*src); _data_all=s._data_all; s._data_all=null; s.del();
-                        }
-                     }else Alloc(_data_all, CeilGL(memUsage()));
-                  }
+                        DYNAMIC_ASSERT(src, "'can_del_src' without 'src' is not implemented");
+                        Image &s=ConstCast(*src); _data_all=s._data_all; s._data_all=null; s.del();
+                     }
+                  }else Alloc(_data_all, CeilGL(memUsage()));
                #endif
+                  return true;
+               }
+            }
+         }break;
+
+         case IMAGE_RT: if(!compressed())
+         {
+            glGenTextures(1, &_txtr); if(_txtr)
+            {
+               T._mms    =mip_maps;
+               T._samples=1;
+
+               glGetError (); // clear any previous errors
+               setGLParams(); // call this first to bind the texture
+
+               UInt format=hwTypeInfo().format;
+               if(D.canSwapSRGB())
+               {
+                  glTexStorage2D(GL_TEXTURE_2D, mipMaps(), format, hwW(), hwH());
+               }else
+               {
+                  UInt gl_format=SourceGLFormat(hwType()), gl_type=SourceGLType(hwType());
+                  glTexImage2D(GL_TEXTURE_2D, 0, format, hwW(), hwH(), 0, gl_format, gl_type, null);
+               }
+               if(glGetError()==GL_NO_ERROR && setInfo()) // ok
+               {
+                  glFlush(); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
                   return true;
                }
             }
@@ -1475,8 +1502,9 @@ Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
                {
                   VecI2 size(Max(1, hwW()>>m), Max(1, hwH()>>m));
                   Int   mip_size=ImageMipSize(size.x, size.y, 0, hwType());
-                  if(!m && !src_data)
-                     if(mode==IMAGE_RT_CUBE || WEB && compressed())data=temp.setNumZero(CeilGL(mip_size)).dataNull(); // clear render targets to zero at start (especially important for floating point RT's), for WEB null can't be specified in 'glCompressedTexImage'
+               #if WEB // for WEB, null can't be specified in 'glCompressedTexImage'
+                  if(!m && !src_data && compressed())data=temp.setNumZero(CeilGL(mip_size)).dataNull();
+               #endif
                   FREPD(f, 6) // faces, order important
                   {
                      if(!compressed())glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+f, m, format, size.x, size.y, 0, gl_format, gl_type, data);

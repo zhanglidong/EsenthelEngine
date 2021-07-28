@@ -76,6 +76,8 @@ struct ImageRT : Image // Image Render Target
    {
    #if DX11
       return _srv_srgb!=null;
+   #elif GL
+      return _txtr_srgb!=0;
    #endif
       return false;
    }
@@ -83,6 +85,8 @@ struct ImageRT : Image // Image Render Target
    {
    #if DX11
       return _rtv_srgb!=null;
+   #elif GL
+      return _txtr_srgb!=0;
    #endif
       return false;
    }
@@ -117,14 +121,28 @@ struct ImageRT : Image // Image Render Target
 #if !EE_PRIVATE
 private:
 #endif
-#if EE_PRIVATE && DX11
-   ID3D11ShaderResourceView         *_srv_srgb;
-   ID3D11RenderTargetView    *_rtv, *_rtv_srgb;
-   ID3D11DepthStencilView    *_dsv, *_rdsv;
-   ID3D11UnorderedAccessView *_uav;
-#else
-   Ptr  _srv_srgb, _rtv, _rtv_srgb, _dsv, _rdsv, _uav;
-#endif
+   union
+   {
+      struct
+      {
+      #if EE_PRIVATE && DX11
+         ID3D11ShaderResourceView         *_srv_srgb;
+         ID3D11RenderTargetView    *_rtv, *_rtv_srgb;
+         ID3D11DepthStencilView    *_dsv, *_rdsv;
+         ID3D11UnorderedAccessView *_uav;
+      #else
+         Ptr _ptr[6];
+      #endif
+      };
+      struct
+      {
+      #if EE_PRIVATE && GL
+         UInt _txtr_srgb;
+      #else
+         UInt _uint;
+      #endif
+      };
+   };
    NO_COPY_CONSTRUCTOR(ImageRT);
 };
 /******************************************************************************/

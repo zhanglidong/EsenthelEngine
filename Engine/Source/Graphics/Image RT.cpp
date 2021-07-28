@@ -316,7 +316,10 @@ Bool ImageRT::createViews()
           //uavd.Texture2D.MipSlice=0;
             D3D->CreateUnorderedAccessView(_txtr, &uavd, &_uav); //if(!_uav)return false; this might fail for map main
          }
+      #elif GL
+         if(_txtr_srgb)return true; // if already has a view then keep it, this is important and needed for #SwapImageRT
       #endif
+
          if(IMAGE_TYPE type_srgb=ImageTypeToggleSRGB(type()))if(type_srgb!=type()) // try creating toggled sRGB Resource Views
          {
          #if DX11
@@ -327,6 +330,8 @@ Bool ImageRT::createViews()
             // lock not needed for DX11 'D3D'
             D3D->CreateShaderResourceView(_txtr, &srvd, &_srv_srgb);
             D3D->CreateRenderTargetView  (_txtr, &rtvd, &_rtv_srgb);
+         #elif GL
+            if(D.canSwapSRGB())
          #endif
          }
       }break;
@@ -463,7 +468,7 @@ static void Set(ImageRTPtr &p, ImageRTC &rt, IMAGE_TYPE want_type) // this is ca
 {
    if(want_type!=rt.hwType()) // !! have to compare 'hwType' instead of 'type', because 'type' is always non-sRGB (same as 'desc._type') while 'hwType' can be sRGB-toggled in 'swapSRGB' !!
    {
-      DEBUG_ASSERT(rt.canSwapSRGB(), "rt.canSwapSRGB");
+      DEBUG_ASSERT(rt.canSwapSRGB(), "Can't swap RT sRGB");
       rt.swapSRGB();
    }
    rt._ptr_num++; p._data=&rt; rt.discard();

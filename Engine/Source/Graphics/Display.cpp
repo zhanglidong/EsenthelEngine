@@ -638,6 +638,8 @@ Bool DisplayClass::canSwapSRGB()C
 {
 #if DX11
    return true;
+#elif GL
+   return glTexStorage2D && glTextureView;
 #endif
    return false;
 }
