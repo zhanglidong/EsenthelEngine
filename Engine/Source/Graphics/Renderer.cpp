@@ -2318,7 +2318,7 @@ void RendererClass::postProcess()
       {
          AU1 c0[4];
       }rcas;
-      FsrRcasCon(rcas.c0, 0.2);
+      FsrRcasCon(rcas.c0, 0.2f);
       Sh.Rcas->set(rcas);
       set(dest, null, true); D.alpha((combine && dest()==_final) ? ALPHA_MERGE : ALPHA_NONE);
       Sh.RCAS[alpha][D.dither() && !dest->highPrecision()]->draw(_col);
