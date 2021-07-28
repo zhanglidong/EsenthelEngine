@@ -2249,7 +2249,7 @@ void RendererClass::postProcess()
             SamplerPoint.setPS(SSI_DEFAULT_2D);
          }break;
 
-         case FILTER_CUBIC_FAST       : cubic_fast:
+         case FILTER_CUBIC_FAST       :
          case FILTER_CUBIC_FAST_SMOOTH:
          case FILTER_CUBIC_FAST_SHARP :
             pixels=2+1; // 2 for filtering + 1 for borders
@@ -2260,8 +2260,6 @@ void RendererClass::postProcess()
          case FILTER_WAIFU: // fall back to best available shader (EASU)
          case FILTER_EASU :
          {
-            if(!Sh.EASU[0][0][0][0])goto cubic_fast;
-
              in_swap_srgb=( in_gamma && _col->canSwapSRV()); if( in_swap_srgb){ in_gamma=false; _col->swapSRV();}
             out_swap_srgb=(out_gamma && dest->canSwapRTV()); if(out_swap_srgb){out_gamma=false; dest->swapRTV();}
 
