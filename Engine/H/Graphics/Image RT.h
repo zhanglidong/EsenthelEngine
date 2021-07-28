@@ -67,8 +67,10 @@ struct ImageRT : Image // Image Render Target
    {
    #if DX11
       return _uav!=null;
+   #elif GL
+      return _txtr!=0;
    #endif
-      return true;
+      return false;
    }
    constexpr INLINE Bool canSwapSRV()C
    {

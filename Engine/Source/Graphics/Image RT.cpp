@@ -246,7 +246,14 @@ void ImageRT::clearViewport(C Vec4 &color, Bool restore_rt)
    }
 }
 /******************************************************************************/
-void ImageRT:: zero   () {_srv_srgb=null; _rtv=_rtv_srgb=null; _dsv=_rdsv=null; _uav=null;}
+void ImageRT::zero()
+{
+#if DX11
+  _srv_srgb=null; _rtv=_rtv_srgb=null; _dsv=_rdsv=null; _uav=null;
+#elif GL
+  _txtr_srgb=0;
+#endif
+}
      ImageRT:: ImageRT() {zero();}
      ImageRT::~ImageRT() {delThis();} // delete children first, 'super.del' already called automatically in '~Image'
 void ImageRT:: delThis() // delete only this class members without super
@@ -266,6 +273,20 @@ void ImageRT:: delThis() // delete only this class members without super
          RELEASE(_dsv     );
          RELEASE(_rdsv    );
          RELEASE(_uav     );
+      }
+   }
+#elif GL
+   D.uavClear(_txtr);
+   if(_txtr_srgb)
+   {
+      D.uavClear   (_txtr_srgb);
+      D.texClearAll(_txtr_srgb);
+   #if GL_LOCK
+      SyncLocker locker(D._lock);
+   #endif
+      if(D.created())
+      {
+         glDeleteTextures(1, &_txtr_srgb);
       }
    }
 #endif
@@ -408,14 +429,27 @@ void ImageRT::unmap()
 void ImageRT::swapSRV()
 {
 #if DX11
-   Swap(_srv, _srv_srgb); D.texClear(_srv_srgb); // we have to remove from tex cache, because if we're going to try to bind this as Render Target later, then DX automatically unbinds its SRV's, engine already clears cache in that case, however only for current '_srv' and not the secondary '_srv_srgb'
+   Swap(_srv, _srv_srgb); D.texClear(_srv_srgb); // we have to remove from tex cache, because if we're going to try to bind this as Render Target later, then DX automatically unbinds its SRVs, engine already clears cache in that case, however only for current '_srv' and not the secondary '_srv_srgb'
+#elif GL
+   Swap(_txtr, _txtr_srgb);
 #endif
 }
 void ImageRT::swapRTV()
 {
 #if DX11
    Swap(_rtv, _rtv_srgb);
+#elif GL
+   Swap(_txtr, _txtr_srgb);
 #endif
+}
+void ImageRT::swapSRGB()
+{
+#if DX11
+   swapSRV(); swapRTV();
+#elif GL
+   Swap(_txtr, _txtr_srgb);
+#endif
+  _hw_type=ImageTypeToggleSRGB(hwType()); // !! have to toggle 'hwType' and not 'type' because 'CompareDesc' and 'Set' expect that !!
 }
 static Int CompareDesc(C ImageRTC &image, C ImageRTDesc &desc)
 {
@@ -424,12 +458,6 @@ static Int CompareDesc(C ImageRTC &image, C ImageRTDesc &desc)
    if(Int c=Compare(image.type   (), desc._type  ))return c; // !! have to compare 'type' instead of 'hwType', because 'type' is always non-sRGB (same as 'desc._type') while 'hwType' can be sRGB-toggled in 'swapSRGB' !!
    if(Int c=Compare(image.samples(), desc.samples))return c;
    return 0;
-}
-void ImageRT::swapSRGB()
-{
-#if DX11
-   swapSRV(); swapRTV(); _hw_type=ImageTypeToggleSRGB(hwType()); // !! have to toggle 'hwType' and not 'type' because 'CompareDesc' and 'Set' expect that !!
-#endif
 }
 static void Set(ImageRTPtr &p, ImageRTC &rt, Bool want_srgb) // this is called only when "_ptr_num==0"
 {

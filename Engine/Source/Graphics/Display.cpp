@@ -634,6 +634,13 @@ Bool DisplayClass::SpirVAvailable()C
 #endif
    return false;
 }
+Bool DisplayClass::canSwapSRGB()C
+{
+#if DX11
+   return true;
+#endif
+   return false;
+}
 Bool DisplayClass::deferredUnavailable  ()C {return created() &&       _max_rt<3     ;} // deferred requires at least 3 MRT's (#0 Color, #1 Nrm, #2 Ext, #3 Vel optional) #RTOutput
 Bool DisplayClass::deferredMSUnavailable()C {return created() && shaderModel()<SM_4_1;} // only Shader Model 4.1 (DX 10.1) and above support multi-sampled RT's
 /******************************************************************************/
