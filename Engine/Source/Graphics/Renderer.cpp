@@ -1402,7 +1402,7 @@ void RendererClass::ao()
    set(_ao, depth, true, NEED_DEPTH_READ); // use DS for 'D.depth2D'
    REPS(_eye, _eye_num)
    {
-      Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), rt_desc.size));
+      Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), ao_depth->size()));
       ao->draw(setEyeParams()); // calculate occlusion
    }
    
