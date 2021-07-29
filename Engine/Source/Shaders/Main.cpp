@@ -57,10 +57,30 @@ void Draw3DCol_VS(VtxInput vtx,
 }
 VecH4 Draw3DCol_PS(VecH4 col:COLOR):TARGET {return col;}
 /******************************************************************************/
-VecH4 Draw2DTex_PS   (NOPERSP Vec2 uv:UV):TARGET {return       Tex(Img, uv);}
-VecH4 Draw2DTexC_PS  (NOPERSP Vec2 uv:UV):TARGET {return       Tex(Img, uv)*Color[0]+Color[1];}
-VecH4 Draw2DTexRGB_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(Tex(Img, uv).rgb,    1);}
-VecH4 Draw2DTexA_PS  (NOPERSP Vec2 uv:UV):TARGET {return VecH4(Tex(Img, uv).rgb, Step);}
+VecH4 Draw_PS
+(
+   NOPERSP Vec2 uv:UV
+#if DITHER
+ , NOPERSP PIXEL
+#endif
+):TARGET
+{
+   VecH4 col;
+#if ALPHA
+   col=Tex(Img, uv);
+#else
+   col.rgb=Tex(Img, uv).rgb; col.a=1;
+#endif
+
+#if DITHER
+   ApplyDither(col.rgb, pixel.xy);
+#endif
+   return col;
+}
+
+VecH4 Draw2DTex_PS (NOPERSP Vec2 uv:UV):TARGET {return       Tex(Img, uv);}
+VecH4 Draw2DTexC_PS(NOPERSP Vec2 uv:UV):TARGET {return       Tex(Img, uv)*Color[0]+Color[1];}
+VecH4 Draw2DTexA_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(Tex(Img, uv).rgb, Step);}
 
 VecH4 DrawTexX_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(Tex(Img, uv).xxx, 1);}
 VecH4 DrawTexY_PS(NOPERSP Vec2 uv:UV):TARGET {return VecH4(Tex(Img, uv).yyy, 1);}
@@ -275,14 +295,6 @@ Vec4 Simple_PS(Vec2  uv :UV   ,
                VecH4 col:COLOR):TARGET
 {
    return RTex(Img, uv)*col;
-}
-/******************************************************************************/
-VecH4 Dither_PS(NOPERSP Vec2 uv:UV,
-                NOPERSP PIXEL):TARGET
-{
-   VecH4 col=VecH4(TexLod(Img, uv).rgb, 1); // force full alpha so back buffer effects can work ok, can't use 'TexPoint' because 'Img' can be of different size
-   ApplyDither(col.rgb, pixel.xy);
-   return col;
 }
 /******************************************************************************/
 // EDGE DETECT

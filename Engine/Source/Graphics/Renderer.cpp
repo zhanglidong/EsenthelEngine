@@ -2300,12 +2300,7 @@ void RendererClass::postProcess()
             Sh.imgSize(*_col); Sh.loadCubicShaders(); shader=(alpha ? Sh.DrawTexCubicF : Sh.DrawTexCubicFRGB)[dither]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
          break;
       }
-      if(!shader)
-      {
-         if(alpha )shader=Sh.Draw   ;else
-         if(dither)shader=Sh.Dither ;else
-                   shader=Sh.DrawRGB;
-      }
+      if(!shader)shader=Sh.Draw[alpha][dither];
       if(!D._view_main.full)
       {
          set(_col, null, false); D.alpha(ALPHA_NONE); // need full viewport
@@ -2335,19 +2330,15 @@ void RendererClass::postProcess()
    {
       if(_col!=_final)
       {
-         Bool    dither=(D.dither() && !_final->highPrecision());
-         Int     pixels=1+1; // 1 for filtering + 1 for borders (because source is smaller and may not cover the entire range for dest, for example in dest we want 100 pixels, but 1 source pixel covers 30 dest pixels, so we may get only 3 source pixels covering 90 dest pixels)
-         Shader *shader;
-         if(alpha                                                            )shader=Sh.Draw   ;else
-         if(dither && (_col->highPrecision() || _col->size()!=_final->size()))shader=Sh.Dither ;else // allow dithering only if the source has high precision, or if we're resizing (because that generates high precision too)
-                                                                              shader=Sh.DrawRGB;
          if(!D._view_main.full)
          {
+            Int pixels=1+1; // 1 for filtering + 1 for borders (because source is smaller and may not cover the entire range for dest, for example in dest we want 100 pixels, but 1 source pixel covers 30 dest pixels, so we may get only 3 source pixels covering 90 dest pixels)
             set(_col, null, false); D.alpha(ALPHA_NONE); // need full viewport
             D.viewRect().drawBorder(Vec4Zero, pixelToScreenSize(pixels)); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
          }
          set(_final, null, true); D.alpha(combine ? ALPHA_MERGE : ALPHA_NONE);
-         shader->draw(_col); alpha_set=true;
+         Sh.Draw[alpha][D.dither() && !_final->highPrecision() && (_col->highPrecision() || _col->size()!=_final->size())]->draw(_col); // allow dithering only if the source has high precision, or if we're resizing (because that generates high precision too)
+         alpha_set=true;
       }
      _col.clear(); // release as it's no longer needed
       if(!alpha_set && _back==_final) // if we need to have alpha channel set for back buffer effect

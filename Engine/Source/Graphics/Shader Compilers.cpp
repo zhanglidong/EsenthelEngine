@@ -134,12 +134,14 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 
       src.New("DrawTexNrm"   , "DrawScreenUV_VS", "DrawTexNrm_PS");
       src.New("DrawTexDetNrm", "DrawScreenUV_VS", "DrawTexDetNrm_PS");
-      src.New("Draw"         , "DrawUV_VS", "Draw2DTex_PS");
-      src.New("DrawC"        , "DrawUV_VS", "Draw2DTexC_PS");
-      src.New("DrawCG"       , "DrawUV_VS", "DrawTexCG_PS");
-      src.New("DrawG"        , "DrawUV_VS", "DrawTexG_PS");
-      src.New("DrawA"        , "DrawUV_VS", "Draw2DTexA_PS");
-      src.New("DrawRGB"      , "DrawUV_VS", "Draw2DTexRGB_PS");
+
+      REPD(alpha , 2)
+      REPD(dither, 2)src.New("Draw", "DrawUV_VS", "Draw_PS")("ALPHA", alpha, "DITHER", dither);
+
+      src.New("DrawC" , "DrawUV_VS", "Draw2DTexC_PS");
+      src.New("DrawCG", "DrawUV_VS", "DrawTexCG_PS");
+      src.New("DrawG" , "DrawUV_VS", "DrawTexG_PS");
+      src.New("DrawA" , "DrawUV_VS", "Draw2DTexA_PS");
 
       src.New("DrawX" , "DrawUV_VS", "DrawX_PS" );
       src.New("DrawXG", "DrawUV_VS", "DrawXG_PS");
@@ -172,8 +174,6 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       REPD(point, 2)src.New("DrawMask", "DrawMask_VS", "DrawMask_PS")("ALPHA", alpha, "POINT", point);
       src.New("DrawCubeFace", "DrawCubeFace_VS", "DrawCubeFace_PS");
       src.New("Simple", "Simple_VS", "Simple_PS");
-
-      src.New("Dither", "DrawUV_VS", "Dither_PS");
 
             src.New("SetAlphaFromDepth"        , "DrawPosXY_VS"  , "SetAlphaFromDepth_PS");
       if(ms)src.New("SetAlphaFromDepthMS"      , "DrawPosXY_VS"  , "SetAlphaFromDepthMS_PS").multiSample();

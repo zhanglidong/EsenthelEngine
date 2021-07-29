@@ -329,10 +329,10 @@ void MainShaderClass::create()
    connectRT    ();
 }
 /******************************************************************************/
-void MainShaderClass::clear(                C   Vec4  &color,                       C Rect *rect) {Sh.Color[0]->set(color);                              Sh.SetCol->draw(       rect);}
-void MainShaderClass::draw (C Image &image                  ,                       C Rect *rect) {                                                      Sh.Draw  ->draw(image, rect);}
-void MainShaderClass::draw (C Image &image, C   Vec4  &color, C   Vec4  &color_add, C Rect *rect) {Sh.Color[0]->set(color); Sh.Color[1]->set(color_add); Sh.DrawC ->draw(image, rect);}
-void MainShaderClass::draw (C Image &image, C ::Color &color, C ::Color &color_add, C Rect *rect) {Sh.Color[0]->set(color); Sh.Color[1]->set(color_add); Sh.DrawC ->draw(image, rect);}
+void MainShaderClass::clear(                C   Vec4  &color,                       C Rect *rect) {Sh.Color[0]->set(color);                              Sh.SetCol           ->draw(       rect);}
+void MainShaderClass::draw (C Image &image                  ,                       C Rect *rect) {                                                      Sh.Draw[true][false]->draw(image, rect);}
+void MainShaderClass::draw (C Image &image, C   Vec4  &color, C   Vec4  &color_add, C Rect *rect) {Sh.Color[0]->set(color); Sh.Color[1]->set(color_add); Sh.DrawC            ->draw(image, rect);}
+void MainShaderClass::draw (C Image &image, C ::Color &color, C ::Color &color_add, C Rect *rect) {Sh.Color[0]->set(color); Sh.Color[1]->set(color_add); Sh.DrawC            ->draw(image, rect);}
 /******************************************************************************/
 Shader* MainShaderClass::getBloomDS(Int mode , Bool view_full, Bool half_res) {return get(S8+"BloomDS"+mode+view_full+half_res);}
 Shader* MainShaderClass::getBloom  (Int alpha, Bool dither                  ) {return get(S8+"Bloom"  +alpha+dither);}
@@ -619,14 +619,13 @@ void MainShaderClass::getTechniques()
    }
 
    // BASIC 2D
-   Dither =get("Dither" );
-   SetCol =get("SetCol" );
-   Draw   =get("Draw"   );
-   DrawC  =get("DrawC"  );
-   DrawG  =get("DrawG"  );
-   DrawCG =get("DrawCG" );
-   DrawA  =get("DrawA"  );
-   DrawRGB=get("DrawRGB");
+   REPD(alpha , 2)
+   REPD(dither, 2)Draw[alpha][dither]=get(S8+"Draw"+alpha+dither);
+   SetCol=get("SetCol" );
+   DrawC =get("DrawC"  );
+   DrawG =get("DrawG"  );
+   DrawCG=get("DrawCG" );
+   DrawA =get("DrawA"  );
    if(D.shaderModel()>=SM_4)
    {
                                  DrawMs1=get("DrawMs1");

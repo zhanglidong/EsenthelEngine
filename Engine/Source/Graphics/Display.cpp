@@ -3645,7 +3645,7 @@ Bool DisplayClass::drawFade()C
    {
       if(_fade_alpha>=1) // if have full Alpha
       { // disable alpha blending, this is important in case the user expects fade to completely overwrite existing screen, so it can be unset before drawing fade
-         ALPHA_MODE alpha=D.alpha(ALPHA_NONE); Sh.Draw->draw(Renderer._fade);
+         ALPHA_MODE alpha=D.alpha(ALPHA_NONE); Sh.Draw[false][false]->draw(Renderer._fade);
                           D.alpha(alpha);
       }else
       {
