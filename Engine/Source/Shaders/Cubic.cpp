@@ -65,7 +65,7 @@ VecH TexLerpRGB(Vec2 t0, Vec2 t1, Flt lu, Flt ru, Flt lb, Flt rb) // ignores alp
    // keep 'Tex' in case we need LODs (for example stretching in 1 dimension but shrinking in another)
    return Tex(Img, t/w).rgb*Half(w);
 }*/
-
+/******************************************************************************/
 VecH4 TexCubicPlus(Vec2 uv)
 {
    Vec2  pixel =uv*ImgSize.zw-0.5,
@@ -116,6 +116,7 @@ VecH4 TexCubicPlus(Vec2 uv)
 #endif
    return color/weight;
 }
+/******************************************************************************/
 VecH TexCubicPlusRGB(Vec2 uv) // ignores alpha channel
 {
    Vec2  pixel =uv*ImgSize.zw-0.5,
