@@ -96,7 +96,7 @@ struct DisplayState // Display States Control, this class methods can be called 
    #define COL_WRITE_RGB  (COL_WRITE_R|COL_WRITE_G|COL_WRITE_B            )
    #define COL_WRITE_RGBA (COL_WRITE_R|COL_WRITE_G|COL_WRITE_B|COL_WRITE_A)
 
-   #define MAX_SHADER_IMAGES  20  // keep this low because of 'texClear'
+   #define MAX_SHADER_IMAGES  (20+(GL ? 4 : 0))  // keep this low because of 'texClear', for GL we need a bit of extra because there Images using different Samplers must be defined several times
    #define MAX_SHADER_BUFFERS 16
 
    void setDeviceSettings();

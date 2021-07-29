@@ -1444,6 +1444,18 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
       {SyncLocker lock(cc.lock); compiler.images.binaryInclude(image_name, CompareCS);}
    next:;
    }
+   Int unique_samplers=num_samplers-replace_samplers.elms();
+   if( unique_samplers>MAX_SHADER_IMAGES)
+   {
+      Str sampler_info; FREP(num_samplers)
+      {
+       C spvc_combined_image_sampler &cis=samplers[i];
+         sampler_info+=spvc_compiler_get_name(spirv_compiler, cis.   image_id); sampler_info+=", ";
+         sampler_info+=spvc_compiler_get_name(spirv_compiler, cis. sampler_id); sampler_info+=", ";
+         sampler_info+=spvc_compiler_get_name(spirv_compiler, cis.combined_id); sampler_info+='\n';
+      }
+      Exit(S+"Samplers number: "+unique_samplers+", is too big!\nShader: "+cc.shaderName(shader_data)+'\n'+sampler_info);
+   }
 
    list=null; count=0; spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_STORAGE_IMAGE, &list, &count); FREP(count)
    {
