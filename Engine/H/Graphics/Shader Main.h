@@ -297,15 +297,15 @@ struct MainShaderClass
       *DrawTexPointC,
 
       // CUBIC
-      *DrawTexCubicFast    [2], // [Color]
-      *DrawTexCubicFastF[2][2], // [Alpha][Dither]
-      *DrawTexCubicPlus    [2], // [Color]
-      *DrawTexCubicPlusF[2][2], // [Alpha][Dither]
+      *DrawTexCubicFast       [2], // [Color]
+      *DrawTexCubicFastF   [2][2], // [Alpha][Dither]
+      *DrawTexCubicPlus       [2], // [Color]
+      *DrawTexCubicPlusF[2][2][2], // [Alpha][Dither][Gamma]
 
       // FIDELITY FX
-      *EASUScreen   [2], // [Color]
-      *EASU[2][2][2][2], // [Alpha][Dither][InGamma][OutGamma]
-      *RCAS[2][2][2][2]; // [Alpha][Dither][InGamma][OutGamma]
+      *EASUScreen[2], // [Color]
+      *EASU[2][2][2], // [Alpha][Dither][Gamma]
+      *RCAS[2][2][2]; // [Alpha][Dither][Gamma]
    void initCubicShaders();   INLINE void loadCubicShaders() {if(SLOW_SHADER_LOAD)initCubicShaders();}
 
    // SHADOWS

@@ -1,3 +1,10 @@
+/******************************************************************************
+
+   Cubic+ must always be performed in gamma space (because when done in linear gamma, there's too much darkening)
+   CubicFast can be done in linear
+
+/******************************************************************************/
+#define GAMMA_FAST (IN_GAMMA && OUT_GAMMA) // can use fast gamma only if we do both conversions in the shader
 /******************************************************************************/
 #include "!Header.h"
 #include "Cubic.h"
@@ -66,19 +73,27 @@ VecH TexLerpRGB(Vec2 t0, Vec2 t1, Flt lu, Flt ru, Flt lb, Flt rb) // ignores alp
    return Tex(Img, t/w).rgb*Half(w);
 }*/
 /******************************************************************************/
-VecH GetColor(VecH c)
+VecH GetColor(VecH col)
 {
-#if GAMMA
-   c.rgb=LinearToSRGBFast(c.rgb);
+#if IN_GAMMA
+   #if GAMMA_FAST
+      col.rgb=LinearToSRGBFast(col.rgb);
+   #else
+      col.rgb=LinearToSRGB(col.rgb);
+   #endif
 #endif
-   return c;
+   return col;
 }
-VecH4 GetColor(VecH4 c)
+VecH4 GetColor(VecH4 col)
 {
-#if GAMMA
-   c.rgb=LinearToSRGBFast(c.rgb);
+#if IN_GAMMA
+   #if GAMMA_FAST
+      col.rgb=LinearToSRGBFast(col.rgb);
+   #else
+      col.rgb=LinearToSRGB(col.rgb);
+   #endif
 #endif
-   return c;
+   return col;
 }
 /******************************************************************************/
 VecH4 TexCubicPlus(Vec2 uv)
@@ -221,24 +236,20 @@ VecH4 DrawTexCubicPlus_PS
    VecH4 col=VecH4(TexCubicPlusRGB(uv), 1);
 #endif
 
-#if GAMMA
-   #if DITHER
-      ApplyDither(col.rgb, pixel.xy, false); // here 'col' is already in gamma space
-   #endif
+#if DITHER
+   ApplyDither(col.rgb, pixel.xy, false); // here 'col' is already in gamma space
+#endif
 
-   col.rgb=SRGBToLinearFast(col.rgb);
+#if OUT_GAMMA
+   #if GAMMA_FAST
+      col.rgb=SRGBToLinearFast(col.rgb);
+   #else
+      col.rgb=SRGBToLinear(col.rgb);
+   #endif
+#endif
 
-   #if COLORS
-      col=col*Color[0]+Color[1]; // this needs to be done in Linear Gamma
-   #endif
-#else
-   #if COLORS
-      col=col*Color[0]+Color[1];
-   #endif
-
-   #if DITHER
-      ApplyDither(col.rgb, pixel.xy);
-   #endif
+#if COLORS
+   col=col*Color[0]+Color[1]; // this needs to be done in Linear Gamma
 #endif
    return col;
 }

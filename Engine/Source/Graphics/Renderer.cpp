@@ -2235,11 +2235,9 @@ void RendererClass::postProcess()
          dest.get(rt_desc);
       }
       Bool    dither=(D.dither() && !dest->highPrecision());
+      Bool     gamma=LINEAR_GAMMA, swap_srgb=false;
       Int     pixels=1+1; // 1 for filtering + 1 for borders (because source is smaller and may not cover the entire range for dest, for example in dest we want 100 pixels, but 1 source pixel covers 30 dest pixels, so we may get only 3 source pixels covering 90 dest pixels)
       Shader *shader=null;
-
-      Bool  in_gamma=LINEAR_GAMMA,  in_swap_srgb=false;
-      Bool out_gamma=LINEAR_GAMMA, out_swap_srgb=false;
 
       switch(D.densityFilter())
       {
@@ -2260,10 +2258,8 @@ void RendererClass::postProcess()
          case FILTER_WAIFU: // fall back to best available shader (EASU)
          case FILTER_EASU :
          {
-             in_swap_srgb=( in_gamma && _col->canSwapSRV()); if( in_swap_srgb){ in_gamma=false; _col->swapSRV();}
-            out_swap_srgb=(out_gamma && dest->canSwapRTV()); if(out_swap_srgb){out_gamma=false; dest->swapRTV();}
-
-            shader=Sh.EASU[alpha][dither][in_gamma][out_gamma];
+            swap_srgb=(gamma && _col->canSwapSRV() && dest->canSwapRTV()); if(swap_srgb){gamma=false; _col->swapSRV(); dest->swapRTV();} // do just one gamma instead of in/out, to avoid having to do expensive gamma conversion in the shader
+            shader=Sh.EASU[alpha][dither][gamma];
             pixels=2+1; // 2 for filtering + 1 for borders
 
             struct EASU
@@ -2296,8 +2292,9 @@ void RendererClass::postProcess()
 
          case FILTER_CUBIC_PLUS      :
          case FILTER_CUBIC_PLUS_SHARP:
+            swap_srgb=(gamma && _col->canSwapSRV() && dest->canSwapRTV()); if(swap_srgb){gamma=false; _col->swapSRV(); dest->swapRTV();} // do just one gamma instead of in/out, to avoid having to do expensive gamma conversion in the shader
             pixels=3+1; // 3 for filtering + 1 for borders
-            Sh.imgSize(*_col); Sh.loadCubicShaders(); shader=Sh.DrawTexCubicPlusF[alpha][dither]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
+            Sh.imgSize(*_col); Sh.loadCubicShaders(); shader=Sh.DrawTexCubicPlusF[alpha][dither][gamma]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
          break;
       }
       if(!shader)shader=Sh.Draw[alpha][dither];
@@ -2308,8 +2305,12 @@ void RendererClass::postProcess()
       }
       set(dest, null, true); D.alpha((combine && dest()==_final) ? ALPHA_MERGE : ALPHA_NONE);
       shader->draw(_col);
+   #if 0
       if( in_swap_srgb)_col->swapSRV();
       if(out_swap_srgb)dest->swapRTV();
+   #else
+      if(swap_srgb){_col->swapSRV(); dest->swapRTV();}
+   #endif
       Swap(_col, dest); alpha_set=true;
       if(D.densityFilter()==FILTER_NONE)SamplerLinearClamp.setPS(SSI_DEFAULT_2D);
    }
@@ -2317,13 +2318,20 @@ void RendererClass::postProcess()
    {
       rt_desc.size=_col->size(); // RCAS operates on same size only
       if(!--fxs && _final->size()==rt_desc.size)dest=_final;else dest.get(rt_desc);
-
+   #if 0
       Bool  in_gamma=LINEAR_GAMMA,  in_swap_srgb=( in_gamma && _col->canSwapSRV()); if( in_swap_srgb){ in_gamma=false; _col->swapSRV();}
       Bool out_gamma=LINEAR_GAMMA, out_swap_srgb=(out_gamma && dest->canSwapRTV()); if(out_swap_srgb){out_gamma=false; dest->swapRTV();}
+   #else
+      Bool gamma=LINEAR_GAMMA, swap_srgb=(gamma && _col->canSwapSRV() && dest->canSwapRTV()); if(swap_srgb){gamma=false; _col->swapSRV(); dest->swapRTV();} // do just one gamma instead of in/out, to avoid having to do expensive gamma conversion in the shader
+   #endif
       set(dest, null, true); D.alpha((combine && dest()==_final) ? ALPHA_MERGE : ALPHA_NONE);
-      Sh.RCAS[alpha][D.dither() && !dest->highPrecision()][in_gamma][out_gamma]->draw(_col);
+      Sh.RCAS[alpha][D.dither() && !dest->highPrecision()][gamma]->draw(_col);
+   #if 0
       if( in_swap_srgb)_col->swapSRV();
       if(out_swap_srgb)dest->swapRTV();
+   #else
+      if(swap_srgb){_col->swapSRV(); dest->swapRTV();}
+   #endif
       Swap(_col, dest); alpha_set=true;
    }
    if(!_get_target) // for '_get_target' leave the '_col' result for further processing

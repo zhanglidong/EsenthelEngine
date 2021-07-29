@@ -1,4 +1,10 @@
 /******************************************************************************
+
+   EASU must always be performed in gamma space (because when done in linear gamma, there are some artifacts / more blocky)
+
+   RCAS can be done in either but in gamma space it produces sharper results, so use that.
+
+/******************************************************************************
 ALPHA, DITHER, IN_GAMMA, OUT_GAMMA, GATHER
 /******************************************************************************/
 #define GAMMA_FAST (IN_GAMMA && OUT_GAMMA) // can use fast gamma only if we do both conversions in the shader

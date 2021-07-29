@@ -101,10 +101,9 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       src.New("ClearDeferred", "ClearDeferred_VS", "ClearDeferred_PS");
       src.New("ClearLight"   , "Draw_VS"         , "ClearLight_PS");
 
-      REPD(hdr      , 2)
-      REPD(dither   , 2)
-      REPD( in_gamma, 2)
-      REPD(out_gamma, 2)
+      REPD(hdr     , 2)
+      REPD(dither  , 2)
+      REPD(in_gamma, 2)REPD(out_gamma, 2) // we need 2 gamma for in/out because here we need precise gamma conversions
          src.New("ColorLUT", "DrawUV_VS", "ColorLUT_PS")("HDR", hdr, "DITHER", dither, "IN_GAMMA", in_gamma, "OUT_GAMMA", out_gamma);
 
       src.New("Draw2DCol", "Draw2DCol_VS", "Draw2DCol_PS");
@@ -234,13 +233,14 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       REPD(color, 2)
       {
          src.New("DrawTexCubicFast", "DrawScreenUV_VS", "DrawTexCubicFast_PS")("COLORS", color).extra("ALPHA", true, "DITHER", false);
-         src.New("DrawTexCubicPlus", "DrawScreenUV_VS", "DrawTexCubicPlus_PS")("COLORS", color).extra("ALPHA", true, "DITHER", false, "GAMMA", true);
+         src.New("DrawTexCubicPlus", "DrawScreenUV_VS", "DrawTexCubicPlus_PS")("COLORS", color).extra("ALPHA", true, "DITHER", false, "IN_GAMMA", true, "OUT_GAMMA", true);
       }
       REPD(alpha , 2)
       REPD(dither, 2)
       {
-         src.New("DrawTexCubicFastF", "DrawUV_VS", "DrawTexCubicFast_PS")("ALPHA", alpha, "DITHER", dither);
-         src.New("DrawTexCubicPlusF", "DrawUV_VS", "DrawTexCubicPlus_PS")("ALPHA", alpha, "DITHER", dither);
+       //REPD(in_gamma, 2)REPD(out_gamma, 2)src.New("DrawTexCubicPlusF", "DrawUV_VS", "DrawTexCubicPlus_PS")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", in_gamma, "OUT_GAMMA", out_gamma); do just one gamma instead of in/out, to avoid having to do expensive gamma conversion in the shader
+         REPD(   gamma, 2)                  src.New("DrawTexCubicPlusF", "DrawUV_VS", "DrawTexCubicPlus_PS")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA",    gamma, "OUT_GAMMA",     gamma);
+                                            src.New("DrawTexCubicFastF", "DrawUV_VS", "DrawTexCubicFast_PS")("ALPHA", alpha, "DITHER", dither);
       }
    }
    { // FIDELITY_FX
@@ -250,16 +250,16 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       {
          src.New("EASUScreen", "DrawScreen_VS", "EASU_PS")("COLORS", color, "GATHER", gather).extra("ALPHA", true, "DITHER", false, "IN_GAMMA", true, "OUT_GAMMA", true).gatherChannel(gather);
       }
-      REPD(alpha    , 2)
-      REPD(dither   , 2)
-      REPD( in_gamma, 2)
-      REPD(out_gamma, 2)
-      REPD(gather   , 2)
+      REPD(alpha   , 2)
+      REPD(dither  , 2)
+    //REPD(in_gamma, 2)REPD(out_gamma, 2) do just one gamma instead of in/out, to avoid having to do expensive gamma conversion in the shader
+      REPD(   gamma, 2)
+      REPD(gather  , 2)
       {
-         src.New("EASU", "Draw_VS", "EASU_PS")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", in_gamma, "OUT_GAMMA", out_gamma, "GATHER", gather).gatherChannel(gather);
-         src.New("RCAS", "Draw_VS", "RCAS_PS")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", in_gamma, "OUT_GAMMA", out_gamma, "GATHER", gather).gatherChannel(gather); // even though this doesn't use gather, it's used to force Shader Model 5 because lower than that fails to compile halfs (DX Shader Compiler error)
-                      //src.computeNew("EASU")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", in_gamma, "OUT_GAMMA", out_gamma);
-                      //src.computeNew("RCAS")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", in_gamma, "OUT_GAMMA", out_gamma);
+         src.New("EASU", "Draw_VS", "EASU_PS")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", gamma, "OUT_GAMMA", gamma, "GATHER", gather).gatherChannel(gather);
+         src.New("RCAS", "Draw_VS", "RCAS_PS")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", gamma, "OUT_GAMMA", gamma, "GATHER", gather).gatherChannel(gather); // even though this doesn't use gather, it's used to force Shader Model 5 because lower than that fails to compile halfs (DX Shader Compiler error)
+                      //src.computeNew("EASU")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", gamma, "OUT_GAMMA", gamma);
+                      //src.computeNew("RCAS")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", gamma, "OUT_GAMMA", gamma);
       }
    }
    { // FOG

@@ -364,9 +364,11 @@ void MainShaderClass::initCubicShaders()
 {
    if(!DrawTexCubicPlus[0]) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
    {
-      REPD(color , 2)DrawTexCubicPlus[color]=get(S8+"DrawTexCubicPlus"+color);
-      REPD(alpha , 2)
-      REPD(dither, 2)DrawTexCubicPlusF[alpha][dither]=get(S8+"DrawTexCubicPlusF"+alpha+dither);
+      REPD(color   , 2)DrawTexCubicPlus[color]=get(S8+"DrawTexCubicPlus"+color);
+      REPD(alpha   , 2)
+      REPD(dither  , 2)
+    //REPD(in_gamma, 2)REPD(out_gamma, 2)
+      REPD(   gamma, 2)DrawTexCubicPlusF[alpha][dither][gamma]=get(S8+"DrawTexCubicPlusF"+alpha+dither+gamma+gamma);
    }
 }
 void MainShaderClass::loadFogBoxShaders()
@@ -588,13 +590,13 @@ void MainShaderClass::getTechniques()
    // FidelityFX
    Easu=GetShaderParam("Easu");
    Rcas=GetShaderParam("Rcas");
-   REPD(alpha    , 2)
-   REPD(dither   , 2)
-   REPD( in_gamma, 2)
-   REPD(out_gamma, 2)
+   REPD(alpha   , 2)
+   REPD(dither  , 2)
+ //REPD(in_gamma, 2)REPD(out_gamma, 2)
+   REPD(   gamma, 2)
    {
-      EASU[alpha][dither][in_gamma][out_gamma]=get(S8+"EASU"+alpha+dither+in_gamma+out_gamma+D.gatherChannelAvailable());
-      RCAS[alpha][dither][in_gamma][out_gamma]=get(S8+"RCAS"+alpha+dither+in_gamma+out_gamma+D.gatherChannelAvailable());
+      EASU[alpha][dither][gamma]=get(S8+"EASU"+alpha+dither+gamma+gamma+D.gatherChannelAvailable());
+      RCAS[alpha][dither][gamma]=get(S8+"RCAS"+alpha+dither+gamma+gamma+D.gatherChannelAvailable());
    }
    REPD(color, 2)EASUScreen[color]=get(S8+"EASUScreen"+color+D.gatherChannelAvailable());
 
