@@ -2271,9 +2271,9 @@ void RendererClass::postProcess()
                AU1 c0[4], c1[4], c2[4], c3[4];
             }easu;
             FsrEasuCon(easu.c0, easu.c1, easu.c2, easu.c3,
-               _col->w(), _col->h(),  // Viewport size (top left aligned) in the input image which is to be scaled.
-               _col->w(), _col->h(),  // The size of the input image.
-               dest->w(), dest->h()); // The output resolution.
+               _col->  w(), _col->  h(),  // Viewport size (top left aligned) in the input image which is to be scaled.
+               _col->hwW(), _col->hwH(),  // The size of the input image.
+               dest->  w(), dest->  h()); // The output resolution.
             Sh.Easu->set(easu);
 
       /* rt_desc.size=dest->size();
