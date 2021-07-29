@@ -134,7 +134,15 @@ struct CubicFastSampler
             +TexLod(img, r).rgb*wr  // sample right edge (2 texels), both weights are negative
             +TexLod(img, d).rgb*wd; // sample lower edge (2 texels), both weights are negative
    }
-   Half texX(ImageH img)
+   Half texA(Image img) // only alpha channel
+   {
+      return TexLod(img, u).a*wu  // sample upper edge (2 texels), both weights are negative
+            +TexLod(img, l).a*wl  // sample left  edge (2 texels), both weights are negative
+            +TexLod(img, c).a*wc  // sample center     (4 texels), all  weights are positive
+            +TexLod(img, r).a*wr  // sample right edge (2 texels), both weights are negative
+            +TexLod(img, d).a*wd; // sample lower edge (2 texels), both weights are negative
+   }
+   Half texX(ImageH img) // only X channel
    {
       return TexLod(img, u).x*wu  // sample upper edge (2 texels), both weights are negative
             +TexLod(img, l).x*wl  // sample left  edge (2 texels), both weights are negative
@@ -142,7 +150,7 @@ struct CubicFastSampler
             +TexLod(img, r).x*wr  // sample right edge (2 texels), both weights are negative
             +TexLod(img, d).x*wd; // sample lower edge (2 texels), both weights are negative
    }
-   Half texXY(ImageH2 img)
+   VecH2 texXY(ImageH2 img) // only XY channel
    {
       return TexLod(img, u).xy*wu  // sample upper edge (2 texels), both weights are negative
             +TexLod(img, l).xy*wl  // sample left  edge (2 texels), both weights are negative
