@@ -2163,8 +2163,12 @@ void RendererClass::postProcess()
    ImageRT *adapt_eye=null;
    if(eye_adapt)
    {
-      if(!--fxs)dest=_final;else dest.get(rt_desc.type(GetImageRTType(_has_glow, D.litColRTPrecision()))); // can't read and write to the same RT, glow requires Alpha channel
-      T.adaptEye(*_col, *dest); Swap(_col, dest); // Eye Adaptation keeps Alpha
+      --fxs;
+      if(bloom)adapt_eye=adaptEye(*_col, null);else // if there will be bloom then don't apply now, but this will be done later in bloom
+      {
+         if(!fxs)dest=_final;else dest.get(rt_desc.type(GetImageRTType(_has_glow, D.litColRTPrecision()))); // can't read and write to the same RT, glow requires Alpha channel
+         adaptEye(*_col, dest); Swap(_col, dest); // Eye Adaptation keeps Alpha
+      }
    }
 
    rt_desc.type(GetImageRTType(alpha, D.litColRTPrecision())); // we need alpha channel after this stage only if we use alpha
@@ -2365,6 +2369,7 @@ void RendererClass::postProcess()
    {
       if(_col!=_final)
       {
+         DEBUG_ASSERT(false, "Rendering Performance penalty!\n'_col' in most cases should already be applied onto '_final'.\nThis is possible to happen, however it could also be a sign of problem with 'fxs' calculation.");
          if(!D._view_main.full)
          {
             Int pixels=1+1; // 1 for filtering + 1 for borders (because source is smaller and may not cover the entire range for dest, for example in dest we want 100 pixels, but 1 source pixel covers 30 dest pixels, so we may get only 3 source pixels covering 90 dest pixels)
