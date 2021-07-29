@@ -77,14 +77,17 @@ VecH4 EASU_PS(NOPERSP PIXEL):TARGET
 #else
    c.a=1;
 #endif
+
 #if DITHER
    ApplyDither(c.rgb, pixel.xy, false); // here 'c' is already in gamma space
 #endif
+
 #if OUT_GAMMA
    c.rgb=SRGBToLinearFast(c.rgb);
 #endif
+
 #if COLORS
-   c=c*Color[0]+Color[1];
+   c=c*Color[0]+Color[1]; // this needs to be done in Linear Gamma
 #endif
    return c;
 }
@@ -117,6 +120,7 @@ VecH4 RCAS_PS(NOPERSP PIXEL):TARGET
 #if DITHER
    ApplyDither(c.rgb, pixel.xy, false); // here 'c' is already in gamma space
 #endif
+
 #if OUT_GAMMA
    c.rgb=SRGBToLinearFast(c.rgb);
 #endif
