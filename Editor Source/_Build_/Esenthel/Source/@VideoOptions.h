@@ -70,6 +70,8 @@ class VideoOptions : PropWin
       static void DiffuseMode  (  Advanced &adv, C Str &text);        
       static Str  MonitorPrec  (C Advanced &adv             );        
       static void MonitorPrec  (  Advanced &adv, C Str &text);        
+      static Str  Sharpen      (C Advanced &adv             );        
+      static void Sharpen      (  Advanced &adv, C Str &text);        
       static Str  Dither       (C Advanced &adv             );        
       static void Dither       (  Advanced &adv, C Str &text);        
       static Str  ColRTPrec    (C Advanced &adv             );        

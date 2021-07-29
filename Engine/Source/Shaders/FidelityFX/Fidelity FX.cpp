@@ -1,6 +1,8 @@
 /******************************************************************************
 ALPHA, DITHER, IN_GAMMA, OUT_GAMMA, GATHER
 /******************************************************************************/
+#define GAMMA_FAST (IN_GAMMA && OUT_GAMMA) // can use fast gamma only if we do both conversions in the shader
+/******************************************************************************/
 #include "../!Header.h"
 #define Quart _Quart // "ffx_a.h" has its own 'Quart'
 /******************************************************************************/
@@ -12,17 +14,28 @@ ALPHA, DITHER, IN_GAMMA, OUT_GAMMA, GATHER
 VecH4 GetChannel(VecH4 c)
 {
 #if IN_GAMMA
-   c.x=LinearToSRGBFast(c.x);
-   c.y=LinearToSRGBFast(c.y);
-   c.z=LinearToSRGBFast(c.z);
-   c.w=LinearToSRGBFast(c.w);
+   #if GAMMA_FAST
+      c.x=LinearToSRGBFast(c.x);
+      c.y=LinearToSRGBFast(c.y);
+      c.z=LinearToSRGBFast(c.z);
+      c.w=LinearToSRGBFast(c.w);
+   #else
+      c.x=LinearToSRGB(c.x);
+      c.y=LinearToSRGB(c.y);
+      c.z=LinearToSRGB(c.z);
+      c.w=LinearToSRGB(c.w);
+   #endif
 #endif
    return c;
 }
 VecH4 GetColor(VecH4 col)
 {
 #if IN_GAMMA
-   col.rgb=LinearToSRGBFast(col.rgb);
+   #if GAMMA_FAST
+      col.rgb=LinearToSRGBFast(col.rgb);
+   #else
+      col.rgb=LinearToSRGB(col.rgb);
+   #endif
 #endif
    return col;
 }
@@ -83,7 +96,11 @@ VecH4 EASU_PS(NOPERSP PIXEL):TARGET
 #endif
 
 #if OUT_GAMMA
-   col.rgb=SRGBToLinearFast(col.rgb);
+   #if GAMMA_FAST
+      col.rgb=SRGBToLinearFast(col.rgb);
+   #else
+      col.rgb=SRGBToLinear(col.rgb);
+   #endif
 #endif
 
 #if COLORS
@@ -122,7 +139,11 @@ VecH4 RCAS_PS(NOPERSP PIXEL):TARGET
 #endif
 
 #if OUT_GAMMA
-   col.rgb=SRGBToLinearFast(col.rgb);
+   #if GAMMA_FAST
+      col.rgb=SRGBToLinearFast(col.rgb);
+   #else
+      col.rgb=SRGBToLinear(col.rgb);
+   #endif
 #endif
    return col;
 }
