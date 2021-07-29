@@ -154,7 +154,7 @@ struct MainShaderClass
       *OverlayParams,
 
       *Easu,
-      *Rcas,
+      *Rcas=&Dummy,
       
       *SMAAThreshold=&Dummy;
 

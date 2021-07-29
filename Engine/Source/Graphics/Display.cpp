@@ -1013,6 +1013,8 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _view_main.range   =100;
   _view_main.full    =true; // needed for 'viewReset' which will always set full viewport if last was full too
 
+  _sharpen_intensity=0.8f;
+
   _smaa_threshold=0.1f;
 
 //_max_lights     =0;
@@ -1693,6 +1695,7 @@ _linear_gamma^=1; linearGamma(!_linear_gamma); // set after loading shaders
    {auto v=temporalAntiAlias(); _temp_anti_alias=false           ; temporalAntiAlias(v);} // resetting will load shaders
    {auto v=temporalSuperRes (); _temp_super_res =false           ; temporalSuperRes (v);} // resetting will load shaders
    {auto v=grassRange       (); _grass_range    =-1              ; grassRange       (v);}
+   {auto v=sharpenIntensity (); _sharpen_intensity=-1;           ; sharpenIntensity (v);}
    lod            (_lod_factor, _lod_factor_mirror);
    shadowJitterSet();
    shadowRangeSet ();

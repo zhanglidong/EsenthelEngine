@@ -229,13 +229,6 @@ void RendererClass::create()
 
    if(_env_dfg.load("Img/Environment DFG.img"))GetShaderImage("EnvDFG"  )->set(_env_dfg);
    if(_noise  .load("Img/Blue Noise 128.img" ))GetShaderImage("ImgNoise")->set(_noise  ); ASSERT(NOISE_IMAGE_RES==128);
-
-   struct RCAS
-   {
-      AU1 c0[4];
-   }rcas;
-   FsrRcasCon(rcas.c0, 0.2f);
-   Sh.Rcas->set(rcas);
 }
 RendererClass& RendererClass::type(RENDER_TYPE type)
 {

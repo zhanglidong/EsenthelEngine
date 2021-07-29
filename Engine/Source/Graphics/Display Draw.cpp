@@ -20,6 +20,22 @@ DisplayDraw::DisplayDraw()
 {
   _text_depth=false;
 }
+/******************************************************************************/
+DisplayClass& DisplayClass::sharpenIntensity(Flt intensity)
+{
+   SAT(intensity);
+   if(_sharpen_intensity!=intensity)
+   {
+     _sharpen_intensity=intensity;
+      struct RCAS
+      {
+         AU1 c0[4];
+      }rcas;
+      FsrRcasCon(rcas.c0, 1-intensity);
+      Sh.Rcas->set(rcas);
+   }
+   return T;
+}
 /******************************************************************************
    static Vec2 posToScreen(Vec2 &pos   ); // convert from world  position to screen position, according to 'scale offset'
    static Vec2 screenToPos(Vec2 &screen); // convert from screen position to world  position, according to 'scale offset'
