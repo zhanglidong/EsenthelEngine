@@ -118,6 +118,7 @@ bool SaveSettings(C Str &name="Settings.txt")
       video.nodes.New().set("Samples"                 , D.samples());
       video.nodes.New().set("Density"                 , D.density());
       video.nodes.New().set("DensityFilter"           , VidOpt.advanced.DensityFilter(VidOpt.advanced));
+      video.nodes.New().set("Sharpen"                 , D.sharpen());
       video.nodes.New().set("SoftParticles"           , D.particlesSoft());
       video.nodes.New().set("GrassRange"              , D.grassRange());
       video.nodes.New().set("MaxLights"               , D.maxLights());
@@ -185,6 +186,7 @@ void ApplyVideoSettings(C TextData &data=Settings)
       if(C TextParam *p=video.findNode("Samples"                 ))D.samples(p.asInt());
       if(C TextParam *p=video.findNode("Density"                 ))D.density(p.asFlt());
       if(C TextParam *p=video.findNode("DensityFilter"           ))VidOpt.advanced.DensityFilter(VidOpt.advanced, p.asText());
+      if(C TextParam *p=video.findNode("Sharpen"                 ))D.sharpen(p.asBool());
       if(C TextParam *p=video.findNode("SoftParticles"           ))D.particlesSoft(p.asBool());
       if(C TextParam *p=video.findNode("GrassRange"              ))D.grassRange(p.asFlt());
       if(C TextParam *p=video.findNode("MaxLights"               ))D.maxLights(p.asInt());
