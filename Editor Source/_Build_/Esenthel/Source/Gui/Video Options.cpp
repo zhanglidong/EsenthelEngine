@@ -35,7 +35,7 @@ VideoOptions VidOpt;
          "Linear",
          "Cubic",
          "EASU",
-         "Cubic+ (slow)",
+       //"Cubic+ (slow)",
       };
       FILTER_TYPE VideoOptions::Advanced::DensityFilter_v[]=
       {
@@ -43,7 +43,7 @@ VideoOptions VidOpt;
          FILTER_LINEAR,
          FILTER_CUBIC_FAST,
          FILTER_EASU,
-         FILTER_CUBIC_PLUS,
+       //FILTER_CUBIC_PLUS,
       };
       cchar8 *VideoOptions::Advanced::TexUse_t[]=
       {
@@ -324,6 +324,7 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
       #endif
          props.New().create("Pixel Density"        , MemberDesc(         ).setFunc(Density      , Density      )).setEnum(Density_t      , Elms(Density_t      )).desc("Set Rendering Pixel Density");
          props.New().create("Upscale Filtering"    , MemberDesc(         ).setFunc(DensityFilter, DensityFilter)).setEnum(DensityFilter_t, Elms(DensityFilter_t)).desc("Set Pixel Density Filtering when Upscaling");
+         props.New().create("Sharpen"              , MemberDesc(DATA_BOOL).setFunc(Sharpen      , Sharpen      ));
          props.New().create(MLTC(u"Grass Range", PL, u"Zasięg Trawy", DE, u"Gras Reichweite", RU, u"Диапазон травы", PO, u"Alcance da relva"), MemberDesc(DATA_INT ).setFunc(GrassRange  , GrassRange  )).range(0, 2000).desc("Set visible grass range\nvalue of 0 hides grass objects");
        //props.New().create("Grass Density"        , MemberDesc(DATA_REAL).setFunc(GrassDensity, GrassDensity)).range(0, 1).desc("Set visible grass density");
          props.New().create("Soft Particles"       , MemberDesc(DATA_BOOL).setFunc(SoftParticle, SoftParticle)).desc("Enable Soft Particles");
@@ -338,7 +339,6 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
          props.New().create("Edge Detect"                , MemberDesc(         ).setFunc(EdgeDetect   , EdgeDetect   )).setEnum(EdgeDetect_t, Elms(EdgeDetect_t)).desc("Detect Edges");
          props.New().create("Rendering Stage"            , MemberDesc(         ).setFunc(Stage        , Stage        )).setEnum(Stage_t,  Elms(Stage_t)).desc("Display specified rendering stage.\nSome options are available only in Deferred Renderer.");
          props.New().create("Eye Adaptation Brightness"  , MemberDesc(DATA_REAL).setFunc(EyeAdaptBrigh, EyeAdaptBrigh)).range(0, 2).desc("Total light scale for Eye Adaptation Effect");
-         props.New().create("Sharpen"                    , MemberDesc(DATA_BOOL).setFunc(Sharpen      , Sharpen      ));
          props.New().create("Dither"                     , MemberDesc(DATA_BOOL).setFunc(Dither       , Dither       )).desc("If enable color dithering, which smoothens color gradients.");
          props.New().create("Monitor Precision"          , MemberDesc(         ).setFunc(MonitorPrec  , MonitorPrec  )).setEnum(Precision_t, Elms(Precision_t)).desc("Specify the exact precision of your Monitor Screen.\n8 bit per channel = 24 bit total\n10 bit per channel = 30 bit total\nIf you're not sure what your monitor supports, leave this option at \"8 bit\"\n\nAvoid setting higher precision than what your screen can actually support,\nbecause instead of getting higher quality results you will get lower quality.");
          props.New().create("High Precision Lit Color RT", MemberDesc(DATA_BOOL).setFunc(LitColRTPrec , LitColRTPrec )).desc("Enable high precision lit color render target\nThis increases precision of colors adjusted by lighting.");
