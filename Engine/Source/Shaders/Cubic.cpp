@@ -66,6 +66,21 @@ VecH TexLerpRGB(Vec2 t0, Vec2 t1, Flt lu, Flt ru, Flt lb, Flt rb) // ignores alp
    return Tex(Img, t/w).rgb*Half(w);
 }*/
 /******************************************************************************/
+VecH GetColor(VecH c)
+{
+#if GAMMA
+   c.rgb=LinearToSRGBFast(c.rgb);
+#endif
+   return c;
+}
+VecH4 GetColor(VecH4 c)
+{
+#if GAMMA
+   c.rgb=LinearToSRGBFast(c.rgb);
+#endif
+   return c;
+}
+/******************************************************************************/
 VecH4 TexCubicPlus(Vec2 uv)
 {
    Vec2  pixel =uv*ImgSize.zw-0.5,
@@ -85,14 +100,14 @@ VecH4 TexCubicPlus(Vec2 uv)
    }
    VecH4 color =0;
    Half  weight=0;
-#if CUBIC_QUALITY>=2
+#if CUBIC_QUALITY>=2 // high quality
    UNROLL for(int y=0; y<CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE; y++)
    UNROLL for(int x=0; x<CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE; x++)
    {
       Half w=offset_weight[x].x+offset_weight[y].y; if(w<Sqr(CUBIC_RANGE))
       {
          w=CubicMed(Sqrt(w));
-         color +=w*TexPoint(Img, Vec2(offset[x].x, offset[y].y)); // don't use "color+=w*Img[VecI2(offset[x].x without scale, offset[y].y without scale)]; because it doesn't support wrap/clamp
+         color +=w*GetColor(TexPoint(Img, Vec2(offset[x].x, offset[y].y))); // don't use "color+=w*Img[VecI2(offset[x].x without scale, offset[y].y without scale)]; because it doesn't support wrap/clamp
          weight+=w;
       }
    }
@@ -143,7 +158,7 @@ VecH TexCubicPlusRGB(Vec2 uv) // ignores alpha channel
       Half w=offset_weight[x].x+offset_weight[y].y; if(w<Sqr(CUBIC_RANGE))
       {
          w=CubicMed(Sqrt(w));
-         color +=w*TexPoint(Img, Vec2(offset[x].x, offset[y].y)).rgb; // don't use "color+=w*Img[VecI2(offset[x].x without scale, offset[y].y without scale)].rgb; because it doesn't support wrap/clamp
+         color +=w*GetColor(TexPoint(Img, Vec2(offset[x].x, offset[y].y)).rgb); // don't use "color+=w*Img[VecI2(offset[x].x without scale, offset[y].y without scale)].rgb; because it doesn't support wrap/clamp
          weight+=w;
       }
    }
@@ -206,12 +221,24 @@ VecH4 DrawTexCubicPlus_PS
    VecH4 col=VecH4(TexCubicPlusRGB(uv), 1);
 #endif
 
-#if COLORS
-   col=col*Color[0]+Color[1];
-#endif
+#if GAMMA
+   #if DITHER
+      ApplyDither(col.rgb, pixel.xy, false); // here 'col' is already in gamma space
+   #endif
 
-#if DITHER
-   ApplyDither(col.rgb, pixel.xy);
+   col.rgb=SRGBToLinearFast(col.rgb);
+
+   #if COLORS
+      col=col*Color[0]+Color[1]; // this needs to be done in Linear Gamma
+   #endif
+#else
+   #if COLORS
+      col=col*Color[0]+Color[1];
+   #endif
+
+   #if DITHER
+      ApplyDither(col.rgb, pixel.xy);
+   #endif
 #endif
    return col;
 }

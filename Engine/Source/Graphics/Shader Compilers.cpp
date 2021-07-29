@@ -233,8 +233,8 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       ShaderCompiler::Source &src=compiler.New(src_path+"Cubic.cpp");
       REPD(color, 2)
       {
-         src.New("DrawTexCubicFast", "DrawScreenUV_VS", "DrawTexCubicFast_PS")("COLORS", color).extra("ALPHA", true);
-         src.New("DrawTexCubicPlus", "DrawScreenUV_VS", "DrawTexCubicPlus_PS")("COLORS", color).extra("ALPHA", true);
+         src.New("DrawTexCubicFast", "DrawScreenUV_VS", "DrawTexCubicFast_PS")("COLORS", color).extra("ALPHA", true, "DITHER", false);
+         src.New("DrawTexCubicPlus", "DrawScreenUV_VS", "DrawTexCubicPlus_PS")("COLORS", color).extra("ALPHA", true, "DITHER", false, "GAMMA", true);
       }
       REPD(alpha , 2)
       REPD(dither, 2)

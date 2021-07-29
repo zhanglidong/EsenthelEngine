@@ -19,12 +19,12 @@ VecH4 GetChannel(VecH4 c)
 #endif
    return c;
 }
-VecH4 GetColor(VecH4 c)
+VecH4 GetColor(VecH4 col)
 {
 #if IN_GAMMA
-   c.rgb=LinearToSRGBFast(c.rgb);
+   col.rgb=LinearToSRGBFast(col.rgb);
 #endif
-   return c;
+   return col;
 }
 
 VecH4 FsrEasuRH(Vec2 p) {return GetChannel(TexGatherR(Img, p));}
@@ -63,33 +63,33 @@ BUFFER_END
 VecH4 EASU_PS(NOPERSP PIXEL):TARGET
 {
    VecI2 pos=pixel.xy;
-   VecH4 c;
+   VecH4 col;
 #if GATHER
-   FsrEasuH(c.rgb, pos, Easu.c0, Easu.c1, Easu.c2, Easu.c3);
+   FsrEasuH(col.rgb, pos, Easu.c0, Easu.c1, Easu.c2, Easu.c3);
 #else // for non-gather version use float because half fails to compile
-   FsrEasuF(c.rgb, pos, Easu.c0, Easu.c1, Easu.c2, Easu.c3);
+   FsrEasuF(col.rgb, pos, Easu.c0, Easu.c1, Easu.c2, Easu.c3);
 #endif
 
 #if ALPHA
    // FIXME OPTIMIZE
    Vec2 uv=(Vec2(pos) * AF2_AU2(Easu.c0.xy) + AF2_AU2(Easu.c0.zw)) * AF2_AU2(Easu.c1.xy) + Vec2(0.5, -0.5) * AF2_AU2(Easu.c1.zw);
-   c.a=Tex(Img, uv).a;
+   col.a=Tex(Img, uv).a;
 #else
-   c.a=1;
+   col.a=1;
 #endif
 
 #if DITHER
-   ApplyDither(c.rgb, pixel.xy, false); // here 'c' is already in gamma space
+   ApplyDither(col.rgb, pixel.xy, false); // here 'col' is already in gamma space
 #endif
 
 #if OUT_GAMMA
-   c.rgb=SRGBToLinearFast(c.rgb);
+   col.rgb=SRGBToLinearFast(col.rgb);
 #endif
 
 #if COLORS
-   c=c*Color[0]+Color[1]; // this needs to be done in Linear Gamma
+   col=col*Color[0]+Color[1]; // this needs to be done in Linear Gamma
 #endif
-   return c;
+   return col;
 }
 /******************************************************************************/
 struct RCAS
@@ -102,29 +102,29 @@ BUFFER_END
 
 VecH4 RCAS_PS(NOPERSP PIXEL):TARGET
 {
-   VecH4 c;
+   VecH4 col;
 #if GATHER
    #if ALPHA
-      FsrRcasH(c.r, c.g, c.b, c.a, pixel.xy, Rcas.c0);
+      FsrRcasH(col.r, col.g, col.b, col.a, pixel.xy, Rcas.c0);
    #else
-      FsrRcasH(c.r, c.g, c.b, pixel.xy, Rcas.c0); c.a=1;
+      FsrRcasH(col.r, col.g, col.b, pixel.xy, Rcas.c0); col.a=1;
    #endif
 #else // for non-gather version use float because half fails to compile
    #if ALPHA
-      FsrRcasF(c.r, c.g, c.b, c.a, pixel.xy, Rcas.c0);
+      FsrRcasF(col.r, col.g, col.b, col.a, pixel.xy, Rcas.c0);
    #else
-      FsrRcasF(c.r, c.g, c.b, pixel.xy, Rcas.c0); c.a=1;
+      FsrRcasF(col.r, col.g, col.b, pixel.xy, Rcas.c0); col.a=1;
    #endif
 #endif
 
 #if DITHER
-   ApplyDither(c.rgb, pixel.xy, false); // here 'c' is already in gamma space
+   ApplyDither(col.rgb, pixel.xy, false); // here 'col' is already in gamma space
 #endif
 
 #if OUT_GAMMA
-   c.rgb=SRGBToLinearFast(c.rgb);
+   col.rgb=SRGBToLinearFast(col.rgb);
 #endif
-   return c;
+   return col;
 }
 /******************************************************************************
 void Filter(int2 pos)
@@ -136,10 +136,10 @@ void Filter(int2 pos)
       RWImg[pos]=TexLod(Img, pp);
    }else
    {
-      VecH4 c; FsrEasuH(c.rgb, pos, Easu.c0, Easu.c1, Easu.c2, Easu.c3); c.a=1; RWImg[pos]=c;
+      VecH4 col; FsrEasuH(col.rgb, pos, Easu.c0, Easu.c1, Easu.c2, Easu.c3); col.a=1; RWImg[pos]=col;
    }
 #else
-   VecH4 c; FsrRcasH(c.r, c.g, c.b, pos, Rcas.c0); c.a=1; RWImg[pos]=c;
+   VecH4 col; FsrRcasH(col.r, col.g, col.b, pos, Rcas.c0); col.a=1; RWImg[pos]=col;
 #endif
 }
 
