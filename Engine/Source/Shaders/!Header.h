@@ -184,8 +184,13 @@
 #endif
 /******************************************************************************/
 #define RTex(    image, uv     )   image.Sample     (SamplerRender     , uv     ) // access 2D texture                               using Render Sampler
+#if GL // for GL use 'SamplerRender' to avoid mixing different samplers, because on GL it would require to use a separate glsl 'sampler2D' and possibly exceed the MAX_SHADER_IMAGES
+#define RTexLod( image, uv     )   image.SampleLevel(SamplerRender     , uv,   0) // access 2D texture   0-th MipMap (LOD level=  0) using Render Sampler (however since 'SampleLevel' makes Anisotropy disabled then for possible better performance use 'SamplerLinearWrap')
+#define RTexLodI(image, uv, lod)   image.SampleLevel(SamplerRender     , uv, lod) // access 2D texture lod-th MipMap (LOD level=lod) using Render Sampler (however since 'SampleLevel' makes Anisotropy disabled then for possible better performance use 'SamplerLinearWrap')
+#else
 #define RTexLod( image, uv     )   image.SampleLevel(SamplerLinearWrap , uv,   0) // access 2D texture   0-th MipMap (LOD level=  0) using Render Sampler (however since 'SampleLevel' makes Anisotropy disabled then for possible better performance use 'SamplerLinearWrap')
 #define RTexLodI(image, uv, lod)   image.SampleLevel(SamplerLinearWrap , uv, lod) // access 2D texture lod-th MipMap (LOD level=lod) using Render Sampler (however since 'SampleLevel' makes Anisotropy disabled then for possible better performance use 'SamplerLinearWrap')
+#endif
 #define  Tex(    image, uv     )   image.Sample     (SamplerLinearClamp, uv     ) // access 2D texture
 #define  TexLod( image, uv     )   image.SampleLevel(SamplerLinearClamp, uv,   0) // access 2D texture   0-th MipMap (LOD level=  0)
 #define  TexLodI(image, uv, lod)   image.SampleLevel(SamplerLinearClamp, uv, lod) // access 2D texture lod-th MipMap (LOD level=lod)
@@ -194,8 +199,13 @@
 #define Tex3DLod(image, uvw)   image.SampleLevel(SamplerLinearClamp, uvw, 0) // access 3D texture 0-th MipMap (LOD level=0)
 
 #define TexCube(     image, uvw     )   image.Sample     (SamplerRender     , uvw     ) // access Cube texture
+#if GL // for GL use 'SamplerRender' to avoid mixing different samplers, because on GL it would require to use a separate glsl 'sampler2D' and possibly exceed the MAX_SHADER_IMAGES
+#define TexCubeLod(  image, uvw     )   image.SampleLevel(SamplerRender     , uvw,   0) // access Cube texture   0-th MipMap (LOD level=  0), since 'SampleLevel' makes Anisotropy disabled then for possible better performance instead of 'SamplerRender' use 'SamplerLinearWrap'
+#define TexCubeLodI( image, uvw, lod)   image.SampleLevel(SamplerRender     , uvw, lod) // access Cube texture lod-th MipMap (LOD level=lod), since 'SampleLevel' makes Anisotropy disabled then for possible better performance instead of 'SamplerRender' use 'SamplerLinearWrap'
+#else
 #define TexCubeLod(  image, uvw     )   image.SampleLevel(SamplerLinearWrap , uvw,   0) // access Cube texture   0-th MipMap (LOD level=  0), since 'SampleLevel' makes Anisotropy disabled then for possible better performance instead of 'SamplerRender' use 'SamplerLinearWrap'
 #define TexCubeLodI( image, uvw, lod)   image.SampleLevel(SamplerLinearWrap , uvw, lod) // access Cube texture lod-th MipMap (LOD level=lod), since 'SampleLevel' makes Anisotropy disabled then for possible better performance instead of 'SamplerRender' use 'SamplerLinearWrap'
+#endif
 #define TexCubeClamp(image, uvw     )   image.Sample     (SamplerLinearClamp, uvw     ) // access Cube texture
 
 #define TexPoint(   image, uv     )   image.SampleLevel(SamplerPoint, uv, 0)
