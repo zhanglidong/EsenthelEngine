@@ -2625,6 +2625,7 @@ again:
       if(_density>max_density)_density=max_density;else _density--;
       goto again;
    }
+   if(Renderer.wantTemporal() && D.temporalSuperRes())_render_res.set(Max(1, _render_res.x>>1), Max(1, _render_res.y>>1));
 }
 Bool DisplayClass::densityFast(Byte density)
 {
@@ -2803,6 +2804,7 @@ DisplayClass& DisplayClass::temporalSuperRes(Bool on)
    {
      _temp_super_res=on;
       ChangedTemporal();
+      D.densityUpdate();
    }
    return T;
 }

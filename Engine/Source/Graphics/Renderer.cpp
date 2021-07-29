@@ -238,6 +238,7 @@ RendererClass& RendererClass::type(RENDER_TYPE type)
    {
       T._type=T._cur_type=type;
       if(type==RT_DEFERRED && D.deferredMSUnavailable())D.samples(1); // disable multi-sampling if we can't support it
+      D.densityUpdate(); // might affect 'temporalSuperRes' and thus rendering resolution
       D.setShader(); // needed because shaders are set only for current renderer type
    }
    return T;
@@ -1040,6 +1041,7 @@ void RendererClass::prepare()
 {
    Byte  samples=(mirror() ? 1 : D.samples()); // disable multi-sampling for reflection
    VecI2 rt_size;
+start:
    if(VR.active() && D._allow_stereo // following conditions affect this: _stereo, _allow_stereo, mirror()
    || target)
    { /* We want this case when:
@@ -1054,13 +1056,13 @@ void RendererClass::prepare()
          rt_size.set(Mid((rt_size.x*mul+64)/128, 1, D.maxTexSize()),
                      Mid((rt_size.y*mul+64)/128, 1, D.maxTexSize()));
       }
+      if(Renderer.wantTemporal() && D.temporalSuperRes())rt_size.set(Max(1, rt_size.x>>1), Max(1, rt_size.y>>1));
    }else rt_size=D.render();
 
-start:
    IMAGE_PRECISION prec=((_cur_type==RT_DEFERRED) ? D.highPrecColRT() ? IMAGE_PRECISION_10 : IMAGE_PRECISION_8 : D.litColRTPrecision()); // for deferred renderer we first render to col and only after that we mix it with light, other modes render color already mixed with light, for high precision we need only 10-bit, no need for 16-bit
    if(_cur_type==RT_DEFERRED /*|| mirror() _get_target already enabled for mirror*/ || _get_target // <- these always require
    || _final->size()!=rt_size || _final->samples()!=samples || _final->precision()<prec // if current RT does not match the requested rendering settings
-   || wantBloom() || wantEdgeSoften() || wantTemporal() || wantMotion() || wantDof() || wantEyeAdapt() // if we want to perform post process effects then we will be rendering to a secondary RT anyway, so let's start with secondary with a chance that during the effect we can render directly to '_final'
+   || wantEdgeSoften() || wantTemporal() || wantEyeAdapt() || wantMotion() || wantBloom() || wantDof() || D.sharpen() // if we want to perform post process effects then we will be rendering to a secondary RT anyway, so let's start with secondary with a chance that during the effect we can render directly to '_final'
    || (D.glowAllow() && _final->hwTypeInfo().a<8) // we need alpha for glow, this check is needed for example if we have IMAGE_R10G10B10A2
    || (_final==&_main && !_main_ds.depthTexture() && wantDepth()) // if we're setting '_main' which is always paired with '_main_ds', and that is not a depth texture but we need to access depth, then try getting custom RT with depth texture (don't check for '_cur_main' and '_cur_main_ds' because depth buffers other than '_main_ds' are always tried to be created as depth texture first, so if that failed, then there's no point in trying to create one again)
    )    _col.get(ImageRTDesc(rt_size.x, rt_size.y, GetImageRTType(D.glowAllow(), prec), samples)); // here Alpha is used for glow
