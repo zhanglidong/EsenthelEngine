@@ -1786,7 +1786,7 @@ void RendererClass::temporal() // !! assumes 'resolveMultiSample' was already ca
          Shader *shader=Sh.Temporal[D.temporalAntiAlias()+2*D.temporalSuperRes()-1][D._view_main.full][alpha];
          REPS(_eye, _eye_num)
          {
-            Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), rt_desc.size));
+            Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), _col->size()));
             shader->draw(_stereo ? &D._view_eye_rect[_eye] : null);
          }
       }
