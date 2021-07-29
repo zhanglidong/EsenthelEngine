@@ -254,7 +254,7 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
 
    // Temporal
    DisplayClass& temporalAntiAlias(Bool on);   Bool temporalAntiAlias()C {return _temp_anti_alias;} // set/get Temporal Anti-Aliasing    (true/false, default=false), this is  Anti-Aliasing that jitters projection matrix per-frame, moving it slightly with every frame and accumulating rendering results over time
-   DisplayClass& temporalSuperRes (Bool on);   Bool temporalSuperRes ()C {return _temp_super_res ;} // set/get Temporal Super Resolution (true/false, default=false), this is Super-Sampling that jitters projection matrix per-frame, moving it slightly with every frame and accumulating rendering results over time
+   DisplayClass& temporalSuperRes (Bool on);   Bool temporalSuperRes ()C {return _temp_super_res ;} // set/get Temporal Super Resolution (true/false, default=false), this is Super-Sampling that jitters projection matrix per-frame, moving it slightly with every frame and accumulating rendering results over time. This option Lowers Quality but Increases Performance. It works by rendering to a lower resolution and then upscaling back to original resolution.
    DisplayClass& temporalReset    (       );                                                        // reset   Temporal history                                     , call this method if you want to clear the history of previous rendering results
 #if EE_PRIVATE
    Bool temporal()C {return temporalAntiAlias() || temporalSuperRes();}

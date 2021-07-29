@@ -479,7 +479,7 @@ sky_night_light=&props.New().create("Sky Night Light"            , MemberDesc(DA
    #endif
                props.New().create("Renderer"         , MemberDesc(         ).setFunc(Render      , Render      )).setEnum(Render_t    , Elms(Render_t    )).desc("Renderer type\nForward renderer may work faster, but has limited number of special effects.");
                props.New().create("Temporal AA"      , MemberDesc(DATA_BOOL).setFunc(TAA         , TAA         ))                                          .desc("Enable Temporal Anti-Aliasing");
-               props.New().create("Temporal SuperRes", MemberDesc(DATA_BOOL).setFunc(TempSuperRes, TempSuperRes))                                          .desc("Enable Temporal Super Resolution");
+               props.New().create("Temporal SuperRes", MemberDesc(DATA_BOOL).setFunc(TempSuperRes, TempSuperRes))                                          .desc("Enable Temporal Super Resolution.\nThis option Lowers Quality but Increases Performance.\nIt works by rendering to a lower resolution and then upscaling back to original resolution.");
                props.New().create("Edge Softening"   , MemberDesc(         ).setFunc(EdgeSoft    , EdgeSoft    )).setEnum(EdgeSoften_t, Elms(EdgeSoften_t)).desc("Set edge softening");
                props.New().create("Shadows"          , MemberDesc(DATA_BOOL).setFunc(Shadow      , Shadow      ))                                          .desc("Enable shadows");
       shd_siz=&props.New().create("Shadowmap Size"   , MemberDesc(         ).setFunc(ShadowSize  , ShadowSize  )).setEnum(ShadowSize_t, Elms(ShadowSize_t)).desc("Shadow map resolution\nhigher resolutions reduce blockiness of shadows.");

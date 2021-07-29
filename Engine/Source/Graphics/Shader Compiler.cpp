@@ -1424,7 +1424,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
       Int     sampler_index;
       if(cis.sampler_id==dummy_sampler) // if this is a dummy sampler
       {
-         REPD(j, num_samplers)if(j!=i)
+         FREPD(j, num_samplers)if(j!=i)
          {
           C spvc_combined_image_sampler &cis1=samplers[j];
             if(cis1.image_id==cis.image_id) // find if there's another sampler using the same image
