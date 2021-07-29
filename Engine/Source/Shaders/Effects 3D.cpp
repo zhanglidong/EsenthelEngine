@@ -229,7 +229,7 @@ out Vec4     pixel:POSITION
 #endif
 
 #if FULLSCREEN
-   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
+   pixel=vtx.pos4();
 #else
    pixel=Project(TransformPos(vtx.pos()));
 #endif

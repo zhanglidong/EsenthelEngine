@@ -334,8 +334,9 @@ void MainShaderClass::draw (C Image &image                  ,                   
 void MainShaderClass::draw (C Image &image, C   Vec4  &color, C   Vec4  &color_add, C Rect *rect) {Sh.Color[0]->set(color); Sh.Color[1]->set(color_add); Sh.DrawC            ->draw(image, rect);}
 void MainShaderClass::draw (C Image &image, C ::Color &color, C ::Color &color_add, C Rect *rect) {Sh.Color[0]->set(color); Sh.Color[1]->set(color_add); Sh.DrawC            ->draw(image, rect);}
 /******************************************************************************/
-Shader* MainShaderClass::getBloomDS(Int mode , Bool view_full, Bool half_res) {return get(S8+"BloomDS"+mode+view_full+half_res);}
-Shader* MainShaderClass::getBloom  (Int alpha, Bool dither                  ) {return get(S8+"Bloom"  +alpha+dither);}
+Shader* MainShaderClass::getPrecomputedBloomDS(Bool view_full, Bool half_res                ) {return get(S8+"PrecomputedBloomDS"+view_full+half_res);}
+Shader* MainShaderClass::getBloomDS(Bool glow, Bool view_full, Bool half_res, Bool adapt_eye) {return get(S8+"BloomDS"+glow+view_full+half_res+adapt_eye);}
+Shader* MainShaderClass::getBloom  (Int alpha, Bool dither                  , Bool adapt_eye) {return get(S8+"Bloom"  +alpha+dither+adapt_eye);}
 
 Shader* MainShaderClass::getShdDir  (Int map_num, Bool clouds, Bool multi_sample) {return get(S8+"ShdDir"  +multi_sample+map_num+clouds);}
 Shader* MainShaderClass::getShdPoint(                          Bool multi_sample) {return get(S8+"ShdPoint"+multi_sample);}
@@ -632,14 +633,20 @@ void MainShaderClass::getTechniques()
    // BLOOM
    BloomParams=GetShaderParam("BloomParams");
 #if !SLOW_SHADER_LOAD
-   REPD(mode     , 3)
    REPD(view_full, 2)
    REPD(half     , 2)
-      BloomDS[mode][view_full][half]=getBloomDS(mode, view_full, half);
+      PrecomputedBloomDS[view_full][half]=getPrecomputedBloomDS(view_full, half);
+   REPD(adapt_eye, 2)
+   {
+      REPD(glow     , 2)
+      REPD(view_full, 2)
+      REPD(half     , 2)
+         BloomDS[glow][view_full][half][adapt_eye]=getBloomDS(glow, view_full, half, adapt_eye);
 
-   REPD(alpha , 3)
-   REPD(dither, 2)
-      Bloom[alpha][dither]=getBloom(alpha, dither);
+      REPD(alpha , 3)
+      REPD(dither, 2)
+         Bloom[alpha][dither][adapt_eye]=getBloom(alpha, dither, adapt_eye);
+   }
 #endif
 
    // BLUR
@@ -909,18 +916,18 @@ C MotionBlur::DilateRange& MotionBlur::getDilate(Int range)
    if(!shader)shader=T.shader->get(S8+"Dilate"+dr->range);
    return *dr;
 }
-Shader* MotionBlur::getBlur(Int samples, Int dither, Bool glow, Bool alpha)
+Shader* MotionBlur::getBlur(Int samples, Int glow, Int dither, Bool alpha)
 {
    BlurRange *b; FREPA(Blurs) // start from the smallest to find exact match or bigger, order is important
    {
       b=&Blurs[i]; if(b->samples>=samples)break; // if this covers desired samples
    }
    Bool jitter=D.motionJitter(), temporal=Renderer.hasTemporal(), view_full=D._view_main.full; // this must check for 'hasTemporal' because '_temporal_use' could already got disabled
-   Shader* &shader=b->Blur[dither][jitter][glow][alpha][temporal][view_full];
+   Shader* &shader=b->Blur[glow][dither][jitter][alpha][temporal][view_full];
    if(!shader)
    {
       Bool gather=(temporal && D.gatherChannelAvailable()); // gather only needed for Temporal
-      shader=T.shader->get(S8+"Blur"+dither+jitter+glow+alpha+temporal+view_full+gather+b->samples);
+      shader=T.shader->get(S8+"Blur"+glow+dither+jitter+alpha+temporal+view_full+gather+b->samples);
    }
    return shader;
 }

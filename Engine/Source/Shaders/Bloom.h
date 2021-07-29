@@ -5,12 +5,14 @@ BUFFER(Bloom)
 BUFFER_END
 #include "!Set Prec Default.h"
 /******************************************************************************/
-Half BloomGlow() {return BloomParams.w;}
+Half BloomOriginal() {return BloomParams.x;}
+Half BloomScale   () {return BloomParams.y;}
+Half BloomGlow    () {return BloomParams.w;}
 /******************************************************************************/
-VecH BloomColor(VecH color, Bool precomputed=false)
+VecH BloomColor(VecH color, Half bloom_scale)
 {
-   if(precomputed)return color;
-   Half col_lum=Max(color), lum=col_lum*BloomParams.y+BloomParams.z;
+   Half col_lum=Max(color), lum=col_lum*bloom_scale+BloomParams.z;
    return (lum>0) ? color*(Sqr(lum)/col_lum) : VecH(0, 0, 0);
 }
+VecH BloomColor(VecH color) {return BloomColor(color, BloomScale());}
 /******************************************************************************/

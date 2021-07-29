@@ -77,7 +77,7 @@ void Hdr_VS(VtxInput vtx,
    lum=LinearToSRGBFast(lum);
 #endif
 
-   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
+   pixel=vtx.pos4();
 }
 VecH4 Hdr_PS(NOPERSP  Vec2 uv :UV ,
              NOINTERP Half lum:LUM,

@@ -42,6 +42,8 @@
 #define TEMPORAL 0
 #endif
 
+#define ADAPT_EYE (GLOW==2)
+
 // disable PRECISE because for it to work best 'near' would have to be processed along 'base_uv_motion' line, however right now: PRECISE=1 improves moving background around moving object, however it has negative effect of unnatural blurring FPP weapons when rotating camera fast left/right constantly with a key, and with mouse up/down (while weapon rotates slightly based on up/down angle) in that case the weapons get blurred way too much
 #define PRECISE 0 // if precisely (separately) calculate samples for far and near (base/center), this is to solve the problem of rotating camera in FPP view, with weapon attached to player/camera. in that case background is rotating, and on the background blur line it encounters an object (weapon) that is in focus. Blur algorithm counts the far samples that move over the base center, and then lerps to the near samples that move over the base center.
 
@@ -410,8 +412,25 @@ struct Pixel
    }
 };
 /******************************************************************************/
+void Blur_VS(VtxInput vtx,
+#if ADAPT_EYE
+   NOINTERP out Half bloom_scale:BLOOM_SCALE,
+#endif
+   NOPERSP out Vec2 uv   :UV,
+   NOPERSP out Vec4 pixel:POSITION)
+{
+#if ADAPT_EYE
+   bloom_scale=BloomScale()*ImgX1[VecI2(0, 0)];
+#endif
+   uv   =vtx.uv  ();
+   pixel=vtx.pos4();
+}
+
 VecH4 Blur_PS
 (
+#if ADAPT_EYE
+   NOINTERP Half bloom_scale:BLOOM_SCALE,
+#endif
    NOPERSP Vec2 uv0:UV,
    NOPERSP PIXEL
 #if GLOW
@@ -624,7 +643,10 @@ VecH4 Blur_PS
 #endif
 
 #if GLOW
-   bloom=BloomColor(base.rgb)+base.glow;
+#if !ADAPT_EYE
+   Half bloom_scale=BloomScale();
+#endif
+   bloom=BloomColor(base.rgb, bloom_scale)+base.glow;
 #endif
 
 #if ALPHA

@@ -177,14 +177,14 @@ struct RendererClass // handles rendering
 
    void mode(RENDER_MODE mode);
 
-   void setDS          ();
-   void linearizeDepth (ImageRT &dest, ImageRT &depth); // this reads from depth buffer and stores it to custom render target in linearized mode
-   void   resolveDepth ();
-   void   resolveDepth1();
-   void adaptEye       (ImageRTC &src, ImageRT &dest);
-   Bool motionBlur     (ImageRT  &src, ImageRT &dest, ImageRTPtr &bloom_glow, Bool alpha, Bool combine);
-   void bloom          (ImageRT  &src, ImageRT &dest, ImageRTPtr &bloom_glow, Bool alpha, Bool combine);
-   void dof            (ImageRT  &src, ImageRT &dest,                         Bool alpha, Bool combine);
+   void     setDS          ();
+   void     linearizeDepth (ImageRT &dest, ImageRT &depth); // this reads from depth buffer and stores it to custom render target in linearized mode
+   void       resolveDepth ();
+   void       resolveDepth1();
+   ImageRT* adaptEye       (ImageRTC &src, ImageRT *dest);
+   Bool     motionBlur     (ImageRT  &src, ImageRT &dest, ImageRTPtr &bloom_glow, Bool alpha, Bool combine, ImageRT *adapt_eye);
+   void     bloom          (ImageRT  &src, ImageRT &dest, ImageRTPtr &bloom_glow, Bool alpha, Bool combine, ImageRT *adapt_eye);
+   void     dof            (ImageRT  &src, ImageRT &dest,                         Bool alpha, Bool combine);
 
    void setAlphaFromDepth      ();
    void setAlphaFromDepthAndCol();

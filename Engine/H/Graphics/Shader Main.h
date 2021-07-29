@@ -345,10 +345,12 @@ struct MainShaderClass
    ShaderParam
       *BloomParams;
    Shader
-      *BloomDS[3][2][2], // [Mode] [ViewFull] [HalfRes]
-      *Bloom  [3][2]   ; // [Alpha] [Dither]
-   Shader* getBloomDS(Int mode , Bool view_full, Bool half_res);
-   Shader* getBloom  (Int alpha, Bool dither);
+      *PrecomputedBloomDS[2][2], // [ViewFull] [HalfRes]
+      *BloomDS[2][2][2][2], // [Glow] [ViewFull] [HalfRes] [AdaptEye]
+      *Bloom  [3][2][2]   ; // [Alpha] [Dither] [AdaptEye]
+   Shader* getPrecomputedBloomDS(Bool view_full, Bool half_res);
+   Shader* getBloomDS(Bool glow, Bool view_full, Bool half_res, Bool adapt_eye);
+   Shader* getBloom  (Int alpha, Bool dither                  , Bool adapt_eye);
 
    // SUN
    Shader *SunRays[2][2][2][2]; // [Alpha] [Dither] [Jitter] [Gamma]
@@ -441,13 +443,13 @@ struct MotionBlur
    struct BlurRange
    {
       Int     samples;
-      Shader *Blur[2][2][2][2][2][2]; // [Dither][Jitter][Glow][Alpha][Temporal][ViewFull]
+      Shader *Blur[3][2][2][2][2][2]; // [Glow][Dither][Jitter][Alpha][Temporal][ViewFull]
    }Blurs[4];
 
    void load();
    Shader     * getConvert(Int range);
  C DilateRange& getDilate (Int range);
-   Shader     * getBlur   (Int samples, Int dither, Bool glow, Bool alpha);
+   Shader     * getBlur   (Int samples, Int glow, Int dither, Bool alpha);
 }extern
    Mtn;
 

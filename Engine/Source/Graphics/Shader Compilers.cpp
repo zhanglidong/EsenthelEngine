@@ -210,14 +210,20 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    }
    { // BLOOM
       ShaderCompiler::Source &src=compiler.New(src_path+"Bloom.cpp");
-      REPD(mode     , 3)
       REPD(view_full, 2)
       REPD(half_res , 2)
-         src.New("BloomDS", "BloomDS_VS", "BloomDS_PS")("MODE", mode, "VIEW_FULL", view_full, "HALF_RES", half_res);
+         src.New("PrecomputedBloomDS", "BloomDS_VS", "BloomDS_PS")("VIEW_FULL", view_full, "HALF_RES", half_res).extra("PRECOMPUTED", 1);
+      REPD(adapt_eye, 2)
+      {
+         REPD(glow     , 2)
+         REPD(view_full, 2)
+         REPD(half_res , 2)
+            src.New("BloomDS", "BloomDS_VS", "BloomDS_PS")("GLOW", glow, "VIEW_FULL", view_full, "HALF_RES", half_res, "ADAPT_EYE", adapt_eye);
 
-      REPD(alpha , 3)
-      REPD(dither, 2)
-         src.New("Bloom", "DrawUV_VS", "Bloom_PS")("ALPHA", alpha, "DITHER", dither);
+         REPD(alpha , 3)
+         REPD(dither, 2)
+            src.New("Bloom", "Bloom_VS", "Bloom_PS")("ALPHA", alpha, "DITHER", dither, "ADAPT_EYE", adapt_eye);
+      }
    }
    { // BLUR
       ShaderCompiler::Source &src=compiler.New(src_path+"Blur.cpp");
@@ -598,15 +604,15 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       src.New("Dilate", "DrawUV_VS", "Dilate_PS")("RANGE", dilate_ranges[range]);
 
    const Int samples[]={5, 7, 9, 14}; ASSERT(Elms(samples)==Elms(Mtn.Blurs)); // 5-720, 7-1080, 9-1440, 14-2160 #MotionBlurSamples
+   REPD (glow     , 3)
    REPD (dither   , 2)
    REPD (jitter   , 2)
-   REPD (glow     , 2)
    REPD (alpha    , 2)
    REPD (temporal , 2)
    REPD (view_full, 2)
    REPD (gather   , temporal ? 2 : 1) // gather only needed for Temporal
    REPAD(sample   , samples)
-      src.New("Blur", "DrawUV_VS", "Blur_PS")("DITHER", dither, "JITTER", jitter, "GLOW", glow, "ALPHA", alpha)("TEMPORAL", temporal, "VIEW_FULL", view_full, "GATHER", gather)("SAMPLES", samples[sample]).gatherChannel(gather);
+      src.New("Blur", "Blur_VS", "Blur_PS")("GLOW", glow, "DITHER", dither, "JITTER", jitter, "ALPHA", alpha)("TEMPORAL", temporal, "VIEW_FULL", view_full, "GATHER", gather)("SAMPLES", samples[sample]).gatherChannel(gather);
 }
 #endif
 
