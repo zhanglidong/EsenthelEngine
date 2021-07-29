@@ -2189,7 +2189,7 @@
     <ClCompile Include="Source\Sound\Sound Resample.cpp">
       <Filter>Source\Sound</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Shaders\FidelityFX\FidelityFX.cpp">
+    <ClCompile Include="Source\Shaders\FidelityFX\Fidelity FX.cpp">
       <Filter>Source\Shaders</Filter>
     </ClCompile>
   </ItemGroup>

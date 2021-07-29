@@ -244,7 +244,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       }
    }
    { // FIDELITY_FX
-      ShaderCompiler::Source &src=compiler.New(src_path+"FidelityFX/FidelityFX.cpp");
+      ShaderCompiler::Source &src=compiler.New(src_path+"FidelityFX/Fidelity FX.cpp");
       REPD(color , 2)
       REPD(gather, 2)
       {
