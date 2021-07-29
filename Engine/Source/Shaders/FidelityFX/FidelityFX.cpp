@@ -66,7 +66,7 @@ VecH4 EASU_PS(NOPERSP PIXEL):TARGET
    VecH4 c;
 #if GATHER
    FsrEasuH(c.rgb, pos, Easu.c0, Easu.c1, Easu.c2, Easu.c3);
-#else // for non-gather version use float because half fail to compile
+#else // for non-gather version use float because half fails to compile
    FsrEasuF(c.rgb, pos, Easu.c0, Easu.c1, Easu.c2, Easu.c3);
 #endif
 
@@ -109,7 +109,7 @@ VecH4 RCAS_PS(NOPERSP PIXEL):TARGET
    #else
       FsrRcasH(c.r, c.g, c.b, pixel.xy, Rcas.c0); c.a=1;
    #endif
-#else // for non-gather version use float because half fail to compile
+#else // for non-gather version use float because half fails to compile
    #if ALPHA
       FsrRcasF(c.r, c.g, c.b, c.a, pixel.xy, Rcas.c0);
    #else
