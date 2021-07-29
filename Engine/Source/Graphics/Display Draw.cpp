@@ -181,7 +181,7 @@ void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
       }break;
 
       case FILTER_CUBIC_PLUS      :
-      case FILTER_CUBIC_PLUS_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.DrawTexCubic[0]); break;
+      case FILTER_CUBIC_PLUS_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.DrawTexCubicPlus[0]); break;
    }
    VI.image  (this);
    VI.setType(VI_2D_TEX, VI_STRIP);
@@ -237,7 +237,7 @@ void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_
       }break;
 
       case FILTER_CUBIC_PLUS      :
-      case FILTER_CUBIC_PLUS_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.DrawTexCubic[1]); break;
+      case FILTER_CUBIC_PLUS_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.DrawTexCubicPlus[1]); break;
    }
    VI.color  (color    );
    VI.color1 (color_add);

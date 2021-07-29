@@ -298,11 +298,9 @@ struct MainShaderClass
 
       // CUBIC
       *DrawTexCubicFast    [2], // [Color]
-      *DrawTexCubicFastF   [2], // [Dither]
-      *DrawTexCubicFastFRGB[2], // [Dither]
-      *DrawTexCubic        [2], // [Color]
-      *DrawTexCubicF       [2], // [Dither]
-      *DrawTexCubicFRGB    [2], // [Dither]
+      *DrawTexCubicFastF[2][2], // [Alpha][Dither]
+      *DrawTexCubicPlus    [2], // [Color]
+      *DrawTexCubicPlusF[2][2], // [Alpha][Dither]
 
       // FIDELITY FX
       *EASUScreen   [2], // [Color]

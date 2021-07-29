@@ -233,15 +233,14 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       ShaderCompiler::Source &src=compiler.New(src_path+"Cubic.cpp");
       REPD(color, 2)
       {
-         src.New("DrawTexCubicFast", "DrawScreenUV_VS", "DrawTexCubicFast_PS")("COLORS", color);
-         src.New("DrawTexCubic"    , "DrawScreenUV_VS", "DrawTexCubic_PS"    )("COLORS", color);
+         src.New("DrawTexCubicFast", "DrawScreenUV_VS", "DrawTexCubicFast_PS")("COLORS", color).extra("ALPHA", true);
+         src.New("DrawTexCubicPlus", "DrawScreenUV_VS", "DrawTexCubicPlus_PS")("COLORS", color).extra("ALPHA", true);
       }
+      REPD(alpha , 2)
       REPD(dither, 2)
       {
-         src.New("DrawTexCubicFastF"   , "DrawUV_VS", "DrawTexCubicFast_PS"   )("DITHER", dither);
-         src.New("DrawTexCubicFastFRGB", "DrawUV_VS", "DrawTexCubicFastRGB_PS")("DITHER", dither);
-         src.New("DrawTexCubicF"       , "DrawUV_VS", "DrawTexCubic_PS"       )("DITHER", dither);
-         src.New("DrawTexCubicFRGB"    , "DrawUV_VS", "DrawTexCubicRGB_PS"    )("DITHER", dither);
+         src.New("DrawTexCubicFastF", "DrawUV_VS", "DrawTexCubicFast_PS")("ALPHA", alpha, "DITHER", dither);
+         src.New("DrawTexCubicPlusF", "DrawUV_VS", "DrawTexCubicPlus_PS")("ALPHA", alpha, "DITHER", dither);
       }
    }
    { // FIDELITY_FX

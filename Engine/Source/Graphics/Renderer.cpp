@@ -2253,7 +2253,7 @@ void RendererClass::postProcess()
          case FILTER_CUBIC_FAST_SMOOTH:
          case FILTER_CUBIC_FAST_SHARP :
             pixels=2+1; // 2 for filtering + 1 for borders
-            Sh.imgSize(*_col); shader=(alpha ? Sh.DrawTexCubicFastF : Sh.DrawTexCubicFastFRGB)[dither]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
+            Sh.imgSize(*_col); shader=Sh.DrawTexCubicFastF[alpha][dither]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
          break;
 
          case FILTER_BEST :
@@ -2297,7 +2297,7 @@ void RendererClass::postProcess()
          case FILTER_CUBIC_PLUS      :
          case FILTER_CUBIC_PLUS_SHARP:
             pixels=3+1; // 3 for filtering + 1 for borders
-            Sh.imgSize(*_col); Sh.loadCubicShaders(); shader=(alpha ? Sh.DrawTexCubicF : Sh.DrawTexCubicFRGB)[dither]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
+            Sh.imgSize(*_col); Sh.loadCubicShaders(); shader=Sh.DrawTexCubicPlusF[alpha][dither]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
          break;
       }
       if(!shader)shader=Sh.Draw[alpha][dither];

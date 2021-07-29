@@ -167,50 +167,48 @@ VecH TexCubicPlusRGB(Vec2 uv) // ignores alpha channel
    return color/weight;
 }
 /******************************************************************************/
-VecH4 DrawTexCubicFast_PS(NOPERSP Vec2 uv:UV,
-                          NOPERSP PIXEL     ):TARGET
-{
-   VecH4 col=TexCubicFast(Img, uv);
-#if COLORS
-   col=col*Color[0]+Color[1];
-#endif
+VecH4 DrawTexCubicFast_PS
+(
+   NOPERSP Vec2 uv:UV
 #if DITHER
-   ApplyDither(col.rgb, pixel.xy);
+ , NOPERSP PIXEL
 #endif
-   return col;
-}
-VecH4 DrawTexCubicFastRGB_PS(NOPERSP Vec2 uv:UV,
-                             NOPERSP PIXEL     ):TARGET
+):TARGET
 {
+#if ALPHA
+   VecH4 col=TexCubicFast(Img, uv);
+#else
    VecH4 col=VecH4(TexCubicFastRGB(Img, uv), 1);
+#endif
+
 #if COLORS
    col=col*Color[0]+Color[1];
 #endif
+
 #if DITHER
    ApplyDither(col.rgb, pixel.xy);
 #endif
    return col;
 }
 /******************************************************************************/
-VecH4 DrawTexCubic_PS(NOPERSP Vec2 uv:UV,
-                      NOPERSP PIXEL     ):TARGET
-{
-   VecH4 col=TexCubicPlus(uv);
-#if COLORS
-   col=col*Color[0]+Color[1];
-#endif
+VecH4 DrawTexCubicPlus_PS
+(
+   NOPERSP Vec2 uv:UV
 #if DITHER
-   ApplyDither(col.rgb, pixel.xy);
+ , NOPERSP PIXEL
 #endif
-   return col;
-}
-VecH4 DrawTexCubicRGB_PS(NOPERSP Vec2 uv:UV,
-                         NOPERSP PIXEL     ):TARGET
+):TARGET
 {
+#if ALPHA
+   VecH4 col=TexCubicPlus(uv);
+#else
    VecH4 col=VecH4(TexCubicPlusRGB(uv), 1);
+#endif
+
 #if COLORS
    col=col*Color[0]+Color[1];
 #endif
+
 #if DITHER
    ApplyDither(col.rgb, pixel.xy);
 #endif

@@ -362,14 +362,11 @@ Shader* MainShaderClass::getSkyA (Int multi_sample, Bool per_vertex, Bool densit
 
 void MainShaderClass::initCubicShaders()
 {
-   if(!DrawTexCubic[0]) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
+   if(!DrawTexCubicPlus[0]) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
    {
-      REPD(color , 2)DrawTexCubic[color]=get(S8+"DrawTexCubic"+color);
-      REPD(dither, 2)
-      {
-         DrawTexCubicF   [dither]=get(S8+"DrawTexCubicF"   +dither);
-         DrawTexCubicFRGB[dither]=get(S8+"DrawTexCubicFRGB"+dither);
-      }
+      REPD(color , 2)DrawTexCubicPlus[color]=get(S8+"DrawTexCubicPlus"+color);
+      REPD(alpha , 2)
+      REPD(dither, 2)DrawTexCubicPlusF[alpha][dither]=get(S8+"DrawTexCubicPlusF"+alpha+dither);
    }
 }
 void MainShaderClass::loadFogBoxShaders()
@@ -582,11 +579,8 @@ void MainShaderClass::getTechniques()
 
    // CUBIC
    REPD(color , 2)DrawTexCubicFast[color]=get(S8+"DrawTexCubicFast"+color);
-   REPD(dither, 2)
-   {
-      DrawTexCubicFastF   [dither]=get(S8+"DrawTexCubicFastF"   +dither);
-      DrawTexCubicFastFRGB[dither]=get(S8+"DrawTexCubicFastFRGB"+dither);
-   }
+   REPD(alpha , 2)
+   REPD(dither, 2)DrawTexCubicFastF[alpha][dither]=get(S8+"DrawTexCubicFastF"+alpha+dither);
 #if !SLOW_SHADER_LOAD
    initCubicShaders();
 #endif
