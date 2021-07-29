@@ -76,6 +76,12 @@ bool ShaderCompiler(Thread &thread)
          ProcessedShaders++;
          if(thread.wantStop())return false;
       }
+      REP(shader_file.computeShaders())
+      {
+         shader_file.computeShader(i); // access i-th shader, this will compile it
+         ProcessedShaders++;
+         if(thread.wantStop())return false;
+      }
    }
 
    Stage++;
@@ -101,7 +107,11 @@ bool Init()
          && name!="World Editor"
          )ShaderFiles(name); // load all shaders to the cache
       }
-      REPA(ShaderFiles)TotalShaders+=ShaderFiles.lockedData(i).shaders(); // calculate total shaders
+      REPA(ShaderFiles)
+      {
+         ShaderFile &sf=ShaderFiles.lockedData(i);
+         TotalShaders+=sf.shaders()+sf.computeShaders(); // calculate total shaders
+      }
       ShaderCompilerThread.create(ShaderCompiler);
    }
    return true;
