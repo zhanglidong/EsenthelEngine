@@ -2164,7 +2164,7 @@ void RendererClass::postProcess()
    if(eye_adapt)
    {
       --fxs;
-      if(bloom)adapt_eye=adaptEye(*_col, null);else // if there will be bloom then don't apply now, but this will be done later in bloom
+      if(bloom /*&& noToneMapping*/)adapt_eye=adaptEye(*_col, null);else // if there will be bloom then don't apply now, but this will be done later in bloom
       {
          if(!fxs)dest=_final;else dest.get(rt_desc.type(GetImageRTType(_has_glow, D.litColRTPrecision()))); // can't read and write to the same RT, glow requires Alpha channel
          adaptEye(*_col, dest); Swap(_col, dest); // Eye Adaptation keeps Alpha
