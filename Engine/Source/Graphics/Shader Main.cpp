@@ -663,12 +663,15 @@ void MainShaderClass::getTechniques()
    }
 
 #if !SLOW_SHADER_LOAD
-                              SetAlphaFromDepth        =get("SetAlphaFromDepth");
-   if(D.shaderModel()>=SM_4_1)SetAlphaFromDepthMS      =get("SetAlphaFromDepthMS");
-                              SetAlphaFromDepthAndCol  =get("SetAlphaFromDepthAndCol");
-   if(D.shaderModel()>=SM_4_1)SetAlphaFromDepthAndColMS=get("SetAlphaFromDepthAndColMS");
-                              CombineAlpha             =get("CombineAlpha");
-                              ReplaceAlpha             =get("ReplaceAlpha");
+   REPD(sky, 2)
+   {
+                                 SetAlphaFromDepth        [sky]=get(S8+"SetAlphaFromDepth"        +sky);
+      if(D.shaderModel()>=SM_4_1)SetAlphaFromDepthMS      [sky]=get(S8+"SetAlphaFromDepthMS"      +sky);
+                                 SetAlphaFromDepthAndCol  [sky]=get(S8+"SetAlphaFromDepthAndCol"  +sky);
+      if(D.shaderModel()>=SM_4_1)SetAlphaFromDepthAndColMS[sky]=get(S8+"SetAlphaFromDepthAndColMS"+sky);
+   }
+   CombineAlpha=get("CombineAlpha");
+   ReplaceAlpha=get("ReplaceAlpha");
 #endif
 
    // SKY

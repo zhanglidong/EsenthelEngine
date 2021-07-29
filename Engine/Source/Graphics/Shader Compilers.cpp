@@ -174,12 +174,16 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       src.New("DrawCubeFace", "DrawCubeFace_VS", "DrawCubeFace_PS");
       src.New("Simple", "Simple_VS", "Simple_PS");
 
-            src.New("SetAlphaFromDepth"        , "DrawPosXY_VS"  , "SetAlphaFromDepth_PS");
-      if(ms)src.New("SetAlphaFromDepthMS"      , "DrawPosXY_VS"  , "SetAlphaFromDepthMS_PS").multiSample();
-            src.New("SetAlphaFromDepthAndCol"  , "DrawUVPosXY_VS", "SetAlphaFromDepthAndCol_PS");
-      if(ms)src.New("SetAlphaFromDepthAndColMS", "DrawUVPosXY_VS", "SetAlphaFromDepthAndColMS_PS").multiSample();
-            src.New("CombineAlpha"             , "DrawUV_VS"     , "CombineAlpha_PS");
-            src.New("ReplaceAlpha"             , "DrawUV_VS"     , "ReplaceAlpha_PS");
+      REPD(sky, 2)
+      {
+               src.New("SetAlphaFromDepth"        , "DrawPosXY_VS"  , "SetAlphaFromDepth_PS"        )("SKY", sky);
+         if(ms)src.New("SetAlphaFromDepthMS"      , "DrawPosXY_VS"  , "SetAlphaFromDepthMS_PS"      )("SKY", sky).multiSample();
+               src.New("SetAlphaFromDepthAndCol"  , "DrawUVPosXY_VS", "SetAlphaFromDepthAndCol_PS"  )("SKY", sky);
+         if(ms)src.New("SetAlphaFromDepthAndColMS", "DrawUVPosXY_VS", "SetAlphaFromDepthAndColMS_PS")("SKY", sky).multiSample();
+      }
+
+      src.New("CombineAlpha", "DrawUV_VS", "CombineAlpha_PS");
+      src.New("ReplaceAlpha", "DrawUV_VS", "ReplaceAlpha_PS");
 
       if(ms)src.New("ResolveDepth", "Draw_VS", "ResolveDepth_PS");
       src.New("SetDepth", "DrawUV_VS", "SetDepth_PS");

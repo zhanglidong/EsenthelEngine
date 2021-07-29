@@ -333,14 +333,10 @@ VecH4 EdgeDetectApply_PS(NOPERSP Vec2 uv:UV):TARGET // use VecH4 because we appl
 /******************************************************************************/
 Half IsForeground(Flt raw_z, Vec2 posXY)
 {
-#if 0 // simple version, uses planar distance from camera
+#if SKY // uses radial distance from camera, works better for sun rays with sky (this will ignore rendered pixels in the viewport but outside of sky ball)
+   return DEPTH_FOREGROUND(raw_z) ? Length(GetPos(LinearizeDepth(raw_z), posXY))*SkyFracMulAdd.x + SkyFracMulAdd.y : 0;
+#else // simple version, uses planar distance from camera
    return DEPTH_FOREGROUND(raw_z);
-#else // uses radial distance from camera, works better for sun rays with sky (this will ignore rendered pixels in the viewport but outside of sky ball)
-   #if REVERSE_DEPTH // we can use the simple version for REVERSE_DEPTH
-      return                            Length2(GetPos(LinearizeDepth(raw_z), posXY))<Sqr(Viewport.range);
-   #else // need safer
-      return DEPTH_FOREGROUND(raw_z) && Length2(GetPos(LinearizeDepth(raw_z), posXY))<Sqr(Viewport.range);
-   #endif
 #endif
 }
 Half SetAlphaFromDepth_PS(NOPERSP Vec2 posXY:POS_XY, NOPERSP PIXEL):TARGET
@@ -376,7 +372,7 @@ Half SetAlphaFromDepthAndColMS_PS(NOPERSP Vec2 uv:UV, NOPERSP Vec2 posXY:POS_XY,
    return Max(Max(TexLod(Img, uv).rgb), alpha/MS_SAMPLES); // treat luminance as opacity, use UV in case Col/Depth are different size
 }
 #endif
-
+/******************************************************************************/
 VecH4 CombineAlpha_PS(NOPERSP Vec2 uv:UV):TARGET
 {
    VecH4 col;

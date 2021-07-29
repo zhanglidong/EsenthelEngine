@@ -523,12 +523,13 @@ void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool alpha, Bool combine)
    GetDof(D.dither() /*&& (src.highPrecision() || rt0->highPrecision())*/ && !dest.highPrecision(), D.dofFocusMode(), alpha)->draw(src);
 }
 /******************************************************************************/
-INLINE Shader* GetSetAlphaFromDepth        () {Shader* &s=Sh.SetAlphaFromDepth        ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("SetAlphaFromDepth"        ); return s;}
-INLINE Shader* GetSetAlphaFromDepthMS      () {Shader* &s=Sh.SetAlphaFromDepthMS      ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("SetAlphaFromDepthMS"      ); return s;}
-INLINE Shader* GetSetAlphaFromDepthAndCol  () {Shader* &s=Sh.SetAlphaFromDepthAndCol  ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("SetAlphaFromDepthAndCol"  ); return s;}
-INLINE Shader* GetSetAlphaFromDepthAndColMS() {Shader* &s=Sh.SetAlphaFromDepthAndColMS; if(SLOW_SHADER_LOAD && !s)s=Sh.get("SetAlphaFromDepthAndColMS"); return s;}
-INLINE Shader* GetCombineAlpha             () {Shader* &s=Sh.CombineAlpha             ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("CombineAlpha"             ); return s;}
-INLINE Shader* GetReplaceAlpha             () {Shader* &s=Sh.ReplaceAlpha             ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("ReplaceAlpha"             ); return s;}
+INLINE Shader* GetSetAlphaFromDepth        (Bool sky) {Shader* &s=Sh.SetAlphaFromDepth        [sky]; if(SLOW_SHADER_LOAD && !s)s=Sh.get(S8+"SetAlphaFromDepth"        +sky); return s;}
+INLINE Shader* GetSetAlphaFromDepthMS      (Bool sky) {Shader* &s=Sh.SetAlphaFromDepthMS      [sky]; if(SLOW_SHADER_LOAD && !s)s=Sh.get(S8+"SetAlphaFromDepthMS"      +sky); return s;}
+INLINE Shader* GetSetAlphaFromDepthAndCol  (Bool sky) {Shader* &s=Sh.SetAlphaFromDepthAndCol  [sky]; if(SLOW_SHADER_LOAD && !s)s=Sh.get(S8+"SetAlphaFromDepthAndCol"  +sky); return s;}
+INLINE Shader* GetSetAlphaFromDepthAndColMS(Bool sky) {Shader* &s=Sh.SetAlphaFromDepthAndColMS[sky]; if(SLOW_SHADER_LOAD && !s)s=Sh.get(S8+"SetAlphaFromDepthAndColMS"+sky); return s;}
+
+INLINE Shader* GetCombineAlpha() {Shader* &s=Sh.CombineAlpha; if(SLOW_SHADER_LOAD && !s)s=Sh.get("CombineAlpha"); return s;}
+INLINE Shader* GetReplaceAlpha() {Shader* &s=Sh.ReplaceAlpha; if(SLOW_SHADER_LOAD && !s)s=Sh.get("ReplaceAlpha"); return s;}
 /******************************************************************************/
 void RendererClass::cleanup()
 {
@@ -1438,22 +1439,23 @@ void RendererClass::setAlphaFromDepth()
 {
    D.alpha(ALPHA_NONE);
   _alpha.get(ImageRTDesc(_ds->w(), _ds->h(), IMAGERT_ONE, _ds->samples()));
+   Bool sky=Sky.isActual(); if(sky)Sky.setFracMulAdd();
    if(_alpha->multiSample())
    {
       set(_alpha, _ds, true, NEED_DEPTH_READ);
       if(hasStencilAttached())
       {
-         D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); GetSetAlphaFromDepthMS()->draw();
-                         D.stencilRef(0               ); GetSetAlphaFromDepth  ()->draw();
+         D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); GetSetAlphaFromDepthMS(sky)->draw();
+                         D.stencilRef(0               ); GetSetAlphaFromDepth  (sky)->draw();
          D.stencil(STENCIL_NONE     );
       }else
       {
-         GetSetAlphaFromDepthMS()->draw(); // we have to run all at multi-sampled frequency
+         GetSetAlphaFromDepthMS(sky)->draw(); // we have to run all at multi-sampled frequency
       }
    }else
    {
       set(_alpha, null, true);
-      GetSetAlphaFromDepth()->draw();
+      GetSetAlphaFromDepth(sky)->draw();
    }
 }
 void RendererClass::setAlphaFromDepthAndCol()
@@ -1461,22 +1463,23 @@ void RendererClass::setAlphaFromDepthAndCol()
    D.alpha(ALPHA_NONE);
   _alpha.get(ImageRTDesc(_ds->w(), _ds->h(), IMAGERT_ONE, _ds->samples()));
    Sh.Img[0]->set(_col);
+   Bool sky=Sky.isActual(); if(sky)Sky.setFracMulAdd();
    if(_alpha->multiSample())
    {
       set(_alpha, _ds, true, NEED_DEPTH_READ);
       if(hasStencilAttached())
       {
-         D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); GetSetAlphaFromDepthAndColMS()->draw();
-                         D.stencilRef(0               ); GetSetAlphaFromDepthAndCol  ()->draw();
+         D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); GetSetAlphaFromDepthAndColMS(sky)->draw();
+                         D.stencilRef(0               ); GetSetAlphaFromDepthAndCol  (sky)->draw();
          D.stencil(STENCIL_NONE     );
       }else
       {
-         GetSetAlphaFromDepthAndColMS()->draw(); // we have to run all at multi-sampled frequency
+         GetSetAlphaFromDepthAndColMS(sky)->draw(); // we have to run all at multi-sampled frequency
       }
    }else
    {
       set(_alpha, null, true);
-      GetSetAlphaFromDepthAndCol()->draw();
+      GetSetAlphaFromDepthAndCol(sky)->draw();
    }
 }
 INLINE Shader* GetApplyLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade, Bool glow, Bool reflect) {Shader* &s=Sh.ApplyLight[multi_sample][ao][cel_shade][night_shade][glow][reflect]; if(SLOW_SHADER_LOAD && !s)s=Sh.getApplyLight(multi_sample, ao, cel_shade, night_shade, glow, reflect); return s;}

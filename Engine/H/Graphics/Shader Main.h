@@ -250,10 +250,10 @@ struct MainShaderClass
       *LinearizeDepth[3][2], // [MultiSample] [Perspective]
       *ResolveDepth,
       *SetDepth,
-      *SetAlphaFromDepth,
-      *SetAlphaFromDepthMS,
-      *SetAlphaFromDepthAndCol,
-      *SetAlphaFromDepthAndColMS,
+      *SetAlphaFromDepth        [2], // [Sky]
+      *SetAlphaFromDepthMS      [2], // [Sky]
+      *SetAlphaFromDepthAndCol  [2], // [Sky]
+      *SetAlphaFromDepthAndColMS[2], // [Sky]
       *CombineAlpha,
       *ReplaceAlpha,
 
