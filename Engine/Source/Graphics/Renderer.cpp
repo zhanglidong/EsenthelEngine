@@ -10,6 +10,7 @@
 #define A_CPU 1
 #include "../Shaders/FidelityFX/ffx_a.h"
 #include "../Shaders/FidelityFX/ffx_fsr1.h"
+//#include "../Shaders/FidelityFX/ffx_cas.h"
 
 namespace EE{
 // #RTOutput
@@ -2327,8 +2328,27 @@ void RendererClass::postProcess()
    #else
       Bool gamma=LINEAR_GAMMA, swap_srgb=(gamma && _col->canSwapSRV() && dest->canSwapRTV()); if(swap_srgb){gamma=false; _col->swapSRV(); dest->swapRTV();} // do just one gamma instead of in/out, to avoid having to do expensive gamma conversion in the shader
    #endif
+      Bool dither=(D.dither() && !dest->highPrecision());
       set(dest, null, true); D.alpha((combine && dest()==_final) ? ALPHA_MERGE : ALPHA_NONE);
-      Sh.RCAS[alpha][D.dither() && !dest->highPrecision()][gamma]->draw(_col);
+
+    /*if(Kb.shift())
+      {
+         struct CAS
+         {
+            varAU4(const0);
+            varAU4(const1);
+         }cas;
+         CasSetup(cas.const0, cas.const1,
+                         0.5f,  // Sharpness tuning knob (0.0 to 1.0)
+         _col->w(), _col->h(),  // input size
+         dest->w(), dest->h()); // output size
+
+         GetShaderParam("Cas")->set(cas);
+         Sh.get(S8+"CAS"+alpha+dither+gamma+gamma)->draw(_col);
+         D.text(0,0,S+Ms.pos().x);
+      }else*/
+      Sh.RCAS[alpha][dither][gamma]->draw(_col);
+
    #if 0
       if( in_swap_srgb)_col->swapSRV();
       if(out_swap_srgb)dest->swapRTV();

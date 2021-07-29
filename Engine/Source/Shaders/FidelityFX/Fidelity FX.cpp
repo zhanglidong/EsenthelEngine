@@ -179,4 +179,44 @@ void CS(uint3 LocalThreadId : SV_GroupThreadID, uint3 WorkGroupId : SV_GroupID, 
    Filter(gxy); gxy.x -= 8u;
    Filter(gxy);
 }
+/******************************************************************************
+Don't use, RCAS is better (CAS has too strong sharpening on big contrast, when black touching white, and not strong enough on medium contrast)
+AH3 CasLoadH(ASW2 p) {return GetColor(Img[p]);}
+AF3 CasLoad (ASU2 p) {return GetColor(Img[p]);}
+void CasInputH(inout AH2 r, inout AH2 g, inout AH2 b) {}
+void CasInput (inout AF1 r, inout AF1 g, inout AF1 b) {}
+//#define CAS_BETTER_DIAGONALS 1
+#include "ffx_cas.h"
+
+struct CAS
+{
+   uint4 const0;
+   uint4 const1;
+};
+BUFFER(CAS)
+   CAS Cas;
+BUFFER_END
+
+VecH4 CAS_PS(NOPERSP PIXEL):TARGET
+{
+   VecH4 col; CasFilter(col.r, col.g, col.b, pixel.xy, Cas.const0, Cas.const1, true);
+#if ALPHA
+   col.a=Img[pixel.xy].a;
+#else
+   col.a=1;
+#endif
+
+#if DITHER
+   ApplyDither(col.rgb, pixel.xy, false); // here 'col' is already in gamma space
+#endif
+
+#if OUT_GAMMA
+   #if GAMMA_FAST
+      col.rgb=SRGBToLinearFast(col.rgb);
+   #else
+      col.rgb=SRGBToLinear(col.rgb);
+   #endif
+#endif
+   return col;
+}
 /******************************************************************************/

@@ -262,6 +262,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       {
          src.New("EASU", "Draw_VS", "EASU_PS")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", gamma, "OUT_GAMMA", gamma, "GATHER", gather).gatherChannel(gather);
          src.New("RCAS", "Draw_VS", "RCAS_PS")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", gamma, "OUT_GAMMA", gamma, "GATHER", gather).gatherChannel(gather); // even though this doesn't use gather, it's used to force Shader Model 5 because lower than that fails to compile halfs (DX Shader Compiler error)
+       //src.New( "CAS", "Draw_VS",  "CAS_PS")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", gamma, "OUT_GAMMA", gamma);
                       //src.computeNew("EASU")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", gamma, "OUT_GAMMA", gamma);
                       //src.computeNew("RCAS")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", gamma, "OUT_GAMMA", gamma);
       }
