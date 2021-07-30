@@ -1028,7 +1028,9 @@ void RendererClass::temporalCheck() // needs to be called after RT and viewport 
                                             + U0 U1 (X>)*/
       Sh.TemporalOffsetGatherIndex->set((shader_offset.y>=0) ? (shader_offset.x>=0) ? 3 : 2 // this is 100% correct (tested and verified), always changes so don't use 'setConditional'
                                                              : (shader_offset.x>=0) ? 0 : 1);
-
+      // this is offset to apply for UV located at the exact center of a pixel, in order to get the (0,0) coordinates of the 2x2 pixels that are returned with shader gather, add +(1,1) to get last
+      Sh.TemporalOffsetStart->set(Vec2((shader_offset.x>=0) ? 0 : -1.0f/size.x, // if TemporalOffset is >=0 then we're starting from the same pixel 0 .. 1, but if it's negative <0, then we have to start from -1 .. 0
+                                       (shader_offset.y>=0) ? 0 : -1.0f/size.y));
       D._view_active.setShader();
    }
    SetProjMatrix(); // call after setting '_temporal_offset', always call because needed for MotionBlur and Temporal

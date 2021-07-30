@@ -482,10 +482,10 @@ VecH4 Blur_PS
             // TODO: Warning: these ignore UVClamp/UVInView
             if(GATHER)
             { 
-               Vec2  temp_uv=uv0+TemporalOffset;
-               Vec4  d=TexDepthRawGather(temp_uv);
-               VecH4 r=TexGatherR(ImgXY, temp_uv); // motion.x
-               VecH4 g=TexGatherG(ImgXY, temp_uv); // motion.y
+               Vec2  test_uv=uv0+TemporalOffset;
+               Vec4  d=TexDepthRawGather(test_uv);
+               VecH4 r=TexGatherR(ImgXY, test_uv); // motion.x
+               VecH4 g=TexGatherG(ImgXY, test_uv); // motion.y
 
                VecH2 test_uv_motion; Half test_len;
                if(1) // slower, higher quality. This improves blur on pixels around object (border). To verify improvement, set very low 'D.density', and rotate player+camera in TPP very fast left or right, object has to be fixed to the camera, and background rotating/blurry, you will see that this mode improves smoothness of object border pixels.
@@ -502,7 +502,7 @@ VecH4 Blur_PS
                   test_uv_motion=VecH2(r.w, g.w); test_len=Length2(test_uv_motion); if(DEPTH_SMALLER(d.w, base_depth) && test_len>base_uv_motion_len){base_depth=d.w; base_uv_motion=test_uv_motion ; base_uv_motion_len=test_len;}
             }else
             { // Warning: this ignores 'TemporalOffsetGatherIndex'
-               Vec2 test_uv=uv0-(TemporalOffset<0)*ImgSize.xy; // if TemporalOffset is negative, then move starting UV to negative too, need to use 'ImgSize' in case Depth RT size is different than target
+               Vec2 test_uv=uv0+TemporalOffsetStart;
                FAST_UNROLL for(Int y=0; y<=1; y++)
                FAST_UNROLL for(Int x=0; x<=1; x++)
                {

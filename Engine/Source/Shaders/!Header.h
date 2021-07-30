@@ -2401,3 +2401,8 @@ void SetDSPosNrm(out Vec pos, out Vec nrm, Vec pos0, Vec pos1, Vec pos2, Vec nrm
    }
 }
 /******************************************************************************/
+void TestDepth(inout Flt depth, Flt d, inout VecI2 ofs, VecI2 o)
+{
+   if(DEPTH_SMALLER(d, depth)){depth=d; ofs=o;}
+}
+/******************************************************************************/

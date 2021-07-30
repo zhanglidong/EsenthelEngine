@@ -188,11 +188,7 @@ void TestVel(VecH2 vel, VecH2 test_vel, inout Half max_delta_vel_len2)
    if(  delta_vel_len2>max_delta_vel_len2)max_delta_vel_len2=delta_vel_len2;
 }
 /******************************************************************************/
-void TestDepth(inout Flt depth, Flt d, inout VecI2 ofs, VecI2 o)
-{
-   if(DEPTH_SMALLER(d, depth)){depth=d; ofs=o;}
-}
-void NearestDepthRaw(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather) // get raw depth nearest to camera around 'uv' !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' for uv+ofs can be removed !!
+void NearestDepthRaw3x3(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather) // get raw depth nearest to camera around 'uv' !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' for uv+ofs can be removed !!
 {
    if(gather)
    {
@@ -217,9 +213,9 @@ void NearestDepthRaw(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather) // get 
       UNROLL for(Int x=-1; x<=1; x++)if(x || y)TestDepth(depth, TexDepthRawPointOfs(uv, VecI2(x, y)), ofs, VecI2(x, y));
    }
 }
-void NearestDepth(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather)
+void NearestDepth3x3(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather)
 {
-   NearestDepthRaw(depth, ofs, uv, gather);
+   NearestDepthRaw3x3(depth, ofs, uv, gather);
    depth=LinearizeDepth(depth);
 }
 /******************************************************************************/
@@ -242,8 +238,8 @@ void Temporal_PS
 {
    // GET DEPTH
    Flt depth; VecI2 ofs;
-   if(NEAREST_DEPTH_VEL)NearestDepthRaw(depth, ofs, uv, GATHER);
-   else                      depth=TexDepthRawPoint(uv);
+   if(NEAREST_DEPTH_VEL)NearestDepthRaw3x3(depth, ofs, uv, GATHER);
+   else                 depth=TexDepthRawPoint(uv);
 
    // GET VEL
    VecH2 vel=TexPoint(ImgXY, NEAREST_DEPTH_VEL ? UVInView(uv+ofs*ImgSize.xy, VIEW_FULL) : uv).xy;
@@ -331,13 +327,8 @@ void Temporal_PS
       VecH4 col=TexPoint(Img, sample_uv);
    #endif
       Half weight=cs.weight(x, y);
-      if(x==1 && y==0) // first is (1,0) because corners are skipped
-      {
-         cur=col*weight;
-      }else
-      {
-         cur+=col*weight;
-      }
+      if(x==1 && y==0)cur =col*weight; // first is (1,0) because corners are skipped
+      else            cur+=col*weight;
     //if(all(abs(uv_img_pixel-(cs_img_pixel+VecI2(x, y)))<      1.5)) // get min/max only from nearest 3x3 neighbors
       if(all(abs(sample_uv   -(uv                      ))<max_range)) // get min/max only from nearest 3x3 neighbors
       {

@@ -2782,6 +2782,7 @@ static void ChangedTemporal()
 
          Sh.TemporalOffset           =GetShaderParam   ("TemporalOffset");
          Sh.TemporalOffsetGatherIndex=GetShaderParamInt("TemporalOffsetGatherIndex");
+         Sh.TemporalOffsetStart      =GetShaderParam   ("TemporalOffsetStart");
          Sh.TemporalCurPixel         =GetShaderParamInt("TemporalCurPixel");
       }
       D.temporalReset();
