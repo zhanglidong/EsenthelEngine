@@ -574,9 +574,6 @@ void RendererClass::cleanup1()
       ctx.old_alpha=ctx.new_alpha; ctx.new_alpha.clear();
    #endif
       ctx.old_col  =ctx.new_col  ; ctx.new_col  .clear();
-   #if TEMPORAL_OLD_VEL
-      ctx.old_vel  =ctx.new_vel  ; ctx.new_vel  .clear();
-   #endif
       REPA(ctx.subs)
       {
          Context::Sub &sub=ctx.subs[i];
@@ -997,28 +994,22 @@ void RendererClass::temporalCheck() // needs to be called after RT and viewport 
 {
    if(hasTemporal())
    {
-      Vec2 offset, prev_offset;
+      Vec2 offset;
       if(_temporal_reset) // if doesn't have previous RT
       {
-         offset.zero(); prev_offset.zero(); // render at center
+         offset.zero(); // render at center
       }else
       {
-         auto frame=Unsigned(Time.frame()), prev_frame=Unsigned(Time.frame()-1);
+         auto frame=Unsigned(Time.frame());
          if(D.temporalSuperRes())
          {
             Byte i=TemporalSuperResIndex[frame%Elms(TemporalSuperResIndex)];
             Sh.TemporalCurPixel->set(TemporalSuperResIndexToOfsI(i));
-                 offset=TemporalSuperResOffsets[     frame%Elms(TemporalSuperResOffsets)];
-            prev_offset=TemporalSuperResOffsets[prev_frame%Elms(TemporalSuperResOffsets)];
-            if(D.temporalAntiAlias())
-            {
-                    offset+=TemporalAntiAliasOffsets[(     frame/Elms(TemporalSuperResIndex))%Elms(TemporalAntiAliasOffsets)]*0.5f;
-               prev_offset+=TemporalAntiAliasOffsets[(prev_frame/Elms(TemporalSuperResIndex))%Elms(TemporalAntiAliasOffsets)]*0.5f;
-            }
+            offset=TemporalSuperResOffsets[frame%Elms(TemporalSuperResOffsets)];
+            if(D.temporalAntiAlias())offset+=TemporalAntiAliasOffsets[(frame/Elms(TemporalSuperResIndex))%Elms(TemporalAntiAliasOffsets)]*0.5f;
          }else
          {
-                 offset=TemporalAntiAliasOffsets[     frame%Elms(TemporalAntiAliasOffsets)];
-            prev_offset=TemporalAntiAliasOffsets[prev_frame%Elms(TemporalAntiAliasOffsets)];
+            offset=TemporalAntiAliasOffsets[frame%Elms(TemporalAntiAliasOffsets)];
          }
       }
 
@@ -1028,10 +1019,7 @@ void RendererClass::temporalCheck() // needs to be called after RT and viewport 
         _temporal_use   =true;
         _temporal_offset=offset/viewport.size();
       Vec2 shader_offset=offset*mul;
-      Sh.TemporalOffset    ->set(shader_offset); // this always changes so don't use 'setConditional'
-   #if TEMPORAL_OLD_VEL
-      Sh.TemporalOffsetPrev->set(prev_offset*mul); // this always changes so don't use 'setConditional', 'prev_offset' because we're using this to access 'old_vel' texture from a previous frame that was not offseted, and "-offset" because we're comparing results to 'vel' accessed with 'inTex' instead of "inTex+TemporalOffset". We should be accessing "vel inTex+TemporalOffset" and "old_vel inTex+TemporalOffsetPrev", however we're accessing "vel inTex" so access "old_vel inTex+TemporalOffsetPrev-TemporalOffset"
-   #endif
+       Sh.TemporalOffset->set(shader_offset); // this always changes so don't use 'setConditional'
 
       /*Select index to point to the component as if we were accessing without TemporalOffset - TexPoint(uv)
         TEXTURE ACCESSING                 (Y^)
@@ -1143,14 +1131,7 @@ start:
          if(D.motionMode()==MOTION_CAMERA_OBJECT && hasMotion() // motion blur
          || hasTemporal())                                      // Temporal
             if(!mirror()) // not for reflections (there motion is disabled, and Temporal may be enabled so we can apply offsets, however we don't want velocity RT, also it would be set to 'new_vel' which we don't want)
-         {
-         #if TEMPORAL_OLD_VEL
-            if(!_ctx->new_vel)_ctx->new_vel.get(rt_desc.type(IMAGERT_TWO_H));
-           _vel=_ctx->new_vel;
-         #else
-           _vel.get(rt_desc.type(IMAGERT_TWO_H));
-         #endif
-         }
+              _vel.get(rt_desc.type(IMAGERT_TWO_H));
 
          const Bool merged_clear=true, // D.mergedClear() FIXME: TODO: workaround for Nvidia GeForce flickering bug - https://devtalk.nvidia.com/default/topic/1068770/directx-and-direct-compute/dx11-driver-bug-significant-flickering-on-geforce/
                      clear_nrm  =(NRM_CLEAR_START && NeedBackgroundNrm()),
@@ -1776,7 +1757,7 @@ void RendererClass::temporal() // !! assumes 'resolveMultiSample' was already ca
 
          if(merged_alpha)
          {
-            Sh.ImgXY[2]->set(_ctx->old_data ); // old data with alpha
+            Sh.ImgXY[1]->set(_ctx->old_data ); // old data with alpha
          }else
          {
             Sh.ImgX [1]->set(_ctx->old_data ); // old data
@@ -1786,9 +1767,6 @@ void RendererClass::temporal() // !! assumes 'resolveMultiSample' was already ca
             Sh.ImgX [0]->set(_alpha         ); // cur alpha
             Sh.Img  [1]->set(_ctx->old_col  ); // old
             Sh.ImgXY[0]->set(_vel           ); // velocity
-         #if TEMPORAL_OLD_VEL
-            Sh.ImgXY[1]->set(_ctx->old_vel  ); // old velocity
-         #endif
 
          Sh.imgSize(*_col); // this is needed for Cubic Sampler and SUPER
          Shader *shader=Sh.Temporal[D.temporalAntiAlias()+2*D.temporalSuperRes()-1][D._view_main.full][alpha];

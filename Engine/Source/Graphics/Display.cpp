@@ -2781,7 +2781,6 @@ static void ChangedTemporal()
             Sh.Temporal[mode][view_full][alpha]=sf.get(S+"Temporal"+mode+view_full+alpha+D.gatherChannelAvailable()/*+D.filterMinMaxAvailable()*/);
 
          Sh.TemporalOffset           =GetShaderParam   ("TemporalOffset");
-         Sh.TemporalOffsetPrev       =GetShaderParam   ("TemporalOffsetPrev");
          Sh.TemporalOffsetGatherIndex=GetShaderParamInt("TemporalOffsetGatherIndex");
          Sh.TemporalCurPixel         =GetShaderParamInt("TemporalCurPixel");
       }

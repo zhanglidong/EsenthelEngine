@@ -63,7 +63,6 @@ struct MainShaderClass
       *Viewport=&Dummy,
       *AspectRatio,
       *TemporalOffset,
-      *TemporalOffsetPrev,
       *DepthWeightScale=&Dummy,
 
       *ViewMatrix    =&Dummy,

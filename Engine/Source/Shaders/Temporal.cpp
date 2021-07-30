@@ -9,15 +9,12 @@ ImgSize=src
 
 Img=Cur (ImgSize), Img1=Old (RTSize), ImgXY=CurVel (ImgSize), Depth (ImgSize)
 
-TEMPORAL_OLD_VEL=1
-   ImgXY1=OldVel (ImgSize)
-
 ALPHA=0
    ImgX1=Flicker
 ALPHA=1
    ImgX=CurAlpha (ImgSize)
       MERGED_ALPHA=1
-         ImgXY2=Alpha, Flicker
+         ImgXY1=Alpha, Flicker
       SEPARATE_ALPHA=1
          ImgX1=Flicker
          ImgX2=Old Alpha
@@ -257,7 +254,7 @@ void Temporal_PS
    // OLD DATA (WEIGHT + FLICKER + ALPHA)
    Half  old_weight=1;
 #if MERGED_ALPHA
-   VecH2 old_data=TexLod(ImgXY2, old_tex);
+   VecH2 old_data =TexLod(ImgXY1, old_tex);
    Half  old_alpha=old_data.x, old_flicker=old_data.y;
 #else
    Half  old_flicker=TexLod(ImgX1, old_tex);
@@ -273,38 +270,6 @@ void Temporal_PS
       old_flicker=0;
    #endif
    }
-
-   // OLD VEL TEST
-#if TEMPORAL_OLD_VEL // if old velocity is different then ignore old, !! TODO: Warning: this ignores VIEW_FULL !!
-   Vec2 old_tex_vel=old_tex+TemporalOffsetPrev;
-   Half max_delta_vel_len2=0;
-   #if GATHER
-      TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2(-1,  1)).xy, max_delta_vel_len2); // -1,  1,  left-top
-      TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2( 1, -1)).xy, max_delta_vel_len2); //  1, -1, right-bottom
-      old_tex_vel-=(SUPER ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
-      VecH4 r=TexGatherR(ImgXY1, old_tex_vel); // get -1,-1 to 0,0 texels
-      VecH4 g=TexGatherG(ImgXY1, old_tex_vel); // get -1,-1 to 0,0 texels
-      TestVel(vel, VecH2(r.x, g.x), max_delta_vel_len2);
-      TestVel(vel, VecH2(r.y, g.y), max_delta_vel_len2);
-      TestVel(vel, VecH2(r.z, g.z), max_delta_vel_len2);
-      TestVel(vel, VecH2(r.w, g.w), max_delta_vel_len2);
-      r=TexGatherROfs(ImgXY1, old_tex_vel, VecI2(1, 1)); // get 0,0 to 1,1 texels
-      g=TexGatherGOfs(ImgXY1, old_tex_vel, VecI2(1, 1)); // get 0,0 to 1,1 texels
-      TestVel(vel, VecH2(r.x, g.x), max_delta_vel_len2);
-      TestVel(vel, VecH2(r.y, g.y), max_delta_vel_len2);
-      TestVel(vel, VecH2(r.z, g.z), max_delta_vel_len2);
-    //TestVel(vel, VecH2(r.w, g.w), max_delta_vel_len2); already processed
-   #else
-      UNROLL for(Int y=-1; y<=1; y++)
-      UNROLL for(Int x=-1; x<=1; x++)
-         TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2(x, y)).xy, max_delta_vel_len2);
-   #endif
-#endif
-
- /* test current velocities, skip because didn't help
-   UNROLL for(Int y=-1; y<=1; y++)
-   UNROLL for(Int x=-1; x<=1; x++)if(x || y)
-      TestVel(vel, TexPointOfs(ImgXY, uv, VecI2(x, y)).xy, max_delta_vel_len2);*/
 
    // OLD COLOR
    CubicFastSampler cs;
@@ -491,9 +456,33 @@ void Temporal_PS
 }
 #endif
 
-   // when there are pixels moving in different directions fast, then reduce old weight
+   // expect old position to be moving with the same motion as this pixel, if not then reduce old weight !! TODO: Warning: this ignores VIEW_FULL !!
+   Half max_delta_vel_len2=0;
+   Vec2 vel_uv=UVInView(cur_tex+vel, VIEW_FULL);
+#if GATHER
+   TestVel(vel, TexPointOfs(ImgXY, vel_uv, VecI2(-1,  1)).xy, max_delta_vel_len2); // -1,  1,  left-top
+   TestVel(vel, TexPointOfs(ImgXY, vel_uv, VecI2( 1, -1)).xy, max_delta_vel_len2); //  1, -1, right-bottom
+   vel_uv-=(SUPER ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
+   VecH4 r=TexGatherR(ImgXY, vel_uv); // get -1,-1 to 0,0 texels
+   VecH4 g=TexGatherG(ImgXY, vel_uv); // get -1,-1 to 0,0 texels
+   TestVel(vel, VecH2(r.x, g.x), max_delta_vel_len2);
+   TestVel(vel, VecH2(r.y, g.y), max_delta_vel_len2);
+   TestVel(vel, VecH2(r.z, g.z), max_delta_vel_len2);
+   TestVel(vel, VecH2(r.w, g.w), max_delta_vel_len2);
+   r=TexGatherROfs(ImgXY, vel_uv, VecI2(1, 1)); // get 0,0 to 1,1 texels
+   g=TexGatherGOfs(ImgXY, vel_uv, VecI2(1, 1)); // get 0,0 to 1,1 texels
+   TestVel(vel, VecH2(r.x, g.x), max_delta_vel_len2);
+   TestVel(vel, VecH2(r.y, g.y), max_delta_vel_len2);
+   TestVel(vel, VecH2(r.z, g.z), max_delta_vel_len2);
+ //TestVel(vel, VecH2(r.w, g.w), max_delta_vel_len2); already processed
+#else
+   UNROLL for(Int y=-1; y<=1; y++)
+   UNROLL for(Int x=-1; x<=1; x++)
+      TestVel(vel, TexPointOfs(ImgXY, vel_uv, VecI2(x, y)).xy, max_delta_vel_len2);
+#endif
    Half max_delta_vel_len=Sqrt(max_delta_vel_len2),
         blend_move=Sat(1-max_delta_vel_len/VEL_EPS);
+
 #if DUAL_HISTORY
    if(blend_move<=0)old_weight=0; // for DUAL_HISTORY 'old_weight' affects 'old' and 'old1' in a special way, so can't just modify it easily
 #else

@@ -282,8 +282,8 @@ private:
 
          Sub();
       };
-      ImageRTPtr      old_data, old_alpha, old_col, old_vel,
-                      new_data, new_alpha, new_col, new_vel;
+      ImageRTPtr      old_data, old_alpha, old_col,
+                      new_data, new_alpha, new_col;
       Map<RectI, Sub> subs;
    };
    RENDER_TYPE           _type, _cur_type;
