@@ -76,7 +76,7 @@ ALPHA=1
    #include "Cubic.h"
 #endif
 
-#define MERGE_CUBIC_MIN_MAX 0 // Actually disable since it causes ghosting (visible when rotating camera around a character in the dungeons, perhaps range for MIN MAX can't be big), enable since this version is slightly better because: uses 12 tex reads (4*4 -4 corners), uses 12 samples for MIN/MAX which reduces flickering a bit, however has a lot more arithmetic calculations because of min/max x12 and each sample color is multiplied by weight separately
+#define MERGE_CUBIC_MIN_MAX 1 // enable since this version is slightly better because: uses 12 tex reads (4*4 -4 corners), uses 12 samples for MIN/MAX which reduces flickering a bit, however has a lot more arithmetic calculations because of min/max x12 and each sample color is multiplied by weight separately
 
 #define DUAL_ADJUST_OLD 1
 /******************************************************************************/
@@ -344,31 +344,40 @@ void Temporal_PS
 #endif
 
 #if CUBIC && MERGE_CUBIC_MIN_MAX // merged CUBIC with MIN MAX
+{
+#if YCOCG
+   ycocg_min= HALF_MAX;
+   ycocg_max=-HALF_MAX;
+#else
+   col_min= HALF_MAX;
+   col_max=-HALF_MAX;
+#endif
+   Vec2 uv_img_pixel=cs.pixel(uv      , ImgSize);
+   Vec2 cs_img_pixel=cs.pixel(cs.tc[0], ImgSize);
+   Vec2 max_range=ImgSize.xy*1.5; // this is ok for SUPER too
    UNROLL for(Int y=0; y<4; y++)
    UNROLL for(Int x=0; x<4; x++)
       if((x!=0 && x!=3) || (y!=0 && y!=3)) // skip corners
    {
+      Vec2 sample_uv=cs.uv(x, y);
    #if VIEW_FULL
       VecH4 col=TexPointOfs(Img, cs.tc[0], VecI2(x, y));
    #else
-      VecH4 col=TexPoint(Img, cs.uv(x, y));
-   #endif
-   #if YCOCG
-      VecH4 ycocg=RGBToYCoCg4(col);
+      VecH4 col=TexPoint(Img, sample_uv);
    #endif
       Half weight=cs.weight(x, y);
       if(x==1 && y==0) // first is (1,0) because corners are skipped
       {
          cur=col*weight;
-      #if YCOCG
-         ycocg_min=ycocg_max=ycocg;
-      #else
-         col_min=col_max=col;
-      #endif
       }else
       {
          cur+=col*weight;
+      }
+    //if(all(abs(uv_img_pixel-(cs_img_pixel+VecI2(x, y)))<      1.5)) // get min/max only from nearest 3x3 neighbors
+      if(all(abs(sample_uv   -(uv                      ))<max_range)) // get min/max only from nearest 3x3 neighbors
+      {
       #if YCOCG
+         VecH4 ycocg=RGBToYCoCg4(col);
          ycocg_min=Min(ycocg_min, ycocg);
          ycocg_max=Max(ycocg_max, ycocg);
       #else
@@ -393,7 +402,9 @@ void Temporal_PS
       }
    }*/
    cur=Max(VecH4(0,0,0,0), cur); // use Max(0) because of cubic sharpening potentially giving negative values
+}
 #else // this version uses 5 tex reads for CUBIC and 8 (or 9 if FILTER_MIN_MAX unavailable) tex reads for MIN MAX (13 total)
+{
    #if CUBIC
       cur=Max(VecH4(0,0,0,0), cs.tex(Img)); // use Max(0) because of cubic sharpening potentially giving negative values
    #else
@@ -477,6 +488,7 @@ void Temporal_PS
       }
    }
    #endif
+}
 #endif
 
    // when there are pixels moving in different directions fast, then reduce old weight
