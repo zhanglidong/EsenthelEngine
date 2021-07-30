@@ -59,7 +59,7 @@ ALPHA=1
 #define FLICKER_WEIGHT 0 // if flicker should be affected by weight (disable because if enabled then a lot of pixels at the screen edge get marked as flickering when rotating the camera)
 #define FLICKER_EPS    0.2 // this is value for color distance ~0..1 in sRGB gamma (lower numbers increase detection of flicker, higher numbers decrease detection of flicker), 0.2 was the smallest value that didn't cause noticable artifacts/blurriness on a particle fire effect
 
-#define YCOCG 1 // this greatly reduces ghosting
+#define YCOCG 0 // this reduces ghosting, however increases flickering in certain cases (high contrast black and white, seen on "UID(2793579270, 1288897959, 2826231732, 169976521)" model)
 #if     YCOCG
    #define FILTER_MIN_MAX 0 // can't use FILTER_MIN_MAX with YCOCG
 #endif
@@ -230,14 +230,14 @@ void Temporal_PS
    NOPERSP PIXEL,
 #endif
  #if MERGED_ALPHA
-    out VecH2 outData  :TARGET0,
+    out VecH2 outData :TARGET0,
  #else
-    out Half  outData  :TARGET0,
+    out Half  outData :TARGET0,
  #endif
  #if SEPARATE_ALPHA
-    out Half  outAlpha :TARGET1,
+    out Half  outAlpha:TARGET1,
  #endif
-    out VecH4 outCol   :TARGET2
+    out VecH4 outCol  :TARGET2
 )
 {
    // GET DEPTH
