@@ -664,8 +664,8 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       REPD(view_full     , 2)
       REPD(alpha         , 2)
       REPD(gather        , 2)
-      REPD(filter_min_max, 2)
-         src.New("Temporal", "DrawUV_VS", "Temporal_PS")("MODE", mode, "VIEW_FULL", view_full, "ALPHA", alpha, "GATHER", gather, "FILTER_MIN_MAX", filter_min_max).gatherChannel(gather);
+    //REPD(filter_min_max, 2)
+         src.New("Temporal", "DrawUV_VS", "Temporal_PS")("MODE", mode, "VIEW_FULL", view_full, "ALPHA", alpha, "GATHER", gather/*, "FILTER_MIN_MAX", filter_min_max*/).gatherChannel(gather);
 }
 #endif
 

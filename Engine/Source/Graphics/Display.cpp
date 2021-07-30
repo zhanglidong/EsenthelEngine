@@ -2778,7 +2778,7 @@ static void ChangedTemporal()
          REPD(mode     , 3)
          REPD(view_full, 2)
          REPD(alpha    , 2)
-            Sh.Temporal[mode][view_full][alpha]=sf.get(S+"Temporal"+mode+view_full+alpha+D.gatherChannelAvailable()+D.filterMinMaxAvailable());
+            Sh.Temporal[mode][view_full][alpha]=sf.get(S+"Temporal"+mode+view_full+alpha+D.gatherChannelAvailable()/*+D.filterMinMaxAvailable()*/);
 
          Sh.TemporalOffset           =GetShaderParam   ("TemporalOffset");
          Sh.TemporalOffsetPrev       =GetShaderParam   ("TemporalOffsetPrev");
