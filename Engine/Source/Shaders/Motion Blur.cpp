@@ -557,18 +557,62 @@ VecH4 Blur_PS
             uv1+=dir.zw;
 
             // need to disable filtering to avoid ghosting on borders
-            VecH2 sample0_uv_motion=TexPoint(ImgXY, uv0).xy; Flt sample0_depth=TexDepthPoint(uv0); // Tex in case src is super sampled
-            VecH2 sample1_uv_motion=TexPoint(ImgXY, uv1).xy; Flt sample1_depth=TexDepthPoint(uv1); // Tex in case src is super sampled
+            Flt   sample0_depth    , sample1_depth;
+            VecH2 sample0_uv_motion, sample1_uv_motion;
+            Pixel p0               , p1;
+            if(TEMPORAL) // in Temporal the color RT is already adjusted by UV (to be always the same each frame), but depth and motion RT's are jittered every frame, which gives inconsistency between color and DepthMotion.
+            {  // to workaround this problem, DepthMotion are taken from the pixel that's closest to camera
+               Vec2 aligned_uv0=(Floor(uv0*ImgSize.zw)+0.5)*ImgSize.xy; // have to align to exact center of the texel
+               Vec2 aligned_uv1=(Floor(uv1*ImgSize.zw)+0.5)*ImgSize.xy; // have to align to exact center of the texel
+               p0.set(aligned_uv0, false); // here can't use filtering because we need precise per-pixel data to avoid leaking
+               p1.set(aligned_uv1, false); // here can't use filtering because we need precise per-pixel data to avoid leaking
+            #if GATHER
+               Vec4 d0=TexDepthRawGather(aligned_uv0+TemporalOffset);
+               Vec4 d1=TexDepthRawGather(aligned_uv1+TemporalOffset);
+            #endif
+               Vec2 test_uv0=aligned_uv0+TemporalOffsetStart;
+               Vec2 test_uv1=aligned_uv1+TemporalOffsetStart;
+               VecI2 ofs0=0, ofs1=0;
+            #if GATHER
+            /* TEXTURE ACCESSING                 (Y^)
+               GATHER returns in following order: V1 X  Y
+                                                  V0 W  Z
+                                                   + U0 U1 (X>) */
+                         sample0_depth= d0.w;    // VecI2(0, 0)
+               TestDepth(sample0_depth, d0.x, ofs0, VecI2(0, 1));
+               TestDepth(sample0_depth, d0.y, ofs0, VecI2(1, 1));
+               TestDepth(sample0_depth, d0.z, ofs0, VecI2(1, 0));
+
+                         sample1_depth= d1.w;    // VecI2(0, 0)
+               TestDepth(sample1_depth, d1.x, ofs1, VecI2(0, 1));
+               TestDepth(sample1_depth, d1.y, ofs1, VecI2(1, 1));
+               TestDepth(sample1_depth, d1.z, ofs1, VecI2(1, 0));
+            #else
+               sample0_depth=TexDepthRawPoint(test_uv0);
+               sample1_depth=TexDepthRawPoint(test_uv1);
+               FAST_UNROLL for(Int y=0; y<=1; y++)
+               FAST_UNROLL for(Int x=0; x<=1; x++)if(x || y) // skip (0,0) we already have it
+               {
+                  VecI2 ofs=VecI2(x, y);
+                  Flt d=TexDepthRawPointOfs(test_uv0, ofs); if(DEPTH_SMALLER(d, sample0_depth)){sample0_depth=d; ofs0=ofs;}
+                      d=TexDepthRawPointOfs(test_uv1, ofs); if(DEPTH_SMALLER(d, sample1_depth)){sample1_depth=d; ofs1=ofs;}
+               }
+            #endif
+               sample0_depth=LinearizeDepth(sample0_depth); sample0_uv_motion=TexPoint(ImgXY, test_uv0+ofs0*ImgSize.xy);
+               sample1_depth=LinearizeDepth(sample1_depth); sample1_uv_motion=TexPoint(ImgXY, test_uv1+ofs1*ImgSize.xy);
+            }else
+            {
+               p0.set(uv0, false); // here can't use filtering because we need precise per-pixel data to avoid leaking
+               p1.set(uv1, false); // here can't use filtering because we need precise per-pixel data to avoid leaking
+               sample0_uv_motion=TexPoint(ImgXY, uv0).xy; sample0_depth=TexDepthPoint(uv0); // Tex in case src is super sampled
+               sample1_uv_motion=TexPoint(ImgXY, uv1).xy; sample1_depth=TexDepthPoint(uv1); // Tex in case src is super sampled
+            }
 
             Half sample0_uv_motion_len=UVMotionLength(sample0_uv_motion);
             Half sample1_uv_motion_len=UVMotionLength(sample1_uv_motion);
 
             VecH2 w0=SampleWeight(base_depth, sample0_depth, base_uv_motion_len, sample0_uv_motion_len, uv_motion_len_to_step0, step0); w0.x*=UVInsideView(uv0);
             VecH2 w1=SampleWeight(base_depth, sample1_depth, base_uv_motion_len, sample1_uv_motion_len, uv_motion_len_to_step1, step1); w1.x*=UVInsideView(uv1);
-
-            Pixel p0, p1;
-            p0.set(uv0, false); // here can't use filtering because we need precise per-pixel data to avoid leaking
-            p1.set(uv1, false); // here can't use filtering because we need precise per-pixel data to avoid leaking
 
             if(PRECISE)
             {
