@@ -570,8 +570,8 @@ VecH4 Blur_PS
                Vec4 d0=TexDepthRawGather(aligned_uv0+TemporalOffset);
                Vec4 d1=TexDepthRawGather(aligned_uv1+TemporalOffset);
             #endif
-               Vec2 test_uv0=aligned_uv0+TemporalOffsetStart;
-               Vec2 test_uv1=aligned_uv1+TemporalOffsetStart;
+               Vec2 test_uv0=aligned_uv0+TemporalOffsetStart; // this will be used for TexPoint
+               Vec2 test_uv1=aligned_uv1+TemporalOffsetStart; // this will be used for TexPoint
                VecI2 ofs0=0, ofs1=0;
             #if GATHER
             /* TEXTURE ACCESSING                 (Y^)
