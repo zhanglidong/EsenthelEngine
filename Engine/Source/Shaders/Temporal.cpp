@@ -62,7 +62,7 @@ ALPHA=1
 #define FLICKER_WEIGHT 0 // if flicker should be affected by weight (disable because if enabled then a lot of pixels at the screen edge get marked as flickering when rotating the camera)
 #define FLICKER_EPS    0.2 // this is value for color distance ~0..1 in sRGB gamma (lower numbers increase detection of flicker, higher numbers decrease detection of flicker), 0.2 was the smallest value that didn't cause noticable artifacts/blurriness on a particle fire effect
 
-#define YCOCG 0 // disable because didn't improve quality much and it also prevents FILTER_MIN_MAX
+#define YCOCG 1 // this greatly reduces ghosting
 #if     YCOCG
    #define FILTER_MIN_MAX 0 // can't use FILTER_MIN_MAX with YCOCG
 #endif
