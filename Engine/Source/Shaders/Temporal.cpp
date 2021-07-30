@@ -272,9 +272,9 @@ void Temporal_PS
    }
 
    // OLD COLOR
-   CubicFastSampler cs;
    VecH4 old, old1;
 #if CUBIC
+      CubicFastSampler cs;
       cs.set(old_tex, RTSize); if(!VIEW_FULL)cs.UVClamp(ImgClamp.xy, ImgClamp.zw); // here do clamping because for CUBIC we check many samples around texcoord
       old =Max(VecH4(0,0,0,0), cs.tex(Img1)); // use Max(0) because of cubic sharpening potentially giving negative values
    #if DUAL_HISTORY
