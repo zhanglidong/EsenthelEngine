@@ -1028,9 +1028,9 @@ void RendererClass::temporalCheck() // needs to be called after RT and viewport 
         _temporal_use   =true;
         _temporal_offset=offset/viewport.size();
       Vec2 shader_offset=offset*mul;
-      Sh.TemporalOffset         ->set(shader_offset); // this always changes so don't use 'setConditional'
+      Sh.TemporalOffset    ->set(shader_offset); // this always changes so don't use 'setConditional'
    #if TEMPORAL_OLD_VEL
-      Sh.TemporalOffsetCurToPrev->set((prev_offset-offset)*mul); // this always changes so don't use 'setConditional', 'prev_offset' because we're using this to access 'old_vel' texture from a previous frame that was not offseted, and "-offset" because we're comparing results to 'vel' accessed with 'inTex' instead of "inTex+TemporalOffset". We should be accessing "vel inTex+TemporalOffset" and "old_vel inTex+TemporalOffsetPrev", however we're accessing "vel inTex" so access "old_vel inTex+TemporalOffsetPrev-TemporalOffset"
+      Sh.TemporalOffsetPrev->set(prev_offset*mul); // this always changes so don't use 'setConditional', 'prev_offset' because we're using this to access 'old_vel' texture from a previous frame that was not offseted, and "-offset" because we're comparing results to 'vel' accessed with 'inTex' instead of "inTex+TemporalOffset". We should be accessing "vel inTex+TemporalOffset" and "old_vel inTex+TemporalOffsetPrev", however we're accessing "vel inTex" so access "old_vel inTex+TemporalOffsetPrev-TemporalOffset"
    #endif
 
       /*Select index to point to the component as if we were accessing without TemporalOffset - TexPoint(uv)

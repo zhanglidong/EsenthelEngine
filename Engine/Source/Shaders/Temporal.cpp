@@ -276,7 +276,7 @@ void Temporal_PS
 
    // OLD VEL TEST
 #if TEMPORAL_OLD_VEL // if old velocity is different then ignore old, !! TODO: Warning: this ignores VIEW_FULL !!
-   Vec2 old_tex_vel=old_tex+TemporalOffsetCurToPrev;
+   Vec2 old_tex_vel=old_tex+TemporalOffsetPrev;
    Half max_delta_vel_len2=0;
    #if GATHER
       TestVel(vel, TexPointOfs(ImgXY1, old_tex_vel, VecI2(-1,  1)).xy, max_delta_vel_len2); // -1,  1,  left-top
@@ -559,7 +559,7 @@ void Temporal_PS
 #endif
    Half cur_weight=1-old_weight; // old_weight+cur_weight=1
 
-   #if YCOCG && 0
+   #if YCOCG && 0 // not needed, blend with RGB works similar or the same
               outCol=VecH4(YCoCg4ToRGB(ycocg_old*old_weight + ycocg_cur*cur_weight), old.a*old_weight + cur.a*cur_weight);
    #else
               outCol=old      *old_weight + cur      *cur_weight;
