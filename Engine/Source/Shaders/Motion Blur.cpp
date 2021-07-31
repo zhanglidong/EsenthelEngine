@@ -70,7 +70,7 @@ Half  ScreenLength2(VecH2 uv) {return Length2(UVToScreen(uv));}
 VecH2 GetMotionCameraOnly(Vec view_pos, Vec2 uv)
 {
    Vec view_pos_prev=Transform(view_pos, ViewToViewPrev); // view_pos/ViewMatrix*ViewMatrixPrev
-   return PosToUV(view_pos_prev) - uv;
+   return PosToUV(view_pos_prev) - uv; // prev-cur #MotionDir
 }
 void SetVel_VS(VtxInput vtx,
     NOPERSP out Vec2 uv   :UV,
