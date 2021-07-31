@@ -428,22 +428,22 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_gl
    Flt         scale=Flt(convert_src.y)/res.y;
    Int         shift=Log2Round(RoundU(scale)); // Int shift=Round(Log2(scale)); 0=full-res, 1=half, 2=quarter, 3=1/8, 4=1/16, 5=1/32 (this value is unclamped)
    ImageRTDesc rt_desc(res.x, res.y, IMAGERT_RGBA_H); // XY=biggest motion, ZW=smallest motion
-   ImageRTPtr  small_motion(rt_desc);
+   ImageRTPtr  dilated_motion(rt_desc);
    Vec2        pixel_size;
    Int         dilate_pixels=DivCeil((UInt)rt_desc.size.y, (UInt)5*2); // dilate up to 20% of the screen vertically (this is the max amount of blur length, *2 because we blur both ways) #MaxMotionBlurLength
  C auto       *dilate=&Mtn.getDilate(dilate_pixels);
    Shader     *shader= Mtn.getConvert(shift); // 'shift' is clamped in this function
    Rect        rect, *rect_ptr=null;
 
-   set(small_motion, null, false);
+   set(dilated_motion, null, false);
    Sh.ImgXY[0]->set(_vel);
    Sh.imgSize(convert_src); // need to have full-res size
 
    /*ComputeShader *cs=Mtn.shader->computeFind(S8+"Convert"+(1<<shift)); 'shift' is unclamped
-   if(cs && small_motion->hasUAV() && Kb.ctrl())
+   if(cs && dilated_motion->hasUAV() && Kb.ctrl())
    {
       need to set viewport min+size
-      Sh.RWImg->set(small_motion);
+      Sh.RWImg->set(dilated_motion);
       cs->compute(rt_desc.size);
    }else*/
    if(D._view_main.full)REPS(_eye, _eye_num)
@@ -452,14 +452,14 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_gl
       shader->draw(eye_rect);
    }else // when not rendering entire viewport
    {
-      pixel_size=pixelToScreenSize(1); // call this after setting new RT to get 'small_motion' size, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
+      pixel_size=pixelToScreenSize(1); // call this after setting new RT to get 'dilated_motion' size, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
        rect_ptr =&(rect=D.viewRect()).extend(pixel_size); // extend by 1 pixel because this will be used in full-res blur with texture filtering
 
                    rect_ptr->drawBorder(Vec4Zero, pixel_size*dilate->range); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
       shader->draw(rect_ptr); // convert after drawing border
    }
 
-   if(stage==RS_VEL_CONVERT && show(small_motion, false, true))return true;
+   if(stage==RS_VEL_CONVERT && show(dilated_motion, false, true))return true;
 
    // Dilate
    if(dilate_pixels>0)
@@ -474,11 +474,11 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_gl
       set(next, null, false);
       if(rect_ptr && next_dilate) // if not full viewport, and there's a next dilate
          rect_ptr->drawBorder(Vec4Zero, pixel_size*next_dilate->range); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
-      dilate->Dilate->draw(small_motion, rect_ptr); // dilate after drawing border
-      Swap(small_motion, next);
+      dilate->Dilate->draw(dilated_motion, rect_ptr); // dilate after drawing border
+      Swap(dilated_motion, next);
       if(next_dilate){next->discard(); dilate=next_dilate; goto again;}
    }
-   if(stage==RS_VEL_DILATED && show(small_motion, false, true))return true;
+   if(stage==RS_VEL_DILATED && show(dilated_motion, false, true))return true;
 
    #if DEBUG && 0 // test UV CLAMP
    {
@@ -492,7 +492,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_gl
       Sh.BloomParams->setConditional(Vec4(D.bloomOriginal(), D.bloomScale(), D.bloomAdd(), D.bloomGlow()));
       bloom_glow.get(ImageRTDesc(dest.w(), dest.h(), IMAGERT_SRGB));
    }
-   Sh.Img [1]->set(small_motion);
+   Sh.Img [1]->set(dilated_motion);
    Sh.ImgX[0]->set(_alpha);
    Sh.ImgX[1]->set(adapt_eye);
    Sh.imgSize(*_ds);
