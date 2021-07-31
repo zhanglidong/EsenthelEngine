@@ -2246,6 +2246,13 @@ void RendererClass::postProcess()
             Sh.imgSize(*_col); shader=Sh.DrawTexCubicFastF[alpha][dither]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
          break;
 
+         case FILTER_CUBIC_PLUS      :
+         case FILTER_CUBIC_PLUS_SHARP:
+            swap_srgb=(gamma && _col->canSwapSRV() && dest->canSwapRTV()); if(swap_srgb){gamma=false; _col->swapSRV(); dest->swapRTV();} // do just one gamma instead of in/out, to avoid having to do expensive gamma conversion in the shader
+            pixels=3+1; // 3 for filtering + 1 for borders
+            Sh.imgSize(*_col); Sh.loadCubicShaders(); shader=Sh.DrawTexCubicPlusF[alpha][dither][gamma]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
+         break;
+
          case FILTER_BEST :
          case FILTER_WAIFU: // fall back to best available shader (EASU)
          case FILTER_EASU :
@@ -2281,13 +2288,6 @@ void RendererClass::postProcess()
             _col->swapSRGB();
             Swap(_col, dest);*/
          }break;
-
-         case FILTER_CUBIC_PLUS      :
-         case FILTER_CUBIC_PLUS_SHARP:
-            swap_srgb=(gamma && _col->canSwapSRV() && dest->canSwapRTV()); if(swap_srgb){gamma=false; _col->swapSRV(); dest->swapRTV();} // do just one gamma instead of in/out, to avoid having to do expensive gamma conversion in the shader
-            pixels=3+1; // 3 for filtering + 1 for borders
-            Sh.imgSize(*_col); Sh.loadCubicShaders(); shader=Sh.DrawTexCubicPlusF[alpha][dither][gamma]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
-         break;
       }
       if(!shader)shader=Sh.Draw[alpha][dither];
       if(!D._view_main.full)
