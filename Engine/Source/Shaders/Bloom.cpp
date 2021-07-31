@@ -35,7 +35,7 @@ void BloomDS_VS(VtxInput vtx,
 #if ADAPT_EYE
    bloom_scale=BloomScale()*ImgX1[VecI2(0, 0)];
 #endif
-   uv   =vtx.uv (); if(GLOW)uv-=ImgSize.xy*Vec2(HALF_RES ? 0.5 : 1.5, HALF_RES ? 0.5 : 1.5);
+   uv   =vtx.uv  (); if(GLOW)uv-=ImgSize.xy*Vec2(HALF_RES ? 0.5 : 1.5, HALF_RES ? 0.5 : 1.5);
    pixel=vtx.pos4();
 }
 

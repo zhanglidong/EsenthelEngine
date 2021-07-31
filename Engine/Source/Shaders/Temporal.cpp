@@ -1,20 +1,21 @@
 /******************************************************************************/
 #include "!Header.h"
 #include "Temporal.h"
+#include "Motion Blur.h"
 /******************************************************************************
 MODE, VIEW_FULL, ALPHA, DUAL_HISTORY, GATHER, FILTER_MIN_MAX
 
 ImgSize=src
  RTSize=dest (is 2x bigger for SUPER)
 
-Img=Cur (ImgSize), Img1=Old (RTSize), ImgXY=CurVel (ImgSize), Depth (ImgSize)
+Img=CurCol (ImgSize), Img1=OldCol (RTSize), ImgXY=CurVel (ImgSize), ImgXY1=CurDilatedMotion (small res), Depth (ImgSize)
 
 ALPHA=0
    ImgX1=Flicker
 ALPHA=1
    ImgX=CurAlpha (ImgSize)
       MERGED_ALPHA=1
-         ImgXY1=Alpha, Flicker
+         ImgXY2=Alpha, Flicker
       SEPARATE_ALPHA=1
          ImgX1=Flicker
          ImgX2=Old Alpha
@@ -237,21 +238,22 @@ void Temporal_PS
 )
 {
    // GET DEPTH
-   Flt depth; VecI2 ofs;
-   if(NEAREST_DEPTH_VEL)NearestDepthRaw3x3(depth, ofs, uv, GATHER);
-   else                 depth=TexDepthRawPoint(uv);
+   Flt depth_raw; VecI2 ofs;
+   if(NEAREST_DEPTH_VEL)NearestDepthRaw3x3(depth_raw, ofs, uv, GATHER);
+   else                 depth_raw=TexDepthRawPoint(uv);
+   Flt depth=LinearizeDepth(depth_raw);
 
    // GET VEL
    Vec2  vel_uv=NEAREST_DEPTH_VEL ? UVInView(uv+ofs*ImgSize.xy, VIEW_FULL) : uv;
    VecH2 vel=TexPoint(ImgXY, vel_uv).xy;
 
    Vec2 cur_uv=uv+TemporalOffset,
-        old_uv=uv+vel; // #MotionDir
+        old_uv=uv-vel; // #MotionDir
 
    // OLD DATA (WEIGHT + FLICKER + ALPHA)
    Half  old_weight=1;
 #if MERGED_ALPHA
-   VecH2 old_data =TexLod(ImgXY1, old_uv);
+   VecH2 old_data =TexLod(ImgXY2, old_uv);
    Half  old_alpha=old_data.x, old_flicker=old_data.y;
 #else
    Half  old_flicker=TexLod(ImgX1, old_uv);
@@ -450,7 +452,7 @@ void Temporal_PS
 
    // expect old position to be moving with the same motion as this pixel, if not then reduce old weight !! TODO: Warning: this ignores VIEW_FULL !!
    Half max_delta_vel_len2=0;
-   Vec2 old_vel_uv=UVInView(vel_uv+vel, VIEW_FULL); // #MotionDir FIXME 'uv', 'cur_uv' or 'vel_uv' ?
+   Vec2 old_vel_uv=UVInView(vel_uv-vel, VIEW_FULL); // #MotionDir FIXME 'uv', 'cur_uv' or 'vel_uv' ?
 #if GATHER
    TestVel(vel, TexPointOfs(ImgXY, old_vel_uv, VecI2(-1,  1)).xy, max_delta_vel_len2); // -1,  1,  left-top
    TestVel(vel, TexPointOfs(ImgXY, old_vel_uv, VecI2( 1, -1)).xy, max_delta_vel_len2); //  1, -1, right-bottom
@@ -496,7 +498,7 @@ void Temporal_PS
 
    // update flicker
    Half new_flicker;
-   if(DEPTH_FOREGROUND(depth))
+   if(DEPTH_FOREGROUND(depth_raw))
    {
       // calculate difference between 'old' and 'cur'
       Half difference=Dist(LinearToSRGBFast(old.rgb), LinearToSRGBFast(cur.rgb)); // it's better to use 'Dist' rather than 'Dist2', because it will prevent smooth changes from particles (like fire effect) being reported as flickering (if fire is reported as flickering then it will look very blurry)

@@ -1086,6 +1086,9 @@
     <ClInclude Include="Source\Shaders\Temporal.h">
       <Filter>Source\Shaders</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Shaders\Motion Blur.h">
+      <Filter>Source\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

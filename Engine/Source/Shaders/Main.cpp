@@ -487,21 +487,18 @@ VecH4 PaletteDraw_PS(NOPERSP Vec2 uv   :UV,
 }
 /******************************************************************************/
 void ClearDeferred_VS(VtxInput vtx,
-          NOPERSP out Vec2  uv                    :UV,
-          NOPERSP out Vec   projected_prev_pos_xyw:PREV_POS,
-          NOPERSP out Vec4  pixel                 :POSITION)
+   NOPERSP out Vec  projected_prev_pos_xyw:PREV_POS,
+   NOPERSP out Vec4 pixel                 :POSITION)
 {
-   uv=vtx.uv();
-
    Vec view_pos=Vec(UVToPosXY(vtx.uv()), 1); // no need to normalize
    Vec prev_pos=Transform3(view_pos, ViewToViewPrev); // view_pos/ViewMatrix*ViewMatrixPrev, use 'Transform3' to rotate only (angular velocity) and skip movement (linear velocity)
    projected_prev_pos_xyw=ProjectPrevXYW(prev_pos);
 
    pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
 }
-void ClearDeferred_PS(NOPERSP Vec2 uv                    :UV,
-                      NOPERSP Vec  projected_prev_pos_xyw:PREV_POS,
-                out DeferredOutput output) // #RTOutput
+void ClearDeferred_PS(NOPERSP Vec projected_prev_pos_xyw:PREV_POS,
+                      NOPERSP PIXEL,
+   out DeferredOutput output) // #RTOutput
 {
    output.color      (0);
    output.glow       (0);
@@ -509,7 +506,7 @@ void ClearDeferred_PS(NOPERSP Vec2 uv                    :UV,
    output.translucent(0);
    output.rough      (1);
    output.reflect    (0);
-   output.motionUV   (projected_prev_pos_xyw, uv);
+   output.motion     (projected_prev_pos_xyw, pixel);
 }
 /******************************************************************************/
 void ClearLight_PS(out VecH lum :TARGET0,

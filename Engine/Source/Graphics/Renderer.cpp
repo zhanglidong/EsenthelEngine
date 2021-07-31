@@ -408,8 +408,7 @@ ImageRT* RendererClass::adaptEye(ImageRTC &src, ImageRT *dest)
    return &mul;
 }
 /******************************************************************************/
-// !! Assumes that 'ImgClamp' was already set !!
-Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_glow, Bool alpha, Bool combine, ImageRT *adapt_eye)
+Bool RendererClass::dilateMotion(ImageRTPtr &dilated_motion)
 {
    Mtn.load();
    D.alpha(ALPHA_NONE);
@@ -428,13 +427,13 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_gl
    Flt         scale=Flt(convert_src.y)/res.y;
    Int         shift=Log2Round(RoundU(scale)); // Int shift=Round(Log2(scale)); 0=full-res, 1=half, 2=quarter, 3=1/8, 4=1/16, 5=1/32 (this value is unclamped)
    ImageRTDesc rt_desc(res.x, res.y, IMAGERT_RGBA_H); // XY=biggest motion, ZW=smallest motion
-   ImageRTPtr  dilated_motion(rt_desc);
    Vec2        pixel_size;
    Int         dilate_pixels=DivCeil((UInt)rt_desc.size.y, (UInt)5*2); // dilate up to 20% of the screen vertically (this is the max amount of blur length, *2 because we blur both ways) #MaxMotionBlurLength
  C auto       *dilate=&Mtn.getDilate(dilate_pixels);
    Shader     *shader= Mtn.getConvert(shift); // 'shift' is clamped in this function
    Rect        rect, *rect_ptr=null;
 
+   dilated_motion.get(rt_desc);
    set(dilated_motion, null, false);
    Sh.ImgXY[0]->set(_vel);
    Sh.imgSize(convert_src); // need to have full-res size
@@ -455,6 +454,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_gl
       pixel_size=pixelToScreenSize(1); // call this after setting new RT to get 'dilated_motion' size, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
        rect_ptr =&(rect=D.viewRect()).extend(pixel_size); // extend by 1 pixel because this will be used in full-res blur with texture filtering
 
+      Sh.ImgClamp->setConditional(ImgClamp(D.viewRect(), _vel->size()));
                    rect_ptr->drawBorder(Vec4Zero, pixel_size*dilate->range); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
       shader->draw(rect_ptr); // convert after drawing border
    }
@@ -479,7 +479,12 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_gl
       if(next_dilate){next->discard(); dilate=next_dilate; goto again;}
    }
    if(stage==RS_VEL_DILATED && show(dilated_motion, false, true))return true;
-
+   return false;
+}
+/******************************************************************************/
+// !! Assumes that 'ImgClamp' was already set !!
+void RendererClass::motionBlur(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_glow, ImageRTPtr &dilated_motion, Bool alpha, Bool combine, ImageRT *adapt_eye)
+{
    #if DEBUG && 0 // test UV CLAMP
    {
       set(&src, null, false);
@@ -496,9 +501,8 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_gl
    Sh.ImgX[0]->set(_alpha);
    Sh.ImgX[1]->set(adapt_eye);
    Sh.imgSize(*_ds);
-   set(&dest, bloom_glow, null, null, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
-   Mtn.getBlur(Round(fx.y*(7.0f/1080)), _has_glow ? adapt_eye ? 2 : 1 : 0, (D.dither() && !dest.highPrecision()) ? src.highPrecision() ? 1/*always: should be 2 but disabled because rarely used*/ : 1/*only in blur*/ : 0, alpha)->draw(src); // here blurring may generate high precision values, use 7 samples on a 1080 resolution #MotionBlurSamples
-   return false;
+   set(&dest, bloom_glow, null, null, null, true); D.alpha((combine && &dest==_final) ? ALPHA_MERGE : ALPHA_NONE);
+   Mtn.getBlur(Round(dest.h()*(7.0f/1080)), _has_glow ? adapt_eye ? 2 : 1 : 0, (D.dither() && !dest.highPrecision()) ? src.highPrecision() ? 1/*always: should be 2 but disabled because rarely used*/ : 1/*only in blur*/ : 0, alpha)->draw(src); // here blurring may generate high precision values, use 7 samples on a 1080 resolution #MotionBlurSamples
 }
 /******************************************************************************/
 INLINE Shader* GetPrecomputedBloomDS(Bool view_full, Bool half_res                ) {Shader* &s=Sh.PrecomputedBloomDS[view_full][half_res]      ; if(SLOW_SHADER_LOAD && !s)s=Sh.getPrecomputedBloomDS(view_full, half_res      ); return s;}
@@ -1769,7 +1773,7 @@ void RendererClass::waterUnder()
       REPS(_eye, _eye_num)WS.Under->draw(setEyeParams());
    }
 }
-void RendererClass::temporal() // !! assumes 'resolveMultiSample' was already called !!
+void RendererClass::temporal(ImageRTPtr &dilated_motion) // !! assumes 'resolveMultiSample' was already called !!
 {
    if(_temporal_use) // hasTemporal()
    { /*
@@ -1832,7 +1836,7 @@ void RendererClass::temporal() // !! assumes 'resolveMultiSample' was already ca
 
          if(merged_alpha)
          {
-            Sh.ImgXY[1]->set(_ctx->old_data ); // old data with alpha
+            Sh.ImgXY[2]->set(_ctx->old_data ); // old data with alpha
          }else
          {
             Sh.ImgX [1]->set(_ctx->old_data ); // old data
@@ -1841,7 +1845,8 @@ void RendererClass::temporal() // !! assumes 'resolveMultiSample' was already ca
             Sh.Img  [0]->set(_col           ); // cur
             Sh.ImgX [0]->set(_alpha         ); // cur alpha
             Sh.Img  [1]->set(_ctx->old_col  ); // old
-            Sh.ImgXY[0]->set(_vel           ); // velocity
+            Sh.ImgXY[0]->set(_vel           ); //         motion
+            Sh.ImgXY[1]->set( dilated_motion); // dilated motion
 
          Sh.imgSize(*_col); // this is needed for Cubic Sampler and SUPER
          Shader *shader=Sh.Temporal[D.temporalAntiAlias()+2*D.temporalSuperRes()-1][D._view_main.full][alpha];
@@ -2202,13 +2207,14 @@ void RendererClass::postProcess()
    if(alpha){if(!_alpha)setAlphaFromDepthAndCol();} // create '_alpha' if not yet available
    else          _alpha.clear(); // make sure to clear if we don't use it
 
-   T.temporal(); // !! AFTER 'temporal' we must be checking for 'ColConst' !!
+   ImageRTPtr dest, bloom_glow, dilated_motion;
+   if(temporal || motion)if(dilateMotion(dilated_motion))return;
+
+   T.temporal(dilated_motion); // !! AFTER 'temporal' we must be checking for 'ColConst' !!
 
    if(D.temporalSuperRes())edgeSoften(); // if have temporal super-res then 'edgeSoften' must be run after temporal upscale
 
    ImageRTDesc rt_desc(fxW(), fxH(), IMAGERT_SRGBA/*this is changed later*/);
-   ImageRTPtr  dest, bloom_glow;
-
    Bool upscale=(_final->w()>_col->w() || _final->h()>_col->h()); // we're going to upscale at the end, this needs to be set after 'temporal' which might upscale '_col'
    Int  fxs=(_get_target ? -1 : alpha+eye_adapt+motion+bloom+dof+upscale+sharpen); // this counter specifies how many effects are still left in the queue, and if we can render directly to '_final'
    Sh.ImgClamp->setConditional(ImgClamp(rt_desc.size)); // set 'ImgClamp' that may be needed for Bloom, DoF, MotionBlur, this is the viewport rect within texture, so reading will be clamped to what was rendered inside the viewport
@@ -2247,11 +2253,12 @@ void RendererClass::postProcess()
       }
       if(_alpha)fxs--; // motion blur always merges '_alpha' so remove it from list
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
-      if(T.motionBlur(*_col, *dest, bloom_glow, alpha, combine, adapt_eye))return; Swap(_col, dest); alpha_set=true; // Motion Blur sets Alpha
+      motionBlur(*_col, *dest, bloom_glow, dilated_motion, alpha, combine, adapt_eye); Swap(_col, dest); alpha_set=true; // Motion Blur sets Alpha
      _alpha.clear(); // got merged so clear it
    }
    if(stage==RS_VEL && show(_vel, false, D.signedVelRT()))return; // velocity could've been used for MotionBlur or Temporal, check it after 'motionBlur' because it might generate it for MOTION_CAMERA
-  _vel.clear(); // velocity could've been used for MotionBlur or Temporal, but after this stage we no longer need it
+          _vel   .clear(); //       velocity could've been used for MotionBlur or Temporal, but after this stage we no longer need it
+   dilated_motion.clear(); // dilated motion could've been used for MotionBlur or Temporal, but after this stage we no longer need it
 
    if(bloom) // bloom needs to be done before dof because of per-pixel glow
    {

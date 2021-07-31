@@ -8,6 +8,7 @@
 #include "!Header.h"
 #include "Bloom.h"
 #include "Temporal.h"
+#include "Motion Blur.h"
 /******************************************************************************
 
    Motion Blur is blurred in both ways:
@@ -47,8 +48,6 @@
 // disable PRECISE because for it to work best 'near' would have to be processed along 'base_uv_motion' line, however right now: PRECISE=1 improves moving background around moving object, however it has negative effect of unnatural blurring FPP weapons when rotating camera fast left/right constantly with a key, and with mouse up/down (while weapon rotates slightly based on up/down angle) in that case the weapons get blurred way too much
 #define PRECISE 0 // if precisely (separately) calculate samples for far and near (base/center), this is to solve the problem of rotating camera in FPP view, with weapon attached to player/camera. in that case background is rotating, and on the background blur line it encounters an object (weapon) that is in focus. Blur algorithm counts the far samples that move over the base center, and then lerps to the near samples that move over the base center.
 
-#define DEPTH_TOLERANCE 0.2 // 20 cm
-
 #define SHOW_BLUR_PIXELS 0 // show what pixels actually get blurred (they will be set to GREEN for fast blur and RED for slow blur) use only for debugging
 
 #if 1 // use only for testing for fast compilation
@@ -57,12 +56,6 @@
 #endif
 #define FAST_UNROLL [unroll] // always unroll because the operation is fast and won't slow down compilation
 /******************************************************************************/
-#include "!Set Prec Struct.h"
-BUFFER(MotionBlur)
-   Half MotionScale_2; // MotionScale/2 is used because we blur in both ways (read above why), so we have to make scale 2x smaller
-BUFFER_END
-#include "!Set Prec Default.h"
-/******************************************************************************/
 VecH2 UVToScreen   (VecH2 uv) {return VecH2(uv.x*AspectRatio, uv.y);} // this is only to maintain XY proportions (it does not convert to screen coordinates)
 VecH2 ScreenToUV   (VecH2 uv) {return VecH2(uv.x/AspectRatio, uv.y);} // this is only to maintain XY proportions (it does not convert to screen coordinates)
 Half  ScreenLength2(VecH2 uv) {return Length2(UVToScreen(uv));}
@@ -70,7 +63,7 @@ Half  ScreenLength2(VecH2 uv) {return Length2(UVToScreen(uv));}
 VecH2 GetMotionCameraOnly(Vec view_pos, Vec2 uv)
 {
    Vec view_pos_prev=Transform(view_pos, ViewToViewPrev); // view_pos/ViewMatrix*ViewMatrixPrev
-   return PosToUV(view_pos_prev) - uv; // prev-cur #MotionDir
+   return uv-PosToUV(view_pos_prev); // cur-prev #MotionDir
 }
 void SetVel_VS(VtxInput vtx,
     NOPERSP out Vec2 uv   :UV,
@@ -164,7 +157,7 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
    #endif
          Process(motion, length2, TexLod(ImgXY, UVInView(uv+Vec2(x, y)*ImgSize.xy, VIEW_FULL)).xy);
 #endif
-   motion*=MotionScale_2;
+   motion*=MotionScale_2; // #DilatedMotion
    { // limit max length - this prevents stretching objects to distances the blur can't handle anyway, making only certain samples of it visible but not all
       length2*=Sqr(MotionScale_2); // since we've scaled 'motion' above after setting 'length2', then we have to scale 'length2' too
       Half max_length=0.2/2; // #MaxMotionBlurLength

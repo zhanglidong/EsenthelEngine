@@ -409,7 +409,7 @@ void PS
    outAlpha=I.col.a;
 
 #if USE_VEL
-   outVel.xy=GetMotionPixel(I.projected_prev_pos_xyw, pixel); outVel.z=0; outVel.w=I.col.a; // alpha needed because of blending, Z needed because have to write all channels
+   outVel.xy=GetMotion(I.projected_prev_pos_xyw, pixel); outVel.z=0; outVel.w=I.col.a; // alpha needed because of blending, Z needed because have to write all channels
 #endif
 }
 /******************************************************************************/
