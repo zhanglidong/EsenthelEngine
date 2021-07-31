@@ -81,17 +81,17 @@ BUFFER_END
 
 VecH4 EASU_PS(NOPERSP PIXEL):TARGET
 {
-   VecI2 pos=pixel.xy;
+   VecI2 pix=pixel.xy;
    VecH4 col;
 #if GATHER
-   FsrEasuH(col.rgb, pos, Easu.c0, Easu.c1, Easu.c2, Easu.c3);
+   FsrEasuH(col.rgb, pix, Easu.c0, Easu.c1, Easu.c2, Easu.c3);
 #else // for non-gather version use float because half fails to compile
-   FsrEasuF(col.rgb, pos, Easu.c0, Easu.c1, Easu.c2, Easu.c3);
+   FsrEasuF(col.rgb, pix, Easu.c0, Easu.c1, Easu.c2, Easu.c3);
 #endif
 
 #if ALPHA
    // FIXME OPTIMIZE
-   Vec2 uv=(Vec2(pos) * AF2_AU2(Easu.c0.xy) + AF2_AU2(Easu.c0.zw)) * AF2_AU2(Easu.c1.xy) + Vec2(0.5, -0.5) * AF2_AU2(Easu.c1.zw);
+   Vec2 uv=(Vec2(pix) * AF2_AU2(Easu.c0.xy) + AF2_AU2(Easu.c0.zw)) * AF2_AU2(Easu.c1.xy) + Vec2(0.5, -0.5) * AF2_AU2(Easu.c1.zw);
    col.a=Tex(Img, uv).a;
 #else
    col.a=1;
@@ -125,18 +125,19 @@ BUFFER_END
 
 VecH4 RCAS_PS(NOPERSP PIXEL):TARGET
 {
+   VecI2 pix=pixel.xy;
    VecH4 col;
 #if GATHER
    #if ALPHA
-      FsrRcasH(col.r, col.g, col.b, col.a, pixel.xy, Rcas.c0);
+      FsrRcasH(col.r, col.g, col.b, col.a, pix, Rcas.c0);
    #else
-      FsrRcasH(col.r, col.g, col.b, pixel.xy, Rcas.c0); col.a=1;
+      FsrRcasH(col.r, col.g, col.b, pix, Rcas.c0); col.a=1;
    #endif
 #else // for non-gather version use float because half fails to compile
    #if ALPHA
-      FsrRcasF(col.r, col.g, col.b, col.a, pixel.xy, Rcas.c0);
+      FsrRcasF(col.r, col.g, col.b, col.a, pix, Rcas.c0);
    #else
-      FsrRcasF(col.r, col.g, col.b, pixel.xy, Rcas.c0); col.a=1;
+      FsrRcasF(col.r, col.g, col.b, pix, Rcas.c0); col.a=1;
    #endif
 #endif
 

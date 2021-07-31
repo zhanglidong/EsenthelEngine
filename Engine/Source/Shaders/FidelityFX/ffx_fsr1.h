@@ -365,22 +365,22 @@ A_STATIC void FsrEasuConOffset(
   //  e f g h
   //  i j k l
   //    n o
-                                     Vec4 b=FsrEasuF(p0, VecI2(0, 0)); Vec4 c=FsrEasuF(p0, VecI2(1, 0));
-  Vec4 e=FsrEasuF(p0, VecI2(-1, 1)); Vec4 f=FsrEasuF(p0, VecI2(0, 1)); Vec4 g=FsrEasuF(p0, VecI2(1, 1)); Vec4 h=FsrEasuF(p0, VecI2(2, 1));
-  Vec4 i=FsrEasuF(p0, VecI2(-1, 2)); Vec4 j=FsrEasuF(p0, VecI2(0, 2)); Vec4 k=FsrEasuF(p0, VecI2(1, 2)); Vec4 l=FsrEasuF(p0, VecI2(2, 2));
-                                     Vec4 n=FsrEasuF(p0, VecI2(0, 3)); Vec4 o=FsrEasuF(p0, VecI2(1, 3));
-  AF4 bczzR=Vec4(b.r, c.r,   0,   0);
-  AF4 bczzG=Vec4(b.g, c.g,   0,   0);
-  AF4 bczzB=Vec4(b.b, c.b,   0,   0);
-  AF4 ijfeR=Vec4(i.r, j.r, f.r, e.r);
-  AF4 ijfeG=Vec4(i.g, j.g, f.g, e.g);
-  AF4 ijfeB=Vec4(i.b, j.b, f.b, e.b);
-  AF4 klhgR=Vec4(k.r, l.r, h.r, g.r);
-  AF4 klhgG=Vec4(k.g, l.g, h.g, g.g);
-  AF4 klhgB=Vec4(k.b, l.b, h.b, g.b);
-  AF4 zzonR=Vec4(  0,   0, o.r, n.r);
-  AF4 zzonG=Vec4(  0,   0, o.g, n.g);
-  AF4 zzonB=Vec4(  0,   0, o.b, n.b);
+                                   AF4 b=FsrEasuF(p0, ASU2(0, 0)); AF4 c=FsrEasuF(p0, ASU2(1, 0));
+  AF4 e=FsrEasuF(p0, ASU2(-1, 1)); AF4 f=FsrEasuF(p0, ASU2(0, 1)); AF4 g=FsrEasuF(p0, ASU2(1, 1)); AF4 h=FsrEasuF(p0, ASU2(2, 1));
+  AF4 i=FsrEasuF(p0, ASU2(-1, 2)); AF4 j=FsrEasuF(p0, ASU2(0, 2)); AF4 k=FsrEasuF(p0, ASU2(1, 2)); AF4 l=FsrEasuF(p0, ASU2(2, 2));
+                                   AF4 n=FsrEasuF(p0, ASU2(0, 3)); AF4 o=FsrEasuF(p0, ASU2(1, 3));
+  AF4 bczzR=AF4(b.r, c.r,   0,   0);
+  AF4 bczzG=AF4(b.g, c.g,   0,   0);
+  AF4 bczzB=AF4(b.b, c.b,   0,   0);
+  AF4 ijfeR=AF4(i.r, j.r, f.r, e.r);
+  AF4 ijfeG=AF4(i.g, j.g, f.g, e.g);
+  AF4 ijfeB=AF4(i.b, j.b, f.b, e.b);
+  AF4 klhgR=AF4(k.r, l.r, h.r, g.r);
+  AF4 klhgG=AF4(k.g, l.g, h.g, g.g);
+  AF4 klhgB=AF4(k.b, l.b, h.b, g.b);
+  AF4 zzonR=AF4(  0,   0, o.r, n.r);
+  AF4 zzonG=AF4(  0,   0, o.g, n.g);
+  AF4 zzonB=AF4(  0,   0, o.b, n.b);
 #endif
 //------------------------------------------------------------------------------------------------------------------------------
   // Simplest multi-channel approximate luma possible (luma times 2, in 2 FMA/MAD).
@@ -562,22 +562,22 @@ A_STATIC void FsrEasuConOffset(
   //  e f g h
   //  i j k l
   //    n o
-                                      VecH4 b=FsrEasuH(p0, VecI2(0, 0)); VecH4 c=FsrEasuH(p0, VecI2(1, 0));
-  VecH4 e=FsrEasuH(p0, VecI2(-1, 1)); VecH4 f=FsrEasuH(p0, VecI2(0, 1)); VecH4 g=FsrEasuH(p0, VecI2(1, 1)); VecH4 h=FsrEasuH(p0, VecI2(2, 1));
-  VecH4 i=FsrEasuH(p0, VecI2(-1, 2)); VecH4 j=FsrEasuH(p0, VecI2(0, 2)); VecH4 k=FsrEasuH(p0, VecI2(1, 2)); VecH4 l=FsrEasuH(p0, VecI2(2, 2));
-                                      VecH4 n=FsrEasuH(p0, VecI2(0, 3)); VecH4 o=FsrEasuH(p0, VecI2(1, 3));
-  AH4 bczzR=VecH4(b.r, c.r,   0,   0);
-  AH4 bczzG=VecH4(b.g, c.g,   0,   0);
-  AH4 bczzB=VecH4(b.b, c.b,   0,   0);
-  AH4 ijfeR=VecH4(i.r, j.r, f.r, e.r);
-  AH4 ijfeG=VecH4(i.g, j.g, f.g, e.g);
-  AH4 ijfeB=VecH4(i.b, j.b, f.b, e.b);
-  AH4 klhgR=VecH4(k.r, l.r, h.r, g.r);
-  AH4 klhgG=VecH4(k.g, l.g, h.g, g.g);
-  AH4 klhgB=VecH4(k.b, l.b, h.b, g.b);
-  AH4 zzonR=VecH4(  0,   0, o.r, n.r);
-  AH4 zzonG=VecH4(  0,   0, o.g, n.g);
-  AH4 zzonB=VecH4(  0,   0, o.b, n.b);
+                                   AH4 b=FsrEasuH(p0, ASU2(0, 0)); AH4 c=FsrEasuH(p0, ASU2(1, 0));
+  AH4 e=FsrEasuH(p0, ASU2(-1, 1)); AH4 f=FsrEasuH(p0, ASU2(0, 1)); AH4 g=FsrEasuH(p0, ASU2(1, 1)); AH4 h=FsrEasuH(p0, ASU2(2, 1));
+  AH4 i=FsrEasuH(p0, ASU2(-1, 2)); AH4 j=FsrEasuH(p0, ASU2(0, 2)); AH4 k=FsrEasuH(p0, ASU2(1, 2)); AH4 l=FsrEasuH(p0, ASU2(2, 2));
+                                   AH4 n=FsrEasuH(p0, ASU2(0, 3)); AH4 o=FsrEasuH(p0, ASU2(1, 3));
+  AH4 bczzR=AH4(b.r, c.r,   0,   0);
+  AH4 bczzG=AH4(b.g, c.g,   0,   0);
+  AH4 bczzB=AH4(b.b, c.b,   0,   0);
+  AH4 ijfeR=AH4(i.r, j.r, f.r, e.r);
+  AH4 ijfeG=AH4(i.g, j.g, f.g, e.g);
+  AH4 ijfeB=AH4(i.b, j.b, f.b, e.b);
+  AH4 klhgR=AH4(k.r, l.r, h.r, g.r);
+  AH4 klhgG=AH4(k.g, l.g, h.g, g.g);
+  AH4 klhgB=AH4(k.b, l.b, h.b, g.b);
+  AH4 zzonR=AH4(  0,   0, o.r, n.r);
+  AH4 zzonG=AH4(  0,   0, o.g, n.g);
+  AH4 zzonB=AH4(  0,   0, o.b, n.b);
 #endif
 //------------------------------------------------------------------------------------------------------------------------------
   AH4 bczzL=bczzB*AH4_(0.5)+(bczzR*AH4_(0.5)+bczzG);
