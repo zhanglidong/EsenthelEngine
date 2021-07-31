@@ -133,7 +133,7 @@ void Process(inout VecH4 max_min_motion, inout VecH2 length2, VecH4 sample_motio
 
    Convert finds the Max and Min Motions (determined by their screen length, screen = UV corrected by aspect ratio)
        Input =         UV Motion
-      Output = Max Min UV Motion * MotionScale
+      Output = Max Min UV Motion * MotionScale_2
 
 /******************************************************************************/
 VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
@@ -254,8 +254,8 @@ void Convert_CS
 }
 /******************************************************************************
 
-    Input =         Max Min UV Motion * MotionScale
-   Output = Dilated Max Min UV Motion * MotionScale
+    Input =         Max Min UV Motion * MotionScale_2
+   Output = Dilated Max Min UV Motion * MotionScale_2
 
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
@@ -300,7 +300,7 @@ Half UVMotionLength(VecH2 uv_motion)
 
    Img   = color (W channel can be empty, alpha or glow)
    ImgX  = alpha
-   Img1  = dilated = downsampled Max Min UV Motion * MotionScale
+   Img1  = dilated = downsampled Max Min UV Motion * MotionScale_2
    ImgXY =              full-res         UV Motion      (unscaled)
 
 /******************************************************************************/
