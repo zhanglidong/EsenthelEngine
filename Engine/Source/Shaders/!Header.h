@@ -1126,6 +1126,10 @@ Vec2 PixelToUV(Vec4 pixel) // faster and more accurate than 'ProjectedPosToUV', 
 {
    return pixel.xy*RTSize.xy;
 }
+Vec2 UVToPixel(Vec2 uv)
+{
+   return uv*RTSize.zw;
+}
 /******************************************************************************/
 Vec2 DownSamplePointUV(Vec2 uv) // !! needs 'ImgSize' !! this function will return tex coordinates for downsampling with point filtering
 { /* if downsampling 1x (no downsample, just copy), then 'uv' will be located exactly at the center of 1x1 image texel  (  correct), no offset needed

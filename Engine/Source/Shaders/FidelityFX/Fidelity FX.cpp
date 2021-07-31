@@ -121,11 +121,18 @@ struct RCAS
 };
 BUFFER(RCAS)
    RCAS Rcas;
+#if GL
+   Vec2 RcasMulAdd;
+#endif
 BUFFER_END
 
 VecH4 RCAS_PS(NOPERSP PIXEL):TARGET
 {
+#if GL
+   VecI2 pix=VecI2(pixel.x, pixel.y*RcasMulAdd.x+RcasMulAdd.y);
+#else
    VecI2 pix=pixel.xy;
+#endif
    VecH4 col;
 #if GATHER
    #if ALPHA

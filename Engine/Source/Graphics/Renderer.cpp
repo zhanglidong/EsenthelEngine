@@ -183,6 +183,9 @@ DisplayClass& DisplayClass::sharpenIntensity(Flt intensity)
    }
    return T;
 }
+#if GL
+static ShaderParam *RcasMulAdd;
+#endif
 /******************************************************************************/
 RendererClass::Context::Sub::Sub()
 {
@@ -296,6 +299,9 @@ void RendererClass::create()
 
    if(_env_dfg.load("Img/Environment DFG.img"))GetShaderImage("EnvDFG"  )->set(_env_dfg);
    if(_noise  .load("Img/Blue Noise 128.img" ))GetShaderImage("ImgNoise")->set(_noise  ); ASSERT(NOISE_IMAGE_RES==128);
+#if GL
+   RcasMulAdd=GetShaderParam("RcasMulAdd");
+#endif
 }
 RendererClass& RendererClass::type(RENDER_TYPE type)
 {
@@ -2376,6 +2382,11 @@ void RendererClass::postProcess()
    #endif
       Bool dither=(D.dither() && !dest->highPrecision());
       set(dest, null, true); D.alpha((combine && dest()==_final) ? ALPHA_MERGE : ALPHA_NONE);
+
+   #if GL
+      Vec2 mul_add; if(D.mainFBO())mul_add.set(-1, dest->h());else mul_add.set(1, 0); // use "dest->h()" and not "dest->h()-1" because this operates on Flt pixels with 0.5 offset
+      RcasMulAdd->set(mul_add);
+   #endif
 
     /*if(Kb.shift())
       {
