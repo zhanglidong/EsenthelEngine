@@ -268,6 +268,10 @@ struct RendererClass // handles rendering
    static Vec2  screenToPixelSize (C Vec2  &screen);
    static Rect   pixelToScreen    (C RectI &pixel );
    static Vec2   pixelToScreenSize(  Flt    pixel );
+
+#if GL
+   inline Bool mainFBO(C ImageRT *dest)C {return dest==&_main;} // !! WARNING: this checks only _main, but not _main_ds !!
+#endif
 #endif
 
 #if !EE_PRIVATE
@@ -343,6 +347,8 @@ private:
 extern MeshRender MshrBox, MshrBoxR, MshrBall;
 
 Flt DepthError(Dbl from, Dbl range, Dbl z, Bool perspective, Int bits);
+
+void SetEASU(C Image &src, C Vec2 &dest_size, C Vec2 &screen_lu);
 
 INLINE Bool ReuseDefaultMaterialForNonSkinnedShadowShader(Shader *shader) {return shader==Renderer._shader_shd_map     ;} // this is the most common shadow shader, for which we don't use any material properties (except culling) so we can put all instances to default materials to reduce overhead
 INLINE Bool ReuseDefaultMaterialForSkinnedShadowShader   (Shader *shader) {return shader==Renderer._shader_shd_map_skin;} // this is the most common shadow shader, for which we don't use any material properties (except culling) so we can put all instances to default materials to reduce overhead

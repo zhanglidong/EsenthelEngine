@@ -117,6 +117,74 @@ static void ShutMshr()
    MshrBall.del();
 }
 /******************************************************************************/
+// FIDELITY FX
+/******************************************************************************/
+struct EASU
+{
+   AU1 c0[4], c1[4], c2[4], c3[4];
+};
+static inline void SetEASU(C Image &src, C ImageRT &dest)
+{
+   EASU easu;
+   FsrEasuCon(easu.c0, easu.c1, easu.c2, easu.c3,
+   src .  w(), src .  h(),  // Viewport size (top left aligned) in the input image which is to be scaled.
+   src .hwW(), src .hwH(),  // The size of the input image.
+   dest.  w(), dest.  h()); // The output resolution.
+            
+#if GL
+   if(Renderer.mainFBO(&dest)) // flip Y
+   {
+      Vec2 &mul=(Vec2&)easu.c0[0];
+      Vec2 &add=(Vec2&)easu.c0[2];
+    //AF2 pp=AF2(ip)*AF2_AU2(con0.xy)+AF2_AU2(con0.zw);
+    //pixel*mul+add
+    //(dest.h()-1-pixel.y)*mul1+add1=pixel*mul+add
+      add.y+=(dest.h()-1)*mul.y; mul.chsY();
+   }
+#endif
+
+   Sh.Easu->set(easu);
+}
+void SetEASU(C Image &src, C Vec2 &dest_size, C Vec2 &screen_lu)
+{
+   EASU easu;
+   FsrEasuCon(easu.c0, easu.c1, easu.c2, easu.c3,
+   src.  w(),   src.  h(),  // Viewport size (top left aligned) in the input image which is to be scaled.
+   src.hwW(),   src.hwH(),  // The size of the input image.
+ dest_size.x, dest_size.y); // The output resolution.
+
+   // apply offset
+   Vec2 pixel_pos=Renderer.screenToPixel(screen_lu);
+   ((Flt&)easu.c0[2])-=pixel_pos.x*((Flt&)easu.c0[0]);
+   ((Flt&)easu.c0[3])-=pixel_pos.y*((Flt&)easu.c0[1]);
+
+#if GL
+   if(D.mainFBO()) // flip Y
+   {
+      Vec2 &mul=(Vec2&)easu.c0[0];
+      Vec2 &add=(Vec2&)easu.c0[2];
+      add.y+=(Renderer.resH()-1)*mul.y; mul.chsY();
+   }
+#endif
+
+   Sh.Easu->set(easu);
+}
+DisplayClass& DisplayClass::sharpenIntensity(Flt intensity)
+{
+   SAT(intensity);
+   if(_sharpen_intensity!=intensity)
+   {
+     _sharpen_intensity=intensity;
+      struct RCAS
+      {
+         AU1 c0[4];
+      }rcas;
+      FsrRcasCon(rcas.c0, 1-intensity);
+      Sh.Rcas->set(rcas);
+   }
+   return T;
+}
+/******************************************************************************/
 RendererClass::Context::Sub::Sub()
 {
  //used=true; not needed since we always set 'used=true' when accessing/creating new subs
@@ -2260,16 +2328,7 @@ void RendererClass::postProcess()
             swap_srgb=(gamma && _col->canSwapSRV() && dest->canSwapRTV()); if(swap_srgb){gamma=false; _col->swapSRV(); dest->swapRTV();} // do just one gamma instead of in/out, to avoid having to do expensive gamma conversion in the shader
             shader=Sh.EASU[alpha][dither][gamma];
             pixels=2+1; // 2 for filtering + 1 for borders
-
-            struct EASU
-            {
-               AU1 c0[4], c1[4], c2[4], c3[4];
-            }easu;
-            FsrEasuCon(easu.c0, easu.c1, easu.c2, easu.c3,
-               _col->  w(), _col->  h(),  // Viewport size (top left aligned) in the input image which is to be scaled.
-               _col->hwW(), _col->hwH(),  // The size of the input image.
-               dest->  w(), dest->  h()); // The output resolution.
-            Sh.Easu->set(easu);
+            SetEASU(*_col, *dest);
 
       /* rt_desc.size=dest->size();
          if(!D.canSwapSRGB())rt_desc.type(GetImageRTTypeLinear(alpha, D.litColRTPrecision())); // if can't swap sRGB then have to use linear type because UAV's don't support sRGB writes

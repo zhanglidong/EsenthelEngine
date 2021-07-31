@@ -1,10 +1,5 @@
 /******************************************************************************/
 #include "stdafx.h"
-
-#define A_CPU 1
-#include "../Shaders/FidelityFX/ffx_a.h"
-#include "../Shaders/FidelityFX/ffx_fsr1.h"
-
 namespace EE{
 #if 0
    #define TEX_ZERO HalfZero
@@ -19,22 +14,6 @@ namespace EE{
 DisplayDraw::DisplayDraw()
 {
   _text_depth=false;
-}
-/******************************************************************************/
-DisplayClass& DisplayClass::sharpenIntensity(Flt intensity)
-{
-   SAT(intensity);
-   if(_sharpen_intensity!=intensity)
-   {
-     _sharpen_intensity=intensity;
-      struct RCAS
-      {
-         AU1 c0[4];
-      }rcas;
-      FsrRcasCon(rcas.c0, 1-intensity);
-      Sh.Rcas->set(rcas);
-   }
-   return T;
 }
 /******************************************************************************
    static Vec2 posToScreen(Vec2 &pos   ); // convert from world  position to screen position, according to 'scale offset'
@@ -181,22 +160,7 @@ void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
       case FILTER_EASU :
       {
          VI.shader(Sh.EASUScreen[false]);
-
-         struct EASU
-         {
-            AU1 c0[4], c1[4], c2[4], c3[4];
-         }easu;
-         FsrEasuCon(easu.c0, easu.c1, easu.c2, easu.c3,
-              w(),       h(), // Viewport size (top left aligned) in the input image which is to be scaled.
-            hwW(),     hwH(), // The size of the input image.
-         pixelf.x, pixelf.y); // The output resolution.
-
-         // apply offset
-         Vec2 pixel_pos=Renderer.screenToPixel(rect.lu());
-         ((Flt&)easu.c0[2])-=pixel_pos.x*((Flt&)easu.c0[0]);
-         ((Flt&)easu.c0[3])-=pixel_pos.y*((Flt&)easu.c0[1]);
-
-         Sh.Easu->set(easu);
+         SetEASU(T, pixelf, rect.lu());
       }break;
    }
    VI.image  (this);
@@ -237,22 +201,7 @@ void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_
       case FILTER_EASU :
       {
          VI.shader(Sh.EASUScreen[true]);
-
-         struct EASU
-         {
-            AU1 c0[4], c1[4], c2[4], c3[4];
-         }easu;
-         FsrEasuCon(easu.c0, easu.c1, easu.c2, easu.c3,
-              w(),       h(), // Viewport size (top left aligned) in the input image which is to be scaled.
-            hwW(),     hwH(), // The size of the input image.
-         pixelf.x, pixelf.y); // The output resolution.
-
-         // apply offset
-         Vec2 pixel_pos=Renderer.screenToPixel(rect.lu());
-         ((Flt&)easu.c0[2])-=pixel_pos.x*((Flt&)easu.c0[0]);
-         ((Flt&)easu.c0[3])-=pixel_pos.y*((Flt&)easu.c0[1]);
-
-         Sh.Easu->set(easu);
+         SetEASU(T, pixelf, rect.lu());
       }break;
    }
    VI.color  (color    );
