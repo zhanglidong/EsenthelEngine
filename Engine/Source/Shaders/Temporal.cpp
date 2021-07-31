@@ -181,12 +181,13 @@ Half GetBlend(VecH4 old, VecH4 cur, VecH4 min, VecH4 max) // 'cur' should be som
    return Max(Min(min_step, max_step));
 }
 /******************************************************************************/
+VecH2 UVToScreen(VecH2 uv) {return VecH2(uv.x*AspectRatio, uv.y);} // this is only to maintain XY proportions (it does not convert to screen coordinates)
+/******************************************************************************/
 void TestVel(VecH2 vel, VecH2 test_vel, inout Half max_delta_vel_len2)
 {
-   VecH2 delta_vel=vel-test_vel;
-   delta_vel.x*=AspectRatio; // 'delta_vel' is in UV 0..1 for both XY so mul X by aspect ratio
-   Half delta_vel_len2=Length2(delta_vel);
-   if(  delta_vel_len2>max_delta_vel_len2)max_delta_vel_len2=delta_vel_len2;
+   VecH2 delta_vel=UVToScreen(vel-test_vel);
+   Half  delta_vel_len2=Length2(delta_vel);
+   if(   delta_vel_len2>max_delta_vel_len2)max_delta_vel_len2=delta_vel_len2;
 }
 /******************************************************************************/
 void NearestDepthRaw3x3(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather) // get raw depth nearest to camera around 'uv' !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' for uv+ofs can be removed !!
