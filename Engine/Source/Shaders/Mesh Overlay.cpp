@@ -24,7 +24,7 @@ void VS
    VtxInput vtx,
 
    out Data D,
-   out Vec4 pixel:POSITION
+   out Vec4 vpos:POSITION
 )
 {
    Matrix3 m;
@@ -44,7 +44,7 @@ void VS
       D.nrm=Normalize(TransformDir(OverlayParams.mtrx[2]));
    #endif
 
-      pixel=Project(TransformPos(vtx.pos()));
+      vpos=Project(TransformPos(vtx.pos()));
    }else
    {
       VecU bone=vtx.bone();
@@ -56,7 +56,7 @@ void VS
       D.nrm=Normalize(TransformDir(OverlayParams.mtrx[2], bone, vtx.weight()));
    #endif
 
-      pixel=Project(TransformPos(vtx.pos(), bone, vtx.weight()));
+      vpos=Project(TransformPos(vtx.pos(), bone, vtx.weight()));
    }
 #if NORMALS
    D.mtrx[0]=Cross(D.mtrx[1], D.mtrx[2]);

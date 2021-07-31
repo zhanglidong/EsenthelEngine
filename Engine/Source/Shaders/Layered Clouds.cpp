@@ -10,7 +10,7 @@ void LayeredClouds_VS
    out Vec  pos  :POS  ,
    out Vec  uvw  :UVW  , // 3d tex coord
    out Half alpha:ALPHA,
-   out Vec4 pixel:POSITION 
+   out Vec4 vpos :POSITION 
 )
 {
    pos  =vtx.pos();
@@ -18,7 +18,7 @@ void LayeredClouds_VS
    alpha=CloudAlpha(uvw.y);
    pos.y=pos.y*LCScaleY+(-LCScaleY+1); // (pos.y-1)*LCScaleY+1
    pos  =TransformPos(pos);
-   pixel=Project(pos);
+   vpos =Project(pos);
 }
 /******************************************************************************/
 VecH4 LayeredClouds_PS

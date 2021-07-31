@@ -7,15 +7,15 @@ void VS
 (
    VtxInput vtx,
 
-   out Vec4 pixel:POSITION
+   out Vec4 vpos:POSITION
 )
 {
    if(!SKIN)
    {
-      pixel=Project(TransformPos(vtx.pos())); // #EarlyZInstancing vtx.instance()
+      vpos=Project(TransformPos(vtx.pos())); // #EarlyZInstancing vtx.instance()
    }else
    {
-      pixel=Project(TransformPos(vtx.pos(), vtx.bone(), vtx.weight()));
+      vpos=Project(TransformPos(vtx.pos(), vtx.bone(), vtx.weight()));
    }
 }
 /******************************************************************************/

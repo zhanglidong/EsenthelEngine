@@ -43,11 +43,11 @@ BUFFER_END
           x1=(SqrtDelta-m)*A2_inv
 /******************************************************************************/
 void Clouds_VS(VtxInput vtx,
-   NOPERSP out Vec  dir  :DIR,
-   NOPERSP out Vec4 pixel:POSITION)
+   NOPERSP out Vec  dir :DIR,
+   NOPERSP out Vec4 vpos:POSITION)
 {
-   dir=Transform3(Vec(UVToPosXY(vtx.uv()), 1), CamMatrix); // world-space position
-   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
+   dir =Transform3(Vec(UVToPosXY(vtx.uv()), 1), CamMatrix); // world-space position
+   vpos=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
 }
 VecH2 Clouds_PS(NOPERSP Vec dir:DIR):TARGET // 'dir'=world-space position
 {
@@ -101,16 +101,16 @@ VecH2 Clouds_PS(NOPERSP Vec dir:DIR):TARGET // 'dir'=world-space position
 // SHADOW MAP
 /******************************************************************************/
 void CloudsMap_VS(VtxInput vtx,
-      NOPERSP out Vec  pos  :POS,
-      NOPERSP out Vec  dir  :DIR,
-      NOPERSP out Vec4 pixel:POSITION)
+      NOPERSP out Vec  pos :POS,
+      NOPERSP out Vec  dir :DIR,
+      NOPERSP out Vec4 vpos:POSITION)
 {
    pos=CloudMap.cam // this is CamMatrix.pos-ActiveCam.matrix.pos (light camera relative to main camera)
       +CamMatrix[0]*(vtx.pos2().x/ProjMatrix[0][0])  // ProjMatrix.x.x which is 1/fov.x
       +CamMatrix[1]*(vtx.pos2().y/ProjMatrix[1][1]); // ProjMatrix.y.y which is 1/fov.y
    dir=CamMatrix[2];
 
-   pixel=vtx.pos4();
+   vpos=vtx.pos4();
 }
 Half CloudsMap_PS(NOPERSP Vec pos:POS, // world-space position, relative to main camera
                   NOPERSP Vec dir:DIR  // world-space direction
@@ -167,11 +167,11 @@ Half CloudsMap_PS(NOPERSP Vec pos:POS, // world-space position, relative to main
 void CloudsDraw_VS(VtxInput vtx,
        NOPERSP out Vec2 uv   :UV,
        NOPERSP out Vec2 posXY:POS_XY,
-       NOPERSP out Vec4 pixel:POSITION)
+       NOPERSP out Vec4 vpos :POSITION)
 {
    uv  =vtx.uv();
    posXY=UVToPosXY(vtx.uv());
-   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
+   vpos =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
 }
 VecH4 CloudsDraw_PS
 (

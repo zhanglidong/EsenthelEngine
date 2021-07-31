@@ -91,7 +91,7 @@ void VS
    VtxInput vtx,
 
    out Data O,
-   out Vec4 pixel:POSITION,
+   out Vec4 vpos:POSITION,
 
    CLIP_DIST
 )
@@ -237,7 +237,7 @@ void VS
 #if SET_POS
    O.pos=view_pos;
 #endif
-   pixel=Project(view_pos); CLIP_PLANE(view_pos);
+   vpos=Project(view_pos); CLIP_PLANE(view_pos);
 #if USE_VEL
    O.projected_prev_pos_xyw=ProjectPrevXYW(view_pos_prev);
 #endif

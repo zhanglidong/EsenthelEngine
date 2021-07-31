@@ -23,7 +23,7 @@ void VS
    VtxInput vtx,
 
    out Data O,
-   out Vec4 pixel:POSITION
+   out Vec4 vpos:POSITION
 )
 {
    O.uv=vtx.uv();
@@ -46,7 +46,7 @@ void VS
 #if TESSELATE
    O.pos=pos;
 #endif
-   pixel=Project(pos);
+   vpos=Project(pos);
 }
 /******************************************************************************/
 // PS

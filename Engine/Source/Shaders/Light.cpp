@@ -27,21 +27,21 @@ void Geom_VS // for 3D Geom
 #if !GL_ES
    out NOPERSP Vec2 posXY:POS_XY,
 #endif
-   out         Vec4 pixel:POSITION
+   out         Vec4 vpos:POSITION
 )
 {
-   pixel=Project(TransformPos(vtx.pos()));
+   vpos=Project(TransformPos(vtx.pos()));
 
 #if CLAMP_DEPTH // simulate "D.depthClip(false)", needed for GL ES which doesn't support it, Warning: this introduces a bit too much clipping at the viewport end, because the neighboring vertexes remain the same, and only the vertex behind the viewport gets repositioned, the line between them won't cover entire original area (however it's small)
    #if REVERSE_DEPTH
-      pixel.z=Max(pixel.z, 0);
+      vpos.z=Max(vpos.z, 0);
    #else
-      pixel.z=Min(pixel.z, pixel.w);
+      vpos.z=Min(vpos.z, vpos.w);
    #endif
 #endif
 
 #if !GL_ES
-   Vec2 uv   =ProjectedPosToUV   (pixel);
+   Vec2 uv   =ProjectedPosToUV   (vpos);
         posXY=          UVToPosXY(uv);
 #endif
 }

@@ -45,7 +45,7 @@ void VS
    VtxInput vtx,
 
    out Data O,
-   out Vec4 pixel:POSITION
+   out Vec4 vpos:POSITION
 )
 {
 #if SET_UV
@@ -114,7 +114,7 @@ void VS
 #if SET_POS
    O.pos=pos;
 #endif
-   pixel=Project(pos);
+   vpos=Project(pos);
 
    O.color.a*=Sat(Length(pos)*SkyFracMulAdd.x + SkyFracMulAdd.y);
 }

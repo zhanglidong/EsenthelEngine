@@ -29,10 +29,10 @@ BUFFER_END
 void SMAAEdge_VS(VtxInput vtx,
      NOPERSP out Vec2 uv       :UV,
      NOPERSP out Vec4 offset[3]:OFFSET,
-     NOPERSP out Vec4 position :POSITION)
+     NOPERSP out Vec4 vpos     :POSITION)
 {
-   position=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
-   uv      =vtx.uv();
+   vpos=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
+   uv  =vtx.uv();
    SMAAEdgeDetectionVS(uv, offset);
 }
 VecH2 SMAAEdge_PS(NOPERSP Vec2 uv       :UV,
@@ -45,10 +45,10 @@ void SMAABlend_VS(VtxInput vtx,
       NOPERSP out Vec2 uv       :UV,
       NOPERSP out Vec2 pixcoord :PIXCOORD,
       NOPERSP out Vec4 offset[3]:OFFSET,
-      NOPERSP out Vec4 position :POSITION)
+      NOPERSP out Vec4 vpos     :POSITION)
 {
-   position=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
-   uv      =vtx.uv();
+   vpos=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
+   uv  =vtx.uv();
    SMAABlendingWeightCalculationVS(uv, pixcoord, offset);
 }
 VecH4 SMAABlend_PS(NOPERSP Vec2 uv       :UV,
@@ -59,12 +59,12 @@ VecH4 SMAABlend_PS(NOPERSP Vec2 uv       :UV,
 }
 
 void SMAA_VS(VtxInput vtx,
- NOPERSP out Vec2 uv      :UV,
- NOPERSP out Vec4 offset  :OFFSET,
- NOPERSP out Vec4 position:POSITION)
+ NOPERSP out Vec2 uv    :UV,
+ NOPERSP out Vec4 offset:OFFSET,
+ NOPERSP out Vec4 vpos  :POSITION)
 {
-   position=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
-   uv      =vtx.uv();
+   vpos=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
+   uv  =vtx.uv();
    SMAANeighborhoodBlendingVS(uv, offset);
 }
 VecH4 SMAA_PS(NOPERSP Vec2 uv    :UV,
@@ -97,9 +97,9 @@ Vec2 MLAAArea(Vec2 distance, Flt e1, Flt e2)
 void MLAA_VS(VtxInput vtx,
  NOPERSP out Vec2 outTex         :TEXCOORD0,
  NOPERSP out Vec4 outTexOffset[2]:TEXCOORD1,
- NOPERSP out Vec4 pixel          :POSITION )
+ NOPERSP out Vec4 vpos           :POSITION )
 {
-   pixel          =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
+   vpos           =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
    outTex         =vtx.uv();
    outTexOffset[0]=RTSize.xyxy*Vec4(-1, 0, 0,-1)+outTex.xyxy;
    outTexOffset[1]=RTSize.xyxy*Vec4( 1, 0, 0, 1)+outTex.xyxy;

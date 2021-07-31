@@ -96,7 +96,7 @@ void Surface_VS
    out Vec  outPos      :POS,
    out Half outPlaneDist:PLANE_DIST,
 #endif
-   out Vec4 pixel:POSITION
+   out Vec4 vpos:POSITION
 )
 {
    Vec world_pos=vtx.pos(), view_pos;
@@ -156,7 +156,7 @@ void Surface_VS
    outPos      =view_pos;
    outPlaneDist=DistPointPlane(view_pos, WaterPlanePos, WaterPlaneNrm); // plane distance factor, must be = 1 for dist=0..1 (wave scale)
 #endif
-   pixel=Project(view_pos);
+   vpos=Project(view_pos);
 }
 /******************************************************************************/
 void WaterReflectColor(inout VecH total_specular, Vec nrm, Vec eye_dir, Vec2 uv, Vec2 refract, Half plane_dist)

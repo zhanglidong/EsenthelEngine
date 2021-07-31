@@ -19,7 +19,7 @@ void VS
    VtxInput vtx,
 
    out Data O,
-   out Vec4 pixel:POSITION
+   out Vec4 vpos:POSITION
 )
 {
 #if ALPHA_TEST
@@ -31,13 +31,13 @@ void VS
 
    if(!SKIN)
    {
-                    O.nrm=TransformDir(vtx.nrm());
-      pixel=Project(O.pos=TransformPos(vtx.pos()));
+                   O.nrm=TransformDir(vtx.nrm());
+      vpos=Project(O.pos=TransformPos(vtx.pos()));
    }else
    {
       VecU bone=vtx.bone();
-                    O.nrm=TransformDir(vtx.nrm(), bone, vtx.weight());
-      pixel=Project(O.pos=TransformPos(vtx.pos(), bone, vtx.weight()));
+                   O.nrm=TransformDir(vtx.nrm(), bone, vtx.weight());
+      vpos=Project(O.pos=TransformPos(vtx.pos(), bone, vtx.weight()));
    }
 }
 /******************************************************************************/

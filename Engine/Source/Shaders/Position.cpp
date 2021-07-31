@@ -26,7 +26,7 @@ void VS
    VtxInput vtx,
 
    out Data O,
-   out Vec4 pixel:POSITION
+   out Vec4 vpos:POSITION
 )
 {
    Vec  pos=vtx.pos();
@@ -77,7 +77,7 @@ void VS
    O.nrm=nrm;
 #endif
 
-   pixel=Project(pos);
+   vpos=Project(pos);
 }
 /******************************************************************************/
 // PS

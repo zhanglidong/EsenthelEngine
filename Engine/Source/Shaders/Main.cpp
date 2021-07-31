@@ -40,20 +40,20 @@ NOPERSP Vec4 Draw2DFlat_VS(VtxInput vtx):POSITION {return Vec4(vtx.pos2()*Coords
 VecH4 DrawFlat_PS():TARGET {return Color[0];}
 /******************************************************************************/
 void Draw2DCol_VS(VtxInput vtx,
-      NOPERSP out VecH4 col  :COLOR   ,
-      NOPERSP out Vec4  pixel:POSITION)
+      NOPERSP out VecH4 col :COLOR   ,
+      NOPERSP out Vec4  vpos:POSITION)
 {
-   col  =     vtx.color();
-   pixel=Vec4(vtx.pos2 ()*Coords.xy+Coords.zw, Z_FRONT, 1);
+   col =     vtx.color();
+   vpos=Vec4(vtx.pos2 ()*Coords.xy+Coords.zw, Z_FRONT, 1);
 }
 VecH4 Draw2DCol_PS(NOPERSP VecH4 col:COLOR):TARGET {return col;}
 /******************************************************************************/
 void Draw3DCol_VS(VtxInput vtx,
-              out VecH4 col  :COLOR   ,
-              out Vec4  pixel:POSITION)
+              out VecH4 col :COLOR   ,
+              out Vec4  vpos:POSITION)
 {
-   col  =vtx.color();
-   pixel=Project(TransformPos(vtx.pos()));
+   col =vtx.color();
+   vpos=Project(TransformPos(vtx.pos()));
 }
 VecH4 Draw3DCol_PS(VecH4 col:COLOR):TARGET {return col;}
 /******************************************************************************/
@@ -148,13 +148,13 @@ VecH4 DrawTexPoint_PS (NOPERSP Vec2 uv:UV):TARGET {return TexPoint(Img, uv);}
 VecH4 DrawTexPointC_PS(NOPERSP Vec2 uv:UV):TARGET {return TexPoint(Img, uv)*Color[0]+Color[1];}
 /******************************************************************************/
 void Draw2DTexCol_VS(VtxInput vtx,
-         NOPERSP out Vec2  uv   :UV      ,
-         NOPERSP out VecH4 col  :COLOR   ,
-         NOPERSP out Vec4  pixel:POSITION)
+         NOPERSP out Vec2  uv  :UV      ,
+         NOPERSP out VecH4 col :COLOR   ,
+         NOPERSP out Vec4  vpos:POSITION)
 {
-   uv   =     vtx.uv   ();
-   col  =     vtx.color();
-   pixel=Vec4(vtx.pos2 ()*Coords.xy+Coords.zw, Z_FRONT, 1);
+   uv  =     vtx.uv   ();
+   col =     vtx.color();
+   vpos=Vec4(vtx.pos2 ()*Coords.xy+Coords.zw, Z_FRONT, 1);
 }
 VecH4 Draw2DTexCol_PS(NOPERSP Vec2  uv :UV   ,
                       NOPERSP VecH4 col:COLOR):TARGET
@@ -167,13 +167,13 @@ void Draw2DDepthTex_VS(VtxInput vtx,
                 #if COLORS
            NOPERSP out VecH4 col:COLOR,
                 #endif
-           NOPERSP out Vec4  pixel:POSITION)
+           NOPERSP out Vec4  vpos:POSITION)
 {
-   uv   =vtx.uv();
+   uv  =vtx.uv();
 #if COLORS
-   col  =vtx.color();
+   col =vtx.color();
 #endif
-   pixel=Vec4(vtx.pos2()*Coords.xy+Coords.zw, DelinearizeDepth(vtx.posZ()), 1);
+   vpos=Vec4(vtx.pos2()*Coords.xy+Coords.zw, DelinearizeDepth(vtx.posZ()), 1);
 }
 VecH4 Draw2DDepthTex_PS(NOPERSP Vec2  uv:UV
                    #if COLORS
@@ -199,7 +199,7 @@ void Draw3DTex_VS(VtxInput vtx,
            #if USE_FOG
               out VecH4 fog:FOG,
            #endif
-              out Vec4  pixel:POSITION)
+              out Vec4  vpos:POSITION)
 {
    Vec pos=TransformPos(vtx.pos());
    uv=vtx.uv();
@@ -209,7 +209,7 @@ void Draw3DTex_VS(VtxInput vtx,
 #if USE_FOG
    fog=VecH4(FogColor, AccumulatedDensity(FogDensity, Length(pos)));
 #endif
-   pixel=Project(pos);
+   vpos=Project(pos);
 }
 VecH4 Draw3DTex_PS(Vec2  uv:UV
                 #if COLORS
@@ -249,11 +249,11 @@ VecH4 DrawMsM_PS(NOPERSP PIXEL,
 void DrawMask_VS(VtxInput vtx,
      NOPERSP out Vec2 uv     :UV,
      NOPERSP out Vec2 uv_mask:UV_MASK,
-     NOPERSP out Vec4 pixel  :POSITION )
+     NOPERSP out Vec4 vpos   :POSITION )
 {
    uv     =vtx.uv ();
    uv_mask=vtx.uv1();
-   pixel  =Vec4(vtx.pos2()*Coords.xy+Coords.zw, Z_FRONT, 1);
+   vpos   =Vec4(vtx.pos2()*Coords.xy+Coords.zw, Z_FRONT, 1);
 }
 VecH4 DrawMask_PS(NOPERSP Vec2 uv     :UV,
                   NOPERSP Vec2 uv_mask:UV_MASK):TARGET
@@ -274,22 +274,22 @@ VecH4 DrawMask_PS(NOPERSP Vec2 uv     :UV,
 }
 /******************************************************************************/
 void DrawCubeFace_VS(VtxInput vtx,
-         NOPERSP out Vec  uv   :UV,
-         NOPERSP out Vec4 pixel:POSITION)
+         NOPERSP out Vec  uv  :UV,
+         NOPERSP out Vec4 vpos:POSITION)
 {
-   uv   =Vec (vtx.uv(), vtx.size());
-   pixel=Vec4(vtx.pos2()*Coords.xy+Coords.zw, Z_FRONT, 1);
+   uv  =Vec (vtx.uv(), vtx.size());
+   vpos=Vec4(vtx.pos2()*Coords.xy+Coords.zw, Z_FRONT, 1);
 }
 VecH4 DrawCubeFace_PS(NOPERSP Vec uv:UV):TARGET {return TexCubeClamp(Cub, uv)*Color[0]+Color[1];}
 /******************************************************************************/
 void Simple_VS(VtxInput vtx,
-           out Vec2  uv   :UV,
-           out VecH4 col  :COLOR,
-           out Vec4  pixel:POSITION)
+           out Vec2  uv  :UV,
+           out VecH4 col :COLOR,
+           out Vec4  vpos:POSITION)
 {
-   uv   =vtx.uv();
-   col  =vtx.colorFast();
-   pixel=Project(TransformPos(vtx.pos()));
+   uv  =vtx.uv();
+   col =vtx.colorFast();
+   vpos=Project(TransformPos(vtx.pos()));
 }
 Vec4 Simple_PS(Vec2  uv :UV   ,
                VecH4 col:COLOR):TARGET
@@ -488,13 +488,13 @@ VecH4 PaletteDraw_PS(NOPERSP Vec2 uv   :UV,
 /******************************************************************************/
 void ClearDeferred_VS(VtxInput vtx,
    NOPERSP out Vec  projected_prev_pos_xyw:PREV_POS,
-   NOPERSP out Vec4 pixel                 :POSITION)
+   NOPERSP out Vec4 vpos                  :POSITION)
 {
    Vec view_pos=Vec(UVToPosXY(vtx.uv()), 1); // no need to normalize
    Vec prev_pos=Transform3(view_pos, ViewToViewPrev); // view_pos/ViewMatrix*ViewMatrixPrev, use 'Transform3' to rotate only (angular velocity) and skip movement (linear velocity)
    projected_prev_pos_xyw=ProjectPrevXYW(prev_pos);
 
-   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
+   vpos=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
 }
 void ClearDeferred_PS(NOPERSP Vec projected_prev_pos_xyw:PREV_POS,
                       NOPERSP PIXEL,

@@ -25,7 +25,7 @@ void Base_VS
    VtxInput vtx,
 
    out BaseData O,
-   out Vec4 pixel:POSITION,
+   out Vec4 vpos:POSITION,
 
    CLIP_DIST
 )
@@ -56,7 +56,7 @@ void Base_VS
 #if SIZE
    O.len=vtx.size();
 #endif
-   pixel=Project(view_pos); CLIP_PLANE(view_pos);
+   vpos=Project(view_pos); CLIP_PLANE(view_pos);
 #if USE_VEL
    O.projected_prev_pos_xyw=ProjectPrevXYW(view_pos_prev);
 #endif

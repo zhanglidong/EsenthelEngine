@@ -29,14 +29,14 @@ void BloomDS_VS(VtxInput vtx,
 #if ADAPT_EYE
    NOINTERP out Half bloom_scale:BLOOM_SCALE,
 #endif
-   NOPERSP out Vec2 uv   :UV,
-   NOPERSP out Vec4 pixel:POSITION)
+   NOPERSP out Vec2 uv  :UV,
+   NOPERSP out Vec4 vpos:POSITION)
 {
 #if ADAPT_EYE
    bloom_scale=BloomScale()*ImgX1[VecI2(0, 0)];
 #endif
-   uv   =vtx.uv  (); if(GLOW)uv-=ImgSize.xy*Vec2(HALF_RES ? 0.5 : 1.5, HALF_RES ? 0.5 : 1.5);
-   pixel=vtx.pos4();
+   uv  =vtx.uv  (); if(GLOW)uv-=ImgSize.xy*Vec2(HALF_RES ? 0.5 : 1.5, HALF_RES ? 0.5 : 1.5);
+   vpos=vtx.pos4();
 }
 
 VecH BloomDS_PS
@@ -93,14 +93,14 @@ void Bloom_VS(VtxInput vtx,
 #if ADAPT_EYE
    NOINTERP out Half bloom_orig:BLOOM_ORIG,
 #endif
-   NOPERSP out Vec2 uv   :UV,
-   NOPERSP out Vec4 pixel:POSITION)
+   NOPERSP out Vec2 uv  :UV,
+   NOPERSP out Vec4 vpos:POSITION)
 {
 #if ADAPT_EYE
    bloom_orig=BloomOriginal()*ImgX1[VecI2(0, 0)];
 #endif
-   uv   =vtx.uv();
-   pixel=vtx.pos4();
+   uv  =vtx.uv();
+   vpos=vtx.pos4();
 }
 
 VecH4 Bloom_PS

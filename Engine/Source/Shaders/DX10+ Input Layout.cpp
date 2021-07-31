@@ -5,9 +5,9 @@
 /******************************************************************************/
 #include "!Header.h"
 /******************************************************************************/
-void VS(VtxInput vtx, out Vec4 pixel:POSITION)
+void VS(VtxInput vtx, out Vec4 vpos:POSITION)
 {
-   pixel=vtx.pos4();
+   vpos=vtx.pos4();
 }
 void PS()
 {

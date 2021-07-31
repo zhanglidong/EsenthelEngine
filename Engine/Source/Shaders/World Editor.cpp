@@ -10,16 +10,16 @@ void Color_VS
 #if VTX_COL
    out VecH4 col:COLOR,
 #endif
-   out VecH  nrm  :NORMAL,
-   out Vec4  pixel:POSITION
+   out VecH  nrm :NORMAL,
+   out Vec4  vpos:POSITION
 )
 {  
 #if VTX_COL
    col=vtx.colorFast();
 #endif
 
-   nrm  =Normalize(TransformDir(vtx.nrm()));
-   pixel=Project  (TransformPos(vtx.pos()));
+   nrm =Normalize(TransformDir(vtx.nrm()));
+   vpos=Project  (TransformPos(vtx.pos()));
 }
 /******************************************************************************/
 #ifndef COL_VALUE

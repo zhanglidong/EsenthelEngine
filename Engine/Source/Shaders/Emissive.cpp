@@ -28,7 +28,7 @@ void VS
    VtxInput vtx,
 
    out Data O,
-   out Vec4 pixel:POSITION,
+   out Vec4 vpos:POSITION,
 
    CLIP_DIST
 )
@@ -80,7 +80,7 @@ void VS
    O.pos=pos;
    O.nrm=nrm;
 #endif
-   pixel=Project(pos); CLIP_PLANE(pos);
+   vpos=Project(pos); CLIP_PLANE(pos);
 }
 /******************************************************************************/
 // PS

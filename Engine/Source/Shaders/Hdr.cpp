@@ -66,9 +66,9 @@ Flt HdrUpdate_PS():TARGET // here use full precision
 }
 /******************************************************************************/
 void Hdr_VS(VtxInput vtx,
-   NOPERSP  out Vec2 uv   :UV ,
-   NOINTERP out Half lum  :LUM,
-   NOPERSP  out Vec4 pixel:POSITION)
+   NOPERSP  out Vec2 uv  :UV ,
+   NOINTERP out Half lum :LUM,
+   NOPERSP  out Vec4 vpos:POSITION)
 {
    uv=vtx.uv();
 
@@ -77,7 +77,7 @@ void Hdr_VS(VtxInput vtx,
    lum=LinearToSRGBFast(lum);
 #endif
 
-   pixel=vtx.pos4();
+   vpos=vtx.pos4();
 }
 VecH4 Hdr_PS(NOPERSP  Vec2 uv :UV ,
              NOINTERP Half lum:LUM,

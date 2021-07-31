@@ -22,7 +22,7 @@ void VS
    VtxInput vtx,
 
    out Data O,
-   out Vec4 pixel:POSITION
+   out Vec4 vpos:POSITION
 )
 {
 #if BUMP_MODE>=SBUMP_FLAT
@@ -38,7 +38,7 @@ void VS
    }
    O.col=((b>EPS) ? VecH(b, 0, 1-b) : VecH(1, 1, 1));
 
-   pixel=Project(TransformPos(vtx.pos()));
+   vpos=Project(TransformPos(vtx.pos()));
 }
 /******************************************************************************/
 VecH4 PS(Data I, IS_FRONT):TARGET

@@ -14,11 +14,11 @@ BUFFER_END
 void Font_VS(VtxInput vtx,
  NOPERSP out Vec2 uv   :UV,
  NOPERSP out Half shade:SHADE,
- NOPERSP out Vec4 pixel:POSITION )
+ NOPERSP out Vec4 vpos :POSITION )
 {
    uv   =     vtx.uv  ();
    shade=     vtx.size();
-   pixel=Vec4(vtx.pos2()*Coords.xy+Coords.zw, SET_DEPTH ? DelinearizeDepth(FontDepth) : Z_FRONT, 1);
+   vpos =Vec4(vtx.pos2()*Coords.xy+Coords.zw, SET_DEPTH ? DelinearizeDepth(FontDepth) : Z_FRONT, 1);
 }
 VecH4 Font_PS
 (
@@ -65,11 +65,11 @@ VecH4 Font_PS
 // SUB-PIXEL
 /******************************************************************************/
 void FontSP_VS(VtxInput vtx,
-   NOPERSP out Vec2 uv   :UV,
-   NOPERSP out Vec4 pixel:POSITION)
+   NOPERSP out Vec2 uv  :UV,
+   NOPERSP out Vec4 vpos:POSITION)
 {
-   uv   =     vtx.uv  ();
-   pixel=Vec4(vtx.pos2()*Coords.xy+Coords.zw, SET_DEPTH ? DelinearizeDepth(FontDepth) : Z_FRONT, 1);
+   uv  =     vtx.uv  ();
+   vpos=Vec4(vtx.pos2()*Coords.xy+Coords.zw, SET_DEPTH ? DelinearizeDepth(FontDepth) : Z_FRONT, 1);
 }
 VecH4 FontSP_PS
 (

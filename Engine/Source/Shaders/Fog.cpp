@@ -43,7 +43,7 @@ void FogBox_VS(VtxInput vtx,
            out Vec     uvw   :TEXCOORD1,
   NOINTERP out Vec4    size  :SIZE     ,
   NOINTERP out Matrix3 mtrx  :MATRIX   ,
-           out Vec4    pixel :POSITION )
+           out Vec4    vpos  :POSITION )
 {
    mtrx[0]=ViewMatrixX(); size.x=Length(mtrx[0]); mtrx[0]/=size.x;
    mtrx[1]=ViewMatrixY(); size.y=Length(mtrx[1]); mtrx[1]/=size.y;
@@ -51,8 +51,8 @@ void FogBox_VS(VtxInput vtx,
                           size.w=Max(size.xyz);
 
    // convert to texture space (0..1)
-   uvw  =vtx.pos()*0.5+0.5;
-   pixel=Project(outPos=TransformPos(vtx.pos()));
+   uvw =vtx.pos()*0.5+0.5;
+   vpos=Project(outPos=TransformPos(vtx.pos()));
 }
 void FogBox_PS
 (
@@ -101,14 +101,14 @@ void FogBoxI_VS(VtxInput vtx,
    NOPERSP  out Vec2    posXY:POS_XY,
    NOINTERP out Vec4    size :SIZE,
    NOINTERP out Matrix3 mtrx :MATRIX,
-   NOPERSP  out Vec4    pixel:POSITION)
+   NOPERSP  out Vec4    vpos :POSITION)
 {
    mtrx[0]=ViewMatrixX(); size.x=Length(mtrx[0]); mtrx[0]/=size.x;
    mtrx[1]=ViewMatrixY(); size.y=Length(mtrx[1]); mtrx[1]/=size.y;
    mtrx[2]=ViewMatrixZ(); size.z=Length(mtrx[2]); mtrx[2]/=size.z;
                           size.w=Max(size.xyz);
 
-   pixel=vtx.pos4();
+   vpos =vtx.pos4();
    posXY=UVToPosXY(vtx.uv());
 }
 void FogBoxI_PS
@@ -166,11 +166,11 @@ void FogBall_VS(VtxInput vtx,
             out Vec  outPos:TEXCOORD0,
             out Vec  uvw   :TEXCOORD1,
    NOINTERP out Flt  size  :SIZE     ,
-            out Vec4 pixel :POSITION )
+            out Vec4 vpos  :POSITION )
 {
-   uvw  =vtx.pos();
-   size =Length(ViewMatrixX());
-   pixel=Project(outPos=TransformPos(vtx.pos()));
+   uvw =vtx.pos();
+   size=Length(ViewMatrixX());
+   vpos=Project(outPos=TransformPos(vtx.pos()));
 }
 void FogBall_PS
 (
@@ -206,9 +206,9 @@ void FogBall_PS
 void FogBallI_VS(VtxInput vtx,
     NOPERSP  out Vec2 posXY:POS_XY,
     NOINTERP out Flt  size :SIZE,
-    NOPERSP  out Vec4 pixel:POSITION)
+    NOPERSP  out Vec4 vpos :POSITION)
 {
-   pixel=vtx.pos4();
+   vpos =vtx.pos4();
    posXY=UVToPosXY(vtx.uv());
    size =Length(ViewMatrixX());
 }

@@ -13,7 +13,7 @@ VecH4 SkyColor(Vec uvw)
 void Sky_VS
 (
    VtxInput vtx,
-   out Vec4 pixel:POSITION
+   out Vec4 vpos:POSITION
 
 #if !FLAT
  , out Vec pos:POS
@@ -40,7 +40,7 @@ void Sky_VS
 #if FLAT
    Vec pos;
 #endif
-   pos=TransformPos(vtx.pos()); pixel=Project(pos);
+   pos=TransformPos(vtx.pos()); vpos=Project(pos);
 
 #if TEXTURES || !PER_VERTEX
    uvw=vtx.pos();

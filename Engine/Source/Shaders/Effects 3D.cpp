@@ -34,7 +34,7 @@ BUFFER_END
 #include "!Set Prec Default.h"
 
 void Volume_VS(VtxInput vtx,
-           out Vec4     pixel:POSITION ,
+           out Vec4      vpos:POSITION ,
            out Vec     outPos:TEXCOORD0,
            out Vec     outTex:TEXCOORD1,
   NOINTERP out Matrix3 mtrx  :MATRIX)
@@ -47,7 +47,7 @@ void Volume_VS(VtxInput vtx,
    if(INSIDE)outTex=Volume.inside/(2*Volume.size)+0.5;
    else      outTex=vtx.pos()*0.5+0.5;
 
-   pixel=Project(outPos=TransformPos(vtx.pos()));
+   vpos=Project(outPos=TransformPos(vtx.pos()));
 }
 void Volume_PS
 (
@@ -149,12 +149,12 @@ void Laser_VS(VtxInput vtx,
          #if NORMALS
           out VecH outNrm:TEXCOORD1,
          #endif
-          out Vec4 pixel:POSITION )
+          out Vec4 vpos:POSITION)
 {
 #if NORMALS
    outNrm=TransformDir(vtx.nrm());
 #endif
-   pixel=Project(outPos=TransformPos(vtx.pos()));
+   vpos=Project(outPos=TransformPos(vtx.pos()));
 }
 void Laser_PS(Vec            inPos:TEXCOORD0,
            #if NORMALS
@@ -210,7 +210,7 @@ void Decal_VS
 (
     VtxInput vtx,
 out Data     D,
-out Vec4     pixel:POSITION
+out Vec4     vpos:POSITION
 )
 {
    D.pos_mtrx=GetViewMatrix();
@@ -229,9 +229,9 @@ out Vec4     pixel:POSITION
 #endif
 
 #if FULLSCREEN
-   pixel=vtx.pos4();
+   vpos=vtx.pos4();
 #else
-   pixel=Project(TransformPos(vtx.pos()));
+   vpos=Project(TransformPos(vtx.pos()));
 #endif
 }
 VecH4 Decal_PS
