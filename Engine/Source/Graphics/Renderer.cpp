@@ -155,14 +155,13 @@ void SetEASU(C Image &src, C Vec2 &dest_size, C Vec2 &screen_lu)
 
    // apply offset
    Vec2 pixel_pos=Renderer.screenToPixel(screen_lu);
-   ((Flt&)easu.c0[2])-=pixel_pos.x*((Flt&)easu.c0[0]);
-   ((Flt&)easu.c0[3])-=pixel_pos.y*((Flt&)easu.c0[1]);
+   Vec2 &mul=(Vec2&)easu.c0[0];
+   Vec2 &add=(Vec2&)easu.c0[2];
+   add-=pixel_pos*mul;
 
 #if GL
    if(D.mainFBO()) // flip Y
    {
-      Vec2 &mul=(Vec2&)easu.c0[0];
-      Vec2 &add=(Vec2&)easu.c0[2];
       add.y+=(Renderer.resH()-1)*mul.y; mul.chsY();
    }
 #endif
