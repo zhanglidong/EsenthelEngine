@@ -246,7 +246,7 @@ void Temporal_PS
    VecH2 vel=TexPoint(ImgXY, vel_uv).xy;
 
    Vec2 cur_uv=uv+TemporalOffset,
-        old_uv=uv+vel;
+        old_uv=uv+vel; // #MotionDir
 
    // OLD DATA (WEIGHT + FLICKER + ALPHA)
    Half  old_weight=1;
@@ -450,7 +450,7 @@ void Temporal_PS
 
    // expect old position to be moving with the same motion as this pixel, if not then reduce old weight !! TODO: Warning: this ignores VIEW_FULL !!
    Half max_delta_vel_len2=0;
-   Vec2 old_vel_uv=UVInView(vel_uv+vel, VIEW_FULL); // FIXME 'uv', 'cur_uv' or 'vel_uv' ?
+   Vec2 old_vel_uv=UVInView(vel_uv+vel, VIEW_FULL); // #MotionDir FIXME 'uv', 'cur_uv' or 'vel_uv' ?
 #if GATHER
    TestVel(vel, TexPointOfs(ImgXY, old_vel_uv, VecI2(-1,  1)).xy, max_delta_vel_len2); // -1,  1,  left-top
    TestVel(vel, TexPointOfs(ImgXY, old_vel_uv, VecI2( 1, -1)).xy, max_delta_vel_len2); //  1, -1, right-bottom

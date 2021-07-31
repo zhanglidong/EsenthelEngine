@@ -1177,7 +1177,7 @@ Vec GetBoneVel(VecH local_pos, Vec view_pos, VecU bone, VecH weight) // no need 
 VecH2 GetMotionUV(Vec projected_prev_pos_xyw, Vec2 uv)
 {
    projected_prev_pos_xyw.z=Max(projected_prev_pos_xyw.z, Viewport.from); // prevent division by <=0 (needed for previous positions that are behind the camera)
-   VecH2 vel=ProjectedPosXYWToUV(projected_prev_pos_xyw)-uv;
+   VecH2  vel=ProjectedPosXYWToUV(projected_prev_pos_xyw)-uv; // prev-cur #MotionDir
    return vel;
 }
 VecH2 GetMotionPixel(Vec projected_prev_pos_xyw, Vec4 pixel) {return GetMotionUV(projected_prev_pos_xyw, PixelToUV(pixel));}
