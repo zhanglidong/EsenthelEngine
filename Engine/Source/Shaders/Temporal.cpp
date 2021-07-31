@@ -242,24 +242,25 @@ void Temporal_PS
    else                 depth=TexDepthRawPoint(uv);
 
    // GET VEL
-   VecH2 vel=TexPoint(ImgXY, NEAREST_DEPTH_VEL ? UVInView(uv+ofs*ImgSize.xy, VIEW_FULL) : uv).xy;
+   Vec2  vel_uv=NEAREST_DEPTH_VEL ? UVInView(uv+ofs*ImgSize.xy, VIEW_FULL) : uv;
+   VecH2 vel=TexPoint(ImgXY, vel_uv).xy;
 
-   Vec2 cur_tex=uv+TemporalOffset,
-        old_tex=uv+vel;
+   Vec2 cur_uv=uv+TemporalOffset,
+        old_uv=uv+vel;
 
    // OLD DATA (WEIGHT + FLICKER + ALPHA)
    Half  old_weight=1;
 #if MERGED_ALPHA
-   VecH2 old_data =TexLod(ImgXY1, old_tex);
+   VecH2 old_data =TexLod(ImgXY1, old_uv);
    Half  old_alpha=old_data.x, old_flicker=old_data.y;
 #else
-   Half  old_flicker=TexLod(ImgX1, old_tex);
+   Half  old_flicker=TexLod(ImgX1, old_uv);
 #if ALPHA
-   Half  old_alpha=TexLod(ImgX2, old_tex);
+   Half  old_alpha=TexLod(ImgX2, old_uv);
 #endif
 #endif
 
-   if(UVOutsideView(old_tex)) // if 'old_tex' is outside viewport then ignore it
+   if(UVOutsideView(old_uv)) // if 'old_uv' is outside viewport then ignore it
    {
       old_weight=0;
    #if !FLICKER_WEIGHT
@@ -271,16 +272,16 @@ void Temporal_PS
    VecH4 old, old1;
 #if CUBIC
       CubicFastSampler cs;
-      cs.set(old_tex, RTSize); if(!VIEW_FULL)cs.UVClamp(ImgClamp.xy, ImgClamp.zw); // here do clamping because for CUBIC we check many samples around texcoord
+      cs.set(old_uv, RTSize); if(!VIEW_FULL)cs.UVClamp(ImgClamp.xy, ImgClamp.zw); // here do clamping because for CUBIC we check many samples around texcoord
       old =Max(VecH4(0,0,0,0), cs.tex(Img1)); // use Max(0) because of cubic sharpening potentially giving negative values
    #if DUAL_HISTORY
       old1=Max(VecH4(0,0,0,0), cs.tex(Img2)); // use Max(0) because of cubic sharpening potentially giving negative values
    #endif
 #else
-   // clamping 'old_tex' shouldn't be done, because we already detect if 'old_tex' is outside viewport and zero 'old_weight'
-      old =TexLod(Img1, old_tex);
+   // clamping 'old_uv' shouldn't be done, because we already detect if 'old_uv' is outside viewport and zero 'old_weight'
+      old =TexLod(Img1, old_uv);
    #if DUAL_HISTORY
-      old1=TexLod(Img2, old_tex);
+      old1=TexLod(Img2, old_uv);
    #endif
 #endif
 
@@ -293,14 +294,14 @@ void Temporal_PS
 
    // CUR COLOR + CUR ALPHA
 #if CUBIC
-   cs.set(cur_tex, ImgSize); if(!VIEW_FULL)cs.UVClamp(ImgClamp.xy, ImgClamp.zw);
+   cs.set(cur_uv, ImgSize); if(!VIEW_FULL)cs.UVClamp(ImgClamp.xy, ImgClamp.zw);
    #if ALPHA
       Half cur_alpha=Sat(cs.texX(ImgX)); // use Sat because of cubic sharpening potentially giving negative values
    #endif
 #else
-   if(!VIEW_FULL)cur_tex=UVClamp(cur_tex);
+   if(!VIEW_FULL)cur_uv=UVClamp(cur_uv);
    #if ALPHA
-      Half cur_alpha=TexLod(ImgX, cur_tex);
+      Half cur_alpha=TexLod(ImgX, cur_uv);
    #endif
 #endif
 
@@ -364,7 +365,7 @@ void Temporal_PS
    #if CUBIC
       cur=Max(VecH4(0,0,0,0), cs.tex(Img)); // use Max(0) because of cubic sharpening potentially giving negative values
    #else
-      cur=TexLod(Img, cur_tex);
+      cur=TexLod(Img, cur_uv);
    #endif
 
    // MIN MAX
@@ -449,19 +450,19 @@ void Temporal_PS
 
    // expect old position to be moving with the same motion as this pixel, if not then reduce old weight !! TODO: Warning: this ignores VIEW_FULL !!
    Half max_delta_vel_len2=0;
-   Vec2 vel_uv=UVInView(cur_tex+vel, VIEW_FULL);
+   Vec2 old_vel_uv=UVInView(vel_uv+vel, VIEW_FULL); // FIXME 'uv', 'cur_uv' or 'vel_uv' ?
 #if GATHER
-   TestVel(vel, TexPointOfs(ImgXY, vel_uv, VecI2(-1,  1)).xy, max_delta_vel_len2); // -1,  1,  left-top
-   TestVel(vel, TexPointOfs(ImgXY, vel_uv, VecI2( 1, -1)).xy, max_delta_vel_len2); //  1, -1, right-bottom
-   vel_uv-=(SUPER ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
-   VecH4 r=TexGatherR(ImgXY, vel_uv); // get -1,-1 to 0,0 texels
-   VecH4 g=TexGatherG(ImgXY, vel_uv); // get -1,-1 to 0,0 texels
+   TestVel(vel, TexPointOfs(ImgXY, old_vel_uv, VecI2(-1,  1)).xy, max_delta_vel_len2); // -1,  1,  left-top
+   TestVel(vel, TexPointOfs(ImgXY, old_vel_uv, VecI2( 1, -1)).xy, max_delta_vel_len2); //  1, -1, right-bottom
+   old_vel_uv-=(SUPER ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
+   VecH4 r=TexGatherR(ImgXY, old_vel_uv); // get -1,-1 to 0,0 texels
+   VecH4 g=TexGatherG(ImgXY, old_vel_uv); // get -1,-1 to 0,0 texels
    TestVel(vel, VecH2(r.x, g.x), max_delta_vel_len2);
    TestVel(vel, VecH2(r.y, g.y), max_delta_vel_len2);
    TestVel(vel, VecH2(r.z, g.z), max_delta_vel_len2);
    TestVel(vel, VecH2(r.w, g.w), max_delta_vel_len2);
-   r=TexGatherROfs(ImgXY, vel_uv, VecI2(1, 1)); // get 0,0 to 1,1 texels
-   g=TexGatherGOfs(ImgXY, vel_uv, VecI2(1, 1)); // get 0,0 to 1,1 texels
+   r=TexGatherROfs(ImgXY, old_vel_uv, VecI2(1, 1)); // get 0,0 to 1,1 texels
+   g=TexGatherGOfs(ImgXY, old_vel_uv, VecI2(1, 1)); // get 0,0 to 1,1 texels
    TestVel(vel, VecH2(r.x, g.x), max_delta_vel_len2);
    TestVel(vel, VecH2(r.y, g.y), max_delta_vel_len2);
    TestVel(vel, VecH2(r.z, g.z), max_delta_vel_len2);
@@ -469,7 +470,7 @@ void Temporal_PS
 #else
    UNROLL for(Int y=-1; y<=1; y++)
    UNROLL for(Int x=-1; x<=1; x++)
-      TestVel(vel, TexPointOfs(ImgXY, vel_uv, VecI2(x, y)).xy, max_delta_vel_len2);
+      TestVel(vel, TexPointOfs(ImgXY, old_vel_uv, VecI2(x, y)).xy, max_delta_vel_len2);
 #endif
    Half max_delta_vel_len=Sqrt(max_delta_vel_len2),
         blend_move=Sat(1-max_delta_vel_len/VEL_EPS);
