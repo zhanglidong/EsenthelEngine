@@ -164,6 +164,14 @@ VecH4 YCoCg4ToRGB(VecH4 YCoCg4)
 }
 /******************************************************************************/
 // these functions return how much we have to travel (0..1) from 'old' to 'cur' to be inside 'min', 'max'
+Half GetBlend(VecH2 old, VecH2 cur, VecH2 min, VecH2 max) // 'cur' should be somewhere within 'min', 'max' (however due to cubic filtering it can be outside)
+{
+   VecH2 dir=cur-old,
+     inv_dir=((dir!=0) ? rcp(dir) : HALF_MAX), // NaN, this is a per-component operation
+    min_step=(min-old)*inv_dir, // how much travel needed to reach 'min' boundary
+    max_step=(max-old)*inv_dir; // how much travel needed to reach 'max' boundary
+   return Max(Min(min_step, max_step));
+}
 Half GetBlend(VecH old, VecH cur, VecH min, VecH max) // 'cur' should be somewhere within 'min', 'max' (however due to cubic filtering it can be outside)
 {
    VecH dir=cur-old,
