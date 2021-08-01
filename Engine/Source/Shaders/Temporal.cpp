@@ -285,8 +285,8 @@ void Temporal_PS
       Half full=Length2(UVToScreen(uv_motion));
            full=Max(full, Sqr(ImgSize.y*0.5)); // avoid div by 0, this will also ignore 'blend_move' for small motions, because 'frac' will be zero and 'blend_move'=1
       Half frac=max_screen_delta_len2/full;
-    //blend_move=LerpRS(Sqr(1.0), Sqr(0.0), frac); //keep {1.0, 0.0}, because {1.0, 0.5} has too much blur from old when zooming in, and {0.5, 0.0} discards too much
-      blend_move=Sat(1-frac);
+    //Half blend_move=LerpRS(Sqr(1.0), Sqr(0.0), frac); //keep {1.0, 0.0}, because {1.0, 0.5} has too much blur from old when zooming in, and {0.5, 0.0} discards too much
+      Half blend_move=Sat(1-frac);
 
       Vec2  obj_uv       =UVInView(base_uv+dilated_uv_motion, VIEW_FULL); // #MotionDir
       VecH2 obj_uv_motion=TexPoint(ImgXY, obj_uv);
@@ -587,6 +587,7 @@ void Temporal_PS
       outAlpha=new_alpha;
    #endif
    #endif
+ //if(W)outCol.r=Lerp(1, outCol.r, blend_move);
  //if(T)outScreen=VecH4(SRGBToLinearFast(new_flicker).xxx, 0); // visualize flicker
 #else
    #if YCOCG
