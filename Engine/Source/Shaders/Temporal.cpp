@@ -537,6 +537,8 @@ void Temporal_PS
       new_flicker=0; // always disable flickering for sky because on cam zoom in/out the sky motion vectors don't change, and it could retain some flicker from another object that wouldn't get cleared
    }
 
+   old_weight*=1-blend;
+
 #if !DUAL_HISTORY
 #if SUPER
    VecI2 pix=pixel.xy; pix&=1;
@@ -557,7 +559,6 @@ void Temporal_PS
    old_weight*=OLD_WEIGHT; // smoothly blend with new
 #endif
 
-   old_weight*=1-blend;
    Half cur_weight=1-old_weight; // old_weight+cur_weight=1
 
    #if YCOCG && 0 // not needed, blend with RGB works similar or the same
