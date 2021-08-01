@@ -248,17 +248,17 @@ void Temporal_PS
 
    // GET VEL
    Vec2  base_uv=NEAREST_DEPTH_VEL ? UVInView(uv+ofs*ImgSize.xy, VIEW_FULL) : uv; // 'base_uv'=UV that's used for DepthMotion
-   VecH2 uv_motion=TexPoint(ImgXY, base_uv).xy; // have to get this outside of "any(dilated_uv_motion)" because that one is forced to zero for small values, but here we need precise #DilatedMotionZero
+   VecH2 uv_motion=TexPoint(ImgXY, base_uv).xy; // have to get this outside of "any(dilated_uv_motion)" because that one is forced to zero for small sub-pixel motions #DilatedMotionZero, but here we need precise
 
    // DISCARD OLD BY MOVEMENT
    VecH2  dilated_uv_motion=TexLod(ImgXY1, base_uv); // use filtering because this is very low res
-   if(any(dilated_uv_motion)) // FIXME it works faster with this or without? try BRANCH
+   if(any(dilated_uv_motion)) // remember that this is forced to zero for small sub-pixel motions #DilatedMotionZero FIXME it works faster with this or without? try BRANCH
    {
       dilated_uv_motion/=MotionScale_2; // #DilatedMotion, TODO: for best results this would need a separate dilated motion RT without any MotionScale_2, perhaps it could be smaller then DilatedMotion for Motion Blur
 
       // expect old position to be moving with the same motion as this pixel, if not then reduce old weight !! TODO: Warning: this ignores VIEW_FULL !!
       Vec2 old_uv=UVInView(base_uv-uv_motion, VIEW_FULL); // #MotionDir
-      Half max_screen_delta_len2=0;
+      Half max_screen_delta_len2=0; // max movement difference between this and samples in old position
    #if GATHER
       // 3x3 samples are needed, 2x2 and 1x1 had ghosting
       TestMotion(uv_motion, TexPointOfs(ImgXY, old_uv, VecI2(-1,  1)).xy, max_screen_delta_len2); // -1,  1,  left-top
@@ -281,21 +281,20 @@ void Temporal_PS
       UNROLL for(Int x=-1; x<=1; x++)
          TestMotion(uv_motion, TexPointOfs(ImgXY, old_uv, VecI2(x, y)).xy, max_screen_delta_len2);
    #endif
-   // FIXME special case for background/sky? because tree leafs are losing AA
-      Half screen_motion_len2=Length2(UVToScreen(uv_motion));
+      Half screen_motion_len2=Length2(UVToScreen(uv_motion))+Sqr(ImgSize.y*4); // this pixel movement, add some bias which helps for slowly moving pixels on static background (example FPS view+walking+tree leafs on static sky), "+bias" works better than "Max(, bias)", *4 was the smallest number that disabled flickering on common scenario of walking/running in FPS view
       Half frac=max_screen_delta_len2/screen_motion_len2;
-    //Half blend_move=LerpRS(Sqr(1.0), Sqr(0.0), frac); //keep {1.0, 0.0}, because {1.0, 0.5} has too much blur from old when zooming in, and {0.5, 0.0} discards too much
+    //Half blend_move=LerpRS(Sqr(1.0), Sqr(0.0), frac); keep {1.0, 0.0}, because {1.0, 0.5} has too much blur from old when zooming in, and {0.5, 0.0} discards too much
       Half blend_move=Sat(1-frac);
 
+      // check if any object covered this pixel in previous frame
       {
-         Vec2  obj_uv       =UVInView(base_uv+dilated_uv_motion, VIEW_FULL); // #MotionDir
+         Vec2  obj_uv       =UVInView(base_uv+dilated_uv_motion, VIEW_FULL); // #MotionDir get fastest moving pixel in the neighborhood
          VecH2 obj_uv_motion=TexPoint(ImgXY, obj_uv);
          Flt   obj_depth    =TexDepthPoint(obj_uv);
-         Flt   in_front     =Sat((depth-obj_depth)/DEPTH_TOLERANCE+0.5);
+         Flt   in_front     =Sat((depth-obj_depth)/DEPTH_TOLERANCE+0.5); // if that pixel is in front of this one
        //Flt   behind       =Sat((obj_depth-depth)/DEPTH_TOLERANCE+0.5);
 
-         // check if object covered current pixel in previous frame
-         VecH2 rel_uv_motion=obj_uv_motion-uv_motion;
+         VecH2 rel_uv_motion=obj_uv_motion-uv_motion; // relative motion (object vs this)
 
          VecH2 rel_screen_motion=UVToScreen(    rel_uv_motion),
            dilated_screen_motion=UVToScreen(dilated_uv_motion);
