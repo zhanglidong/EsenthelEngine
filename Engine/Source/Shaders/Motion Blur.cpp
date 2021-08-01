@@ -166,7 +166,7 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
     //if(length2.y>Sqr(max_length))motion.zw*=max_length/Sqrt(length2.y); don't have to scale Min motion, because it's only used to detect fast/simple blur
    }
  //if(length2.x<ScreenLength2(ImgSize.xy)*Sqr(0.5))motion=0; // motions less than 0.5 pixel size force to 0 (ignore this code because this is done faster by just setting initial value of 'length2.x')
- //if(all(Abs(motion.xy)*2   <ImgSize.xy)         )motion=0; // motions less than 0.5 pixel size force to 0 (ignore this code because this is done faster by just setting initial value of 'length2.x')
+ //if(all(Abs(motion.xy)*2   <ImgSize.xy         ))motion=0; // motions less than 0.5 pixel size force to 0 (ignore this code because this is done faster by just setting initial value of 'length2.x')
    return motion;
 }
 /******************************************************************************/
