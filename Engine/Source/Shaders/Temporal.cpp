@@ -252,7 +252,7 @@ void Temporal_PS
 
    // DISCARD OLD BY MOVEMENT
    VecH2  dilated_uv_motion=TexLod(ImgXY1, base_uv); // use filtering because this is very low res
-   if(any(dilated_uv_motion)) // remember that this is forced to zero for small sub-pixel motions #DilatedMotionZero FIXME it works faster with this or without? try BRANCH
+   if(any(dilated_uv_motion)) // remember that this is forced to zero for small sub-pixel motions #DilatedMotionZero so we can use 'any', this check improves performance so keep it
    {
       dilated_uv_motion/=MotionScale_2; // #DilatedMotion, TODO: for best results this would need a separate dilated motion RT without any MotionScale_2, perhaps it could be smaller then DilatedMotion for Motion Blur
 
