@@ -57,8 +57,7 @@ ALPHA=1
 
 #define OLD_WEIGHT (1-1.0/8)
 
-#define FLICKER_WEIGHT 0 // if flicker should be affected by weight (disable because if enabled then a lot of pixels at the screen edge get marked as flickering when rotating the camera)
-#define FLICKER_EPS    0.2 // this is value for color distance ~0..1 in sRGB gamma (lower numbers increase detection of flicker, higher numbers decrease detection of flicker), 0.2 was the smallest value that didn't cause noticable artifacts/blurriness on a particle fire effect
+#define FLICKER_EPS 0.2 // this is value for color distance ~0..1 in sRGB gamma (lower numbers increase detection of flicker, higher numbers decrease detection of flicker), 0.2 was the smallest value that didn't cause noticable artifacts/blurriness on a particle fire effect
 
 #define YCOCG 0 // this reduces ghosting, however increases flickering in certain cases (high contrast black and white, seen on "UID(2793579270, 1288897959, 2826231732, 169976521)" model)
 #if     YCOCG
@@ -381,7 +380,6 @@ void Temporal_PS
    UNROLL for(Int x=0; x<4; x++)
       if((x!=0 && x!=3) || (y!=0 && y!=3)) // skip corners
    {
-      Vec2 sample_uv=cs.uv(x, y);
       Vec2 sample_uv=sampler.uv(x, y);
    #if VIEW_FULL
       VecH4 col=TexPointOfs(Img, sampler.tc[0], VecI2(x, y));
