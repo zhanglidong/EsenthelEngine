@@ -56,6 +56,9 @@ void Create2DSampler()
    if(SamplerAnisotropicClamp.sampler_no_filter)glSamplerParameterf(SamplerAnisotropicClamp.sampler_no_filter, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
 #endif
 #endif
+   SamplerLinearWrap      .set(SSI_LINEAR_WRAP);
+   SamplerLinearClamp     .set(SSI_LINEAR_CLAMP);
+ //SamplerAnisotropicClamp.set(SSI_ANISOTROPIC_CLAMP);
 }
 void CreateFontSampler()
 {
@@ -77,6 +80,7 @@ void CreateFontSampler()
    if(SamplerFont.sampler_no_filter)glSamplerParameterf(SamplerFont.sampler_no_filter, GL_TEXTURE_LOD_BIAS, D.fontMipBias());
 #endif
 #endif
+   SamplerFont.set(SSI_FONT);
 }
 void CreateRenderSampler()
 {
@@ -114,6 +118,7 @@ void CreateRenderSampler()
    }
 #endif
 #endif
+   SamplerRender.set(SSI_RENDER);
 }
 /******************************************************************************/
 static Vec4 DummyData[1]; ASSERT(SIZE(DummyData)==MIN_SHADER_PARAM_DATA_SIZE);

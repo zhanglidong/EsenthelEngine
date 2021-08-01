@@ -76,7 +76,7 @@ VecH4 FontSP_PS
    NOPERSP Vec2 uv:UV
 ):TARGET
 {
-   VecH4 c=Tex(Img, uv);
+   VecH4 c=TexPoint(Img, uv);
    if(GAMMA)
    {
     //c.rgb=  Sqr(  c.rgb); // good for bright text
