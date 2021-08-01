@@ -247,13 +247,12 @@ void Temporal_PS
 
    // GET VEL
    Vec2  base_uv=NEAREST_DEPTH_VEL ? UVInView(uv+ofs*ImgSize.xy, VIEW_FULL) : uv; // 'base_uv'=UV that's used for DepthMotion
-   VecH2 uv_motion=0;
+   VecH2 uv_motion=TexPoint(ImgXY, base_uv).xy; // have to get this outside of "any(dilated_uv_motion)" because that one is forced to zero for small values, but here we need precise #DilatedMotionZero
    
    VecH2  dilated_uv_motion=TexLod(ImgXY1, base_uv); // use filtering because this is very low res
    if(any(dilated_uv_motion)) // FIXME it works faster with this or without? try BRANCH
    {
       dilated_uv_motion/=MotionScale_2; // #DilatedMotion FIXME this would need a separate dilated motion RT without any MotionScale_2, perhaps it could be smaller?
-              uv_motion =TexPoint(ImgXY, base_uv).xy;
 
       // expect old position to be moving with the same motion as this pixel, if not then reduce old weight !! TODO: Warning: this ignores VIEW_FULL !!
       Vec2 old_uv=UVInView(base_uv-uv_motion, VIEW_FULL); // #MotionDir
@@ -287,7 +286,18 @@ void Temporal_PS
    #endif
       // FIXME can use LerpRS?
       // FIXME instead of VEL_EPS can use some Length2(uv_motion)/2 or something?
-      Half blend_move=Sat(1-max_screen_delta_len2/Sqr(VEL_EPS));
+      blend_move=Sat(1-max_screen_delta_len2/Sqr(VEL_EPS));
+      if(E)
+      {
+         blend_move=1;
+         if(any(uv_motion)) // FIXME
+         {
+         Half full=Length2(UVToScreen(uv_motion)),
+              frac=max_screen_delta_len2/full;
+         blend_move=LerpRS(Sqr(1), Sqr(0), frac);
+         }
+      }
+
 
       Vec2  obj_uv       =UVInView(base_uv+dilated_uv_motion, VIEW_FULL); // #MotionDir
       VecH2 obj_uv_motion=TexPoint(ImgXY, obj_uv);
@@ -301,12 +311,13 @@ void Temporal_PS
       VecH2 rel_screen_motion=UVToScreen(    rel_uv_motion),
         dilated_screen_motion=UVToScreen(dilated_uv_motion);
 
-      // FIXME: replace this with Dot
-      // here 'dilated_screen_motion' is also the delta from current position to object position (distance)
-      Half screen_dist2=Dist2(rel_screen_motion, dilated_screen_motion),
-             frac_dist2=screen_dist2/Length2(dilated_screen_motion);
-      Half cover=LerpRS(Sqr(0.5), Sqr(0.25), frac_dist2)*in_front; // FIXME could also try "Sqr(0.5), Sqr(0)", and "Sqr(0.25), Sqr(0)"
-      blend_move=Min(blend_move, 1-cover);
+      // here 'dilated_screen_motion' is also the delta from current position to object position (distance), so we have to check if 'rel_screen_motion' reaches 'dilated_screen_motion'
+      Half move=Dot(    rel_screen_motion, dilated_screen_motion), // remember that 'dilated_screen_motion' is not normalized
+           full=Dot(dilated_screen_motion, dilated_screen_motion), // so also check the full distance
+           frac=move/full; // and calculate as fraction
+      Half cover=LerpRS(Sqr(0.5), Sqr(1.0), frac)*in_front;
+      
+      //blend_move=Min(blend_move, 1-cover); FIXME
 
       old_weight*=blend_move;
    }
@@ -330,11 +341,11 @@ void Temporal_PS
    // OLD COLOR
    VecH4 old, old1;
 #if CUBIC
-      CubicFastSampler sampler;
-      sampler.set(old_uv, RTSize); if(!VIEW_FULL)sampler.UVClamp(ImgClamp.xy, ImgClamp.zw); // here do clamping because for CUBIC we check many samples around texcoord
-      old =Max(VecH4(0,0,0,0), sampler.tex(Img1)); // use Max(0) because of cubic sharpening potentially giving negative values
+      CubicFastSampler Sampler;
+      Sampler.set(old_uv, RTSize); if(!VIEW_FULL)Sampler.UVClamp(ImgClamp.xy, ImgClamp.zw); // here do clamping because for CUBIC we check many samples around texcoord
+      old =Max(VecH4(0,0,0,0), Sampler.tex(Img1)); // use Max(0) because of cubic sharpening potentially giving negative values
    #if DUAL_HISTORY
-      old1=Max(VecH4(0,0,0,0), sampler.tex(Img2)); // use Max(0) because of cubic sharpening potentially giving negative values
+      old1=Max(VecH4(0,0,0,0), Sampler.tex(Img2)); // use Max(0) because of cubic sharpening potentially giving negative values
    #endif
 #else
    // clamping 'old_uv' shouldn't be done, because we already detect if 'old_uv' is outside viewport and zero 'old_weight'
@@ -353,9 +364,9 @@ void Temporal_PS
 
    // CUR COLOR + CUR ALPHA
 #if CUBIC
-   sampler.set(cur_uv, ImgSize); if(!VIEW_FULL)sampler.UVClamp(ImgClamp.xy, ImgClamp.zw);
+   Sampler.set(cur_uv, ImgSize); if(!VIEW_FULL)Sampler.UVClamp(ImgClamp.xy, ImgClamp.zw);
    #if ALPHA
-      Half cur_alpha=Sat(sampler.texX(ImgX)); // use Sat because of cubic sharpening potentially giving negative values
+      Half cur_alpha=Sat(Sampler.texX(ImgX)); // use Sat because of cubic sharpening potentially giving negative values
    #endif
 #else
    if(!VIEW_FULL)cur_uv=UVClamp(cur_uv);
@@ -373,20 +384,20 @@ void Temporal_PS
    col_min= HALF_MAX;
    col_max=-HALF_MAX;
 #endif
- //Vec2      uv_img_pixel=sampler.pixel(uv           , ImgSize);
- //Vec2 sampler_img_pixel=sampler.pixel(sampler.tc[0], ImgSize);
+ //Vec2      uv_img_pixel=Sampler.pixel(uv           , ImgSize);
+ //Vec2 sampler_img_pixel=Sampler.pixel(Sampler.tc[0], ImgSize);
    Vec2 max_range=ImgSize.xy*1.5; // this is ok for SUPER too
    UNROLL for(Int y=0; y<4; y++)
    UNROLL for(Int x=0; x<4; x++)
       if((x!=0 && x!=3) || (y!=0 && y!=3)) // skip corners
    {
-      Vec2 sample_uv=sampler.uv(x, y);
+      Vec2 sample_uv=Sampler.uv(x, y);
    #if VIEW_FULL
-      VecH4 col=TexPointOfs(Img, sampler.tc[0], VecI2(x, y));
+      VecH4 col=TexPointOfs(Img, Sampler.tc[0], VecI2(x, y));
    #else
       VecH4 col=TexPoint(Img, sample_uv);
    #endif
-      Half weight=sampler.weight(x, y);
+      Half weight=Sampler.weight(x, y);
       if(x==1 && y==0)cur =col*weight; // first is (1,0) because corners are skipped
       else            cur+=col*weight;
     //if(all(abs(uv_img_pixel-(sampler_img_pixel+VecI2(x, y)))<      1.5)) // get min/max only from nearest 3x3 neighbors
@@ -402,7 +413,7 @@ void Temporal_PS
       #endif
       }
    }
-   cur/=1-sampler.cornersWeight(); // we've skipped corners, so adjust by their weight (TotalWeight-CornerWeight)
+   cur/=1-Sampler.cornersWeight(); // we've skipped corners, so adjust by their weight (TotalWeight-CornerWeight)
    /* Adjust because based on following code, max weight for corners can be "corners=0.015625"
    Flt corners=0; Vec4 wy, wx;
    for(Flt y=0; y<=1; y+=0.01f)
@@ -422,7 +433,7 @@ void Temporal_PS
 #else // this version uses 5 tex reads for CUBIC and 8 (or 9 if FILTER_MIN_MAX unavailable) tex reads for MIN MAX (13 total)
 {
    #if CUBIC
-      cur=Max(VecH4(0,0,0,0), sampler.tex(Img)); // use Max(0) because of cubic sharpening potentially giving negative values
+      cur=Max(VecH4(0,0,0,0), Sampler.tex(Img)); // use Max(0) because of cubic sharpening potentially giving negative values
    #else
       cur=TexLod(Img, cur_uv);
    #endif

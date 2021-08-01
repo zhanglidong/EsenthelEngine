@@ -132,7 +132,7 @@ void Process(inout VecH4 max_min_motion, inout VecH2 length2, VecH4 sample_motio
 VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
 {
    // WARNING: code below might still set ZW (smallest) to some very small values, only XY gets forced to 0
-   VecH2 length2=VecH2(ScreenLength2(ImgSize.xy)*Sqr(0.5/MotionScale_2), 2); // x=biggest, y=smallest, initially set biggest to 0 so it always gets updated (actually set to half of pixel to make sure we will ignore small motions and keep 0, "/MotionScale_2" because later there's "*MotionScale_2"), initially set smallest to 2 so it always gets updated
+   VecH2 length2=VecH2(ScreenLength2(ImgSize.xy)*Sqr(0.5/MotionScale_2), 2); // x=biggest, y=smallest, initially set biggest to 0 so it always gets updated (actually set to half of pixel to make sure we will ignore small motions and keep 0 #DilatedMotionZero, "/MotionScale_2" because later there's "*MotionScale_2"), initially set smallest to 2 so it always gets updated
    VecH4 motion =0; // XY=biggest, ZW=smallest
 #if 0 // process samples individually
    // for RANGE=1 (no scale  ) uv should remain unmodified              , because it's already at the center of 1x1 texel
@@ -165,8 +165,8 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
       if(length2.x>Sqr(max_length))motion.xy*=max_length/Sqrt(length2.x);
     //if(length2.y>Sqr(max_length))motion.zw*=max_length/Sqrt(length2.y); don't have to scale Min motion, because it's only used to detect fast/simple blur
    }
- //if(length2.x<ScreenLength2(ImgSize.xy)*Sqr(0.5))motion=0; // motions less than 0.5 pixel size force to 0 (ignore this code because this is done faster by just setting initial value of 'length2.x')
- //if(all(Abs(motion.xy)*2   <ImgSize.xy         ))motion=0; // motions less than 0.5 pixel size force to 0 (ignore this code because this is done faster by just setting initial value of 'length2.x')
+ //if(length2.x<ScreenLength2(ImgSize.xy)*Sqr(0.5))motion=0; // motions less than 0.5 pixel size force to 0 #DilatedMotionZero (ignore this code because this is done faster by just setting initial value of 'length2.x')
+ //if(all(Abs(motion.xy)*2   <ImgSize.xy         ))motion=0; // motions less than 0.5 pixel size force to 0 #DilatedMotionZero (ignore this code because this is done faster by just setting initial value of 'length2.x')
    return motion;
 }
 /******************************************************************************/
