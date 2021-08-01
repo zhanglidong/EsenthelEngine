@@ -282,6 +282,7 @@ void Temporal_PS
          TestMotion(uv_motion, TexPointOfs(ImgXY, old_uv, VecI2(x, y)).xy, max_screen_delta_len2);
    #endif
    #endif
+   // FIXME special case for background/sky? because tree leafs are losing AA
       Half full=Length2(UVToScreen(uv_motion));
            full=Max(full, Sqr(ImgSize.y*0.5)); // avoid div by 0, this will also ignore 'blend_move' for small motions, because 'frac' will be zero and 'blend_move'=1
       Half frac=max_screen_delta_len2/full;
@@ -587,7 +588,7 @@ void Temporal_PS
       outAlpha=new_alpha;
    #endif
    #endif
- //if(W)outCol.r=Lerp(1, outCol.r, blend_move);
+ //if(T)outCol.r=Lerp(1, outCol.r, blend_move);
  //if(T)outScreen=VecH4(SRGBToLinearFast(new_flicker).xxx, 0); // visualize flicker
 #else
    #if YCOCG
