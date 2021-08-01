@@ -250,7 +250,7 @@ void Temporal_PS
    VecH2  dilated_uv_motion=TexLod(ImgXY1, base_uv); // use filtering because this is very low res
    if(any(dilated_uv_motion)) // FIXME it works faster with this or without? try BRANCH
    {
-      dilated_uv_motion/=MotionScale_2; // #DilatedMotion FIXME this would need a separate dilated motion RT without any MotionScale_2, perhaps it could be smaller?
+      dilated_uv_motion/=MotionScale_2; // #DilatedMotion, TODO: for best results this would need a separate dilated motion RT without any MotionScale_2, perhaps it could be smaller then DilatedMotion for Motion Blur
 
       // expect old position to be moving with the same motion as this pixel, if not then reduce old weight !! TODO: Warning: this ignores VIEW_FULL !!
       Vec2 old_uv=UVInView(base_uv-uv_motion, VIEW_FULL); // #MotionDir
