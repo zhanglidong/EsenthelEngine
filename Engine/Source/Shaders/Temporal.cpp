@@ -66,8 +66,6 @@ ALPHA=1
 
 #define NEAREST_DEPTH_VEL 1
 
-#define VEL_EPS 0.006
-
 #define CUBIC 1
 #if     CUBIC
    #include "Cubic.h"
@@ -284,20 +282,11 @@ void Temporal_PS
          TestMotion(uv_motion, TexPointOfs(ImgXY, old_uv, VecI2(x, y)).xy, max_screen_delta_len2);
    #endif
    #endif
-      // FIXME can use LerpRS?
-      // FIXME instead of VEL_EPS can use some Length2(uv_motion)/2 or something?
-      blend_move=Sat(1-max_screen_delta_len2/Sqr(VEL_EPS));
-      if(E)
-      {
-         blend_move=1;
-         if(any(uv_motion)) // FIXME
-         {
-         Half full=Length2(UVToScreen(uv_motion)),
-              frac=max_screen_delta_len2/full;
-         blend_move=LerpRS(Sqr(1), Sqr(0), frac);
-         }
-      }
-
+      Half full=Length2(UVToScreen(uv_motion));
+           full=Max(full, Sqr(ImgSize.y*0.5)); // avoid div by 0, this will also ignore 'blend_move' for small motions, because 'frac' will be zero and 'blend_move'=1
+      Half frac=max_screen_delta_len2/full;
+    //blend_move=LerpRS(Sqr(1.0), Sqr(0.0), frac); //keep {1.0, 0.0}, because {1.0, 0.5} has too much blur from old when zooming in, and {0.5, 0.0} discards too much
+      blend_move=Sat(1-frac);
 
       Vec2  obj_uv       =UVInView(base_uv+dilated_uv_motion, VIEW_FULL); // #MotionDir
       VecH2 obj_uv_motion=TexPoint(ImgXY, obj_uv);
@@ -312,12 +301,12 @@ void Temporal_PS
         dilated_screen_motion=UVToScreen(dilated_uv_motion);
 
       // here 'dilated_screen_motion' is also the delta from current position to object position (distance), so we have to check if 'rel_screen_motion' reaches 'dilated_screen_motion'
-      Half move=Dot(    rel_screen_motion, dilated_screen_motion), // remember that 'dilated_screen_motion' is not normalized
-           full=Dot(dilated_screen_motion, dilated_screen_motion), // so also check the full distance
+      Half move=Dot(    rel_screen_motion, dilated_screen_motion); // remember that 'dilated_screen_motion' is not normalized
+           full=Dot(dilated_screen_motion, dilated_screen_motion); // so also check the full distance
            frac=move/full; // and calculate as fraction
       Half cover=LerpRS(Sqr(0.5), Sqr(1.0), frac)*in_front;
-      
-      //blend_move=Min(blend_move, 1-cover); FIXME
+
+      blend_move=Min(blend_move, 1-cover);
 
       old_weight*=blend_move;
    }
