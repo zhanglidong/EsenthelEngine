@@ -867,7 +867,7 @@ void MotionBlur::load()
 {
    if(!shader)if(shader=ShaderFiles("Motion Blur"))
    {
-      MotionScale_2=GetShaderParam("MotionScale_2"); MotionScale_2->set(D.motionScale()*0.5f);
+      MotionScale_2=GetShaderParam("MotionScale_2"); {auto t=D._mtn_scale; D._mtn_scale=-1; D.motionScale(t);}
 
       //Explosion=shader->get("Explosion");
 
