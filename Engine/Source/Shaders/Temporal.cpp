@@ -55,7 +55,8 @@ ALPHA=1
 #define SEPARATE_ALPHA ( TEMPORAL_SEPARATE_ALPHA && ALPHA)
 #define   MERGED_ALPHA (!TEMPORAL_SEPARATE_ALPHA && ALPHA)
 
-#define OLD_WEIGHT (1-1.0/8)
+#define OLD_WEIGHT         (1-1.0/8)
+#define OLD_FLICKER_WEIGHT (1-1.0/4) // can update flicker at a faster rate
 
 #define FLICKER_EPS 0.2 // this is value for color distance ~0..1 in sRGB gamma (lower numbers increase detection of flicker, higher numbers decrease detection of flicker), 0.2 was the smallest value that didn't cause noticable artifacts/blurriness on a particle fire effect
 
@@ -65,6 +66,8 @@ ALPHA=1
 #endif
 
 #define NEAREST_DEPTH_VEL 1
+
+#define SHOW_FLICKER T
 
 #define CUBIC 1
 #if     CUBIC
@@ -518,20 +521,11 @@ void Temporal_PS
    if(DEPTH_FOREGROUND(depth_raw))
    {
       // calculate difference between 'old' and 'cur'
-      Half difference=Dist(LinearToSRGBFast(old.rgb), LinearToSRGBFast(cur.rgb)); // it's better to use 'Dist' rather than 'Dist2', because it will prevent smooth changes from particles (like fire effect) being reported as flickering (if fire is reported as flickering then it will look very blurry)
+      Half difference=SHOW_FLICKER ? Dist(LinearToSRGBFast(old.rg ), LinearToSRGBFast(cur.rg )) // it's better to use 'Dist' rather than 'Dist2', because it will prevent smooth changes from particles (like fire effect) being reported as flickering (if fire is reported as flickering then it will look very blurry)
+                                   : Dist(LinearToSRGBFast(old.rgb), LinearToSRGBFast(cur.rgb));
            difference=Sat(difference/FLICKER_EPS);
 
-   // FIXME should this be affected by blend?
-   // FIXME should this be affected by SUPER/ANTI_ALIAS below? (consider all cases)
-   // FIXME should difference be affected by old_weight?
-   // FIXME should new_flicker be affected by old_weight?
-   #if 0 // FIXME which one?
-      new_flicker=Lerp(difference, old_flicker, old_weight*OLD_WEIGHT); // always 0..1
-   #elif 0
-      new_flicker=Lerp(difference, old_flicker*old_weight, OLD_WEIGHT); // always 0..1
-   #else
-      new_flicker=Lerp(difference, old_flicker, OLD_WEIGHT)*old_weight; // always 0..1
-   #endif
+      new_flicker=Lerp(difference, old_flicker, OLD_FLICKER_WEIGHT)*old_weight; // always 0..1, alternative is "Lerp(difference, old_flicker*old_weight, OLD_WEIGHT)" however it makes sense to discard 'difference' too if old is being ignored
 
     //Half     flicker=Sat(LerpR(1-OLD_WEIGHT, 1, new_flicker)); // cut-off small differences
       Half     flicker=new_flicker; // faster
@@ -584,7 +578,7 @@ void Temporal_PS
    #endif
    #endif
  //if(T)outCol.r=Lerp(1, outCol.r, blend_move);
- //if(T)outScreen=VecH4(SRGBToLinearFast(new_flicker).xxx, 0); // visualize flicker
+   if(SHOW_FLICKER)outCol.b=SRGBToLinearFast(new_flicker); // visualize flicker
 #else
    #if YCOCG
       old.rgb=YCoCg4ToRGB(Lerp(ycocg_old, ycocg_cur, blend));
