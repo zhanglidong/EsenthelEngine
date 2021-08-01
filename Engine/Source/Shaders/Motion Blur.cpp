@@ -132,7 +132,8 @@ void Process(inout VecH4 max_min_motion, inout VecH2 length2, VecH4 sample_motio
 VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
 {
    // WARNING: code below might still set ZW (smallest) to some very small values, only XY gets forced to 0
-   VecH2 length2=VecH2(ScreenLength2(ImgSize.xy)*Sqr(0.5/MotionScale_2), 2); // x=biggest, y=smallest, initially set biggest to 0 so it always gets updated (actually set to half of pixel to make sure we will ignore small motions and keep 0 #DilatedMotionZero, "/MotionScale_2" because later there's "*MotionScale_2"), initially set smallest to 2 so it always gets updated
+   const Half min_motion=1.0/3; // 1/3 of pixel (this value works well for TAA+TSR when rotating camera around trees they get refreshed sensibly and not too blurry, 0.5 was too blurry)
+   VecH2 length2=VecH2(Sqr(ImgSize.y*(min_motion/(1?1.0/2:MotionScale_2))), 2); // x=biggest, y=smallest, initially set biggest to 0 so it always gets updated (actually set to 'min_motion' to make sure we will ignore small motions and keep 0 #DilatedMotionZero, normally we should do "/MotionScale_2" because later there's "*MotionScale_2", however we need to preserve small values ignoring 'MotionScale_2' because this is needed in Temporal shader #DilatedMotionZero), initially set smallest to 2 so it always gets updated
    VecH4 motion =0; // XY=biggest, ZW=smallest
 #if 0 // process samples individually
    // for RANGE=1 (no scale  ) uv should remain unmodified              , because it's already at the center of 1x1 texel
@@ -165,11 +166,15 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
       if(length2.x>Sqr(max_length))motion.xy*=max_length/Sqrt(length2.x);
     //if(length2.y>Sqr(max_length))motion.zw*=max_length/Sqrt(length2.y); don't have to scale Min motion, because it's only used to detect fast/simple blur
    }
- //if(length2.x<ScreenLength2(ImgSize.xy)*Sqr(0.5))motion=0; // motions less than 0.5 pixel size force to 0 #DilatedMotionZero (ignore this code because this is done faster by just setting initial value of 'length2.x')
- //if(all(Abs(motion.xy)*2   <ImgSize.xy         ))motion=0; // motions less than 0.5 pixel size force to 0 #DilatedMotionZero (ignore this code because this is done faster by just setting initial value of 'length2.x')
+/* Motions less than min_motion pixel size force to 0 #DilatedMotionZero (ignore this code because this is done faster by just setting initial value of 'length2.x')
+      also these variations don't handle preserving 'min_motion' ignoring 'MotionScale_2'
+   if(length2.x                    <ScreenLength2(ImgSize.xy)*Sqr(min_motion))motion=0;
+   if(length2.x                    <          Sqr(ImgSize. y *    min_motion))motion=0;
+   if(all(Abs(motion.xy)/min_motion<ImgSize.xy                              ))motion=0; */
    return motion;
 }
 /******************************************************************************/
+#if 0
 #define THREAD_SIZE_X RANGE
 #define THREAD_SIZE_Y RANGE
 #define THREAD_SIZE   (THREAD_SIZE_X*THREAD_SIZE_Y)
@@ -239,7 +244,7 @@ void Convert_CS
          if(length2.x>Sqr(max_length))motion.xy*=max_length/Sqrt(length2.x);
        //if(length2.y>Sqr(max_length))motion.zw*=max_length/Sqrt(length2.y); don't have to scale Min motion, because it's only used to detect fast/simple blur
       }
-      if(length2.x<ScreenLength2(ImgSize.xy)*Sqr(0.5))motion=0; // motions less than 0.5 pixel size force to 0 (ignore this code because this is done faster by just setting initial value of 'length2.x')
+      if(length2.x<ScreenLength2(ImgSize.xy)*Sqr(min_motion))motion=0; // motions less than 0.5 pixel size force to 0 (ignore this code because this is done faster by just setting initial value of 'length2.x')
 
       RWImg[GroupPos.xy]=motion;
 
@@ -247,6 +252,7 @@ void Convert_CS
    }
 #endif
 }
+#endif
 /******************************************************************************
 
     Input =         Max Min UV Motion * MotionScale_2

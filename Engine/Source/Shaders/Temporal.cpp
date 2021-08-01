@@ -249,7 +249,8 @@ void Temporal_PS
    // GET VEL
    Vec2  base_uv=NEAREST_DEPTH_VEL ? UVInView(uv+ofs*ImgSize.xy, VIEW_FULL) : uv; // 'base_uv'=UV that's used for DepthMotion
    VecH2 uv_motion=TexPoint(ImgXY, base_uv).xy; // have to get this outside of "any(dilated_uv_motion)" because that one is forced to zero for small values, but here we need precise #DilatedMotionZero
-   
+
+   // DISCARD OLD BY MOVEMENT
    VecH2  dilated_uv_motion=TexLod(ImgXY1, base_uv); // use filtering because this is very low res
    if(any(dilated_uv_motion)) // FIXME it works faster with this or without? try BRANCH
    {
@@ -281,31 +282,32 @@ void Temporal_PS
          TestMotion(uv_motion, TexPointOfs(ImgXY, old_uv, VecI2(x, y)).xy, max_screen_delta_len2);
    #endif
    // FIXME special case for background/sky? because tree leafs are losing AA
-      Half full=Length2(UVToScreen(uv_motion));
-           full=Max(full, Sqr(ImgSize.y*0.5)); // avoid div by 0, this will also ignore 'blend_move' for small motions, because 'frac' will be zero and 'blend_move'=1
-      Half frac=max_screen_delta_len2/full;
+      Half screen_motion_len2=Length2(UVToScreen(uv_motion));
+      Half frac=max_screen_delta_len2/screen_motion_len2;
     //Half blend_move=LerpRS(Sqr(1.0), Sqr(0.0), frac); //keep {1.0, 0.0}, because {1.0, 0.5} has too much blur from old when zooming in, and {0.5, 0.0} discards too much
       Half blend_move=Sat(1-frac);
 
-      Vec2  obj_uv       =UVInView(base_uv+dilated_uv_motion, VIEW_FULL); // #MotionDir
-      VecH2 obj_uv_motion=TexPoint(ImgXY, obj_uv);
-      Flt   obj_depth    =TexDepthPoint(obj_uv);
-      Flt   in_front     =Sat((depth-obj_depth)/DEPTH_TOLERANCE+0.5);
-    //Flt   behind       =Sat((obj_depth-depth)/DEPTH_TOLERANCE+0.5);
+      {
+         Vec2  obj_uv       =UVInView(base_uv+dilated_uv_motion, VIEW_FULL); // #MotionDir
+         VecH2 obj_uv_motion=TexPoint(ImgXY, obj_uv);
+         Flt   obj_depth    =TexDepthPoint(obj_uv);
+         Flt   in_front     =Sat((depth-obj_depth)/DEPTH_TOLERANCE+0.5);
+       //Flt   behind       =Sat((obj_depth-depth)/DEPTH_TOLERANCE+0.5);
 
-      // check if object covered current pixel in previous frame
-      VecH2 rel_uv_motion=obj_uv_motion-uv_motion;
+         // check if object covered current pixel in previous frame
+         VecH2 rel_uv_motion=obj_uv_motion-uv_motion;
 
-      VecH2 rel_screen_motion=UVToScreen(    rel_uv_motion),
-        dilated_screen_motion=UVToScreen(dilated_uv_motion);
+         VecH2 rel_screen_motion=UVToScreen(    rel_uv_motion),
+           dilated_screen_motion=UVToScreen(dilated_uv_motion);
 
-      // here 'dilated_screen_motion' is also the delta from current position to object position (distance), so we have to check if 'rel_screen_motion' reaches 'dilated_screen_motion'
-      Half move=Dot(    rel_screen_motion, dilated_screen_motion); // remember that 'dilated_screen_motion' is not normalized
-           full=Dot(dilated_screen_motion, dilated_screen_motion); // so also check the full distance
-           frac=move/full; // and calculate as fraction
-      Half cover=LerpRS(Sqr(0.5), Sqr(1.0), frac)*in_front;
+         // here 'dilated_screen_motion' is also the delta from current position to object position (distance), so we have to check if 'rel_screen_motion' reaches 'dilated_screen_motion'
+         Half move=Dot(    rel_screen_motion, dilated_screen_motion), // remember that 'dilated_screen_motion' is not normalized
+              full=Dot(dilated_screen_motion, dilated_screen_motion), // so also check the full distance
+              frac=move/full, // and calculate as fraction
+              cover=LerpRS(Sqr(0.5), Sqr(1.0), frac)*in_front;
 
-      blend_move=Min(blend_move, 1-cover);
+         blend_move=Min(blend_move, 1-cover);
+      }
 
       old_weight*=blend_move;
    }
