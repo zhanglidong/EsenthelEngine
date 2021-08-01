@@ -239,7 +239,7 @@ void Temporal_PS
 
    // GET DEPTH
    Flt depth_raw; VecI2 ofs;
-   if(NEAREST_DEPTH_VEL)NearestDepthRaw3x3(depth_raw, ofs, uv, GATHER); // FIXME can use 2x2?
+   if(NEAREST_DEPTH_VEL)NearestDepthRaw3x3(depth_raw, ofs, uv, GATHER); // need to use 3x3 because 2x2 are not enough
    else                 depth_raw=TexDepthRawPoint(uv);
    Flt depth=LinearizeDepth(depth_raw);
 
