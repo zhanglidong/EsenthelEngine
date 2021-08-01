@@ -183,11 +183,11 @@ Half GetBlend(VecH4 old, VecH4 cur, VecH4 min, VecH4 max) // 'cur' should be som
 /******************************************************************************/
 VecH2 UVToScreen(VecH2 uv) {return VecH2(uv.x*AspectRatio, uv.y);} // this is only to maintain XY proportions (it does not convert to screen coordinates)
 /******************************************************************************/
-void TestVel(VecH2 vel, VecH2 test_vel, inout Half max_delta_vel_len2)
+void TestMotion(VecH2 uv_motion, VecH2 test_uv_motion, inout Half max_screen_delta_len2)
 {
-   VecH2 delta_vel=UVToScreen(vel-test_vel);
-   Half  delta_vel_len2=Length2(delta_vel);
-   if(   delta_vel_len2>max_delta_vel_len2)max_delta_vel_len2=delta_vel_len2;
+   VecH2 screen_delta=UVToScreen(uv_motion-test_uv_motion);
+   Half  screen_delta_len2=Length2(screen_delta);
+   if(   screen_delta_len2>max_screen_delta_len2)max_screen_delta_len2=screen_delta_len2;
 }
 /******************************************************************************/
 void NearestDepthRaw3x3(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather) // get raw depth nearest to camera around 'uv' !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' for uv+ofs can be removed !!
@@ -238,21 +238,86 @@ void Temporal_PS
     out VecH4 outCol  :TARGET2
 )
 {
+   Half old_weight=1;
+
    // GET DEPTH
    Flt depth_raw; VecI2 ofs;
-   if(NEAREST_DEPTH_VEL)NearestDepthRaw3x3(depth_raw, ofs, uv, GATHER);
+   if(NEAREST_DEPTH_VEL)NearestDepthRaw3x3(depth_raw, ofs, uv, GATHER); // FIXME can use 2x2?
    else                 depth_raw=TexDepthRawPoint(uv);
    Flt depth=LinearizeDepth(depth_raw);
 
    // GET VEL
-   Vec2  vel_uv=NEAREST_DEPTH_VEL ? UVInView(uv+ofs*ImgSize.xy, VIEW_FULL) : uv;
-   VecH2 vel=TexPoint(ImgXY, vel_uv).xy;
+   Vec2  base_uv=NEAREST_DEPTH_VEL ? UVInView(uv+ofs*ImgSize.xy, VIEW_FULL) : uv; // 'base_uv'=UV that's used for DepthMotion
+   VecH2 uv_motion=0;
+   
+   VecH2  dilated_uv_motion=TexLod(ImgXY1, base_uv); // use filtering because this is very low res
+   if(any(dilated_uv_motion)) // FIXME it works faster with this or without? try BRANCH
+   {
+      dilated_uv_motion/=MotionScale_2; // #DilatedMotion FIXME this would need a separate dilated motion RT without any MotionScale_2, perhaps it could be smaller?
+              uv_motion =TexPoint(ImgXY, base_uv).xy;
+
+      // expect old position to be moving with the same motion as this pixel, if not then reduce old weight !! TODO: Warning: this ignores VIEW_FULL !!
+      Vec2 old_uv=UVInView(base_uv-uv_motion, VIEW_FULL); // #MotionDir
+   #if 1 // FIXME can use just 1 sample? probably not
+      VecH2 old_uv_motion=TexPoint(ImgXY, old_uv);
+      Half  max_screen_delta_len2=Length2(UVToScreen(old_uv_motion-uv_motion));
+   // FIXME can use just 4 samples?
+   #else
+      Half max_screen_delta_len2=0;
+   #if GATHER
+      TestMotion(uv_motion, TexPointOfs(ImgXY, old_uv, VecI2(-1,  1)).xy, max_screen_delta_len2); // -1,  1,  left-top
+      TestMotion(uv_motion, TexPointOfs(ImgXY, old_uv, VecI2( 1, -1)).xy, max_screen_delta_len2); //  1, -1, right-bottom
+      old_uv-=(SUPER ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
+      VecH4 r=TexGatherR(ImgXY, old_uv); // get -1,-1 to 0,0 texels
+      VecH4 g=TexGatherG(ImgXY, old_uv); // get -1,-1 to 0,0 texels
+      TestMotion(uv_motion, VecH2(r.x, g.x), max_screen_delta_len2);
+      TestMotion(uv_motion, VecH2(r.y, g.y), max_screen_delta_len2);
+      TestMotion(uv_motion, VecH2(r.z, g.z), max_screen_delta_len2);
+      TestMotion(uv_motion, VecH2(r.w, g.w), max_screen_delta_len2);
+      r=TexGatherROfs(ImgXY, old_uv, VecI2(1, 1)); // get 0,0 to 1,1 texels
+      g=TexGatherGOfs(ImgXY, old_uv, VecI2(1, 1)); // get 0,0 to 1,1 texels
+      TestMotion(uv_motion, VecH2(r.x, g.x), max_screen_delta_len2);
+      TestMotion(uv_motion, VecH2(r.y, g.y), max_screen_delta_len2);
+      TestMotion(uv_motion, VecH2(r.z, g.z), max_screen_delta_len2);
+    //TestMotion(uv_motion, VecH2(r.w, g.w), max_screen_delta_len2); already processed
+   #else
+      UNROLL for(Int y=-1; y<=1; y++)
+      UNROLL for(Int x=-1; x<=1; x++)
+         TestMotion(uv_motion, TexPointOfs(ImgXY, old_uv, VecI2(x, y)).xy, max_screen_delta_len2);
+   #endif
+   #endif
+      // FIXME can use LerpRS?
+      // FIXME instead of VEL_EPS can use some Length2(uv_motion)/2 or something?
+      Half blend_move=Sat(1-max_screen_delta_len2/Sqr(VEL_EPS));
+
+      Vec2  obj_uv       =UVInView(base_uv+dilated_uv_motion, VIEW_FULL); // #MotionDir
+      VecH2 obj_uv_motion=TexPoint(ImgXY, obj_uv);
+      Flt   obj_depth    =TexDepthPoint(obj_uv);
+      Flt   in_front     =Sat((depth-obj_depth)/DEPTH_TOLERANCE+0.5);
+    //Flt   behind       =Sat((obj_depth-depth)/DEPTH_TOLERANCE+0.5);
+
+      // check if object covered current pixel in previous frame
+      VecH2 rel_uv_motion=obj_uv_motion-uv_motion;
+
+      VecH2 rel_screen_motion=UVToScreen(    rel_uv_motion),
+        dilated_screen_motion=UVToScreen(dilated_uv_motion);
+
+      // FIXME: replace this with Dot
+      // here 'dilated_screen_motion' is also the delta from current position to object position (distance)
+      Half screen_dist2=Dist2(rel_screen_motion, dilated_screen_motion),
+             frac_dist2=screen_dist2/Length2(dilated_screen_motion);
+      Half cover=LerpRS(Sqr(0.5), Sqr(0.25), frac_dist2)*in_front; // FIXME could also try "Sqr(0.5), Sqr(0)", and "Sqr(0.25), Sqr(0)"
+      blend_move=Min(blend_move, 1-cover);
+
+      old_weight*=blend_move;
+   }
 
    Vec2 cur_uv=uv+TemporalOffset,
-        old_uv=uv-vel; // #MotionDir
+        old_uv=uv-uv_motion; // #MotionDir
 
-   // OLD DATA (WEIGHT + FLICKER + ALPHA)
-   Half  old_weight=1;
+   if(UVOutsideView(old_uv))old_weight=0; // if 'old_uv' is outside viewport then ignore it
+
+   // OLD DATA (FLICKER + ALPHA)
 #if MERGED_ALPHA
    VecH2 old_data =TexLod(ImgXY2, old_uv);
    Half  old_alpha=old_data.x, old_flicker=old_data.y;
@@ -263,22 +328,14 @@ void Temporal_PS
 #endif
 #endif
 
-   if(UVOutsideView(old_uv)) // if 'old_uv' is outside viewport then ignore it
-   {
-      old_weight=0;
-   #if !FLICKER_WEIGHT
-      old_flicker=0;
-   #endif
-   }
-
    // OLD COLOR
    VecH4 old, old1;
 #if CUBIC
-      CubicFastSampler cs;
-      cs.set(old_uv, RTSize); if(!VIEW_FULL)cs.UVClamp(ImgClamp.xy, ImgClamp.zw); // here do clamping because for CUBIC we check many samples around texcoord
-      old =Max(VecH4(0,0,0,0), cs.tex(Img1)); // use Max(0) because of cubic sharpening potentially giving negative values
+      CubicFastSampler sampler;
+      sampler.set(old_uv, RTSize); if(!VIEW_FULL)sampler.UVClamp(ImgClamp.xy, ImgClamp.zw); // here do clamping because for CUBIC we check many samples around texcoord
+      old =Max(VecH4(0,0,0,0), sampler.tex(Img1)); // use Max(0) because of cubic sharpening potentially giving negative values
    #if DUAL_HISTORY
-      old1=Max(VecH4(0,0,0,0), cs.tex(Img2)); // use Max(0) because of cubic sharpening potentially giving negative values
+      old1=Max(VecH4(0,0,0,0), sampler.tex(Img2)); // use Max(0) because of cubic sharpening potentially giving negative values
    #endif
 #else
    // clamping 'old_uv' shouldn't be done, because we already detect if 'old_uv' is outside viewport and zero 'old_weight'
@@ -297,9 +354,9 @@ void Temporal_PS
 
    // CUR COLOR + CUR ALPHA
 #if CUBIC
-   cs.set(cur_uv, ImgSize); if(!VIEW_FULL)cs.UVClamp(ImgClamp.xy, ImgClamp.zw);
+   sampler.set(cur_uv, ImgSize); if(!VIEW_FULL)sampler.UVClamp(ImgClamp.xy, ImgClamp.zw);
    #if ALPHA
-      Half cur_alpha=Sat(cs.texX(ImgX)); // use Sat because of cubic sharpening potentially giving negative values
+      Half cur_alpha=Sat(sampler.texX(ImgX)); // use Sat because of cubic sharpening potentially giving negative values
    #endif
 #else
    if(!VIEW_FULL)cur_uv=UVClamp(cur_uv);
@@ -317,24 +374,25 @@ void Temporal_PS
    col_min= HALF_MAX;
    col_max=-HALF_MAX;
 #endif
-   Vec2 uv_img_pixel=cs.pixel(uv      , ImgSize);
-   Vec2 cs_img_pixel=cs.pixel(cs.tc[0], ImgSize);
+ //Vec2      uv_img_pixel=sampler.pixel(uv           , ImgSize);
+ //Vec2 sampler_img_pixel=sampler.pixel(sampler.tc[0], ImgSize);
    Vec2 max_range=ImgSize.xy*1.5; // this is ok for SUPER too
    UNROLL for(Int y=0; y<4; y++)
    UNROLL for(Int x=0; x<4; x++)
       if((x!=0 && x!=3) || (y!=0 && y!=3)) // skip corners
    {
       Vec2 sample_uv=cs.uv(x, y);
+      Vec2 sample_uv=sampler.uv(x, y);
    #if VIEW_FULL
-      VecH4 col=TexPointOfs(Img, cs.tc[0], VecI2(x, y));
+      VecH4 col=TexPointOfs(Img, sampler.tc[0], VecI2(x, y));
    #else
       VecH4 col=TexPoint(Img, sample_uv);
    #endif
-      Half weight=cs.weight(x, y);
+      Half weight=sampler.weight(x, y);
       if(x==1 && y==0)cur =col*weight; // first is (1,0) because corners are skipped
       else            cur+=col*weight;
-    //if(all(abs(uv_img_pixel-(cs_img_pixel+VecI2(x, y)))<      1.5)) // get min/max only from nearest 3x3 neighbors
-      if(all(abs(sample_uv   -(uv                      ))<max_range)) // get min/max only from nearest 3x3 neighbors
+    //if(all(abs(uv_img_pixel-(sampler_img_pixel+VecI2(x, y)))<      1.5)) // get min/max only from nearest 3x3 neighbors
+      if(all(abs(sample_uv   -(uv                           ))<max_range)) // get min/max only from nearest 3x3 neighbors
       {
       #if YCOCG
          VecH4 ycocg=RGBToYCoCg4(col);
@@ -346,7 +404,7 @@ void Temporal_PS
       #endif
       }
    }
-   cur/=1-cs.weight(0,0)-cs.weight(3,0)-cs.weight(0,3)-cs.weight(3,3); // we've skipped corners, so adjust by their weight (TotalWeight-CornerWeight)
+   cur/=1-sampler.cornersWeight(); // we've skipped corners, so adjust by their weight (TotalWeight-CornerWeight)
    /* Adjust because based on following code, max weight for corners can be "corners=0.015625"
    Flt corners=0; Vec4 wy, wx;
    for(Flt y=0; y<=1; y+=0.01f)
@@ -366,7 +424,7 @@ void Temporal_PS
 #else // this version uses 5 tex reads for CUBIC and 8 (or 9 if FILTER_MIN_MAX unavailable) tex reads for MIN MAX (13 total)
 {
    #if CUBIC
-      cur=Max(VecH4(0,0,0,0), cs.tex(Img)); // use Max(0) because of cubic sharpening potentially giving negative values
+      cur=Max(VecH4(0,0,0,0), sampler.tex(Img)); // use Max(0) because of cubic sharpening potentially giving negative values
    #else
       cur=TexLod(Img, cur_uv);
    #endif
@@ -451,42 +509,6 @@ void Temporal_PS
 }
 #endif
 
-   // expect old position to be moving with the same motion as this pixel, if not then reduce old weight !! TODO: Warning: this ignores VIEW_FULL !!
-   Half max_delta_vel_len2=0;
-   Vec2 old_vel_uv=UVInView(vel_uv-vel, VIEW_FULL); // #MotionDir FIXME 'uv', 'cur_uv' or 'vel_uv' ?
-#if GATHER
-   TestVel(vel, TexPointOfs(ImgXY, old_vel_uv, VecI2(-1,  1)).xy, max_delta_vel_len2); // -1,  1,  left-top
-   TestVel(vel, TexPointOfs(ImgXY, old_vel_uv, VecI2( 1, -1)).xy, max_delta_vel_len2); //  1, -1, right-bottom
-   old_vel_uv-=(SUPER ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
-   VecH4 r=TexGatherR(ImgXY, old_vel_uv); // get -1,-1 to 0,0 texels
-   VecH4 g=TexGatherG(ImgXY, old_vel_uv); // get -1,-1 to 0,0 texels
-   TestVel(vel, VecH2(r.x, g.x), max_delta_vel_len2);
-   TestVel(vel, VecH2(r.y, g.y), max_delta_vel_len2);
-   TestVel(vel, VecH2(r.z, g.z), max_delta_vel_len2);
-   TestVel(vel, VecH2(r.w, g.w), max_delta_vel_len2);
-   r=TexGatherROfs(ImgXY, old_vel_uv, VecI2(1, 1)); // get 0,0 to 1,1 texels
-   g=TexGatherGOfs(ImgXY, old_vel_uv, VecI2(1, 1)); // get 0,0 to 1,1 texels
-   TestVel(vel, VecH2(r.x, g.x), max_delta_vel_len2);
-   TestVel(vel, VecH2(r.y, g.y), max_delta_vel_len2);
-   TestVel(vel, VecH2(r.z, g.z), max_delta_vel_len2);
- //TestVel(vel, VecH2(r.w, g.w), max_delta_vel_len2); already processed
-#else
-   UNROLL for(Int y=-1; y<=1; y++)
-   UNROLL for(Int x=-1; x<=1; x++)
-      TestVel(vel, TexPointOfs(ImgXY, old_vel_uv, VecI2(x, y)).xy, max_delta_vel_len2);
-#endif
-   Half max_delta_vel_len=Sqrt(max_delta_vel_len2),
-        blend_move=Sat(1-max_delta_vel_len/VEL_EPS);
-
-#if DUAL_HISTORY
-   if(blend_move<=0)old_weight=0; // for DUAL_HISTORY 'old_weight' affects 'old' and 'old1' in a special way, so can't just modify it easily
-#else
-   old_weight*=blend_move;
-#endif
-#if !FLICKER_WEIGHT
-   old_flicker*=blend_move;
-#endif
-
    // NEIGHBOR CLAMP
 #if YCOCG
    VecH ycocg_old=RGBToYCoCg4(old.rgb);
@@ -504,10 +526,17 @@ void Temporal_PS
       // calculate difference between 'old' and 'cur'
       Half difference=Dist(LinearToSRGBFast(old.rgb), LinearToSRGBFast(cur.rgb)); // it's better to use 'Dist' rather than 'Dist2', because it will prevent smooth changes from particles (like fire effect) being reported as flickering (if fire is reported as flickering then it will look very blurry)
            difference=Sat(difference/FLICKER_EPS);
-   #if FLICKER_WEIGHT
-      new_flicker=old_flicker*old_weight + difference*cur_weight; // always 0..1
+
+   // FIXME should this be affected by blend?
+   // FIXME should this be affected by SUPER/ANTI_ALIAS below? (consider all cases)
+   // FIXME should difference be affected by old_weight?
+   // FIXME should new_flicker be affected by old_weight?
+   #if 0 // FIXME which one?
+      new_flicker=Lerp(difference, old_flicker, old_weight*OLD_WEIGHT); // always 0..1
+   #elif 0
+      new_flicker=Lerp(difference, old_flicker*old_weight, OLD_WEIGHT); // always 0..1
    #else
-      new_flicker=Lerp(difference, old_flicker, OLD_WEIGHT); // always 0..1
+      new_flicker=Lerp(difference, old_flicker, OLD_WEIGHT)*old_weight; // always 0..1
    #endif
 
     //Half     flicker=Sat(LerpR(1-OLD_WEIGHT, 1, new_flicker)); // cut-off small differences
@@ -519,8 +548,6 @@ void Temporal_PS
    {
       new_flicker=0; // always disable flickering for sky because on cam zoom in/out the sky motion vectors don't change, and it could retain some flicker from another object that wouldn't get cleared
    }
-
-   old_weight*=1-blend;
 
 #if !DUAL_HISTORY
 #if SUPER
@@ -541,6 +568,8 @@ void Temporal_PS
 #else
    old_weight*=OLD_WEIGHT; // smoothly blend with new
 #endif
+
+   old_weight*=1-blend;
    Half cur_weight=1-old_weight; // old_weight+cur_weight=1
 
    #if YCOCG && 0 // not needed, blend with RGB works similar or the same
@@ -560,7 +589,7 @@ void Temporal_PS
       outAlpha=new_alpha;
    #endif
    #endif
-   //if(T)outScreen=VecH4(SRGBToLinearFast(new_flicker).xxx, 0); // visualize flicker
+ //if(T)outScreen=VecH4(SRGBToLinearFast(new_flicker).xxx, 0); // visualize flicker
 #else
    #if YCOCG
       old.rgb=YCoCg4ToRGB(Lerp(ycocg_old, ycocg_cur, blend));
