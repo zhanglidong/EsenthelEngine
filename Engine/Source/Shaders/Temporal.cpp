@@ -254,13 +254,9 @@ void Temporal_PS
 
       // expect old position to be moving with the same motion as this pixel, if not then reduce old weight !! TODO: Warning: this ignores VIEW_FULL !!
       Vec2 old_uv=UVInView(base_uv-uv_motion, VIEW_FULL); // #MotionDir
-   #if 1 // FIXME can use just 1 sample? probably not
-      VecH2 old_uv_motion=TexPoint(ImgXY, old_uv);
-      Half  max_screen_delta_len2=Length2(UVToScreen(old_uv_motion-uv_motion));
-   // FIXME can use just 4 samples?
-   #else
       Half max_screen_delta_len2=0;
    #if GATHER
+      // 3x3 samples are needed, 2x2 and 1x1 had ghosting
       TestMotion(uv_motion, TexPointOfs(ImgXY, old_uv, VecI2(-1,  1)).xy, max_screen_delta_len2); // -1,  1,  left-top
       TestMotion(uv_motion, TexPointOfs(ImgXY, old_uv, VecI2( 1, -1)).xy, max_screen_delta_len2); //  1, -1, right-bottom
       old_uv-=(SUPER ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
@@ -280,7 +276,6 @@ void Temporal_PS
       UNROLL for(Int y=-1; y<=1; y++)
       UNROLL for(Int x=-1; x<=1; x++)
          TestMotion(uv_motion, TexPointOfs(ImgXY, old_uv, VecI2(x, y)).xy, max_screen_delta_len2);
-   #endif
    #endif
    // FIXME special case for background/sky? because tree leafs are losing AA
       Half full=Length2(UVToScreen(uv_motion));
