@@ -260,7 +260,7 @@ void Temporal_PS
    else                 depth_raw=TexDepthRawPoint(uv);
    Flt depth=LinearizeDepth(depth_raw);
 
-   // GET VEL
+   // GET MOTION
    Vec2  depth_motion_uv=NEAREST_DEPTH_VEL ? UVInView(uv+ofs*ImgSize.xy, VIEW_FULL) : uv; // 'depth_motion_uv'=UV that's used for DepthMotion
    VecH2 uv_motion=TexPoint(ImgXY, depth_motion_uv).xy;
    Vec2  cur_uv=uv+TemporalOffset,
