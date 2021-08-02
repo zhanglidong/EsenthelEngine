@@ -276,7 +276,7 @@ void Temporal_PS
       Half max_screen_delta_len2=0; // max movement difference between this and samples in old position
    #if GATHER
       // 3x3 samples are needed, 2x2 and 1x1 had ghosting
-      Vec2 gather_uv=old_uv;
+      Vec2 gather_uv=old_uv; // have to test motions of pixels that we want to use for old color
       TestMotion(uv_motion, TexPointOfs(ImgXY, gather_uv, VecI2(-1,  1)).xy, max_screen_delta_len2); // -1,  1,  left-top
       TestMotion(uv_motion, TexPointOfs(ImgXY, gather_uv, VecI2( 1, -1)).xy, max_screen_delta_len2); //  1, -1, right-bottom
       gather_uv-=(SUPER ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
@@ -301,19 +301,22 @@ void Temporal_PS
       Half frac=max_screen_delta_len2/screen_motion_len2;
     //Half blend_move=LerpRS(Sqr(1.0), Sqr(0.0), frac); keep {1.0, 0.0}, because {1.0, 0.5} has too much blur from old when zooming in, and {0.5, 0.0} discards too much
       Half blend_move=Sat(1-frac);
+   }
 
-      // check if any object covered this pixel in previous frame
-      {
-         Vec2  obj_uv       =UVInView(base_uv+dilated_uv_motion, VIEW_FULL); // #MotionDir get fastest moving pixel in the neighborhood
-         VecH2 obj_uv_motion=TexPoint(ImgXY, obj_uv);
-         Flt   obj_depth    =TexDepthPoint(obj_uv);
-         Flt   in_front     =Sat((depth-obj_depth)/DEPTH_TOLERANCE+0.5); // if that pixel is in front of this one
-       //Flt   behind       =Sat((obj_depth-depth)/DEPTH_TOLERANCE+0.5);
+   // check if any object covered old pixel in previous frame
+   // TODO: for best results this would need a separate dilated motion RT without any MotionScale_2, perhaps it could be smaller than DilatedMotion for Motion Blur
+#if DUAL_MOTION
+   VecH4 dilated_uv_motion=TexPoint(Img2, old_uv); // for dual motion we have to use point filter, because one pixel can have XY=A, ZW=B, and another can have XY=B, ZW=0 (B vel is in XY), filtering would make values invalid
+#else
+   VecH4 dilated_uv_motion=TexLod  (Img2, old_uv); // use filtering because this is very low res
+#endif
+   if(any(dilated_uv_motion.xy)) // remember that this is forced to zero for small sub-pixel motions #DilatedMotionZero so we can use 'any', this check improves performance so keep it
+   {
+      dilated_uv_motion.xy/=MotionScale_2; // #DilatedMotion
 
-         VecH2 rel_uv_motion=obj_uv_motion-uv_motion; // relative motion (object vs this)
-
-         VecH2 rel_screen_motion=UVToScreen(    rel_uv_motion),
-           dilated_screen_motion=UVToScreen(dilated_uv_motion);
+      // here 'screen_delta' is also the delta from current position to object position (distance), so we have to check if 'obj_screen_motion' reaches 'screen_delta'
+      VecH2 screen_delta=UVToScreen(dilated_uv_motion.xy); // FIXME for !VIEW_FULL should this be set to delta between old_uv and obj_uv, however what about pixels at the viewport border, they would cover themself?
+      Half  screen_delta_len2=Length2(screen_delta); // full distance
 
          // here 'dilated_screen_motion' is also the delta from current position to object position (distance), so we have to check if 'rel_screen_motion' reaches 'dilated_screen_motion'
          Half move=Dot(    rel_screen_motion, dilated_screen_motion), // remember that 'dilated_screen_motion' is not normalized
