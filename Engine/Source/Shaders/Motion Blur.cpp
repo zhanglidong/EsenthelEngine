@@ -362,7 +362,7 @@ VecH4 Dilate_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL):TARGET
 #else
    Half length2=0; // here just set 0 because we will process all samples, including (0,0) that's already set to 'motion'
    LOOP for(Int y=-RANGE; y<=RANGE; y++)
-   LOOP for(Int x=-RANGE; x<=RANGE; x++)
+   LOOP for(Int x=-RANGE; x<=RANGE; x++) // if(x || y) is ignored for LOOP to avoid extra overhead, instead codes were modified to need (0,0) samples too
       DilateMax(motion.xy, length2, tex[y+RANGE][x+RANGE]=TexPoint(Img, uv+Vec2(x, y)*RTSize.xy), sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel); // need UV clamp
 #endif
 
@@ -376,7 +376,7 @@ VecH4 Dilate_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL):TARGET
 #else
    Half dist2=0; // here just set 0 because we will process all samples, including (0,0) that's already set to 'motion'
    LOOP for(Int y=-RANGE; y<=RANGE; y++)
-   LOOP for(Int x=-RANGE; x<=RANGE; x++)
+   LOOP for(Int x=-RANGE; x<=RANGE; x++) // if(x || y) is ignored for LOOP to avoid extra overhead, instead codes were modified to need (0,0) samples too
       DilateSecondary(motion, dist2, tex[y+RANGE][x+RANGE], sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size); // need UV clamp
 #endif
 
