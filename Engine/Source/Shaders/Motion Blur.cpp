@@ -105,10 +105,10 @@ void DilateMax(inout VecH2 max_motion, inout Half max_length2, VecH2 sample_moti
    Half sample_len2=ScreenLength2(sample_motion);
    if(  sample_len2>max_length2){max_length2=sample_len2; max_motion=sample_motion;}
 }
-void DilateSecondary(inout VecH4 motion, inout Half max_length2, VecH2 sample_motion)
+void DilateSecondary(inout VecH4 motion, inout Half max_dist2, VecH2 sample_motion)
 {
-   Half sample_len2=ScreenLength2(sample_motion-motion.xy); // distance of sample_motion to biggest motion
-   if(  sample_len2>max_length2){max_length2=sample_len2; motion.zw=sample_motion;}
+   Half sample_dist2=ScreenLength2(sample_motion-motion.xy); // distance of sample_motion to biggest motion
+   if(  sample_dist2>max_dist2){max_dist2=sample_dist2; motion.zw=sample_motion;}
 }
 /******************************************************************************/
 void DilateMaxMin(inout VecH4 max_min_motion, inout VecH2 length2, VecH4 sample_motion, VecH2 pixel_delta, VecH2 uv_to_pixel, VecH2 base_pixel_motion, VecH2 base_pixel_motion_perp, VecH2 base_pixel_motion_size) // XY=biggest, ZW=smallest
@@ -155,13 +155,13 @@ void DilateMax(inout VecH2 max_motion, inout Half max_length2, VecH4 sample_moti
          DilateMax(max_motion, max_length2, sample_motion.zw);
    }
 }
-void DilateSecondary(inout VecH4 motion, inout Half max_length2, VecH4 sample_motion, bool2 sample_reaches_base, VecH2 pixel_delta, VecH2 uv_to_pixel, VecH2 base_pixel_motion, VecH2 base_pixel_motion_perp, VecH2 base_pixel_motion_size) // XY=biggest, ZW=smallest
+void DilateSecondary(inout VecH4 motion, inout Half max_dist2, VecH4 sample_motion, bool2 sample_reaches_base, VecH2 pixel_delta, VecH2 uv_to_pixel, VecH2 base_pixel_motion, VecH2 base_pixel_motion_perp, VecH2 base_pixel_motion_size) // XY=biggest, ZW=smallest
 {
         VecH2 sample_pos_motion=VecH2(Dot(pixel_delta, base_pixel_motion     ),  // sample position along            base motion vector
                                       Dot(pixel_delta, base_pixel_motion_perp)); // sample position perpendicular to base motion vector
    Bool base_reaches_sample=all(Abs(sample_pos_motion)<base_pixel_motion_size);
-   if(  base_reaches_sample || sample_reaches_base.x)DilateSecondary(motion, max_length2, sample_motion.xy); // if base reaches sample, or sample.xy reaches base
-   if(  base_reaches_sample || sample_reaches_base.y)DilateSecondary(motion, max_length2, sample_motion.zw); // if base reaches sample, or sample.zw reaches base
+   if(  base_reaches_sample || sample_reaches_base.x)DilateSecondary(motion, max_dist2, sample_motion.xy); // if base reaches sample, or sample.xy reaches base
+   if(  base_reaches_sample || sample_reaches_base.y)DilateSecondary(motion, max_dist2, sample_motion.zw); // if base reaches sample, or sample.zw reaches base
 }
 /******************************************************************************
 
@@ -204,10 +204,10 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
    Half sec_length2=ScreenLength2(motion.zw);
    if(  sec_length2<min_length2)motion.zw=0; // #DilatedMotionZero
 
-   motion*=MotionScale_2; // #DilatedMotion
+       motion *=    MotionScale_2 ; // #DilatedMotion
+       length2*=Sqr(MotionScale_2); // since we've scaled 'motion' above after setting     'length2', then we have to scale     'length2' too
+   sec_length2*=Sqr(MotionScale_2); // since we've scaled 'motion' above after setting 'sec_length2', then we have to scale 'sec_length2' too
 
-       length2*=Sqr(MotionScale_2); // since we've scaled 'motion' above after setting 'length2', then we have to scale 'length2' too
-   sec_length2*=Sqr(MotionScale_2);
    { // limit max length - this prevents stretching objects to distances the blur can't handle anyway, making only certain samples of it visible but not all
       const Half max_length=0.2/2; // #MaxMotionBlurLength
       if(    length2>Sqr(max_length))motion.xy*=max_length/Sqrt(    length2);
@@ -362,8 +362,8 @@ VecH4 Dilate_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL):TARGET
 #endif
 
    // secondary
-   length2=ScreenLength2(motion.zw-motion.xy); // calculate from existing
-   DilateSecondary(motion, length2, motion_xy);
+   Half dist2=ScreenLength2(motion.zw-motion.xy); // calculate from existing
+   DilateSecondary(motion, dist2, motion_xy);
 
    VecH2                                  pixel_motion, pixel_motion_perp, pixel_motion_size;
    GetPixelMotion(motion.xy, uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size);
@@ -371,11 +371,11 @@ VecH4 Dilate_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL):TARGET
 #if !FAST_COMPILE && RANGE<=(GL ? 5 : 7) // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range, for GL limit to 5 because compilation is very slow
    UNROLL for(Int y=-RANGE; y<=RANGE; y++)
    UNROLL for(Int x=-RANGE; x<=RANGE; x++)
-      if(x || y)DilateSecondary(motion, length2, tex[y+RANGE][x+RANGE], sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size); // need UV clamp
+      if(x || y)DilateSecondary(motion, dist2, tex[y+RANGE][x+RANGE], sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size); // need UV clamp
 #else
    LOOP for(Int y=-RANGE; y<=RANGE; y++)
    LOOP for(Int x=-RANGE; x<=RANGE; x++)
-      if(x || y)DilateSecondary(motion, length2, tex[y+RANGE][x+RANGE], sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size); // need UV clamp
+      if(x || y)DilateSecondary(motion, dist2, tex[y+RANGE][x+RANGE], sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size); // need UV clamp
 #endif
 
 #else
