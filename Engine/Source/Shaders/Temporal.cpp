@@ -318,26 +318,65 @@ void Temporal_PS
       VecH2 screen_delta=UVToScreen(dilated_uv_motion.xy); // FIXME for !VIEW_FULL should this be set to delta between old_uv and obj_uv, however what about pixels at the viewport border, they would cover themself?
       Half  screen_delta_len2=Length2(screen_delta); // full distance
 
-         // here 'dilated_screen_motion' is also the delta from current position to object position (distance), so we have to check if 'rel_screen_motion' reaches 'dilated_screen_motion'
-         Half move=Dot(    rel_screen_motion, dilated_screen_motion), // remember that 'dilated_screen_motion' is not normalized
-              full=Dot(dilated_screen_motion, dilated_screen_motion), // so also check the full distance
-              frac=move/full, // and calculate as fraction
-              cover=LerpRS(Sqr(0.5), Sqr(1.0), frac)*in_front;
-
-         blend_move=Min(blend_move, 1-cover);
+      Vec2 obj_uv=UVInView(old_uv+dilated_uv_motion.xy, VIEW_FULL); // #MotionDir get fastest moving pixel in the neighborhood
+      Half cover=0; // initialize in case we don't process any
+      {
+      #if GATHER
+         Vec4  d           =TexDepthRawGather(obj_uv);
+         VecH4 obj_motion_x=TexGatherR(ImgXY, obj_uv);
+         VecH4 obj_motion_y=TexGatherG(ImgXY, obj_uv);
+         cover=    Cover(depth, screen_delta, screen_delta_len2, LinearizeDepth(d.x), VecH2(obj_motion_x.x, obj_motion_y.x)); // this is first pixel so can set instead of Max
+         cover=Max(Cover(depth, screen_delta, screen_delta_len2, LinearizeDepth(d.y), VecH2(obj_motion_x.y, obj_motion_y.y)), cover);
+         cover=Max(Cover(depth, screen_delta, screen_delta_len2, LinearizeDepth(d.z), VecH2(obj_motion_x.z, obj_motion_y.z)), cover);
+         cover=Max(Cover(depth, screen_delta, screen_delta_len2, LinearizeDepth(d.w), VecH2(obj_motion_x.w, obj_motion_y.w)), cover);
+      #else
+         obj_uv-=ImgSize.xy/2;
+         UNROLL for(Int y=0; y<=1; y++)
+         UNROLL for(Int x=0; x<=1; x++)
+         {
+            Half c=Cover(depth, screen_delta, screen_delta_len2, TexDepthPointOfs(obj_uv, VecI2(x,y)), TexPointOfs(ImgXY, obj_uv, VecI2(x,y)));
+            if(x==0 && y==0)cover=c;else cover=Max(cover, c); // first pixel can be set instead of Max
+         }
+      #endif
       }
 
-      old_weight*=blend_move;
+   #if DUAL_MOTION // this is usable only in DUAL_MOTION, because in single motion in most cases this is close to zero and unusable
+      if(any(dilated_uv_motion.zw)) // remember that this is forced to zero for small sub-pixel motions #DilatedMotionZero so we can use 'any', this check improves performance so keep it
+      {
+         dilated_uv_motion.zw/=MotionScale_2; // #DilatedMotion
+
+         // here 'screen_delta' is also the delta from current position to object position (distance), so we have to check if 'obj_screen_motion' reaches 'screen_delta'
+         VecH2 screen_delta=UVToScreen(dilated_uv_motion.zw); // FIXME for !VIEW_FULL should this be set to delta between old_uv and obj_uv, however what about pixels at the viewport border, they would cover themself?
+         Half  screen_delta_len2=Length2(screen_delta); // full distance
+
+         Vec2 obj_uv=UVInView(old_uv+dilated_uv_motion.zw, VIEW_FULL); // #MotionDir get fastest moving pixel in the neighborhood
+      #if GATHER
+         Vec4  d           =TexDepthRawGather(obj_uv);
+         VecH4 obj_motion_x=TexGatherR(ImgXY, obj_uv);
+         VecH4 obj_motion_y=TexGatherG(ImgXY, obj_uv);
+         cover=Max(Cover(depth, screen_delta, screen_delta_len2, LinearizeDepth(d.x), VecH2(obj_motion_x.x, obj_motion_y.x)), cover);
+         cover=Max(Cover(depth, screen_delta, screen_delta_len2, LinearizeDepth(d.y), VecH2(obj_motion_x.y, obj_motion_y.y)), cover);
+         cover=Max(Cover(depth, screen_delta, screen_delta_len2, LinearizeDepth(d.z), VecH2(obj_motion_x.z, obj_motion_y.z)), cover);
+         cover=Max(Cover(depth, screen_delta, screen_delta_len2, LinearizeDepth(d.w), VecH2(obj_motion_x.w, obj_motion_y.w)), cover);
+      #else
+         obj_uv-=ImgSize.xy/2;
+         UNROLL for(Int y=0; y<=1; y++)
+         UNROLL for(Int x=0; x<=1; x++)
+         {
+            Half c=Cover(depth, screen_delta, screen_delta_len2, TexDepthPointOfs(obj_uv, VecI2(x,y)), TexPointOfs(ImgXY, obj_uv, VecI2(x,y)));
+            cover=Max(cover, c);
+         }
+      #endif
+      }
+   #endif
+
+      blend_move=Min(blend_move, 1-cover);
    }
-
-   Vec2 cur_uv=uv+TemporalOffset,
-        old_uv=uv-uv_motion; // #MotionDir
-
-   if(UVOutsideView(old_uv))old_weight=0; // if 'old_uv' is outside viewport then ignore it
+   old_weight*=blend_move;
 
    // OLD DATA (FLICKER + ALPHA)
 #if MERGED_ALPHA
-   VecH2 old_data =TexLod(ImgXY2, old_uv);
+   VecH2 old_data =TexLod(ImgXY1, old_uv);
    Half  old_alpha=old_data.x, old_flicker=old_data.y;
 #else
    Half  old_flicker=TexLod(ImgX1, old_uv);
