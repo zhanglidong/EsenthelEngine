@@ -45,6 +45,8 @@
 
 #define ADAPT_EYE (GLOW==2)
 
+#define TEX_CACHE 0 // 1=was much slower in tests, so don't use
+
 // disable PRECISE because for it to work best 'near' would have to be processed along 'base_uv_motion' line, however right now: PRECISE=1 improves moving background around moving object, however it has negative effect of unnatural blurring FPP weapons when rotating camera fast left/right constantly with a key, and with mouse up/down (while weapon rotates slightly based on up/down angle) in that case the weapons get blurred way too much
 #define PRECISE 0 // if precisely (separately) calculate samples for far and near (base/center), this is to solve the problem of rotating camera in FPP view, with weapon attached to player/camera. in that case background is rotating, and on the background blur line it encounters an object (weapon) that is in focus. Blur algorithm counts the far samples that move over the base center, and then lerps to the near samples that move over the base center.
 
@@ -176,7 +178,7 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
    const Half min_length2=Sqr(ImgSize.y*(min_motion/(1?1.0/2:MotionScale_2))); // set to 'min_motion' to make sure we will ignore small motions and keep 0 #DilatedMotionZero, normally we should do "/MotionScale_2" because later there's "*MotionScale_2", however we need to preserve small values ignoring 'MotionScale_2' because this is needed in Temporal shader #DilatedMotionZero)
 #if DUAL_MOTION
    const Int ofs=(RANGE-1)/2, min=0-ofs, max=RANGE-ofs; // correctness can be verified with this code: "Int RANGE=1,2,4,8; const Int ofs=(RANGE-1)/2, min=0-ofs, max=RANGE-ofs; Str s; for(Int x=min; x<max; x+=2)s.space()+=x; Exit(s);"
-   VecH2 tex[(max-min+1)/2][(max-min+1)/2];
+   VecH2 tex_cache[(max-min+1)/2][(max-min+1)/2];
 
    // find max
    Half  length2=min_length2;
@@ -188,7 +190,7 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
    LOOP for(Int y=min; y<max; y+=2)
    LOOP for(Int x=min; x<max; x+=2)
 #endif
-      DilateMax(motion.xy, length2, tex[uint(y-min)/2][uint(x-min)/2]=TexLod(ImgXY, UVInView(uv+Vec2(x, y)*ImgSize.xy, VIEW_FULL)));
+      DilateMax(motion.xy, length2, tex_cache[uint(y-min)/2][uint(x-min)/2]=TexLod(ImgXY, UVInView(uv+Vec2(x, y)*ImgSize.xy, VIEW_FULL)));
 
    // find secondary
    Half dist2=-1;
@@ -199,7 +201,7 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
    LOOP for(Int y=min; y<max; y+=2)
    LOOP for(Int x=min; x<max; x+=2)
 #endif
-      DilateSecondary(motion, dist2, tex[uint(y-min)/2][uint(x-min)/2]);
+      DilateSecondary(motion, dist2, tex_cache[uint(y-min)/2][uint(x-min)/2]);
 
    Half sec_length2=ScreenLength2(motion.zw);
    if(  sec_length2<min_length2)motion.zw=0; // #DilatedMotionZero
@@ -345,7 +347,9 @@ VecH4 Dilate_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL):TARGET
    const VecH2 uv_to_pixel=RTSize.zw;
          VecH4 motion=Img[pixel.xy];
 #if DUAL_MOTION
-   VecH4 tex                [RANGE*2+1][RANGE*2+1];
+#if TEX_CACHE
+   VecH4 tex_cache          [RANGE*2+1][RANGE*2+1];
+#endif
    bool2 sample_reaches_base[RANGE*2+1][RANGE*2+1];
 
    // find new max
@@ -353,8 +357,14 @@ VecH4 Dilate_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL):TARGET
    VecH2 motion_xy=motion.xy; // keep copy of 'motion.xy' because it might get overwritten
    Half  length2=ScreenLength2(motion.xy);
    UNROLL for(Int y=-RANGE; y<=RANGE; y++)
-   UNROLL for(Int x=-RANGE; x<=RANGE; x++)
-      if(x || y)DilateMax(motion.xy, length2, tex[y+RANGE][x+RANGE]=TexPointOfs(Img, uv, VecI2(x, y)), sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel); // need UV clamp
+   UNROLL for(Int x=-RANGE; x<=RANGE; x++)if(x || y)
+   {
+      VecH4 tex=TexPointOfs(Img, uv, VecI2(x, y)); // need UV clamp
+   #if TEX_CACHE
+      tex_cache[y+RANGE][x+RANGE]=tex;
+   #endif
+      DilateMax(motion.xy, length2, tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel);
+   }
 
    // secondary
    Half dist2=ScreenLength2(motion.zw-motion.xy); // calculate from existing
@@ -362,22 +372,43 @@ VecH4 Dilate_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL):TARGET
 #else
    Half length2=0; // here just set 0 because we will process all samples, including (0,0) that's already set to 'motion'
    LOOP for(Int y=-RANGE; y<=RANGE; y++)
-   LOOP for(Int x=-RANGE; x<=RANGE; x++) // if(x || y) is ignored for LOOP to avoid extra overhead, instead codes were modified to need (0,0) samples too
-      DilateMax(motion.xy, length2, tex[y+RANGE][x+RANGE]=TexPoint(Img, uv+Vec2(x, y)*RTSize.xy), sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel); // need UV clamp
+   LOOP for(Int x=-RANGE; x<=RANGE; x++)//if(x || y) is ignored for LOOP to avoid extra overhead, instead codes were modified to need (0,0) samples too
+   {
+      VecH4 tex=TexPoint(Img, uv+Vec2(x, y)*RTSize.xy); // need UV clamp
+   #if TEX_CACHE
+      tex_cache[y+RANGE][x+RANGE]=tex;
+   #endif
+      DilateMax(motion.xy, length2, tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel);
+   }
 #endif
 
+   // secondary
    VecH2                                  pixel_motion, pixel_motion_perp, pixel_motion_size;
    GetPixelMotion(motion.xy, uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size);
 
 #if !FAST_COMPILE && RANGE<=(GL ? 5 : 7) // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range, for GL limit to 5 because compilation is very slow
    UNROLL for(Int y=-RANGE; y<=RANGE; y++)
-   UNROLL for(Int x=-RANGE; x<=RANGE; x++)
-      if(x || y)DilateSecondary(motion, dist2, tex[y+RANGE][x+RANGE], sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size); // need UV clamp
+   UNROLL for(Int x=-RANGE; x<=RANGE; x++)if(x || y)
+   {
+   #if TEX_CACHE
+      VecH4 tex=tex_cache[y+RANGE][x+RANGE];
+   #else
+      VecH4 tex=TexPointOfs(Img, uv, VecI2(x, y)); // need UV clamp
+   #endif
+      DilateSecondary(motion, dist2, tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size);
+   }
 #else
    Half dist2=0; // here just set 0 because we will process all samples, including (0,0) that's already set to 'motion'
    LOOP for(Int y=-RANGE; y<=RANGE; y++)
-   LOOP for(Int x=-RANGE; x<=RANGE; x++) // if(x || y) is ignored for LOOP to avoid extra overhead, instead codes were modified to need (0,0) samples too
-      DilateSecondary(motion, dist2, tex[y+RANGE][x+RANGE], sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size); // need UV clamp
+   LOOP for(Int x=-RANGE; x<=RANGE; x++)//if(x || y) is ignored for LOOP to avoid extra overhead, instead codes were modified to need (0,0) samples too
+   {
+   #if TEX_CACHE
+      VecH4 tex=tex_cache[y+RANGE][x+RANGE];
+   #else
+      VecH4 tex=TexPoint(Img, uv+Vec2(x, y)*RTSize.xy); // need UV clamp
+   #endif
+      DilateSecondary(motion, dist2, tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size);
+   }
 #endif
 
 #else
