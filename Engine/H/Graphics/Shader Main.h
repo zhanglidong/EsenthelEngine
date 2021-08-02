@@ -438,7 +438,7 @@ struct MotionBlur
    {
       Int     range;
       Shader *Dilate;
-   }Dilates[14];
+   }Dilates[10]; // #MotionBlurDilateRanges
 
    struct BlurRange
    {

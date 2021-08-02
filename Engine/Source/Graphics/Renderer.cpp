@@ -1836,7 +1836,7 @@ void RendererClass::temporal(ImageRTPtr &dilated_motion) // !! assumes 'resolveM
 
          if(merged_alpha)
          {
-            Sh.ImgXY[2]->set(_ctx->old_data ); // old data with alpha
+            Sh.ImgXY[1]->set(_ctx->old_data ); // old data with alpha
          }else
          {
             Sh.ImgX [1]->set(_ctx->old_data ); // old data
@@ -1846,7 +1846,7 @@ void RendererClass::temporal(ImageRTPtr &dilated_motion) // !! assumes 'resolveM
             Sh.ImgX [0]->set(_alpha         ); // cur alpha
             Sh.Img  [1]->set(_ctx->old_col  ); // old
             Sh.ImgXY[0]->set(_vel           ); //         motion
-            Sh.ImgXY[1]->set( dilated_motion); // dilated motion
+            Sh.Img  [2]->set( dilated_motion); // dilated motion
 
          Sh.imgSize(*_col); // this is needed for Cubic Sampler and SUPER
          Shader *shader=Sh.Temporal[D.temporalAntiAlias()+2*D.temporalSuperRes()-1][D._view_main.full][alpha];

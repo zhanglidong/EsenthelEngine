@@ -8,14 +8,14 @@ MODE, VIEW_FULL, ALPHA, DUAL_HISTORY, GATHER, FILTER_MIN_MAX
 ImgSize=src
  RTSize=dest (is 2x bigger for SUPER)
 
-Img=CurCol (ImgSize), Img1=OldCol (RTSize), ImgXY=CurVel (ImgSize), ImgXY1=CurDilatedMotion (small res), Depth (ImgSize)
+Img=CurCol (ImgSize), Img1=OldCol (RTSize), ImgXY=CurVel (ImgSize), Img2=CurDilatedMotion (small res), Depth (ImgSize)
 
 ALPHA=0
    ImgX1=Flicker
 ALPHA=1
    ImgX=CurAlpha (ImgSize)
       MERGED_ALPHA=1
-         ImgXY2=Alpha, Flicker
+         ImgXY1=Alpha, Flicker
       SEPARATE_ALPHA=1
          ImgX1=Flicker
          ImgX2=Old Alpha
@@ -229,24 +229,31 @@ void NearestDepth3x3(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather)
    depth=LinearizeDepth(depth);
 }
 /******************************************************************************/
+Half Cover(Flt depth, VecH2 screen_delta, Half screen_delta_len2, Flt obj_depth, VecH2 obj_uv_motion)
+{
+   VecH2 obj_screen_motion=UVToScreen(obj_uv_motion);
+   Half  move=Dot(obj_screen_motion, screen_delta), // remember that 'screen_delta' is not normalized
+         frac=move/screen_delta_len2, // and calculate as fraction
+         in_front=Sat((depth-obj_depth)/DEPTH_TOLERANCE/*+0.5 adding this here would cause self-occlusion, so disable it*/); // if that pixel is in front of this one
+   return LerpRS(Sqr(0.5), Sqr(0.75), frac)*in_front;
+}
 void Temporal_PS
 (
    NOPERSP Vec2 uv:UV,
 #if SUPER
    NOPERSP PIXEL,
 #endif
- #if MERGED_ALPHA
-    out VecH2 outData :TARGET0,
- #else
-    out Half  outData :TARGET0,
- #endif
- #if SEPARATE_ALPHA
-    out Half  outAlpha:TARGET1,
- #endif
-    out VecH4 outCol  :TARGET2
+#if MERGED_ALPHA
+   out VecH2 outData :TARGET0,
+#else
+   out Half  outData :TARGET0,
+#endif
+#if SEPARATE_ALPHA
+   out Half  outAlpha:TARGET1,
+#endif
+   out VecH4 outCol  :TARGET2
 )
 {
-   Half old_weight=1;
 
    // GET DEPTH
    Flt depth_raw; VecI2 ofs;
@@ -255,31 +262,32 @@ void Temporal_PS
    Flt depth=LinearizeDepth(depth_raw);
 
    // GET VEL
-   Vec2  base_uv=NEAREST_DEPTH_VEL ? UVInView(uv+ofs*ImgSize.xy, VIEW_FULL) : uv; // 'base_uv'=UV that's used for DepthMotion
-   VecH2 uv_motion=TexPoint(ImgXY, base_uv).xy; // have to get this outside of "any(dilated_uv_motion)" because that one is forced to zero for small sub-pixel motions #DilatedMotionZero, but here we need precise
+   Vec2  depth_motion_uv=NEAREST_DEPTH_VEL ? UVInView(uv+ofs*ImgSize.xy, VIEW_FULL) : uv; // 'depth_motion_uv'=UV that's used for DepthMotion
+   VecH2 uv_motion=TexPoint(ImgXY, depth_motion_uv).xy;
+   Vec2  cur_uv=uv+TemporalOffset,
+         old_uv=uv-uv_motion; // #MotionDir
 
-   // DISCARD OLD BY MOVEMENT
-   VecH2  dilated_uv_motion=TexLod(ImgXY1, base_uv); // use filtering because this is very low res
-   if(any(dilated_uv_motion)) // remember that this is forced to zero for small sub-pixel motions #DilatedMotionZero so we can use 'any', this check improves performance so keep it
+   Half old_weight=UVInsideView(old_uv); // use old only if its UV is inside viewport
+
+   Half blend_move=1;
+   // IGNORE OLD BY MOVEMENT
    {
-      dilated_uv_motion/=MotionScale_2; // #DilatedMotion, TODO: for best results this would need a separate dilated motion RT without any MotionScale_2, perhaps it could be smaller then DilatedMotion for Motion Blur
-
       // expect old position to be moving with the same motion as this pixel, if not then reduce old weight !! TODO: Warning: this ignores VIEW_FULL !!
-      Vec2 old_uv=UVInView(base_uv-uv_motion, VIEW_FULL); // #MotionDir
       Half max_screen_delta_len2=0; // max movement difference between this and samples in old position
    #if GATHER
       // 3x3 samples are needed, 2x2 and 1x1 had ghosting
-      TestMotion(uv_motion, TexPointOfs(ImgXY, old_uv, VecI2(-1,  1)).xy, max_screen_delta_len2); // -1,  1,  left-top
-      TestMotion(uv_motion, TexPointOfs(ImgXY, old_uv, VecI2( 1, -1)).xy, max_screen_delta_len2); //  1, -1, right-bottom
-      old_uv-=(SUPER ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
-      VecH4 r=TexGatherR(ImgXY, old_uv); // get -1,-1 to 0,0 texels
-      VecH4 g=TexGatherG(ImgXY, old_uv); // get -1,-1 to 0,0 texels
+      Vec2 gather_uv=old_uv;
+      TestMotion(uv_motion, TexPointOfs(ImgXY, gather_uv, VecI2(-1,  1)).xy, max_screen_delta_len2); // -1,  1,  left-top
+      TestMotion(uv_motion, TexPointOfs(ImgXY, gather_uv, VecI2( 1, -1)).xy, max_screen_delta_len2); //  1, -1, right-bottom
+      gather_uv-=(SUPER ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
+      VecH4 r=TexGatherR(ImgXY, gather_uv); // get -1,-1 to 0,0 texels
+      VecH4 g=TexGatherG(ImgXY, gather_uv); // get -1,-1 to 0,0 texels
       TestMotion(uv_motion, VecH2(r.x, g.x), max_screen_delta_len2);
       TestMotion(uv_motion, VecH2(r.y, g.y), max_screen_delta_len2);
       TestMotion(uv_motion, VecH2(r.z, g.z), max_screen_delta_len2);
       TestMotion(uv_motion, VecH2(r.w, g.w), max_screen_delta_len2);
-      r=TexGatherROfs(ImgXY, old_uv, VecI2(1, 1)); // get 0,0 to 1,1 texels
-      g=TexGatherGOfs(ImgXY, old_uv, VecI2(1, 1)); // get 0,0 to 1,1 texels
+      r=TexGatherROfs(ImgXY, gather_uv, VecI2(1, 1)); // get 0,0 to 1,1 texels
+      g=TexGatherGOfs(ImgXY, gather_uv, VecI2(1, 1)); // get 0,0 to 1,1 texels
       TestMotion(uv_motion, VecH2(r.x, g.x), max_screen_delta_len2);
       TestMotion(uv_motion, VecH2(r.y, g.y), max_screen_delta_len2);
       TestMotion(uv_motion, VecH2(r.z, g.z), max_screen_delta_len2);
