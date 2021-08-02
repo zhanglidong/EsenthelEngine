@@ -178,7 +178,9 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
    const Half min_length2=Sqr(ImgSize.y*(min_motion/(1?1.0/2:MotionScale_2))); // set to 'min_motion' to make sure we will ignore small motions and keep 0 #DilatedMotionZero, normally we should do "/MotionScale_2" because later there's "*MotionScale_2", however we need to preserve small values ignoring 'MotionScale_2' because this is needed in Temporal shader #DilatedMotionZero)
 #if DUAL_MOTION
    const Int ofs=(RANGE-1)/2, min=0-ofs, max=RANGE-ofs; // correctness can be verified with this code: "Int RANGE=1,2,4,8; const Int ofs=(RANGE-1)/2, min=0-ofs, max=RANGE-ofs; Str s; for(Int x=min; x<max; x+=2)s.space()+=x; Exit(s);"
+#if TEX_CACHE
    VecH2 tex_cache[(max-min+1)/2][(max-min+1)/2];
+#endif
 
    // find max
    Half  length2=min_length2;
@@ -190,7 +192,13 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
    LOOP for(Int y=min; y<max; y+=2)
    LOOP for(Int x=min; x<max; x+=2)
 #endif
-      DilateMax(motion.xy, length2, tex_cache[uint(y-min)/2][uint(x-min)/2]=TexLod(ImgXY, UVInView(uv+Vec2(x, y)*ImgSize.xy, VIEW_FULL)));
+   {
+      VecH2 tex=TexLod(ImgXY, UVInView(uv+Vec2(x, y)*ImgSize.xy, VIEW_FULL));
+   #if TEX_CACHE
+      tex_cache[uint(y-min)/2][uint(x-min)/2]=tex;
+   #endif
+      DilateMax(motion.xy, length2, tex);
+   }
 
    // find secondary
    Half dist2=-1;
@@ -201,7 +209,14 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
    LOOP for(Int y=min; y<max; y+=2)
    LOOP for(Int x=min; x<max; x+=2)
 #endif
-      DilateSecondary(motion, dist2, tex_cache[uint(y-min)/2][uint(x-min)/2]);
+   {
+   #if TEX_CACHE
+      VecH2 tex=tex_cache[uint(y-min)/2][uint(x-min)/2];
+   #else
+      VecH2 tex=TexLod(ImgXY, UVInView(uv+Vec2(x, y)*ImgSize.xy, VIEW_FULL));
+   #endif
+      DilateSecondary(motion, dist2, tex);
+   }
 
    Half sec_length2=ScreenLength2(motion.zw);
    if(  sec_length2<min_length2)motion.zw=0; // #DilatedMotionZero
