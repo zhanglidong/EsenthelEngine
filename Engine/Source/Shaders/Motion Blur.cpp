@@ -50,7 +50,7 @@
 
 #define SHOW_BLUR_PIXELS 0 // show what pixels actually get blurred (they will be set to GREEN for fast blur and RED for slow blur) use only for debugging
 
-#if 1 // use only for testing for fast compilation
+#if 0 // use only for testing for fast compilation
    #define FAST_COMPILE 1
    #define UNROLL LOOP
 #endif
