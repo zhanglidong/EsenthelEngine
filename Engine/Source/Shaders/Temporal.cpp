@@ -299,9 +299,7 @@ void Temporal_PS
       // FIXME what value?
       Half screen_motion_len2=ScreenLength2(uv_motion)+Sqr(ImgSize.y*4); // this pixel movement, add some bias which helps for slowly moving pixels on static background (example FPS view+walking+tree leafs on static sky), "+bias" works better than "Max(, bias)", *4 was the smallest number that disabled flickering on common scenario of walking/running in FPS view
       Half frac=max_screen_delta_len2/screen_motion_len2;
-      //blend_move=LerpRS(Sqr(Q?0.5:1.0), Sqr(0.0), frac); //keep {1.0, 0.0}, because {1.0, 0.5} has too much blur from old when zooming in, and {0.5, 0.0} discards too much
-      //if(Q)blend_move=Sat(1-max_screen_delta_len2/Sqr(0.006));
-      blend_move=Sat(1-frac);
+      blend_move=LerpRS(Sqr(0.5), Sqr(0.25), frac);
    }
 
    // check if any object covered old pixel in previous frame
