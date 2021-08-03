@@ -369,8 +369,8 @@ void Temporal_PS
       }
 
       blend_move=Min(blend_move, 1-cover);
+      old_weight*=blend_move;
    }
-   old_weight*=blend_move;
 
    // OLD DATA (FLICKER + ALPHA)
 #if MERGED_ALPHA
