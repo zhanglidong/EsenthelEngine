@@ -278,9 +278,13 @@ void Temporal_PS
 
    // if current pixel is moving, or there's any movement at old position, this check improves performance, so keep it
    const Half min_pixel_motion=0.5;
+#if 0
  //if(min_pixel_motion<0 ||           any(Abs(uv_motion)+          Abs(dilated_uv_motion.xy) >    ImgSize.xy*min_pixel_motion)) // 4 abs, 2 add, 2 mul, 2 compare, 1 any
  //if(min_pixel_motion<0 || ScreenLength2(    uv_motion)+ScreenLength2(dilated_uv_motion.xy) >Sqr(ImgSize. y*min_pixel_motion)) //               2 mul, 2 dot (4 mul, 2 add), 1 add, 1 mul, 1 mul, 1 compare, less precise because adding squared values
    if(min_pixel_motion<0 || ScreenLength2(Abs(uv_motion)+          Abs(dilated_uv_motion.xy))>Sqr(ImgSize. y*min_pixel_motion)) // 4 abs, 2 add, 1 mul, 1 dot (2 mul, 1 add),        1 mul, 1 mul, 1 compare
+#else
+   if(min_pixel_motion<0 || ScreenLength2(uv_motion)>Sqr(ImgSize.y*min_pixel_motion) || any(dilated_uv_motion.xy)) // #DilatedMotionZero
+#endif
    {
       Half bias=Sqr(ImgSize.y*0.5); // to allow checking zero length motions, fix for div by 0, makes a/b -> (a+bias)/(b+bias)
       Half cover=0; // initialize in case we don't process any

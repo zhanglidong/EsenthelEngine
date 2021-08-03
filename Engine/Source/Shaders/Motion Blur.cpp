@@ -174,11 +174,8 @@ void DilateSecondary(inout VecH4 motion, inout Half max_dist2, VecH4 sample_moti
 /******************************************************************************/
 VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
 {
-   // FIXME what value?
-   // FIXME if this is 0 then have to do stronger test in Motion Blur shader
-   const Half min_pixel_motion=1.0/3; // 1/3 of pixel (this value works well for TAA+TSR when rotating camera around trees they get refreshed sensibly and not too blurry, 0.5 was too blurry)
-   // FIXME what value should this use? 1? 1/2? MotionScale_2?
-   const Half min_length2=Sqr(ImgSize.y*(min_pixel_motion/(1?1.0/2:MotionScale_2))); // set to 'min_pixel_motion' to make sure we will ignore small motions and keep 0 #DilatedMotionZero, normally we should do "/MotionScale_2" because later there's "*MotionScale_2", however we need to preserve small values ignoring 'MotionScale_2' because this is needed in Temporal shader #DilatedMotionZero)
+   const Half min_pixel_motion=0.5; // 1/2 of pixel (this value works well for TAA+TSR when rotating camera around trees they get refreshed sensibly and not too blurry)
+   const Half min_length2=Sqr(ImgSize.y*(min_pixel_motion/(1 ? 1 : MotionScale_2))); // set to 'min_pixel_motion' to make sure we will ignore small motions and keep 0 #DilatedMotionZero, normally we should do "/MotionScale_2" because later there's "*MotionScale_2", however we need to preserve small values ignoring 'MotionScale_2' because this is needed in Temporal shader #DilatedMotionZero)
 #if DUAL_MOTION
    const Int ofs=(RANGE-1)/2, min=0-ofs, max=RANGE-ofs; // correctness can be verified with this code: "Int RANGE=1,2,4,8; const Int ofs=(RANGE-1)/2, min=0-ofs, max=RANGE-ofs; Str s; for(Int x=min; x<max; x+=2)s.space()+=x; Exit(s);"
 #if TEX_CACHE
@@ -610,7 +607,7 @@ VecH4 Blur_PS
    VecH4 dilated=TexLod(Img1, uv0); // dilated motion (XY=biggest, ZW=smallest), use linear filtering because 'Img1' may be smaller
    //return VecH4(SRGBToLinear(Vec(Length(dilated.xy)*10,Length(dilated.zw)*10,0)),1);
 
-   BRANCH if(any(dilated.xy)) // XY=biggest, can use 'any' because small motions were already forced to 0 in 'Convert'
+   BRANCH if(any(dilated.xy)) // XY=biggest, can use 'any' because small motions were already forced to 0 in 'Convert' #DilatedMotionZero
    {
       Vec4 dir=Vec4(dilated.xy, -dilated.xy);
       Int  steps=SAMPLES;
