@@ -174,8 +174,11 @@ void DilateSecondary(inout VecH4 motion, inout Half max_dist2, VecH4 sample_moti
 /******************************************************************************/
 VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
 {
-   const Half min_motion=1.0/3; // 1/3 of pixel (this value works well for TAA+TSR when rotating camera around trees they get refreshed sensibly and not too blurry, 0.5 was too blurry)
-   const Half min_length2=Sqr(ImgSize.y*(min_motion/(1?1.0/2:MotionScale_2))); // set to 'min_motion' to make sure we will ignore small motions and keep 0 #DilatedMotionZero, normally we should do "/MotionScale_2" because later there's "*MotionScale_2", however we need to preserve small values ignoring 'MotionScale_2' because this is needed in Temporal shader #DilatedMotionZero)
+   // FIXME what value?
+   // FIXME if this is 0 then have to do stronger test in Motion Blur shader
+   const Half min_pixel_motion=1.0/3; // 1/3 of pixel (this value works well for TAA+TSR when rotating camera around trees they get refreshed sensibly and not too blurry, 0.5 was too blurry)
+   // FIXME what value should this use? 1? 1/2? MotionScale_2?
+   const Half min_length2=Sqr(ImgSize.y*(min_pixel_motion/(1?1.0/2:MotionScale_2))); // set to 'min_pixel_motion' to make sure we will ignore small motions and keep 0 #DilatedMotionZero, normally we should do "/MotionScale_2" because later there's "*MotionScale_2", however we need to preserve small values ignoring 'MotionScale_2' because this is needed in Temporal shader #DilatedMotionZero)
 #if DUAL_MOTION
    const Int ofs=(RANGE-1)/2, min=0-ofs, max=RANGE-ofs; // correctness can be verified with this code: "Int RANGE=1,2,4,8; const Int ofs=(RANGE-1)/2, min=0-ofs, max=RANGE-ofs; Str s; for(Int x=min; x<max; x+=2)s.space()+=x; Exit(s);"
 #if TEX_CACHE
@@ -183,8 +186,8 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
 #endif
 
    // find max
-   Half  length2=min_length2;
-   VecH4 motion; motion.xy=0;
+   Half  length2=(min_pixel_motion>0) ? min_length2 : -1; // -1 to always update
+   VecH4 motion; if(min_pixel_motion>0)motion.xy=0;
 #if RANGE<=(GL ? 16 : 256) // for GL limit to 16 because compilation is very slow
    UNROLL for(Int y=min; y<max; y+=2)
    UNROLL for(Int x=min; x<max; x+=2)
@@ -201,7 +204,7 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
    }
 
    // find secondary
-   Half dist2=-1;
+   Half dist2=-1; // -1 to always update
 #if RANGE<=(GL ? 16 : 256) // for GL limit to 16 because compilation is very slow
    UNROLL for(Int y=min; y<max; y+=2)
    UNROLL for(Int x=min; x<max; x+=2)
@@ -219,7 +222,7 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
    }
 
    Half sec_length2=ScreenLength2(motion.zw);
-   if(  sec_length2<min_length2)motion.zw=0; // #DilatedMotionZero
+   if((min_pixel_motion>0) && sec_length2<min_length2)motion.zw=0; // #DilatedMotionZero
 
        motion *=    MotionScale_2 ; // #DilatedMotion
        length2*=Sqr(MotionScale_2); // since we've scaled 'motion' above after setting     'length2', then we have to scale     'length2' too
@@ -231,8 +234,8 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
       if(sec_length2>Sqr(max_length))motion.zw*=max_length/Sqrt(sec_length2);
    }
 #else
-   VecH2 length2=VecH2(min_length2, 2); // x=biggest, y=smallest, initially set biggest to min_length2 so it will ignore small motions and keep 0 #DilatedMotionZero, normally we should do "/MotionScale_2" because later there's "*MotionScale_2", however we need to preserve small values ignoring 'MotionScale_2' because this is needed in Temporal shader #DilatedMotionZero), initially set smallest to 2 so it always gets updated
-   VecH4 motion=0; // XY=biggest, ZW=smallest
+   VecH2 length2=VecH2((min_pixel_motion>0) ? min_length2 : -1, HALF_MAX); // x=biggest, y=smallest, initially set smallest to HALF_MAX so it always gets updated
+   VecH4 motion; if(min_pixel_motion>0)motion.xy=0; // XY=biggest, ZW=smallest
 #if 0 // process samples individually
    // for RANGE=1 (no scale  ) uv should remain unmodified              , because it's already at the center of 1x1 texel
    // for RANGE>1 (downsample) uv should be moved to the center of texel, because it's         at the center of 2x2 texels
@@ -256,7 +259,7 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
    #endif
          DilateMaxMin(motion, length2, TexLod(ImgXY, UVInView(uv+Vec2(x, y)*ImgSize.xy, VIEW_FULL)).xy);
 #endif
-   if(length2.y<min_length2)motion.zw=0; // #DilatedMotionZero
+   if((min_pixel_motion>0) && length2.y<min_length2)motion.zw=0; // #DilatedMotionZero
 
    motion   *=    MotionScale_2 ; // #DilatedMotion
    length2.x*=Sqr(MotionScale_2); // since we've scaled 'motion' above after setting 'length2', then we have to scale 'length2' too
