@@ -189,13 +189,13 @@ Half GetBlend(VecH4 old, VecH4 cur, VecH4 min, VecH4 max) // 'cur' should be som
    return Max(Min(min_step, max_step));
 }
 /******************************************************************************/
-VecH2 UVToScreen(VecH2 uv) {return VecH2(uv.x*AspectRatio, uv.y);} // this is only to maintain XY proportions (it does not convert to screen coordinates)
+VecH2 UVToScreen   (VecH2 uv) {return VecH2(uv.x*AspectRatio, uv.y);} // this is only to maintain XY proportions (it does not convert to screen coordinates)
+Half  ScreenLength2(VecH2 uv) {return Length2(UVToScreen(uv));}
 /******************************************************************************/
 void TestMotion(VecH2 uv_motion, VecH2 test_uv_motion, inout Half max_screen_delta_len2)
 {
-   VecH2 screen_delta=UVToScreen(uv_motion-test_uv_motion);
-   Half  screen_delta_len2=Length2(screen_delta);
-   if(   screen_delta_len2>max_screen_delta_len2)max_screen_delta_len2=screen_delta_len2;
+   Half screen_delta_len2=ScreenLength2(uv_motion-test_uv_motion);
+   if(  screen_delta_len2>max_screen_delta_len2)max_screen_delta_len2=screen_delta_len2;
 }
 /******************************************************************************/
 void NearestDepthRaw3x3(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather) // get raw depth nearest to camera around 'uv' !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' for uv+ofs can be removed !!
@@ -268,8 +268,8 @@ void Temporal_PS
 
    Half old_weight=UVInsideView(old_uv); // use old only if its UV is inside viewport
 
-   Half blend_move=1;
    // IGNORE OLD BY MOVEMENT
+   Half blend_move=1;
    {
       // expect old position to be moving with the same motion as this pixel, if not then reduce old weight !! TODO: Warning: this ignores VIEW_FULL !!
       Half max_screen_delta_len2=0; // max movement difference between this and samples in old position
@@ -296,9 +296,11 @@ void Temporal_PS
       UNROLL for(Int x=-1; x<=1; x++)
          TestMotion(uv_motion, TexPointOfs(ImgXY, old_uv, VecI2(x, y)).xy, max_screen_delta_len2);
    #endif
-      Half screen_motion_len2=Length2(UVToScreen(uv_motion))+Sqr(ImgSize.y*4); // this pixel movement, add some bias which helps for slowly moving pixels on static background (example FPS view+walking+tree leafs on static sky), "+bias" works better than "Max(, bias)", *4 was the smallest number that disabled flickering on common scenario of walking/running in FPS view
+      // FIXME what value?
+      Half screen_motion_len2=ScreenLength2(uv_motion)+Sqr(ImgSize.y*4); // this pixel movement, add some bias which helps for slowly moving pixels on static background (example FPS view+walking+tree leafs on static sky), "+bias" works better than "Max(, bias)", *4 was the smallest number that disabled flickering on common scenario of walking/running in FPS view
       Half frac=max_screen_delta_len2/screen_motion_len2;
-    //Half blend_move=LerpRS(Sqr(1.0), Sqr(0.0), frac); keep {1.0, 0.0}, because {1.0, 0.5} has too much blur from old when zooming in, and {0.5, 0.0} discards too much
+      //blend_move=LerpRS(Sqr(Q?0.5:1.0), Sqr(0.0), frac); //keep {1.0, 0.0}, because {1.0, 0.5} has too much blur from old when zooming in, and {0.5, 0.0} discards too much
+      //if(Q)blend_move=Sat(1-max_screen_delta_len2/Sqr(0.006));
       blend_move=Sat(1-frac);
    }
 
