@@ -312,7 +312,7 @@ void Temporal_PS
 #else
    VecH4 dilated_uv_motion=TexLod  (Img2, old_uv); // use filtering because this is very low res
 #endif
-   if(any(dilated_uv_motion.xy)) // remember that this is forced to zero for small sub-pixel motions #DilatedMotionZero so we can use 'any', this check improves performance so keep it
+   //FIXME always? if(W && any(dilated_uv_motion.xy)) // remember that this is forced to zero for small sub-pixel motions #DilatedMotionZero so we can use 'any', this check improves performance so keep it
    {
       dilated_uv_motion.xy/=MotionScale_2; // #DilatedMotion
 
@@ -342,8 +342,8 @@ void Temporal_PS
       #endif
       }
 
-   #if DUAL_MOTION // this is usable only in DUAL_MOTION, because in single motion in most cases this is close to zero and unusable
-      if(any(dilated_uv_motion.zw)) // remember that this is forced to zero for small sub-pixel motions #DilatedMotionZero so we can use 'any', this check improves performance so keep it
+   #if 1//FIXME always? DUAL_MOTION // this is usable only in DUAL_MOTION, because in single motion in most cases this is close to zero and unusable
+      //FIXME always? if(any(dilated_uv_motion.zw)) // remember that this is forced to zero for small sub-pixel motions #DilatedMotionZero so we can use 'any', this check improves performance so keep it
       {
          dilated_uv_motion.zw/=MotionScale_2; // #DilatedMotion
 
