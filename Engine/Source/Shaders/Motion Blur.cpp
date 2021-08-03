@@ -47,6 +47,8 @@
 
 #define TEX_CACHE 0 // 1=was much slower in tests, so don't use
 
+#define MAX_BLUR_LENGTH (0.2/2) // #MaxMotionBlurLength
+
 // disable PRECISE because for it to work best 'near' would have to be processed along 'base_uv_motion' line, however right now: PRECISE=1 improves moving background around moving object, however it has negative effect of unnatural blurring FPP weapons when rotating camera fast left/right constantly with a key, and with mouse up/down (while weapon rotates slightly based on up/down angle) in that case the weapons get blurred way too much
 #define PRECISE 0 // if precisely (separately) calculate samples for far and near (base/center), this is to solve the problem of rotating camera in FPP view, with weapon attached to player/camera. in that case background is rotating, and on the background blur line it encounters an object (weapon) that is in focus. Blur algorithm counts the far samples that move over the base center, and then lerps to the near samples that move over the base center.
 
@@ -169,13 +171,13 @@ void DilateSecondary(inout VecH4 motion, inout Half max_dist2, VecH4 sample_moti
 
    Convert finds the Max and Min Motions (determined by their screen length, screen = UV corrected by aspect ratio)
        Input =         UV Motion
-      Output = Max Min UV Motion * MotionScale_2
+      Output = Max Min UV Motion
 
 /******************************************************************************/
 VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
 {
    const Half min_pixel_motion=0.5; // 1/2 of pixel (this value works well for TAA+TSR when rotating camera around trees they get refreshed sensibly and not too blurry)
-   const Half min_length2=Sqr(ImgSize.y*(min_pixel_motion/(1 ? 1 : MotionScale_2))); // set to 'min_pixel_motion' to make sure we will ignore small motions and keep 0 #DilatedMotionZero, normally we should do "/MotionScale_2" because later there's "*MotionScale_2", however we need to preserve small values ignoring 'MotionScale_2' because this is needed in Temporal shader #DilatedMotionZero)
+   const Half min_length2=Sqr(ImgSize.y*min_pixel_motion); // set to 'min_pixel_motion' to make sure we will ignore small motions and keep 0 #DilatedMotionZero, normally for motion blur we should do "/MotionScale_2" because later there's "*MotionScale_2", however we need to preserve small values for Temporal shader ignoring 'MotionScale_2' #DilatedMotionZero)
 #if DUAL_MOTION
    const Int ofs=(RANGE-1)/2, min=0-ofs, max=RANGE-ofs; // correctness can be verified with this code: "Int RANGE=1,2,4,8; const Int ofs=(RANGE-1)/2, min=0-ofs, max=RANGE-ofs; Str s; for(Int x=min; x<max; x+=2)s.space()+=x; Exit(s);"
 #if TEX_CACHE
@@ -221,15 +223,16 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
    Half sec_length2=ScreenLength2(motion.zw);
    if((min_pixel_motion>0) && sec_length2<min_length2)motion.zw=0; // #DilatedMotionZero
 
-       motion *=    MotionScale_2 ; // #DilatedMotion
-       length2*=Sqr(MotionScale_2); // since we've scaled 'motion' above after setting     'length2', then we have to scale     'length2' too
-   sec_length2*=Sqr(MotionScale_2); // since we've scaled 'motion' above after setting 'sec_length2', then we have to scale 'sec_length2' too
-
-   { // limit max length - this prevents stretching objects to distances the blur can't handle anyway, making only certain samples of it visible but not all
-      const Half max_length=0.2/2; // #MaxMotionBlurLength
-      if(    length2>Sqr(max_length))motion.xy*=max_length/Sqrt(    length2);
-      if(sec_length2>Sqr(max_length))motion.zw*=max_length/Sqrt(sec_length2);
-   }
+   /* Can't be done here because it will negatively affect Temporal shader
+   {
+      motion *=    MotionScale_2 ; // #DilatedMotion
+      length2*=Sqr(MotionScale_2); // since we've scaled 'motion' above after setting     'length2', then we have to scale     'length2' too
+  sec_length2*=Sqr(MotionScale_2); // since we've scaled 'motion' above after setting 'sec_length2', then we have to scale 'sec_length2' too
+   
+      // limit max length - this prevents stretching objects to distances the blur can't handle anyway, making only certain samples of it visible but not all
+      if(    length2>Sqr(MAX_BLUR_LENGTH))motion.xy*=MAX_BLUR_LENGTH/Sqrt(    length2);
+      if(sec_length2>Sqr(MAX_BLUR_LENGTH))motion.zw*=MAX_BLUR_LENGTH/Sqrt(sec_length2);
+   }*/
 #else
    VecH2 length2=VecH2((min_pixel_motion>0) ? min_length2 : -1, HALF_MAX); // x=biggest, y=smallest, initially set smallest to HALF_MAX so it always gets updated
    VecH4 motion; if(min_pixel_motion>0)motion.xy=0; // XY=biggest, ZW=smallest
@@ -258,14 +261,16 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
 #endif
    if((min_pixel_motion>0) && length2.y<min_length2)motion.zw=0; // #DilatedMotionZero
 
-   motion   *=    MotionScale_2 ; // #DilatedMotion
-   length2.x*=Sqr(MotionScale_2); // since we've scaled 'motion' above after setting 'length2', then we have to scale 'length2' too
- //length2.y*=Sqr(MotionScale_2); not needed
-   { // limit max length - this prevents stretching objects to distances the blur can't handle anyway, making only certain samples of it visible but not all
-      const Half max_length=0.2/2; // #MaxMotionBlurLength
-      if(length2.x>Sqr(max_length))motion.xy*=max_length/Sqrt(length2.x);
-    //if(length2.y>Sqr(max_length))motion.zw*=max_length/Sqrt(length2.y); don't have to scale Min motion, because it's only used to detect fast/simple blur
-   }
+   /* Can't be done here because it will negatively affect Temporal shader
+   {
+      motion   *=    MotionScale_2 ; // #DilatedMotion
+      length2.x*=Sqr(MotionScale_2); // since we've scaled 'motion' above after setting 'length2', then we have to scale 'length2' too
+    //length2.y*=Sqr(MotionScale_2); not needed
+
+      // limit max length - this prevents stretching objects to distances the blur can't handle anyway, making only certain samples of it visible but not all
+      if(length2.x>Sqr(MAX_BLUR_LENGTH))motion.xy*=MAX_BLUR_LENGTH/Sqrt(length2.x);
+    //if(length2.y>Sqr(MAX_BLUR_LENGTH))motion.zw*=MAX_BLUR_LENGTH/Sqrt(length2.y); don't have to scale Min motion, because it's only used to detect fast/simple blur
+   }*/
 #endif
    return motion;
 }
@@ -300,8 +305,9 @@ void Convert_CS
    uint  LocalIndex:SV_GroupIndex
 )
 {
+   needs to be updated
  //VecU2 PixelPos=GlobalPos+ViewportMin; bool inside=all(PixelPos<ViewportMax);
-   VecH4 motion=(ImgXY[GlobalPos.xy].xy*MotionScale_2).xyxy; // XY=biggest, ZW=smallest
+   VecH4 motion=ImgXY[GlobalPos.xy].xyxy; // XY=biggest, ZW=smallest
 
 #if THREAD_SIZE>1
  //SharedMotion [LocalIndex]=motion;
@@ -335,11 +341,10 @@ void Convert_CS
       VecH2 length2=ScreenLength2(motion.xy);
 #endif
 
-      { // limit max length - this prevents stretching objects to distances the blur can't handle anyway, making only certain samples of it visible but not all
-         const Half max_length=0.2/2; // #MaxMotionBlurLength
-         if(length2.x>Sqr(max_length))motion.xy*=max_length/Sqrt(length2.x);
-       //if(length2.y>Sqr(max_length))motion.zw*=max_length/Sqrt(length2.y); don't have to scale Min motion, because it's only used to detect fast/simple blur
-      }
+      // limit max length - this prevents stretching objects to distances the blur can't handle anyway, making only certain samples of it visible but not all
+      if(length2.x>Sqr(MAX_BLUR_LENGTH))motion.xy*=MAX_BLUR_LENGTH/Sqrt(length2.x);
+    //if(length2.y>Sqr(MAX_BLUR_LENGTH))motion.zw*=MAX_BLUR_LENGTH/Sqrt(length2.y); don't have to scale Min motion, because it's only used to detect fast/simple blur
+
       if(length2.x<ScreenLength2(ImgSize.xy)*Sqr(min_motion))motion=0; // motions less than 0.5 pixel size force to 0 (ignore this code because this is done faster by just setting initial value of 'length2.x')
 
       RWImg[GroupPos.xy]=motion;
@@ -351,8 +356,8 @@ void Convert_CS
 #endif
 /******************************************************************************
 
-    Input =         Max Min UV Motion * MotionScale_2
-   Output = Dilated Max Min UV Motion * MotionScale_2
+    Input =         Max Min UV Motion
+   Output = Dilated Max Min UV Motion
 
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
@@ -465,8 +470,8 @@ Half UVMotionLength(VecH2 uv_motion)
 
    Img   = color (W channel can be empty, alpha or glow)
    ImgX  = alpha
-   Img1  = dilated = downsampled Max Min UV Motion * MotionScale_2
-   ImgXY =              full-res         UV Motion      (unscaled)
+   Img1  = dilated = downsampled Max Min UV Motion
+   ImgXY =              full-res         UV Motion
 
 /******************************************************************************/
 struct Pixel
@@ -609,7 +614,12 @@ VecH4 Blur_PS
 
    BRANCH if(any(dilated.xy)) // XY=biggest, can use 'any' because small motions were already forced to 0 in 'Convert' #DilatedMotionZero
    {
-      Vec4 dir=Vec4(dilated.xy, -dilated.xy);
+      VecH2 blur_dir=dilated.xy*MotionScale_2; // #DilatedMotion
+      // limit max length - this prevents stretching objects to distances the blur can't handle anyway, making only certain samples of it visible but not all
+      Half length2=ScreenLength2(blur_dir);
+      if(  length2>Sqr(MAX_BLUR_LENGTH))blur_dir*=MAX_BLUR_LENGTH/Sqrt(length2);
+
+      Vec4 dir=Vec4(blur_dir, -blur_dir);
       Int  steps=SAMPLES;
       dir/=steps;
       Half jitter; if(JITTER)jitter=Noise1D_4(pixel.xy); // use only 4 step dither because others might be too distracting (individual pixels visible)
@@ -649,6 +659,7 @@ VecH4 Blur_PS
          if(TEMPORAL) // in Temporal the color RT is already adjusted by UV (to be always the same each frame), but depth and motion RT's are jittered every frame, which gives inconsistency between color and DepthMotion.
          {  // to workaround this problem, DepthMotion are taken from the pixel that's closest to camera and has highest motion
             // TODO: Warning: these ignore UVClamp/UVInView
+            Half base_uv_motion_len2;
             if(GATHER)
             { 
                Vec2  test_uv=uv0+TemporalOffset;
@@ -656,19 +667,19 @@ VecH4 Blur_PS
                VecH4 r=TexGatherR(ImgXY, test_uv); // motion.x
                VecH4 g=TexGatherG(ImgXY, test_uv); // motion.y
 
-               VecH2 test_uv_motion; Half test_len;
+               VecH2 test_uv_motion; Half test_len2;
                if(1) // slower, higher quality. This improves blur on pixels around object (border). To verify improvement, set very low 'D.density', and rotate player+camera in TPP very fast left or right, object has to be fixed to the camera, and background rotating/blurry, you will see that this mode improves smoothness of object border pixels.
                {
                  // set initial values with 'TemporalOffsetGatherIndex' as if we were using 'uv0' without 'TemporalOffset'
-                  base_depth        =      d[TemporalOffsetGatherIndex];
-                  base_uv_motion    =VecH2(r[TemporalOffsetGatherIndex], g[TemporalOffsetGatherIndex]);
-                  base_uv_motion_len=Length2(base_uv_motion);
+                  base_depth         =      d[TemporalOffsetGatherIndex];
+                  base_uv_motion     =VecH2(r[TemporalOffsetGatherIndex], g[TemporalOffsetGatherIndex]);
+                  base_uv_motion_len2=Length2(base_uv_motion);
 
-                  test_uv_motion=VecH2(r.x, g.x); test_len=Length2(test_uv_motion); if(DEPTH_SMALLER(d.x, base_depth) && test_len>base_uv_motion_len){base_depth=d.x; base_uv_motion=test_uv_motion ; base_uv_motion_len=test_len;}
-               }else{                                                                                                                                 base_depth=d.x; base_uv_motion=VecH2(r.x, g.x); base_uv_motion_len=Length2(base_uv_motion);} // faster, lower quality, just set from first one
-                  test_uv_motion=VecH2(r.y, g.y); test_len=Length2(test_uv_motion); if(DEPTH_SMALLER(d.y, base_depth) && test_len>base_uv_motion_len){base_depth=d.y; base_uv_motion=test_uv_motion ; base_uv_motion_len=test_len;}
-                  test_uv_motion=VecH2(r.z, g.z); test_len=Length2(test_uv_motion); if(DEPTH_SMALLER(d.z, base_depth) && test_len>base_uv_motion_len){base_depth=d.z; base_uv_motion=test_uv_motion ; base_uv_motion_len=test_len;}
-                  test_uv_motion=VecH2(r.w, g.w); test_len=Length2(test_uv_motion); if(DEPTH_SMALLER(d.w, base_depth) && test_len>base_uv_motion_len){base_depth=d.w; base_uv_motion=test_uv_motion ; base_uv_motion_len=test_len;}
+                  test_uv_motion=VecH2(r.x, g.x); test_len2=Length2(test_uv_motion); if(DEPTH_SMALLER(d.x, base_depth) && test_len2>base_uv_motion_len2){base_depth=d.x; base_uv_motion=test_uv_motion ; base_uv_motion_len2=test_len2;}
+               }else{                                                                                                                                    base_depth=d.x; base_uv_motion=VecH2(r.x, g.x); base_uv_motion_len2=Length2(base_uv_motion);} // faster, lower quality, just set from first one
+                  test_uv_motion=VecH2(r.y, g.y); test_len2=Length2(test_uv_motion); if(DEPTH_SMALLER(d.y, base_depth) && test_len2>base_uv_motion_len2){base_depth=d.y; base_uv_motion=test_uv_motion ; base_uv_motion_len2=test_len2;}
+                  test_uv_motion=VecH2(r.z, g.z); test_len2=Length2(test_uv_motion); if(DEPTH_SMALLER(d.z, base_depth) && test_len2>base_uv_motion_len2){base_depth=d.z; base_uv_motion=test_uv_motion ; base_uv_motion_len2=test_len2;}
+                  test_uv_motion=VecH2(r.w, g.w); test_len2=Length2(test_uv_motion); if(DEPTH_SMALLER(d.w, base_depth) && test_len2>base_uv_motion_len2){base_depth=d.w; base_uv_motion=test_uv_motion ; base_uv_motion_len2=test_len2;}
             }else
             { // Warning: this ignores 'TemporalOffsetGatherIndex'
                Vec2 test_uv=uv0+TemporalOffsetStart;
@@ -677,18 +688,18 @@ VecH4 Blur_PS
                {
                   Flt   test_depth    =TexDepthRawPointOfs(test_uv, VecI2(x, y)); // need UV clamp
                   VecH2 test_uv_motion=TexPointOfs (ImgXY, test_uv, VecI2(x, y)); // need UV clamp
-                  Half  test_len      =Length2     (test_uv_motion);
+                  Half  test_len2     =Length2     (test_uv_motion);
                   if((x==0 && y==0) // first sample
                   || (DEPTH_SMALLER(test_depth, base_depth)
-                   &&               test_len  > base_uv_motion_len))
+                   &&               test_len2 > base_uv_motion_len2))
                   {
-                     base_depth        =test_depth;
-                     base_uv_motion    =test_uv_motion;
-                     base_uv_motion_len=test_len;
+                     base_depth         =test_depth;
+                     base_uv_motion     =test_uv_motion;
+                     base_uv_motion_len2=test_len2;
                   }
                }
             }
-            base_uv_motion_len=Sqrt(base_uv_motion_len)*MotionScale_2;
+            base_uv_motion_len=Sqrt(base_uv_motion_len2)*MotionScale_2;
          }else
          {
             base_depth        =TexDepthRawPoint(uv0); // Tex in case src is super sampled
