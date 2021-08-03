@@ -6,5 +6,5 @@ BUFFER_END
 #include "!Set Prec Default.h"
 /******************************************************************************/
 #define DEPTH_TOLERANCE 0.2 // 20 cm
-#define DUAL_MOTION 0 // 1=more precise but, very slow
+#define DUAL_MOTION 1 // 1=more precise but slower
 /******************************************************************************/
