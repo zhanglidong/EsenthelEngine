@@ -274,18 +274,20 @@ void Temporal_PS
    // this needs to be checked even if current pixel is not moving (uv_motion=0)
    // TODO: for best results this would need a separate dilated motion RT without any MotionScale_2, perhaps it could be smaller than DilatedMotion for Motion Blur
    VecH4 dilated_uv_motion=TexLod(Img2, old_uv); // use filtering because this is very low res, this might be a little problem for DUAL_MOTION since there one pixel can have XY=A, ZW=B, and another can have XY=B, ZW=0 (B vel is in XY), filtering would make values invalid, however it still looks better with filtering than without, because without filtering there are blocky artifacts, with filtering artifacts are smoother
-         dilated_uv_motion.xy/=MotionScale_2; // #DilatedMotion
 
    // if current pixel is moving, or there's any movement at old position, this check improves performance, so keep it
    const Half min_pixel_motion=0.5;
 #if 0
+   dilated_uv_motion.xy/=MotionScale_2; // #DilatedMotion
  //if(min_pixel_motion<0 ||           any(Abs(uv_motion)+          Abs(dilated_uv_motion.xy) >    ImgSize.xy*min_pixel_motion)) // 4 abs, 2 add, 2 mul, 2 compare, 1 any
  //if(min_pixel_motion<0 || ScreenLength2(    uv_motion)+ScreenLength2(dilated_uv_motion.xy) >Sqr(ImgSize. y*min_pixel_motion)) //               2 mul, 2 dot (4 mul, 2 add), 1 add, 1 mul, 1 mul, 1 compare, less precise because adding squared values
    if(min_pixel_motion<0 || ScreenLength2(Abs(uv_motion)+          Abs(dilated_uv_motion.xy))>Sqr(ImgSize. y*min_pixel_motion)) // 4 abs, 2 add, 1 mul, 1 dot (2 mul, 1 add),        1 mul, 1 mul, 1 compare
+   {
 #else
    if(min_pixel_motion<0 || ScreenLength2(uv_motion)>Sqr(ImgSize.y*min_pixel_motion) || any(dilated_uv_motion.xy)) // #DilatedMotionZero
-#endif
    {
+      dilated_uv_motion.xy/=MotionScale_2; // #DilatedMotion
+#endif
       Half bias=Sqr(ImgSize.y*0.5); // to allow checking zero length motions, fix for div by 0, makes a/b -> (a+bias)/(b+bias)
       Half cover=0; // initialize in case we don't process any
       
