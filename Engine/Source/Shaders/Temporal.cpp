@@ -305,6 +305,7 @@ void Temporal_PS
    }
 
    // check if any object covered old pixel in previous frame
+   // this needs to be checked even if current pixel is not moving (uv_motion=0)
    // TODO: for best results this would need a separate dilated motion RT without any MotionScale_2, perhaps it could be smaller than DilatedMotion for Motion Blur
 #if DUAL_MOTION
    VecH4 dilated_uv_motion=TexPoint(Img2, old_uv); // for dual motion we have to use point filter, because one pixel can have XY=A, ZW=B, and another can have XY=B, ZW=0 (B vel is in XY), filtering would make values invalid
