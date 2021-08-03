@@ -285,10 +285,10 @@ void Temporal_PS
       Half bias=Sqr(ImgSize.y*0.5); // to allow checking zero length motions, fix for div by 0, makes a/b -> (a+bias)/(b+bias)
       Half cover=0; // initialize in case we don't process any
       {
+         Vec2 obj_uv=UVInView(old_uv+dilated_uv_motion.xy, VIEW_FULL); // #MotionDir get fastest moving pixel in the neighborhood
          // here 'screen_delta' is also the delta from current position to object position (distance), so we have to check if 'obj_screen_motion' reaches 'screen_delta'
          VecH2 screen_delta=UVToScreen(dilated_uv_motion.xy); // FIXME for !VIEW_FULL should this be set to delta between old_uv and obj_uv, however what about pixels at the viewport border, they would cover themself?
          Half  screen_delta_len2=Length2(screen_delta)+bias; // full distance
-         Vec2  obj_uv=UVInView(old_uv+dilated_uv_motion.xy, VIEW_FULL); // #MotionDir get fastest moving pixel in the neighborhood
       #if GATHER
          Vec4  d           =TexDepthRawGather(obj_uv);
          VecH4 obj_motion_x=TexGatherR(ImgXY, obj_uv);
@@ -312,10 +312,10 @@ void Temporal_PS
       {
          dilated_uv_motion.zw/=MotionScale_2; // #DilatedMotion
 
+         Vec2 obj_uv=UVInView(old_uv+dilated_uv_motion.zw, VIEW_FULL); // #MotionDir get fastest moving pixel in the neighborhood
          // here 'screen_delta' is also the delta from current position to object position (distance), so we have to check if 'obj_screen_motion' reaches 'screen_delta'
          VecH2 screen_delta=UVToScreen(dilated_uv_motion.zw); // FIXME for !VIEW_FULL should this be set to delta between old_uv and obj_uv, however what about pixels at the viewport border, they would cover themself?
          Half  screen_delta_len2=Length2(screen_delta)+bias; // full distance
-         Vec2  obj_uv=UVInView(old_uv+dilated_uv_motion.zw, VIEW_FULL); // #MotionDir get fastest moving pixel in the neighborhood
       #if GATHER
          Vec4  d           =TexDepthRawGather(obj_uv);
          VecH4 obj_motion_x=TexGatherR(ImgXY, obj_uv);
