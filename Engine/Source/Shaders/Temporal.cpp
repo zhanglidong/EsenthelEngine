@@ -316,7 +316,7 @@ void Temporal_PS
  //if(min_pixel_motion<0 || ScreenLength2(Abs(uv_motion)+      Abs(dilated_uv_motion.xy))>Sqr(ImgSize. y*min_pixel_motion))
    {
       // here 'screen_delta' is also the delta from current position to object position (distance), so we have to check if 'obj_screen_motion' reaches 'screen_delta'
-      Half  bias        =Sqr(ImgSize.y*(Q?0.25:W?0.125:R?0.0625:0.5)); // to allow checking zero length motions, fix for div by 0, makes a/b -> (a+bias)/(b+bias)
+      Half  bias        =Sqr(ImgSize.y*0.5); // to allow checking zero length motions, fix for div by 0, makes a/b -> (a+bias)/(b+bias)
       VecH2 screen_delta=UVToScreen(dilated_uv_motion.xy); // FIXME for !VIEW_FULL should this be set to delta between old_uv and obj_uv, however what about pixels at the viewport border, they would cover themself?
       Half  screen_delta_len2=Length2(screen_delta)+bias; // full distance
 
