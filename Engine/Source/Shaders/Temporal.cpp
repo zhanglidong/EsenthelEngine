@@ -265,8 +265,7 @@ void Temporal_PS
    VecH2 uv_motion=TexPoint(ImgXY, depth_motion_uv).xy;
    Vec2  cur_uv=uv+TemporalOffset,
          old_uv=uv-uv_motion; // #MotionDir
-
-   Half old_weight=UVInsideView(old_uv); // use old only if its UV is inside viewport
+   Half  old_weight=UVInsideView(old_uv); // use old only if its UV is inside viewport
 
    // IGNORE OLD BY MOVEMENT
    Half blend_move=1;
