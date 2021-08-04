@@ -82,7 +82,7 @@ struct CubicFastSampler
    Vec2 uv           (Int x, Int y) {return Vec2(tc[x].x, tc[y].y);}
    Half        weight(Int x, Int y) {return w[x].x*w[y].y;}
    Half cornersWeight() {return (w[0].x+w[3].x)*(w[0].y+w[3].y);} // weight(0,0) + weight(3,0) + weight(0,3) + weight(3,3) = w[0].x*w[0].y + w[3].x*w[0].y + w[0].x*w[3].y + w[3].x*w[3].y = (w[0].x+w[3].x)*w[0].y + (w[0].x+w[3].x)*w[3].y
-   Vec2 pixel        (Vec2 uv, Vec4 img_size) {return Floor(uv*img_size.zw);}
+   Vec2 pixel        (Vec2 uv, Vec4 img_size) {return Floor(uv*img_size.zw);} // return as Vec2 to avoid Vec2 -> VecI2 conversion
    void set          (Vec2 uv, Vec4 img_size)
    {
       uv*=img_size.zw;
@@ -103,7 +103,7 @@ struct CubicFastSampler
 
       VecH2 w12=w[1]+w[2]; c=tc[1]+(w[2]/w12)*img_size.xy;
       wu=w12.x*w[0].y; wd=w12.x*w[3].y; wl=w12.y*w[0].x; wr=w12.y*w[3].x; wc=w12.x*w12.y;
-      Half sum=wc+wl+wr+wu+wd;
+      Half sum=wc+wl+wr+wu+wd; // 1-cornersWeight()
       wc/=sum;
       wl/=sum; l=Vec2(tc[0].x,     c.y);
       wr/=sum; r=Vec2(tc[3].x,     c.y);
