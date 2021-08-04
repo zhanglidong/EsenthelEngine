@@ -150,6 +150,7 @@ struct CubicFastSampler
       }
    #endif
    }
+   void setSharp(Vec2 uv, Vec4 img_size, Half sharp) {setBlurSharp(uv, img_size, Lerp(1, 0, sharp), Lerp(0, 0.5, sharp));} // sharp=0..1
    void UVClamp(Vec2 min, Vec2 max)
    {
       UNROLL for(Int i=0; i<4; i++)tc[i]=Mid(tc[i], min, max);
