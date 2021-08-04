@@ -444,7 +444,9 @@ void Temporal_PS
 
    // CUR COLOR + CUR ALPHA
 #if CUBIC
-   Sampler.set(cur_uv, ImgSize); if(!VIEW_FULL)Sampler.UVClamp(ImgClamp.xy, ImgClamp.zw);
+   if(SUPER     )Sampler.setSharp(cur_uv, ImgSize, old_weight); // when 'old_weight' is zero and old pixels are ignored, then use blurry weight to avoid flickering (due to sharpening and jitter)
+   else          Sampler.set     (cur_uv, ImgSize            );
+   if(!VIEW_FULL)Sampler.UVClamp(ImgClamp.xy, ImgClamp.zw);
    #if ALPHA
       Half cur_alpha=Sat(Sampler.texX(ImgX)); // use Sat because of cubic sharpening potentially giving negative values
    #endif
@@ -464,12 +466,19 @@ void Temporal_PS
    col_min= HALF_MAX;
    col_max=-HALF_MAX;
 #endif
- //Vec2      uv_img_pixel=Sampler.pixel(uv           , ImgSize);
- //Vec2 sampler_img_pixel=Sampler.pixel(Sampler.tc[0], ImgSize);
-   Vec2 max_range=ImgSize.xy*1.5; // this is ok for SUPER too
+
+ /*Vec2  cur_uv_img_pixelf=Sampler.pixelF(cur_uv       , ImgSize);
+   Vec2      uv_img_pixel =Sampler.pixel (    uv       , ImgSize);
+   Vec2 sampler_img_pixel =Sampler.pixel (Sampler.tc[0], ImgSize);
+   Vec2 sampler_img_pixelf=Sampler.pixelF(Sampler.tc[0], ImgSize);
+   VecH2  delta_img_pixel =cur_uv_img_pixelf-sampler_img_pixelf;*/
+
+   Vec2 max_neighbor_range=ImgSize.xy*1.5; // this is ok for SUPER too
+
+   const Bool skip_corners=true;
    UNROLL for(Int y=0; y<4; y++)
    UNROLL for(Int x=0; x<4; x++)
-      if((x!=0 && x!=3) || (y!=0 && y!=3)) // skip corners
+      if(!skip_corners || (x!=0 && x!=3) || (y!=0 && y!=3)) // skip corners
    {
       Vec2 sample_uv=Sampler.uv(x, y);
    #if VIEW_FULL
@@ -478,10 +487,12 @@ void Temporal_PS
       VecH4 col=TexPoint(Img, sample_uv);
    #endif
       Half weight=Sampler.weight(x, y);
-      if(x==1 && y==0)cur =col*weight; // first is (1,0) because corners are skipped
-      else            cur+=col*weight;
-    //if(all(abs(uv_img_pixel-(sampler_img_pixel+VecI2(x, y)))<      1.5)) // get min/max only from nearest 3x3 neighbors
-      if(all(abs(sample_uv   -(uv                           ))<max_range)) // get min/max only from nearest 3x3 neighbors
+      if(x==skip_corners && y==0)cur =col*weight; // first is (skip_corners, 0)
+      else                       cur+=col*weight;
+
+      // FIXME alternative could reuse VecH2(x,y), delta_img_pixel?
+    //if(all(abs(uv_img_pixel-(sampler_img_pixel+VecI2(x, y)))<               1.5)) // get min/max only from nearest 3x3 neighbors
+      if(all(abs(sample_uv   -(uv                           ))<max_neighbor_range)) // get min/max only from nearest 3x3 neighbors
       {
       #if YCOCG
          VecH4 ycocg=RGBToYCoCg4(col);
@@ -493,7 +504,7 @@ void Temporal_PS
       #endif
       }
    }
-   cur/=1-Sampler.cornersWeight(); // we've skipped corners, so adjust by their weight (TotalWeight-CornerWeight)
+   if(skip_corners)cur/=1-Sampler.cornersWeight(); // we've skipped corners, so adjust by their weight (TotalWeight-CornerWeight)
    /* Adjust because based on following code, max weight for corners can be "corners=0.015625"
    Flt corners=0; Vec4 wy, wx;
    for(Flt y=0; y<=1; y+=0.01f)

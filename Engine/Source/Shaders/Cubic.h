@@ -159,7 +159,8 @@ struct CubicFastSampler
       wu/=sum; u=Vec2(    c.x, tc[0].y);
       wd/=sum; d=Vec2(    c.x, tc[3].y);
    }
-   void setSharp(Vec2 uv, Vec4 img_size, Half sharp) {setBlurSharp(uv, img_size, Lerp(1, 0, sharp), Lerp(0, 0.5, sharp));} // sharp=0..1, for best results this should use 'texSlow'
+   void setSharp(Vec2 uv, Vec4 img_size, Half sharp) {setBlurSharp(uv, img_size, Lerp(1, 0, sharp), Lerp(0, 0.5, sharp));} // 'sharp'=0..1, for best results this should use 'texSlow'
+   void setBlur (Vec2 uv, Vec4 img_size, Half blur ) {setBlurSharp(uv, img_size, Lerp(0, 1, blur ), Lerp(0.5, 0, blur ));} // 'blur' =0..1, for best results this should use 'texSlow'
    void UVClamp(Vec2 min, Vec2 max)
    {
       UNROLL for(Int i=0; i<4; i++)tc[i]=Mid(tc[i], min, max);
