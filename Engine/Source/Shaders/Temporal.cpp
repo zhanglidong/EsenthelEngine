@@ -446,7 +446,7 @@ void Temporal_PS
 #if CUBIC
    if(SUPER     )Sampler.setSharp(cur_uv, ImgSize, old_weight); // when 'old_weight' is zero and old pixels are ignored, then use blurry weight to avoid flickering (due to sharpening and jitter)
    else          Sampler.set     (cur_uv, ImgSize            );
-   if(!VIEW_FULL)Sampler.UVClamp(ImgClamp.xy, ImgClamp.zw);
+   if(!VIEW_FULL)Sampler.UVClamp (ImgClamp.xy, ImgClamp.zw);
    #if ALPHA
       Half cur_alpha=Sat(Sampler.texX(ImgX)); // use Sat because of cubic sharpening potentially giving negative values
    #endif

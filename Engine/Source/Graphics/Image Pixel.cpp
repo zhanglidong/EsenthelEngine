@@ -184,7 +184,7 @@ ASSERT(CEIL(1.1f)==2);
 #define CUBIC_PLUS_SAMPLES         CEIL(CUBIC_PLUS_RANGE        )
 #define CUBIC_PLUS_SHARP_SAMPLES   CEIL(CUBIC_PLUS_SHARP_RANGE  )
 
-static INLINE Flt Cubic(Flt x, const Flt blur, const Flt sharpen) // x=0..2
+static INLINE Flt Cubic(Flt x, Flt blur, Flt sharpen) // x=0..2, https://en.wikipedia.org/wiki/Mitchell%E2%80%93Netravali_filters
 {
    Flt x2=x*x,
        x3=x*x*x;
