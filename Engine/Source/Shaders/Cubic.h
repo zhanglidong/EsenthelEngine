@@ -88,19 +88,19 @@ struct CubicFastSampler
    {
       uv*=img_size.zw;
       Vec2 uvc=Floor(uv-0.5)+0.5;
-      VecH2 f=uv-uvc, f2=f*f, f3=f2*f; // same as "uv-=0.5; f=uv-Floor(uv);"
 
+      tc[1]=uvc  *img_size.xy;
+      tc[0]=tc[1]-img_size.xy;
+      tc[2]=tc[1]+img_size.xy;
+      tc[3]=tc[1]+img_size.xy*2;
+
+      VecH2 f=uv-uvc, f2=f*f, f3=f2*f; // same as "uv-=0.5; f=uv-Floor(uv);"
       w[0]=f2-0.5*(f3+f); w[1]=1.5*f3-2.5*f2+1;
    #if 0
       w[2]=-1.5*f3+2*f2+0.5*f; w[3]=0.5*(f3-f2); // don't calculate it manually, use the fact that the sum is always equal to 1, using [2] component was the fastest version tested
    #else
       w[3]=0.5*(f3-f2); w[2]=1-w[0]-w[1]-w[3];
    #endif
-
-      tc[1]=uvc  *img_size.xy;
-      tc[0]=tc[1]-img_size.xy;
-      tc[2]=tc[1]+img_size.xy;
-      tc[3]=tc[1]+img_size.xy*2;
 
       VecH2 w12=w[1]+w[2]; c=tc[1]+(w[2]/w12)*img_size.xy;
       wu=w12.x*w[0].y; wd=w12.x*w[3].y; wl=w12.y*w[0].x; wr=w12.y*w[3].x; wc=w12.x*w12.y;
@@ -112,7 +112,7 @@ struct CubicFastSampler
       wd/=sum; d=Vec2(    c.x, tc[3].y);
    }
    void set(Vec2 uv) {set(uv, ImgSize);}
-   void setBlurSharp(Vec2 uv, Vec4 img_size, Half blur, Half sharpen)
+   void setBlurSharp(Vec2 uv, Vec4 img_size, Half blur, Half sharpen) // for best results this should use 'texSlow'
    {
       uv*=img_size.zw;
       Vec2 uvc=Floor(uv-0.5)+0.5;
@@ -123,7 +123,7 @@ struct CubicFastSampler
       tc[3]=tc[1]+img_size.xy*2;
 
       Half  W3=(12-9*blur-6*sharpen)/6, W2=(-18+12*blur+ 6*sharpen)/6, W1=0, W0=(6-2*blur)/6; // to be used for x=0..1
-      VecH2 F=uv-uvc;
+      VecH2 F=uv-uvc; // same as "uv-=0.5; f=uv-Floor(uv);"
    #if 1 // faster
       { /* ((A*F+B)*F+C)*F+D
             (A*F*F + B*F + C)*F+D
@@ -149,8 +149,17 @@ struct CubicFastSampler
                                  w[3]=z3*f3 + z2*f2 + z1*f + z0;
       }
    #endif
+
+      VecH2 w12=w[1]+w[2]; c=tc[1]+(w[2]/w12)*img_size.xy;
+      wu=w12.x*w[0].y; wd=w12.x*w[3].y; wl=w12.y*w[0].x; wr=w12.y*w[3].x; wc=w12.x*w12.y;
+      Half sum=wc+wl+wr+wu+wd; // 1-cornersWeight()
+      wc/=sum;
+      wl/=sum; l=Vec2(tc[0].x,     c.y);
+      wr/=sum; r=Vec2(tc[3].x,     c.y);
+      wu/=sum; u=Vec2(    c.x, tc[0].y);
+      wd/=sum; d=Vec2(    c.x, tc[3].y);
    }
-   void setSharp(Vec2 uv, Vec4 img_size, Half sharp) {setBlurSharp(uv, img_size, Lerp(1, 0, sharp), Lerp(0, 0.5, sharp));} // sharp=0..1
+   void setSharp(Vec2 uv, Vec4 img_size, Half sharp) {setBlurSharp(uv, img_size, Lerp(1, 0, sharp), Lerp(0, 0.5, sharp));} // sharp=0..1, for best results this should use 'texSlow'
    void UVClamp(Vec2 min, Vec2 max)
    {
       UNROLL for(Int i=0; i<4; i++)tc[i]=Mid(tc[i], min, max);
