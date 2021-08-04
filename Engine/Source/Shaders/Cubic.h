@@ -88,7 +88,7 @@ struct CubicFastSampler
    {
       uv*=img_size.zw;
       Vec2 uvc=Floor(uv-0.5)+0.5;
-      VecH2 f=uv-uvc, f2=f*f, f3=f2*f;
+      VecH2 f=uv-uvc, f2=f*f, f3=f2*f; // same as "uv-=0.5; f=uv-Floor(uv);"
 
       w[0]=f2-0.5*(f3+f); w[1]=1.5*f3-2.5*f2+1;
    #if 0
@@ -112,6 +112,44 @@ struct CubicFastSampler
       wd/=sum; d=Vec2(    c.x, tc[3].y);
    }
    void set(Vec2 uv) {set(uv, ImgSize);}
+   void setBlurSharp(Vec2 uv, Vec4 img_size, Half blur, Half sharpen)
+   {
+      uv*=img_size.zw;
+      Vec2 uvc=Floor(uv-0.5)+0.5;
+
+      tc[1]=uvc  *img_size.xy;
+      tc[0]=tc[1]-img_size.xy;
+      tc[2]=tc[1]+img_size.xy;
+      tc[3]=tc[1]+img_size.xy*2;
+
+      Half  W3=(12-9*blur-6*sharpen)/6, W2=(-18+12*blur+ 6*sharpen)/6, W1=0, W0=(6-2*blur)/6; // to be used for x=0..1
+      VecH2 F=uv-uvc;
+   #if 1 // faster
+      { /* ((A*F+B)*F+C)*F+D
+            (A*F*F + B*F + C)*F+D
+             A*F*F*F + B*F*F + C*F + D */
+         Half w3=(-1*blur-6*sharpen)/6, w2=(6*blur+30*sharpen)/6, w1=(-12*blur-48*sharpen)/6, w0=(8*blur+24*sharpen)/6; // to be used for x=1..2
+         VecH2 f;
+         f=F  ; w[1]=((W3*f+W2)*f+W1)*f+W0;
+         f=F+1; w[0]=((w3*f+w2)*f+w1)*f+w0;
+         f=1-F; w[2]=((W3*f+W2)*f+W1)*f+W0;
+         f=2-F; w[3]=((w3*f+w2)*f+w1)*f+w0;
+      }
+   #else
+      {
+       //Half z3=w3, z2=3*w3 + w2, z1=3*w3 + 2*w2 + w1, z0=w3 + w2 + w1 + w0; // to be used for x=1..2, but x is already -1
+         Half z3=((-1)*blur + (-6)*sharpen)/6, z2=((3*-1+6)*blur + (3*-6+30)*sharpen)/6, z1=((3*-1+2*6-12)*blur + (3*-6+2*30-48)*sharpen)/6, z0=((-1+6-12+8)*blur + (-6+30-48+24)*sharpen)/6; // to be used for x=1..2, but x is already -1
+         VecH2 f, f2, f3;
+         f=F  ; f2=f*f; f3=f2*f; w[1]=W3*f3 + W2*f2 + W1*f + W0;
+       //f=F+1; f2=f*f; f3=f2*f; w[0]=w3*f3 + w2*f2 + w1*f + w0; // w[0]=w3*Cube(F+1) + w2*Sqr(F+1) + w1*(F+1) + w0 -> w[0]=w3*(F*F*F + 3*F*F + 3*F + 1) + w2*(F*F + 2*F + 1) + w1*(F+1) + w0
+                                 w[0]=z3*f3 + z2*f2 + z1*f + z0;
+
+         f=1-F; f2=f*f; f3=f2*f; w[2]=W3*f3 + W2*f2 + W1*f + W0;
+       //f=2-F; f2=f*f; f3=f2*f; w[3]=w3*f3 + w2*f2 + w1*f + w0;
+                                 w[3]=z3*f3 + z2*f2 + z1*f + z0;
+      }
+   #endif
+   }
    void UVClamp(Vec2 min, Vec2 max)
    {
       UNROLL for(Int i=0; i<4; i++)tc[i]=Mid(tc[i], min, max);
@@ -160,6 +198,13 @@ struct CubicFastSampler
             +TexLod(img, c).xy*wc  // sample center     (4 texels), all  weights are positive
             +TexLod(img, r).xy*wr  // sample right edge (2 texels), both weights are negative
             +TexLod(img, d).xy*wd; // sample lower edge (2 texels), both weights are negative
+   }
+   VecH4 texSlow(Image img)
+   {
+      VecH4 c=0;
+      UNROLL for(Int y=0; y<4; y++)
+      UNROLL for(Int x=0; x<4; x++)c+=TexPointOfs(img, tc[0], VecI2(x, y))*weight(x, y);
+      return c;
    }
 };
 /******************************************************************************/
