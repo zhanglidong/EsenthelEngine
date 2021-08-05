@@ -469,26 +469,38 @@ void Temporal_PS
 
       // because motion-based detection is not perfect, additionally use another method:
       // expect old position to be moving with the same motion as this pixel, if not then reduce old weight !! TODO: Warning: this ignores VIEW_FULL !!
+      if(1) // check 'old_uv' because have to test motions of pixels that we want to use for old color
       {
          Half max_screen_delta_len2=0; // max movement difference between this and samples in old position
       #if GATHER
-         // 3x3 samples are needed, 2x2 and 1x1 had ghosting
-         Vec2 gather_uv=old_uv; // have to test motions of pixels that we want to use for old color
-         TestMotion(uv_motion, TexPointOfs(ImgXY, gather_uv, VecI2(-1,  1)).xy, max_screen_delta_len2); // -1,  1,  left-top
-         TestMotion(uv_motion, TexPointOfs(ImgXY, gather_uv, VecI2( 1, -1)).xy, max_screen_delta_len2); //  1, -1, right-bottom
-         gather_uv-=(SUPER ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
-         VecH4 r=TexGatherR(ImgXY, gather_uv); // get -1,-1 to 0,0 texels
-         VecH4 g=TexGatherG(ImgXY, gather_uv); // get -1,-1 to 0,0 texels
-         TestMotion(uv_motion, VecH2(r.x, g.x), max_screen_delta_len2);
-         TestMotion(uv_motion, VecH2(r.y, g.y), max_screen_delta_len2);
-         TestMotion(uv_motion, VecH2(r.z, g.z), max_screen_delta_len2);
-         TestMotion(uv_motion, VecH2(r.w, g.w), max_screen_delta_len2);
-         r=TexGatherROfs(ImgXY, gather_uv, VecI2(1, 1)); // get 0,0 to 1,1 texels
-         g=TexGatherGOfs(ImgXY, gather_uv, VecI2(1, 1)); // get 0,0 to 1,1 texels
-         TestMotion(uv_motion, VecH2(r.x, g.x), max_screen_delta_len2);
-         TestMotion(uv_motion, VecH2(r.y, g.y), max_screen_delta_len2);
-         TestMotion(uv_motion, VecH2(r.z, g.z), max_screen_delta_len2);
-       //TestMotion(uv_motion, VecH2(r.w, g.w), max_screen_delta_len2); already processed
+         // 3x3 samples are needed, 2x2 and 1x1 had ghosting and artifacts
+         if(0) // 2x2
+         {
+            VecH4 r=TexGatherR(ImgXY, old_uv);
+            VecH4 g=TexGatherG(ImgXY, old_uv);
+            TestMotion(uv_motion, VecH2(r.x, g.x), max_screen_delta_len2);
+            TestMotion(uv_motion, VecH2(r.y, g.y), max_screen_delta_len2);
+            TestMotion(uv_motion, VecH2(r.z, g.z), max_screen_delta_len2);
+            TestMotion(uv_motion, VecH2(r.w, g.w), max_screen_delta_len2);
+         }else // 3x3
+         {
+            Vec2 gather_uv=old_uv;
+            TestMotion(uv_motion, TexPointOfs(ImgXY, gather_uv, VecI2(-1,  1)).xy, max_screen_delta_len2); // -1,  1,  left-top
+            TestMotion(uv_motion, TexPointOfs(ImgXY, gather_uv, VecI2( 1, -1)).xy, max_screen_delta_len2); //  1, -1, right-bottom
+            gather_uv-=(SUPER ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
+            VecH4 r=TexGatherR(ImgXY, gather_uv); // get -1,-1 to 0,0 texels
+            VecH4 g=TexGatherG(ImgXY, gather_uv); // get -1,-1 to 0,0 texels
+            TestMotion(uv_motion, VecH2(r.x, g.x), max_screen_delta_len2);
+            TestMotion(uv_motion, VecH2(r.y, g.y), max_screen_delta_len2);
+            TestMotion(uv_motion, VecH2(r.z, g.z), max_screen_delta_len2);
+            TestMotion(uv_motion, VecH2(r.w, g.w), max_screen_delta_len2);
+            r=TexGatherROfs(ImgXY, gather_uv, VecI2(1, 1)); // get 0,0 to 1,1 texels
+            g=TexGatherGOfs(ImgXY, gather_uv, VecI2(1, 1)); // get 0,0 to 1,1 texels
+            TestMotion(uv_motion, VecH2(r.x, g.x), max_screen_delta_len2);
+            TestMotion(uv_motion, VecH2(r.y, g.y), max_screen_delta_len2);
+            TestMotion(uv_motion, VecH2(r.z, g.z), max_screen_delta_len2);
+          //TestMotion(uv_motion, VecH2(r.w, g.w), max_screen_delta_len2); already processed
+         }
       #else
          UNROLL for(Int y=-1; y<=1; y++)
          UNROLL for(Int x=-1; x<=1; x++)
