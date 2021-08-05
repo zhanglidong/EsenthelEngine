@@ -555,43 +555,34 @@ void Temporal_PS
 
 #if CUBIC && MERGE_CUBIC_MIN_MAX // merged CUBIC with MIN MAX
 {
-#if YCOCG
-   ycocg_min= HALF_MAX;
-   ycocg_max=-HALF_MAX;
-#else
-   col_min= HALF_MAX;
-   col_max=-HALF_MAX;
-#endif
-
- /*Vec2  cur_uv_img_pixelf=Sampler.pixelF(cur_uv       , ImgSize);
-   Vec2      uv_img_pixel =Sampler.pixel (    uv       , ImgSize);
-   Vec2 sampler_img_pixel =Sampler.pixel (Sampler.tc[0], ImgSize);
-   Vec2 sampler_img_pixelf=Sampler.pixelF(Sampler.tc[0], ImgSize);
-   VecH2  delta_img_pixel =cur_uv_img_pixelf-sampler_img_pixelf;*/
-
-   Vec2 max_neighbor_range=ImgSize.xy*1.5; // this is ok for SUPER too
-
    const Bool skip_corners=true;
    UNROLL for(Int y=0; y<4; y++)
    UNROLL for(Int x=0; x<4; x++)
       if(!skip_corners || (x!=0 && x!=3) || (y!=0 && y!=3)) // skip corners
    {
-      Vec2 sample_uv=Sampler.uv(x, y);
    #if VIEW_FULL
       VecH4 col=TexPointOfs(Img, Sampler.tc[0], VecI2(x, y));
    #else
-      VecH4 col=TexPoint(Img, sample_uv);
+      VecH4 col=TexPoint(Img, Sampler.uv(x, y));
    #endif
       Half weight=Sampler.weight(x, y);
-      if(x==skip_corners && y==0)cur =col*weight; // first is (skip_corners, 0)
-      else                       cur+=col*weight;
-
-      // FIXME alternative could reuse VecH2(x,y), delta_img_pixel?
-    //if(all(abs(uv_img_pixel-(sampler_img_pixel+VecI2(x, y)))<               1.5)) // get min/max only from nearest 3x3 neighbors
-      if(all(abs(sample_uv   -(uv                           ))<max_neighbor_range)) // get min/max only from nearest 3x3 neighbors
+   #if YCOCG
+      VecH4 ycocg=RGBToYCoCg4(col);
+   #endif
+      if(x==skip_corners && y==0) // first
       {
+         cur=col*weight;
       #if YCOCG
-         VecH4 ycocg=RGBToYCoCg4(col);
+         ycocg_min=ycocg;
+         ycocg_max=ycocg;
+      #else
+         col_min=col;
+         col_max=col;
+      #endif
+      }else
+      {
+         cur+=col*weight;
+      #if YCOCG
          ycocg_min=Min(ycocg_min, ycocg);
          ycocg_max=Max(ycocg_max, ycocg);
       #else
