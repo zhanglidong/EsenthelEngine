@@ -198,19 +198,20 @@ void TestMotion(VecH2 uv_motion, VecH2 test_uv_motion, inout Half max_screen_del
    if(  screen_delta_len2>max_screen_delta_len2)max_screen_delta_len2=screen_delta_len2;
 }
 /******************************************************************************/
-void NearestDepthRaw3x3(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather) // get raw depth nearest to camera around 'uv' !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' for uv+ofs can be removed !!
+void NearestDepthRaw3x3(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gather) // get raw depth nearest to camera around 'uv' !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' for uv+ofs can be removed !!
 {
+   Flt depth;
    if(gather)
    {
       ofs=VecI2(-1, 1); depth=TexDepthRawPointOfs(uv, ofs         );                     // -1,  1,  left-top
               TestDepth(depth,TexDepthRawPointOfs(uv, VecI2(1, -1)), ofs, VecI2(1, -1)); //  1, -1, right-bottom
-      Vec2 tex=uv-(SUPER ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
-      Vec4 d=TexDepthRawGather(tex); // get -1,-1 to 0,0 texels
+      uv-=(SUPER ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
+      Vec4 d=TexDepthRawGather(uv); // get -1,-1 to 0,0 texels
       TestDepth(depth, d.x, ofs, VecI2(-1,  0));
-      TestDepth(depth, d.y, ofs, VecI2( 0,  0));
+      TestDepth(depth, d.y, ofs, VecI2( 0,  0)); depth_center=d.y;
       TestDepth(depth, d.z, ofs, VecI2( 0, -1));
       TestDepth(depth, d.w, ofs, VecI2(-1, -1));
-      d=TexDepthRawGatherOfs(tex, VecI2(1, 1)); // get 0,0 to 1,1 texels
+      d=TexDepthRawGatherOfs(uv, VecI2(1, 1)); // get 0,0 to 1,1 texels
       TestDepth(depth, d.x, ofs, VecI2( 0,  1));
       TestDepth(depth, d.y, ofs, VecI2( 1,  1));
       TestDepth(depth, d.z, ofs, VecI2( 1,  0));
@@ -218,15 +219,96 @@ void NearestDepthRaw3x3(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather) // g
    }else
    {
       ofs=0;
-      depth=TexDepthRawPoint(uv);
+      depth_center=depth=TexDepthRawPoint(uv);
       UNROLL for(Int y=-1; y<=1; y++)
       UNROLL for(Int x=-1; x<=1; x++)if(x || y)TestDepth(depth, TexDepthRawPointOfs(uv, VecI2(x, y)), ofs, VecI2(x, y));
    }
 }
-void NearestDepth3x3(out Flt depth, out VecI2 ofs, Vec2 uv, bool gather)
-{
-   NearestDepthRaw3x3(depth, ofs, uv, gather);
-   depth=LinearizeDepth(depth);
+void NearestDepthRaw4x4(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gather) // get raw depth nearest to camera around 'uv' !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' for uv+ofs can be removed !!
+{ /* Unoptimized:
+   depth_center=depth=TexDepthRawPoint(uv); ofs=0;
+   Int min_y=-1, max_y=1, min_x=-1, max_x=1;
+   if(TemporalOffset.x<0)min_x--;else max_x++;
+   if(TemporalOffset.y<0)min_y--;else max_y++;
+   for(Int y=min_y; y<=max_y; y++)
+   for(Int x=min_x; x<=max_x; x++)TestDepth(depth, TexDepthRawPoint(uv+VecI2(x, y)*ImgSize), ofs, VecI2(x, y)); */
+   Flt   depth;
+   VecI2 sub_offset=(TemporalOffsetStart<0); // if negative then we will start from -1, so have to subtract 1. 'sub_offset' is also coordinate of the center pixel when using -1..2 range
+   if(gather)
+   {
+      uv+=TemporalOffsetStart-(SUPER ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
+   #if 0 // original
+      Vec4 ld=TexDepthRawGather(uv); // get -1,-1 to 0,0 texels
+                depth= ld.x; ofs= VecI2(-1,  0) ; // first
+    //TestDepth(depth, ld.x, ofs, VecI2(-1,  0));
+      TestDepth(depth, ld.y, ofs, VecI2( 0,  0)); /*if(all(VecI2(0, 0)==sub_offset))*/depth_center=ld.y;
+      TestDepth(depth, ld.z, ofs, VecI2( 0, -1));
+      TestDepth(depth, ld.w, ofs, VecI2(-1, -1));
+
+      Vec4 rd=TexDepthRawGatherOfs(uv, VecI2(2, 0)); // get 1,-1 to 2,0 texels
+      TestDepth(depth, rd.x, ofs, VecI2( 1,  0)); if(all(VecI2(1, 0)==sub_offset))depth_center=rd.x;
+      TestDepth(depth, rd.y, ofs, VecI2( 2,  0));
+      TestDepth(depth, rd.z, ofs, VecI2( 2, -1));
+      TestDepth(depth, rd.w, ofs, VecI2( 1, -1));
+
+      Vec4 lu=TexDepthRawGatherOfs(uv, VecI2(0, 2)); // get -1,1 to 0,2 texels
+      TestDepth(depth, lu.x, ofs, VecI2(-1,  2));
+      TestDepth(depth, lu.y, ofs, VecI2( 0,  2));
+      TestDepth(depth, lu.z, ofs, VecI2( 0,  1)); if(all(VecI2(0, 1)==sub_offset))depth_center=lu.z;
+      TestDepth(depth, lu.w, ofs, VecI2(-1,  1));
+
+      Vec4 ru=TexDepthRawGatherOfs(uv, VecI2(2, 2)); // get 1,1 to 2,2 texels
+      TestDepth(depth, ru.x, ofs, VecI2( 1,  2));
+      TestDepth(depth, ru.y, ofs, VecI2( 2,  2));
+      TestDepth(depth, ru.z, ofs, VecI2( 2,  1));
+      TestDepth(depth, ru.w, ofs, VecI2( 1,  1)); if(all(VecI2(1, 1)==sub_offset))depth_center=ru.w;
+   #else // test center pixels first, this is for cases where multiple pixels have the same depth and we want to prioritize selecting offset closer to the center
+      Vec4 ld=TexDepthRawGather   (uv             ); // get -1,-1 to 0,0 texels
+      Vec4 rd=TexDepthRawGatherOfs(uv, VecI2(2, 0)); // get  1,-1 to 2,0 texels
+      Vec4 lu=TexDepthRawGatherOfs(uv, VecI2(0, 2)); // get -1, 1 to 0,2 texels
+      Vec4 ru=TexDepthRawGatherOfs(uv, VecI2(2, 2)); // get  1, 1 to 2,2 texels
+
+                depth= ld.y; ofs= VecI2( 0,  0) ; /*if(all(VecI2(0, 0)==sub_offset))*/depth_center=ld.y; // first
+    //TestDepth(depth, ld.y, ofs, VecI2( 0,  0)); /*if(all(VecI2(0, 0)==sub_offset))*/depth_center=ld.y;
+      TestDepth(depth, rd.x, ofs, VecI2( 1,  0));   if(all(VecI2(1, 0)==sub_offset))  depth_center=rd.x;
+      TestDepth(depth, lu.z, ofs, VecI2( 0,  1));   if(all(VecI2(0, 1)==sub_offset))  depth_center=lu.z;
+      TestDepth(depth, ru.w, ofs, VecI2( 1,  1));   if(all(VecI2(1, 1)==sub_offset))  depth_center=ru.w;
+
+      TestDepth(depth, ld.x, ofs, VecI2(-1,  0));
+    //TestDepth(depth, ld.y, ofs, VecI2( 0,  0)); if(all(VecI2(0, 0)==sub_offset))depth_center=ld.y;
+      TestDepth(depth, ld.z, ofs, VecI2( 0, -1));
+      TestDepth(depth, ld.w, ofs, VecI2(-1, -1));
+
+    //TestDepth(depth, rd.x, ofs, VecI2( 1,  0)); if(all(VecI2(1, 0)==sub_offset))depth_center=rd.x;
+      TestDepth(depth, rd.y, ofs, VecI2( 2,  0));
+      TestDepth(depth, rd.z, ofs, VecI2( 2, -1));
+      TestDepth(depth, rd.w, ofs, VecI2( 1, -1));
+
+      TestDepth(depth, lu.x, ofs, VecI2(-1,  2));
+      TestDepth(depth, lu.y, ofs, VecI2( 0,  2));
+    //TestDepth(depth, lu.z, ofs, VecI2( 0,  1)); if(all(VecI2(0, 1)==sub_offset))depth_center=lu.z;
+      TestDepth(depth, lu.w, ofs, VecI2(-1,  1));
+
+      TestDepth(depth, ru.x, ofs, VecI2( 1,  2));
+      TestDepth(depth, ru.y, ofs, VecI2( 2,  2));
+      TestDepth(depth, ru.z, ofs, VecI2( 2,  1));
+    //TestDepth(depth, ru.w, ofs, VecI2( 1,  1)); if(all(VecI2(1, 1)==sub_offset))depth_center=ru.w;
+   #endif
+   }else
+   {
+      uv+=TemporalOffsetStart;
+      UNROLL for(Int y=-1; y<=2; y++) // 4
+      UNROLL for(Int x=-1; x<=2; x++) // 4
+      {
+         VecI2 o=VecI2(x, y);
+         Flt d=TexDepthRawPointOfs(uv, o);
+         if(x==-1 && y==-1){depth= d; ofs= o;} // first
+         else     TestDepth(depth, d, ofs, o);
+         if(x>=0 && x<=1 && y>=0 && y<=1 // center pixel can happen only in this range, since this is unrolled then we can check this for free
+         && all(o==sub_offset))depth_center=d; // if this is center pixel
+      }
+   }
+   ofs-=sub_offset;
 }
 /******************************************************************************/
 Half Cover(Flt depth, VecH2 screen_delta, Half screen_delta_len2, Half bias, Flt obj_depth, VecH2 obj_uv_motion)
@@ -256,16 +338,30 @@ void Temporal_PS
 {
    // GET DEPTH
    Flt depth_raw; VecI2 ofs;
-   if(NEAREST_DEPTH_VEL)NearestDepthRaw3x3(depth_raw, ofs, uv, GATHER); // need to use 3x3 because 2x2 are not enough
+   if(NEAREST_DEPTH_VEL)NearestDepthRaw4x4(depth_raw, ofs, uv, GATHER); // now we use 4x4 samples (old: need to use 3x3 because 2x2 are not enough)
    else                 depth_raw=TexDepthRawPoint(uv);
    Flt depth=LinearizeDepth(depth_raw);
+
+   // DEBUG
+   /*{
+      Flt d_max=Z_BACK; Vec2 test=uv+TemporalOffsetStart;
+      UNROLL for(Int y=-1; y<=2; y++)
+      UNROLL for(Int x=-1; x<=2; x++)d_max=DEPTH_MIN(d_max, TexDepthRawPointOfs(test, VecI2(x, y)));
+      Flt depth_raw1; VecI2 ofs1; NearestDepthRaw4x4(depth_raw1, ofs1, uv, false);
+      if( depth_raw!=TexDepthRawPoint(uv)
+       || depth_raw!=depth_raw1
+       || d_max!=TexDepthRawPoint(uv+ofs *ImgSize.xy)
+       || d_max!=TexDepthRawPoint(uv+ofs1*ImgSize.xy)
+     //|| any(ofs!=ofs1) this might be different because it depends on order of testing
+       ){outCol=Vec4(1,0,1,0); return;}
+   }*/
 
    // GET MOTION
    Vec2  depth_motion_uv=NEAREST_DEPTH_VEL ? UVInView(uv+ofs*ImgSize.xy, VIEW_FULL) : uv; // 'depth_motion_uv'=UV that's used for DepthMotion
    VecH2 uv_motion=TexPoint(ImgXY, depth_motion_uv).xy;
    Vec2  cur_uv=uv+TemporalOffset,
          old_uv=uv-uv_motion; // #MotionDir
-   Half  old_weight=UVInsideView(old_uv); // use old only if its UV is inside viewport
+   Half  old_weight=UVInsideView(old_uv); // use old only if it's inside viewport
 
    // IGNORE OLD BY MOVEMENT
    Half blend_move=1;
