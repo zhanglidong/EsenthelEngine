@@ -730,7 +730,7 @@ void Temporal_PS
 
       new_flicker=Lerp(difference, old_flicker, OLD_FLICKER_WEIGHT)*old_weight; // always 0..1, alternative is "Lerp(difference, old_flicker*old_weight, OLD_WEIGHT)" however it makes sense to discard 'difference' too if old is being ignored
 
-    //Half     flicker=Sat(LerpR(1-OLD_WEIGHT, 1, new_flicker)); // cut-off small differences
+    //Half     flicker=LerpRS(1-OLD_WEIGHT, 1, new_flicker); // cut-off small differences
       Half     flicker=new_flicker; // faster
       Half not_flicker=1-Sqr(flicker); // use Sqr to consider only big flickering
 
