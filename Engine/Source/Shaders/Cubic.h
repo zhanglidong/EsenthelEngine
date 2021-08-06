@@ -3,7 +3,7 @@
    !! Using Cubic Sampler requires setting 'ImgSize' !!
 
 /******************************************************************************/
-struct Weight
+struct CubicWeight
 {
    Half W3, W2, W1, W0; // to be used for x=0..1
    Half w3, w2, w1, w0; // to be used for x=1..2
@@ -139,7 +139,7 @@ struct CubicFastSampler
       setSamples(img_size);
    }
    void set(Vec2 uv) {set(uv, ImgSize);}
-   void set(Vec2 uv, Vec4 img_size, Weight W) // for best results this should use 'texSlow'
+   void set(Vec2 uv, Vec4 img_size, CubicWeight W) // for best results this should use 'texSlow'
    {
       VecH2 F=setUV(uv, img_size);
 
@@ -169,7 +169,7 @@ struct CubicFastSampler
 
       setSamples(img_size);
    }
-   void setSharp(Vec2 uv, Vec4 img_size, Half sharp) {Weight W; W.setSharp(sharp); set(uv, img_size, W);} // 'sharp'=0..1, for best results this should use 'texSlow'
+   void setSharp(Vec2 uv, Vec4 img_size, Half sharp) {CubicWeight W; W.setSharp(sharp); set(uv, img_size, W);} // 'sharp'=0..1, for best results this should use 'texSlow'
 
    void UVClamp(Vec2 min, Vec2 max)
    {
