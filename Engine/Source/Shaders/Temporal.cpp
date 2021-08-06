@@ -189,6 +189,31 @@ Half GetBlend(VecH4 old, VecH4 cur, VecH4 min, VecH4 max) // 'cur' should be som
    return Max(Min(min_step, max_step));
 }
 /******************************************************************************/
+Half GetBlend1(VecH2 old, VecH2 cur, VecH2 min, VecH2 max) // returns "1-GetBlend"
+{
+   VecH2 dir=old-cur,
+     inv_dir=((dir!=0) ? rcp(dir) : HALF_MAX), // NaN, this is a per-component operation
+    min_step=(min-cur)*inv_dir, // how much travel needed to reach 'min' boundary
+    max_step=(max-cur)*inv_dir; // how much travel needed to reach 'max' boundary
+   return Min(Max(min_step, max_step));
+}
+Half GetBlend1(VecH old, VecH cur, VecH min, VecH max) // returns "1-GetBlend"
+{
+   VecH dir=old-cur,
+    inv_dir=((dir!=0) ? rcp(dir) : HALF_MAX), // NaN, this is a per-component operation
+   min_step=(min-cur)*inv_dir, // how much travel needed to reach 'min' boundary
+   max_step=(max-cur)*inv_dir; // how much travel needed to reach 'max' boundary
+   return Min(Max(min_step, max_step));
+}
+Half GetBlend1(VecH4 old, VecH4 cur, VecH4 min, VecH4 max) // returns "1-GetBlend"
+{
+   VecH4 dir=old-cur,
+     inv_dir=((dir!=0) ? rcp(dir) : HALF_MAX), // NaN, this is a per-component operation
+    min_step=(min-cur)*inv_dir, // how much travel needed to reach 'min' boundary
+    max_step=(max-cur)*inv_dir; // how much travel needed to reach 'max' boundary
+   return Min(Max(min_step, max_step));
+}
+/******************************************************************************/
 VecH2 UVToScreen   (VecH2 uv) {return VecH2(uv.x*AspectRatio, uv.y);} // this is only to maintain XY proportions (it does not convert to screen coordinates)
 Half  ScreenLength2(VecH2 uv) {return Length2(UVToScreen(uv));}
 /******************************************************************************/
@@ -233,7 +258,7 @@ void NearestDepthRaw4x4(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gathe
    for(Int y=min_y; y<=max_y; y++)
    for(Int x=min_x; x<=max_x; x++)TestDepth(depth, TexDepthRawPoint(uv+VecI2(x, y)*ImgSize), ofs, VecI2(x, y)); */
    Flt   depth;
-   VecI2 sub_offset=(TemporalOffsetStart<0); // if negative then we will start from -1, so have to subtract 1. 'sub_offset' is also coordinate of the center pixel when using -1..2 range
+   VecI2 sub_offset=(TemporalOffsetStart<0); // if negative then we will start from -1, so have to subtract 1. 'sub_offset' is also coordinate of the center (0,0) pixel when using -1..2 range
    if(gather)
    {
       uv+=TemporalOffsetStart-(SUPER ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
@@ -268,7 +293,7 @@ void NearestDepthRaw4x4(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gathe
       Vec4 lu=TexDepthRawGatherOfs(uv, VecI2(0, 2)); // get -1, 1 to 0,2 texels
       Vec4 ru=TexDepthRawGatherOfs(uv, VecI2(2, 2)); // get  1, 1 to 2,2 texels
 
-                depth= ld.y; ofs= VecI2( 0,  0) ; /*if(all(VecI2(0, 0)==sub_offset))*/depth_center=ld.y; // first
+                depth= ld.y; ofs= VecI2( 0,  0) ; /*if(all(VecI2(0, 0)==sub_offset))*/depth_center=ld.y; // first, skip 'if' to avoid overhead
     //TestDepth(depth, ld.y, ofs, VecI2( 0,  0)); /*if(all(VecI2(0, 0)==sub_offset))*/depth_center=ld.y;
       TestDepth(depth, rd.x, ofs, VecI2( 1,  0));   if(all(VecI2(1, 0)==sub_offset))  depth_center=rd.x;
       TestDepth(depth, lu.z, ofs, VecI2( 0,  1));   if(all(VecI2(0, 1)==sub_offset))  depth_center=lu.z;
