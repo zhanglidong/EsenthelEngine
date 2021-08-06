@@ -443,7 +443,7 @@ void Temporal_PS
       TestSample(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv, dilated_uv_motion.zw); // check secondary motion, check this for both DUAL_MOTION on/off
     //TestSample(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv,                    0); // FIXME this could have an optimized version that always ignores 'cover'. This is ignored because it's processed below with gather, that one ignores depths, however is it needed?
       
-      /*UNROLL for(Int y=-1; y<=1; y++)
+    /*UNROLL for(Int y=-1; y<=1; y++)
       UNROLL for(Int x=-1; x<=1; x++)
       TestSample(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv, VecI2(x,y)*ImgSize.xy);*/
 
