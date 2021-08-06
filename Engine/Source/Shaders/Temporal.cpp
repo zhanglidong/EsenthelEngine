@@ -67,6 +67,7 @@ ALPHA=1
 
 #define NEAREST_DEPTH_VEL 1
 
+#define SHOW_IGNORE_OLD 0
 #define SHOW_FLICKER T
 
 #define CUBIC 1
@@ -452,18 +453,15 @@ void Temporal_PS
          Vec4  d           =TexDepthRawGather(obj_uv);
          VecH4 obj_motion_x=TexGatherR(ImgXY, obj_uv);
          VecH4 obj_motion_y=TexGatherG(ImgXY, obj_uv);
-         cover=    Cover(depth, uv_motion, old_uv_motion, screen_delta, screen_dist2, W*bias, LinearizeDepth(d.x), VecH2(obj_motion_x.x, obj_motion_y.x)); // first pixel can be set instead of Max
-         cover=Max(Cover(depth, uv_motion, old_uv_motion, screen_delta, screen_dist2, W*bias, LinearizeDepth(d.y), VecH2(obj_motion_x.y, obj_motion_y.y)), cover);
-         cover=Max(Cover(depth, uv_motion, old_uv_motion, screen_delta, screen_dist2, W*bias, LinearizeDepth(d.z), VecH2(obj_motion_x.z, obj_motion_y.z)), cover);
-         cover=Max(Cover(depth, uv_motion, old_uv_motion, screen_delta, screen_dist2, W*bias, LinearizeDepth(d.w), VecH2(obj_motion_x.w, obj_motion_y.w)), cover);
+         LinearizeDepth(d.x), VecH2(obj_motion_x.x, obj_motion_y.x)
+         LinearizeDepth(d.y), VecH2(obj_motion_x.y, obj_motion_y.y)
+         LinearizeDepth(d.z), VecH2(obj_motion_x.z, obj_motion_y.z)
+         LinearizeDepth(d.w), VecH2(obj_motion_x.w, obj_motion_y.w)
       #else
          obj_uv-=ImgSize.xy/2;
          UNROLL for(Int y=0; y<=1; y++)
          UNROLL for(Int x=0; x<=1; x++)
-         {
-            Half c=Cover(depth, uv_motion, old_uv_motion, screen_delta, screen_dist2, W*bias, TexDepthPointOfs(obj_uv, VecI2(x,y)), TexPointOfs(ImgXY, obj_uv, VecI2(x,y)));
-            if(x==0 && y==0)cover=c;else cover=Max(cover, c); // first pixel can be set instead of Max
-         }
+            {TexDepthPointOfs(obj_uv, VecI2(x,y)), TexPointOfs(ImgXY, obj_uv, VecI2(x,y)));}
       #endif
       }*/
 
@@ -781,8 +779,8 @@ void Temporal_PS
       outAlpha=new_alpha;
    #endif
    #endif
- //if(T)outCol.r=Lerp(1, outCol.r, blend_move);
-   if(SHOW_FLICKER)outCol.b=SRGBToLinearFast(new_flicker); // visualize flicker
+   if(SHOW_IGNORE_OLD)outCol.r=Lerp(1, outCol.r, use_old);
+   if(SHOW_FLICKER   )outCol.b=SRGBToLinearFast(new_flicker*10*FLICKER_EPS); // visualize flicker
 #else
    #if YCOCG
       old.rgb=YCoCg4ToRGB(Lerp(ycocg_old, ycocg_cur, blend));
