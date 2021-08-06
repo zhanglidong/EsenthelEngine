@@ -3,6 +3,22 @@
    !! Using Cubic Sampler requires setting 'ImgSize' !!
 
 /******************************************************************************/
+struct Weight
+{
+   Half W3, W2, W1, W0; // to be used for x=0..1
+   Half w3, w2, w1, w0; // to be used for x=1..2
+ //Half z3, z2, z1, z0; // to be used for x=1..2, but x is already -1
+
+   void set(Half blur, Half sharpen)
+   {
+      W3=(12-9*blur-6*sharpen)/6; W2=(-18+12*blur+ 6*sharpen)/6; W1=                      0; W0=(6-2*blur           )/6;
+      w3=(  -1*blur-6*sharpen)/6; w2=(     6*blur+30*sharpen)/6; w1=(-12*blur-48*sharpen)/6; w0=(  8*blur+24*sharpen)/6;
+    //z3=w3; z2=3*w3 + w2; z1=3*w3 + 2*w2 + w1; z0=w3 + w2 + w1 + w0;
+    //z3=((-1)*blur + (-6)*sharpen)/6; z2=((3*-1+6)*blur + (3*-6+30)*sharpen)/6; z1=((3*-1+2*6-12)*blur + (3*-6+2*30-48)*sharpen)/6; z0=((-1+6-12+8)*blur + (-6+30-48+24)*sharpen)/6;
+   }
+   void setSharp(Half sharp) {set(Lerp(1, 0, sharp), Lerp(0, 0.5, sharp));} // 'sharp'=0..1
+   void setBlur (Half blur ) {set(Lerp(0, 1, blur ), Lerp(0.5, 0, blur ));} // 'blur' =0..1
+};
 struct CubicFastSampler
 {
 /*#if 0 // original
@@ -84,7 +100,8 @@ struct CubicFastSampler
    Half cornersWeight() {return (w[0].x+w[3].x)*(w[0].y+w[3].y);} // weight(0,0) + weight(3,0) + weight(0,3) + weight(3,3) = w[0].x*w[0].y + w[3].x*w[0].y + w[0].x*w[3].y + w[3].x*w[3].y = (w[0].x+w[3].x)*w[0].y + (w[0].x+w[3].x)*w[3].y
    Vec2 pixel        (Vec2 uv, Vec4 img_size) {return Floor(uv*img_size.zw);} // return as Vec2 to avoid Vec2 -> VecI2 conversion
    Vec2 pixelF       (Vec2 uv, Vec4 img_size) {return       uv*img_size.zw ;}
-   void set          (Vec2 uv, Vec4 img_size)
+
+   VecH2 setUV(Vec2 uv, Vec4 img_size) // return fraction
    {
       uv*=img_size.zw;
       Vec2 uvc=Floor(uv-0.5)+0.5;
@@ -94,7 +111,24 @@ struct CubicFastSampler
       tc[2]=tc[1]+img_size.xy;
       tc[3]=tc[1]+img_size.xy*2;
 
-      VecH2 f=uv-uvc, f2=f*f, f3=f2*f; // same as "uv-=0.5; f=uv-Floor(uv);"
+      return uv-uvc; // same as "uv-=0.5; f=uv-Floor(uv);"
+   }
+   void setSamples(Vec4 img_size) // set sample UV's based on uv and weights
+   {
+      VecH2 w12=w[1]+w[2]; c=tc[1]+(w[2]/w12)*img_size.xy;
+      wu=w12.x*w[0].y; wd=w12.x*w[3].y; wl=w12.y*w[0].x; wr=w12.y*w[3].x; wc=w12.x*w12.y;
+      Half sum=wc+wl+wr+wu+wd; // 1-cornersWeight()
+      wc/=sum;
+      wl/=sum; l=Vec2(tc[0].x,     c.y);
+      wr/=sum; r=Vec2(tc[3].x,     c.y);
+      wu/=sum; u=Vec2(    c.x, tc[0].y);
+      wd/=sum; d=Vec2(    c.x, tc[3].y);
+   }
+
+   void set(Vec2 uv, Vec4 img_size)
+   {
+      VecH2 f=setUV(uv, img_size), f2=f*f, f3=f2*f;
+
       w[0]=f2-0.5*(f3+f); w[1]=1.5*f3-2.5*f2+1;
    #if 0
       w[2]=-1.5*f3+2*f2+0.5*f; w[3]=0.5*(f3-f2); // don't calculate it manually, use the fact that the sum is always equal to 1, using [2] component was the fastest version tested
@@ -102,65 +136,40 @@ struct CubicFastSampler
       w[3]=0.5*(f3-f2); w[2]=1-w[0]-w[1]-w[3];
    #endif
 
-      VecH2 w12=w[1]+w[2]; c=tc[1]+(w[2]/w12)*img_size.xy;
-      wu=w12.x*w[0].y; wd=w12.x*w[3].y; wl=w12.y*w[0].x; wr=w12.y*w[3].x; wc=w12.x*w12.y;
-      Half sum=wc+wl+wr+wu+wd; // 1-cornersWeight()
-      wc/=sum;
-      wl/=sum; l=Vec2(tc[0].x,     c.y);
-      wr/=sum; r=Vec2(tc[3].x,     c.y);
-      wu/=sum; u=Vec2(    c.x, tc[0].y);
-      wd/=sum; d=Vec2(    c.x, tc[3].y);
+      setSamples(img_size);
    }
    void set(Vec2 uv) {set(uv, ImgSize);}
-   void setBlurSharp(Vec2 uv, Vec4 img_size, Half blur, Half sharpen) // for best results this should use 'texSlow'
+   void set(Vec2 uv, Vec4 img_size, Weight W) // for best results this should use 'texSlow'
    {
-      uv*=img_size.zw;
-      Vec2 uvc=Floor(uv-0.5)+0.5;
+      VecH2 F=setUV(uv, img_size);
 
-      tc[1]=uvc  *img_size.xy;
-      tc[0]=tc[1]-img_size.xy;
-      tc[2]=tc[1]+img_size.xy;
-      tc[3]=tc[1]+img_size.xy*2;
-
-      Half  W3=(12-9*blur-6*sharpen)/6, W2=(-18+12*blur+ 6*sharpen)/6, W1=0, W0=(6-2*blur)/6; // to be used for x=0..1
-      VecH2 F=uv-uvc; // same as "uv-=0.5; f=uv-Floor(uv);"
    #if 1 // faster
       { /* ((A*F+B)*F+C)*F+D
             (A*F*F + B*F + C)*F+D
              A*F*F*F + B*F*F + C*F + D */
-         Half w3=(-1*blur-6*sharpen)/6, w2=(6*blur+30*sharpen)/6, w1=(-12*blur-48*sharpen)/6, w0=(8*blur+24*sharpen)/6; // to be used for x=1..2
          VecH2 f;
-         f=F  ; w[1]=((W3*f+W2)*f+W1)*f+W0;
-         f=F+1; w[0]=((w3*f+w2)*f+w1)*f+w0;
-         f=1-F; w[2]=((W3*f+W2)*f+W1)*f+W0;
-         f=2-F; w[3]=((w3*f+w2)*f+w1)*f+w0;
+         f=F  ; w[1]=((W.W3*f+W.W2)*f+W.W1)*f+W.W0;
+         f=F+1; w[0]=((W.w3*f+W.w2)*f+W.w1)*f+W.w0;
+         f=1-F; w[2]=((W.W3*f+W.W2)*f+W.W1)*f+W.W0;
+         f=2-F; w[3]=((W.w3*f+W.w2)*f+W.w1)*f+W.w0;
       }
    #else
       {
-       //Half z3=w3, z2=3*w3 + w2, z1=3*w3 + 2*w2 + w1, z0=w3 + w2 + w1 + w0; // to be used for x=1..2, but x is already -1
-         Half z3=((-1)*blur + (-6)*sharpen)/6, z2=((3*-1+6)*blur + (3*-6+30)*sharpen)/6, z1=((3*-1+2*6-12)*blur + (3*-6+2*30-48)*sharpen)/6, z0=((-1+6-12+8)*blur + (-6+30-48+24)*sharpen)/6; // to be used for x=1..2, but x is already -1
          VecH2 f, f2, f3;
-         f=F  ; f2=f*f; f3=f2*f; w[1]=W3*f3 + W2*f2 + W1*f + W0;
-       //f=F+1; f2=f*f; f3=f2*f; w[0]=w3*f3 + w2*f2 + w1*f + w0; // w[0]=w3*Cube(F+1) + w2*Sqr(F+1) + w1*(F+1) + w0 -> w[0]=w3*(F*F*F + 3*F*F + 3*F + 1) + w2*(F*F + 2*F + 1) + w1*(F+1) + w0
-                                 w[0]=z3*f3 + z2*f2 + z1*f + z0;
+         f=F  ; f2=f*f; f3=f2*f; w[1]=W.W3*f3 + W.W2*f2 + W.W1*f + W.W0;
+       //f=F+1; f2=f*f; f3=f2*f; w[0]=W.w3*f3 + W.w2*f2 + W.w1*f + W.w0; // w[0]=w3*Cube(F+1) + w2*Sqr(F+1) + w1*(F+1) + w0 -> w[0]=w3*(F*F*F + 3*F*F + 3*F + 1) + w2*(F*F + 2*F + 1) + w1*(F+1) + w0
+                                 w[0]=W.z3*f3 + W.z2*f2 + W.z1*f + W.z0;
 
-         f=1-F; f2=f*f; f3=f2*f; w[2]=W3*f3 + W2*f2 + W1*f + W0;
-       //f=2-F; f2=f*f; f3=f2*f; w[3]=w3*f3 + w2*f2 + w1*f + w0;
-                                 w[3]=z3*f3 + z2*f2 + z1*f + z0;
+         f=1-F; f2=f*f; f3=f2*f; w[2]=W.W3*f3 + W.W2*f2 + W.W1*f + W.W0;
+       //f=2-F; f2=f*f; f3=f2*f; w[3]=W.w3*f3 + W.w2*f2 + W.w1*f + W.w0;
+                                 w[3]=W.z3*f3 + W.z2*f2 + W.z1*f + W.z0;
       }
    #endif
 
-      VecH2 w12=w[1]+w[2]; c=tc[1]+(w[2]/w12)*img_size.xy;
-      wu=w12.x*w[0].y; wd=w12.x*w[3].y; wl=w12.y*w[0].x; wr=w12.y*w[3].x; wc=w12.x*w12.y;
-      Half sum=wc+wl+wr+wu+wd; // 1-cornersWeight()
-      wc/=sum;
-      wl/=sum; l=Vec2(tc[0].x,     c.y);
-      wr/=sum; r=Vec2(tc[3].x,     c.y);
-      wu/=sum; u=Vec2(    c.x, tc[0].y);
-      wd/=sum; d=Vec2(    c.x, tc[3].y);
+      setSamples(img_size);
    }
-   void setSharp(Vec2 uv, Vec4 img_size, Half sharp) {setBlurSharp(uv, img_size, Lerp(1, 0, sharp), Lerp(0, 0.5, sharp));} // 'sharp'=0..1, for best results this should use 'texSlow'
-   void setBlur (Vec2 uv, Vec4 img_size, Half blur ) {setBlurSharp(uv, img_size, Lerp(0, 1, blur ), Lerp(0.5, 0, blur ));} // 'blur' =0..1, for best results this should use 'texSlow'
+   void setSharp(Vec2 uv, Vec4 img_size, Half sharp) {Weight W; W.setSharp(sharp); set(uv, img_size, W);} // 'sharp'=0..1, for best results this should use 'texSlow'
+
    void UVClamp(Vec2 min, Vec2 max)
    {
       UNROLL for(Int i=0; i<4; i++)tc[i]=Mid(tc[i], min, max);
@@ -170,6 +179,7 @@ struct CubicFastSampler
       u=Mid(u, min, max);
       d=Mid(d, min, max);
    }
+
    VecH4 tex(Image img)
    {
       return TexLod(img, u)*wu  // sample upper edge (2 texels), both weights are negative
@@ -219,6 +229,7 @@ struct CubicFastSampler
    }
 };
 /******************************************************************************/
-VecH4 TexCubicFast   (Image img, Vec2 uv) {CubicFastSampler cs; cs.set(uv); return cs.tex   (img);}
-VecH  TexCubicFastRGB(Image img, Vec2 uv) {CubicFastSampler cs; cs.set(uv); return cs.texRGB(img);} // ignores alpha channel
+VecH4 TexCubicFastSharp(Image img, Vec2 uv, Half sharp) {CubicFastSampler cs; cs.setSharp(uv, ImgSize, sharp); return cs.texSlow(img);}
+VecH4 TexCubicFast     (Image img, Vec2 uv            ) {CubicFastSampler cs; cs.set     (uv                ); return cs.tex    (img);}
+VecH  TexCubicFastRGB  (Image img, Vec2 uv            ) {CubicFastSampler cs; cs.set     (uv                ); return cs.texRGB (img);} // ignores alpha channel
 /******************************************************************************/
