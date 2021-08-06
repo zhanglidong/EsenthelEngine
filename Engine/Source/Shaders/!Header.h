@@ -837,6 +837,24 @@ VecH2 FromLen2Angle1Fast(VecH2 v) // 'v'=(X=length2, Y=Angle1Fast), returns pos 
    return p*Sqrt(v.x/Length2(p));
 }
 /******************************************************************************/
+Half  DistPointLine(VecH2 pos, VecH2 line_pos, VecH2 line_dir) {return Abs(DistPointPlane(pos, line_pos, Perp(line_dir)));}
+Half Dist2PointLine(VecH2 pos, VecH2 line_pos, VecH2 line_dir) {return Sqr(DistPointPlane(pos, line_pos, Perp(line_dir)));}
+
+Half DistPointEdge(VecH2 pos, VecH2 edge_a, VecH2 edge_b) // safe in case 'edge' is zero length because 'd' would be zero, and 'DistPointPlane' would be zero
+{
+   VecH2 d=edge_b-edge_a;
+   if(DistPointPlane(pos, edge_a, d)<=0)return Dist         (pos, edge_a);
+   if(DistPointPlane(pos, edge_b, d)>=0)return Dist         (pos, edge_b);
+                                        return DistPointLine(pos, edge_a, Normalize(d));
+}
+Half Dist2PointEdge(VecH2 pos, VecH2 edge_a, VecH2 edge_b) // safe in case 'edge' is zero length because 'd' would be zero, and 'DistPointPlane' would be zero
+{
+   VecH2 d=edge_b-edge_a;
+   if(DistPointPlane(pos, edge_a, d)<=0)return Dist2         (pos, edge_a);
+   if(DistPointPlane(pos, edge_b, d)>=0)return Dist2         (pos, edge_b);
+                                        return Dist2PointLine(pos, edge_a, Normalize(d));
+}
+/******************************************************************************/
 #include "Fast Math.h"
 /******************************************************************************/
 #if 1 // faster (1.6 fps) tested on GeForce 1050 Ti
