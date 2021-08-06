@@ -103,15 +103,15 @@ struct CubicFastSampler
 
    VecH2 setUV(Vec2 uv, Vec4 img_size) // return fraction
    {
-      uv*=img_size.zw;
-      Vec2 uvc=Floor(uv-0.5)+0.5;
+      Vec2 pixf=uv*img_size.zw-0.5;
+      Vec2 pixi=Floor(pixf); // use Vec2 to avoid Vec2 -> VecI2 conversion
 
-      tc[1]=uvc  *img_size.xy;
-      tc[0]=tc[1]-img_size.xy;
-      tc[2]=tc[1]+img_size.xy;
-      tc[3]=tc[1]+img_size.xy*2;
+      tc[1]=(pixi+0.5)*img_size.xy;
+      tc[0]=tc[1]     -img_size.xy;
+      tc[2]=tc[1]     +img_size.xy;
+      tc[3]=tc[1]     +img_size.xy*2;
 
-      return uv-uvc; // same as "uv-=0.5; f=uv-Floor(uv);"
+      return pixf-pixi;
    }
    void setSamples(Vec4 img_size) // set sample UV's based on uv and weights
    {
@@ -151,7 +151,7 @@ struct CubicFastSampler
          f=F  ; w[1]=((W.W3*f+W.W2)*f+W.W1)*f+W.W0;
          f=F+1; w[0]=((W.w3*f+W.w2)*f+W.w1)*f+W.w0;
          f=1-F; w[2]=((W.W3*f+W.W2)*f+W.W1)*f+W.W0;
-         f=2-F; w[3]=((W.w3*f+W.w2)*f+W.w1)*f+W.w0;
+       //f=2-F; w[3]=((W.w3*f+W.w2)*f+W.w1)*f+W.w0;
       }
    #else
       {
@@ -162,9 +162,10 @@ struct CubicFastSampler
 
          f=1-F; f2=f*f; f3=f2*f; w[2]=W.W3*f3 + W.W2*f2 + W.W1*f + W.W0;
        //f=2-F; f2=f*f; f3=f2*f; w[3]=W.w3*f3 + W.w2*f2 + W.w1*f + W.w0;
-                                 w[3]=W.z3*f3 + W.z2*f2 + W.z1*f + W.z0;
+                               //w[3]=W.z3*f3 + W.z2*f2 + W.z1*f + W.z0;
       }
    #endif
+      w[3]=1-w[0]-w[1]-w[2]; // sum is always equal to 1
 
       setSamples(img_size);
    }
