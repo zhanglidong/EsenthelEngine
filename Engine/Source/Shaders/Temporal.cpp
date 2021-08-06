@@ -434,7 +434,7 @@ void Temporal_PS
    if(min_pixel_motion<0 || screen_motion_len2>Sqr(ImgSize.y*min_pixel_motion) || any(dilated_uv_motion.xy)) // #DilatedMotionZero
    {
 #endif
-      Half screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*8); // this pixel movement, add some bias which helps for slowly moving pixels on static background (example FPS view+walking+tree leafs on static sky), "+bias" works better than "Max(, bias)", *4 was the smallest number that disabled flickering on common scenario of walking/running in FPS view
+      Half screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*8); // this pixel movement, add some bias which helps for slowly moving pixels on static background (example FPS view+walking+tree leafs on static sky), "+bias" works better than "Max(, bias)"
 
       // TODO: slower but higher quality version would take more samples, for example on the line of 0..dilated_uv_motion.xy
       // because 'dilated_uv_motion' don't point to the moving pixel, they just mean that there is some movement in this neighborhood
@@ -507,6 +507,10 @@ void Temporal_PS
          Half frac=max_screen_dist2/screen_motion_len2_bias;
          Half same_motion=LerpRS(Sqr(2.0/16), Sqr(1.0/16), frac);
          old_weight*=same_motion;
+         /* TODO: could try testing more constants
+         if(Q){screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*8); same_motion=LerpRS(Sqr(2.0/16), Sqr(1.0/16), frac);}else
+         if(W){screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*4); same_motion=LerpRS(Sqr(2.0/ 8), Sqr(1.0/ 8), frac);}else
+              {screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*2); same_motion=LerpRS(Sqr(2.0/ 4), Sqr(1.0/ 4), frac);}*/
       }
    }
    Half use_old=UVInsideView(old_uv) ? old_weight : 1;
