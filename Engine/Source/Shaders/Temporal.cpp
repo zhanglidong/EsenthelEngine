@@ -410,7 +410,7 @@ void TestSample2x2 // !! This operates on relative UV's !!
    TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, LinearizeDepth(obj_depth_raw.z), VecH2(obj_motion_x.z, obj_motion_y.z), test_cover);
    TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, LinearizeDepth(obj_depth_raw.w), VecH2(obj_motion_x.w, obj_motion_y.w), test_cover);
 #else
-   obj_abs_uv-=ImgSize.xy/2;
+   obj_abs_uv-=(SUPER_RES ? RTSize.xy : ImgSize.xy*0.5);
    UNROLL for(Int y=0; y<=1; y++)
    UNROLL for(Int x=0; x<=1; x++)
    {
@@ -673,11 +673,11 @@ void Temporal_PS
    {
       Vec2 uv_clamp[2];
    #if VIEW_FULL
-      uv_clamp[0]=uv-(SUPER_RES ? RTSize.xy : ImgSize.xy/2);
-      uv_clamp[1]=uv+(SUPER_RES ? RTSize.xy : ImgSize.xy/2);
+      uv_clamp[0]=uv-(SUPER_RES ? RTSize.xy : ImgSize.xy*0.5);
+      uv_clamp[1]=uv+(SUPER_RES ? RTSize.xy : ImgSize.xy*0.5);
    #else
-      uv_clamp[0]=Vec2(Max(uv.x-(SUPER_RES ? RTSize.x : ImgSize.x/2), ImgClamp.x), Max(uv.y-(SUPER_RES ? RTSize.y : ImgSize.y/2), ImgClamp.y));
-      uv_clamp[1]=Vec2(Min(uv.x+(SUPER_RES ? RTSize.x : ImgSize.x/2), ImgClamp.z), Min(uv.y+(SUPER_RES ? RTSize.y : ImgSize.y/2), ImgClamp.w));
+      uv_clamp[0]=Vec2(Max(uv.x-(SUPER_RES ? RTSize.x : ImgSize.x*0.5), ImgClamp.x), Max(uv.y-(SUPER_RES ? RTSize.y : ImgSize.y*0.5), ImgClamp.y));
+      uv_clamp[1]=Vec2(Min(uv.x+(SUPER_RES ? RTSize.x : ImgSize.x*0.5), ImgClamp.z), Min(uv.y+(SUPER_RES ? RTSize.y : ImgSize.y*0.5), ImgClamp.w));
    #endif
       UNROLL for(Int y=0; y<=1; y++)
       UNROLL for(Int x=0; x<=1; x++)
@@ -796,7 +796,6 @@ void Temporal_PS
 
    old_weight*=1-blend;
 
-#if !DUAL_HISTORY
 #if SUPER_RES
    VecI2 pix=pixel.xy; pix&=1;
    if(all(pix==TemporalCurPixel)) // this pixel has latest data
@@ -837,7 +836,9 @@ void Temporal_PS
    #endif
    if(SHOW_IGNORE_OLD)outCol.r=Lerp(1, outCol.r, use_old);
    if(SHOW_FLICKER   )outCol.b=SRGBToLinearFast(new_flicker*10*FLICKER_EPS); // visualize flicker
-#else
+}
+/******************************************************************************
+#if DUAL_HISTORY
    #if YCOCG
       old.rgb=YCoCg4ToRGB(Lerp(ycocg_old, ycocg_cur, blend));
    #else
@@ -888,5 +889,4 @@ void Temporal_PS
       }
    }
 #endif
-}
 /******************************************************************************/
