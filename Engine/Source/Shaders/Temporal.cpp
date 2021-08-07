@@ -336,20 +336,18 @@ void TestSampleMotion(VecH2 cur_screen_motion, VecH2 obj_uv_motion, inout Half m
    Half screen_dist2=Dist2(UVToScreen(obj_uv_motion), cur_screen_motion);
    if(  screen_dist2>max_screen_dist2)max_screen_dist2=screen_dist2;
 }
-void TestSample // !! This operates on relative UV's !!
+void TestSampleBase // !! This operates on relative UV's !!
 (
-   inout Half  old_weight       ,
-         VecH2 cur_screen_motion, // current screen motion, this is also equal to current screen position relative to old
+   inout Half  old_weight                 ,
+         VecH2 cur_screen_motion          , // current screen motion, this is also equal to current screen position relative to old
          Half  cur_screen_motion_len2_bias,
-         Flt   cur_depth        , // current depth
-         Vec2  abs_uv           , // old     absolute UV
-         VecH2 obj_uv             // object  UV relative to old
+         Flt   cur_depth                  , // current depth
+         VecH2 obj_uv                     , // object  UV relative to old
+         Flt   obj_depth                  ,
+         VecH2 obj_uv_motion    
 )
 {
    VecH2 cur_screen_pos    =cur_screen_motion;
-   Vec2  obj_abs_uv        =UVInView     (abs_uv+obj_uv, VIEW_FULL); // #MotionDir get fastest moving pixel in the neighborhood
-   Flt   obj_depth         =TexDepthPoint(       obj_abs_uv);
-   VecH2 obj_uv_motion     =TexPoint     (ImgXY, obj_abs_uv);
    VecH2 obj_screen_pos    =UVToScreen   (obj_uv);
    VecH2 obj_screen_motion =UVToScreen   (obj_uv_motion);
    VecH2 obj_screen_pos_old=obj_screen_pos-obj_screen_motion; // UVToScreen(obj_uv-obj_uv_motion)
@@ -368,6 +366,54 @@ void TestSample // !! This operates on relative UV's !!
    //
    Half weight=1-obj_in_front*different_motion; // "*cover" FIXME, 'cover' either doesn't work well or just have to process more samples
    old_weight=Min(old_weight, weight);
+}
+void TestSample1x1 // !! This operates on relative UV's !!
+(
+   inout Half  old_weight                 ,
+         VecH2 cur_screen_motion          , // current screen motion, this is also equal to current screen position relative to old
+         Half  cur_screen_motion_len2_bias,
+         Flt   cur_depth                  , // current depth
+         Vec2  abs_uv                     , // old     absolute UV
+         VecH2 obj_uv                       // object  UV relative to old
+)
+{
+   Vec2  obj_abs_uv   =UVInView     (abs_uv+obj_uv, VIEW_FULL); // #MotionDir
+   Flt   obj_depth    =TexDepthPoint(       obj_abs_uv);
+   VecH2 obj_uv_motion=TexPoint     (ImgXY, obj_abs_uv);
+
+   TestSampleBase(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, obj_depth, obj_uv_motion);
+}
+void TestSample2x2 // !! This operates on relative UV's !!
+(
+   inout Half  old_weight                 ,
+         VecH2 cur_screen_motion          , // current screen motion, this is also equal to current screen position relative to old
+         Half  cur_screen_motion_len2_bias,
+         Flt   cur_depth                  , // current depth
+         Vec2  abs_uv                     , // old     absolute UV
+         VecH2 obj_uv                       // object  UV relative to old
+)
+{
+   Vec2 obj_abs_uv=UVInView(abs_uv+obj_uv, VIEW_FULL); // #MotionDir
+
+#if GATHER
+   Vec4  obj_depth_raw=TexDepthRawGather(obj_abs_uv);
+   VecH4 obj_motion_x =TexGatherR(ImgXY, obj_abs_uv);
+   VecH4 obj_motion_y =TexGatherG(ImgXY, obj_abs_uv);
+   TestSampleBase(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, LinearizeDepth(obj_depth_raw.x), VecH2(obj_motion_x.x, obj_motion_y.x));
+   TestSampleBase(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, LinearizeDepth(obj_depth_raw.y), VecH2(obj_motion_x.y, obj_motion_y.y));
+   TestSampleBase(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, LinearizeDepth(obj_depth_raw.z), VecH2(obj_motion_x.z, obj_motion_y.z));
+   TestSampleBase(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, LinearizeDepth(obj_depth_raw.w), VecH2(obj_motion_x.w, obj_motion_y.w));
+#else
+   obj_abs_uv-=ImgSize.xy/2;
+   UNROLL for(Int y=0; y<=1; y++)
+   UNROLL for(Int x=0; x<=1; x++)
+   {
+      VecI2 ofs=VecI2(x, y);
+      Flt   obj_depth    =TexDepthPointOfs(  obj_abs_uv, ofs);
+      VecH2 obj_uv_motion=TexPointOfs(ImgXY, obj_abs_uv, ofs);
+      TestSampleBase(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, obj_depth, obj_uv_motion);
+   }
+#endif
 }
 /******************************************************************************/
 void Temporal_PS
@@ -440,10 +486,22 @@ void Temporal_PS
       // TODO: slower but higher quality version would take more samples, for example on the line of 0..dilated_uv_motion.xy
       // because 'dilated_uv_motion' don't point to the moving pixel, they just mean that there is some movement in this neighborhood
       // taken samples in many cases will have valid hits, but there will be misses too, in between moving pixels
-      TestSample(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv, dilated_uv_motion.xy); // check primary   motion
-      TestSample(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv, dilated_uv_motion.zw); // check secondary motion, check this for both DUAL_MOTION on/off
-    //TestSample(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv,                    0); // FIXME this could have an optimized version that always ignores 'cover'. This is ignored because it's processed below with gather, that one ignores depths, however is it needed?
-      
+
+      // 2x2 works much better than 1x1
+      TestSample2x2(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv, dilated_uv_motion.xy); // check primary   motion
+      TestSample2x2(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv, dilated_uv_motion.zw); // check secondary motion, check this for both DUAL_MOTION on/off
+    //TestSample2x2(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv,                    0); // FIXME this could have an optimized version that always ignores 'cover'. This is ignored because it's processed below with gather, that one ignores depths, however is it needed?
+
+    /*if(SH)
+      UNROLL for(Int y=-1; y<=1; y++)
+      UNROLL for(Int x=-1; x<=1; x++)
+         TestSample1x1(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv, dilated_uv_motion.xy+VecI2(x,y)*ImgSize.xy);
+
+      if(AL)
+      UNROLL for(Int y=-1; y<=1; y++)
+      UNROLL for(Int x=-1; x<=1; x++)
+         TestSample1x1(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv, dilated_uv_motion.zw+VecI2(x,y)*ImgSize.xy);*/
+
     /*UNROLL for(Int y=-1; y<=1; y++)
       UNROLL for(Int x=-1; x<=1; x++)
       TestSample(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv, VecI2(x,y)*ImgSize.xy);*/
@@ -707,13 +765,23 @@ void Temporal_PS
 }
 #endif
 
+#if 0 // disable because didn't work well (too much ghosting)
+   // WIDEN MIN MAX
+   {
+      Half extend=new_flicker..; // in rare cases this should be even up to 1.0 (or sometimes more, visible on specular highlights on weapons in dark dungeons)
+      col_min.rgb=SRGBToLinearFast(Max(VecH(0,0,0), LinearToSRGBFast(col_min.rgb)-extend));
+      col_max.rgb=SRGBToLinearFast(                 LinearToSRGBFast(col_max.rgb)+extend );
+   }
+#endif
+
    // NEIGHBOR CLAMP
 #if YCOCG
    VecH ycocg_old=RGBToYCoCg4(old.rgb);
    VecH ycocg_cur=RGBToYCoCg4(cur.rgb);
    Half     blend=GetBlend(ycocg_old, ycocg_cur, ycocg_min.xyz, ycocg_max.xyz);
 #else
-   Half blend=GetBlend(old.rgb, cur.rgb, col_min.rgb, col_max.rgb);
+   Half blend=SHOW_FLICKER ? GetBlend(old.rg , cur.rg , col_min.rg , col_max.rg )
+                           : GetBlend(old.rgb, cur.rgb, col_min.rgb, col_max.rgb);
 #endif
    blend=Sat(blend);
 
@@ -722,11 +790,16 @@ void Temporal_PS
    if(DEPTH_FOREGROUND(depth_raw))
    {
       // calculate difference between 'old' and 'cur'
+   #if 1
       Half difference=SHOW_FLICKER ? Dist(LinearToSRGBFast(old.rg ), LinearToSRGBFast(cur.rg )) // it's better to use 'Dist' rather than 'Dist2', because it will prevent smooth changes from particles (like fire effect) being reported as flickering (if fire is reported as flickering then it will look very blurry)
                                    : Dist(LinearToSRGBFast(old.rgb), LinearToSRGBFast(cur.rgb));
-           difference=Sat(difference/FLICKER_EPS);
+   #else
+      Half difference=SHOW_FLICKER ? Max(Abs(LinearToSRGBFast(old.rg )-LinearToSRGBFast(cur.rg ))) // it's better to use 'Dist' rather than 'Dist2', because it will prevent smooth changes from particles (like fire effect) being reported as flickering (if fire is reported as flickering then it will look very blurry)
+                                   : Max(Abs(LinearToSRGBFast(old.rgb)-LinearToSRGBFast(cur.rgb)));
+   #endif
+      difference=Sat(difference/FLICKER_EPS);
 
-      new_flicker=Lerp(difference, old_flicker, OLD_FLICKER_WEIGHT)*old_weight; // always 0..1, alternative is "Lerp(difference, old_flicker*old_weight, OLD_WEIGHT)" however it makes sense to discard 'difference' too if old is being ignored
+      new_flicker=Lerp(difference, old_flicker, OLD_FLICKER_WEIGHT)*old_weight; // always 0..1, here 'old_weight' should affect both old and new, because if old is being ignored, then difference between old and new color should be ignored too
 
     //Half     flicker=LerpRS(1-OLD_WEIGHT, 1, new_flicker); // cut-off small differences
       Half     flicker=new_flicker; // faster
