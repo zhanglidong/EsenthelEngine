@@ -506,9 +506,9 @@ void Temporal_PS
          Half same_motion=LerpRS(Sqr(2.0/16), Sqr(1.0/16), frac);
          old_weight*=same_motion;
          /* TODO: could try testing more constants
-         if(Q){screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*8); same_motion=LerpRS(Sqr(2.0/16), Sqr(1.0/16), frac);}else
-         if(W){screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*4); same_motion=LerpRS(Sqr(2.0/ 8), Sqr(1.0/ 8), frac);}else
-              {screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*2); same_motion=LerpRS(Sqr(2.0/ 4), Sqr(1.0/ 4), frac);}*/
+         if(CT){screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*8); same_motion=LerpRS(Sqr(2.0/16), Sqr(1.0/16), frac);}else
+         if(SH){screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*4); same_motion=LerpRS(Sqr(2.0/ 8), Sqr(1.0/ 8), frac);}else
+               {screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*2); same_motion=LerpRS(Sqr(2.0/ 4), Sqr(1.0/ 4), frac);}*/
       }
    }
    Half use_old=UVInsideView(old_uv) ? old_weight : 1;

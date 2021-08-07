@@ -93,12 +93,14 @@ Elm* GuiObjToElm(GuiObj *go)
 bool UpdateProject()
 {
 #if 0
-   SPSet("Q", Kb.ctrl());
-   SPSet("W", Kb.shift());
-   SPSet("E", Kb.alt());
-   SPSet("R", Kb.win());
-   SPSet("X", Ms.pos().x);
-   SPSet("Y", Ms.pos().y);
+   SPSet("CT", Kb.ctrl());
+   SPSet("SH", Kb.shift());
+   SPSet("AL", Kb.alt());
+   SPSet("WI", Kb.win());
+   SPSet("SP", Kb.b(KB_SPACE));
+   SPSet("TB", Kb.b(KB_TAB));
+   SPSet("MX", Ms.pos().x);
+   SPSet("MY", Ms.pos().y);
 #endif
    CurTime.getUTC();
    Gui.update();
