@@ -2427,5 +2427,5 @@ void TestDepth(inout Flt depth, Flt d, inout VecI2 ofs, VecI2 o)
    if(DEPTH_SMALLER(d, depth)){depth=d; ofs=o;}
 }
 /******************************************************************************
-Flt CT,SH,AL,WI,SP,TB,MX,MY;
+Flt CT, SH, AL, WI, SP, TB, MX, MY; // variables that can be used for testing, Ctrl, Shift, ..
 /******************************************************************************/
