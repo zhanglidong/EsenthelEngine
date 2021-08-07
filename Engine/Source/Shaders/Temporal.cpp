@@ -6,7 +6,7 @@
 MODE, VIEW_FULL, ALPHA, DUAL_HISTORY, GATHER, FILTER_MIN_MAX
 
 ImgSize=src
- RTSize=dest (is 2x bigger for SUPER)
+ RTSize=dest (is 2x bigger for SUPER_RES)
 
 Img=CurCol (ImgSize), Img1=OldCol (RTSize), ImgXY=CurVel (ImgSize), Img2=CurDilatedMotion (small res), Depth (ImgSize)
 
@@ -50,7 +50,7 @@ ALPHA=1
    }
 /******************************************************************************/
 #define ANTI_ALIAS (((MODE+1)&1)!=0)
-#define SUPER      (((MODE+1)&2)!=0)
+#define SUPER_RES  (((MODE+1)&2)!=0)
 
 #define SEPARATE_ALPHA ( TEMPORAL_SEPARATE_ALPHA && ALPHA)
 #define   MERGED_ALPHA (!TEMPORAL_SEPARATE_ALPHA && ALPHA)
@@ -225,7 +225,7 @@ void NearestDepthRaw3x3(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gathe
    {
       ofs=VecI2(-1, 1); depth=TexDepthRawPointOfs(uv, ofs         );                     // -1,  1,  left-top
               TestDepth(depth,TexDepthRawPointOfs(uv, VecI2(1, -1)), ofs, VecI2(1, -1)); //  1, -1, right-bottom
-      uv-=(SUPER ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
+      uv-=(SUPER_RES ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
       Vec4 d=TexDepthRawGather(uv); // get -1,-1 to 0,0 texels
       TestDepth(depth, d.x, ofs, VecI2(-1,  0));
       TestDepth(depth, d.y, ofs, VecI2( 0,  0)); depth_center=d.y;
@@ -256,7 +256,7 @@ void NearestDepthRaw4x4(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gathe
    VecI2 sub_offset=(TemporalOffsetStart<0); // if negative then we will start from -1, so have to subtract 1. 'sub_offset' is also coordinate of the center (0,0) pixel when using -1..2 range
    if(gather)
    {
-      uv+=TemporalOffsetStart-(SUPER ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
+      uv+=TemporalOffsetStart-(SUPER_RES ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
    #if 0 // original
       Vec4 ld=TexDepthRawGather(uv); // get -1,-1 to 0,0 texels
                 depth= ld.x; ofs= VecI2(-1,  0) ; // first
@@ -373,7 +373,7 @@ void TestSample // !! This operates on relative UV's !!
 void Temporal_PS
 (
    NOPERSP Vec2 uv:UV,
-#if SUPER
+#if SUPER_RES
    NOPERSP PIXEL,
 #endif
 #if MERGED_ALPHA
@@ -482,7 +482,7 @@ void Temporal_PS
             Vec2 gather_uv=old_uv;
             TestSampleMotion(screen_motion, TexPointOfs(ImgXY, gather_uv, VecI2(-1,  1)).xy, max_screen_dist2); // -1,  1,  left-top
             TestSampleMotion(screen_motion, TexPointOfs(ImgXY, gather_uv, VecI2( 1, -1)).xy, max_screen_dist2); //  1, -1, right-bottom
-            gather_uv-=(SUPER ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
+            gather_uv-=(SUPER_RES ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
             VecH4 r=TexGatherR(ImgXY, gather_uv); // get -1,-1 to 0,0 texels
             VecH4 g=TexGatherG(ImgXY, gather_uv); // get -1,-1 to 0,0 texels
             TestSampleMotion(screen_motion, VecH2(r.x, g.x), max_screen_dist2);
@@ -550,7 +550,7 @@ void Temporal_PS
 
    // CUR COLOR + CUR ALPHA
 #if CUBIC
-   if(SUPER     )Sampler.setSharp(cur_uv, ImgSize, old_weight); // when 'old_weight' is zero and old pixels are ignored, then use blurry weight to avoid flickering (due to sharpening and jitter)
+   if(SUPER_RES )Sampler.setSharp(cur_uv, ImgSize, old_weight); // when 'old_weight' is zero and old pixels are ignored, then use blurry weight to avoid flickering (due to sharpening and jitter)
    else          Sampler.set     (cur_uv, ImgSize            );
    if(!VIEW_FULL)Sampler.UVClamp (ImgClamp.xy, ImgClamp.zw);
    #if ALPHA
@@ -632,11 +632,11 @@ void Temporal_PS
    {
       Vec2 uv_clamp[2];
    #if VIEW_FULL
-      uv_clamp[0]=uv-(SUPER ? RTSize.xy : ImgSize.xy/2);
-      uv_clamp[1]=uv+(SUPER ? RTSize.xy : ImgSize.xy/2);
+      uv_clamp[0]=uv-(SUPER_RES ? RTSize.xy : ImgSize.xy/2);
+      uv_clamp[1]=uv+(SUPER_RES ? RTSize.xy : ImgSize.xy/2);
    #else
-      uv_clamp[0]=Vec2(Max(uv.x-(SUPER ? RTSize.x : ImgSize.x/2), ImgClamp.x), Max(uv.y-(SUPER ? RTSize.y : ImgSize.y/2), ImgClamp.y));
-      uv_clamp[1]=Vec2(Min(uv.x+(SUPER ? RTSize.x : ImgSize.x/2), ImgClamp.z), Min(uv.y+(SUPER ? RTSize.y : ImgSize.y/2), ImgClamp.w));
+      uv_clamp[0]=Vec2(Max(uv.x-(SUPER_RES ? RTSize.x : ImgSize.x/2), ImgClamp.x), Max(uv.y-(SUPER_RES ? RTSize.y : ImgSize.y/2), ImgClamp.y));
+      uv_clamp[1]=Vec2(Min(uv.x+(SUPER_RES ? RTSize.x : ImgSize.x/2), ImgClamp.z), Min(uv.y+(SUPER_RES ? RTSize.y : ImgSize.y/2), ImgClamp.w));
    #endif
       UNROLL for(Int y=0; y<=1; y++)
       UNROLL for(Int x=0; x<=1; x++)
@@ -741,7 +741,7 @@ void Temporal_PS
    old_weight*=1-blend;
 
 #if !DUAL_HISTORY
-#if SUPER
+#if SUPER_RES
    VecI2 pix=pixel.xy; pix&=1;
    if(all(pix==TemporalCurPixel)) // this pixel has latest data
    {

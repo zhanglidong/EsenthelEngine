@@ -744,7 +744,7 @@ VecH4 Blur_PS
             {  // to workaround this problem, DepthMotion are taken from the pixel that's closest to camera
                Vec2 aligned_uv0=(Floor(uv0*ImgSize.zw)+0.5)*ImgSize.xy; // have to align to exact center of the texel
                Vec2 aligned_uv1=(Floor(uv1*ImgSize.zw)+0.5)*ImgSize.xy; // have to align to exact center of the texel
-               // TODO: this should use 'aligned_uv0' 'aligned_uv1', however that would break SUPER which has 2x2 color pixels inside 1x1 DepthMotion
+               // TODO: this should use 'aligned_uv0' 'aligned_uv1', however that would break SUPER_RES which has 2x2 color pixels inside 1x1 DepthMotion
                p0.set(uv0, false); // here can't use filtering because we need precise per-pixel data to avoid leaking
                p1.set(uv1, false); // here can't use filtering because we need precise per-pixel data to avoid leaking
             #if GATHER
