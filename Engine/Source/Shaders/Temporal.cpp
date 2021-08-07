@@ -331,12 +331,7 @@ void NearestDepthRaw4x4(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gathe
    ofs-=sub_offset;
 }
 /******************************************************************************/
-void TestSampleMotion(VecH2 cur_screen_motion, VecH2 obj_uv_motion, inout Half max_screen_dist2)
-{
-   Half screen_dist2=Dist2(UVToScreen(obj_uv_motion), cur_screen_motion);
-   if(  screen_dist2>max_screen_dist2)max_screen_dist2=screen_dist2;
-}
-void TestSampleBase // !! This operates on relative UV's !!
+void TestSample // !! This operates on relative UV's !!
 (
    inout Half  old_weight                 ,
          VecH2 cur_screen_motion          , // current screen motion, this is also equal to current screen position relative to old
@@ -344,29 +339,37 @@ void TestSampleBase // !! This operates on relative UV's !!
          Flt   cur_depth                  , // current depth
          VecH2 obj_uv                     , // object  UV relative to old
          Flt   obj_depth                  ,
-         VecH2 obj_uv_motion    
+         VecH2 obj_uv_motion              ,
+         bool  test_cover=true
 )
 {
-   VecH2 cur_screen_pos    =cur_screen_motion;
-   VecH2 obj_screen_pos    =UVToScreen   (obj_uv);
-   VecH2 obj_screen_motion =UVToScreen   (obj_uv_motion);
-   VecH2 obj_screen_pos_old=obj_screen_pos-obj_screen_motion; // UVToScreen(obj_uv-obj_uv_motion)
-   Half  obj_in_front      =Sat((cur_depth-obj_depth)/DEPTH_TOLERANCE); // if object is in front of current FIXME +- 0.5?
+   test_cover=false; // FIXME, 'cover' either doesn't work well or just have to process more samples
+
+ //VecH2 cur_screen_pos   =cur_screen_motion;
+   VecH2 obj_screen_motion=UVToScreen   (obj_uv_motion);
+   Half  obj_in_front     =Sat((cur_depth-obj_depth)/DEPTH_TOLERANCE+0.5+CT*0.5); // if object is in front of current, +0.5 helps with ghosting
 
    //
-   Half radius2=Max(Sqr(ImgSize.y*0.5), Length2(obj_screen_motion)*Sqr(0.5)); // FIXME
-   Half obj_dist2_old=Dist2PointEdge(0, obj_screen_pos_old, obj_screen_pos); // distance of obj movement edge (obj old to obj cur) to old FIXME pos is 0 so can write optimized function
-   Half frac=obj_dist2_old/radius2;
-   Half cover=LerpRS(Sqr(1), Sqr(0.5), frac); // cover=1 at distance=0 .. radius/2, cover=smoothly from 1 to 0 at distance=radius/2 .. radius
+   Half cover;
+   if(test_cover)
+   {
+      VecH2 obj_screen_pos    =UVToScreen   (obj_uv);
+      VecH2 obj_screen_pos_old=obj_screen_pos-obj_screen_motion; // UVToScreen(obj_uv-obj_uv_motion)
+      Half  radius2=Max(Sqr(ImgSize.y*0.5), Length2(obj_screen_motion)*Sqr(0.5)); // FIXME
+      Half  obj_dist2_old=Dist2PointEdge(0, obj_screen_pos_old, obj_screen_pos); // distance of obj movement edge (obj old to obj cur) to old FIXME pos is 0 so can write optimized function
+      Half  frac=obj_dist2_old/radius2;
+         cover=LerpRS(Sqr(1), Sqr(0.5), frac); // cover=1 at distance=0 .. radius/2, cover=smoothly from 1 to 0 at distance=radius/2 .. radius
+   }else cover=1;
 
    //
-   frac=Dist2(obj_screen_motion, cur_screen_motion)/cur_screen_motion_len2_bias;
+   Half frac=Dist2(obj_screen_motion, cur_screen_motion)/cur_screen_motion_len2_bias;
    Half different_motion=LerpRS(Sqr(1.0/16), Sqr(2.0/16), frac);
 
    //
-   Half weight=1-obj_in_front*different_motion; // "*cover" FIXME, 'cover' either doesn't work well or just have to process more samples
+   Half weight=1-obj_in_front*different_motion*cover;
    old_weight=Min(old_weight, weight);
 }
+/******************************************************************************/
 void TestSample1x1 // !! This operates on relative UV's !!
 (
    inout Half  old_weight                 ,
@@ -374,15 +377,17 @@ void TestSample1x1 // !! This operates on relative UV's !!
          Half  cur_screen_motion_len2_bias,
          Flt   cur_depth                  , // current depth
          Vec2  abs_uv                     , // old     absolute UV
-         VecH2 obj_uv                       // object  UV relative to old
+         VecH2 obj_uv                     , // object  UV relative to old
+         bool  test_cover=true
 )
 {
    Vec2  obj_abs_uv   =UVInView     (abs_uv+obj_uv, VIEW_FULL); // #MotionDir
    Flt   obj_depth    =TexDepthPoint(       obj_abs_uv);
    VecH2 obj_uv_motion=TexPoint     (ImgXY, obj_abs_uv);
 
-   TestSampleBase(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, obj_depth, obj_uv_motion);
+   TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, obj_depth, obj_uv_motion, test_cover);
 }
+/******************************************************************************/
 void TestSample2x2 // !! This operates on relative UV's !!
 (
    inout Half  old_weight                 ,
@@ -390,7 +395,8 @@ void TestSample2x2 // !! This operates on relative UV's !!
          Half  cur_screen_motion_len2_bias,
          Flt   cur_depth                  , // current depth
          Vec2  abs_uv                     , // old     absolute UV
-         VecH2 obj_uv                       // object  UV relative to old
+         VecH2 obj_uv                     , // object  UV relative to old
+         bool  test_cover=true
 )
 {
    Vec2 obj_abs_uv=UVInView(abs_uv+obj_uv, VIEW_FULL); // #MotionDir
@@ -399,10 +405,10 @@ void TestSample2x2 // !! This operates on relative UV's !!
    Vec4  obj_depth_raw=TexDepthRawGather(obj_abs_uv);
    VecH4 obj_motion_x =TexGatherR(ImgXY, obj_abs_uv);
    VecH4 obj_motion_y =TexGatherG(ImgXY, obj_abs_uv);
-   TestSampleBase(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, LinearizeDepth(obj_depth_raw.x), VecH2(obj_motion_x.x, obj_motion_y.x));
-   TestSampleBase(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, LinearizeDepth(obj_depth_raw.y), VecH2(obj_motion_x.y, obj_motion_y.y));
-   TestSampleBase(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, LinearizeDepth(obj_depth_raw.z), VecH2(obj_motion_x.z, obj_motion_y.z));
-   TestSampleBase(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, LinearizeDepth(obj_depth_raw.w), VecH2(obj_motion_x.w, obj_motion_y.w));
+   TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, LinearizeDepth(obj_depth_raw.x), VecH2(obj_motion_x.x, obj_motion_y.x), test_cover);
+   TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, LinearizeDepth(obj_depth_raw.y), VecH2(obj_motion_x.y, obj_motion_y.y), test_cover);
+   TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, LinearizeDepth(obj_depth_raw.z), VecH2(obj_motion_x.z, obj_motion_y.z), test_cover);
+   TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, LinearizeDepth(obj_depth_raw.w), VecH2(obj_motion_x.w, obj_motion_y.w), test_cover);
 #else
    obj_abs_uv-=ImgSize.xy/2;
    UNROLL for(Int y=0; y<=1; y++)
@@ -411,7 +417,55 @@ void TestSample2x2 // !! This operates on relative UV's !!
       VecI2 ofs=VecI2(x, y);
       Flt   obj_depth    =TexDepthPointOfs(  obj_abs_uv, ofs);
       VecH2 obj_uv_motion=TexPointOfs(ImgXY, obj_abs_uv, ofs);
-      TestSampleBase(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, obj_depth, obj_uv_motion);
+      TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, obj_depth, obj_uv_motion, test_cover);
+   }
+#endif
+}
+/******************************************************************************/
+void TestSample3x3 // !! This operates on relative UV's !!
+(
+   inout Half  old_weight                 ,
+         VecH2 cur_screen_motion          , // current screen motion, this is also equal to current screen position relative to old
+         Half  cur_screen_motion_len2_bias,
+         Flt   cur_depth                  , // current depth
+         Vec2  abs_uv                     , // old     absolute UV
+         VecH2 obj_uv                     , // object  UV relative to old
+         bool  test_cover=true
+)
+{
+   Vec2 obj_abs_uv=UVInView(abs_uv+obj_uv, VIEW_FULL); // #MotionDir
+
+#if GATHER
+   TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+VecI2(-1,  1)*ImgSize.xy, TexDepthPointOfs(obj_abs_uv, VecI2(-1,  1)), TexPointOfs(ImgXY, obj_abs_uv, VecI2(-1,  1)), test_cover); // -1,  1,  left-top
+   TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+VecI2( 1, -1)*ImgSize.xy, TexDepthPointOfs(obj_abs_uv, VecI2( 1, -1)), TexPointOfs(ImgXY, obj_abs_uv, VecI2( 1, -1)), test_cover); //  1, -1, right-bottom
+
+   obj_abs_uv-=(SUPER_RES ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
+
+   // get -1,-1 to 0,0 texels
+   Vec4  obj_depth_raw=TexDepthRawGather(obj_abs_uv);
+   VecH4 obj_motion_x =TexGatherR(ImgXY, obj_abs_uv);
+   VecH4 obj_motion_y =TexGatherG(ImgXY, obj_abs_uv);
+   TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+VecI2(-1,  0)*ImgSize.xy, LinearizeDepth(obj_depth_raw.x), VecH2(obj_motion_x.x, obj_motion_y.x), test_cover);
+   TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+VecI2( 0,  0)*ImgSize.xy, LinearizeDepth(obj_depth_raw.y), VecH2(obj_motion_x.y, obj_motion_y.y), test_cover);
+   TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+VecI2( 0, -1)*ImgSize.xy, LinearizeDepth(obj_depth_raw.z), VecH2(obj_motion_x.z, obj_motion_y.z), test_cover);
+   TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+VecI2(-1, -1)*ImgSize.xy, LinearizeDepth(obj_depth_raw.w), VecH2(obj_motion_x.w, obj_motion_y.w), test_cover);
+
+   // get 0,0 to 1,1 texels
+   obj_depth_raw=TexDepthRawGatherOfs(obj_abs_uv, VecI2(1, 1));
+   obj_motion_x =TexGatherROfs(ImgXY, obj_abs_uv, VecI2(1, 1));
+   obj_motion_y =TexGatherGOfs(ImgXY, obj_abs_uv, VecI2(1, 1));
+   TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+VecI2( 0,  1)*ImgSize.xy, LinearizeDepth(obj_depth_raw.x), VecH2(obj_motion_x.x, obj_motion_y.x), test_cover);
+   TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+VecI2( 1,  1)*ImgSize.xy, LinearizeDepth(obj_depth_raw.y), VecH2(obj_motion_x.y, obj_motion_y.y), test_cover);
+   TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+VecI2( 1,  0)*ImgSize.xy, LinearizeDepth(obj_depth_raw.z), VecH2(obj_motion_x.z, obj_motion_y.z), test_cover);
+ //TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+VecI2( 0,  0)*ImgSize.xy, LinearizeDepth(obj_depth_raw.w), VecH2(obj_motion_x.w, obj_motion_y.w), test_cover); // already processed
+#else
+   UNROLL for(Int y=-1; y<=1; y++)
+   UNROLL for(Int x=-1; x<=1; x++)
+   {
+      VecI2 ofs=VecI2(x, y);
+      Flt   obj_depth    =TexDepthPointOfs(  obj_abs_uv, ofs);
+      VecH2 obj_uv_motion=TexPointOfs(ImgXY, obj_abs_uv, ofs);
+      TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+ofs*ImgSize.xy, obj_depth, obj_uv_motion, test_cover);
    }
 #endif
 }
@@ -456,7 +510,7 @@ void Temporal_PS
 
    // GET MOTION
    Vec2  depth_motion_uv=NEAREST_DEPTH_VEL ? UVInView(uv+ofs*ImgSize.xy, VIEW_FULL) : uv; // 'depth_motion_uv'=UV that's used for DepthMotion
-   VecH2 uv_motion=TexPoint(ImgXY, depth_motion_uv).xy;
+   VecH2 uv_motion=TexPoint(ImgXY, depth_motion_uv);
    Vec2  cur_uv=uv+TemporalOffset,
          old_uv=uv-uv_motion; // #MotionDir
    Half  old_weight=UVInsideView(old_uv); // use old only if it's inside viewport
@@ -481,6 +535,10 @@ void Temporal_PS
    if(min_pixel_motion<0 || screen_motion_len2>Sqr(ImgSize.y*min_pixel_motion) || any(dilated_uv_motion.xy)) // #DilatedMotionZero
    {
 #endif
+      /* TODO: could try testing more constants
+      if(CT){screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*8); same_motion=LerpRS(Sqr(2.0/16), Sqr(1.0/16), frac);}else
+      if(SH){screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*4); same_motion=LerpRS(Sqr(2.0/ 8), Sqr(1.0/ 8), frac);}else
+            {screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*2); same_motion=LerpRS(Sqr(2.0/ 4), Sqr(1.0/ 4), frac);}*/
       Half screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*8); // this pixel movement, add some bias which helps for slowly moving pixels on static background (example FPS view+walking+tree leafs on static sky), "+bias" works better than "Max(, bias)"
 
       // TODO: slower but higher quality version would take more samples, for example on the line of 0..dilated_uv_motion.xy
@@ -490,84 +548,9 @@ void Temporal_PS
       // 2x2 works much better than 1x1
       TestSample2x2(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv, dilated_uv_motion.xy); // check primary   motion
       TestSample2x2(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv, dilated_uv_motion.zw); // check secondary motion, check this for both DUAL_MOTION on/off
-    //TestSample2x2(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv,                    0); // FIXME this could have an optimized version that always ignores 'cover'. This is ignored because it's processed below with gather, that one ignores depths, however is it needed?
-
-    /*if(SH)
-      UNROLL for(Int y=-1; y<=1; y++)
-      UNROLL for(Int x=-1; x<=1; x++)
-         TestSample1x1(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv, dilated_uv_motion.xy+VecI2(x,y)*ImgSize.xy);
-
-      if(AL)
-      UNROLL for(Int y=-1; y<=1; y++)
-      UNROLL for(Int x=-1; x<=1; x++)
-         TestSample1x1(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv, dilated_uv_motion.zw+VecI2(x,y)*ImgSize.xy);*/
-
-    /*UNROLL for(Int y=-1; y<=1; y++)
-      UNROLL for(Int x=-1; x<=1; x++)
-      TestSample(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv, VecI2(x,y)*ImgSize.xy);*/
-
-      /*{
-      #if GATHER
-         Vec4  d           =TexDepthRawGather(obj_uv);
-         VecH4 obj_motion_x=TexGatherR(ImgXY, obj_uv);
-         VecH4 obj_motion_y=TexGatherG(ImgXY, obj_uv);
-         LinearizeDepth(d.x), VecH2(obj_motion_x.x, obj_motion_y.x)
-         LinearizeDepth(d.y), VecH2(obj_motion_x.y, obj_motion_y.y)
-         LinearizeDepth(d.z), VecH2(obj_motion_x.z, obj_motion_y.z)
-         LinearizeDepth(d.w), VecH2(obj_motion_x.w, obj_motion_y.w)
-      #else
-         obj_uv-=ImgSize.xy/2;
-         UNROLL for(Int y=0; y<=1; y++)
-         UNROLL for(Int x=0; x<=1; x++)
-            {TexDepthPointOfs(obj_uv, VecI2(x,y)), TexPointOfs(ImgXY, obj_uv, VecI2(x,y)));}
-      #endif
-      }*/
-
-      {
-         Half max_screen_dist2=0; // max movement difference between this and samples in old position
-      #if GATHER
-         // 3x3 samples are needed, 2x2 and 1x1 had ghosting and artifacts
-         if(0) // 2x2
-         {
-            VecH4 r=TexGatherR(ImgXY, old_uv);
-            VecH4 g=TexGatherG(ImgXY, old_uv);
-            TestSampleMotion(screen_motion, VecH2(r.x, g.x), max_screen_dist2);
-            TestSampleMotion(screen_motion, VecH2(r.y, g.y), max_screen_dist2);
-            TestSampleMotion(screen_motion, VecH2(r.z, g.z), max_screen_dist2);
-            TestSampleMotion(screen_motion, VecH2(r.w, g.w), max_screen_dist2);
-         }else // 3x3
-         {
-            Vec2 gather_uv=old_uv;
-            TestSampleMotion(screen_motion, TexPointOfs(ImgXY, gather_uv, VecI2(-1,  1)).xy, max_screen_dist2); // -1,  1,  left-top
-            TestSampleMotion(screen_motion, TexPointOfs(ImgXY, gather_uv, VecI2( 1, -1)).xy, max_screen_dist2); //  1, -1, right-bottom
-            gather_uv-=(SUPER_RES ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
-            VecH4 r=TexGatherR(ImgXY, gather_uv); // get -1,-1 to 0,0 texels
-            VecH4 g=TexGatherG(ImgXY, gather_uv); // get -1,-1 to 0,0 texels
-            TestSampleMotion(screen_motion, VecH2(r.x, g.x), max_screen_dist2);
-            TestSampleMotion(screen_motion, VecH2(r.y, g.y), max_screen_dist2);
-            TestSampleMotion(screen_motion, VecH2(r.z, g.z), max_screen_dist2);
-            TestSampleMotion(screen_motion, VecH2(r.w, g.w), max_screen_dist2);
-            r=TexGatherROfs(ImgXY, gather_uv, VecI2(1, 1)); // get 0,0 to 1,1 texels
-            g=TexGatherGOfs(ImgXY, gather_uv, VecI2(1, 1)); // get 0,0 to 1,1 texels
-            TestSampleMotion(screen_motion, VecH2(r.x, g.x), max_screen_dist2);
-            TestSampleMotion(screen_motion, VecH2(r.y, g.y), max_screen_dist2);
-            TestSampleMotion(screen_motion, VecH2(r.z, g.z), max_screen_dist2);
-          //TestSampleMotion(screen_motion, VecH2(r.w, g.w), max_screen_dist2); already processed
-         }
-      #else
-         UNROLL for(Int y=-1; y<=1; y++)
-         UNROLL for(Int x=-1; x<=1; x++)
-            TestSampleMotion(screen_motion, TexPointOfs(ImgXY, old_uv, VecI2(x, y)).xy, max_screen_dist2);
-      #endif
-
-         Half frac=max_screen_dist2/screen_motion_len2_bias;
-         Half same_motion=LerpRS(Sqr(2.0/16), Sqr(1.0/16), frac);
-         old_weight*=same_motion;
-         /* TODO: could try testing more constants
-         if(CT){screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*8); same_motion=LerpRS(Sqr(2.0/16), Sqr(1.0/16), frac);}else
-         if(SH){screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*4); same_motion=LerpRS(Sqr(2.0/ 8), Sqr(1.0/ 8), frac);}else
-               {screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*2); same_motion=LerpRS(Sqr(2.0/ 4), Sqr(1.0/ 4), frac);}*/
-      }
+      
+      // here use 3x3 samples
+      TestSample3x3(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv,                    0, false); // for performance reasons ignore 'cover' here, because this is at 'old' location, so assume it covers already. Don't try to ignore depth here, that will increase flickering
    }
    Half use_old=UVInsideView(old_uv) ? old_weight : 1;
 
