@@ -816,15 +816,19 @@ void Temporal_PS
 #endif
 
    Half cur_weight=1-old_weight; // old_weight+cur_weight=1
+#if YCOCG && 0 // not needed, blend with RGB works similar or the same
+   VecH4 new_col  =VecH4(YCoCg4ToRGB(ycocg_old*old_weight + ycocg_cur*cur_weight), old.a*old_weight + cur.a*cur_weight);
+#else
+   VecH4 new_col  =old      *old_weight + cur      *cur_weight;
+#endif
+#if ALPHA
+   Half  new_alpha=old_alpha*old_weight + cur_alpha*cur_weight;
+#endif
 
-   #if YCOCG && 0 // not needed, blend with RGB works similar or the same
-              outCol=VecH4(YCoCg4ToRGB(ycocg_old*old_weight + ycocg_cur*cur_weight), old.a*old_weight + cur.a*cur_weight);
-   #else
-              outCol=old      *old_weight + cur      *cur_weight;
-   #endif
-   #if ALPHA
-      Half new_alpha=old_alpha*old_weight + cur_alpha*cur_weight;
-   #endif
+   if(SHOW_IGNORE_OLD)new_col.r=Lerp(1, new_col.r, use_old);
+   if(SHOW_FLICKER   )new_col.b=SRGBToLinearFast(new_flicker*10*FLICKER_EPS); // visualize flicker
+
+      outCol=new_col;
    #if MERGED_ALPHA
       outData.x=new_alpha; // !! STORE ALPHA IN X CHANNEL SO IT CAN BE USED FOR '_alpha' RT !!
       outData.y=new_flicker;
@@ -834,8 +838,6 @@ void Temporal_PS
       outAlpha=new_alpha;
    #endif
    #endif
-   if(SHOW_IGNORE_OLD)outCol.r=Lerp(1, outCol.r, use_old);
-   if(SHOW_FLICKER   )outCol.b=SRGBToLinearFast(new_flicker*10*FLICKER_EPS); // visualize flicker
 }
 /******************************************************************************
 #if DUAL_HISTORY
