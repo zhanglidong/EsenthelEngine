@@ -346,14 +346,14 @@ void TestSample // !! This operates on relative UV's !!
    test_cover=false; // FIXME, 'cover' either doesn't work well or just have to process more samples
 
  //VecH2 cur_screen_pos   =cur_screen_motion;
-   VecH2 obj_screen_motion=UVToScreen   (obj_uv_motion);
-   Half  obj_in_front     =Sat((cur_depth-obj_depth)/DEPTH_TOLERANCE+0.5+CT*0.5); // if object is in front of current, +0.5 helps with ghosting
+   VecH2 obj_screen_motion=UVToScreen(obj_uv_motion);
+   Half  obj_in_front     =Sat((cur_depth-obj_depth)/DEPTH_TOLERANCE+0.5); // if object is in front of current, +0.5 helps with ghosting, this means that same depths cover each other half-half (not fully and not zero)
 
    //
    Half cover;
    if(test_cover)
    {
-      VecH2 obj_screen_pos    =UVToScreen   (obj_uv);
+      VecH2 obj_screen_pos    =UVToScreen(obj_uv);
       VecH2 obj_screen_pos_old=obj_screen_pos-obj_screen_motion; // UVToScreen(obj_uv-obj_uv_motion)
       Half  radius2=Max(Sqr(ImgSize.y*0.5), Length2(obj_screen_motion)*Sqr(0.5)); // FIXME
       Half  obj_dist2_old=Dist2PointEdge(0, obj_screen_pos_old, obj_screen_pos); // distance of obj movement edge (obj old to obj cur) to old FIXME pos is 0 so can write optimized function
