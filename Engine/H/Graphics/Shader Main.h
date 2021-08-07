@@ -346,11 +346,11 @@ struct MainShaderClass
       *BloomParams;
    Shader
       *PrecomputedBloomDS[2][2], // [ViewFull] [HalfRes]
-      *BloomDS[2][2][2][2], // [Glow] [ViewFull] [HalfRes] [AdaptEye]
-      *Bloom  [3][2][2]   ; // [Alpha] [Dither] [AdaptEye]
+      *BloomDS[2][2][2][2], // [Glow] [ViewFull] [HalfRes] [Exposure]
+      *Bloom  [3][2][2]   ; // [Alpha] [Dither] [Exposure]
    Shader* getPrecomputedBloomDS(Bool view_full, Bool half_res);
-   Shader* getBloomDS(Bool glow, Bool view_full, Bool half_res, Bool adapt_eye);
-   Shader* getBloom  (Int alpha, Bool dither                  , Bool adapt_eye);
+   Shader* getBloomDS(Bool glow, Bool view_full, Bool half_res, Bool exposure);
+   Shader* getBloom  (Int alpha, Bool dither                  , Bool exposure);
 
    // SUN
    Shader *SunRays[2][2][2][2]; // [Alpha] [Dither] [Jitter] [Gamma]

@@ -1,5 +1,5 @@
 /******************************************************************************/
-// GLOW, VIEW_FULL, HALF_RES, DITHER, PRECOMPUTED, ADAPT_EYE
+// GLOW, VIEW_FULL, HALF_RES, DITHER, PRECOMPUTED, EXPOSURE
 #include "!Header.h"
 #include "Bloom.h"
 
@@ -26,13 +26,13 @@
 #define BLOOM_GLOW_GAMMA_PER_PIXEL 0 // #BloomGlowGammaPerPixel can be disabled because it will be faster and visual difference is minimal
 /******************************************************************************/
 void BloomDS_VS(VtxInput vtx,
-#if ADAPT_EYE
+#if EXPOSURE
    NOINTERP out Half bloom_scale:BLOOM_SCALE,
 #endif
    NOPERSP out Vec2 uv  :UV,
    NOPERSP out Vec4 vpos:POSITION)
 {
-#if ADAPT_EYE
+#if EXPOSURE
    bloom_scale=BloomScale()*ImgX1[VecI2(0, 0)];
 #endif
    uv  =vtx.uv  (); if(GLOW)uv-=ImgSize.xy*Vec2(HALF_RES ? 0.5 : 1.5, HALF_RES ? 0.5 : 1.5);
@@ -41,13 +41,13 @@ void BloomDS_VS(VtxInput vtx,
 
 VecH BloomDS_PS
 (
-#if ADAPT_EYE
+#if EXPOSURE
    NOINTERP Half bloom_scale:BLOOM_SCALE,
 #endif
    NOPERSP Vec2 uv:UV
 ):TARGET // "Max(0, " of the result is not needed because we're rendering to 1 byte per channel RT
 {
-#if !ADAPT_EYE
+#if !EXPOSURE
    Half bloom_scale=BloomScale();
 #endif
    if(GLOW) // this always has PRECOMPUTED=0
@@ -90,13 +90,13 @@ VecH BloomDS_PS
 }
 /******************************************************************************/
 void Bloom_VS(VtxInput vtx,
-#if ADAPT_EYE
+#if EXPOSURE
    NOINTERP out Half bloom_orig:BLOOM_ORIG,
 #endif
    NOPERSP out Vec2 uv  :UV,
    NOPERSP out Vec4 vpos:POSITION)
 {
-#if ADAPT_EYE
+#if EXPOSURE
    bloom_orig=BloomOriginal()*ImgX1[VecI2(0, 0)];
 #endif
    uv  =vtx.uv();
@@ -105,7 +105,7 @@ void Bloom_VS(VtxInput vtx,
 
 VecH4 Bloom_PS
 (
-#if ADAPT_EYE
+#if EXPOSURE
    NOINTERP Half bloom_orig:BLOOM_ORIG,
 #endif
    NOPERSP Vec2 uv:UV
@@ -127,7 +127,7 @@ VecH4 Bloom_PS
    col.a=1; // force full alpha so back buffer effects can work ok
 #endif
 
-#if !ADAPT_EYE
+#if !EXPOSURE
    Half bloom_orig=BloomOriginal();
 #endif
    col.rgb=col.rgb*bloom_orig + TexLod(Img1, uv).rgb; // bloom, can't use 'TexPoint' because 'Img1' can be smaller

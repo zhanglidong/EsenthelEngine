@@ -213,16 +213,16 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       REPD(view_full, 2)
       REPD(half_res , 2)
          src.New("PrecomputedBloomDS", "BloomDS_VS", "BloomDS_PS")("VIEW_FULL", view_full, "HALF_RES", half_res).extra("PRECOMPUTED", 1);
-      REPD(adapt_eye, 2)
+      REPD(exposure, 2)
       {
          REPD(glow     , 2)
          REPD(view_full, 2)
          REPD(half_res , 2)
-            src.New("BloomDS", "BloomDS_VS", "BloomDS_PS")("GLOW", glow, "VIEW_FULL", view_full, "HALF_RES", half_res, "ADAPT_EYE", adapt_eye);
+            src.New("BloomDS", "BloomDS_VS", "BloomDS_PS")("GLOW", glow, "VIEW_FULL", view_full, "HALF_RES", half_res, "EXPOSURE", exposure);
 
          REPD(alpha , 3)
          REPD(dither, 2)
-            src.New("Bloom", "Bloom_VS", "Bloom_PS")("ALPHA", alpha, "DITHER", dither, "ADAPT_EYE", adapt_eye);
+            src.New("Bloom", "Bloom_VS", "Bloom_PS")("ALPHA", alpha, "DITHER", dither, "EXPOSURE", exposure);
       }
    }
    { // BLUR

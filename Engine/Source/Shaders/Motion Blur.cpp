@@ -43,7 +43,7 @@
 #define TEMPORAL 0
 #endif
 
-#define ADAPT_EYE (GLOW==2)
+#define EXPOSURE (GLOW==2)
 
 #define TEX_CACHE 0 // 1=was much slower in tests, so don't use
 
@@ -583,13 +583,13 @@ struct Pixel
 };
 /******************************************************************************/
 void Blur_VS(VtxInput vtx,
-#if ADAPT_EYE
+#if EXPOSURE
    NOINTERP out Half bloom_scale:BLOOM_SCALE,
 #endif
    NOPERSP out Vec2 uv  :UV,
    NOPERSP out Vec4 vpos:POSITION)
 {
-#if ADAPT_EYE
+#if EXPOSURE
    bloom_scale=BloomScale()*ImgX1[VecI2(0, 0)];
 #endif
    uv  =vtx.uv  ();
@@ -598,7 +598,7 @@ void Blur_VS(VtxInput vtx,
 
 VecH4 Blur_PS
 (
-#if ADAPT_EYE
+#if EXPOSURE
    NOINTERP Half bloom_scale:BLOOM_SCALE,
 #endif
    NOPERSP Vec2 uv0:UV,
@@ -868,7 +868,7 @@ VecH4 Blur_PS
 #endif
 
 #if GLOW
-#if !ADAPT_EYE
+#if !EXPOSURE
    Half bloom_scale=BloomScale();
 #endif
    bloom=BloomColor(base.rgb, bloom_scale)+base.glow;

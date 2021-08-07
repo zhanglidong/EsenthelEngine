@@ -483,7 +483,7 @@ Bool RendererClass::dilateMotion(ImageRTPtr &dilated_motion)
 }
 /******************************************************************************/
 // !! Assumes that 'ImgClamp' was already set !!
-void RendererClass::motionBlur(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_glow, ImageRTPtr &dilated_motion, Bool alpha, Bool combine, ImageRT *adapt_eye)
+void RendererClass::motionBlur(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_glow, ImageRTPtr &dilated_motion, Bool alpha, Bool combine, ImageRT *exposure)
 {
    #if DEBUG && 0 // test UV CLAMP
    {
@@ -499,17 +499,17 @@ void RendererClass::motionBlur(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_gl
    }
    Sh.Img [1]->set(dilated_motion);
    Sh.ImgX[0]->set(_alpha);
-   Sh.ImgX[1]->set(adapt_eye);
+   Sh.ImgX[1]->set(exposure);
    Sh.imgSize(*_ds);
    set(&dest, bloom_glow, null, null, null, true); D.alpha((combine && &dest==_final) ? ALPHA_MERGE : ALPHA_NONE);
-   Mtn.getBlur(Round(dest.h()*(7.0f/1080)), _has_glow ? adapt_eye ? 2 : 1 : 0, (D.dither() && !dest.highPrecision()) ? src.highPrecision() ? 1/*always: should be 2 but disabled because rarely used*/ : 1/*only in blur*/ : 0, alpha)->draw(src); // here blurring may generate high precision values, use 7 samples on a 1080 resolution #MotionBlurSamples
+   Mtn.getBlur(Round(dest.h()*(7.0f/1080)), _has_glow ? exposure ? 2 : 1 : 0, (D.dither() && !dest.highPrecision()) ? src.highPrecision() ? 1/*always: should be 2 but disabled because rarely used*/ : 1/*only in blur*/ : 0, alpha)->draw(src); // here blurring may generate high precision values, use 7 samples on a 1080 resolution #MotionBlurSamples
 }
 /******************************************************************************/
-INLINE Shader* GetPrecomputedBloomDS(Bool view_full, Bool half_res                ) {Shader* &s=Sh.PrecomputedBloomDS[view_full][half_res]      ; if(SLOW_SHADER_LOAD && !s)s=Sh.getPrecomputedBloomDS(view_full, half_res      ); return s;}
-INLINE Shader* GetBloomDS(Bool glow, Bool view_full, Bool half_res, Bool adapt_eye) {Shader* &s=Sh.BloomDS[glow][view_full][half_res][adapt_eye]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow, view_full, half_res, adapt_eye); return s;}
-INLINE Shader* GetBloom  (Int alpha, Bool dither                  , Bool adapt_eye) {Shader* &s=Sh.Bloom  [alpha][dither]            [adapt_eye]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloom  (alpha, dither            , adapt_eye); return s;}
+INLINE Shader* GetPrecomputedBloomDS(Bool view_full, Bool half_res               ) {Shader* &s=Sh.PrecomputedBloomDS[view_full][half_res]     ; if(SLOW_SHADER_LOAD && !s)s=Sh.getPrecomputedBloomDS(view_full, half_res     ); return s;}
+INLINE Shader* GetBloomDS(Bool glow, Bool view_full, Bool half_res, Bool exposure) {Shader* &s=Sh.BloomDS[glow][view_full][half_res][exposure]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow, view_full, half_res, exposure); return s;}
+INLINE Shader* GetBloom  (Int alpha, Bool dither                  , Bool exposure) {Shader* &s=Sh.Bloom  [alpha][dither]            [exposure]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloom  (alpha, dither            , exposure); return s;}
 // !! Assumes that 'ImgClamp' was already set !!
-void RendererClass::bloom(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_glow, Bool alpha, Bool combine, ImageRT *adapt_eye)
+void RendererClass::bloom(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_glow, Bool alpha, Bool combine, ImageRT *exposure)
 {
    // '_alpha' RT from 'processAlpha' can't be used/modified because Bloom works by ADDING blurred results on top of existing background, NOT BLENDING (which is used for applying renderer results onto existing background when combining), we could potentially use a secondary RT to store bloom and add it on top of render, however that uses more memory, slower, and problematic with Motion Blur and DoF
    const Bool    half =true;
@@ -517,7 +517,7 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_glow, B
    ImageRTPtrRef rt0(half ? _h0 : _q0);
 
    D.alpha(ALPHA_NONE);
-   Sh.ImgX[1]->set(adapt_eye); // this is used by both BloomDS and Bloom
+   Sh.ImgX[1]->set(exposure); // this is used by both BloomDS and Bloom
    if(_has_glow || D.bloomScale()) // if we have something there
    {
       ImageRTDesc rt_desc(fxW()>>shift, fxH()>>shift, IMAGERT_SRGB); // using IMAGERT_SRGB will clip to 0..1 range !! using high precision would require clamping in the shader to make sure values don't go below 0 !!
@@ -544,7 +544,7 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_glow, B
                                                                           : D.bloomScale()/4,
                                                                             D.bloomAdd  (),
                                                                             D.bloomGlow ()/(BLOOM_GLOW_GAMMA_PER_PIXEL ? res2 : Sqr(res2)))); // for !BLOOM_GLOW_GAMMA_PER_PIXEL we need to square res2 because of "glow.a=SRGBToLinearFast(glow.a)" in the shader which is before "glow.a/=res2;", so "SRGBToLinearFast(glow.a/res2)=SRGBToLinearFast(glow.a)/Sqr(res2)"
-         Sh.imgSize(src); GetBloomDS(_has_glow, D._view_main.full, half_res, adapt_eye!=null)->draw(src, rect);
+         Sh.imgSize(src); GetBloomDS(_has_glow, D._view_main.full, half_res, exposure!=null)->draw(src, rect);
       }
 
     //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
@@ -562,7 +562,7 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_glow, B
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
    Sh.Img [1]->set( rt0  );
    Sh.ImgX[0]->set(_alpha);
-   GetBloom(_alpha ? 2 : alpha ? 1 : 0, D.dither() /*&& (src.highPrecision() || rt0->highPrecision())*/ && !dest.highPrecision(), adapt_eye!=null)->draw(src); // merging 2 RT's ('src' and 'rt0') with some scaling factors will give high precision
+   GetBloom(_alpha ? 2 : alpha ? 1 : 0, D.dither() /*&& (src.highPrecision() || rt0->highPrecision())*/ && !dest.highPrecision(), exposure!=null)->draw(src); // merging 2 RT's ('src' and 'rt0') with some scaling factors will give high precision
    bloom_glow.clear(); // not needed anymore
 }
 /******************************************************************************/
@@ -2219,11 +2219,11 @@ void RendererClass::postProcess()
    Int  fxs=(_get_target ? -1 : alpha+eye_adapt+motion+bloom+dof+upscale+sharpen); // this counter specifies how many effects are still left in the queue, and if we can render directly to '_final'
    Sh.ImgClamp->setConditional(ImgClamp(rt_desc.size)); // set 'ImgClamp' that may be needed for Bloom, DoF, MotionBlur, this is the viewport rect within texture, so reading will be clamped to what was rendered inside the viewport
 
-   ImageRT *adapt_eye=null;
+   ImageRT *exposure=null;
    if(eye_adapt)
    {
       --fxs;
-      if(bloom /*&& noToneMapping*/)adapt_eye=adaptEye(*_col, null);else // if there will be bloom then don't apply now, but this will be done later in bloom
+      if(bloom /*&& noToneMapping*/)exposure=adaptEye(*_col, null);else // if there will be bloom then don't apply now, but this will be done later in bloom
       {
          if(!fxs)dest=_final;else dest.get(rt_desc.type(GetImageRTType(_has_glow, D.litColRTPrecision()))); // can't read and write to the same RT, glow requires Alpha channel
          adaptEye(*_col, dest); Swap(_col, dest); // Eye Adaptation keeps Alpha
@@ -2253,7 +2253,7 @@ void RendererClass::postProcess()
       }
       if(_alpha)fxs--; // motion blur always merges '_alpha' so remove it from list
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
-      motionBlur(*_col, *dest, bloom_glow, dilated_motion, alpha, combine, adapt_eye); Swap(_col, dest); alpha_set=true; // Motion Blur sets Alpha
+      motionBlur(*_col, *dest, bloom_glow, dilated_motion, alpha, combine, exposure); Swap(_col, dest); alpha_set=true; // Motion Blur sets Alpha
      _alpha.clear(); // got merged so clear it
    }
    if(stage==RS_VEL && show(_vel, false, D.signedVelRT()))return; // velocity could've been used for MotionBlur or Temporal, check it after 'motionBlur' because it might generate it for MOTION_CAMERA
@@ -2264,7 +2264,7 @@ void RendererClass::postProcess()
    {
       if(_alpha)fxs--; // bloom always merges '_alpha' so remove it from list
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
-      T.bloom(*_col, *dest, bloom_glow, alpha, combine, adapt_eye); Swap(_col, dest); alpha_set=true; // Bloom sets Alpha
+      T.bloom(*_col, *dest, bloom_glow, alpha, combine, exposure); Swap(_col, dest); alpha_set=true; // Bloom sets Alpha
      _alpha.clear(); // got merged so clear it
    }
 
