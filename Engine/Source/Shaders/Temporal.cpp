@@ -78,7 +78,6 @@ ALPHA=1
 #define MERGE_CUBIC_MIN_MAX 1 // enable since this version is slightly better because: uses 12 tex reads (4*4 -4 corners), uses 12 samples for MIN/MAX which reduces flickering a bit, however has a lot more arithmetic calculations because of min/max x12 and each sample color is multiplied by weight separately
 
 #define DUAL_ADJUST_OLD 1
-//Flt CT,SH,AL,WI,SP,TB,MX,MY;
 /******************************************************************************/
 VecH RGBToYCoCg(VecH col)
 {
