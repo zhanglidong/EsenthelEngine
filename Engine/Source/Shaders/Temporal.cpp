@@ -68,7 +68,7 @@ ALPHA=1
 #define NEAREST_DEPTH_VEL 1
 
 #define SHOW_IGNORE_OLD 0
-#define SHOW_FLICKER 0
+#define SHOW_FLICKER    0
 
 #define CUBIC 1
 #if     CUBIC
