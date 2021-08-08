@@ -1444,8 +1444,8 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
       {SyncLocker lock(cc.lock); compiler.images.binaryInclude(image_name, CompareCS);}
    next:;
    }
-   Int unique_samplers=num_samplers-replace_samplers.elms();
-   if( unique_samplers>MAX_SHADER_IMAGES)
+   auto unique_samplers=num_samplers-replace_samplers.elms();
+   if(  unique_samplers>MAX_SHADER_IMAGES)
    {
       Str sampler_info; FREP(num_samplers)
       {
