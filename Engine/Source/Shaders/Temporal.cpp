@@ -220,7 +220,7 @@ Half GetBlend1(VecH4 old, VecH4 cur, VecH4 min, VecH4 max) // returns "1-GetBlen
 VecH2 UVToScreen   (VecH2 uv) {return VecH2(uv.x*AspectRatio, uv.y);} // this is only to maintain XY proportions (it does not convert to screen coordinates)
 Half  ScreenLength2(VecH2 uv) {return Length2(UVToScreen(uv));}
 /******************************************************************************/
-void NearestDepthRaw3x3(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gather) // get raw depth nearest to camera around 'uv' !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' for uv+ofs can be removed !!
+void NearestDepthRaw3x3(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gather) // get 'ofs' with raw depth nearest to camera around 'uv' !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' for uv+ofs can be removed !!
 {
    Flt depth;
    if(gather)
@@ -247,7 +247,7 @@ void NearestDepthRaw3x3(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gathe
    }
 }
 /******************************************************************************/
-void NearestDepthRaw4x4(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gather) // get raw depth nearest to camera around 'uv' !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' for uv+ofs can be removed !!
+void NearestDepthRaw4x4(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gather) // get 'ofs' with raw depth nearest to camera around 'uv' !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' for uv+ofs can be removed !!
 { /* Unoptimized:
    depth_center=depth=TexDepthRawPoint(uv); ofs=0;
    Int min_y=-1, max_y=1, min_x=-1, max_x=1;
@@ -492,7 +492,7 @@ void Temporal_PS
 {
    // GET DEPTH
    Flt depth_raw; VecI2 ofs;
-   if(NEAREST_DEPTH_VEL)NearestDepthRaw4x4(depth_raw, ofs, uv, GATHER); // now we use 4x4 samples (old: need to use 3x3 because 2x2 are not enough)
+   if(NEAREST_DEPTH_VEL)NearestDepthRaw4x4(depth_raw, ofs, uv, GATHER); // now we use 4x4 samples (old: need to use 3x3 because 2x2 are not enough), best results are when depth is from center and motion from 'ofs' (all combinations were tested)
    else                 depth_raw=TexDepthRawPoint(uv);
    Flt depth=LinearizeDepth(depth_raw);
 
