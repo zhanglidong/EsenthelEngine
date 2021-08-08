@@ -49,8 +49,12 @@ ALPHA=1
       old=cur;
    }
 /******************************************************************************/
+#ifndef ANTI_ALIAS
 #define ANTI_ALIAS (((MODE+1)&1)!=0)
+#endif
+#ifndef SUPER_RES
 #define SUPER_RES  (((MODE+1)&2)!=0)
+#endif
 
 #define SEPARATE_ALPHA ( TEMPORAL_SEPARATE_ALPHA && ALPHA)
 #define   MERGED_ALPHA (!TEMPORAL_SEPARATE_ALPHA && ALPHA)
@@ -473,6 +477,14 @@ void TestSample3x3 // !! This operates on relative UV's !!
 #endif
 }
 /******************************************************************************/
+#if COMPUTE
+BUFFER(ComputeViewport)
+   VecU2 ViewportMin;
+BUFFER_END
+
+[numthreads(1, 1, 1)]
+void Temporal_CS(VecU GlobalPos:SV_DispatchThreadID)
+#else
 void Temporal_PS
 (
    NOPERSP Vec2 uv:UV,
@@ -489,7 +501,12 @@ void Temporal_PS
 #endif
    out VecH4 outCol  :TARGET2
 )
+#endif
 {
+#if COMPUTE
+   VecU2 pixel=GlobalPos.xy+ViewportMin;
+   Vec2  uv=(pixel+0.5)*ImgSize.xy;
+#endif
    // GET DEPTH
    Flt depth_raw; VecI2 ofs;
    if(NEAREST_DEPTH_VEL)NearestDepthRaw4x4(depth_raw, ofs, uv, GATHER); // now we use 4x4 samples (old: need to use 3x3 because 2x2 are not enough), best results are when depth is from center and motion from 'ofs' (all combinations were tested)
@@ -557,6 +574,27 @@ void Temporal_PS
    }
    Half use_old=UVInsideView(old_uv) ? old_weight : 1;
 
+#if CUBIC && SUPER_RES
+   CubicWeight sampler_weight; sampler_weight.setSharp(old_weight); // when 'old_weight' is zero and old pixels are ignored, then use blurry weight to avoid flickering (because old is smooth, and cur has sharpening and jitter, so when old is ignored and we jump to cur fast, then it's seen as flickering)
+#endif
+
+#if COMPUTE
+   VecI2 sub_pix;
+   Vec2 _uv=uv;
+   UNROLL for(sub_pix.y=0; sub_pix.y<=1; sub_pix.y++)
+   UNROLL for(sub_pix.x=0; sub_pix.x<=1; sub_pix.x++)
+   {
+      Vec2 sub_ofs=(sub_pix-0.5)*RTSize.xy;
+      Vec2     uv        =   _uv+sub_ofs;
+      Vec2 sub_cur_uv    =cur_uv+sub_ofs;
+      Vec2 sub_old_uv    =old_uv+sub_ofs;
+      Half sub_old_weight=old_weight;
+    //#define     uv     sub_uv can't because of sampler.uv
+      #define cur_uv     sub_cur_uv
+      #define old_uv     sub_old_uv
+      #define old_weight sub_old_weight
+#endif
+
    // OLD DATA (FLICKER + ALPHA)
 #if MERGED_ALPHA
    VecH2 old_data =TexLod(ImgXY1, old_uv);
@@ -594,9 +632,12 @@ void Temporal_PS
 
    // CUR COLOR + CUR ALPHA
 #if CUBIC
-   if(SUPER_RES )Sampler.setSharp(cur_uv, ImgSize, old_weight); // when 'old_weight' is zero and old pixels are ignored, then use blurry weight to avoid flickering (due to sharpening and jitter)
-   else          Sampler.set     (cur_uv, ImgSize            );
-   if(!VIEW_FULL)Sampler.UVClamp (ImgClamp.xy, ImgClamp.zw);
+   #if SUPER_RES
+      Sampler.set(cur_uv, ImgSize, sampler_weight);
+   #else
+      Sampler.set(cur_uv, ImgSize);
+   #endif
+   if(!VIEW_FULL)Sampler.UVClamp(ImgClamp.xy, ImgClamp.zw);
    #if ALPHA
       Half cur_alpha=Sat(Sampler.texX(ImgX)); // use Sat because of cubic sharpening potentially giving negative values
    #endif
@@ -810,8 +851,10 @@ void Temporal_PS
    old_weight*=1-blend;
 
 #if SUPER_RES
-   VecI2 pix=pixel.xy; pix&=1;
-   if(all(pix==TemporalCurPixel)) // this pixel has latest data
+#if !COMPUTE
+   VecI2 sub_pix=pixel.xy; sub_pix&=1;
+#endif
+   if(all(sub_pix==TemporalCurPixel)) // this pixel has latest data
    {
       if(ANTI_ALIAS) // for anti-alias
       {
@@ -841,6 +884,22 @@ void Temporal_PS
    if(SHOW_IGNORE_OLD)new_col.r=Lerp(1, new_col.r, use_old);
    if(SHOW_FLICKER   )new_col.b=SRGBToLinearFast(new_flicker*10*FLICKER_EPS); // visualize flicker
 
+#if COMPUTE
+      VecI2 super_pixel=pixel*2+sub_pix;
+   #if GAMMA
+      new_col.rgb=LinearToSRGB(new_col.rgb);
+   #endif
+      RWImg[super_pixel]=new_col;
+   #if MERGED_ALPHA
+      RWImgXY[super_pixel]=VecH2(new_alpha, new_flicker); // !! STORE ALPHA IN X CHANNEL SO IT CAN BE USED FOR '_alpha' RT !!
+   #else
+      RWImgX[super_pixel]=new_flicker;
+   #if ALPHA
+      RWImgX1[super_pixel]=new_alpha;
+   #endif
+   #endif
+   }
+#else
       outCol=new_col;
    #if MERGED_ALPHA
       outData.x=new_alpha; // !! STORE ALPHA IN X CHANNEL SO IT CAN BE USED FOR '_alpha' RT !!
@@ -851,6 +910,7 @@ void Temporal_PS
       outAlpha=new_alpha;
    #endif
    #endif
+#endif
 }
 /******************************************************************************
 #if DUAL_HISTORY

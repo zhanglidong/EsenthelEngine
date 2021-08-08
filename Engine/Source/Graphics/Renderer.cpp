@@ -1831,9 +1831,6 @@ void RendererClass::temporal(ImageRTPtr &dilated_motion) // !! assumes 'resolveM
          }
       }else
       {
-         set(_ctx->new_data, _ctx->new_alpha, _ctx->new_col, null, null, true);
-         D.alpha(ALPHA_NONE);
-
          if(merged_alpha)
          {
             Sh.ImgXY[1]->set(_ctx->old_data ); // old data with alpha
@@ -1849,11 +1846,35 @@ void RendererClass::temporal(ImageRTPtr &dilated_motion) // !! assumes 'resolveM
             Sh.Img  [2]->set( dilated_motion); // dilated motion
 
          Sh.imgSize(*_col); // this is needed for Cubic Sampler and SUPER_RES
-         Shader *shader=Sh.Temporal[D.temporalAntiAlias()+2*D.temporalSuperRes()-1][D._view_main.full][alpha];
-         REPS(_eye, _eye_num)
+
+         /*// super slow, CS 20 fps vs PS 240 fps. perhaps because output is written in FREPD(y, 2)FREPD(x, 2) loop? or 'numthreads' can't be low?
+         ShaderFile &sf=*ShaderFiles("Temporal"); fixme
+         Bool gamma=true; fixme
+         ComputeShader *cs=sf.computeFind(S8+"Temporal"+D.temporalAntiAlias()+D._view_main.full+alpha+gamma); fixme
+         if(D.temporalSuperRes() && cs && _ctx->new_col->hasUAV() && (!_ctx->new_data || _ctx->new_data->hasUAV()) && (!_ctx->new_alpha || _ctx->new_alpha->hasUAV()))
          {
-            Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), _col->size()));
-            shader->draw(_stereo ? &D._view_eye_rect[_eye] : null);
+            Sh.rtSize       (*_ctx->new_col);
+            Sh.RWImg    ->set(_ctx->new_col);
+            Sh.RWImgXY  ->set(_ctx->new_data);
+            Sh.RWImgX[0]->set(_ctx->new_data);
+            Sh.RWImgX[1]->set(_ctx->new_alpha);
+            REPS(_eye, _eye_num)
+            {
+               RectI viewport(0, 0, _col->w(), _col->h()); fixme
+               Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), _col->size()));
+               GetShaderParamInt("ViewportMin")->setConditional(viewport.min); fixme
+               cs->compute(viewport.size());
+            }
+         }else*/
+         {
+            set(_ctx->new_data, _ctx->new_alpha, _ctx->new_col, null, null, true);
+            D.alpha(ALPHA_NONE);
+            Shader *shader=Sh.Temporal[D.temporalAntiAlias()+2*D.temporalSuperRes()-1][D._view_main.full][alpha];
+            REPS(_eye, _eye_num)
+            {
+               Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), _col->size()));
+               shader->draw(_stereo ? &D._view_eye_rect[_eye] : null);
+            }
          }
       }
 
