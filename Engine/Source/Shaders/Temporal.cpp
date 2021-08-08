@@ -79,6 +79,8 @@ ALPHA=1
 
 #define DUAL_ADJUST_OLD 1
 /******************************************************************************/
+Half Lum4(VecH col) {return (col.g*2)+(col.r+col.b);} // scales Lum *4
+/******************************************************************************/
 VecH RGBToYCoCg(VecH col)
 {
    return VecH(Dot(col, VecH( 0.25, 0.50,  0.25)),
@@ -244,6 +246,7 @@ void NearestDepthRaw3x3(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gathe
       UNROLL for(Int x=-1; x<=1; x++)if(x || y)TestDepth(depth, TexDepthRawPointOfs(uv, VecI2(x, y)), ofs, VecI2(x, y));
    }
 }
+/******************************************************************************/
 void NearestDepthRaw4x4(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gather) // get raw depth nearest to camera around 'uv' !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' for uv+ofs can be removed !!
 { /* Unoptimized:
    depth_center=depth=TexDepthRawPoint(uv); ofs=0;
@@ -770,6 +773,16 @@ void Temporal_PS
 
    // update flicker
    Half new_flicker;
+   /*if(0) // simple
+   {
+      Half lum_old=Lum4(    old.rgb);
+      Half lum_cur=Lum4(    cur.rgb);
+      Half lum_min=Lum4(col_min.rgb);
+      Half lum_max=Lum4(col_max.rgb);
+      Half clamp_dist=Min(Abs(lum_old-lum_min), Abs(lum_old-lum_max))/Max(lum_old, lum_cur, HALF_MIN);
+    //clamp_dist*=clamp_dist;
+		blend*=Sat(clamp_dist*0.5);
+   }else*/
    if(DEPTH_FOREGROUND(depth_raw))
    {
       // calculate difference between 'old' and 'cur'
