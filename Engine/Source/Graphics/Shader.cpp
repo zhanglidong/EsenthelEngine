@@ -1439,6 +1439,9 @@ void Shader11::begin()C
 }
 void ComputeShader11::begin()C
 {
+#if DX11 // on DX11 trying to bind image SRV's while they're bound as RT's will fail
+   Renderer.set(null, null, false); // clear RT's
+#endif
    SetCS(cs);
    setImages();
    setBuffers();

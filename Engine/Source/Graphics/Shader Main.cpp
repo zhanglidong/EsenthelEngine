@@ -448,7 +448,10 @@ void MainShaderClass::getTechniques()
    ShdMap[0]=ShaderImages("ShdMap" );
    ShdMap[1]=ShaderImages("ShdMap1");
 
-   RWImg=ShaderRWImages("RWImg");
+   RWImg    =ShaderRWImages("RWImg");
+   RWImgX[0]=ShaderRWImages("RWImgX");
+   RWImgX[1]=ShaderRWImages("RWImgX1");
+   RWImgXY  =ShaderRWImages("RWImgXY");
 
    // material textures
    Col[0]=ShaderImages("Col" );

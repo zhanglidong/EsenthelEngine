@@ -51,7 +51,9 @@ struct MainShaderClass
       *Lum;
 
    ShaderRWImage
-      *RWImg;
+      *RWImg,
+      *RWImgX[2],
+      *RWImgXY;
 
    ShaderParam
        Dummy,
