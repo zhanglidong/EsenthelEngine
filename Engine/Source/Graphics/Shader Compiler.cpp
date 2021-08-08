@@ -1398,6 +1398,8 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
 
          spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_SUPPORT_NONZERO_BASE_INSTANCE, SPVC_FALSE);
 
+         spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_FLATTEN_MULTIDIMENSIONAL_ARRAYS, SPVC_TRUE); // needed for "Arrays of arrays not supported before ESSL version 310. Try using --flatten-multidimensional-arrays or set options.flatten_multidimensional_arrays to true."
+
        //spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ENABLE_420PACK_EXTENSION, SPVC_FALSE);
       }break;
 
