@@ -660,17 +660,21 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 #ifdef TEMPORAL
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Temporal", model, api, flag).New(src_path+"Temporal.cpp");
-   REPD(view_full     , 2)
-   REPD(alpha         , 2)
- //REPD(filter_min_max, 2)
+   REPD(view_full, 2)
    {
-      REPD(mode  , 3)
-      REPD(gather, 2)
-         src.New("Temporal", "DrawUV_VS", "Temporal_PS")("MODE", mode, "VIEW_FULL", view_full, "ALPHA", alpha, "GATHER", gather/*, "FILTER_MIN_MAX", filter_min_max*/).gatherChannel(gather);
+      REPD(alpha, 2)
+      {
+         REPD(mode  , 3)
+         REPD(gather, 2)
+            src.New("Temporal", "DrawUV_VS", "Temporal_PS")("MODE", mode, "VIEW_FULL", view_full, "ALPHA", alpha, "GATHER", gather).gatherChannel(gather);
 
-    /*REPD(anti_alias, 2)
-      REPD(gamma     , 2)
-         src.computeNew("Temporal", "Temporal_CS")("ANTI_ALIAS", anti_alias, "VIEW_FULL", view_full, "ALPHA", alpha, "GAMMA", gamma).extra("COMPUTE", 1, "SUPER_RES", 1, "GATHER", 1); // compute only used for super_res, gather is always supported when using compute*/
+       /*REPD(anti_alias, 2)
+         REPD(gamma     , 2)
+            src.computeNew("Temporal", "Temporal_CS")("ANTI_ALIAS", anti_alias, "VIEW_FULL", view_full, "ALPHA", alpha, "GAMMA", gamma).extra("COMPUTE", 1, "SUPER_RES", 1, "GATHER", 1); // compute only used for super_res, gather is always supported when using compute*/
+      }
+      if(TEMPORAL_SEPARATE_SUPER_RES_OLD_WEIGHT)
+      REPD(gather, 2)
+         src.New("TemporalOldWeight", "DrawUV_VS", "OldWeight_PS")("VIEW_FULL", view_full, "GATHER", gather).extra("ANTI_ALIAS", 0, "SUPER_RES", 0).gatherChannel(gather); // ANTI_ALIAS=0 is ignored, need to set SUPER_RES=0 because in this shader we're drawing to small sized RT and it affects usage of RTSize/ImgSize
    }
 }
 #endif

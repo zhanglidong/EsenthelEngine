@@ -289,6 +289,9 @@ struct MainShaderClass
       *SMAABlend  ,
       *SMAA       ,
       *Temporal[3][2][2], // [Mode][ViewFull][Alpha]
+   #if TEMPORAL_SEPARATE_SUPER_RES_OLD_WEIGHT
+      *TemporalOldWeight[2], // [ViewFull]
+   #endif
 
       // PARTICLE
       *Bilb                ,

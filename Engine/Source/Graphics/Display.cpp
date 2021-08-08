@@ -2775,10 +2775,16 @@ static void ChangedTemporal()
       if(!Sh.TemporalOffset && D.temporal())
       {
          ShaderFile &sf=*ShaderFiles("Temporal");
-         REPD(mode     , 3)
          REPD(view_full, 2)
-         REPD(alpha    , 2)
-            Sh.Temporal[mode][view_full][alpha]=sf.get(S+"Temporal"+mode+view_full+alpha+D.gatherChannelAvailable()/*+D.filterMinMaxAvailable()*/);
+         {
+            REPD(mode , 3)
+            REPD(alpha, 2)
+               Sh.Temporal[mode][view_full][alpha]=sf.get(S+"Temporal"+mode+view_full+alpha+D.gatherChannelAvailable());
+
+         #if TEMPORAL_SEPARATE_SUPER_RES_OLD_WEIGHT
+            Sh.TemporalOldWeight[view_full]=sf.get(S+"TemporalOldWeight"+view_full+D.gatherChannelAvailable());
+         #endif
+         }
 
          Sh.TemporalOffset           =GetShaderParam   ("TemporalOffset");
          Sh.TemporalOffsetGatherIndex=GetShaderParamInt("TemporalOffsetGatherIndex");

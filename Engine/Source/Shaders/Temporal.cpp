@@ -223,7 +223,7 @@ Half GetBlend1(VecH4 old, VecH4 cur, VecH4 min, VecH4 max) // returns "1-GetBlen
 /******************************************************************************/
 VecH2 UVToScreen   (VecH2 uv) {return VecH2(uv.x*AspectRatio, uv.y);} // this is only to maintain XY proportions (it does not convert to screen coordinates)
 Half  ScreenLength2(VecH2 uv) {return Length2(UVToScreen(uv));}
-/******************************************************************************/
+/******************************************************************************
 void NearestDepthRaw3x3(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gather) // get 'ofs' with raw depth nearest to camera around 'uv' !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' for uv+ofs can be removed !!
 {
    Flt depth;
@@ -477,6 +477,66 @@ void TestSample3x3 // !! This operates on relative UV's !!
 #endif
 }
 /******************************************************************************/
+Half OldWeight(Vec2 old_uv, VecH2 uv_motion, Flt depth)
+{
+   Half old_weight=UVInsideView(old_uv); // use old only if it's inside viewport
+
+   // check if any object covered old pixel in previous frame
+   // this needs to be checked even if current pixel is not moving (uv_motion=0)
+   // TODO: for best results this would need a separate dilated motion RT without any MotionScale_2, perhaps it could be smaller than DilatedMotion for Motion Blur
+   VecH4 dilated_uv_motion=TexLod(Img2, old_uv); // use filtering because this is very low res, this might be a little problem for DUAL_MOTION since there one pixel can have XY=A, ZW=B, and another can have XY=B, ZW=0 (B vel is in XY), filtering would make values invalid, however it still looks better with filtering than without, because without filtering there are blocky artifacts, with filtering artifacts are smoother
+
+   VecH2 screen_motion=UVToScreen(uv_motion);
+   Half  screen_motion_len2=Length2(screen_motion);
+
+   // if current pixel is moving, or there's any movement at old position, this check improves performance, so keep it
+   const Half min_pixel_motion=0.5;
+#if 0
+ //if(min_pixel_motion<0 ||           any(Abs(uv_motion)+          Abs(dilated_uv_motion.xy) >    ImgSize.xy*min_pixel_motion)) // 4 abs, 2 add, 2 mul, 2 compare, 1 any
+ //if(min_pixel_motion<0 || ScreenLength2(    uv_motion)+ScreenLength2(dilated_uv_motion.xy) >Sqr(ImgSize. y*min_pixel_motion)) //               2 mul, 2 dot (4 mul, 2 add), 1 add, 1 mul, 1 mul, 1 compare, less precise because adding squared values
+   if(min_pixel_motion<0 || ScreenLength2(Abs(uv_motion)+          Abs(dilated_uv_motion.xy))>Sqr(ImgSize. y*min_pixel_motion)) // 4 abs, 2 add, 1 mul, 1 dot (2 mul, 1 add),        1 mul, 1 mul, 1 compare
+ //if(min_pixel_motion<0 || screen_motion_len2>Sqr(ImgSize.y*min_pixel_motion) || ScreenLength2(dilated_uv_motion.xy)>Sqr(ImgSize.y*min_pixel_motion))
+   {
+#else
+   if(min_pixel_motion<0 || screen_motion_len2>Sqr(ImgSize.y*min_pixel_motion) || any(dilated_uv_motion.xy)) // #DilatedMotionZero
+   {
+#endif
+      /* TODO: could try testing more constants
+      if(CT){screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*8); same_motion=LerpRS(Sqr(2.0/16), Sqr(1.0/16), frac);}else
+      if(SH){screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*4); same_motion=LerpRS(Sqr(2.0/ 8), Sqr(1.0/ 8), frac);}else
+            {screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*2); same_motion=LerpRS(Sqr(2.0/ 4), Sqr(1.0/ 4), frac);}*/
+      Half screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*8); // this pixel movement, add some bias which helps for slowly moving pixels on static background (example FPS view+walking+tree leafs on static sky), "+bias" works better than "Max(, bias)"
+
+      // TODO: slower but higher quality version would take more samples, for example on the line of 0..dilated_uv_motion.xy
+      // because 'dilated_uv_motion' don't point to the moving pixel, they just mean that there is some movement in this neighborhood
+      // taken samples in many cases will have valid hits, but there will be misses too, in between moving pixels
+
+      // 2x2 works much better than 1x1
+      TestSample2x2(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv, dilated_uv_motion.xy); // check primary   motion
+      TestSample2x2(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv, dilated_uv_motion.zw); // check secondary motion, check this for both DUAL_MOTION on/off
+      
+      // here use 3x3 samples
+      TestSample3x3(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv,                    0, false); // for performance reasons ignore 'cover' here, because this is at 'old' location, so assume it covers already. Don't try to ignore depth here, that will increase flickering
+   }
+   return old_weight;
+}
+/******************************************************************************/
+Half OldWeight_PS(NOPERSP Vec2 uv:UV):TARGET
+{
+   // GET DEPTH
+   Flt depth_raw; VecI2 ofs;
+   if(NEAREST_DEPTH_VEL)NearestDepthRaw4x4(depth_raw, ofs, uv, GATHER); // now we use 4x4 samples (old: need to use 3x3 because 2x2 are not enough), best results are when depth is from center and motion from 'ofs' (all combinations were tested)
+   else                 depth_raw=TexDepthRawPoint(uv);
+   Flt depth=LinearizeDepth(depth_raw);
+
+   // GET MOTION
+   Vec2  depth_motion_uv=NEAREST_DEPTH_VEL ? UVInView(uv+ofs*ImgSize.xy, VIEW_FULL) : uv; // 'depth_motion_uv'=UV that's used for DepthMotion
+   VecH2 uv_motion=TexPoint(ImgXY, depth_motion_uv);
+   Vec2  old_uv=uv-uv_motion; // #MotionDir
+
+   return OldWeight(old_uv, uv_motion, depth);
+}
+/******************************************************************************/
 #if COMPUTE
 BUFFER(ComputeViewport)
    VecU2 ViewportMin;
@@ -533,46 +593,8 @@ void Temporal_PS
    VecH2 uv_motion=TexPoint(ImgXY, depth_motion_uv);
    Vec2  cur_uv=uv+TemporalOffset,
          old_uv=uv-uv_motion; // #MotionDir
-   Half  old_weight=UVInsideView(old_uv); // use old only if it's inside viewport
-
-   // check if any object covered old pixel in previous frame
-   // this needs to be checked even if current pixel is not moving (uv_motion=0)
-   // TODO: for best results this would need a separate dilated motion RT without any MotionScale_2, perhaps it could be smaller than DilatedMotion for Motion Blur
-   VecH4 dilated_uv_motion=TexLod(Img2, old_uv); // use filtering because this is very low res, this might be a little problem for DUAL_MOTION since there one pixel can have XY=A, ZW=B, and another can have XY=B, ZW=0 (B vel is in XY), filtering would make values invalid, however it still looks better with filtering than without, because without filtering there are blocky artifacts, with filtering artifacts are smoother
-
-   VecH2 screen_motion=UVToScreen(uv_motion);
-   Half  screen_motion_len2=Length2(screen_motion);
-
-   // if current pixel is moving, or there's any movement at old position, this check improves performance, so keep it
-   const Half min_pixel_motion=0.5;
-#if 0
- //if(min_pixel_motion<0 ||           any(Abs(uv_motion)+          Abs(dilated_uv_motion.xy) >    ImgSize.xy*min_pixel_motion)) // 4 abs, 2 add, 2 mul, 2 compare, 1 any
- //if(min_pixel_motion<0 || ScreenLength2(    uv_motion)+ScreenLength2(dilated_uv_motion.xy) >Sqr(ImgSize. y*min_pixel_motion)) //               2 mul, 2 dot (4 mul, 2 add), 1 add, 1 mul, 1 mul, 1 compare, less precise because adding squared values
-   if(min_pixel_motion<0 || ScreenLength2(Abs(uv_motion)+          Abs(dilated_uv_motion.xy))>Sqr(ImgSize. y*min_pixel_motion)) // 4 abs, 2 add, 1 mul, 1 dot (2 mul, 1 add),        1 mul, 1 mul, 1 compare
- //if(min_pixel_motion<0 || screen_motion_len2>Sqr(ImgSize.y*min_pixel_motion) || ScreenLength2(dilated_uv_motion.xy)>Sqr(ImgSize.y*min_pixel_motion))
-   {
-#else
-   if(min_pixel_motion<0 || screen_motion_len2>Sqr(ImgSize.y*min_pixel_motion) || any(dilated_uv_motion.xy)) // #DilatedMotionZero
-   {
-#endif
-      /* TODO: could try testing more constants
-      if(CT){screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*8); same_motion=LerpRS(Sqr(2.0/16), Sqr(1.0/16), frac);}else
-      if(SH){screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*4); same_motion=LerpRS(Sqr(2.0/ 8), Sqr(1.0/ 8), frac);}else
-            {screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*2); same_motion=LerpRS(Sqr(2.0/ 4), Sqr(1.0/ 4), frac);}*/
-      Half screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*8); // this pixel movement, add some bias which helps for slowly moving pixels on static background (example FPS view+walking+tree leafs on static sky), "+bias" works better than "Max(, bias)"
-
-      // TODO: slower but higher quality version would take more samples, for example on the line of 0..dilated_uv_motion.xy
-      // because 'dilated_uv_motion' don't point to the moving pixel, they just mean that there is some movement in this neighborhood
-      // taken samples in many cases will have valid hits, but there will be misses too, in between moving pixels
-
-      // 2x2 works much better than 1x1
-      TestSample2x2(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv, dilated_uv_motion.xy); // check primary   motion
-      TestSample2x2(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv, dilated_uv_motion.zw); // check secondary motion, check this for both DUAL_MOTION on/off
-      
-      // here use 3x3 samples
-      TestSample3x3(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv,                    0, false); // for performance reasons ignore 'cover' here, because this is at 'old' location, so assume it covers already. Don't try to ignore depth here, that will increase flickering
-   }
-   Half use_old=UVInsideView(old_uv) ? old_weight : 1;
+   Half  old_weight=(SUPER_RES && TEMPORAL_SEPARATE_SUPER_RES_OLD_WEIGHT) ? TexPoint(ImgX3, uv) : OldWeight(old_uv, uv_motion, depth);
+   Half  use_old=UVInsideView(old_uv) ? old_weight : 1;
 
 #if CUBIC && SUPER_RES
    CubicWeight sampler_weight; sampler_weight.setSharp(old_weight); // when 'old_weight' is zero and old pixels are ignored, then use blurry weight to avoid flickering (because old is smooth, and cur has sharpening and jitter, so when old is ignored and we jump to cur fast, then it's seen as flickering)

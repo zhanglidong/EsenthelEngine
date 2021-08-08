@@ -1867,8 +1867,23 @@ void RendererClass::temporal(ImageRTPtr &dilated_motion) // !! assumes 'resolveM
             }
          }else*/
          {
-            set(_ctx->new_data, _ctx->new_alpha, _ctx->new_col, null, null, true);
             D.alpha(ALPHA_NONE);
+         #if TEMPORAL_SEPARATE_SUPER_RES_OLD_WEIGHT
+            ImageRTPtr old_weight;
+            if(D.temporalSuperRes()) // this is used only for SuperRes because these calculations are the same for full-pixel and sub-pixel, so for super-res it's more efficient to calculate this only once per pixel instead of doing the same calculations for each 4 sub-pixels per pixel. But for no super-res don't do this, because that would slow things down due to overhead of writing to RT and reading from it.
+            {
+               rt_desc.type(IMAGERT_ONE).size=_col->size(); old_weight.get(rt_desc);
+               set(old_weight, null, true);
+               Shader *shader=Sh.TemporalOldWeight[D._view_main.full];
+               REPS(_eye, _eye_num)
+               {
+                  Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), _col->size()));
+                  shader->draw(_stereo ? &D._view_eye_rect[_eye] : null);
+               }
+               Sh.ImgX[3]->set(old_weight);
+            }
+         #endif
+            set(_ctx->new_data, _ctx->new_alpha, _ctx->new_col, null, null, true);
             Shader *shader=Sh.Temporal[D.temporalAntiAlias()+2*D.temporalSuperRes()-1][D._view_main.full][alpha];
             REPS(_eye, _eye_num)
             {
