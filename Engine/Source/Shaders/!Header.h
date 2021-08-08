@@ -56,7 +56,9 @@
 #define ImageCube   TextureCube<VecH4>
 #define ImageShadow Texture2D  <Half >
 
-#define RWImage RWTexture2D<VecH4>
+#define RWImageH  RWTexture2D<Half >
+#define RWImageH2 RWTexture2D<VecH2>
+#define RWImage   RWTexture2D<VecH4>
 
 #define        SAMPLER(name, index) sampler                name : register(s##index) //        sampler
 #define SHADOW_SAMPLER(name, index) SamplerComparisonState name : register(s##index) // shadow sampler
@@ -496,7 +498,6 @@ Image   Ext, Ext1, Ext2, Ext3,
         Det, Det1, Det2, Det3,
         Mac, Mac1, Mac2, Mac3,
         Lum;
-RWImage RWImg;
 
 // #MaterialTextureLayout
 #define BUMP_IMAGE Ext
@@ -516,6 +517,10 @@ Texture2DMS<VecH4, MS_SAMPLES> ImgMS, ImgMS1, ImgMS2, ImgMS3;
 Texture2DMS<Half , MS_SAMPLES> ImgXMS;
 Texture2DMS<VecH2, MS_SAMPLES> ImgXYMS;
 Texture2DMS<Flt  , MS_SAMPLES> DepthMS;
+
+RWImage   RWImg;
+RWImageH  RWImgX, RWImgX1;
+RWImageH2 RWImgXY;
 #include "!Set Prec Default.h"
 
        SAMPLER(SamplerRender     , SSI_RENDER      );
