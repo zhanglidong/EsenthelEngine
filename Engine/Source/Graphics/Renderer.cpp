@@ -1071,6 +1071,7 @@ void RendererClass::temporalCheck() // needs to be called after RT and viewport 
 {
    if(hasTemporal())
    {
+     _temporal_use=true;
       Vec2 offset;
       if(_temporal_reset) // if doesn't have previous RT
       {
@@ -1093,7 +1094,6 @@ void RendererClass::temporalCheck() // needs to be called after RT and viewport 
     C VecI2 &size       =res();
       RectI  viewport   =(_stereo ? screenToPixelI(D._view_eye_rect[0]) : D._view_active.recti);
       Vec2   mul        =Vec2(0.5f, -0.5f)/size;
-        _temporal_use   =true;
         _temporal_offset=offset/viewport.size();
       Vec2 shader_offset=offset*mul;
        Sh.TemporalOffset->set(shader_offset); // this always changes so don't use 'setConditional'

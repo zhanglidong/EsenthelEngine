@@ -943,6 +943,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
 //_shd_reduce         =false;
   _shd_frac           =1;
   _shd_fade           =1;
+//_shd_bias           =0;
   _shd_map_num        =6;
   _shd_map_size       =1024;
 //_shd_map_size_actual=0;
@@ -2811,6 +2812,7 @@ DisplayClass& DisplayClass::temporalSuperRes(Bool on)
      _temp_super_res=on;
       ChangedTemporal();
       D.densityUpdate();
+      D.shadowJitterSet();
    }
    return T;
 }
@@ -3122,7 +3124,9 @@ Bool DisplayClass::shadowSupported()C
 }
 void DisplayClass::shadowJitterSet()
 {
-   Sh.ShdJitter->set(Flt(shadowJitter())/Renderer._shd_map.hwSize());
+   Bool jitter=(shadowJitter() && !D.temporalSuperRes()); // can't use shadow jitter in Super-Res because there we render 1 sub-pixel (out of 2x2=4 total) per frame, and in case when it doesn't get blurred due to D.shadowSoft (for example if depths are too different) then it will look very blocky. Can't set this to a constant offset for entire frame (and adjust every frame with 'TemporalCurPixel') because when zoomed in close the individual shadow texels are very large (spanning over many screen pixels), and because of that there would be no softing but only flickering.
+   Sh.ShdJitter->set(jitter ? 1.0f/Renderer._shd_map.hwSize() : Vec2Zero);
+  _shd_bias=(jitter ? 4.0f : 2.0f)/D.shadowMapSizeActual(); // #ShadowBias
 }
 void DisplayClass::shadowRangeSet()
 {

@@ -91,8 +91,6 @@ static Flt ShadowStep(Int i, Int num) // 0..1
    return Pow(s, D.shadowMapSplit().x + D.shadowMapSplit().y*s); // Pow(s, 2) == s*s produces results nearly identical to "Lerp(1/((1-s)*D.viewRange()), s, s);"
 }
 /******************************************************************************/
-static inline Flt GetBias() {return (D.shadowJitter() ? 4.0f : 2.0f)/D.shadowMapSizeActual();} // #ShadowBias
-/******************************************************************************/
 static void ApplyViewSpaceBias(Flt &mp_z_z)
 {
    if(FovPerspective(D.viewFovMode())) // needed only for perspective because it can produce big errors
@@ -648,7 +646,7 @@ static Bool ShadowMap(LightDir &light)
    Int  steps        =D.shadowMapNumActual();
    Int  points=8, points_1=points-1;
    VecD point[8], point_temp[8*3], *point_ptr=(point_clip ? point_temp : point);
-   Flt  bias         =GetBias(),
+   Flt  bias         =D._shd_bias,
         range        =D._shd_range*SHADOW_MAP_DIR_RANGE_MUL, // view range of the shadow map render target (this needs to be increased in case there are shadow occluders located distant from the camera), TODO: make SHADOW_MAP_DIR_RANGE_MUL configurable?
         shd_from     =D.viewFromActual(),                    // where does the shadow start in the main render target
         shd_to       =Max(D._shd_range, shd_from+0.01f),     // where does the shadow end   in the main render target (must be slightly larger than starting point)
@@ -926,7 +924,7 @@ static void ShadowMap(Flt range, VecD &pos)
 
 #if FLAT_SHADOW_MAP
    {
-      Flt     f=D.shadowMapSizeActual()/Flt(map_size), bias=1-GetBias(); // for local lights instead of offsetting camera by bias, we scale it, because the shadow map is perspective so it needs to depend on distance to light
+      Flt     f=D.shadowMapSizeActual()/Flt(map_size), bias=1-D._shd_bias; // for local lights instead of offsetting camera by bias, we scale it, because the shadow map is perspective so it needs to depend on distance to light
       Matrix  m;
       Matrix4 mp;
       // 'ProjMatrix' here is from shadow view
@@ -977,7 +975,7 @@ static void ShadowMap(LightCone &light)
 
 #if FLAT_SHADOW_MAP
    {
-      Flt     f=D.shadowMapSizeActual()/Flt(map_size), bias=1-GetBias(); // for local lights instead of offsetting camera by bias, we scale it, because the shadow map is perspective so it needs to depend on distance to light
+      Flt     f=D.shadowMapSizeActual()/Flt(map_size), bias=1-D._shd_bias; // for local lights instead of offsetting camera by bias, we scale it, because the shadow map is perspective so it needs to depend on distance to light
       Matrix4 mp; ProjMatrix.mul(HsmMatrixCone, mp); // 'ProjMatrix' here is from shadow view
       REPS(Renderer._eye, Renderer._eye_num){Matrix m=ShdMatrix[Renderer._eye]; MatrixFovScale(m, f); m.scale(bias); m.mul(mp, ShdMatrix4[0][Renderer._eye]);}
    }

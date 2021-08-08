@@ -166,14 +166,17 @@ constexpr Bool canFit   (UInt size)C {return MIN_SHADER_PARAM_DATA_SIZE>=size ||
    NO_COPY_CONSTRUCTOR(ShaderParam);
 #endif
 };
-struct ShaderParamBool : ShaderParam // Shader Parameter
+struct ShaderParamBool : private ShaderParam // Shader Parameter
 {
    void set(Bool b); // set boolean value
 #if EE_PRIVATE
    void setConditional(Bool b); // set boolean value only if it's different
+
+   ASSERT(MIN_SHADER_PARAM_DATA_SIZE>=SIZE(Bool));
+ C Bool& getBool()C {return *(Bool*)_data;}
 #endif
 };
-struct ShaderParamInt : ShaderParam // Shader Parameter
+struct ShaderParamInt : private ShaderParam // Shader Parameter
 {
    void set(  Int    i); // set integer  value
    void set(C VecI2 &v); // set vector2D value
@@ -184,6 +187,12 @@ struct ShaderParamInt : ShaderParam // Shader Parameter
    void setConditional(C VecI2 &v); // set vector2D value only if it's different
    void setConditional(C VecI  &v); // set vector3D value only if it's different
    void setConditional(C VecI4 &v); // set vector4D value only if it's different
+
+   ASSERT(MIN_SHADER_PARAM_DATA_SIZE>=SIZE(VecI4));
+ C Int  & getInt  ()C {return *(Int  *)_data;}
+ C VecI2& getVecI2()C {return *(VecI2*)_data;}
+ C VecI & getVecI ()C {return *(VecI *)_data;}
+ C VecI4& getVecI4()C {return *(VecI4*)_data;}
 #endif
 };
 /******************************************************************************/
@@ -192,12 +201,12 @@ struct ShaderParamChange // Shader Parameter Change
    ShaderParam *param; // parameter to change
    Vec4         value; // value     to change to
 
-   ShaderParamChange& set(  Bool  b) {value.x  =     b; return T;}
-   ShaderParamChange& set(  Int   i) {value.x  =(Flt)i; return T;}
-   ShaderParamChange& set(  Flt   f) {value.x  =     f; return T;}
-   ShaderParamChange& set(C Vec2 &v) {value.xy =     v; return T;}
-   ShaderParamChange& set(C Vec  &v) {value.xyz=     v; return T;}
-   ShaderParamChange& set(C Vec4 &v) {value    =     v; return T;}
+   ShaderParamChange& set(  Bool  b) {value.x  =b; return T;}
+   ShaderParamChange& set(  Int   i) {value.x  =i; return T;}
+   ShaderParamChange& set(  Flt   f) {value.x  =f; return T;}
+   ShaderParamChange& set(C Vec2 &v) {value.xy =v; return T;}
+   ShaderParamChange& set(C Vec  &v) {value.xyz=v; return T;}
+   ShaderParamChange& set(C Vec4 &v) {value    =v; return T;}
 
    ShaderParamChange& set(ShaderParam *param) {T.param=param; return T;}
 

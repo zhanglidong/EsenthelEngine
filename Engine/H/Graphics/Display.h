@@ -565,7 +565,7 @@ private:
                      _amb_range, _amb_contrast, _amb_min,
                      _eye_adapt_brightness, _eye_adapt_exp, _eye_adapt_max_dark, _eye_adapt_max_bright, _eye_adapt_speed,
                      _eye_dist, _eye_dist_2,
-                     _shd_frac, _shd_fade, _shd_range, _shd_map_size_l, _shd_map_size_c,
+                     _shd_frac, _shd_fade, _shd_range, _shd_map_size_l, _shd_map_size_c, _shd_bias,
                      _bloom_original, _bloom_mul, _bloom_add, _bloom_glow, _bloom_cut,
                      _mtn_scale,
                      _dof_focus, _dof_range, _dof_intensity,
