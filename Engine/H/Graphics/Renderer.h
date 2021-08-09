@@ -43,7 +43,7 @@ enum RENDER_STAGE : Byte // Rendering Stage, allows displaying only desired rend
    RS_REFLECT     , // display Reflectivity       (available only in RT_DEFERRED)
    RS_GLOW        , // display Glow
    RS_EMISSIVE    , // display Emissive           (available only in RT_DEFERRED)
-   RS_VEL         , // display Velocity           (available only in RT_DEFERRED)
+   RS_MOTION      , // display Motion             (available only in RT_DEFERRED)
    RS_LIGHT       , // display Light              (available only in RT_DEFERRED)
    RS_LIGHT_AO    , // display combined Light+AO  (available only in RT_DEFERRED)
    RS_AO          , // display Ambient Occlusion
@@ -54,8 +54,9 @@ enum RENDER_STAGE : Byte // Rendering Stage, allows displaying only desired rend
    RS_WATER_NORMAL, // display Water       Normal (available only in RT_DEFERRED and if 'Water.max1Light' is disabled)
    RS_WATER_LIGHT , // display Water       Light  (available only in RT_DEFERRED and if 'Water.max1Light' is disabled)
 #if EE_PRIVATE
-   RS_VEL_CONVERT , // display Converted Velocity (available only in RT_DEFERRED)
-   RS_VEL_DILATED , // display Dilated   Velocity (available only in RT_DEFERRED)
+   RS_MOTION_CONVERTED   , // display Converted    Motion (available only in RT_DEFERRED)
+   RS_MOTION_DILATED_FULL, // display Dilated Full Motion (available only in RT_DEFERRED)
+   RS_MOTION_DILATED_BLUR, // display Dilated Blur Motion (available only in RT_DEFERRED)
 #endif
 };
 #if EE_PRIVATE
@@ -181,7 +182,7 @@ struct RendererClass // handles rendering
    void     linearizeDepth (ImageRT &dest, ImageRT &depth); // this reads from depth buffer and stores it to custom render target in linearized mode
    void       resolveDepth ();
    void       resolveDepth1();
-   Bool     dilateMotion   (ImageRTPtr &dilated_motion);
+   Bool     dilateMotion   (ImageRTPtr *dilated_full_motion, ImageRTPtr *dilated_blur_motion);
    ImageRT* adaptEye       (ImageRTC &src, ImageRT *dest);
    void     motionBlur     (ImageRT  &src, ImageRT &dest, ImageRTPtr &bloom_glow, ImageRTPtr &dilated_motion, Bool alpha, Bool combine, ImageRT *exposure);
    void     bloom          (ImageRT  &src, ImageRT &dest, ImageRTPtr &bloom_glow,                             Bool alpha, Bool combine, ImageRT *exposure);

@@ -45,6 +45,7 @@
 
 #define EXPOSURE (GLOW==2)
 
+#define DUAL_MOTION 1 // 1=more precise but slower
 #define TEX_CACHE 0 // 1=was much slower in tests, so don't use
 
 #define MAX_BLUR_LENGTH (0.2/2) // #MaxMotionBlurLength
@@ -163,9 +164,9 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
    Half sec_length2=ScreenLength2(motion.zw);
    if((min_pixel_motion>0) && sec_length2<min_length2)motion.zw=0; // #DilatedMotionZero
 
-   /* Can't be done here because it will negatively affect Temporal shader
-   {
-      motion *=    MotionScale_2 ; // #DilatedMotion
+   /* Can't be done here because full motion is needed for Temporal shader
+   {  ToBlurMotion
+      motion *=    MotionScale_2 ; // #BlurMotion
       length2*=Sqr(MotionScale_2); // since we've scaled 'motion' above after setting     'length2', then we have to scale     'length2' too
   sec_length2*=Sqr(MotionScale_2); // since we've scaled 'motion' above after setting 'sec_length2', then we have to scale 'sec_length2' too
    
@@ -201,9 +202,9 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
 #endif
    if((min_pixel_motion>0) && length2.y<min_length2)motion.zw=0; // #DilatedMotionZero
 
-   /* Can't be done here because it will negatively affect Temporal shader
-   {
-      motion   *=    MotionScale_2 ; // #DilatedMotion
+   /* Can't be done here because full motion is needed for Temporal shader
+   {  ToBlurMotion
+      motion   *=    MotionScale_2 ; // #BlurMotion
       length2.x*=Sqr(MotionScale_2); // since we've scaled 'motion' above after setting 'length2', then we have to scale 'length2' too
     //length2.y*=Sqr(MotionScale_2); not needed
 
@@ -303,7 +304,7 @@ void Convert_CS
 void ToBlurMotion(inout VecH2 motion)
 {
    motion*=MotionScale_2;
-   // limit max length - this prevents stretching objects to distances the blur can't handle anyway, making only certain samples of it visible but not all
+   // limit max length - this prevents stretching objects to distances blur can't handle anyway, making only certain samples of it visible but not all, thus reducing quality
    Half length2=ScreenLength2(motion);
    if(  length2>Sqr(MAX_BLUR_LENGTH))motion*=MAX_BLUR_LENGTH/Sqrt(length2);
 }
@@ -311,25 +312,37 @@ void ToBlurMotion(inout VecH2 motion)
 struct PixelMotion
 {
    VecH2 dir , // direction
-         perp, // direction perpendicular
-         size; // size to check along directions
+         perp; // direction perpendicular
+   Half  ext , // size to check along directions
+         len ; // size to check along directions
+#if DUAL_DILATE_MOTION
+   Half  blur_len; // size to check along directions
+#endif
 
    void set(VecH2 uv_motion, VecH2 uv_to_pixel)
    {
-           dir=uv_motion*uv_to_pixel; // convert UV motion to pixel motion
-      Half len=Length(dir);
-      if(  len)dir/=len; // normalize
-           perp=Perp(dir); // perpendicular to movement
-      Half ext=(Abs(dir.x)+Abs(dir.y))*2; // make smallest movements dilate neighbors, increase extent because later we use linear filtering, so because of blending, movement might get minimized, especially visible in cases such as moving object to the right (motion x=1, y=0) row up and down could have velocity at 0 and linear filtering could reduce motion at the object border (2 value was the smallest that fixed most problems)
-           size=VecH2(ext+len, ext); // X=along dir, Y=along perp
+      dir=uv_motion*uv_to_pixel; // convert UV motion to pixel motion
+      len=Length(dir);
+      if(len)dir/=len; // normalize
+      perp=Perp(dir); // perpendicular to movement
+      ext=(Abs(dir.x)+Abs(dir.y))*2; // make smallest movements dilate neighbors, increase extent because later we use linear filtering, so because of blending, movement might get minimized, especially visible in cases such as moving object to the right (motion x=1, y=0) row up and down could have velocity at 0 and linear filtering could reduce motion at the object border (2 value was the smallest that fixed most problems)
+      
+   #if DUAL_DILATE_MOTION
+      blur_len=ext+len*MotionScale_2;
+   #endif
+           len=ext+len;
    }
    VecH2 pos(VecH2 pos) // return pos along motion
    {
       return VecH2(Dot(pos, dir ),  // position along motion dir
                    Dot(pos, perp)); // position along motion perp
    }
-   Bool reaches1(VecH2 pos) {return pos.x>-size.y && pos.x<size.x && Abs(pos.y)<size.y;} // reaches front side, at first test for "-size.Y" (that's correct) because here Y is 'pixel_ext'
-   Bool reaches2(VecH2 pos) {return all(Abs(pos)<size)                                ;} // reaches both  sides
+#if !DUAL_DILATE_MOTION
+   Bool reaches(VecH2 pos) {pos=Abs(pos); return pos.x<len && pos.y<ext;} // reaches both sides
+#else
+   Bool reachesFull(VecH2 pos) {return pos.x>-ext &&     pos.x <     len && Abs(pos.y)<ext;} // reaches front side #MotionDir
+   Bool reachesBlur(VecH2 pos) {              return Abs(pos.x)<blur_len && Abs(pos.y)<ext;} // reaches both  sides
+#endif
 };
 /******************************************************************************/
 void DilateMaxMin(inout VecH4 max_min_motion, inout VecH2 length2, VecH4 sample_motion, VecH2 pixel_delta, VecH2 uv_to_pixel, PixelMotion base_pixel_motion) // XY=biggest, ZW=smallest

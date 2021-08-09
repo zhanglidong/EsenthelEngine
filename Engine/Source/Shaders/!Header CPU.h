@@ -40,6 +40,9 @@
 #define FX_LEAFS_2D 5
 #define FX_LEAFS_3D 6
 
+// Motion
+#define DUAL_DILATE_MOTION 1 // 1=generate separate dilated motion for Temporal and Motion
+
 // Temporal
 #define TEMPORAL_SEPARATE_ALPHA 1 // if store alpha in a separate Temporal RT, if 0 then it's stored in Temporal Data RT
 #define TEMPORAL_SEPARATE_SUPER_RES_OLD_WEIGHT 1 // if calculate Old Weight in a separate pass for Super Res, this greatly improves performance when there's a lot of movement on the screen

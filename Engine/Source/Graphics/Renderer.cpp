@@ -408,77 +408,98 @@ ImageRT* RendererClass::adaptEye(ImageRTC &src, ImageRT *dest)
    return &mul;
 }
 /******************************************************************************/
-Bool RendererClass::dilateMotion(ImageRTPtr &dilated_motion)
+Bool RendererClass::dilateMotion(ImageRTPtr *dilated_full_motion, ImageRTPtr *dilated_blur_motion)
 {
-   Mtn.load();
-   D.alpha(ALPHA_NONE);
-
-   VecI2 fx=T.fx();
-   if(!_vel) // MOTION_CAMERA, however can already be set for Temporal
+   if(dilated_full_motion || dilated_blur_motion)
    {
-     _vel.get(ImageRTDesc(fx.x, fx.y, IMAGERT_TWO_H));
-      set(_vel, null, true);
-      SetViewToViewPrev();
-      Mtn.SetVel->draw();
+      Mtn.load();
+      D.alpha(ALPHA_NONE);
+
+      VecI2 fx=T.fx();
+      if(!_vel) // MOTION_CAMERA, however can already be set for Temporal
+      {
+        _vel.get(ImageRTDesc(fx.x, fx.y, IMAGERT_TWO_H));
+         set(_vel, null, true);
+         SetViewToViewPrev();
+         Mtn.SetVel->draw();
+      }
+
+    C VecI2      &convert_src=(1 ? fx : _vel->size()); // 1 is faster but slightly lower quality
+      VecI2       res=ByteScaleRes(fx, D._mtn_res);
+      Flt         scale=Flt(convert_src.y)/res.y;
+      Int         shift=Log2Round(RoundU(scale)); // Int shift=Round(Log2(scale)); 0=full-res, 1=half, 2=quarter, 3=1/8, 4=1/16, 5=1/32 (this value is unclamped)
+      ImageRTDesc rt_desc(res.x, res.y, IMAGERT_RGBA_H); // XY=biggest motion, ZW=smallest motion
+      Vec2        pixel_size;
+      Int         dilate_pixels=DivCeil((UInt)rt_desc.size.y, (UInt)5*2); // dilate up to 20% of the screen vertically (this is the max amount of blur length, *2 because we blur both ways) #MaxMotionBlurLength
+    C auto       *dilate=&Mtn.getDilate(dilate_pixels);
+      Shader     *shader= Mtn.getConvert(shift); // 'shift' is clamped in this function
+      Rect        rect, *rect_ptr=null;
+
+      ImageRTPtr dilated_motion(rt_desc);
+      set(dilated_motion, null, false);
+      Sh.ImgXY[0]->set(_vel);
+      Sh.imgSize(convert_src); // need to have full-res size
+
+      /*ComputeShader *cs=Mtn.shader->computeFind(S8+"Convert"+(1<<shift)); 'shift' is unclamped
+      if(cs && dilated_motion->hasUAV() && Kb.ctrl())
+      {
+         need to set viewport min+size
+         Sh.RWImg->set(dilated_motion);
+         cs->compute(rt_desc.size);
+      }else*/
+      if(D._view_main.full)REPS(_eye, _eye_num)
+      {
+         Rect *eye_rect=setEyeParams();
+         shader->draw(eye_rect);
+      }else // when not rendering entire viewport
+      {
+         pixel_size=pixelToScreenSize(1); // call this after setting new RT to get 'dilated_motion' size, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
+          rect_ptr =&(rect=D.viewRect()).extend(pixel_size); // extend by 1 pixel because this will be used in full-res blur with texture filtering
+
+         Sh.ImgClamp->setConditional(ImgClamp(D.viewRect(), _vel->size()));
+                      rect_ptr->drawBorder(Vec4Zero, pixel_size*dilate->range); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
+         shader->draw(rect_ptr); // convert after drawing border
+      }
+
+      if(stage==RS_MOTION_CONVERTED && show(dilated_motion, false, true))return true;
+
+      // Dilate
+      if(DUAL_DILATE_MOTION || dilate_pixels>0) // always have to dilate for DUAL_DILATE_MOTION in order to scale by 'MotionScale_2' and clamp max length
+      {  // we need to apply Dilation, for example, if a ball object has movement, then it should be blurred, and also pixels around the ball should be blurred too
+         // however velocity for pixels around the ball (the background) may be zero, so we need to apply dilation and apply the velocity onto neighboring pixels
+
+       //Sh.imgSize(*dilated_motion); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
+      #if DUAL_DILATE_MOTION
+         if(dilated_full_motion)dilated_full_motion->get(rt_desc);
+         if(dilated_blur_motion)dilated_blur_motion->get(rt_desc);
+         set(dilated_full_motion ? *dilated_full_motion : null,
+             dilated_blur_motion ? *dilated_blur_motion : null, null, null, null, false);
+         // DUAL_DILATE_MOTION doesn't support multiple dilation because motions are scaled by 'MotionScale_2' inside dilation TODO: this could be worked around if 'MotionScale_2' was set to 1 after 1st dilate and then restored at the end
+      #else
+         ImageRTPtr next(rt_desc);
+      again:
+         dilate_pixels-=dilate->range;
+       C auto *next_dilate=(!DUAL_DILATE_MOTION && dilate_pixels>0) ? &Mtn.getDilate(dilate_pixels) : null;
+         set(next, null, false);
+         if(rect_ptr && next_dilate) // if not full viewport, and there's a next dilate
+            rect_ptr->drawBorder(Vec4Zero, pixel_size*next_dilate->range); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
+      #endif
+         dilate->Dilate->draw(dilated_motion, rect_ptr); // dilate after drawing border
+      #if !DUAL_DILATE_MOTION
+         Swap(dilated_motion, next);
+         if(next_dilate){next->discard(); dilate=next_dilate; goto again;}
+      #endif
+      }
+   #if !DUAL_DILATE_MOTION
+      if(dilated_full_motion)*dilated_full_motion=dilated_motion;
+      if(dilated_blur_motion)*dilated_blur_motion=dilated_motion;
+   #endif
+      if(stage)switch(stage)
+      {
+         case RS_MOTION_DILATED_FULL: if(dilated_full_motion && show(*dilated_full_motion, false, true))return true; break;
+         case RS_MOTION_DILATED_BLUR: if(dilated_blur_motion && show(*dilated_blur_motion, false, true))return true; break;
+      }
    }
-
- C VecI2      &convert_src=(1 ? fx : _vel->size()); // 1 is faster but slightly lower quality
-   VecI2       res=ByteScaleRes(fx, D._mtn_res);
-   Flt         scale=Flt(convert_src.y)/res.y;
-   Int         shift=Log2Round(RoundU(scale)); // Int shift=Round(Log2(scale)); 0=full-res, 1=half, 2=quarter, 3=1/8, 4=1/16, 5=1/32 (this value is unclamped)
-   ImageRTDesc rt_desc(res.x, res.y, IMAGERT_RGBA_H); // XY=biggest motion, ZW=smallest motion
-   Vec2        pixel_size;
-   Int         dilate_pixels=DivCeil((UInt)rt_desc.size.y, (UInt)5*2); // dilate up to 20% of the screen vertically (this is the max amount of blur length, *2 because we blur both ways) #MaxMotionBlurLength
- C auto       *dilate=&Mtn.getDilate(dilate_pixels);
-   Shader     *shader= Mtn.getConvert(shift); // 'shift' is clamped in this function
-   Rect        rect, *rect_ptr=null;
-
-   dilated_motion.get(rt_desc);
-   set(dilated_motion, null, false);
-   Sh.ImgXY[0]->set(_vel);
-   Sh.imgSize(convert_src); // need to have full-res size
-
-   /*ComputeShader *cs=Mtn.shader->computeFind(S8+"Convert"+(1<<shift)); 'shift' is unclamped
-   if(cs && dilated_motion->hasUAV() && Kb.ctrl())
-   {
-      need to set viewport min+size
-      Sh.RWImg->set(dilated_motion);
-      cs->compute(rt_desc.size);
-   }else*/
-   if(D._view_main.full)REPS(_eye, _eye_num)
-   {
-      Rect *eye_rect=setEyeParams();
-      shader->draw(eye_rect);
-   }else // when not rendering entire viewport
-   {
-      pixel_size=pixelToScreenSize(1); // call this after setting new RT to get 'dilated_motion' size, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
-       rect_ptr =&(rect=D.viewRect()).extend(pixel_size); // extend by 1 pixel because this will be used in full-res blur with texture filtering
-
-      Sh.ImgClamp->setConditional(ImgClamp(D.viewRect(), _vel->size()));
-                   rect_ptr->drawBorder(Vec4Zero, pixel_size*dilate->range); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
-      shader->draw(rect_ptr); // convert after drawing border
-   }
-
-   if(stage==RS_VEL_CONVERT && show(dilated_motion, false, true))return true;
-
-   // Dilate
-   if(dilate_pixels>0)
-   {  // we need to apply Dilation, for example, if a ball object has movement, then it should be blurred, and also pixels around the ball should be blurred too
-      // however velocity for pixels around the ball (the background) may be zero, so we need to apply dilation and apply the velocity onto neighboring pixels
-
-    //Sh.imgSize(*dilated); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
-      ImageRTPtr next(rt_desc);
-   again:
-      dilate_pixels-=dilate->range;
-    C auto *next_dilate=(dilate_pixels>0) ? &Mtn.getDilate(dilate_pixels) : null;
-      set(next, null, false);
-      if(rect_ptr && next_dilate) // if not full viewport, and there's a next dilate
-         rect_ptr->drawBorder(Vec4Zero, pixel_size*next_dilate->range); // draw black border around the viewport to clear and prevent from potential artifacts on viewport edges
-      dilate->Dilate->draw(dilated_motion, rect_ptr); // dilate after drawing border
-      Swap(dilated_motion, next);
-      if(next_dilate){next->discard(); dilate=next_dilate; goto again;}
-   }
-   if(stage==RS_VEL_DILATED && show(dilated_motion, false, true))return true;
    return false;
 }
 /******************************************************************************/
@@ -667,7 +688,7 @@ RendererClass& RendererClass::operator()(void (&render)())
    if(Kb.b(KB_NP0))stage=RS_DEPTH;else
    if(Kb.b(KB_NP1))stage=RS_COLOR;else
    if(Kb.b(KB_NP2))stage=RS_NORMAL;else
-   if(Kb.b(KB_NP3))stage=RS_VEL;else
+   if(Kb.b(KB_NP3))stage=RS_MOTION;else
    if(Kb.b(KB_NP4))stage=RS_SMOOTH;else
    if(Kb.b(KB_NP5))stage=RS_REFLECT;else
    if(Kb.b(KB_NP6))stage=RS_GLOW;else
@@ -1775,129 +1796,126 @@ void RendererClass::waterUnder()
 }
 void RendererClass::temporal(ImageRTPtr &dilated_motion) // !! assumes 'resolveMultiSample' was already called !!
 {
-   if(_temporal_use) // hasTemporal()
-   { /*
-      Don't 'downSample' (Super-Sampling) because quality will suffer
+/* Don't 'downSample' (Super-Sampling) because quality will suffer
 
-      by default 1 previous frame of color RT is used that continously gets updated with new data, simplified:
-         old=Lerp(old, cur, 1.0/8) which is make 'old' look more like 'cur'
-      So even after 100 frames, it still contains some tiny amount of data from the first frame
+   by default 1 previous frame of color RT is used that continously gets updated with new data, simplified:
+      old=Lerp(old, cur, 1.0/8) which is make 'old' look more like 'cur'
+   So even after 100 frames, it still contains some tiny amount of data from the first frame
 
-      'D.temporalDualHistory' works by using 2 color RT history, both get updated like this:
-      old =Lerp(old , cur, 1.0/8)
-      old1=Lerp(old1, cur, 1.0/8)
-      and weight is increased (weight+=1/8) to know how much data we have for those RT's
-      once both RT's get full, then we can completely discard 'old', treat it as empty, and use data from 'old1' (this actually works by moving 'old1' into 'old': "old=old1" and treating 'old1' as empty, by settings its weight=0)
-      This way we're sure that the RT's contain only 8 last frames of data.
+   'D.temporalDualHistory' works by using 2 color RT history, both get updated like this:
+   old =Lerp(old , cur, 1.0/8)
+   old1=Lerp(old1, cur, 1.0/8)
+   and weight is increased (weight+=1/8) to know how much data we have for those RT's
+   once both RT's get full, then we can completely discard 'old', treat it as empty, and use data from 'old1' (this actually works by moving 'old1' into 'old': "old=old1" and treating 'old1' as empty, by settings its weight=0)
+   This way we're sure that the RT's contain only 8 last frames of data.
 
-      FIXME: TODO: Warning: there might be an issue if using the same context, and rendering to multiple viewports, and then suddenly changing 'processAlphaFinal' in some of them
-      */
-      ImageRTDesc rt_desc(_col->w(), _col->h(), IMAGERT_ONE); if(D.temporalSuperRes())rt_desc.size*=2;
-      Bool        alpha=processAlphaFinal(),
-           merged_alpha=(!TEMPORAL_SEPARATE_ALPHA && alpha),
-         separate_alpha=( TEMPORAL_SEPARATE_ALPHA && alpha);
-      if(!_ctx->new_data) // doesn't have new RT's yet
+   FIXME: TODO: Warning: there might be an issue if using the same context, and rendering to multiple viewports, and then suddenly changing 'processAlphaFinal' in some of them
+   */
+   ImageRTDesc rt_desc(_col->w(), _col->h(), IMAGERT_ONE); if(D.temporalSuperRes())rt_desc.size*=2;
+   Bool        alpha=processAlphaFinal(),
+        merged_alpha=(!TEMPORAL_SEPARATE_ALPHA && alpha),
+      separate_alpha=( TEMPORAL_SEPARATE_ALPHA && alpha);
+   if(!_ctx->new_data) // doesn't have new RT's yet
+   {
+     _ctx->new_data.get(rt_desc.type(merged_alpha ? IMAGERT_TWO : IMAGERT_ONE)); // merged_alpha ? (X=alpha, Y=flicker) : (X=flicker); !! STORE ALPHA IN X SO IT CAN BE USED FOR '_alpha' RT !!
+     _ctx->new_col .get(rt_desc.type(GetImageRTType(D.glowAllow(), D.litColRTPrecision()))); // #RTOutput
+   }
+   if(separate_alpha)
+   {
+      if(!_ctx->new_alpha) // doesn't have new RT's yet
       {
-        _ctx->new_data.get(rt_desc.type(merged_alpha ? IMAGERT_TWO : IMAGERT_ONE)); // merged_alpha ? (X=alpha, Y=flicker) : (X=flicker); !! STORE ALPHA IN X SO IT CAN BE USED FOR '_alpha' RT !!
-        _ctx->new_col .get(rt_desc.type(GetImageRTType(D.glowAllow(), D.litColRTPrecision()))); // #RTOutput
+        _ctx->new_alpha.get(rt_desc.type(IMAGERT_ONE));
       }
-      if(separate_alpha)
+   }
+   if(_temporal_reset // RT's just got created or rendering to new sub-context (viewport)
+#if TEMPORAL_SEPARATE_ALPHA
+   || alpha && !_ctx->old_alpha // want alpha but doesn't have old
+#else
+   || (_ctx->old_data->typeChannels()>=2)!=merged_alpha // format doesn't match
+#endif
+   )
+   {
+      REPS(_eye, _eye_num)
       {
-         if(!_ctx->new_alpha) // doesn't have new RT's yet
-         {
-           _ctx->new_alpha.get(rt_desc.type(IMAGERT_ONE));
-         }
-      }
-      if(_temporal_reset // RT's just got created or rendering to new sub-context (viewport)
-   #if TEMPORAL_SEPARATE_ALPHA
-      || alpha && !_ctx->old_alpha // want alpha but doesn't have old
-   #else
-      || (_ctx->old_data->typeChannels()>=2)!=merged_alpha // format doesn't match
-   #endif
-      )
-      {
-         REPS(_eye, _eye_num)
-         {
-          C Rect &rect=(_stereo ? D._view_eye_rect[_eye] : D.viewRect());
-           _col->copyHw(*_ctx->new_col, false, rect);
-            if(merged_alpha)
-            {
-               if(_alpha)_alpha->copyHw(*_ctx->new_data, false, rect);else _ctx->new_data->clearViewport();
-            }else
-            {
-                                                                                                _ctx->new_data ->clearViewport();
-               if(_ctx->new_alpha){if(_alpha)_alpha->copyHw(*_ctx->new_alpha, false, rect);else _ctx->new_alpha->clearViewport();}
-            }
-         }
-      }else
-      {
+       C Rect &rect=(_stereo ? D._view_eye_rect[_eye] : D.viewRect());
+        _col->copyHw(*_ctx->new_col, false, rect);
          if(merged_alpha)
          {
-            Sh.ImgXY[1]->set(_ctx->old_data ); // old data with alpha
+            if(_alpha)_alpha->copyHw(*_ctx->new_data, false, rect);else _ctx->new_data->clearViewport();
          }else
          {
-            Sh.ImgX [1]->set(_ctx->old_data ); // old data
-            Sh.ImgX [2]->set(_ctx->old_alpha); // old alpha
+                                                                                             _ctx->new_data ->clearViewport();
+            if(_ctx->new_alpha){if(_alpha)_alpha->copyHw(*_ctx->new_alpha, false, rect);else _ctx->new_alpha->clearViewport();}
          }
-            Sh.Img  [0]->set(_col           ); // cur
-            Sh.ImgX [0]->set(_alpha         ); // cur alpha
-            Sh.Img  [1]->set(_ctx->old_col  ); // old
-            Sh.ImgXY[0]->set(_vel           ); //         motion
-            Sh.Img  [2]->set( dilated_motion); // dilated motion
+      }
+   }else
+   {
+      if(merged_alpha)
+      {
+         Sh.ImgXY[1]->set(_ctx->old_data ); // old data with alpha
+      }else
+      {
+         Sh.ImgX [1]->set(_ctx->old_data ); // old data
+         Sh.ImgX [2]->set(_ctx->old_alpha); // old alpha
+      }
+         Sh.Img  [0]->set(_col           ); // cur
+         Sh.ImgX [0]->set(_alpha         ); // cur alpha
+         Sh.Img  [1]->set(_ctx->old_col  ); // old
+         Sh.ImgXY[0]->set(_vel           ); //         motion
+         Sh.Img  [2]->set( dilated_motion); // dilated motion
 
-         Sh.imgSize(*_col); // this is needed for Cubic Sampler and SUPER_RES
+      Sh.imgSize(*_col); // this is needed for Cubic Sampler and SUPER_RES
 
-         /* CS is slightly slower than PS version, so don't use
-         ShaderFile &sf=*ShaderFiles("Temporal"); fixme
-         Bool gamma=true; fixme
-         ComputeShader *cs=sf.computeFind(S8+"Temporal"+D.temporalAntiAlias()+D._view_main.full+alpha+gamma); fixme
-         if(D.temporalSuperRes() && cs && _ctx->new_col->hasUAV() && (!_ctx->new_data || _ctx->new_data->hasUAV()) && (!_ctx->new_alpha || _ctx->new_alpha->hasUAV()))
+      /* CS is slightly slower than PS version, so don't use
+      ShaderFile &sf=*ShaderFiles("Temporal"); fixme
+      Bool gamma=true; fixme
+      ComputeShader *cs=sf.computeFind(S8+"Temporal"+D.temporalAntiAlias()+D._view_main.full+alpha+gamma); fixme
+      if(D.temporalSuperRes() && cs && _ctx->new_col->hasUAV() && (!_ctx->new_data || _ctx->new_data->hasUAV()) && (!_ctx->new_alpha || _ctx->new_alpha->hasUAV()))
+      {
+         Sh.rtSize       (*_ctx->new_col);
+         Sh.RWImg    ->set(_ctx->new_col);
+         Sh.RWImgXY  ->set(_ctx->new_data);
+         Sh.RWImgX[0]->set(_ctx->new_data);
+         Sh.RWImgX[1]->set(_ctx->new_alpha);
+         REPS(_eye, _eye_num)
          {
-            Sh.rtSize       (*_ctx->new_col);
-            Sh.RWImg    ->set(_ctx->new_col);
-            Sh.RWImgXY  ->set(_ctx->new_data);
-            Sh.RWImgX[0]->set(_ctx->new_data);
-            Sh.RWImgX[1]->set(_ctx->new_alpha);
-            REPS(_eye, _eye_num)
-            {
-               RectI viewport=ScreenToPixelI(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), _col->size());
-               Sh.ImgClamp->setConditional(ImgClamp(viewport, _col->size()));
-               GetShaderParamInt("ViewportRectI")->setConditional(viewport); fixme
-               cs->compute(DivCeil16(viewport.size()));
-            }
-         }else*/
+            RectI viewport=ScreenToPixelI(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), _col->size());
+            Sh.ImgClamp->setConditional(ImgClamp(viewport, _col->size()));
+            GetShaderParamInt("ViewportRectI")->setConditional(viewport); fixme
+            cs->compute(DivCeil16(viewport.size()));
+         }
+      }else*/
+      {
+         D.alpha(ALPHA_NONE);
+      #if TEMPORAL_SEPARATE_SUPER_RES_OLD_WEIGHT
+         ImageRTPtr old_weight;
+         if(D.temporalSuperRes()) // this is used only for SuperRes because these calculations are the same for full-pixel and sub-pixel, so for super-res it's more efficient to calculate this only once per pixel instead of doing the same calculations for each 4 sub-pixels per pixel. But for no super-res don't do this, because that would slow things down due to overhead of writing to RT and reading from it.
          {
-            D.alpha(ALPHA_NONE);
-         #if TEMPORAL_SEPARATE_SUPER_RES_OLD_WEIGHT
-            ImageRTPtr old_weight;
-            if(D.temporalSuperRes()) // this is used only for SuperRes because these calculations are the same for full-pixel and sub-pixel, so for super-res it's more efficient to calculate this only once per pixel instead of doing the same calculations for each 4 sub-pixels per pixel. But for no super-res don't do this, because that would slow things down due to overhead of writing to RT and reading from it.
-            {
-               rt_desc.type(IMAGERT_ONE).size=_col->size(); old_weight.get(rt_desc);
-               set(old_weight, null, true);
-               Shader *shader=Sh.TemporalOldWeight[D._view_main.full];
-               REPS(_eye, _eye_num)
-               {
-                  Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), _col->size()));
-                  shader->draw(_stereo ? &D._view_eye_rect[_eye] : null);
-               }
-               Sh.ImgX[3]->set(old_weight);
-            }
-         #endif
-            set(_ctx->new_data, _ctx->new_alpha, _ctx->new_col, null, null, true);
-            Shader *shader=Sh.Temporal[D.temporalAntiAlias()+2*D.temporalSuperRes()-1][D._view_main.full][alpha];
+            rt_desc.type(IMAGERT_ONE).size=_col->size(); old_weight.get(rt_desc);
+            set(old_weight, null, true);
+            Shader *shader=Sh.TemporalOldWeight[D._view_main.full];
             REPS(_eye, _eye_num)
             {
                Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), _col->size()));
                shader->draw(_stereo ? &D._view_eye_rect[_eye] : null);
             }
+            Sh.ImgX[3]->set(old_weight);
+         }
+      #endif
+         set(_ctx->new_data, _ctx->new_alpha, _ctx->new_col, null, null, true);
+         Shader *shader=Sh.Temporal[D.temporalAntiAlias()+2*D.temporalSuperRes()-1][D._view_main.full][alpha];
+         REPS(_eye, _eye_num)
+         {
+            Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), _col->size()));
+            shader->draw(_stereo ? &D._view_eye_rect[_eye] : null);
          }
       }
-
-     _col=_ctx->new_col;
-      if(alpha)_alpha=(TEMPORAL_SEPARATE_ALPHA ? _ctx->new_alpha : _ctx->new_data); // !! Warning: for TEMPORAL_SEPARATE_ALPHA=0 '_alpha' may point to multi-channel "Alpha, Flicker", this assumes that '_alpha' will not be further modified, we can't do the same for '_col' because we may modify it !!
-
-      temporalFinish();
    }
+
+  _col=_ctx->new_col;
+   if(alpha)_alpha=(TEMPORAL_SEPARATE_ALPHA ? _ctx->new_alpha : _ctx->new_data); // !! Warning: for TEMPORAL_SEPARATE_ALPHA=0 '_alpha' may point to multi-channel "Alpha, Flicker", this assumes that '_alpha' will not be further modified, we can't do the same for '_col' because we may modify it !!
+
+   temporalFinish();
 }
 void RendererClass::temporalFinish()
 {
@@ -2243,10 +2261,15 @@ void RendererClass::postProcess()
    if(alpha){if(!_alpha)setAlphaFromDepthAndCol();} // create '_alpha' if not yet available
    else          _alpha.clear(); // make sure to clear if we don't use it
 
-   ImageRTPtr dest, bloom_glow, dilated_motion;
-   if(temporal || motion)if(dilateMotion(dilated_motion))return;
+   ImageRTPtr dest, bloom_glow, dilated_full_motion, dilated_blur_motion;
+   if(dilateMotion(temporal ? &dilated_full_motion : null, motion ? &dilated_blur_motion : null))return;
+   if(stage==RS_MOTION && show(_vel, false, D.signedVelRT()))return; // velocity could've been used for MotionBlur or Temporal, check it after 'dilateMotion' because it might generate it for MOTION_CAMERA
 
-   T.temporal(dilated_motion); // !! AFTER 'temporal' we must be checking for 'ColConst' !!
+   if(temporal)
+   {
+      T.temporal(dilated_full_motion); // !! AFTER 'temporal' we must be checking for 'ColConst' !!
+                 dilated_full_motion.clear(); // no longer needed
+   }
 
    if(D.temporalSuperRes())edgeSoften(); // if have temporal super-res then 'edgeSoften' must be run after temporal upscale
 
@@ -2289,12 +2312,11 @@ void RendererClass::postProcess()
       }
       if(_alpha)fxs--; // motion blur always merges '_alpha' so remove it from list
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
-      motionBlur(*_col, *dest, bloom_glow, dilated_motion, alpha, combine, exposure); Swap(_col, dest); alpha_set=true; // Motion Blur sets Alpha
+      motionBlur(*_col, *dest, bloom_glow, dilated_blur_motion, alpha, combine, exposure); Swap(_col, dest); alpha_set=true; // Motion Blur sets Alpha
      _alpha.clear(); // got merged so clear it
+      dilated_blur_motion.clear(); // no longer needed
    }
-   if(stage==RS_VEL && show(_vel, false, D.signedVelRT()))return; // velocity could've been used for MotionBlur or Temporal, check it after 'motionBlur' because it might generate it for MOTION_CAMERA
-          _vel   .clear(); //       velocity could've been used for MotionBlur or Temporal, but after this stage we no longer need it
-   dilated_motion.clear(); // dilated motion could've been used for MotionBlur or Temporal, but after this stage we no longer need it
+  _vel.clear(); // velocity could've been used for MotionBlur or Temporal, but after this stage we no longer need it
 
    if(bloom) // bloom needs to be done before dof because of per-pixel glow
    {
