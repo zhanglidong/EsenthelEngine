@@ -244,7 +244,7 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
    const Int ofs=RANGE/2, min=0-ofs, max=RANGE-ofs;
    UNROLL for(Int y=min; y<max; y++)
    UNROLL for(Int x=min; x<max; x++)
-      DilateMaxMin(motion, length2, TexPoint(ImgXY, UVInView(uv+Vec2(x, y)*ImgSize.xy, VIEW_FULL)).xy);
+      DilateMaxMin(motion, length2, TexPoint(ImgXY, UVInView(uv+Vec2(x, y)*ImgSize.xy, VIEW_FULL)));
 #else // process samples in 2x2 blocks using linear filtering
    // for RANGE=1 (no scale          ) offset should be 0, because uv is already at the center of 1x1 texel
    // for RANGE=2 (2x downsample, 2x2) offset should be 0, because uv is already at the center of 2x2 texels (linear filtering is used)
@@ -258,7 +258,7 @@ VecH4 Convert_PS(NOPERSP Vec2 uv:UV):TARGET
       LOOP for(Int y=min; y<max; y+=2)
       LOOP for(Int x=min; x<max; x+=2)
    #endif
-         DilateMaxMin(motion, length2, TexLod(ImgXY, UVInView(uv+Vec2(x, y)*ImgSize.xy, VIEW_FULL)).xy);
+         DilateMaxMin(motion, length2, TexLod(ImgXY, UVInView(uv+Vec2(x, y)*ImgSize.xy, VIEW_FULL)));
 #endif
    if((min_pixel_motion>0) && length2.y<min_length2)motion.zw=0; // #DilatedMotionZero
 
