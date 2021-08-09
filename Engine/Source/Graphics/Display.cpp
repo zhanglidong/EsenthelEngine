@@ -3431,16 +3431,6 @@ void DisplayClass::clearStencil(Byte s) {if(Renderer._cur_ds){if(D._clip_real)gl
 /******************************************************************************/
 // CONVERT COORDINATES
 /******************************************************************************/
-Rect ImgClamp(C Rect &screen, C VecI2 &size)
-{
-   Rect r((screen.min.x+D.w())*size.x/D.w2(), (D.h()-screen.max.y)*size.y/D.h2(),
-          (screen.max.x+D.w())*size.x/D.w2(), (D.h()-screen.min.y)*size.y/D.h2());
-   RectI ri=RoundGPU(r);
-   r.min=(ri.min + 0.5f + 1.0f/256)/size; // yes +0.5 is needed due to texture filtering, also add 1/256 of a texel size to make sure we won't be reading neighbors at all in case they are huge or NaN/Inf
-   r.max=(ri.max - 0.5f - 1.0f/256)/size; // yes -0.5 is needed due to texture filtering, also add 1/256 of a texel size to make sure we won't be reading neighbors at all in case they are huge or NaN/Inf
-   return r;
-}
-
 Vec2 DisplayClass::screenToUV(C Vec2 &screen)
 {
    return Vec2((screen.x+D.w())/D.w2(),
@@ -3586,6 +3576,16 @@ void DisplayClass::alignScreenYToPixel(Flt &screen_y)
 {
    Int pixel=RoundGPU((D.h()-screen_y)*D._pixel_size_inv.y); // use 'RoundGPU' to match 'screenToPixelI'
     screen_y=D.h()-pixel*D._pixel_size.y;
+}
+
+Rect ImgClamp(C RectI &pixel, C VecI2 &res)
+{
+   return Rect((pixel.min + (0.5f + 1.0f/256))/res,  // yes +0.5 is needed due to texture filtering, also add 1/256 of a texel size to make sure we won't be reading neighbors at all in case they are huge or NaN/Inf
+               (pixel.max - (0.5f + 1.0f/256))/res); // yes -0.5 is needed due to texture filtering, also add 1/256 of a texel size to make sure we won't be reading neighbors at all in case they are huge or NaN/Inf
+}
+Rect ImgClamp(C Rect &screen, C VecI2 &res)
+{
+   return ImgClamp(ScreenToPixelI(screen, res), res);
 }
 /******************************************************************************/
 // FADE

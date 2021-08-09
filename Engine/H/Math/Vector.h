@@ -2423,6 +2423,11 @@ Vec2  AvgF(C VecI2 &a, C VecI2 &b);
 Vec   AvgF(C VecI  &a, C VecI  &b);
 Vec4  AvgF(C VecI4 &a, C VecI4 &b);
 
+#if EE_PRIVATE
+// divide
+inline VecI2 DivCeil16(C VecI2 &v) {return VecI2(DivCeil16(v.x), DivCeil16(v.y));}
+#endif
+
 // distance between 2 points
 Flt Dist(C Vec2  &a, C Vec2  &b);
 Flt Dist(C VecI2 &a, C Vec2  &b);

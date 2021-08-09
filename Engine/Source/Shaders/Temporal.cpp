@@ -539,10 +539,10 @@ Half OldWeight_PS(NOPERSP Vec2 uv:UV):TARGET
 /******************************************************************************/
 #if COMPUTE
 BUFFER(ComputeViewport)
-   VecU2 ViewportMin;
+   RectI ViewportRectI;
 BUFFER_END
 
-[numthreads(1, 1, 1)]
+[numthreads(16, 16, 1)]
 void Temporal_CS(VecU GlobalPos:SV_DispatchThreadID)
 #else
 void Temporal_PS
@@ -564,7 +564,7 @@ void Temporal_PS
 #endif
 {
 #if COMPUTE
-   VecU2 pixel=GlobalPos.xy+ViewportMin;
+   VecU2 pixel=GlobalPos.xy+ViewportRectI.min; if(any(pixel>=ViewportRectI.max))return;
    Vec2  uv=(pixel+0.5)*ImgSize.xy;
 #endif
    // GET DEPTH
@@ -593,7 +593,11 @@ void Temporal_PS
    VecH2 uv_motion=TexPoint(ImgXY, depth_motion_uv);
    Vec2  cur_uv=uv+TemporalOffset,
          old_uv=uv-uv_motion; // #MotionDir
-   Half  old_weight=(SUPER_RES && TEMPORAL_SEPARATE_SUPER_RES_OLD_WEIGHT) ? TexPoint(ImgX3, uv) : OldWeight(old_uv, uv_motion, depth);
+#if SUPER_RES && TEMPORAL_SEPARATE_SUPER_RES_OLD_WEIGHT && !COMPUTE
+   Half  old_weight=TexPoint(ImgX3, uv);
+#else
+   Half  old_weight=OldWeight(old_uv, uv_motion, depth);
+#endif
    Half  use_old=UVInsideView(old_uv) ? old_weight : 1;
 
 #if CUBIC && SUPER_RES

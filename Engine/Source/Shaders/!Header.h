@@ -259,6 +259,11 @@
 /******************************************************************************/
 #include "!Set Prec Struct.h"
 
+struct RectI
+{
+   VecI2 min, max;
+};
+
 struct ViewportClass
 {
    Flt  from, range;

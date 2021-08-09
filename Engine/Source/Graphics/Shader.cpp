@@ -739,10 +739,12 @@ void ShaderParamInt::set           (  Int    i) {                               
 void ShaderParamInt::set           (C VecI2 &v) {                                        setChanged(); *(VecI2*)_data=v; }
 void ShaderParamInt::set           (C VecI  &v) {                                        setChanged(); *(VecI *)_data=v; }
 void ShaderParamInt::set           (C VecI4 &v) {                                        setChanged(); *(VecI4*)_data=v; }
+void ShaderParamInt::set           (C RectI &v) {                                        setChanged(); *(RectI*)_data=v; }
 void ShaderParamInt::setConditional(  Int    i) {Int   &dest=*(Int  *)_data; if(dest!=i){setChanged();           dest=i;}}
 void ShaderParamInt::setConditional(C VecI2 &v) {VecI2 &dest=*(VecI2*)_data; if(dest!=v){setChanged();           dest=v;}}
 void ShaderParamInt::setConditional(C VecI  &v) {VecI  &dest=*(VecI *)_data; if(dest!=v){setChanged();           dest=v;}}
 void ShaderParamInt::setConditional(C VecI4 &v) {VecI4 &dest=*(VecI4*)_data; if(dest!=v){setChanged();           dest=v;}}
+void ShaderParamInt::setConditional(C RectI &v) {RectI &dest=*(RectI*)_data; if(dest!=v){setChanged();           dest=v;}}
 
 void ShaderParam::set(  Bool   b    ) {setChanged(); *(Flt *)_data=b;}
 void ShaderParam::set(  Int    i    ) {setChanged(); *(Flt *)_data=i;}

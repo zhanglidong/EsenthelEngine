@@ -732,8 +732,9 @@ inline DisplayClass &Display=D; // 'Display' alias ('Display' can be used the sa
    Rect  ScreenToPixel (C Rect &screen, C VecI2 &res);
    RectI ScreenToPixelI(C Rect &screen, C VecI2 &res);
 
-          Rect ImgClamp(C Rect &screen, C VecI2 &size);
-   inline Rect ImgClamp(                C VecI2 &size) {return ImgClamp(D.viewRect(), size);}
+          Rect ImgClamp(C Rect  &screen, C VecI2 &res);
+          Rect ImgClamp(C RectI &pixel , C VecI2 &res);
+   inline Rect ImgClamp(                 C VecI2 &res) {return ImgClamp(D.viewRect(), res);}
 
 #if WINDOWS_NEW
    extern Flt ScreenScale;

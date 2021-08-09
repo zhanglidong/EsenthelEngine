@@ -1847,7 +1847,7 @@ void RendererClass::temporal(ImageRTPtr &dilated_motion) // !! assumes 'resolveM
 
          Sh.imgSize(*_col); // this is needed for Cubic Sampler and SUPER_RES
 
-         /*// super slow, CS 20 fps vs PS 240 fps. perhaps because output is written in FREPD(y, 2)FREPD(x, 2) loop? or 'numthreads' can't be low?
+         /* CS is slightly slower than PS version, so don't use
          ShaderFile &sf=*ShaderFiles("Temporal"); fixme
          Bool gamma=true; fixme
          ComputeShader *cs=sf.computeFind(S8+"Temporal"+D.temporalAntiAlias()+D._view_main.full+alpha+gamma); fixme
@@ -1860,10 +1860,10 @@ void RendererClass::temporal(ImageRTPtr &dilated_motion) // !! assumes 'resolveM
             Sh.RWImgX[1]->set(_ctx->new_alpha);
             REPS(_eye, _eye_num)
             {
-               RectI viewport(0, 0, _col->w(), _col->h()); fixme
-               Sh.ImgClamp->setConditional(ImgClamp(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), _col->size()));
-               GetShaderParamInt("ViewportMin")->setConditional(viewport.min); fixme
-               cs->compute(viewport.size());
+               RectI viewport=ScreenToPixelI(_stereo ? D._view_eye_rect[_eye] : D.viewRect(), _col->size());
+               Sh.ImgClamp->setConditional(ImgClamp(viewport, _col->size()));
+               GetShaderParamInt("ViewportRectI")->setConditional(viewport); fixme
+               cs->compute(DivCeil16(viewport.size()));
             }
          }else*/
          {

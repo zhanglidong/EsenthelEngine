@@ -182,17 +182,20 @@ struct ShaderParamInt : private ShaderParam // Shader Parameter
    void set(C VecI2 &v); // set vector2D value
    void set(C VecI  &v); // set vector3D value
    void set(C VecI4 &v); // set vector4D value
+   void set(C RectI &v); // set vector4D value
 #if EE_PRIVATE
    void setConditional(  Int    i); // set integer  value only if it's different
    void setConditional(C VecI2 &v); // set vector2D value only if it's different
    void setConditional(C VecI  &v); // set vector3D value only if it's different
    void setConditional(C VecI4 &v); // set vector4D value only if it's different
+   void setConditional(C RectI &v); // set vector4D value only if it's different
 
    ASSERT(MIN_SHADER_PARAM_DATA_SIZE>=SIZE(VecI4));
  C Int  & getInt  ()C {return *(Int  *)_data;}
  C VecI2& getVecI2()C {return *(VecI2*)_data;}
  C VecI & getVecI ()C {return *(VecI *)_data;}
  C VecI4& getVecI4()C {return *(VecI4*)_data;}
+ C RectI& getRectI()C {return *(RectI*)_data;}
 #endif
 };
 /******************************************************************************/
