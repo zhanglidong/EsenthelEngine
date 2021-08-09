@@ -462,130 +462,131 @@ VecH4 Dilate_PS
 #endif
 
 #if DUAL_MOTION
-#if TEX_CACHE
-   VecH4 tex_cache          [RANGE*2+1][RANGE*2+1];
-#endif
-#if !DUAL_DILATE_MOTION
-   bool2 sample_reaches_base[RANGE*2+1][RANGE*2+1]; // X=using sample_motion.xy, Y=using sample_motion.zw
-#else
-   bool4 sample_reaches_base[RANGE*2+1][RANGE*2+1];
-#endif
-
-   // find new max
-#if !FAST_COMPILE && RANGE<=(GL ? 5 : 7) // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range, for GL limit to 5 because compilation is very slow
-   VecH2 motion_xy=motion.xy; // keep copy of 'motion.xy' because it might get overwritten
-   Half  length2=ScreenLength2(motion.xy);
-#if DUAL_DILATE_MOTION
-   Half  blur_length2=length2;
-#endif
-   UNROLL for(Int y=-RANGE; y<=RANGE; y++)
-   UNROLL for(Int x=-RANGE; x<=RANGE; x++)if(x || y)
-   {
-      VecH4 tex=TexPointOfs(Img, uv, VecI2(x, y)); // need UV clamp, so can't use Img[]
    #if TEX_CACHE
-      tex_cache[y+RANGE][x+RANGE]=tex;
+      VecH4 tex_cache          [RANGE*2+1][RANGE*2+1];
    #endif
    #if !DUAL_DILATE_MOTION
-      DilateMax(motion.xy, length2,                               tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel);
+      bool2 sample_reaches_base[RANGE*2+1][RANGE*2+1]; // X=using sample_motion.xy, Y=using sample_motion.zw
    #else
-      DilateMax(motion.xy, length2, blur_motion.xy, blur_length2, tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel);
+      bool4 sample_reaches_base[RANGE*2+1][RANGE*2+1];
    #endif
-   }
 
-   // secondary
-   Half      dist2=ScreenLength2(     motion.zw-     motion.xy); DilateSecondary(     motion,      dist2, motion_xy); // calculate from existing
-#if DUAL_DILATE_MOTION
-   Half blur_dist2=ScreenLength2(blur_motion.zw-blur_motion.xy); DilateSecondary(blur_motion, blur_dist2, motion_xy); // calculate from existing
-#endif
-#else
-   Half length2=0; // here just set 0 because we will process all samples, including (0,0) that's already set to 'motion'
-#if DUAL_DILATE_MOTION
-   Half blur_length2=0;
-#endif
-   LOOP for(Int y=-RANGE; y<=RANGE; y++)
-   LOOP for(Int x=-RANGE; x<=RANGE; x++)//if(x || y) is ignored for LOOP to avoid extra overhead, instead codes were modified to need (0,0) samples too
-   {
-      VecH4 tex=TexPoint(Img, uv+Vec2(x, y)*RTSize.xy); // need UV clamp, so can't use Img[]
-   #if TEX_CACHE
-      tex_cache[y+RANGE][x+RANGE]=tex;
+      // find new max
+   #if !FAST_COMPILE && RANGE<=(GL ? 5 : 7) // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range, for GL limit to 5 because compilation is very slow
+      VecH2 motion_xy=motion.xy; // keep copy of 'motion.xy' because it might get overwritten
+      Half  length2=ScreenLength2(motion.xy);
+   #if DUAL_DILATE_MOTION
+      Half  blur_length2=length2;
    #endif
-   #if !DUAL_DILATE_MOTION
-      DilateMax(motion.xy, length2,                               tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel);
-   #else
-      DilateMax(motion.xy, length2, blur_motion.xy, blur_length2, tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel);
-   #endif
-   }
-#endif
+      UNROLL for(Int y=-RANGE; y<=RANGE; y++)
+      UNROLL for(Int x=-RANGE; x<=RANGE; x++)if(x || y)
+      {
+         VecH4 tex=TexPointOfs(Img, uv, VecI2(x, y)); // need UV clamp, so can't use Img[]
+      #if TEX_CACHE
+         tex_cache[y+RANGE][x+RANGE]=tex;
+      #endif
+      #if !DUAL_DILATE_MOTION
+         DilateMax(motion.xy, length2,                               tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel);
+      #else
+         DilateMax(motion.xy, length2, blur_motion.xy, blur_length2, tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel);
+      #endif
+      }
 
-   // secondary
-#if !DUAL_DILATE_MOTION
-   PixelMotion base_pixel_motion; base_pixel_motion.set(motion.xy, uv_to_pixel);
-#else
-   PixelMotion base_pixel_blur_motion; base_pixel_blur_motion.set(blur_motion.xy, uv_to_pixel);
-#endif
+      // secondary
+      Half      dist2=ScreenLength2(     motion.zw-     motion.xy); DilateSecondary(     motion,      dist2, motion_xy); // calculate from existing
+   #if DUAL_DILATE_MOTION
+      Half blur_dist2=ScreenLength2(blur_motion.zw-blur_motion.xy); DilateSecondary(blur_motion, blur_dist2, motion_xy); // calculate from existing
+   #endif
+   #else
+      Half length2=0; // here just set 0 because we will process all samples, including (0,0) that's already set to 'motion'
+   #if DUAL_DILATE_MOTION
+      Half blur_length2=0;
+   #endif
+      LOOP for(Int y=-RANGE; y<=RANGE; y++)
+      LOOP for(Int x=-RANGE; x<=RANGE; x++)//if(x || y) is ignored for LOOP to avoid extra overhead, instead codes were modified to need (0,0) samples too
+      {
+         VecH4 tex=TexPoint(Img, uv+Vec2(x, y)*RTSize.xy); // need UV clamp, so can't use Img[]
+      #if TEX_CACHE
+         tex_cache[y+RANGE][x+RANGE]=tex;
+      #endif
+      #if !DUAL_DILATE_MOTION
+         DilateMax(motion.xy, length2,                               tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel);
+      #else
+         DilateMax(motion.xy, length2, blur_motion.xy, blur_length2, tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel);
+      #endif
+      }
+   #endif
 
-#if !FAST_COMPILE && RANGE<=(GL ? 5 : 7) // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range, for GL limit to 5 because compilation is very slow
-   UNROLL for(Int y=-RANGE; y<=RANGE; y++)
-   UNROLL for(Int x=-RANGE; x<=RANGE; x++)if(x || y)
-   {
-   #if TEX_CACHE
-      VecH4 tex=tex_cache[y+RANGE][x+RANGE];
-   #else
-      VecH4 tex=TexPointOfs(Img, uv, VecI2(x, y)); // need UV clamp, so can't use Img[]
-   #endif
+      // secondary
    #if !DUAL_DILATE_MOTION
-      DilateSecondary(motion, dist2,                          tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel, base_pixel_motion);
+      PixelMotion base_pixel_motion; base_pixel_motion.set(motion.xy, uv_to_pixel);
    #else
-      DilateSecondary(motion, dist2, blur_motion, blur_dist2, tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel, base_pixel_blur_motion);
+      PixelMotion base_pixel_blur_motion; base_pixel_blur_motion.set(blur_motion.xy, uv_to_pixel);
    #endif
-   }
-#else
-   Half dist2=0; // here just set 0 because we will process all samples, including (0,0) that's already set to 'motion'
-#if DUAL_DILATE_MOTION
-   Half blur_dist2=0;
-#endif
-   LOOP for(Int y=-RANGE; y<=RANGE; y++)
-   LOOP for(Int x=-RANGE; x<=RANGE; x++)//if(x || y) is ignored for LOOP to avoid extra overhead, instead codes were modified to need (0,0) samples too
-   {
-   #if TEX_CACHE
-      VecH4 tex=tex_cache[y+RANGE][x+RANGE];
+
+   #if !FAST_COMPILE && RANGE<=(GL ? 5 : 7) // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range, for GL limit to 5 because compilation is very slow
+      UNROLL for(Int y=-RANGE; y<=RANGE; y++)
+      UNROLL for(Int x=-RANGE; x<=RANGE; x++)if(x || y)
+      {
+      #if TEX_CACHE
+         VecH4 tex=tex_cache[y+RANGE][x+RANGE];
+      #else
+         VecH4 tex=TexPointOfs(Img, uv, VecI2(x, y)); // need UV clamp, so can't use Img[]
+      #endif
+      #if !DUAL_DILATE_MOTION
+         DilateSecondary(motion, dist2,                          tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel, base_pixel_motion);
+      #else
+         DilateSecondary(motion, dist2, blur_motion, blur_dist2, tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel, base_pixel_blur_motion);
+      #endif
+      }
    #else
-      VecH4 tex=TexPoint(Img, uv+Vec2(x, y)*RTSize.xy); // need UV clamp, so can't use Img[]
+      Half dist2=0; // here just set 0 because we will process all samples, including (0,0) that's already set to 'motion'
+   #if DUAL_DILATE_MOTION
+      Half blur_dist2=0;
    #endif
-   #if !DUAL_DILATE_MOTION
-      DilateSecondary(motion, dist2,                          tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel, base_pixel_motion);
-   #else
-      DilateSecondary(motion, dist2, blur_motion, blur_dist2, tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel, base_pixel_blur_motion);
+      LOOP for(Int y=-RANGE; y<=RANGE; y++)
+      LOOP for(Int x=-RANGE; x<=RANGE; x++)//if(x || y) is ignored for LOOP to avoid extra overhead, instead codes were modified to need (0,0) samples too
+      {
+      #if TEX_CACHE
+         VecH4 tex=tex_cache[y+RANGE][x+RANGE];
+      #else
+         VecH4 tex=TexPoint(Img, uv+Vec2(x, y)*RTSize.xy); // need UV clamp, so can't use Img[]
+      #endif
+      #if !DUAL_DILATE_MOTION
+         DilateSecondary(motion, dist2,                          tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel, base_pixel_motion);
+      #else
+         DilateSecondary(motion, dist2, blur_motion, blur_dist2, tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel, base_pixel_blur_motion);
+      #endif
+      }
    #endif
-   }
-#endif
 
 #else // !DUAL_MOTION
 
-   VecH2 length2=VecH2(ScreenLength2(motion.xy), ScreenLength2(motion.zw));
-#if DUAL_DILATE_MOTION
-   VecH2 blur_length2=length2;
-#endif
-   PixelMotion base_pixel_motion; base_pixel_motion.set(motion.xy, uv_to_pixel);
+      VecH2 length2=VecH2(ScreenLength2(motion.xy), ScreenLength2(motion.zw));
+   #if DUAL_DILATE_MOTION
+      VecH2 blur_length2=length2;
+   #endif
+      PixelMotion base_pixel_motion; base_pixel_motion.set(motion.xy, uv_to_pixel);
 
-#if !FAST_COMPILE && RANGE<=(GL ? 5 : 7) // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range, for GL limit to 5 because compilation is very slow
-   UNROLL for(Int y=-RANGE; y<=RANGE; y++)
-   UNROLL for(Int x=-RANGE; x<=RANGE; x++)if(x || y)
-   #if DUAL_DILATE_MOTION
-      DilateMaxMin(motion, length2, blur_motion, blur_length2, TexPointOfs(Img, uv, VecI2(x, y)), VecH2(x, y), uv_to_pixel, base_pixel_motion); // need UV clamp, so can't use Img[]
+   #if !FAST_COMPILE && RANGE<=(GL ? 5 : 7) // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range, for GL limit to 5 because compilation is very slow
+      UNROLL for(Int y=-RANGE; y<=RANGE; y++)
+      UNROLL for(Int x=-RANGE; x<=RANGE; x++)if(x || y)
+      #if DUAL_DILATE_MOTION
+         DilateMaxMin(motion, length2, blur_motion, blur_length2, TexPointOfs(Img, uv, VecI2(x, y)), VecH2(x, y), uv_to_pixel, base_pixel_motion); // need UV clamp, so can't use Img[]
+      #else
+         DilateMaxMin(motion, length2,                            TexPointOfs(Img, uv, VecI2(x, y)), VecH2(x, y), uv_to_pixel, base_pixel_motion); // need UV clamp, so can't use Img[]
+      #endif
    #else
-      DilateMaxMin(motion, length2,                            TexPointOfs(Img, uv, VecI2(x, y)), VecH2(x, y), uv_to_pixel, base_pixel_motion); // need UV clamp, so can't use Img[]
+      LOOP for(Int y=-RANGE; y<=RANGE; y++)
+      LOOP for(Int x=-RANGE; x<=RANGE; x++)
+      #if DUAL_DILATE_MOTION
+         DilateMaxMin(motion, length2, blur_motion, blur_length2, TexPoint(Img, uv+Vec2(x, y)*RTSize.xy), VecH2(x, y), uv_to_pixel, base_pixel_motion); // need UV clamp, so can't use Img[]
+      #else
+         DilateMaxMin(motion, length2,                            TexPoint(Img, uv+Vec2(x, y)*RTSize.xy), VecH2(x, y), uv_to_pixel, base_pixel_motion); // need UV clamp, so can't use Img[]
+      #endif
    #endif
-#else
-   LOOP for(Int y=-RANGE; y<=RANGE; y++)
-   LOOP for(Int x=-RANGE; x<=RANGE; x++)
-   #if DUAL_DILATE_MOTION
-      DilateMaxMin(motion, length2, blur_motion, blur_length2, TexPoint(Img, uv+Vec2(x, y)*RTSize.xy), VecH2(x, y), uv_to_pixel, base_pixel_motion); // need UV clamp, so can't use Img[]
-   #else
-      DilateMaxMin(motion, length2,                            TexPoint(Img, uv+Vec2(x, y)*RTSize.xy), VecH2(x, y), uv_to_pixel, base_pixel_motion); // need UV clamp, so can't use Img[]
-   #endif
-#endif
-#endif
+
+#endif // DUAL_MOTION
 
 #if DUAL_DILATE_MOTION // #BlurMotion
    ToBlurMotion(blur_motion.xy);
