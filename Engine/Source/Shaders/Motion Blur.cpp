@@ -18,6 +18,8 @@
       where one side doesn't get blurred because it wants to get samples behind the object however they're not avaialble since the object covers them,
       so when blurring in both ways, we can just use samples from the other side
 
+   If this is ever changed then DUAL_DILATE_MOTION could be disabled and just 1 full dilated motion calculated.
+
 /******************************************************************************/
 #ifndef VIEW_FULL
 #define VIEW_FULL 1
