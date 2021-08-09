@@ -109,6 +109,11 @@ void DilateMax(inout VecH2 max_motion, inout Half max_length2, VecH2 sample_moti
    Half sample_len2=ScreenLength2(sample_motion);
    if(  sample_len2>max_length2){max_length2=sample_len2; max_motion=sample_motion;}
 }
+void DilateMin(inout VecH2 min_motion, inout Half min_length2, VecH2 sample_motion)
+{
+   Half sample_len2=ScreenLength2(sample_motion);
+   if(  sample_len2<min_length2){min_length2=sample_len2; min_motion=sample_motion;}
+}
 void DilateSecondary(inout VecH4 motion, inout Half max_dist2, VecH2 sample_motion)
 {
    Half sample_dist2=ScreenLength2(sample_motion-motion.xy); // distance of sample_motion to biggest motion
@@ -128,13 +133,9 @@ void DilateMaxMin(inout VecH4 max_min_motion, inout VecH2 length2, VecH4 sample_
       Bool sample_reaches_base  =all(Abs(  base_pos_motion)<sample_pixel_motion_size);
       Bool   base_reaches_sample=all(Abs(sample_pos_motion)<  base_pixel_motion_size);
       if(  sample_reaches_base) // if sample reaches base
-      {
-         Half sample_len2=ScreenLength2(sample_motion.xy); if(sample_len2>length2.x){length2.x=sample_len2; max_min_motion.xy=sample_motion.xy;} // biggest
-      }
+         DilateMax(max_min_motion.xy, length2.x, sample_motion.xy); // biggest
       if(sample_reaches_base || base_reaches_sample) // if either sample reaches base or base reaches sample, adjust smallest
-      {
-         Half sample_len2=ScreenLength2(sample_motion.zw); if(sample_len2<length2.y){length2.y=sample_len2; max_min_motion.zw=sample_motion.zw;} // smallest
-      }
+         DilateMin(max_min_motion.zw, length2.y, sample_motion.zw); // smallest
    }
 }
 /******************************************************************************/
@@ -360,12 +361,32 @@ void Convert_CS
    Output = Dilated Max Min UV Motion
 
 /******************************************************************************/
+VecH2 ToBlurMotion(VecH2 motion)
+{
+   motion*=MotionScale_2;
+   // limit max length - this prevents stretching objects to distances the blur can't handle anyway, making only certain samples of it visible but not all
+   Half length2=ScreenLength2(motion);
+   if(  length2>Sqr(MAX_BLUR_LENGTH))motion*=MAX_BLUR_LENGTH/Sqrt(length2);
+   return motion;
+}
+/******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
 // Dilate doesn't use UV clamping, instead border around viewport is cleared
-VecH4 Dilate_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL):TARGET
+VecH4 Dilate_PS
+(
+   NOPERSP Vec2 uv:UV,
+   NOPERSP PIXEL
+#if DUAL_DILATE
+ , out VecH4 blur_motion:TARGET1
+#endif
+):TARGET
 {
    const VecH2 uv_to_pixel=RTSize.zw;
          VecH4 motion=Img[pixel.xy];
+#if DUAL_DILATE
+   blur_motion=motion;
+#endif
+
 #if DUAL_MOTION
 #if TEX_CACHE
    VecH4 tex_cache          [RANGE*2+1][RANGE*2+1];
@@ -446,6 +467,12 @@ VecH4 Dilate_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL):TARGET
       DilateMaxMin(motion, length2, TexPoint(Img, uv+Vec2(x, y)*RTSize.xy), VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size); // need UV clamp, so can't use Img[]
 #endif
 #endif
+
+#if DUAL_DILATE
+   blur_motion.xy=ToBlurMotion(blur_motion.xy);
+   blur_motion.zw=ToBlurMotion(blur_motion.zw);
+#endif
+
    return motion;
 }
 /******************************************************************************/
@@ -604,7 +631,7 @@ VecH4 Blur_PS
    NOPERSP Vec2 uv0:UV,
    NOPERSP PIXEL
 #if GLOW
-     , out VecH bloom:TARGET1
+ , out VecH bloom:TARGET1
 #endif
 ):TARGET
 {
@@ -614,10 +641,7 @@ VecH4 Blur_PS
 
    BRANCH if(any(dilated.xy)) // XY=biggest, can use 'any' because small motions were already forced to 0 in 'Convert' #DilatedMotionZero
    {
-      VecH2 blur_dir=dilated.xy*MotionScale_2; // #DilatedMotion
-      // limit max length - this prevents stretching objects to distances the blur can't handle anyway, making only certain samples of it visible but not all
-      Half length2=ScreenLength2(blur_dir);
-      if(  length2>Sqr(MAX_BLUR_LENGTH))blur_dir*=MAX_BLUR_LENGTH/Sqrt(length2);
+      VecH2 blur_dir=dilated.xy; if(!DUAL_DILATE)blur_dir=ToBlurMotion(blur_dir);
 
       Vec4 dir=Vec4(blur_dir, -blur_dir);
       Int  steps=SAMPLES;
