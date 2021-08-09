@@ -319,7 +319,8 @@ void GetPixelMotion(VecH2 uv_motion, VecH2 uv_to_pixel, out VecH2 pixel_motion, 
    Half pixel_ext=(Abs(pixel_motion.x)+Abs(pixel_motion.y))*2; // make smallest movements dilate neighbors, increase extent because later we use linear filtering, so because of blending, movement might get minimized, especially visible in cases such as moving object to the right (motion x=1, y=0) row up and down could have velocity at 0 and linear filtering could reduce motion at the object border (2 value was the smallest that fixed most problems)
         pixel_motion_size=VecH2(pixel_ext+pixel_motion_len, pixel_ext); // X=along movement, Y=perp
 }
-Bool Reaches2(VecH2 pos, VecH2 size) {return all(Abs(pos)<size);} // reaches both sides
+Bool Reaches1(VecH2 pos, VecH2 size) {return pos.x>-size.y && pos.x<size.x && Abs(pos.y)<size.y;} // reaches front side, at first test for "-size.Y" (that's correct) because here Y is 'pixel_ext'
+Bool Reaches2(VecH2 pos, VecH2 size) {return all(Abs(pos)<size)                                ;} // reaches both  sides
 /******************************************************************************/
 void DilateMaxMin(inout VecH4 max_min_motion, inout VecH2 length2, VecH4 sample_motion, VecH2 pixel_delta, VecH2 uv_to_pixel, VecH2 base_pixel_motion, VecH2 base_pixel_motion_perp, VecH2 base_pixel_motion_size) // XY=biggest, ZW=smallest
 {
