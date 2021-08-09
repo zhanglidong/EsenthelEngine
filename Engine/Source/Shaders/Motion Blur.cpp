@@ -411,6 +411,35 @@ void DilateSecondary(inout VecH4 motion, inout Half max_dist2, VecH4 sample_moti
    if(   base_reaches_sample || sample_reaches_base.y)DilateSecondary(motion, max_dist2, sample_motion.zw); // if base reaches sample, or sample.zw reaches base
 }
 #else
+void DilateMax(inout VecH2 max_full_motion, inout Half max_full_length2,
+               inout VecH2 max_blur_motion, inout Half max_blur_length2, VecH4 sample_motion, out bool4 sample_reaches_base, VecH2 pixel_delta, VecH2 uv_to_pixel)
+{
+   PixelMotion sample_pixel_motion;
+ //if(all(Abs(sample_motion.xy)>=Abs(uv_delta))) this check slows down so don't use, also it would need some EPS +eps (ImgSize/RTSize *1 *0.99 *0.5) etc.
+   {
+      sample_pixel_motion.set(sample_motion.xy, uv_to_pixel);
+      VecH2 base_pos=sample_pixel_motion.pos(pixel_delta); // base position along sample motion
+      if(sample_reaches_base.x=sample_pixel_motion.reachesFull(base_pos))DilateMax(max_full_motion, max_full_length2, sample_motion.xy); // if sample.xy full reaches base
+      if(sample_reaches_base.y=sample_pixel_motion.reachesBlur(base_pos))DilateMax(max_blur_motion, max_blur_length2, sample_motion.xy); // if sample.xy blur reaches base
+   }
+ //if(all(Abs(sample_motion.zw)>=Abs(uv_delta))) this check slows down so don't use, also it would need some EPS +eps (ImgSize/RTSize *1 *0.99 *0.5) etc.
+   {
+      sample_pixel_motion.set(sample_motion.zw, uv_to_pixel);
+      VecH2 base_pos=sample_pixel_motion.pos(pixel_delta); // base position along sample motion
+      if(sample_reaches_base.z=sample_pixel_motion.reachesFull(base_pos))DilateMax(max_full_motion, max_full_length2, sample_motion.zw); // if sample.zw full reaches base
+      if(sample_reaches_base.w=sample_pixel_motion.reachesBlur(base_pos))DilateMax(max_blur_motion, max_blur_length2, sample_motion.zw); // if sample.zw blur reaches base
+   }
+}
+void DilateSecondary(inout VecH4 full_motion, inout Half max_full_dist2,
+                     inout VecH4 blur_motion, inout Half max_blur_dist2, VecH4 sample_motion, bool4 sample_reaches_base, VecH2 pixel_delta, VecH2 uv_to_pixel, PixelMotion base_pixel_blur_motion) // XY=biggest, ZW=secondary
+{
+   VecH2 sample_pos=base_pixel_blur_motion.pos(pixel_delta); // sample position along base motion
+   Bool  base_blur_reaches_sample=base_pixel_blur_motion.reachesBlur(sample_pos);
+   if(   base_blur_reaches_sample || sample_reaches_base.y)DilateSecondary(blur_motion, max_blur_dist2, sample_motion.xy); // if base blur reaches sample, or sample.xy blur reaches base
+   if(   base_blur_reaches_sample || sample_reaches_base.w)DilateSecondary(blur_motion, max_blur_dist2, sample_motion.zw); // if base blur reaches sample, or sample.zw blur reaches base
+   if(                               sample_reaches_base.x)DilateSecondary(full_motion, max_full_dist2, sample_motion.xy); // if                              sample.xy full reaches base
+   if(                               sample_reaches_base.z)DilateSecondary(full_motion, max_full_dist2, sample_motion.zw); // if                              sample.zw full reaches base
+}
 #endif
 /******************************************************************************/
 #endif
