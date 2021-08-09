@@ -345,6 +345,8 @@ struct PixelMotion
 #endif
 };
 /******************************************************************************/
+#if !DUAL_MOTION
+#if !DUAL_DILATE_MOTION
 void DilateMaxMin(inout VecH4 max_min_motion, inout VecH2 length2, VecH4 sample_motion, VecH2 pixel_delta, VecH2 uv_to_pixel, PixelMotion base_pixel_motion) // XY=biggest, ZW=smallest
 {
  //if(all(Abs(sample_motion.xy)>=Abs(uv_delta))) this check slows down so don't use, also it would need some EPS +eps (ImgSize/RTSize *1 *0.99 *0.5) etc.
@@ -352,15 +354,39 @@ void DilateMaxMin(inout VecH4 max_min_motion, inout VecH2 length2, VecH4 sample_
       PixelMotion sample_pixel_motion; sample_pixel_motion.set(sample_motion.xy, uv_to_pixel);
       VecH2   base_pos=sample_pixel_motion.pos(pixel_delta); // base   position along sample motion
       VecH2 sample_pos=  base_pixel_motion.pos(pixel_delta); // sample position along base   motion
-      Bool  sample_reaches_base  =sample_pixel_motion.reaches2(  base_pos);
-      Bool    base_reaches_sample=  base_pixel_motion.reaches2(sample_pos);
-      if(   sample_reaches_base) // if sample reaches base
-         DilateMax(max_min_motion.xy, length2.x, sample_motion.xy); // biggest
-      if(sample_reaches_base || base_reaches_sample) // if either sample reaches base or base reaches sample, adjust smallest
-         DilateMin(max_min_motion.zw, length2.y, sample_motion.zw); // smallest
+      Bool  sample_reaches_base  =sample_pixel_motion.reaches(  base_pos);
+      Bool    base_reaches_sample=  base_pixel_motion.reaches(sample_pos);
+      if(   sample_reaches_base                       )DilateMax(max_min_motion.xy, length2.x, sample_motion.xy); // if sample reaches base                        -  biggest
+      if(   sample_reaches_base || base_reaches_sample)DilateMin(max_min_motion.zw, length2.y, sample_motion.zw); // if sample reaches base or base reaches sample - smallest
    }
 }
+#else
+void DilateMaxMin(inout VecH4 max_min_full_motion, inout VecH2 full_length2, 
+                  inout VecH4 max_min_blur_motion, inout VecH2 blur_length2, VecH4 sample_motion, VecH2 pixel_delta, VecH2 uv_to_pixel, PixelMotion base_pixel_motion) // XY=biggest, ZW=smallest
+{
+ //if(all(Abs(sample_motion.xy)>=Abs(uv_delta))) this check slows down so don't use, also it would need some EPS +eps (ImgSize/RTSize *1 *0.99 *0.5) etc.
+   {
+      PixelMotion sample_pixel_motion ; sample_pixel_motion .set(sample_motion.xy, uv_to_pixel);
+      PixelMotion sample_pixel_motion1; sample_pixel_motion1.set(sample_motion.zw, uv_to_pixel);
+      VecH2   base_pos =sample_pixel_motion .pos(pixel_delta); // base   position along sample  motion
+      VecH2   base_pos1=sample_pixel_motion1.pos(pixel_delta); // base   position along sample1 motion
+      VecH2 sample_pos =  base_pixel_motion .pos(pixel_delta); // sample position along base    motion
+      Bool  sample_full_reaches_base  =sample_pixel_motion .reachesFull(  base_pos );
+      Bool  sample_full_reaches_base1 =sample_pixel_motion1.reachesFull(  base_pos1);
+      Bool  sample_blur_reaches_base  =sample_pixel_motion .reachesBlur(  base_pos );
+      Bool    base_blur_reaches_sample=  base_pixel_motion .reachesBlur(sample_pos );
+
+      if(sample_full_reaches_base                            )DilateMax(max_min_full_motion.xy, full_length2.x, sample_motion.xy); // if sample reaches base                        -  biggest
+      if(sample_full_reaches_base1                           )DilateMin(max_min_full_motion.zw, full_length2.y, sample_motion.zw); // if sample reaches base                        - smallest
+      if(sample_blur_reaches_base                            )DilateMax(max_min_blur_motion.xy, blur_length2.x, sample_motion.xy); // if sample reaches base                        -  biggest
+      if(sample_blur_reaches_base || base_blur_reaches_sample)DilateMin(max_min_blur_motion.zw, blur_length2.y, sample_motion.zw); // if sample reaches base or base reaches sample - smallest, process this for blur because we need to know if along the blur dir there are any different motions in order to use slow/precise motion blur path
+   }
+}
+#endif
 /******************************************************************************/
+#else
+/******************************************************************************/
+#if !DUAL_DILATE_MOTION
 void DilateMax(inout VecH2 max_motion, inout Half max_length2, VecH4 sample_motion, out bool2 sample_reaches_base, VecH2 pixel_delta, VecH2 uv_to_pixel)
 {
    PixelMotion sample_pixel_motion;
@@ -368,24 +394,26 @@ void DilateMax(inout VecH2 max_motion, inout Half max_length2, VecH4 sample_moti
    {
       sample_pixel_motion.set(sample_motion.xy, uv_to_pixel);
       VecH2 base_pos=sample_pixel_motion.pos(pixel_delta); // base position along sample motion
-      if(sample_reaches_base.x=sample_pixel_motion.reaches2(base_pos)) // if sample reaches base
-         DilateMax(max_motion, max_length2, sample_motion.xy);
+      if(sample_reaches_base.x=sample_pixel_motion.reaches(base_pos))DilateMax(max_motion, max_length2, sample_motion.xy); // if sample reaches base
    }
  //if(all(Abs(sample_motion.zw)>=Abs(uv_delta))) this check slows down so don't use, also it would need some EPS +eps (ImgSize/RTSize *1 *0.99 *0.5) etc.
    {
       sample_pixel_motion.set(sample_motion.zw, uv_to_pixel);
       VecH2 base_pos=sample_pixel_motion.pos(pixel_delta); // base position along sample motion
-      if(sample_reaches_base.y=sample_pixel_motion.reaches2(base_pos)) // if sample reaches base
-         DilateMax(max_motion, max_length2, sample_motion.zw);
+      if(sample_reaches_base.y=sample_pixel_motion.reaches(base_pos))DilateMax(max_motion, max_length2, sample_motion.zw); // if sample reaches base
    }
 }
-void DilateSecondary(inout VecH4 motion, inout Half max_dist2, VecH4 sample_motion, bool2 sample_reaches_base, VecH2 pixel_delta, VecH2 uv_to_pixel, PixelMotion base_pixel_motion) // XY=biggest, ZW=smallest
+void DilateSecondary(inout VecH4 motion, inout Half max_dist2, VecH4 sample_motion, bool2 sample_reaches_base, VecH2 pixel_delta, VecH2 uv_to_pixel, PixelMotion base_pixel_motion) // XY=biggest, ZW=secondary
 {
    VecH2 sample_pos=base_pixel_motion.pos(pixel_delta); // sample position along base motion
-   Bool  base_reaches_sample=base_pixel_motion.reaches2(sample_pos);
+   Bool  base_reaches_sample=base_pixel_motion.reaches(sample_pos);
    if(   base_reaches_sample || sample_reaches_base.x)DilateSecondary(motion, max_dist2, sample_motion.xy); // if base reaches sample, or sample.xy reaches base
    if(   base_reaches_sample || sample_reaches_base.y)DilateSecondary(motion, max_dist2, sample_motion.zw); // if base reaches sample, or sample.zw reaches base
 }
+#else
+#endif
+/******************************************************************************/
+#endif
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
 // Dilate doesn't use UV clamping, instead border around viewport is cleared
@@ -393,14 +421,14 @@ VecH4 Dilate_PS
 (
    NOPERSP Vec2 uv:UV,
    NOPERSP PIXEL
-#if DUAL_DILATE
+#if DUAL_DILATE_MOTION
  , out VecH4 blur_motion:TARGET1
 #endif
 ):TARGET
 {
    const VecH2 uv_to_pixel=RTSize.zw;
          VecH4 motion=Img[pixel.xy];
-#if DUAL_DILATE
+#if DUAL_DILATE_MOTION
    blur_motion=motion;
 #endif
 
@@ -408,7 +436,11 @@ VecH4 Dilate_PS
 #if TEX_CACHE
    VecH4 tex_cache          [RANGE*2+1][RANGE*2+1];
 #endif
+#if !DUAL_DILATE_MOTION
    bool2 sample_reaches_base[RANGE*2+1][RANGE*2+1]; // X=using sample_motion.xy, Y=using sample_motion.zw
+#else
+   bool4 sample_reaches_base[RANGE*2+1][RANGE*2+1];
+#endif
 
    // find new max
 #if !FAST_COMPILE && RANGE<=(GL ? 5 : 7) // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range, for GL limit to 5 because compilation is very slow
