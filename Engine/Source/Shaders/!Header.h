@@ -14,6 +14,7 @@
       -use 'TexPoint' or 'TexLod' wherever possible
       -use constants without any suffix (0.0 instead of 0.0f or 0.0h) - https://gpuopen.com/first-steps-implementing-fp16/ - "Using either the h or f suffix will result in a conversion. It is better to use the unadorned literal, such as 0.0, 1.5 and so on."
       -if want to use "branching, continue, break" then have to check how it affects performance
+      -compute shaders might be slow if "numthreads" is low (1,1,1)
 
 /******************************************************************************/
 #include "!Header CPU.h"
