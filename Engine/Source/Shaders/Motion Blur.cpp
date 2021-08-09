@@ -317,14 +317,13 @@ struct PixelMotion
    void set(VecH2 uv_motion, VecH2 uv_to_pixel)
    {
            dir=uv_motion*uv_to_pixel; // convert UV motion to pixel motion
-    //Half len2=Length2(dir);
       Half len=Length(dir);
       if(  len)dir/=len; // normalize
            perp=Perp(dir); // perpendicular to movement
       Half ext=(Abs(dir.x)+Abs(dir.y))*2; // make smallest movements dilate neighbors, increase extent because later we use linear filtering, so because of blending, movement might get minimized, especially visible in cases such as moving object to the right (motion x=1, y=0) row up and down could have velocity at 0 and linear filtering could reduce motion at the object border (2 value was the smallest that fixed most problems)
            size=VecH2(ext+len, ext); // X=along dir, Y=along perp
    }
-   VecH2 pos(VecH2 pos) // return pos along pixel motion
+   VecH2 pos(VecH2 pos) // return pos along motion
    {
       return VecH2(Dot(pos, dir ),  // position along motion dir
                    Dot(pos, perp)); // position along motion perp
@@ -338,10 +337,10 @@ void DilateMaxMin(inout VecH4 max_min_motion, inout VecH2 length2, VecH4 sample_
  //if(all(Abs(sample_motion.xy)>=Abs(uv_delta))) this check slows down so don't use, also it would need some EPS +eps (ImgSize/RTSize *1 *0.99 *0.5) etc.
    {
       PixelMotion sample_pixel_motion; sample_pixel_motion.set(sample_motion.xy, uv_to_pixel);
-      VecH2   base_pos_motion=sample_pixel_motion.pos(pixel_delta); // base   position along sample motion
-      VecH2 sample_pos_motion=  base_pixel_motion.pos(pixel_delta); // sample position along base   motion
-      Bool  sample_reaches_base  =sample_pixel_motion.reaches2(  base_pos_motion);
-      Bool    base_reaches_sample=  base_pixel_motion.reaches2(sample_pos_motion);
+      VecH2   base_pos=sample_pixel_motion.pos(pixel_delta); // base   position along sample motion
+      VecH2 sample_pos=  base_pixel_motion.pos(pixel_delta); // sample position along base   motion
+      Bool  sample_reaches_base  =sample_pixel_motion.reaches2(  base_pos);
+      Bool    base_reaches_sample=  base_pixel_motion.reaches2(sample_pos);
       if(   sample_reaches_base) // if sample reaches base
          DilateMax(max_min_motion.xy, length2.x, sample_motion.xy); // biggest
       if(sample_reaches_base || base_reaches_sample) // if either sample reaches base or base reaches sample, adjust smallest
@@ -355,22 +354,22 @@ void DilateMax(inout VecH2 max_motion, inout Half max_length2, VecH4 sample_moti
  //if(all(Abs(sample_motion.xy)>=Abs(uv_delta))) this check slows down so don't use, also it would need some EPS +eps (ImgSize/RTSize *1 *0.99 *0.5) etc.
    {
       sample_pixel_motion.set(sample_motion.xy, uv_to_pixel);
-      VecH2 base_pos_motion=sample_pixel_motion.pos(pixel_delta); // base position along sample motion
-      if(sample_reaches_base.x=sample_pixel_motion.reaches2(base_pos_motion)) // if sample reaches base
+      VecH2 base_pos=sample_pixel_motion.pos(pixel_delta); // base position along sample motion
+      if(sample_reaches_base.x=sample_pixel_motion.reaches2(base_pos)) // if sample reaches base
          DilateMax(max_motion, max_length2, sample_motion.xy);
    }
  //if(all(Abs(sample_motion.zw)>=Abs(uv_delta))) this check slows down so don't use, also it would need some EPS +eps (ImgSize/RTSize *1 *0.99 *0.5) etc.
    {
       sample_pixel_motion.set(sample_motion.zw, uv_to_pixel);
-      VecH2 base_pos_motion=sample_pixel_motion.pos(pixel_delta); // base position along sample motion
-      if(sample_reaches_base.y=sample_pixel_motion.reaches2(base_pos_motion)) // if sample reaches base
+      VecH2 base_pos=sample_pixel_motion.pos(pixel_delta); // base position along sample motion
+      if(sample_reaches_base.y=sample_pixel_motion.reaches2(base_pos)) // if sample reaches base
          DilateMax(max_motion, max_length2, sample_motion.zw);
    }
 }
 void DilateSecondary(inout VecH4 motion, inout Half max_dist2, VecH4 sample_motion, bool2 sample_reaches_base, VecH2 pixel_delta, VecH2 uv_to_pixel, PixelMotion base_pixel_motion) // XY=biggest, ZW=smallest
 {
-   VecH2 sample_pos_motion=base_pixel_motion.pos(pixel_delta); // sample position along base motion
-   Bool  base_reaches_sample=base_pixel_motion.reaches2(sample_pos_motion);
+   VecH2 sample_pos=base_pixel_motion.pos(pixel_delta); // sample position along base motion
+   Bool  base_reaches_sample=base_pixel_motion.reaches2(sample_pos);
    if(   base_reaches_sample || sample_reaches_base.x)DilateSecondary(motion, max_dist2, sample_motion.xy); // if base reaches sample, or sample.xy reaches base
    if(   base_reaches_sample || sample_reaches_base.y)DilateSecondary(motion, max_dist2, sample_motion.zw); // if base reaches sample, or sample.zw reaches base
 }
