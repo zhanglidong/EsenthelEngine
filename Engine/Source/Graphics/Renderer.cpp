@@ -474,7 +474,7 @@ Bool RendererClass::dilateMotion(ImageRTPtr *dilated_full_motion, ImageRTPtr *di
          if(dilated_blur_motion)dilated_blur_motion->get(rt_desc);
          set(dilated_full_motion ? *dilated_full_motion : null,
              dilated_blur_motion ? *dilated_blur_motion : null, null, null, null, false);
-         // DUAL_DILATE_MOTION doesn't support multiple dilation because motions are scaled by 'MotionScale_2' inside dilation TODO: this could be worked around if 'MotionScale_2' was set to 1 after 1st dilate and then restored at the end
+         // DUAL_DILATE_MOTION doesn't support multiple dilation because motions are scaled by 'MotionScale_2' inside dilation and input is taken only from 1 motion RT TODO: this could be worked around if 'MotionScale_2' was set to 1 after 1st dilate and then restored at the end
       #else
          ImageRTPtr next(rt_desc);
       again:
