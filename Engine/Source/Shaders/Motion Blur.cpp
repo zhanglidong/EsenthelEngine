@@ -361,13 +361,12 @@ void Convert_CS
    Output = Dilated Max Min UV Motion
 
 /******************************************************************************/
-VecH2 ToBlurMotion(VecH2 motion)
+void ToBlurMotion(inout VecH2 motion)
 {
    motion*=MotionScale_2;
    // limit max length - this prevents stretching objects to distances the blur can't handle anyway, making only certain samples of it visible but not all
    Half length2=ScreenLength2(motion);
    if(  length2>Sqr(MAX_BLUR_LENGTH))motion*=MAX_BLUR_LENGTH/Sqrt(length2);
-   return motion;
 }
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
@@ -469,8 +468,8 @@ VecH4 Dilate_PS
 #endif
 
 #if DUAL_DILATE
-   blur_motion.xy=ToBlurMotion(blur_motion.xy);
-   blur_motion.zw=ToBlurMotion(blur_motion.zw);
+   ToBlurMotion(blur_motion.xy);
+   ToBlurMotion(blur_motion.zw);
 #endif
 
    return motion;
@@ -641,7 +640,7 @@ VecH4 Blur_PS
 
    BRANCH if(any(dilated.xy)) // XY=biggest, can use 'any' because small motions were already forced to 0 in 'Convert' #DilatedMotionZero
    {
-      VecH2 blur_dir=dilated.xy; if(!DUAL_DILATE)blur_dir=ToBlurMotion(blur_dir);
+      VecH2 blur_dir=dilated.xy; if(!DUAL_DILATE)ToBlurMotion(blur_dir);
 
       Vec4 dir=Vec4(blur_dir, -blur_dir);
       Int  steps=SAMPLES;
