@@ -94,7 +94,7 @@ void GetPixelMotion(VecH2 uv_motion, VecH2 uv_to_pixel, out VecH2 pixel_motion, 
  //if( !pixel_motion_len)return; slows down
    if(  pixel_motion_len)pixel_motion/=pixel_motion_len; // normalize
         pixel_motion_perp=Perp(pixel_motion); // perpendicular to movement
-   Half pixel_ext=(Abs(pixel_motion.x)+Abs(pixel_motion.y))*2; // make smallest movements dilate neighbors, increase extent because later we use linear filtering, so because of blending movement might get minimized, especially visible in cases such as moving object to the right (motion x=1, y=0) row up and down could have velocity at 0 and linear filtering could reduce motion at the object border (2 value was the smallest that fixed most problems)
+   Half pixel_ext=(Abs(pixel_motion.x)+Abs(pixel_motion.y))*2; // make smallest movements dilate neighbors, increase extent because later we use linear filtering, so because of blending, movement might get minimized, especially visible in cases such as moving object to the right (motion x=1, y=0) row up and down could have velocity at 0 and linear filtering could reduce motion at the object border (2 value was the smallest that fixed most problems)
         pixel_motion_size=VecH2(pixel_ext+pixel_motion_len, pixel_ext);
 }
 /******************************************************************************/
@@ -370,7 +370,7 @@ VecH4 Dilate_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL):TARGET
 #if TEX_CACHE
    VecH4 tex_cache          [RANGE*2+1][RANGE*2+1];
 #endif
-   bool2 sample_reaches_base[RANGE*2+1][RANGE*2+1];
+   bool2 sample_reaches_base[RANGE*2+1][RANGE*2+1]; // X=using sample_motion.xy, Y=using sample_motion.zw
 
    // find new max
 #if !FAST_COMPILE && RANGE<=(GL ? 5 : 7) // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range, for GL limit to 5 because compilation is very slow
@@ -379,7 +379,7 @@ VecH4 Dilate_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL):TARGET
    UNROLL for(Int y=-RANGE; y<=RANGE; y++)
    UNROLL for(Int x=-RANGE; x<=RANGE; x++)if(x || y)
    {
-      VecH4 tex=TexPointOfs(Img, uv, VecI2(x, y)); // need UV clamp
+      VecH4 tex=TexPointOfs(Img, uv, VecI2(x, y)); // need UV clamp, so can't use Img[]
    #if TEX_CACHE
       tex_cache[y+RANGE][x+RANGE]=tex;
    #endif
@@ -394,7 +394,7 @@ VecH4 Dilate_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL):TARGET
    LOOP for(Int y=-RANGE; y<=RANGE; y++)
    LOOP for(Int x=-RANGE; x<=RANGE; x++)//if(x || y) is ignored for LOOP to avoid extra overhead, instead codes were modified to need (0,0) samples too
    {
-      VecH4 tex=TexPoint(Img, uv+Vec2(x, y)*RTSize.xy); // need UV clamp
+      VecH4 tex=TexPoint(Img, uv+Vec2(x, y)*RTSize.xy); // need UV clamp, so can't use Img[]
    #if TEX_CACHE
       tex_cache[y+RANGE][x+RANGE]=tex;
    #endif
@@ -413,7 +413,7 @@ VecH4 Dilate_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL):TARGET
    #if TEX_CACHE
       VecH4 tex=tex_cache[y+RANGE][x+RANGE];
    #else
-      VecH4 tex=TexPointOfs(Img, uv, VecI2(x, y)); // need UV clamp
+      VecH4 tex=TexPointOfs(Img, uv, VecI2(x, y)); // need UV clamp, so can't use Img[]
    #endif
       DilateSecondary(motion, dist2, tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size);
    }
@@ -425,7 +425,7 @@ VecH4 Dilate_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL):TARGET
    #if TEX_CACHE
       VecH4 tex=tex_cache[y+RANGE][x+RANGE];
    #else
-      VecH4 tex=TexPoint(Img, uv+Vec2(x, y)*RTSize.xy); // need UV clamp
+      VecH4 tex=TexPoint(Img, uv+Vec2(x, y)*RTSize.xy); // need UV clamp, so can't use Img[]
    #endif
       DilateSecondary(motion, dist2, tex, sample_reaches_base[y+RANGE][x+RANGE], VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size);
    }
@@ -439,11 +439,11 @@ VecH4 Dilate_PS(NOPERSP Vec2 uv:UV, NOPERSP PIXEL):TARGET
 #if !FAST_COMPILE && RANGE<=(GL ? 5 : 7) // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range, for GL limit to 5 because compilation is very slow
    UNROLL for(Int y=-RANGE; y<=RANGE; y++)
    UNROLL for(Int x=-RANGE; x<=RANGE; x++)
-      if(x || y)DilateMaxMin(motion, length2, TexPointOfs(Img, uv, VecI2(x, y)), VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size); // need UV clamp
+      if(x || y)DilateMaxMin(motion, length2, TexPointOfs(Img, uv, VecI2(x, y)), VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size); // need UV clamp, so can't use Img[]
 #else
    LOOP for(Int y=-RANGE; y<=RANGE; y++)
    LOOP for(Int x=-RANGE; x<=RANGE; x++)
-      DilateMaxMin(motion, length2, TexPoint(Img, uv+Vec2(x, y)*RTSize.xy), VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size); // need UV clamp
+      DilateMaxMin(motion, length2, TexPoint(Img, uv+Vec2(x, y)*RTSize.xy), VecH2(x, y), uv_to_pixel, pixel_motion, pixel_motion_perp, pixel_motion_size); // need UV clamp, so can't use Img[]
 #endif
 #endif
    return motion;
