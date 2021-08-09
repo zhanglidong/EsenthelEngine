@@ -72,7 +72,7 @@ VideoOptions VidOpt;
          "Reflectivity"     , // 5
          "Glow"             , // 6
          "Emissive"         , // 7
-         "Velocity"         , // 8
+         "Motion"           , // 8
          "Light"            , // 9
          "Light + AO"       , // 10
          "Ambient Occlusion", // 11
