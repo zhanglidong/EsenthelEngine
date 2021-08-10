@@ -239,6 +239,11 @@ void DrawProject()
             rect_color.zero();
             Proj.list.addChild(T, data_abs_index, Proj.list.icon_col); // add after everything is setup
          }
+         void ProjectEx::ElmList::AppCheck::setRect()
+         {
+            flt x=Proj.region.rect().w()-Proj.region.slidebarSize()-D.pixelToScreenSize().x;
+            rect(Rect_RU(x, 0, Proj.list.elmHeight(), Proj.list.elmHeight()));
+         }
       ListElm* ProjectEx::ElmList::curToListElm(              )C {return List<ListElm>::operator()();}
       ListElm* ProjectEx::ElmList::litToListElm(              )C {return visToData(lit);}
       Elm*       ProjectEx::ElmList::operator()(              )C {if(ListElm *e=visToData(cur     ))return e->elm ; return null;}
@@ -340,6 +345,12 @@ void DrawProject()
             WorldEdit.param_edit.setSkin();
                     ObjClassEdit.setSkin();
          }
+      }
+      GuiObj& ProjectEx::ElmList::rect(C Rect &rect)
+{
+         super::rect(rect);
+         REPAO(app_checks).setRect();
+         return T;
       }
       void ProjectEx::ElmChange::swap(ptr user)
 {
@@ -3691,9 +3702,9 @@ void DrawProject()
                }
                if(!removed && elm.type==ELM_APP && existing_apps.elms()>1) // create checkboxes only if there are more than 1 apps
                {
-                  flt x=Misc.rect().w()-region.slidebarSize()-D.pixelToScreenSize().x;
                   ElmList::AppCheck &app_check=list.app_checks.New();
-                  app_check.create(Rect_RU(x, 0, list.elmHeight(), list.elmHeight())).func(ActivateApp, app_check).desc("Activate this application"); app_check.app_id=elm.id;
+                  app_check.create().func(ActivateApp, app_check).desc("Activate this application"); app_check.app_id=elm.id;
+                  app_check.setRect();
                   list.addChild(app_check, elm_list_index);
                }
             }else // if this element is hidden, then don't list it, but proceed to children, regardless if this element is opened or not

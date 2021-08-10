@@ -49,6 +49,8 @@ public:
       class AppCheck : CheckBox
       {
          UID app_id;
+         
+         void setRect();
 
 public:
    AppCheck();
@@ -94,6 +96,7 @@ public:
 
       bool identitySort()C; // if list is sorted in identity mode
       virtual void update(C GuiPC &gpc)override;
+      virtual GuiObj& rect(C Rect &rect)override;
 
 public:
    ElmList();
