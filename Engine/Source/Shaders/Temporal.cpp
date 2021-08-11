@@ -504,10 +504,10 @@ void TestSample4x4 // !! This operates on relative UV's !!
    Vec2 obj_abs_uv=UVInView(abs_uv+obj_uv, VIEW_FULL); // #MotionDir
 
 #if GATHER
-   VecI2 ofs;
-   UNROLL for(ofs.y=-1; ofs.y<=1; ofs.y+=2)
-   UNROLL for(ofs.x=-1; ofs.x<=1; ofs.x+=2)
+   UNROLL for(Int y=-1; y<=1; y+=2) // here can't operate on "VecI2 ofs" because of DX -> SPIR-V compiler bug
+   UNROLL for(Int x=-1; x<=1; x+=2)
    {
+      VecI2 ofs=VecI2(x, y);
       Vec4  obj_depth_raw=TexDepthRawGatherOfs(obj_abs_uv, ofs);
       VecH4 obj_motion_x =TexGatherROfs(ImgXY, obj_abs_uv, ofs);
       VecH4 obj_motion_y =TexGatherGOfs(ImgXY, obj_abs_uv, ofs);
