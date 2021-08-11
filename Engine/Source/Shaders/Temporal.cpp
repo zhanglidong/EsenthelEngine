@@ -431,10 +431,10 @@ void TestSample2x2 // !! This operates on relative UV's !!
    TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, LinearizeDepth(obj_depth_raw.w), VecH2(obj_motion_x.w, obj_motion_y.w), test_cover);
 #else
    obj_abs_uv-=(SUPER_RES ? RTSize.xy : ImgSize.xy*0.5);
-   VecI2 ofs;
-   UNROLL for(ofs.y=0; ofs.y<=1; ofs.y++)
-   UNROLL for(ofs.x=0; ofs.x<=1; ofs.x++)
+   UNROLL for(Int y=0; y<=1; y++) // here can't operate on "VecI2 ofs" because of DX -> SPIR-V compiler bug
+   UNROLL for(Int x=0; x<=1; x++)
    {
+      VecI2 ofs=VecI2(x, y);
       Flt   obj_depth    =TexDepthPointOfs(  obj_abs_uv, ofs);
       VecH2 obj_uv_motion=TexPointOfs(ImgXY, obj_abs_uv, ofs);
       TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, obj_depth, obj_uv_motion, test_cover);
@@ -479,10 +479,10 @@ void TestSample3x3 // !! This operates on relative UV's !!
    TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+VecI2( 1,  0)*ImgSize.xy, LinearizeDepth(obj_depth_raw.z), VecH2(obj_motion_x.z, obj_motion_y.z), test_cover);
  //TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+VecI2( 0,  0)*ImgSize.xy, LinearizeDepth(obj_depth_raw.w), VecH2(obj_motion_x.w, obj_motion_y.w), test_cover); // already processed
 #else
-   VecI2 ofs;
-   UNROLL for(ofs.y=-1; ofs.y<=1; ofs.y++)
-   UNROLL for(ofs.x=-1; ofs.x<=1; ofs.x++)
+   UNROLL for(Int y=-1; y<=1; y++) // here can't operate on "VecI2 ofs" because of DX -> SPIR-V compiler bug
+   UNROLL for(Int x=-1; x<=1; x++)
    {
+      VecI2 ofs=VecI2(x, y);
       Flt   obj_depth    =TexDepthPointOfs(  obj_abs_uv, ofs);
       VecH2 obj_uv_motion=TexPointOfs(ImgXY, obj_abs_uv, ofs);
       TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+ofs*ImgSize.xy, obj_depth, obj_uv_motion, test_cover);
@@ -518,10 +518,10 @@ void TestSample4x4 // !! This operates on relative UV's !!
    }
 #else
    obj_abs_uv-=(SUPER_RES ? RTSize.xy : ImgSize.xy*0.5);
-   VecI2 ofs;
-   UNROLL for(ofs.y=-1; ofs.y<=2; ofs.y++)
-   UNROLL for(ofs.x=-1; ofs.x<=2; ofs.x++)
+   UNROLL for(Int y=-1; y<=2; y++) // here can't operate on "VecI2 ofs" because of DX -> SPIR-V compiler bug
+   UNROLL for(Int x=-1; x<=2; x++)
    {
+      VecI2 ofs=VecI2(x, y);
       Flt   obj_depth    =TexDepthPointOfs(  obj_abs_uv, ofs);
       VecH2 obj_uv_motion=TexPointOfs(ImgXY, obj_abs_uv, ofs);
       TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+(ofs-0.5)*ImgSize.xy, obj_depth, obj_uv_motion, test_cover);
