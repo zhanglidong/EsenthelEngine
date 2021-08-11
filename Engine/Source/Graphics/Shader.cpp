@@ -358,7 +358,7 @@ static void SetRWImage(Int index, C Image *image) // this is called only on the 
    #if 0 // requires GL 4.4+
       glBindImageTextures(index, 1, &txtr);
    #else
-      glBindImageTexture (index,     txtr, 0, true, 0, GL_READ_WRITE, image ? image->hwTypeInfo().format : 0);
+      glBindImageTexture (index,     txtr, 0, true, 0, GL_READ_WRITE, image ? image->hwTypeInfo().format : GL_RGBA8);
    #endif
    }
 }

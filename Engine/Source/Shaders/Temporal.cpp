@@ -273,7 +273,11 @@ void NearestDepthRaw4x4(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gathe
    for(Int y=min_y; y<=max_y; y++)
    for(Int x=min_x; x<=max_x; x++)TestDepth(depth, TexDepthRawPoint(uv+VecI2(x, y)*ImgSize), ofs, VecI2(x, y)); */
    Flt   depth;
+#if !GL
    VecI2 sub_offset=(TemporalOffsetStart<0); // if negative then we will start from -1, so have to subtract 1. 'sub_offset' is also coordinate of the center (0,0) pixel when using -1..2 range
+#else // workaround for https://github.com/KhronosGroup/SPIRV-Cross/issues/1720
+   VecI2 sub_offset=VecI2(TemporalOffsetStart.x<0, TemporalOffsetStart.y<0); // if negative then we will start from -1, so have to subtract 1. 'sub_offset' is also coordinate of the center (0,0) pixel when using -1..2 range
+#endif
    if(gather)
    {
       uv+=TemporalOffsetStart-(SUPER_RES ? RTSize.xy : ImgSize.xy*0.5); // move to center between -1,-1 and 0,0 texels
