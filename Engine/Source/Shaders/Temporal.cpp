@@ -906,7 +906,7 @@ void Temporal_PS
 
    // update flicker
    Half new_flicker;
-   /*if(0) // simple
+ /*if(0) // simple
    {
       Half lum_old=Lum4(    old.rgb);
       Half lum_cur=Lum4(    cur.rgb);
