@@ -1481,6 +1481,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
       code=Replace(code, "#version 330\n", S);
       code=Replace(code, "#version 300 es\n", S);
       code=Replace(code, "#version 310 es\n", S);
+      code=Replace(code, "#version 320 es\n", S);
       code=RemoveEmptyLines(RemoveSpaces(code));
 
       FREPA(buffer_instances)
