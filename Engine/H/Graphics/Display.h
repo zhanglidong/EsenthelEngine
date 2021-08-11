@@ -721,7 +721,7 @@ inline DisplayClass &Display=D; // 'Display' alias ('Display' can be used the sa
       extern EGLDisplay GLDisplay;
    #endif
 
-   #if !WINDOWS
+   #if !WINDOWS && !SWITCH
       extern void (*glTexStorage2D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height); // available on GL 4.2+, GL ES 3.0+
       extern void (*glTextureView )(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers); // available on GL 4.3+, GL ES NO
    #endif
