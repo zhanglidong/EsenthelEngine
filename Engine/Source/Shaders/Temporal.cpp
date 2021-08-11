@@ -1,3 +1,10 @@
+/******************************************************************************
+
+   In Super-Res there are some artifacts on character silhouette in TPP when rotating camera around the character,
+      it's because the 'old' pixels point to the silhouette border which contains half character pixels and half background pixels.
+      They're not getting ignored in 'TestSample' because of 'obj_in_front' being 0 for background pixels.
+      However 'obj_in_front' can't be ignored and forced to 1, because that would cause major flickering on foliage in FPP, which is much more distracting than this problem.
+
 /******************************************************************************/
 #include "!Header.h"
 #include "Temporal.h"
