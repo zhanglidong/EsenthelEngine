@@ -597,17 +597,20 @@ void MainShaderClass::getTechniques()
 #endif
 
    // FidelityFX
-   Easu=GetShaderParam("Easu");
-   Rcas=GetShaderParam("Rcas");
-   REPD(alpha   , 2)
-   REPD(dither  , 2)
- //REPD(in_gamma, 2)REPD(out_gamma, 2)
-   REPD(   gamma, 2)
    {
-      EASU[alpha][dither][gamma]=get(S8+"EASU"+alpha+dither+gamma+gamma+D.gatherChannelAvailable());
-      RCAS[alpha][dither][gamma]=get(S8+"RCAS"+alpha+dither+gamma+gamma+D.gatherChannelAvailable());
+      Easu=GetShaderParam("Easu");
+      Rcas=GetShaderParam("Rcas");
+      Bool gather=(D.gatherChannelAvailable() && D.packHalf2x16Available()); // these shaders with gather version use 'packHalf2x16'
+      REPD(alpha   , 2)
+      REPD(dither  , 2)
+    //REPD(in_gamma, 2)REPD(out_gamma, 2)
+      REPD(   gamma, 2)
+      {
+         EASU[alpha][dither][gamma]=get(S8+"EASU"+alpha+dither+gamma+gamma+gather);
+         RCAS[alpha][dither][gamma]=get(S8+"RCAS"+alpha+dither+gamma+gamma+gather);
+      }
+      REPD(color, 2)EASUScreen[color]=get(S8+"EASUScreen"+color+gather);
    }
-   REPD(color, 2)EASUScreen[color]=get(S8+"EASUScreen"+color+D.gatherChannelAvailable());
 
    // FONT
    FontShadow  =GetShaderParam("FontShadow"  );

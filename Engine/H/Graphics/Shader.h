@@ -726,7 +726,7 @@ T1(TYPE) inline void SPSet(CChar8 *name, C TYPE    &data            ) {if(Shader
 ShaderBuffer* FindShaderBuffer(CChar8 *name);
 ShaderBuffer*  GetShaderBuffer(CChar8 *name);
 
-#if GL && GL_ES
+#if GL_ES
 UInt GLNoFilter(UInt filter);
 #endif
 

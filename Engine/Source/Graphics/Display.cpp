@@ -498,6 +498,7 @@ Str8 DisplayClass::shaderModelName()C
       case SM_GL_ES_3_2: return "GL ES 3.2";
       case SM_GL_3     : return "GL 3";
       case SM_GL_4     : return "GL 4";
+      case SM_GL_4_2   : return "GL 4.2";
       case SM_GL_4_3   : return "GL 4.3";
       case SM_4        : return "4";
       case SM_4_1      : return "4.1";
@@ -611,6 +612,16 @@ Bool DisplayClass::computeAvailable()C
    return shaderModel()>=SM_GL_ES_3_1; // 3.1+ GLES required
 #elif GL
    return shaderModel()>=SM_GL_4_3; // 4.3+ GL required
+#endif
+}
+Bool DisplayClass::packHalf2x16Available()C
+{
+#if DX11
+   return true;
+#elif GL_ES
+   return true;
+#elif GL
+   return shaderModel()>=SM_GL_4_2; // 4.2+ GL required
 #endif
 }
 Bool DisplayClass::filterMinMaxAvailable()C {return SamplerMinimum.is();}
@@ -1550,6 +1561,7 @@ again:
                                           Exit("OpenGL ES 3.0 support not available.\nGraphics Driver not installed or better video card is required.");
    #else
       if(Compare(_gl_ver, VecB2(4, 3))>=0)_shader_model=SM_GL_4_3;else
+      if(Compare(_gl_ver, VecB2(4, 2))>=0)_shader_model=SM_GL_4_2;else
       if(Compare(_gl_ver, VecB2(4, 0))>=0)_shader_model=SM_GL_4  ;else
       if(Compare(_gl_ver, VecB2(3, 2))>=0)_shader_model=SM_GL_3  ;else
                                           Exit("OpenGL 3.2 support not available.\nGraphics Driver not installed or better video card is required.");

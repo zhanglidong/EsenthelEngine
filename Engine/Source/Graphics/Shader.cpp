@@ -1098,6 +1098,7 @@ CChar8* GLSLVersion()
       default          : return ""; // avoid null in case some drivers will crash
       case SM_GL_3     : return "#version 330\n";
       case SM_GL_4     : return "#version 400\n";
+      case SM_GL_4_2   : return "#version 420\n";
       case SM_GL_4_3   : return "#version 430\n";
       case SM_GL_ES_3  : return "#version 300 es\n";
       case SM_GL_ES_3_1: return "#version 310 es\n";
