@@ -521,7 +521,7 @@ void TestSample4x4 // !! This operates on relative UV's !!
    }
 #endif
 }
-/******************************************************************************/
+/******************************************************************************
 void TestSampleNxN // !! This operates on relative UV's !!
 (
    inout Half  old_weight                 ,
