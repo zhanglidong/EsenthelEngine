@@ -1309,7 +1309,7 @@ again:
    D3D11_QUERY_DESC query_desc={D3D11_QUERY_EVENT, 0};
    D3D->CreateQuery(&query_desc, &Query);
 #elif GL
-   const VecB2 ctx_vers[]={{3,2}, {4,0}, {4,2}, {4,6}}; // set highest at the end, 4.6 needed for SPIR-V, 4.2 needed for 'glGetInternalformativ', 4.0 needed for 'TexGather', 3.2 needed for 'glDrawElementsBaseVertex', 3.1 needed for instancing, 3.0 needed for 'glColorMaski', 'gl_ClipDistance', 'glClearBufferfv', 'glGenVertexArrays', 'glMapBufferRange'
+   const VecB2 ctx_vers[]={{3,2}, {4,0}, {4,2}, {4,3}, {4,6}}; // set highest at the end, 4.6 needed for SPIR-V, 4.3 needed for compute shaders, 4.2 needed for 'glGetInternalformativ', 4.0 needed for 'TexGather', 3.2 needed for 'glDrawElementsBaseVertex', 3.1 needed for instancing, 3.0 needed for 'glColorMaski', 'gl_ClipDistance', 'glClearBufferfv', 'glGenVertexArrays', 'glMapBufferRange'
 
    #if WINDOWS
       // setup dummy functions to prevent null exceptions when GL context failed to create, but we still want to continue
@@ -1442,6 +1442,7 @@ again:
                {
                   GLX_CONTEXT_MAJOR_VERSION_ARB, ctx_vers[i].x,
                   GLX_CONTEXT_MINOR_VERSION_ARB, ctx_vers[i].y,
+                //GLX_CONTEXT_PROFILE_MASK_ARB,  GLX_CONTEXT_CORE_PROFILE_BIT_ARB, not needed since core is default value
                   NULL // end of list
                };
                // create context
