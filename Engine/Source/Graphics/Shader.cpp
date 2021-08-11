@@ -60,6 +60,13 @@ namespace EE{
       #undef  GL_UBO_MODE
       #define GL_UBO_MODE UBOMode
    #endif
+   #define GL_READ_WRITE     0x88BA
+   #define GL_IMAGE_2D       0x904D
+   #define GL_COMPUTE_SHADER 0x91B9
+   #if !WINDOWS && !SWITCH
+      void (*glBindImageTexture)(GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format);
+      void (*glDispatchCompute )(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z);
+   #endif
 #endif
 /******************************************************************************/
 // SHADER CACHE
@@ -348,8 +355,11 @@ static void SetRWImage(Int index, C Image *image) // this is called only on the 
    if(UAV[index]!=txtr || FORCE_TEX)
    {
       UAV[index]=txtr;
+   #if 0 // requires GL 4.4+
       glBindImageTextures(index, 1, &txtr);
-    //glBindImageTexture (index,     txtr, 0, true, 0, GL_READ_WRITE, type);
+   #else
+      glBindImageTexture (index,     txtr, 0, true, 0, GL_READ_WRITE, image ? image->hwTypeInfo().format : 0);
+   #endif
    }
 }
 #endif
@@ -1652,12 +1662,8 @@ static void GetProgramUniforms(UInt prog, MemtN<SamplerImageLink, 256> &images, 
 
          case GL_SAMPLER_2D:
          case GL_SAMPLER_CUBE:
-      #ifdef GL_SAMPLER_3D
          case GL_SAMPLER_3D:
-      #endif
-      #ifdef GL_SAMPLER_2D_SHADOW
          case GL_SAMPLER_2D_SHADOW:
-      #endif
       #if defined GL_SAMPLER_2D_SHADOW_EXT && GL_SAMPLER_2D_SHADOW_EXT!=GL_SAMPLER_2D_SHADOW
          case GL_SAMPLER_2D_SHADOW_EXT:
       #endif
@@ -2572,6 +2578,11 @@ void InitMatrix()
       SBObjMatrixPrev->createParts(parts, Elms(parts));
    }  SBFurVel       ->createParts(parts, Elms(parts));
    Int end=Elms(BoneNumToPart); for(Int i=0; i<Elms(parts)-1; i++){Int start=parts[i+1]+1; SetMem(&BoneNumToPart[start], i, end-start); end=start;} REP(end)BoneNumToPart[i]=Elms(parts)-1;
+#elif GL
+   #if !WINDOWS && !SWITCH
+      glBindImageTexture=(decltype(glBindImageTexture))D.glGetProcAddress("glBindImageTexture");
+      glDispatchCompute=(decltype(glDispatchCompute))D.glGetProcAddress("glDispatchCompute");
+   #endif
 #endif
 }
 /******************************************************************************/

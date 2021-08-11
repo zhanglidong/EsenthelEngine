@@ -438,7 +438,6 @@
          #include <EGL/egl.h>
          #include <EGL/eglext.h>
          #include <GLES3/gl3.h>
-         #include <GLES3/gl3ext.h>
       #endif
       #if OPEN_SL
          #include <SLES/OpenSLES.h>

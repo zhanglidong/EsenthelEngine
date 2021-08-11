@@ -60,7 +60,7 @@ DisplayClass D;
    #elif IOS
       UInt FBO1;
    #endif
-   #if !WINDOWS
+   #if !WINDOWS && !SWITCH
       void (*glTexStorage2D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height); // available on GL 4.2+, GL ES 3.0+
       void (*glTextureView )(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers); // available on GL 4.3+, GL ES NO
    #endif
@@ -1608,7 +1608,7 @@ again:
    #endif
 #endif
 
-#if !WINDOWS
+#if !WINDOWS && !SWITCH
    glTexStorage2D=(decltype(glTexStorage2D))D.glGetProcAddress("glTexStorage2D");
    glTextureView =(decltype(glTextureView ))D.glGetProcAddress("glTextureView");
 #endif
