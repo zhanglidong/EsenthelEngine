@@ -64,6 +64,12 @@ ALPHA=1
 
 #define FLICKER_EPS 0.2 // this is value for color distance ~0..1 in sRGB gamma (lower numbers increase detection of flicker, higher numbers decrease detection of flicker), 0.2 was the smallest value that didn't cause noticable artifacts/blurriness on a particle fire effect
 
+/* TODO: could try testing more constants
+if(CT){screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*8); same_motion=LerpRS(Sqr(2.0/16), Sqr(1.0/16), frac);}else
+if(SH){screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*4); same_motion=LerpRS(Sqr(2.0/ 8), Sqr(1.0/ 8), frac);}else
+      {screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*2); same_motion=LerpRS(Sqr(2.0/ 4), Sqr(1.0/ 4), frac);}*/
+#define MOTION_BIAS 8 // in pixels
+#define MOTION_FRAC (1.0/16)
 #define YCOCG 0 // this reduces ghosting, however increases flickering in certain cases (high contrast black and white, seen on "UID(2793579270, 1288897959, 2826231732, 169976521)" model)
 #if     YCOCG
    #define FILTER_MIN_MAX 0 // can't use FILTER_MIN_MAX with YCOCG
@@ -370,7 +376,7 @@ void TestSample // !! This operates on relative UV's !!
 
    //
    Half frac=Dist2(obj_screen_motion, cur_screen_motion)/cur_screen_motion_len2_bias;
-   Half different_motion=LerpRS(Sqr(1.0/16), Sqr(2.0/16), frac);
+   Half different_motion=LerpRS(Sqr(MOTION_FRAC), Sqr(2*MOTION_FRAC), frac);
 
    //
    Half weight=1-obj_in_front*different_motion*cover;
@@ -418,10 +424,10 @@ void TestSample2x2 // !! This operates on relative UV's !!
    TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, LinearizeDepth(obj_depth_raw.w), VecH2(obj_motion_x.w, obj_motion_y.w), test_cover);
 #else
    obj_abs_uv-=(SUPER_RES ? RTSize.xy : ImgSize.xy*0.5);
-   UNROLL for(Int y=0; y<=1; y++)
-   UNROLL for(Int x=0; x<=1; x++)
+   VecI2 ofs;
+   UNROLL for(ofs.y=0; ofs.y<=1; ofs.y++)
+   UNROLL for(ofs.x=0; ofs.x<=1; ofs.x++)
    {
-      VecI2 ofs=VecI2(x, y);
       Flt   obj_depth    =TexDepthPointOfs(  obj_abs_uv, ofs);
       VecH2 obj_uv_motion=TexPointOfs(ImgXY, obj_abs_uv, ofs);
       TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv, obj_depth, obj_uv_motion, test_cover);
@@ -466,10 +472,10 @@ void TestSample3x3 // !! This operates on relative UV's !!
    TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+VecI2( 1,  0)*ImgSize.xy, LinearizeDepth(obj_depth_raw.z), VecH2(obj_motion_x.z, obj_motion_y.z), test_cover);
  //TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+VecI2( 0,  0)*ImgSize.xy, LinearizeDepth(obj_depth_raw.w), VecH2(obj_motion_x.w, obj_motion_y.w), test_cover); // already processed
 #else
-   UNROLL for(Int y=-1; y<=1; y++)
-   UNROLL for(Int x=-1; x<=1; x++)
+   VecI2 ofs;
+   UNROLL for(ofs.y=-1; ofs.y<=1; ofs.y++)
+   UNROLL for(ofs.x=-1; ofs.x<=1; ofs.x++)
    {
-      VecI2 ofs=VecI2(x, y);
       Flt   obj_depth    =TexDepthPointOfs(  obj_abs_uv, ofs);
       VecH2 obj_uv_motion=TexPointOfs(ImgXY, obj_abs_uv, ofs);
       TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+ofs*ImgSize.xy, obj_depth, obj_uv_motion, test_cover);
@@ -477,8 +483,72 @@ void TestSample3x3 // !! This operates on relative UV's !!
 #endif
 }
 /******************************************************************************/
+void TestSample4x4 // !! This operates on relative UV's !!
+(
+   inout Half  old_weight                 ,
+         VecH2 cur_screen_motion          , // current screen motion, this is also equal to current screen position relative to old
+         Half  cur_screen_motion_len2_bias,
+         Flt   cur_depth                  , // current depth
+         Vec2  abs_uv                     , // old     absolute UV
+         VecH2 obj_uv                     , // object  UV relative to old
+         bool  test_cover=true
+)
+{
+   Vec2 obj_abs_uv=UVInView(abs_uv+obj_uv, VIEW_FULL); // #MotionDir
+
+#if GATHER
+   VecI2 ofs;
+   UNROLL for(ofs.y=-1; ofs.y<=1; ofs.y+=2)
+   UNROLL for(ofs.x=-1; ofs.x<=1; ofs.x+=2)
+   {
+      Vec4  obj_depth_raw=TexDepthRawGatherOfs(obj_abs_uv, ofs);
+      VecH4 obj_motion_x =TexGatherROfs(ImgXY, obj_abs_uv, ofs);
+      VecH4 obj_motion_y =TexGatherGOfs(ImgXY, obj_abs_uv, ofs);
+      TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+(ofs+VecI2(0,1)-0.5)*ImgSize.xy, LinearizeDepth(obj_depth_raw.x), VecH2(obj_motion_x.x, obj_motion_y.x), test_cover);
+      TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+(ofs+VecI2(1,1)-0.5)*ImgSize.xy, LinearizeDepth(obj_depth_raw.y), VecH2(obj_motion_x.y, obj_motion_y.y), test_cover);
+      TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+(ofs+VecI2(1,0)-0.5)*ImgSize.xy, LinearizeDepth(obj_depth_raw.z), VecH2(obj_motion_x.z, obj_motion_y.z), test_cover);
+      TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+(ofs+VecI2(0,0)-0.5)*ImgSize.xy, LinearizeDepth(obj_depth_raw.w), VecH2(obj_motion_x.w, obj_motion_y.w), test_cover);
+   }
+#else
+   obj_abs_uv-=(SUPER_RES ? RTSize.xy : ImgSize.xy*0.5);
+   VecI2 ofs;
+   UNROLL for(ofs.y=-1; ofs.y<=2; ofs.y++)
+   UNROLL for(ofs.x=-1; ofs.x<=2; ofs.x++)
+   {
+      Flt   obj_depth    =TexDepthPointOfs(  obj_abs_uv, ofs);
+      VecH2 obj_uv_motion=TexPointOfs(ImgXY, obj_abs_uv, ofs);
+      TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+(ofs-0.5)*ImgSize.xy, obj_depth, obj_uv_motion, test_cover);
+   }
+#endif
+}
+/******************************************************************************/
+void TestSampleNxN // !! This operates on relative UV's !!
+(
+   inout Half  old_weight                 ,
+         VecH2 cur_screen_motion          , // current screen motion, this is also equal to current screen position relative to old
+         Half  cur_screen_motion_len2_bias,
+         Flt   cur_depth                  , // current depth
+         Vec2  abs_uv                     , // old     absolute UV
+         VecH2 obj_uv                     , // object  UV relative to old
+         bool  test_cover=true
+)
+{
+   Vec2 obj_abs_uv=UVInView(abs_uv+obj_uv, VIEW_FULL); // #MotionDir
+
+   Int range=1;
+   VecI2 ofs;
+   UNROLL for(ofs.y=-range; ofs.y<=range; ofs.y++)
+   UNROLL for(ofs.x=-range; ofs.x<=range; ofs.x++)
+   {
+      Flt   obj_depth    =TexDepthPointOfs(  obj_abs_uv, ofs);
+      VecH2 obj_uv_motion=TexPointOfs(ImgXY, obj_abs_uv, ofs);
+      TestSample(old_weight, cur_screen_motion, cur_screen_motion_len2_bias, cur_depth, obj_uv+ofs*ImgSize.xy, obj_depth, obj_uv_motion, test_cover);
+   }
+}
+/******************************************************************************/
 Half OldWeight(Vec2 old_uv, VecH2 uv_motion, Flt depth)
 {
+   old_uv+=TemporalOffset; // improves detection
    Half old_weight=UVInsideView(old_uv); // use old only if it's inside viewport
 
    // check if any object covered old pixel in previous frame
@@ -501,11 +571,7 @@ Half OldWeight(Vec2 old_uv, VecH2 uv_motion, Flt depth)
    if(min_pixel_motion<0 || screen_motion_len2>Sqr(ImgSize.y*min_pixel_motion) || any(dilated_uv_motion.xy)) // #DilatedMotionZero
    {
 #endif
-      /* TODO: could try testing more constants
-      if(CT){screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*8); same_motion=LerpRS(Sqr(2.0/16), Sqr(1.0/16), frac);}else
-      if(SH){screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*4); same_motion=LerpRS(Sqr(2.0/ 8), Sqr(1.0/ 8), frac);}else
-            {screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*2); same_motion=LerpRS(Sqr(2.0/ 4), Sqr(1.0/ 4), frac);}*/
-      Half screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*8); // this pixel movement, add some bias which helps for slowly moving pixels on static background (example FPS view+walking+tree leafs on static sky), "+bias" works better than "Max(, bias)"
+      Half screen_motion_len2_bias=screen_motion_len2+Sqr(ImgSize.y*MOTION_BIAS); // this pixel movement, add some bias which helps for slowly moving pixels on static background (example FPS view+walking+tree leafs on static sky), "+bias" works better than "Max(, bias)"
 
       // TODO: slower but higher quality version would take more samples, for example on the line of 0..dilated_uv_motion.xy
       // because 'dilated_uv_motion' don't point to the moving pixel, they just mean that there is some movement in this neighborhood
@@ -515,8 +581,8 @@ Half OldWeight(Vec2 old_uv, VecH2 uv_motion, Flt depth)
       TestSample2x2(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv, dilated_uv_motion.xy); // check primary   motion
       TestSample2x2(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv, dilated_uv_motion.zw); // check secondary motion, check this for both DUAL_MOTION on/off
       
-      // here use 3x3 samples
-      TestSample3x3(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv,                    0, false); // for performance reasons ignore 'cover' here, because this is at 'old' location, so assume it covers already. Don't try to ignore depth here, that will increase flickering
+      // here use 4x4 samples
+      TestSample4x4(old_weight, screen_motion, screen_motion_len2_bias, depth, old_uv,                    0, false); // for performance reasons ignore 'cover' here, because this is at 'old' location, so assume it covers already. Don't try to ignore depth here, that will increase flickering
    }
    return old_weight;
 }
