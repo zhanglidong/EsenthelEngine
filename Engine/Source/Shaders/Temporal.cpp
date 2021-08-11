@@ -928,7 +928,10 @@ void Temporal_PS
    #endif
       difference=Sat(difference/FLICKER_EPS);
 
-      new_flicker=Lerp(difference, old_flicker, OLD_FLICKER_WEIGHT)*old_weight; // always 0..1, here 'old_weight' should affect both old and new, because if old is being ignored, then difference between old and new color should be ignored too
+      VecH2 pixel_motion=uv_motion*ImgSize.zw;
+      Half  non_moving=Sat(2-Length2(pixel_motion)/Sqr(1.0/16)); // apply anti-flicker only for static pixels
+
+      new_flicker=Lerp(difference, old_flicker, OLD_FLICKER_WEIGHT)*old_weight*non_moving; // always 0..1, here 'old_weight' should affect both old and new, because if old is being ignored, then difference between old and new color should be ignored too
 
     //Half     flicker=LerpRS(1-OLD_WEIGHT, 1, new_flicker); // cut-off small differences
       Half     flicker=new_flicker; // faster
