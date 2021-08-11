@@ -137,7 +137,7 @@ class Pane
    static Str  DateModify (C Elm &elm) {return (elm.type==FSTD_FILE) ? elm.modify_time_local.asText() : S;}
    static void Up         (Pane &pane) {pane.path.set(GetPath(pane.path()));}
    static void PathChanged(Pane &pane) {pane.list.scrollTo(0, true); pane.refresh();}
-   static void Jump       (C Str &path, Pane &pane) {pane.jumpDo(path);}
+   static void Jump       (C CMemPtr<MenuPush> &path, Pane &pane) {pane.jumpDo(path);}
    static void Connect    (Pane &pane) {pane.connectDo();}
    static void SelChanged (Pane &pane) {pane.custom_cur_sel=false;}
    static bool ThreadFunc (Thread &thread) {return ((Pane*)thread.user).threadUpdate();}
@@ -244,22 +244,23 @@ class Pane
       list.setData(elms);
       restoreCurSel();
    }
-   void jumpDo(C Str &jump)
+   void jumpDo(C CMemPtr<MenuPush> &jump)
    {
-      if(jump=="Desktop" )path.set(SystemPath(SP_DESKTOP));else
-      if(jump=="OneDrive")path.set(SystemPath(SP_ONE_DRIVE));else
-      if(jump=="Add to Favorites")
+      Str jump_path; if(jump.elms())jump_path=jump[0].name;
+      if(jump_path=="Desktop" )path.set(SystemPath(SP_DESKTOP));else
+      if(jump_path=="OneDrive")path.set(SystemPath(SP_ONE_DRIVE));else
+      if(jump_path=="Add to Favorites")
       {
          Str p=path(); p.tailSlash(false);
          REPA(jump_list)if(EqualPath(jump_list[i], p))return;
          jump_list.add(p); refreshJumpList();
       }else
-      if(jump=="Remove from Favorites")
+      if(jump_path=="Remove from Favorites")
       {
          Str p=path(); p.tailSlash(false);
          REPA(jump_list)if(EqualPath(jump_list[i], p)){jump_list.remove(i, true); refreshJumpList();}
       }else
-      path.set(jump);
+      path.set(jump_path);
    }
    void refreshJumpList()
    {
