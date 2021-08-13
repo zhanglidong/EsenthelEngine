@@ -14,6 +14,7 @@ class Obj : ObjData
    PhysBodyPtr   phys;
    ImagePtr      icon;
    Particles     particles;
+   Matrix        matrix_prev;
    Vec           light_col;
    flt           light_angle, light_falloff;
    bool          light_cast_shadows;

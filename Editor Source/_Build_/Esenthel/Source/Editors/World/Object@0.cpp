@@ -194,7 +194,11 @@ void OpenObjMaterial  ()
       }
       if(a!=area)
       {
-         if(!area && &world==&WorldEdit)removeChanged();
+         if(!area)
+         {
+            matrix_prev=matrix;
+            if(&world==&WorldEdit)removeChanged();
+         }
          detach();
          a->load();
          area=a; area->objs.add(this);
@@ -210,7 +214,7 @@ void OpenObjMaterial  ()
    }
    void Obj::setUpdatability()
    {
-      if(visible && particles.is())
+      if(visible && (true || particles.is())) // always update visible objects because have to set previous matrix for motion/temporal
       {
          WorldEdit.obj_update.binaryInclude(this, ComparePtr);
       }else
@@ -369,7 +373,7 @@ void OpenObjMaterial  ()
    }
    void Obj::update()
    {
-      particles.matrix=drawMatrix();
+      matrix_prev=particles.matrix=drawMatrix();
       if(!particles.update())particles.resetFull();
    }
    bool Obj::skipDraw()
@@ -392,7 +396,7 @@ void OpenObjMaterial  ()
             SetHighlight(col_lit);
          }
          SetVariation(mesh_variation);
-         mesh->draw(m);
+         mesh->draw(m, matrix_prev);
          SetHighlight();
          SetVariation();
       }
@@ -531,6 +535,6 @@ void OpenObjMaterial  ()
       }
       return false;
    }
-Obj::Obj() : area(null), selected(false), highlighted(false), invalid_refs(false), visible(false), edit_type(EDIT_OBJ_MESH), mesh_variation(0), light_col(1), light_angle(1), light_falloff(0.5f), light_cast_shadows(true) {}
+Obj::Obj() : area(null), selected(false), highlighted(false), invalid_refs(false), visible(false), edit_type(EDIT_OBJ_MESH), mesh_variation(0), matrix_prev(0), light_col(1), light_angle(1), light_falloff(0.5f), light_cast_shadows(true) {}
 
 /******************************************************************************/
