@@ -157,6 +157,8 @@ class VideoOptions : PropWin
       static void AOContrast   (  Advanced &adv, C Str &text) {       D.ambientContrast(TextFlt(text));}
       static Str  AORange      (C Advanced &adv             ) {return D.ambientRange();}
       static void AORange      (  Advanced &adv, C Str &text) {       D.ambientRange(TextFlt(text));}
+      static Str  AORes        (C Advanced &adv             ) {return D.ambientRes()>=0.75;}
+      static void AORes        (  Advanced &adv, C Str &text) {       D.ambientRes(TextBool(text) ? 1 : 0.5);}
       static Str  DOF          (C Advanced &adv             ) {return D.dofMode()!=DOF_NONE;}
       static void DOF          (  Advanced &adv, C Str &text) {       D.dofMode(TextBool(text) ? DOF_GAUSSIAN : DOF_NONE);}
       static Str  DOFIntensity (C Advanced &adv             ) {return D.dofIntensity();}
@@ -295,6 +297,7 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
          props.New().create("Ambient Light"              , MemberDesc(DATA_REAL).setFunc(AmbLight     , AmbLight     )).range(0, 1);
          props.New().create("Ambient Occlusion Contrast" , MemberDesc(DATA_REAL).setFunc(AOContrast   , AOContrast   )).range(0, 8);
          props.New().create("Ambient Occlusion Range"    , MemberDesc(DATA_REAL).setFunc(AORange      , AORange      )).range(0, 2);
+         props.New().create("Ambient Occlusion Full Res" , MemberDesc(DATA_BOOL).setFunc(AORes        , AORes        ));
          props.New().create("Depth of Field"             , MemberDesc(DATA_BOOL).setFunc(DOF          , DOF          ));
          props.New().create("Depth of Field Intensity"   , MemberDesc(DATA_REAL).setFunc(DOFIntensity , DOFIntensity )).range(0, 1).setSlider();
          props.New().create("Allow Glow"                 , MemberDesc(DATA_BOOL).setFunc(AllowGlow    , AllowGlow    )).desc("If allow glow effect on the scene when detected.");

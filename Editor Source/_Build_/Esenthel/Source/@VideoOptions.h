@@ -90,6 +90,8 @@ class VideoOptions : PropWin
       static void AOContrast   (  Advanced &adv, C Str &text);        
       static Str  AORange      (C Advanced &adv             );        
       static void AORange      (  Advanced &adv, C Str &text);        
+      static Str  AORes        (C Advanced &adv             );        
+      static void AORes        (  Advanced &adv, C Str &text);        
       static Str  DOF          (C Advanced &adv             );        
       static void DOF          (  Advanced &adv, C Str &text);        
       static Str  DOFIntensity (C Advanced &adv             );        
