@@ -505,11 +505,11 @@ struct MeshAO
           void set(Int    vtx)
    {
     C Vec &pos=T.pos[vtx], &nrm=T.nrm[vtx];
-      Flt light=0;
+      Dbl  light=0;
       REPA(ray_dir)
       {
        C Vec &ray=ray_dir[i];
-         Flt d=Dot(nrm, ray); if(d>0)
+         Flt  d=Dot(nrm, ray); if(d>0)
          {
             Flt frac; if(sweep(pos+ray*pos_eps, ray, &frac))light+=func(frac)*d;else light+=d;
          }
@@ -571,7 +571,7 @@ struct MeshAO
                }
                ray*=T.ray_length; // pre-multiply so we don't have to do this for each vertex*ray
                ray_dir[r++]=ray;
-               if(ray.x>0){r_pos++; ray_sum+=ray.x;} // Dot(ray, Vec(1, 0, 0))
+               if(ray.x>0){r_pos++; ray_sum+=ray.x;} // Dot(ray, Vec(1, 0, 0)), calculate total amount in one hemisphere (X+)
             }
          }
       }
