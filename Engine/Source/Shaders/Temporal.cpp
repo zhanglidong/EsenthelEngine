@@ -555,8 +555,8 @@ void TestSampleNxN // !! This operates on relative UV's !!
 /******************************************************************************/
 Half OldWeight(Vec2 old_uv, VecH2 uv_motion, Flt depth)
 {
-   old_uv+=TemporalOffset; // improves detection
    Half old_weight=UVInsideView(old_uv); // use old only if it's inside viewport
+   old_uv+=TemporalOffset; // improves detection
 
    // check if any object covered old pixel in previous frame
    // this needs to be checked even if current pixel is not moving (uv_motion=0)
@@ -709,7 +709,7 @@ void Temporal_PS
    VecH4 old, old1;
 #if CUBIC
       CubicFastSampler Sampler;
-      Sampler.set(old_uv, RTSize); if(!VIEW_FULL)Sampler.UVClamp(ImgClamp.xy, ImgClamp.zw); // here do clamping because for CUBIC we check many samples around texcoord
+      Sampler.set(old_uv, RTSize); if(!VIEW_FULL)Sampler.UVClamp(ImgClamp.xy, ImgClamp.zw); // here do clamping because for CUBIC we check many samples around UV
       old =Max(VecH4(0,0,0,0), Sampler.tex(Img1)); // use Max(0) because of cubic sharpening potentially giving negative values
    #if DUAL_HISTORY
       old1=Max(VecH4(0,0,0,0), Sampler.tex(Img2)); // use Max(0) because of cubic sharpening potentially giving negative values
