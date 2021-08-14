@@ -3591,10 +3591,21 @@ void DisplayClass::alignScreenYToPixel(Flt &screen_y)
     screen_y=D.h()-pixel*D._pixel_size.y;
 }
 
+#define IMG_CLAMP_EPS (0.5f + 1.0f/256) // yes +0.5 is needed due to texture filtering, also add 1/256 of a texel size to make sure we won't be reading neighbors at all in case they are huge or NaN/Inf
+// when pixel is at the border (then force full range, this is important for effects such as Temporal or Motion Blur which use 'UVInsideView' to avoid flickering
+static Flt ImgClampMin(Int pixel, Int res) {return pixel<=  0 ? 0 : (pixel+IMG_CLAMP_EPS)/res;}
+static Flt ImgClampMax(Int pixel, Int res) {return pixel>=res ? 1 : (pixel-IMG_CLAMP_EPS)/res;} // yes -0.5 is needed due to texture filtering, also add 1/256 of a texel size to make sure we won't be reading neighbors at all in case they are huge or NaN/Inf
 Rect ImgClamp(C RectI &pixel, C VecI2 &res)
 {
-   return Rect((pixel.min + (0.5f + 1.0f/256))/res,  // yes +0.5 is needed due to texture filtering, also add 1/256 of a texel size to make sure we won't be reading neighbors at all in case they are huge or NaN/Inf
-               (pixel.max - (0.5f + 1.0f/256))/res); // yes -0.5 is needed due to texture filtering, also add 1/256 of a texel size to make sure we won't be reading neighbors at all in case they are huge or NaN/Inf
+#if 0
+   return Rect((pixel.min+IMG_CLAMP_EPS)/res,  // yes +0.5 is needed due to texture filtering, also add 1/256 of a texel size to make sure we won't be reading neighbors at all in case they are huge or NaN/Inf
+               (pixel.max-IMG_CLAMP_EPS)/res); // yes -0.5 is needed due to texture filtering, also add 1/256 of a texel size to make sure we won't be reading neighbors at all in case they are huge or NaN/Inf
+#else
+   return Rect(ImgClampMin(pixel.min.x, res.x),
+               ImgClampMin(pixel.min.y, res.y),
+               ImgClampMax(pixel.max.x, res.x),
+               ImgClampMax(pixel.max.y, res.y));
+#endif
 }
 Rect ImgClamp(C Rect &screen, C VecI2 &res)
 {

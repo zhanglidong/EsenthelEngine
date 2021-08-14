@@ -556,7 +556,7 @@ void TestSampleNxN // !! This operates on relative UV's !!
 Half OldWeight(Vec2 old_uv, VecH2 uv_motion, Flt depth)
 {
    Half old_weight=UVInsideView(old_uv); // use old only if it's inside viewport
-   old_uv+=TemporalOffset; // improves detection
+   old_uv+=TemporalOffset; // improves detection, do this after 'UVInsideView' check so we don't accidentally reject pixels at viewport border
 
    // check if any object covered old pixel in previous frame
    // this needs to be checked even if current pixel is not moving (uv_motion=0)
