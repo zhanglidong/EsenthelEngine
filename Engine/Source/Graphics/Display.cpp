@@ -1025,7 +1025,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _view_main.range   =100;
   _view_main.full    =true; // needed for 'viewReset' which will always set full viewport if last was full too
 
-  _sharpen_intensity=0.4f;
+//_sharpen_intensity=0.0f;
 
   _smaa_threshold=0.1f;
 
