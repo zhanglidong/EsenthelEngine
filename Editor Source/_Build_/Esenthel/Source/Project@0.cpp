@@ -3301,7 +3301,7 @@ void DrawProject()
       if(list.file_size && list.its!=ElmList::ITS_ELM) // mtrl tex file size have changed
       {
       #if 1 // delayed
-         //AtomicSet(TIG.got_new_data, true);
+         AtomicSet(texture_changed, true);
       #else // immediate
          refresh(false, false);
       #endif
@@ -3393,11 +3393,11 @@ void DrawProject()
          }
 
          // texture info
-         /*if(TIG.got_new_data)
+         if(texture_changed)
          {
-            AtomicSet(TIG.got_new_data, false);
+            AtomicSet(texture_changed, false);
             refresh=true;
-         }*/
+         }
 
          if(refresh)T.refresh(false, false);
       }
@@ -5214,7 +5214,7 @@ void DrawProject()
       Importer.investigate(root); // call after setting list because may rely on hierarchy
       resumeServer();
    }
-ProjectEx::ProjectEx() : filter_is_id(false), filter_id(UIDZero), lit_elm_id(UIDZero), list_cur(UIDZero), list_cur_item(null), mesh_matrix(1), save_time(0), elm_undos(false, this), file_size_getter_step(false) {}
+ProjectEx::ProjectEx() : filter_is_id(false), filter_id(UIDZero), lit_elm_id(UIDZero), list_cur(UIDZero), list_cur_item(null), mesh_matrix(1), save_time(0), elm_undos(false, this), texture_changed(false), file_size_getter_step(false) {}
 
 ProjectEx::OuterRegion::OuterRegion() : resize_on(false) {}
 

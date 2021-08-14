@@ -242,10 +242,11 @@ class ConvertToAtlasClass : PropWin
       // adjust parents, publishing and removed status
       TimeStamp time; time.getUTC();
 
-      if(atlased.elms()==1) // if there's only one object created, then put the atlas inside of it
+      int existing_atlased=0; C UID *obj_id=null; REPA(atlased)if(C Elm *elm=Proj.findElm(atlased[i]))if(elm.finalExists()){obj_id=&elm.id; existing_atlased++;}
+      if( existing_atlased==1) // if there's only one object created, then put the atlas inside of it
          if(Elm *atlas=Proj.findElm(atlas_id))
       {
-         atlas.setParent(atlased[0], time); Server.setElmParent(*atlas);
+         atlas.setParent(*obj_id, time); Server.setElmParent(*atlas);
       }
 
       // process objects

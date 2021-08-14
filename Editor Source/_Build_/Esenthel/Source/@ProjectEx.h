@@ -157,6 +157,7 @@ public:
    Skeleton             slot_skel_mem; // skeleton used for copying slots only
    flt                  save_time;
    Edit::Undo<ElmChange> elm_undos;
+   bool                 texture_changed;
    bool                 file_size_getter_step; // 0=game files, 1=textures
    FileSizeGetter       file_size_getter;
 

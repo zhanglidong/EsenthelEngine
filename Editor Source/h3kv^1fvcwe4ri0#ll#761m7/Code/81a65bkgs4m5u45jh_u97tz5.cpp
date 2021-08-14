@@ -301,6 +301,7 @@ class ProjectEx : ProjectHierarchy
    Skeleton             slot_skel_mem; // skeleton used for copying slots only
    flt                  save_time=0;
    Edit.Undo<ElmChange> elm_undos(false, this);
+   bool                 texture_changed=false;
    bool                 file_size_getter_step=false; // 0=game files, 1=textures
    FileSizeGetter       file_size_getter;
 
@@ -3357,7 +3358,7 @@ class ProjectEx : ProjectHierarchy
       if(list.file_size && list.its!=ElmList.ITS_ELM) // mtrl tex file size have changed
       {
       #if 1 // delayed
-         //AtomicSet(TIG.got_new_data, true);
+         AtomicSet(texture_changed, true);
       #else // immediate
          refresh(false, false);
       #endif
@@ -3451,11 +3452,11 @@ class ProjectEx : ProjectHierarchy
          }
 
          // texture info
-         /*if(TIG.got_new_data)
+         if(texture_changed)
          {
-            AtomicSet(TIG.got_new_data, false);
+            AtomicSet(texture_changed, false);
             refresh=true;
-         }*/
+         }
 
          if(refresh)T.refresh(false, false);
       }

@@ -44,7 +44,6 @@ void  InitElmOrder()
 /******************************************************************************
 class TexInfoGetter
 {
-   int       got_new_data=false;
    Str       tex_path;
    Memc<UID> tex_to_process;
    Memb<UID> tex_to_process1; // need to use 'Memb' to have const_mem_addr, because these can be added on the fly
@@ -98,7 +97,7 @@ class TexInfoGetter
       if( sharpness>=0)
       {
          TexInfos(tex_id).sharpness=sharpness;
-         AtomicSet(TIG.got_new_data, true);
+         AtomicSet(Proj.texture_changed, true);
       }
    }
 
