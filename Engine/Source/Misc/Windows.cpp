@@ -1747,7 +1747,7 @@ void Application::windowCreate()
    [OpenGLView addTrackingArea:tracking_area]; // needed for 'mouseEntered, mouseExited'
    [tracking_area release];
 
-   [OpenGLView setWantsBestResolutionOpenGLSurface:NO]; // this fixes HiDpi problems - https://developer.apple.com/library/archive/documentation/GraphicsAnimation/Conceptual/HighResolutionOSX/CapturingScreenContents/CapturingScreenContents.html#//apple_ref/doc/uid/TP40012302-CH10-SW1
+   [OpenGLView setWantsBestResolutionOpenGLSurface:NO]; // this fixes HiDpi problems - https://esenthel.com/forum/showthread.php?tid=10419 and https://developer.apple.com/library/archive/documentation/GraphicsAnimation/Conceptual/HighResolutionOSX/CapturingScreenContents/CapturingScreenContents.html#//apple_ref/doc/uid/TP40012302-CH10-SW1
    [window() setContentView:OpenGLView];
    [OpenGLView registerForDraggedTypes:[NSArray arrayWithObject:NSFilenamesPboardType]]; // enable drag and drop
 #elif LINUX
