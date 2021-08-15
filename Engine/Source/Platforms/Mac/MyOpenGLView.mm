@@ -95,7 +95,7 @@ static ImageRTPtr    LiveResize;
 #if 1
    App._window_resized=App.window().size(true);
 #else // can't use this because if app was started in fullscreen then it will return incorrect sizes (including the border)
-   NSRect rect=[OpenGLView bounds]; App._window_resized.set(RoundPos(rect.size.width), RoundPos(rect.size.height));
+   NSRect rect=[self bounds]; App._window_resized.set(RoundPos(rect.size.width), RoundPos(rect.size.height));
 #endif
 }
 -(void) viewWillStartLiveResize
