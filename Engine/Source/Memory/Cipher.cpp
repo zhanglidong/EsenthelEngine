@@ -407,7 +407,7 @@ Cipher1::Cipher1(Byte k00, Byte k01, Byte k02, Byte k03, Byte k04, Byte k05, Byt
       kE0, kE1, kE2, kE3, kE4, kE5, kE6, kE7, kE8, kE9, kEA, kEB, kEC, kED, kEE, kEF,
       kF0, kF1, kF2, kF3, kF4, kF5, kF6, kF7, kF8, kF9, kFA, kFB, kFC, kFD, kFE, kFF,
    };
-   setKey((Byte*)k, SIZE(k));
+   setKey(k, SIZE(k));
 }
 void Cipher1::setDec()
 {
@@ -566,7 +566,7 @@ Cipher2::Cipher2(Byte k00, Byte k01, Byte k02, Byte k03, Byte k04, Byte k05, Byt
       kE0, kE1, kE2, kE3, kE4, kE5, kE6, kE7, kE8, kE9, kEA, kEB, kEC, kED, kEE, kEF,
       kF0, kF1, kF2, kF3, kF4, kF5, kF6, kF7, kF8, kF9, kFA, kFB, kFC, kFD, kFE, kFF,
    };
-   setKey((Byte*)k, SIZE(k));
+   setKey(k, SIZE(k));
 }
 void Cipher2::setDec()
 {
@@ -717,7 +717,7 @@ Cipher3::Cipher3(Byte k00, Byte k01, Byte k02, Byte k03, Byte k04, Byte k05, Byt
       kE0, kE1, kE2, kE3, kE4, kE5, kE6, kE7, kE8, kE9, kEA, kEB, kEC, kED, kEE, kEF,
       kF0, kF1, kF2, kF3, kF4, kF5, kF6, kF7, kF8, kF9, kFA, kFB, kFC, kFD, kFE, kFF,
    };
-   setKey((Byte*)k, SIZE(k));
+   setKey(k, SIZE(k));
 }
 void Cipher3::setDec()
 {
