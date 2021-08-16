@@ -347,7 +347,7 @@ Cipher1& Cipher1::setKey(C Byte *key, Int key_size)
        REP(256)_enc[i]=i;
       FREP(255) // RandomizeOrder based on 'key'
       {
-         Byte k=key[UInt(i)%UInt(key_size)]; // unsigned div is slightly faster
+         Byte k=key[Unsigned(i)%Unsigned(key_size)]; // unsigned mod is slightly faster
          UInt left=256-i;
          Swap(_enc[i], _enc[i+k%left]);
       }
@@ -519,7 +519,7 @@ Cipher2& Cipher2::setKey(C Byte *key, Int key_size)
       REPAO(_enc)=i;
       FREP(255) // RandomizeOrder based on 'key'
       {
-         Byte k=key[UInt(i)%UInt(key_size)]; // unsigned div is slightly faster
+         Byte k=key[Unsigned(i)%Unsigned(key_size)]; // unsigned mod is slightly faster
          UInt left=256-i;
          Swap(_enc[i], _enc[i+k%left]);
       }
@@ -670,7 +670,7 @@ Cipher3& Cipher3::setKey(C Byte *key, Int key_size)
       REPAO(_enc)=i;
       FREP(255) // RandomizeOrder based on 'key'
       {
-         Byte k=key[UInt(i)%UInt(key_size)]; // unsigned div is slightly faster
+         Byte k=key[Unsigned(i)%Unsigned(key_size)]; // unsigned mod is slightly faster
          UInt left=256-i;
          Swap(_enc[i], _enc[i+k%left]);
       }
