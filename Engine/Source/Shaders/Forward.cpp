@@ -648,7 +648,10 @@ VecH4 PS
       }
       #endif
 
-      if(MATERIALS<=1) // emissive
+      // glow
+      ApplyGlow(glow, col, diffuse, total_specular);
+
+      if(MATERIALS<=1) // emissive, this should be done after 'ApplyGlow' because emissive glow should not be applied to base color
       {
       #if EMISSIVE_MAP
          VecH emissive=RTex(Lum, I.uv).rgb;
@@ -659,12 +662,12 @@ VecH4 PS
          glow          +=Material.emissive_glow;
       #endif
       }
-
-      // glow
-      ApplyGlow(glow, col, diffuse, total_specular);
    }else
    {
-      if(MATERIALS<=1) // glow from emissive
+      // glow
+      ApplyGlow(glow, diffuse);
+
+    /*if(MATERIALS<=1) // glow from emissive, not needed because final glow is ignored in secondary passes
       {
       #if EMISSIVE_MAP
          VecH emissive=RTex(Lum, I.uv).rgb;
@@ -672,10 +675,7 @@ VecH4 PS
       #else
          glow+=Material.emissive_glow;
       #endif
-      }
-
-      // glow
-      ApplyGlow(glow, diffuse);
+      }*/
    }
    col=col*total_lum*diffuse + total_specular;
 
