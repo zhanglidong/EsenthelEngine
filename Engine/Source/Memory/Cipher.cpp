@@ -69,7 +69,7 @@ void Cipher0::encrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
 {
    if(Byte *d=(Byte*)dest)
    {
-      if(Byte *s=(Byte*)src)
+      if(C Byte *s=(Byte*)src)
       {
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
@@ -106,7 +106,7 @@ void Cipher0::decrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
 {
    if(Byte *d=(Byte*)dest)
    {
-      if(Byte *s=(Byte*)src)
+      if(C Byte *s=(Byte*)src)
       {
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
@@ -256,9 +256,9 @@ void Cipher0A::encrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
 {
    if(Byte *d=(Byte*)dest)
    {
-      if(Byte *s=(Byte*)src)
+      offset&=255;
+      if(C Byte *s=(Byte*)src)
       {
-         offset&=255;
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
             *d++=((*s++)+_key[offset+0])^_key[offset+1];
@@ -275,7 +275,6 @@ void Cipher0A::encrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
          }
       }else
       {
-         offset&=255;
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
             *d++=_key[offset+0]^_key[offset+1];
@@ -297,9 +296,9 @@ void Cipher0A::decrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
 {
    if(Byte *d=(Byte*)dest)
    {
-      if(Byte *s=(Byte*)src)
+      offset&=255;
+      if(C Byte *s=(Byte*)src)
       {
-         offset&=255;
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
             *d++=((*s++)^_key[offset+1])-_key[offset+0];
@@ -316,7 +315,6 @@ void Cipher0A::decrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
          }
       }else
       {
-         offset&=255;
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
             *d++=_key[offset+1]-_key[offset+0];
@@ -428,9 +426,9 @@ void Cipher1::encrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
 {
    if(Byte *d=(Byte*)dest)
    {
-      if(Byte *s=(Byte*)src)
+      offset&=255;
+      if(C Byte *s=(Byte*)src)
       {
-         offset&=255;
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
            *d++=_enc[(*s++)^_enc[offset+0]];
@@ -447,7 +445,6 @@ void Cipher1::encrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
          }
       }else
       {
-         offset&=255;
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
            *d++=_enc[_enc[offset+0]];
@@ -469,9 +466,9 @@ void Cipher1::decrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
 {
    if(Byte *d=(Byte*)dest)
    {
-      if(Byte *s=(Byte*)src)
+      offset&=255;
+      if(C Byte *s=(Byte*)src)
       {
-         offset&=255;
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
            *d++=_dec[(*s++)]^_enc[offset+0];
@@ -489,7 +486,6 @@ void Cipher1::decrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
       }else
       {
          Byte dec0=_dec[0];
-         offset&=255;
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
            *d++=dec0^_enc[offset+0];
@@ -587,7 +583,7 @@ void Cipher2::encrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
 {
    if(Byte *d=(Byte*)dest)
    {
-      if(Byte *s=(Byte*)src)
+      if(C Byte *s=(Byte*)src)
       {
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
@@ -624,7 +620,7 @@ void Cipher2::decrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
 {
    if(Byte *d=(Byte*)dest)
    {
-      if(Byte *s=(Byte*)src)
+      if(C Byte *s=(Byte*)src)
       {
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
@@ -738,7 +734,7 @@ void Cipher3::encrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
 {
    if(Byte *d=(Byte*)dest)
    {
-      if(Byte *s=(Byte*)src)
+      if(C Byte *s=(Byte*)src)
       {
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
@@ -775,7 +771,7 @@ void Cipher3::decrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
 {
    if(Byte *d=(Byte*)dest)
    {
-      if(Byte *s=(Byte*)src)
+      if(C Byte *s=(Byte*)src)
       {
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
