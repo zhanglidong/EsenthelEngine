@@ -130,8 +130,10 @@ struct AES // Advanced Encryption Standard
 {
    Bool create(CPtr key, Int key_size); // create AES cipher, 'key'=pointer to symmetric key, 'key_size'=size of the key in bytes (must be 16, 24 or 32), returns false on fail
 
-   void encrypt(Ptr dest, CPtr src)C; // encrypt 16-bytes from 'src' into 16-bytes in 'dest'
-   void decrypt(Ptr dest, CPtr src)C; // decrypt 16-bytes from 'src' into 16-bytes in 'dest'
+   void encrypt16(Ptr dest, CPtr src             )C; // encrypt     16 bytes from 'src' into     16 bytes in 'dest'
+   void decrypt16(Ptr dest, CPtr src             )C; // decrypt     16 bytes from 'src' into     16 bytes in 'dest'
+   Bool encrypt  (Ptr dest, CPtr src, IntPtr size)C; // encrypt 'size' bytes from 'src' into 'size' bytes in 'dest', since AES operates on 16-byte blocks, 'size' must be a multiple of 16, false on fail
+   Bool decrypt  (Ptr dest, CPtr src, IntPtr size)C; // decrypt 'size' bytes from 'src' into 'size' bytes in 'dest', since AES operates on 16-byte blocks, 'size' must be a multiple of 16, false on fail
 
    AES();
 

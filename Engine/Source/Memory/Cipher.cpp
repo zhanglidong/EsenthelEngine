@@ -1137,24 +1137,42 @@ AES_ATTR Bool AES::create(CPtr key_data, Int key_size)
    }
    return false;
 }
-AES_ATTR void AES::encrypt(Ptr dest, CPtr src)C
+/******************************************************************************/
+#if AES_CPU
+static INLINE AES_ATTR void AESEncrypt16(Ptr dest, CPtr src, Int rounds, CPtr encrypt_key)
+{
+   const __m128i *key=(const __m128i*)encrypt_key;
+   __m128i block=_mm_loadu_si128((const __m128i*)src);
+   block=_mm_xor_si128(block, key[0]);
+   for(Int i=1; i<rounds-1; i+=2)
+   {
+      block=_mm_aesenc_si128(block, key[i  ]);
+      block=_mm_aesenc_si128(block, key[i+1]);
+   }
+   block=_mm_aesenc_si128    (block, key[rounds-1]);
+   block=_mm_aesenclast_si128(block, key[rounds  ]);
+   _mm_storeu_si128((__m128i*)dest, block);
+}
+static INLINE AES_ATTR void AESDecrypt16(Ptr dest, CPtr src, Int rounds, CPtr decrypt_key)
+{
+   const __m128i *key=(const __m128i*)decrypt_key;
+   __m128i block=_mm_loadu_si128((const __m128i*)src);
+   block=_mm_xor_si128(block, key[0]);
+   for(Int i=1; i<rounds-1; i+=2)
+   {
+      block=_mm_aesdec_si128(block, key[i  ]);
+      block=_mm_aesdec_si128(block, key[i+1]);
+   }
+   block=_mm_aesdec_si128    (block, key[rounds-1]);
+   block=_mm_aesdeclast_si128(block, key[rounds  ]);
+   _mm_storeu_si128((__m128i*)dest, block);
+}
+#endif
+/******************************************************************************/
+AES_ATTR void AES::encrypt16(Ptr dest, CPtr src)C
 {
 #if AES_CPU
-   if(Cpu.flag()&CPU_AES)
-   {
-      const __m128i *key=(const __m128i*)_encrypt_key;
-      __m128i block=_mm_loadu_si128((const __m128i*)src);
-      block=_mm_xor_si128(block, key[0]);
-      for(Int i=1; i<_rounds-1; i+=2)
-      {
-         block=_mm_aesenc_si128(block, key[i  ]);
-         block=_mm_aesenc_si128(block, key[i+1]);
-      }
-      block=_mm_aesenc_si128    (block, key[_rounds-1]);
-      block=_mm_aesenclast_si128(block, key[_rounds  ]);
-      _mm_storeu_si128((__m128i*)dest, block);
-      return;
-   }
+   if(Cpu.flag()&CPU_AES){AESEncrypt16(dest, src, _rounds, _encrypt_key); return;}
 #endif
 
    const Byte *in =(Byte*)src;
@@ -1261,24 +1279,11 @@ AES_ATTR void AES::encrypt(Ptr dest, CPtr src)C
    s2 = (Te2[(t2 >> 24)] & 0xff000000) ^ (Te3[(t3 >> 16) & 0xff] & 0x00ff0000) ^ (Te0[(t0 >> 8) & 0xff] & 0x0000ff00) ^ (Te1[(t1) & 0xff] & 0x000000ff) ^ rk[2]; PUTU32(out+ 8, s2);
    s3 = (Te2[(t3 >> 24)] & 0xff000000) ^ (Te3[(t0 >> 16) & 0xff] & 0x00ff0000) ^ (Te0[(t1 >> 8) & 0xff] & 0x0000ff00) ^ (Te1[(t2) & 0xff] & 0x000000ff) ^ rk[3]; PUTU32(out+12, s3);
 }
-AES_ATTR void AES::decrypt(Ptr dest, CPtr src)C
+/******************************************************************************/
+AES_ATTR void AES::decrypt16(Ptr dest, CPtr src)C
 {
 #if AES_CPU
-   if(Cpu.flag()&CPU_AES)
-   {
-      const __m128i *key=(const __m128i*)_decrypt_key;
-      __m128i block=_mm_loadu_si128((const __m128i*)src);
-      block=_mm_xor_si128(block, key[0]);
-      for(Int i=1; i<_rounds-1; i+=2)
-      {
-         block=_mm_aesdec_si128(block, key[i  ]);
-         block=_mm_aesdec_si128(block, key[i+1]);
-      }
-      block=_mm_aesdec_si128    (block, key[_rounds-1]);
-      block=_mm_aesdeclast_si128(block, key[_rounds  ]);
-      _mm_storeu_si128((__m128i*)dest, block);
-      return;
-   }
+   if(Cpu.flag()&CPU_AES){AESDecrypt16(dest, src, _rounds, _decrypt_key); return;}
 #endif
 
    const Byte *in =(Byte*)src;
@@ -1389,6 +1394,58 @@ AES_ATTR void AES::decrypt(Ptr dest, CPtr src)C
 #undef SWAP
 #undef GETU32
 #undef PUTU32
+/******************************************************************************/
+AES_ATTR Bool AES::encrypt(Ptr dest, CPtr src, IntPtr size)C
+{
+   if(size<0 || size&15)return false;
+   size>>=4;
+#if AES_CPU
+   if(Cpu.flag()&CPU_AES)
+   {
+      REPP(size)
+      {
+         AESEncrypt16(dest, src, _rounds, _encrypt_key);
+         dest=(Byte*)dest+16;
+         src =(Byte*)src +16;
+      }
+   }else
+#endif
+   {
+      REPP(size)
+      {
+         encrypt16(dest, src);
+         dest=(Byte*)dest+16;
+         src =(Byte*)src +16;
+      }
+   }
+   return true;
+}
+AES_ATTR Bool AES::decrypt(Ptr dest, CPtr src, IntPtr size)C
+{
+   if(size<0 || size&15)return false;
+   size>>=4;
+#if AES_CPU
+   if(Cpu.flag()&CPU_AES)
+   {
+      REPP(size)
+      {
+         AESDecrypt16(dest, src, _rounds, _decrypt_key);
+         dest=(Byte*)dest+16;
+         src =(Byte*)src +16;
+      }
+   }else
+#endif
+   {
+      REPP(size)
+      {
+         decrypt16(dest, src);
+         dest=(Byte*)dest+16;
+         src =(Byte*)src +16;
+      }
+   }
+   return true;
+}
+/******************************************************************************/
 #endif
 /******************************************************************************/
 }
