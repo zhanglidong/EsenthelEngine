@@ -560,7 +560,6 @@ Half OldWeight(Vec2 old_uv, VecH2 uv_motion, Flt depth)
 
    // check if any object covered old pixel in previous frame
    // this needs to be checked even if current pixel is not moving (uv_motion=0)
-   // TODO: for best results this would need a separate dilated motion RT without any MotionScale_2, perhaps it could be smaller than DilatedMotion for Motion Blur
    VecH4 dilated_uv_motion=TexLod(Img2, old_uv); // use filtering because this is very low res, this might be a little problem for DUAL_MOTION since there one pixel can have XY=A, ZW=B, and another can have XY=B, ZW=0 (B vel is in XY), filtering would make values invalid, however it still looks better with filtering than without, because without filtering there are blocky artifacts, with filtering artifacts are smoother
 
    VecH2 screen_motion=UVToScreen(uv_motion);
