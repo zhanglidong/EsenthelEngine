@@ -143,6 +143,7 @@ void Menu::push(Int abs)
 
       // set first element to this
       MenuPush &mp=mps.New(); mp.abs=abs;
+      if(_elms.elms())mp.name=((MenuElm*)data)->name;else // prefer this, because below uses 'display_name'
       if(ListColumn *lc=listColumn())mp.name=lc->md.asText(data, lc->precision);
 
       GuiObj *menu  =this,
