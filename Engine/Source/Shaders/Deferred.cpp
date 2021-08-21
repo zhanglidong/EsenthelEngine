@@ -600,7 +600,8 @@ void PS
          if(MATERIALS>=3)uv2-=offset;
          if(MATERIALS>=4)uv3-=offset;
 
-         BRANCH if(lod0<=0 || lod1<=0 || (MATERIALS>=3 && lod2<=0) || (MATERIALS>=4 && lod3<=0)) // extra step (needed only for closeup)
+         Bool      extra=(lod0<=0 || lod1<=0); if(MATERIALS>=3 && lod2<=0)extra=true; if(MATERIALS>=4 && lod3<=0)extra=true; // extra step (needed only for closeup)
+         BRANCH if(extra)
          {
             Half ray_cur=ray+stp*frac,
                           //height_cur =RTexLodI(       BUMP_IMAGE  , I.uv , lod ).BASE_CHANNEL_BUMP;
