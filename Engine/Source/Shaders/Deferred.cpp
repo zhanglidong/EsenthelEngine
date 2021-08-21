@@ -18,7 +18,6 @@
 #define RELIEF_DEC_NRM      1 // if reduce relief bump intensity where there are big differences between vtx normals, tangents and binormals, default=1
 #define RELIEF_MODE         1 // 1=best
 #define RELIEF_Z_LIMIT      0.4 // smaller values may cause leaking (UV swimming), and higher reduce bump intensity at angles, default=0.4
-#define RELIEF_LOD_TEST     0 // close to camera (test enabled=4.76 fps, test disabled=4.99 fps), far from camera (test enabled=9.83 fps, test disabled=9.52 fps), conclusion: this test reduces performance when close to camera by a similar factor to when far away, however since more likely pixels will be close to camera (as for distant LODs other shaders are used) we prioritize close to camera performance, so this check should be disabled, default=0
 
 #define FAST_TPOS  ((BUMP_MODE>=SBUMP_PARALLAX_MIN && BUMP_MODE<=SBUMP_PARALLAX_MAX) || (BUMP_MODE==SBUMP_RELIEF && !RELIEF_TAN_POS))
 #define GRASS_FADE (FX==FX_GRASS_2D || FX==FX_GRASS_3D)
@@ -289,107 +288,102 @@ void PS
    }
    #elif BUMP_MODE==SBUMP_RELIEF // Relief
    {
-   #if RELIEF_LOD_TEST
-      BRANCH if(GetLod(I.uv, DEFAULT_TEX_SIZE)<=4)
+      Vec2 TexSize; BUMP_IMAGE.GetDimensions(TexSize.x, TexSize.y);
+      Flt  lod=Max(0, GetLod(I.uv, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
+      //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
+
+      VecH tpos=I.tpos();
+   #if   RELIEF_MODE==0
+      Half scale=Material.bump;
+   #elif RELIEF_MODE==1 // best
+      Half scale=Material.bump/Lerp(1, tpos.z, Sat(tpos.z/RELIEF_Z_LIMIT));
+   #elif RELIEF_MODE==2 // produces slight aliasing/artifacts on surfaces perpendicular to view direction
+      Half scale=Material.bump/Max(tpos.z, RELIEF_Z_LIMIT);
+   #else // correct however introduces way too much aliasing/artifacts on surfaces perpendicular to view direction
+      Half scale=Material.bump/tpos.z;
    #endif
+
+   #if RELIEF_DEC_NRM
+      scale*=Length2(I.mtrx[0])*Length2(I.mtrx[1])*Length2(I.mtrx[2]); // vtx matrix vectors are interpolated linearly, which means that if there are big differences between vtx vectors, then their length will be smaller and smaller, for example if #0 vtx normal is (1,0), and #1 vtx normal is (0,1), then interpolated value between them will be (0.5, 0.5)
+   #endif
+      tpos.xy*=-scale;
+
+      Flt length=Length(tpos.xy) * TexSize.x / exp2(lod); // how many pixels, Pow(2, lod)=exp2(lod)
+      if(RELIEF_STEPS_MUL!=1)if(lod>0)length*=RELIEF_STEPS_MUL; // don't use this for first LOD
+
+      I.uv-=tpos.xy*0.5;
+
+      Int  steps  =Mid(length, 0, RELIEF_STEPS_MAX);
+      Half stp    =1.0/(steps+1),
+           ray    =1;
+      Vec2 uv_step=tpos.xy*stp; // keep as HP to avoid conversions several times in the loop below
+
+   #if 1 // linear + interval search (faster)
+      // linear search
+      Half height_next, height_prev=0.5; // use 0.5 as approximate average value, we could do "RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP", however in tests that wasn't needed but only reduced performance
+      LOOP for(Int i=0; ; i++)
       {
-         Vec2 TexSize; BUMP_IMAGE.GetDimensions(TexSize.x, TexSize.y);
-         Flt  lod=Max(0, GetLod(I.uv, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
-         //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
-
-         VecH tpos=I.tpos();
-      #if   RELIEF_MODE==0
-         Half scale=Material.bump;
-      #elif RELIEF_MODE==1 // best
-         Half scale=Material.bump/Lerp(1, tpos.z, Sat(tpos.z/RELIEF_Z_LIMIT));
-      #elif RELIEF_MODE==2 // produces slight aliasing/artifacts on surfaces perpendicular to view direction
-         Half scale=Material.bump/Max(tpos.z, RELIEF_Z_LIMIT);
-      #else // correct however introduces way too much aliasing/artifacts on surfaces perpendicular to view direction
-         Half scale=Material.bump/tpos.z;
-      #endif
-
-      #if RELIEF_DEC_NRM
-         scale*=Length2(I.mtrx[0])*Length2(I.mtrx[1])*Length2(I.mtrx[2]); // vtx matrix vectors are interpolated linearly, which means that if there are big differences between vtx vectors, then their length will be smaller and smaller, for example if #0 vtx normal is (1,0), and #1 vtx normal is (0,1), then interpolated value between them will be (0.5, 0.5)
-      #endif
-         tpos.xy*=-scale;
-
-         Flt length=Length(tpos.xy) * TexSize.x / exp2(lod); // how many pixels, Pow(2, lod)=exp2(lod)
-         if(RELIEF_STEPS_MUL!=1)if(lod>0)length*=RELIEF_STEPS_MUL; // don't use this for first LOD
-
-         I.uv-=tpos.xy*0.5;
-
-         Int  steps  =Mid(length, 0, RELIEF_STEPS_MAX);
-         Half stp    =1.0/(steps+1),
-              ray    =1;
-         Vec2 uv_step=tpos.xy*stp; // keep as HP to avoid conversions several times in the loop below
-
-      #if 1 // linear + interval search (faster)
-         // linear search
-         Half height_next, height_prev=0.5; // use 0.5 as approximate average value, we could do "RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP", however in tests that wasn't needed but only reduced performance
-         LOOP for(Int i=0; ; i++)
-         {
-            ray -=stp;
-            I.uv+=uv_step;
-            height_next=RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP;
-            if(i>=steps || height_next>=ray)break;
-            height_prev=height_next;
-         }
-
-         // interval search
-         if(1)
-         {
-            Half ray_prev=ray+stp;
-            // prev pos: I.uv-uv_step, height_prev-ray_prev
-            // next pos: I.uv        , height_next-ray
-            Half hn=height_next-ray,
-                 hp=height_prev-ray_prev,
-                 frac=Sat(hn/(hn-hp));
-            I.uv-=uv_step*frac;
-
-            BRANCH if(lod<=0) // extra step (needed only for closeup)
-            {
-               Half ray_cur=ray+stp*frac,
-                    height_cur=RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP;
-               if(  height_cur>=ray_cur) // if still below, then have to go back more, lerp between this position and prev pos
-               {
-                  // prev pos: I.uv-uv_step (BUT I.uv before adjustment), height_prev-ray_prev
-                  // next pos: I.uv                                     , height_cur -ray_cur
-                  uv_step*=1-frac; // we've just travelled "uv_step*frac", so to go to the prev point, we need what's left, "uv_step*(1-frac)"
-               }else // we went back too far, go forward, lerp between next pos and this position
-               {
-                  // prev pos: I.uv                             , height_cur -ray_cur
-                  // next pos: I.uv (BUT I.uv before adjustment), height_next-ray
-                  hp=hn;
-                  uv_step*=-frac; // we've just travelled "uv_step*frac", so to go to the next point, we need the same way but other direction, "uv_step*-frac"
-               }
-               hn=height_cur-ray_cur;
-               frac=Sat(hn/(hn-hp));
-               I.uv-=uv_step*frac;
-            }
-         }
-      #else // linear + binary search (slower because requires 3 tex reads in binary to get the same results as with only 0-1 tex reads in interval)
-         // linear search
-         LOOP for(Int i=0; ; i++)
-         {
-            ray -=stp;
-            I.uv+=uv_step;
-            if(i>=steps || RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP>=ray)break;
-         }
-
-         // binary search
-         {
-            Half ray_prev=ray+stp,
-                 l=0, r=1, m=0.5;
-            UNROLL for(Int i=0; i<RELIEF_STEPS_BINARY; i++)
-            {
-               Half height=RTexLodI(BUMP_IMAGE, I.uv-uv_step*m, lod).BASE_CHANNEL_BUMP;
-               if(  height>Lerp(ray, ray_prev, m))l=m;else r=m;
-               m=Avg(l, r);
-            }
-            I.uv-=uv_step*m;
-         }
-      #endif
+         ray -=stp;
+         I.uv+=uv_step;
+         height_next=RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP;
+         if(i>=steps || height_next>=ray)break;
+         height_prev=height_next;
       }
+
+      // interval search
+      if(1)
+      {
+         Half ray_prev=ray+stp;
+         // prev pos: I.uv-uv_step, height_prev-ray_prev
+         // next pos: I.uv        , height_next-ray
+         Half hn=height_next-ray,
+              hp=height_prev-ray_prev,
+              frac=Sat(hn/(hn-hp));
+         I.uv-=uv_step*frac;
+
+         BRANCH if(lod<=0) // extra step (needed only for closeup)
+         {
+            Half ray_cur=ray+stp*frac,
+                 height_cur=RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP;
+            if(  height_cur>=ray_cur) // if still below, then have to go back more, lerp between this position and prev pos
+            {
+               // prev pos: I.uv-uv_step (BUT I.uv before adjustment), height_prev-ray_prev
+               // next pos: I.uv                                     , height_cur -ray_cur
+               uv_step*=1-frac; // we've just travelled "uv_step*frac", so to go to the prev point, we need what's left, "uv_step*(1-frac)"
+            }else // we went back too far, go forward, lerp between next pos and this position
+            {
+               // prev pos: I.uv                             , height_cur -ray_cur
+               // next pos: I.uv (BUT I.uv before adjustment), height_next-ray
+               hp=hn;
+               uv_step*=-frac; // we've just travelled "uv_step*frac", so to go to the next point, we need the same way but other direction, "uv_step*-frac"
+            }
+            hn=height_cur-ray_cur;
+            frac=Sat(hn/(hn-hp));
+            I.uv-=uv_step*frac;
+         }
+      }
+   #else // linear + binary search (slower because requires 3 tex reads in binary to get the same results as with only 0-1 tex reads in interval)
+      // linear search
+      LOOP for(Int i=0; ; i++)
+      {
+         ray -=stp;
+         I.uv+=uv_step;
+         if(i>=steps || RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP>=ray)break;
+      }
+
+      // binary search
+      {
+         Half ray_prev=ray+stp,
+              l=0, r=1, m=0.5;
+         UNROLL for(Int i=0; i<RELIEF_STEPS_BINARY; i++)
+         {
+            Half height=RTexLodI(BUMP_IMAGE, I.uv-uv_step*m, lod).BASE_CHANNEL_BUMP;
+            if(  height>Lerp(ray, ray_prev, m))l=m;else r=m;
+            m=Avg(l, r);
+         }
+         I.uv-=uv_step*m;
+      }
+   #endif
    }
    #endif
 
@@ -522,81 +516,108 @@ void PS
    }
    #elif BUMP_MODE==SBUMP_RELIEF // Relief
    {
-   #if RELIEF_LOD_TEST
-      BRANCH if(GetLod(I.uv, DEFAULT_TEX_SIZE)<=4)
+      VecH4 bump_mul; bump_mul.x=MultiMaterial0.bump; Half avg_bump;
+                      bump_mul.y=MultiMaterial1.bump; if(MATERIALS==2){bump_mul.xy  *=I.material.xy  ; avg_bump=Sum(bump_mul.xy  );} // use 'Sum' because they're premultipled by 'I.material'
+      if(MATERIALS>=3)bump_mul.z=MultiMaterial2.bump; if(MATERIALS==3){bump_mul.xyz *=I.material.xyz ; avg_bump=Sum(bump_mul.xyz );}
+      if(MATERIALS>=4)bump_mul.w=MultiMaterial3.bump; if(MATERIALS==4){bump_mul.xyzw*=I.material.xyzw; avg_bump=Sum(bump_mul.xyzw);}
+
+      Flt TexSize=DEFAULT_TEX_SIZE, // here we have 2..4 textures, so use a default value
+              lod=Max(0, GetLod(I.uv, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
+      //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
+
+      VecH tpos=I.tpos();
+   #if   RELIEF_MODE==0
+      Half scale=avg_bump;
+   #elif RELIEF_MODE==1 // best
+      Half scale=avg_bump/Lerp(1, tpos.z, Sat(tpos.z/RELIEF_Z_LIMIT));
+   #elif RELIEF_MODE==2 // produces slight aliasing/artifacts on surfaces perpendicular to view direction
+      Half scale=avg_bump/Max(tpos.z, RELIEF_Z_LIMIT);
+   #else // correct however introduces way too much aliasing/artifacts on surfaces perpendicular to view direction
+      Half scale=avg_bump/tpos.z;
    #endif
+
+   #if RELIEF_DEC_NRM
+      scale*=Length2(I.mtrx[0])*Length2(I.mtrx[1])*Length2(I.mtrx[2]); // vtx matrix vectors are interpolated linearly, which means that if there are big differences between vtx vectors, then their length will be smaller and smaller, for example if #0 vtx normal is (1,0), and #1 vtx normal is (0,1), then interpolated value between them will be (0.5, 0.5)
+   #endif
+      tpos.xy*=-scale;
+
+      Flt length=Length(tpos.xy) * TexSize.x / exp2(lod); // how many pixels, Pow(2, lod)=exp2(lod)
+      if(RELIEF_STEPS_MUL!=1)if(lod>0)length*=RELIEF_STEPS_MUL; // don't use this for first LOD
+
+      //I.uv-=tpos.xy*0.5;
+      Vec2 offset=tpos.xy*0.5; // keep as HP to avoid multiple conversions below
+                      uv0-=offset;
+                      uv1-=offset;
+      if(MATERIALS>=3)uv2-=offset;
+      if(MATERIALS>=4)uv3-=offset;
+
+      Int  steps  =Mid(length, 0, RELIEF_STEPS_MAX);
+      Half stp    =1.0/(steps+1),
+           ray    =1;
+      Vec2 uv_step=tpos.xy*stp; // keep as HP to avoid conversions several times in the loop below
+
+   #if 1 // linear + interval search (faster)
+      // linear search
+      Half height_next, height_prev=0.5; // use 0.5 as approximate average value, we could do "RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP", however in tests that wasn't needed but only reduced performance
+      LOOP for(Int i=0; ; i++)
       {
-         VecH4 bump_mul; bump_mul.x=MultiMaterial0.bump; Half avg_bump;
-                         bump_mul.y=MultiMaterial1.bump; if(MATERIALS==2){bump_mul.xy  *=I.material.xy  ; avg_bump=Sum(bump_mul.xy  );} // use 'Sum' because they're premultipled by 'I.material'
-         if(MATERIALS>=3)bump_mul.z=MultiMaterial2.bump; if(MATERIALS==3){bump_mul.xyz *=I.material.xyz ; avg_bump=Sum(bump_mul.xyz );}
-         if(MATERIALS>=4)bump_mul.w=MultiMaterial3.bump; if(MATERIALS==4){bump_mul.xyzw*=I.material.xyzw; avg_bump=Sum(bump_mul.xyzw);}
+         ray-=stp;
 
-         Flt TexSize=DEFAULT_TEX_SIZE, // here we have 2..4 textures, so use a default value
-                 lod=Max(0, GetLod(I.uv, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
-         //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
+         //I.uv+=uv_step;
+                         uv0+=uv_step;
+                         uv1+=uv_step;
+         if(MATERIALS>=3)uv2+=uv_step;
+         if(MATERIALS>=4)uv3+=uv_step;
 
-         VecH tpos=I.tpos();
-      #if   RELIEF_MODE==0
-         Half scale=avg_bump;
-      #elif RELIEF_MODE==1 // best
-         Half scale=avg_bump/Lerp(1, tpos.z, Sat(tpos.z/RELIEF_Z_LIMIT));
-      #elif RELIEF_MODE==2 // produces slight aliasing/artifacts on surfaces perpendicular to view direction
-         Half scale=avg_bump/Max(tpos.z, RELIEF_Z_LIMIT);
-      #else // correct however introduces way too much aliasing/artifacts on surfaces perpendicular to view direction
-         Half scale=avg_bump/tpos.z;
-      #endif
+         //height_next=RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP;
+                         height_next =RTexLodI(       BUMP_IMAGE    , uv0, lod).BASE_CHANNEL_BUMP*I.material.x;
+                         height_next+=RTexLodI(CONCAT(BUMP_IMAGE, 1), uv1, lod).BASE_CHANNEL_BUMP*I.material.y;
+         if(MATERIALS>=3)height_next+=RTexLodI(CONCAT(BUMP_IMAGE, 2), uv2, lod).BASE_CHANNEL_BUMP*I.material.z;
+         if(MATERIALS>=4)height_next+=RTexLodI(CONCAT(BUMP_IMAGE, 3), uv3, lod).BASE_CHANNEL_BUMP*I.material.w;
 
-      #if RELIEF_DEC_NRM
-         scale*=Length2(I.mtrx[0])*Length2(I.mtrx[1])*Length2(I.mtrx[2]); // vtx matrix vectors are interpolated linearly, which means that if there are big differences between vtx vectors, then their length will be smaller and smaller, for example if #0 vtx normal is (1,0), and #1 vtx normal is (0,1), then interpolated value between them will be (0.5, 0.5)
-      #endif
-         tpos.xy*=-scale;
+         if(i>=steps || height_next>=ray)break;
+         height_prev=height_next;
+      }
 
-         Flt length=Length(tpos.xy) * TexSize.x / exp2(lod); // how many pixels, Pow(2, lod)=exp2(lod)
-         if(RELIEF_STEPS_MUL!=1)if(lod>0)length*=RELIEF_STEPS_MUL; // don't use this for first LOD
+      // interval search
+      if(1)
+      {
+         Half ray_prev=ray+stp;
+         // prev pos: I.uv-uv_step, height_prev-ray_prev
+         // next pos: I.uv        , height_next-ray
+         Half hn=height_next-ray, hp=height_prev-ray_prev,
+            frac=Sat(hn/(hn-hp));
 
-         //I.uv-=tpos.xy*0.5;
-         Vec2 offset=tpos.xy*0.5; // keep as HP to avoid multiple conversions below
+        //I.uv-=uv_step*frac;
+         offset=uv_step*frac;
                          uv0-=offset;
                          uv1-=offset;
          if(MATERIALS>=3)uv2-=offset;
          if(MATERIALS>=4)uv3-=offset;
 
-         Int  steps  =Mid(length, 0, RELIEF_STEPS_MAX);
-         Half stp    =1.0/(steps+1),
-              ray    =1;
-         Vec2 uv_step=tpos.xy*stp; // keep as HP to avoid conversions several times in the loop below
-
-      #if 1 // linear + interval search (faster)
-         // linear search
-         Half height_next, height_prev=0.5; // use 0.5 as approximate average value, we could do "RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP", however in tests that wasn't needed but only reduced performance
-         LOOP for(Int i=0; ; i++)
+         BRANCH if(lod<=0) // extra step (needed only for closeup)
          {
-            ray-=stp;
+            Half ray_cur=ray+stp*frac,
+                          //height_cur =RTexLodI(       BUMP_IMAGE    ,I.uv , lod).BASE_CHANNEL_BUMP;
+                            height_cur =RTexLodI(       BUMP_IMAGE    ,  uv0, lod).BASE_CHANNEL_BUMP*I.material.x;
+                            height_cur+=RTexLodI(CONCAT(BUMP_IMAGE, 1),  uv1, lod).BASE_CHANNEL_BUMP*I.material.y;
+            if(MATERIALS>=3)height_cur+=RTexLodI(CONCAT(BUMP_IMAGE, 2),  uv2, lod).BASE_CHANNEL_BUMP*I.material.z;
+            if(MATERIALS>=4)height_cur+=RTexLodI(CONCAT(BUMP_IMAGE, 3),  uv3, lod).BASE_CHANNEL_BUMP*I.material.w;
 
-            //I.uv+=uv_step;
-                            uv0+=uv_step;
-                            uv1+=uv_step;
-            if(MATERIALS>=3)uv2+=uv_step;
-            if(MATERIALS>=4)uv3+=uv_step;
-
-            //height_next=RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP;
-                            height_next =RTexLodI(       BUMP_IMAGE    , uv0, lod).BASE_CHANNEL_BUMP*I.material.x;
-                            height_next+=RTexLodI(CONCAT(BUMP_IMAGE, 1), uv1, lod).BASE_CHANNEL_BUMP*I.material.y;
-            if(MATERIALS>=3)height_next+=RTexLodI(CONCAT(BUMP_IMAGE, 2), uv2, lod).BASE_CHANNEL_BUMP*I.material.z;
-            if(MATERIALS>=4)height_next+=RTexLodI(CONCAT(BUMP_IMAGE, 3), uv3, lod).BASE_CHANNEL_BUMP*I.material.w;
-
-            if(i>=steps || height_next>=ray)break;
-            height_prev=height_next;
-         }
-
-         // interval search
-         if(1)
-         {
-            Half ray_prev=ray+stp;
-            // prev pos: I.uv-uv_step, height_prev-ray_prev
-            // next pos: I.uv        , height_next-ray
-            Half hn=height_next-ray, hp=height_prev-ray_prev,
-               frac=Sat(hn/(hn-hp));
+            if(height_cur>=ray_cur) // if still below, then have to go back more, lerp between this position and prev pos
+            {
+               // prev pos: I.uv-uv_step (BUT I.uv before adjustment), height_prev-ray_prev
+               // next pos: I.uv                                     , height_cur -ray_cur
+               uv_step*=1-frac; // we've just travelled "uv_step*frac", so to go to the prev point, we need what's left, "uv_step*(1-frac)"
+            }else // we went back too far, go forward, lerp between next pos and this position
+            {
+               // prev pos: I.uv                             , height_cur -ray_cur
+               // next pos: I.uv (BUT I.uv before adjustment), height_next-ray
+               hp=hn;
+               uv_step*=-frac; // we've just travelled "uv_step*frac", so to go to the next point, we need the same way but other direction, "uv_step*-frac"
+            }
+            hn=height_cur-ray_cur;
+            frac=Sat(hn/(hn-hp));
 
            //I.uv-=uv_step*frac;
             offset=uv_step*frac;
@@ -604,64 +625,32 @@ void PS
                             uv1-=offset;
             if(MATERIALS>=3)uv2-=offset;
             if(MATERIALS>=4)uv3-=offset;
-
-            BRANCH if(lod<=0) // extra step (needed only for closeup)
-            {
-               Half ray_cur=ray+stp*frac,
-                             //height_cur =RTexLodI(       BUMP_IMAGE    ,I.uv , lod).BASE_CHANNEL_BUMP;
-                               height_cur =RTexLodI(       BUMP_IMAGE    ,  uv0, lod).BASE_CHANNEL_BUMP*I.material.x;
-                               height_cur+=RTexLodI(CONCAT(BUMP_IMAGE, 1),  uv1, lod).BASE_CHANNEL_BUMP*I.material.y;
-               if(MATERIALS>=3)height_cur+=RTexLodI(CONCAT(BUMP_IMAGE, 2),  uv2, lod).BASE_CHANNEL_BUMP*I.material.z;
-               if(MATERIALS>=4)height_cur+=RTexLodI(CONCAT(BUMP_IMAGE, 3),  uv3, lod).BASE_CHANNEL_BUMP*I.material.w;
-
-               if(height_cur>=ray_cur) // if still below, then have to go back more, lerp between this position and prev pos
-               {
-                  // prev pos: I.uv-uv_step (BUT I.uv before adjustment), height_prev-ray_prev
-                  // next pos: I.uv                                     , height_cur -ray_cur
-                  uv_step*=1-frac; // we've just travelled "uv_step*frac", so to go to the prev point, we need what's left, "uv_step*(1-frac)"
-               }else // we went back too far, go forward, lerp between next pos and this position
-               {
-                  // prev pos: I.uv                             , height_cur -ray_cur
-                  // next pos: I.uv (BUT I.uv before adjustment), height_next-ray
-                  hp=hn;
-                  uv_step*=-frac; // we've just travelled "uv_step*frac", so to go to the next point, we need the same way but other direction, "uv_step*-frac"
-               }
-               hn=height_cur-ray_cur;
-               frac=Sat(hn/(hn-hp));
-
-              //I.uv-=uv_step*frac;
-               offset=uv_step*frac;
-                               uv0-=offset;
-                               uv1-=offset;
-               if(MATERIALS>=3)uv2-=offset;
-               if(MATERIALS>=4)uv3-=offset;
-            }
          }
-      #else // linear + binary search (slower because requires 3 tex reads in binary to get the same results as with only 0-1 tex reads in interval)
-         this needs to be updated for 4 materials
-
-         // linear search
-         LOOP for(Int i=0; ; i++)
-         {
-            ray -=stp;
-            I.uv+=uv_step;
-            if(i>=steps || RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP>=ray)break;
-         }
-
-         // binary search
-         {
-            Half ray_prev=ray+stp,
-                 l=0, r=1, m=0.5;
-            UNROLL for(Int i=0; i<RELIEF_STEPS_BINARY; i++)
-            {
-               Half height=RTexLodI(BUMP_IMAGE, I.uv-uv_step*m, lod).BASE_CHANNEL_BUMP;
-               if(  height>Lerp(ray, ray_prev, m))l=m;else r=m;
-               m=Avg(l, r);
-            }
-            I.uv-=uv_step*m;
-         }
-      #endif
       }
+   #else // linear + binary search (slower because requires 3 tex reads in binary to get the same results as with only 0-1 tex reads in interval)
+      this needs to be updated for 4 materials
+
+      // linear search
+      LOOP for(Int i=0; ; i++)
+      {
+         ray -=stp;
+         I.uv+=uv_step;
+         if(i>=steps || RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP>=ray)break;
+      }
+
+      // binary search
+      {
+         Half ray_prev=ray+stp,
+              l=0, r=1, m=0.5;
+         UNROLL for(Int i=0; i<RELIEF_STEPS_BINARY; i++)
+         {
+            Half height=RTexLodI(BUMP_IMAGE, I.uv-uv_step*m, lod).BASE_CHANNEL_BUMP;
+            if(  height>Lerp(ray, ray_prev, m))l=m;else r=m;
+            m=Avg(l, r);
+         }
+         I.uv-=uv_step*m;
+      }
+   #endif
    }
    #endif // Relief
 
