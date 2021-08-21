@@ -135,7 +135,7 @@ class ClassNameDesc
 }
 ClassNameDesc CipherText[]=
 {
-   {null     , "No Encryption", u"Project data is not going to be encrypted (not recommended).\nAnyone will be able to access your project files.\nHowever this mode has the best performance x20"}, // CIPHER_NONE
+   {null     , "No Encryption", u"Project data is not going to be encrypted (not recommended).\nAnyone will be able to access your project files.\nHowever this mode has the best performance x6"}, // CIPHER_NONE
    {"Cipher1", "Cipher 1"     , u"Project data is going to be encrypted using 'Cipher1' class (recommended).\nIt offers good security and good performance x2"}, // CIPHER_1
    {"Cipher2", "Cipher 2"     , u"Project data is going to be encrypted using 'Cipher2' class.\nIt offers great security and medium performance x1.5"}, // CIPHER_2
    {"Cipher3", "Cipher 3"     , u"Project data is going to be encrypted using 'Cipher3' class.\nIt offers best security and low performance x1"}, // CIPHER_3
