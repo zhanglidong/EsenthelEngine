@@ -6,8 +6,6 @@
 #define MacroMax    0.70
 #define MacroScale (1.0/32)
 
-#define DEFAULT_TEX_SIZE 1024.0 // 1024x1024
-
 #define PARALLAX_MODE 1 // 1=best
 
 #define RELIEF_STEPS_MAX    32
@@ -244,6 +242,9 @@ void VS
 /******************************************************************************/
 // PS
 /******************************************************************************/
+//Half Pixels(VecH2 uv, Vec2 ImgSize, Flt lod) {return  Length(uv*ImgSize) /exp2(lod);} // how many pixels, Pow(2, lod)=exp2(lod)
+  Half Pixels(VecH2 uv, Vec2 ImgSize, Flt lod) {return Max(Abs(uv*ImgSize))/exp2(lod);} // how many pixels, Pow(2, lod)=exp2(lod)
+
 void PS
 (
    Data I
@@ -288,10 +289,6 @@ void PS
    }
    #elif BUMP_MODE==SBUMP_RELIEF // Relief
    {
-      Vec2 TexSize; BUMP_IMAGE.GetDimensions(TexSize.x, TexSize.y);
-      Flt  lod=Max(0, GetLod(I.uv, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
-      //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
-
       VecH tpos=I.tpos();
    #if   RELIEF_MODE==0
       Half scale=Material.bump;
@@ -308,26 +305,30 @@ void PS
    #endif
       tpos.xy*=-scale;
 
-      Flt length=Length(tpos.xy) * TexSize.x / exp2(lod); // how many pixels, Pow(2, lod)=exp2(lod)
-      if(RELIEF_STEPS_MUL!=1)if(lod>0)length*=RELIEF_STEPS_MUL; // don't use this for first LOD
-
       I.uv-=tpos.xy*0.5;
 
-      Int  steps  =Mid(length, 0, RELIEF_STEPS_MAX);
-      Half stp    =1.0/(steps+1),
+      Vec2 TexSize; BUMP_IMAGE.GetDimensions(TexSize.x, TexSize.y);
+      Flt  lod=Max(0, GetLod(I.uv, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
+    //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
+
+      Half length=Pixels(tpos.xy, TexSize, lod);
+      if(RELIEF_STEPS_MUL!=1)if(lod>0)length*=RELIEF_STEPS_MUL; // don't use this for first LOD
+
+      Half steps  =Mid(length, 1, RELIEF_STEPS_MAX),
+           stp    =1.0/steps,
            ray    =1;
       Vec2 uv_step=tpos.xy*stp; // keep as HP to avoid conversions several times in the loop below
 
    #if 1 // linear + interval search (faster)
       // linear search
       Half height_next, height_prev=0.5; // use 0.5 as approximate average value, we could do "RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP", however in tests that wasn't needed but only reduced performance
-      LOOP for(Int i=0; ; i++)
+      LOOP for(;;)
       {
          ray -=stp;
          I.uv+=uv_step;
          height_next=RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP;
-         if(i>=steps || height_next>=ray)break;
-         height_prev=height_next;
+         if(height_next>=ray)break;
+            height_prev=height_next;
       }
 
       // interval search
@@ -521,10 +522,6 @@ void PS
       if(MATERIALS>=3)bump_mul.z=MultiMaterial2.bump; if(MATERIALS==3){bump_mul.xyz *=I.material.xyz ; avg_bump=Sum(bump_mul.xyz );}
       if(MATERIALS>=4)bump_mul.w=MultiMaterial3.bump; if(MATERIALS==4){bump_mul.xyzw*=I.material.xyzw; avg_bump=Sum(bump_mul.xyzw);}
 
-      Flt TexSize=DEFAULT_TEX_SIZE, // here we have 2..4 textures, so use a default value
-              lod=Max(0, GetLod(I.uv, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
-      //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
-
       VecH tpos=I.tpos();
    #if   RELIEF_MODE==0
       Half scale=avg_bump;
@@ -541,9 +538,6 @@ void PS
    #endif
       tpos.xy*=-scale;
 
-      Flt length=Length(tpos.xy) * TexSize.x / exp2(lod); // how many pixels, Pow(2, lod)=exp2(lod)
-      if(RELIEF_STEPS_MUL!=1)if(lod>0)length*=RELIEF_STEPS_MUL; // don't use this for first LOD
-
       //I.uv-=tpos.xy*0.5;
       Vec2 offset=tpos.xy*0.5; // keep as HP to avoid multiple conversions below
                       uv0-=offset;
@@ -551,15 +545,26 @@ void PS
       if(MATERIALS>=3)uv2-=offset;
       if(MATERIALS>=4)uv3-=offset;
 
-      Int  steps  =Mid(length, 0, RELIEF_STEPS_MAX);
-      Half stp    =1.0/(steps+1),
+      Vec2 TexSize0; Flt lod0;                 {       BUMP_IMAGE    .GetDimensions(TexSize0.x, TexSize0.y); lod0=Max(0, GetLod(uv0, TexSize0)+RELIEF_LOD_OFFSET);} // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
+      Vec2 TexSize1; Flt lod1;                 {CONCAT(BUMP_IMAGE, 1).GetDimensions(TexSize1.x, TexSize1.y); lod1=Max(0, GetLod(uv1, TexSize1)+RELIEF_LOD_OFFSET);}
+      Vec2 TexSize2; Flt lod2; if(MATERIALS>=3){CONCAT(BUMP_IMAGE, 2).GetDimensions(TexSize2.x, TexSize2.y); lod2=Max(0, GetLod(uv2, TexSize2)+RELIEF_LOD_OFFSET);}
+      Vec2 TexSize3; Flt lod3; if(MATERIALS>=4){CONCAT(BUMP_IMAGE, 3).GetDimensions(TexSize3.x, TexSize3.y); lod3=Max(0, GetLod(uv3, TexSize3)+RELIEF_LOD_OFFSET);}
+
+      Half length;
+                      {Half length0=Pixels(tpos.xy, TexSize0, lod0); if(RELIEF_STEPS_MUL!=1)if(lod0>0)length0*=RELIEF_STEPS_MUL; length =length0*I.material.x;} // don't use RELIEF_STEPS_MUL for first LOD
+                      {Half length1=Pixels(tpos.xy, TexSize1, lod1); if(RELIEF_STEPS_MUL!=1)if(lod1>0)length1*=RELIEF_STEPS_MUL; length+=length1*I.material.y;} // don't use RELIEF_STEPS_MUL for first LOD
+      if(MATERIALS>=3){Half length2=Pixels(tpos.xy, TexSize2, lod2); if(RELIEF_STEPS_MUL!=1)if(lod2>0)length2*=RELIEF_STEPS_MUL; length+=length2*I.material.z;} // don't use RELIEF_STEPS_MUL for first LOD
+      if(MATERIALS>=4){Half length3=Pixels(tpos.xy, TexSize3, lod3); if(RELIEF_STEPS_MUL!=1)if(lod3>0)length3*=RELIEF_STEPS_MUL; length+=length3*I.material.w;} // don't use RELIEF_STEPS_MUL for first LOD
+
+      Half steps  =Mid(length, 1, RELIEF_STEPS_MAX),
+           stp    =1.0/steps,
            ray    =1;
       Vec2 uv_step=tpos.xy*stp; // keep as HP to avoid conversions several times in the loop below
 
    #if 1 // linear + interval search (faster)
       // linear search
       Half height_next, height_prev=0.5; // use 0.5 as approximate average value, we could do "RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP", however in tests that wasn't needed but only reduced performance
-      LOOP for(Int i=0; ; i++)
+      LOOP for(;;)
       {
          ray-=stp;
 
@@ -569,14 +574,14 @@ void PS
          if(MATERIALS>=3)uv2+=uv_step;
          if(MATERIALS>=4)uv3+=uv_step;
 
-         //height_next=RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP;
-                         height_next =RTexLodI(       BUMP_IMAGE    , uv0, lod).BASE_CHANNEL_BUMP*I.material.x;
-                         height_next+=RTexLodI(CONCAT(BUMP_IMAGE, 1), uv1, lod).BASE_CHANNEL_BUMP*I.material.y;
-         if(MATERIALS>=3)height_next+=RTexLodI(CONCAT(BUMP_IMAGE, 2), uv2, lod).BASE_CHANNEL_BUMP*I.material.z;
-         if(MATERIALS>=4)height_next+=RTexLodI(CONCAT(BUMP_IMAGE, 3), uv3, lod).BASE_CHANNEL_BUMP*I.material.w;
+                       //height_next =RTexLodI(       BUMP_IMAGE  , I.uv , lod ).BASE_CHANNEL_BUMP;
+                         height_next =RTexLodI(       BUMP_IMAGE    , uv0, lod0).BASE_CHANNEL_BUMP*I.material.x;
+                         height_next+=RTexLodI(CONCAT(BUMP_IMAGE, 1), uv1, lod1).BASE_CHANNEL_BUMP*I.material.y;
+         if(MATERIALS>=3)height_next+=RTexLodI(CONCAT(BUMP_IMAGE, 2), uv2, lod2).BASE_CHANNEL_BUMP*I.material.z;
+         if(MATERIALS>=4)height_next+=RTexLodI(CONCAT(BUMP_IMAGE, 3), uv3, lod3).BASE_CHANNEL_BUMP*I.material.w;
 
-         if(i>=steps || height_next>=ray)break;
-         height_prev=height_next;
+         if(height_next>=ray)break;
+            height_prev=height_next;
       }
 
       // interval search
@@ -595,14 +600,14 @@ void PS
          if(MATERIALS>=3)uv2-=offset;
          if(MATERIALS>=4)uv3-=offset;
 
-         BRANCH if(lod<=0) // extra step (needed only for closeup)
+         BRANCH if(lod0<=0 || lod1<=0 || (MATERIALS>=3 && lod2<=0) || (MATERIALS>=4 && lod3<=0)) // extra step (needed only for closeup)
          {
             Half ray_cur=ray+stp*frac,
-                          //height_cur =RTexLodI(       BUMP_IMAGE    ,I.uv , lod).BASE_CHANNEL_BUMP;
-                            height_cur =RTexLodI(       BUMP_IMAGE    ,  uv0, lod).BASE_CHANNEL_BUMP*I.material.x;
-                            height_cur+=RTexLodI(CONCAT(BUMP_IMAGE, 1),  uv1, lod).BASE_CHANNEL_BUMP*I.material.y;
-            if(MATERIALS>=3)height_cur+=RTexLodI(CONCAT(BUMP_IMAGE, 2),  uv2, lod).BASE_CHANNEL_BUMP*I.material.z;
-            if(MATERIALS>=4)height_cur+=RTexLodI(CONCAT(BUMP_IMAGE, 3),  uv3, lod).BASE_CHANNEL_BUMP*I.material.w;
+                          //height_cur =RTexLodI(       BUMP_IMAGE  , I.uv , lod ).BASE_CHANNEL_BUMP;
+                            height_cur =RTexLodI(       BUMP_IMAGE    , uv0, lod0).BASE_CHANNEL_BUMP*I.material.x;
+                            height_cur+=RTexLodI(CONCAT(BUMP_IMAGE, 1), uv1, lod1).BASE_CHANNEL_BUMP*I.material.y;
+            if(MATERIALS>=3)height_cur+=RTexLodI(CONCAT(BUMP_IMAGE, 2), uv2, lod2).BASE_CHANNEL_BUMP*I.material.z;
+            if(MATERIALS>=4)height_cur+=RTexLodI(CONCAT(BUMP_IMAGE, 3), uv3, lod3).BASE_CHANNEL_BUMP*I.material.w;
 
             if(height_cur>=ray_cur) // if still below, then have to go back more, lerp between this position and prev pos
             {
