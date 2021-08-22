@@ -1970,43 +1970,68 @@ ComputeShader* ShaderFile::computeGet(C Str8 &name)
 /******************************************************************************/
 // DRAW
 /******************************************************************************/
+#if GL
+static INLINE void FlipY(Vtx2DTex *v, Int n)
+{
+   if(!D.mainFBO())FREP(n)CHS(v[i].pos.y); // in OpenGL when drawing to RenderTarget the 'dest.pos.y' must be flipped
+}
+#endif
 void Shader::draw(C Image *image, C Rect *rect)C {Sh.Img[0]->set(image); draw(rect);}
 void Shader::draw(                C Rect *rect)C
 {
-   VI.shader (this);
-   VI.setType(VI_2D_TEX, VI_STRIP);
-   if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
+   if(!rect) // full screen/viewport
    {
-      if(!D._view_active.full || rect)
+   full:
+      VI.shader (this);
+      VI.setType(VI_2D_TEX, VI_STRIP);
+      if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(3)) // this draws 1 tri that's stretched to cover entire screen
       {
-       C RectI &viewport=D._view_active.recti; RectI recti;
-
-         if(!rect)
+         v[0].pos.set(-1,  1);
+         v[1].pos.set( 3,  1);
+         v[2].pos.set(-1, -3);
+         if(D._view_active.full)
          {
-            recti=viewport;
-            v[0].pos.set(-1,  1);
-            v[1].pos.set( 1,  1);
-            v[2].pos.set(-1, -1);
-            v[3].pos.set( 1, -1);
+            v[0].tex.set(0, 0);
+            v[1].tex.set(2, 0);
+            v[2].tex.set(0, 2);
          }else
          {
-            recti=Renderer.screenToPixelI(*rect);
-            Bool flip_x=(recti.max.x<recti.min.x),
-                 flip_y=(recti.max.y<recti.min.y);
-            if(  flip_x)Swap(recti.min.x, recti.max.x);
-            if(  flip_y)Swap(recti.min.y, recti.max.y);
-            if(!Cuts(recti, viewport)){VI.clear(); return;}
-            Flt  xm=2.0f/viewport.w(),
-                 ym=2.0f/viewport.h();
-            Rect frac((recti.min.x-viewport.min.x)*xm-1, (viewport.max.y-recti.max.y)*ym-1,
-                      (recti.max.x-viewport.min.x)*xm-1, (viewport.max.y-recti.min.y)*ym-1);
-            if(flip_x)Swap(frac.min.x, frac.max.x);
-            if(flip_y)Swap(frac.min.y, frac.max.y);
-            v[0].pos.set(frac.min.x, frac.max.y);
-            v[1].pos.set(frac.max.x, frac.max.y);
-            v[2].pos.set(frac.min.x, frac.min.y);
-            v[3].pos.set(frac.max.x, frac.min.y);
+          C RectI &viewport=D._view_active.recti;
+            Rect   tex(Flt(viewport.min.x             )/Renderer.resW(), Flt(viewport.min.y             )/Renderer.resH(),
+                       Flt(viewport.max.x+viewport.w())/Renderer.resW(), Flt(viewport.max.y+viewport.h())/Renderer.resH());
+            v[0].tex.set(tex.min.x, tex.min.y);
+            v[1].tex.set(tex.max.x, tex.min.y);
+            v[2].tex.set(tex.min.x, tex.max.y);
          }
+      #if GL
+         FlipY(v, 3);
+      #endif
+      }
+   }else
+   {
+    C RectI &viewport=D._view_active.recti;
+      RectI  recti=Renderer.screenToPixelI(*rect);
+      Bool  flip_x=(recti.max.x<recti.min.x),
+            flip_y=(recti.max.y<recti.min.y);
+      if(   flip_x)recti.swapX();
+      if(   flip_y)recti.swapY();
+      if(!Cuts(recti, viewport))return;
+      if(!flip_x && !flip_y && Inside(viewport, recti))goto full;
+
+      VI.shader (this);
+      VI.setType(VI_2D_TEX, VI_STRIP);
+      if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
+      {
+         Flt  xm=2.0f/viewport.w(),
+              ym=2.0f/viewport.h();
+         Rect frac((recti.min.x-viewport.min.x)*xm-1, (viewport.max.y-recti.max.y)*ym-1,
+                   (recti.max.x-viewport.min.x)*xm-1, (viewport.max.y-recti.min.y)*ym-1);
+         if(flip_x)frac.swapX();
+         if(flip_y)frac.swapY();
+         v[0].pos.set(frac.min.x, frac.max.y);
+         v[1].pos.set(frac.max.x, frac.max.y);
+         v[2].pos.set(frac.min.x, frac.min.y);
+         v[3].pos.set(frac.max.x, frac.min.y);
 
          Rect tex(Flt(recti.min.x)/Renderer.resW(), Flt(recti.min.y)/Renderer.resH(),
                   Flt(recti.max.x)/Renderer.resW(), Flt(recti.max.y)/Renderer.resH());
@@ -2014,26 +2039,10 @@ void Shader::draw(                C Rect *rect)C
          v[1].tex.set(tex.max.x, tex.min.y);
          v[2].tex.set(tex.min.x, tex.max.y);
          v[3].tex.set(tex.max.x, tex.max.y);
-      }else
-      {
-         v[0].pos.set(-1,  1);
-         v[1].pos.set( 1,  1);
-         v[2].pos.set(-1, -1);
-         v[3].pos.set( 1, -1);
-         v[0].tex.set(0, 0);
-         v[1].tex.set(1, 0);
-         v[2].tex.set(0, 1);
-         v[3].tex.set(1, 1);
+      #if GL
+         FlipY(v, 4);
+      #endif
       }
-   #if GL
-      if(!D.mainFBO()) // in OpenGL when drawing to RenderTarget the 'dest.pos.y' must be flipped
-      {
-         CHS(v[0].pos.y);
-         CHS(v[1].pos.y);
-         CHS(v[2].pos.y);
-         CHS(v[3].pos.y);
-      }
-   #endif
    }
    VI.end();
 }
@@ -2060,15 +2069,15 @@ void Shader::draw(                C Rect *rect, C Rect &tex)C
             recti=Renderer.screenToPixelI(*rect);
             Bool flip_x=(recti.max.x<recti.min.x),
                  flip_y=(recti.max.y<recti.min.y);
-            if(  flip_x)Swap(recti.min.x, recti.max.x);
-            if(  flip_y)Swap(recti.min.y, recti.max.y);
+            if(  flip_x)recti.swapX();
+            if(  flip_y)recti.swapY();
             if(!Cuts(recti, viewport)){VI.clear(); return;}
             Flt  xm=2.0f/viewport.w(),
                  ym=2.0f/viewport.h();
             Rect frac((recti.min.x-viewport.min.x)*xm-1, (viewport.max.y-recti.max.y)*ym-1,
                       (recti.max.x-viewport.min.x)*xm-1, (viewport.max.y-recti.min.y)*ym-1);
-            if(flip_x)Swap(frac.min.x, frac.max.x);
-            if(flip_y)Swap(frac.min.y, frac.max.y);
+            if(flip_x)frac.swapX();
+            if(flip_y)frac.swapY();
             v[0].pos.set(frac.min.x, frac.max.y);
             v[1].pos.set(frac.max.x, frac.max.y);
             v[2].pos.set(frac.min.x, frac.min.y);
@@ -2086,13 +2095,7 @@ void Shader::draw(                C Rect *rect, C Rect &tex)C
       v[2].tex.set(tex.min.x, tex.max.y);
       v[3].tex.set(tex.max.x, tex.max.y);
    #if GL
-      if(!D.mainFBO()) // in OpenGL when drawing to RenderTarget the 'dest.pos.y' must be flipped
-      {
-         CHS(v[0].pos.y);
-         CHS(v[1].pos.y);
-         CHS(v[2].pos.y);
-         CHS(v[3].pos.y);
-      }
+      FlipY(v, 4);
    #endif
    }
    VI.end();

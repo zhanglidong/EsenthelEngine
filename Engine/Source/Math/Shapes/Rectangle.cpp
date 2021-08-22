@@ -178,12 +178,6 @@ RectD& RectD::moveY(Dbl dy) {min.y+=dy; max.y+=dy; return T;}
 RectD& RectD:: mulX(Dbl x ) {min.x*= x; max.x*= x; return T;}
 RectD& RectD:: mulY(Dbl y ) {min.y*= y; max.y*= y; return T;}
 /******************************************************************************/
-Rect& Rect::swapX() {Swap(min.x, max.x); return T;}
-Rect& Rect::swapY() {Swap(min.y, max.y); return T;}
-
-RectD& RectD::swapX() {Swap(min.x, max.x); return T;}
-RectD& RectD::swapY() {Swap(min.y, max.y); return T;}
-/******************************************************************************/
 Rect& Rect::from(C Vec2 &a, C Vec2 &b)
 {
    MinMax(a.x, b.x, min.x, max.x);

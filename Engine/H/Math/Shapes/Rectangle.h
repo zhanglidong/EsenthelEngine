@@ -137,8 +137,8 @@ struct Rect // Rectangle Shape
    Rect& mulY      (  Flt   y                ); // multiply rectangle Y's by 'y'
    Rect& from      (C Vec2 &a, C Vec2 &b     ); // create from 2 points
    Bool  from      (C Vec2 *point, Int points); // set from an array of points, false on fail (if there are no points)
-   Rect& swapX     (                         ); // swap 'min.x' with 'max.x'
-   Rect& swapY     (                         ); // swap 'min.y' with 'max.y'
+   Rect& swapX     (                         ) {Swap(min.x, max.x); return T;} // swap 'min.x' with 'max.x'
+   Rect& swapY     (                         ) {Swap(min.y, max.y); return T;} // swap 'min.y' with 'max.y'
    Rect& rotatePI_2(  Int rotations          ); // rotate rectangle by "rotations*PI_2" angle
 
    Rect& validIncludeX(  Flt   x); // extend rectangle to include 'x'   , this method is faster than 'includeX' but assumes rectangle is valid
@@ -275,8 +275,8 @@ struct RectD // Rectangle Shape (double precision)
    RectD& mulX      (  Dbl    x            ); // multiply rectangle X's by 'x'
    RectD& mulY      (  Dbl    y            ); // multiply rectangle Y's by 'y'
    RectD& from      (C VecD2 &a, C VecD2 &b); // create from 2 points
-   RectD& swapX     (                      ); // swap 'min.x' with 'max.x'
-   RectD& swapY     (                      ); // swap 'min.y' with 'max.y'
+   RectD& swapX     (                      ) {Swap(min.x, max.x); return T;} // swap 'min.x' with 'max.x'
+   RectD& swapY     (                      ) {Swap(min.y, max.y); return T;} // swap 'min.y' with 'max.y'
    RectD& rotatePI_2(  Int rotations       ); // rotate rectangle by "rotations*PI_2" angle
 
    RectD& validIncludeX(  Dbl    x); // extend rectangle to include 'x'   , this method is faster than 'includeX' but assumes rectangle is valid
@@ -392,6 +392,8 @@ struct RectI // Rectangle Shape (integer)
    RectI& clampX    (  Int    min, Int max ); // clamp  rectangle to intersect min..max X range
    RectI& clampY    (  Int    min, Int max ); // clamp  rectangle to intersect min..max Y range
    RectI& from      (C VecI2 &a, C VecI2 &b); // create from 2 points
+   RectI& swapX     (                      ) {Swap(min.x, max.x); return T;} // swap 'min.x' with 'max.x'
+   RectI& swapY     (                      ) {Swap(min.y, max.y); return T;} // swap 'min.y' with 'max.y'
    RectI& rotatePI_2(  Int rotations       ); // rotate rectangle by "rotations*PI_2" angle
 
    RectI& validIncludeX(  Int    x); // extend rectangle to include 'x'   , this method is faster than 'includeX' but assumes rectangle is valid
