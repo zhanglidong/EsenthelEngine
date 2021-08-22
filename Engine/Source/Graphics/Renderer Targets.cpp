@@ -159,7 +159,9 @@ void RendererClass::rtDel()
 }
 Bool RendererClass::rtCreateMain() // !! call only under lock !!
 {
-   ImageRT *old=_ptr_main, *old_ds=_ptr_main_ds;
+   ImageRT *old=_ptr_main, *old_ds=_ptr_main_ds,
+           *cur_ds=Renderer._cur_ds, *cur[ELMS(Renderer._cur)]; REPAO(cur)=Renderer._cur[i]; // remember these before creating/deleting RT's because when doing that, 'Renderer._cur', 'Renderer._cur_ds' might get cleared to null
+
    Bool secondary=(D.colorManaged() || WEB), ok=true; // need to create secondary main if we perform color management, or for WEB sRGB conversion #WebSRGB
    if(  secondary)
    {
@@ -179,16 +181,16 @@ Bool RendererClass::rtCreateMain() // !! call only under lock !!
      _ptr_main_ds=&_main_ds;
       D._color_lut.del(); // can't color manage without temp's
    }
-   if(old!=_ptr_main || old_ds!=_ptr_main_ds) // if changed something
+   if(secondary // if created new RT's
+   || old!=_ptr_main || old_ds!=_ptr_main_ds) // or changed something
    {
       // remap from old to new
-      if(_ui         ==old    )_ui         =_ptr_main;
-      if(_ui_ds      ==old_ds )_ui_ds      =_ptr_main_ds;
-      if(_cur_main   ==old    )_cur_main   =_ptr_main;
-      if(_cur_main_ds==old_ds )_cur_main_ds=_ptr_main_ds;
-      ImageRT *cur[ELMS(Renderer._cur)], *cur_ds;
-      REPA(cur){cur[i]=Renderer._cur[i]; if(cur[i]==old   )cur[i]=_ptr_main   ;}
-                cur_ds=Renderer._cur_ds; if(cur_ds==old_ds)cur_ds=_ptr_main_ds;
+               if(_ui         ==old   )_ui         =_ptr_main;
+               if(_ui_ds      ==old_ds)_ui_ds      =_ptr_main_ds;
+               if(_cur_main   ==old   )_cur_main   =_ptr_main;
+               if(_cur_main_ds==old_ds)_cur_main_ds=_ptr_main_ds;
+      REPA(cur)if( cur[i]     ==old   ) cur[i]     =_ptr_main;
+               if( cur_ds     ==old_ds) cur_ds     =_ptr_main_ds;
       Renderer.set(cur[0], cur[1], cur[2], cur[3], cur_ds, true);
    }
    return ok;
