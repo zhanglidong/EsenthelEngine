@@ -2987,8 +2987,10 @@ void Image::copyHw(ImageRT &dest, Bool restore_rt, C RectI *rect_src, C RectI *r
             v[3].pos.set( 1, -1);
          }else
          {
-            Rect frac(rect_dest->min.x/Flt(dest.hwW())*2-1, -rect_dest->max.y/Flt(dest.hwH())*2+1,
-                      rect_dest->max.x/Flt(dest.hwW())*2-1, -rect_dest->min.y/Flt(dest.hwH())*2+1);
+            Flt  xm=2.0f/dest.hwW(),
+                 ym=2.0f/dest.hwH();
+            Rect frac(rect_dest->min.x*xm-1, -rect_dest->max.y*ym+1,
+                      rect_dest->max.x*xm-1, -rect_dest->min.y*ym+1);
             v[0].pos.set(frac.min.x, frac.max.y);
             v[1].pos.set(frac.max.x, frac.max.y);
             v[2].pos.set(frac.min.x, frac.min.y);
