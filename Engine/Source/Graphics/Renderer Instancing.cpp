@@ -696,7 +696,7 @@ void DrawBlendInstances() // !! this function should be safe to call 2 times in 
 {
    SetViewOffset();
    EyeCache ec;
-   ALPHA_MODE alpha=(Renderer.fastCombine() ? ALPHA_BLEND : ALPHA_RENDER_BLEND); D.alpha(alpha);
+   ALPHA_MODE alpha=(Renderer.fastCombine() ? ALPHA_BLEND : ALPHA_RENDER_BLEND_FACTOR); D.alpha(alpha);
    D.depth(true);
    REPA(BlendInstances) // go from back to start
    {
