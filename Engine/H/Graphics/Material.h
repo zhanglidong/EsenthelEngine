@@ -71,14 +71,15 @@ struct Material : MaterialParams // Mesh Rendering Material - contains render pa
 #if EE_PRIVATE
    // #MaterialTextureLayout #MaterialTextureLayoutDetail
 #endif
-   ImagePtr            base_0  , // base     texture #0, default=null, this texture contains data packed in following channel order: RGB, Alpha
-                       base_1  , // base     texture #1, default=null, this texture contains data packed in following channel order: NormalX, NormalY
-                       base_2  , // base     texture #2, default=null, this texture contains data packed in following channel order: Metal, Rough, Bump, Glow
-                     detail_map, // detail   texture   , default=null, this texture contains data packed in following channel order: NormalX, NormalY, Rough, Color
-                      macro_map, // macro    texture   , default=null
-                   emissive_map; // emissive texture   , default=null
-   Bool               cull     ; // face     culling   , default=true
-   MATERIAL_TECHNIQUE technique; // material technique , default=MTECH_OPAQUE
+   ImagePtr             base_0  , // base     texture #0           , default=null, this texture contains data packed in following channel order: RGB, Alpha
+                        base_1  , // base     texture #1           , default=null, this texture contains data packed in following channel order: NormalX, NormalY
+                        base_2  , // base     texture #2           , default=null, this texture contains data packed in following channel order: Metal, Rough, Bump, Glow
+                      detail_map, // detail   texture              , default=null, this texture contains data packed in following channel order: NormalX, NormalY, Rough, Color
+                       macro_map, // macro    texture              , default=null
+                    emissive_map; // emissive texture              , default=null
+   Bool               cull      , // face     culling              , default=true
+                      detail_lod; // detail   textures on Mesh LODs, default=false, if this option is enabled then all LODs in a Mesh will use detail (if available), if disabled then only first LOD will use it
+   MATERIAL_TECHNIQUE technique ; // material technique            , default=MTECH_OPAQUE
 
    // get
    Bool needTanBin()C; // if this Material needs tangent/binormals

@@ -154,6 +154,8 @@ public:
    static void DetUVScale(  MaterialRegion &mr, C Str &t);
    static Str  DetPower  (C MaterialRegion &mr          );
    static void DetPower  (  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  DetLOD    (C MaterialRegion &mr          );
+   static void DetLOD    (  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
 
    static Str  Cull(C MaterialRegion &mr          );
    static void Cull(  MaterialRegion &mr, C Str &t);

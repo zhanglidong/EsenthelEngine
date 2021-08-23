@@ -427,6 +427,8 @@ MaterialRegion MtrlEdit;
    void MaterialRegion::DetUVScale(  MaterialRegion &mr, C Str &t) {       mr.edit.det_uv_scale=TextFlt(t); mr.edit.detail_time.getUTC();}
    Str  MaterialRegion::DetPower(C MaterialRegion &mr          ) {return mr.edit.det_power;}
    void MaterialRegion::DetPower(  MaterialRegion &mr, C Str &t) {       mr.edit.det_power=TextFlt(t); mr.edit.detail_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
+   Str  MaterialRegion::DetLOD(C MaterialRegion &mr          ) {return mr.edit.detail_lod;}
+   void MaterialRegion::DetLOD(  MaterialRegion &mr, C Str &t) {       mr.edit.detail_lod=TextBool(t); mr.edit.detail_lod_time.now(); mr.setChanged(); D.setShader(mr.game());}
    Str  MaterialRegion::Cull(C MaterialRegion &mr          ) {return mr.edit.cull;}
    void MaterialRegion::Cull(  MaterialRegion &mr, C Str &t) {       mr.edit.cull=TextBool(t); mr.edit.cull_time.now();}
    Str  MaterialRegion::EmissiveR(C MaterialRegion &mr          ) {return mr.edit.emissive_s.x;}
@@ -759,6 +761,7 @@ emit_blue =&props.New().create("Emit Blue" , MemberDesc(DATA_REAL).setFunc(Emiss
     //props.New().create("Subsurf Scatter", MemberDesc(DATA_REAL).setFunc(SSS , SSS )).range(0, 1);
       props.New().create("Detail UV Scale", MemberDesc(DATA_REAL).setFunc(DetUVScale, DetUVScale)).range(0.01f, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
       props.New().create("Detail Power"   , MemberDesc(DATA_REAL).setFunc(DetPower  , DetPower  )).range(0, 1);
+      props.New().create("Detail LOD"     , MemberDesc(DATA_BOOL).setFunc(DetLOD    , DetLOD    )).desc(S+"If use Detail for all Mesh LODs.\nIf disabled then only 1st Mesh LOD will use Detail.");
     //props.New();
 
       props.New().create("Cull"         , MemberDesc(DATA_BOOL).setFunc(Cull   , Cull   ));
