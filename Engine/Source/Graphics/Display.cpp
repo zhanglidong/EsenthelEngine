@@ -2857,8 +2857,7 @@ Bool DisplayClass::canUseGPUDataOnSecondaryThread()C
 /******************************************************************************/
 DisplayClass& DisplayClass::aspectMode(ASPECT_MODE mode)
 {
-   Clamp(mode, ASPECT_MODE(0), ASPECT_MODE(ASPECT_NUM-1));
-   if(T._aspect_mode!=mode)
+   if(InRange(mode, ASPECT_NUM) && T._aspect_mode!=mode)
    {
       T._aspect_mode=mode;
       aspectRatioEx();
@@ -3073,8 +3072,7 @@ void          DisplayClass::gammaSet()
 /******************************************************************************/
 DisplayClass& DisplayClass::diffuseMode(DIFFUSE_MODE mode)
 {
-   Clamp(mode, DIFFUSE_MODE(0), DIFFUSE_MODE(DIFFUSE_NUM-1));
-   if(_diffuse_mode!=mode){_diffuse_mode=mode; /*setShader();*/} // RT_FORWARD always uses lambert, so 'setShader' not needed
+   if(InRange(mode, DIFFUSE_NUM) && _diffuse_mode!=mode){_diffuse_mode=mode; /*setShader();*/} // RT_FORWARD always uses lambert, so 'setShader' not needed
    return T;
 }
 /******************************************************************************/
