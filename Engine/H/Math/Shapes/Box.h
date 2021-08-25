@@ -150,6 +150,7 @@ struct Box // Box Shape
    CONVERSION Box(C Shape    &shape   );
    CONVERSION Box(C MeshBase &mesh    );
    CONVERSION Box(C MeshPart &mesh    );
+   CONVERSION Box(C MeshLod  &mesh    );
    CONVERSION Box(C Skeleton &skeleton);
 };
 /******************************************************************************/

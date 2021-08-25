@@ -69,6 +69,7 @@ Box::Box(C Shape &shape)
 }
 Box::Box(C MeshBase &mesh    ) {from(mesh.vtx.pos(), mesh.vtxs());}
 Box::Box(C MeshPart &mesh    ) {mesh.getBox(T);}
+Box::Box(C MeshLod  &mesh    ) {mesh.getBox(T);}
 Box::Box(C Skeleton &skeleton)
 {
    if(!skeleton.bones.elms())zero();else

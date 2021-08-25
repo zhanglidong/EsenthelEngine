@@ -242,11 +242,12 @@ struct Mesh : MeshLod // Mesh (array of Mesh LODs)
    Bool loadData(File     &f, CChar *path=null) ; // load binary, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
 #endif
 
-   void operator*=(C Matrix3  &m   ) {transform(m   );} // transform by matrix
-   void operator*=(C Matrix   &m   ) {transform(m   );} // transform by matrix
-   void operator+=(C MeshBase &mshb) {add      (mshb);} // add MeshBase
-   void operator+=(C MeshPart &part) {add      (part);} // add MeshPart
-   void operator+=(C Mesh     &mesh) {add      (mesh);} // add Mesh
+   void operator*=(C Matrix3 &m) {transform(m);} // transform by matrix
+   void operator*=(C Matrix  &m) {transform(m);} // transform by matrix
+
+   void operator+=(C MeshBase &mshb) {add(mshb);} // add MeshBase
+   void operator+=(C MeshPart &part) {add(part);} // add MeshPart
+   void operator+=(C Mesh     &mesh) {add(mesh);} // add Mesh
 
   ~Mesh() {del();}
    Mesh();

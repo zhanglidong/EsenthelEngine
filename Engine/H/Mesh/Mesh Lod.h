@@ -208,6 +208,10 @@ struct MeshLod // Level of Detail, array of Mesh Part's
    void operator*=(C Matrix3 &m) {transform(m);} // transform by matrix
    void operator*=(C Matrix  &m) {transform(m);} // transform by matrix
 
+   void operator+=(C MeshBase &mshb) {add(mshb);} // add MeshBase
+   void operator+=(C MeshPart &part) {add(part);} // add MeshPart
+   void operator+=(C MeshLod  &mesh) {add(mesh);} // add MeshLod
+
    MeshLod();
 };
 /******************************************************************************/
