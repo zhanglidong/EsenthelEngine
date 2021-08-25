@@ -503,8 +503,8 @@ class MaterialRegion : Region
    static void DetUVScale(  MaterialRegion &mr, C Str &t) {       mr.edit.det_uv_scale=TextFlt(t); mr.edit.detail_time.getUTC();}
    static Str  DetPower  (C MaterialRegion &mr          ) {return mr.edit.det_power;}
    static void DetPower  (  MaterialRegion &mr, C Str &t) {       mr.edit.det_power=TextFlt(t); mr.edit.detail_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  DetLOD    (C MaterialRegion &mr          ) {return mr.edit.detail_lod;}
-   static void DetLOD    (  MaterialRegion &mr, C Str &t) {       mr.edit.detail_lod=TextBool(t); mr.edit.detail_lod_time.now(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  DetLOD    (C MaterialRegion &mr          ) {return mr.edit.detail_all_lod;}
+   static void DetLOD    (  MaterialRegion &mr, C Str &t) {       mr.edit.detail_all_lod=TextBool(t); mr.edit.detail_all_lod_time.now(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
 
    static Str  Cull(C MaterialRegion &mr          ) {return mr.edit.cull;}
    static void Cull(  MaterialRegion &mr, C Str &t) {       mr.edit.cull=TextBool(t); mr.edit.cull_time.now();}
@@ -869,7 +869,7 @@ emit_blue =&props.New().create("Emit Blue" , MemberDesc(DATA_REAL).setFunc(Emiss
     //props.New().create("Subsurf Scatter", MemberDesc(DATA_REAL).setFunc(SSS , SSS )).range(0, 1);
       props.New().create("Detail UV Scale", MemberDesc(DATA_REAL).setFunc(DetUVScale, DetUVScale)).range(0.01, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
       props.New().create("Detail Power"   , MemberDesc(DATA_REAL).setFunc(DetPower  , DetPower  )).range(0, 1);
-      props.New().create("Detail LOD"     , MemberDesc(DATA_BOOL).setFunc(DetLOD    , DetLOD    )).desc(S+"If use Detail for all Mesh LODs.\nIf disabled then only 1st Mesh LOD will use Detail.");
+      props.New().create("Detail All LODs", MemberDesc(DATA_BOOL).setFunc(DetLOD    , DetLOD    )).desc(S+"If use Detail for all Mesh LODs.\nIf disabled then only 1st Mesh LOD will use Detail.");
     //props.New();
 
       props.New().create("Cull"         , MemberDesc(DATA_BOOL).setFunc(Cull   , Cull   ));

@@ -128,7 +128,7 @@ Material& Material::reset()
    technique=MTECH_OPAQUE;
    tex_quality=MEDIUM;
    cull=true;
-   detail_lod=false;
+   detail_all_lod=false;
    flip_normal_y=false;
    smooth_is_rough=false;
    downsize_tex_mobile=0;
@@ -157,7 +157,7 @@ Material& Material::reset()
 Bool Material::save(File &f)C
 {
    f.cmpUIntV(0);
-   f<<technique<<tex_quality<<cull<<detail_lod<<flip_normal_y<<smooth_is_rough<<downsize_tex_mobile<<color_s<<emissive_s<<emissive_glow<<smooth<<reflect_min<<reflect_max<<glow<<normal<<bump<<uv_scale
+   f<<technique<<tex_quality<<cull<<detail_all_lod<<flip_normal_y<<smooth_is_rough<<downsize_tex_mobile<<color_s<<emissive_s<<emissive_glow<<smooth<<reflect_min<<reflect_max<<glow<<normal<<bump<<uv_scale
     <<Encode(   color_map   )<<Encode( alpha_map)
     <<Encode(    bump_map   )<<Encode(normal_map)
     <<Encode(  smooth_map   )<<Encode( metal_map)
@@ -176,7 +176,7 @@ Bool Material::load(File &f)
    {
       case 0:
       {
-         f>>technique>>tex_quality>>cull>>detail_lod>>flip_normal_y>>smooth_is_rough>>downsize_tex_mobile>>color_s>>emissive_s>>emissive_glow>>smooth>>reflect_min>>reflect_max>>glow>>normal>>bump>>uv_scale;
+         f>>technique>>tex_quality>>cull>>detail_all_lod>>flip_normal_y>>smooth_is_rough>>downsize_tex_mobile>>color_s>>emissive_s>>emissive_glow>>smooth>>reflect_min>>reflect_max>>glow>>normal>>bump>>uv_scale;
          Decode(f,    color_map   ); Decode(f,  alpha_map);
          Decode(f,     bump_map   ); Decode(f, normal_map);
          Decode(f,   smooth_map   ); Decode(f,  metal_map);
