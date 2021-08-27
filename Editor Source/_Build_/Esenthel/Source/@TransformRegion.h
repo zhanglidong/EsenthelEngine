@@ -17,7 +17,7 @@ class TransformRegion : Region
    static cchar8 *AnchorName[]
 ;
 
-   bool           full, scale_normal;
+   bool           full, scale_normal, keep_uv;
    Property      *move_p[3];
    Memx<Property> props;
    TextWhite      ts;
@@ -73,6 +73,31 @@ class TransformRegion : Region
    void resetDo();
    void hideDo();
    void cancelDo();
+   class KeepUV
+   {
+      class Vtx
+      {
+         bool adjust;
+         Vec  pos;
+         Vec2 uv;
+         flt  weight;
+
+         void create(C Vec &pos);
+      };
+
+      class Part
+      {
+         Mems<Vtx> vtxs;
+
+         void create(C MeshPart &src);
+         void keepUV(MeshPart &part);
+      };
+
+      Mems<Part> parts;
+
+      void create(C MeshLod &src);
+      void keepUV(MeshLod &lod);
+   };
    void apply();
    virtual void update(C GuiPC &gpc)override;
 

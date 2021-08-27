@@ -806,7 +806,7 @@ static void SortItems(Memx<Item> &items)
 CodeEditor::CodeEditor()
 {
   _cur=null;
-   view_elm_names=view_comments=view_funcs=true; view_func_bodies=view_private_members=false;
+   view_elm_names=view_comments=view_funcs=view_func_bodies=true; view_private_members=false;
    devenv_version=-1; devenv_express=devenv_com=build_msbuild=false;
    build_mode=BUILD_BUILD; build_exe_type=EXE_EXE; build_debug=true; build_windows_code_sign=false; build_phase=build_phases=build_step=build_steps=0; build_refresh=0; build_project_id.zero();
    curposi=0;
