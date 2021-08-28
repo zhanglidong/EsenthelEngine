@@ -942,6 +942,7 @@ void Temporal_PS
     //Half     flicker=LerpRS(1-OLD_WEIGHT, 1, new_flicker); // cut-off small differences
       Half     flicker=new_flicker; // faster
       Half not_flicker=1-Sqr(flicker); // use Sqr to consider only big flickering
+      not_flicker=Max(0.2, not_flicker);
 
       blend*=not_flicker; // reduce Lerp to 'cur' for flickering pixels
    }else
