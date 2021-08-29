@@ -709,9 +709,9 @@ void Temporal_PS
 #if CUBIC
       CubicFastSampler Sampler;
       Sampler.set(old_uv, RTSize); if(!VIEW_FULL)Sampler.UVClamp(ImgClamp.xy, ImgClamp.zw); // here do clamping because for CUBIC we check many samples around UV
-      old =Max(VecH4(0,0,0,0), Sampler.tex(Img1)); // use Max(0) because of cubic sharpening potentially giving negative values
+      old =Sampler.tex(Img1);
    #if DUAL_HISTORY
-      old1=Max(VecH4(0,0,0,0), Sampler.tex(Img2)); // use Max(0) because of cubic sharpening potentially giving negative values
+      old1=Sampler.tex(Img2);
    #endif
 #else
    // clamping 'old_uv' shouldn't be done, because we already detect if 'old_uv' is outside viewport and zero 'old_weight'
@@ -737,7 +737,7 @@ void Temporal_PS
    #endif
    if(!VIEW_FULL)Sampler.UVClamp(ImgClamp.xy, ImgClamp.zw);
    #if ALPHA
-      Half cur_alpha=Sat(Sampler.texX(ImgX)); // use Sat because of cubic sharpening potentially giving negative values
+      Half cur_alpha=Sat(Sampler.texX(ImgX, false)); // use Sat because of cubic sharpening potentially giving negative values
    #endif
 #else
    if(!VIEW_FULL)cur_uv=UVClamp(cur_uv);
@@ -800,12 +800,12 @@ void Temporal_PS
       }
    }*/
 
-   cur=Max(VecH4(0,0,0,0), cur); // use Max(0) because of cubic sharpening potentially giving negative values
+   cur=Max0(cur); // use Max(0) because of cubic sharpening potentially giving negative values
 }
 #else // this version uses 5 tex reads for CUBIC and 8 (or 9 if FILTER_MIN_MAX unavailable) tex reads for MIN MAX (13 total)
 {
    #if CUBIC
-      cur=Max(VecH4(0,0,0,0), Sampler.tex(Img)); // use Max(0) because of cubic sharpening potentially giving negative values
+      cur=Sampler.tex(Img);
    #else
       cur=TexLod(Img, cur_uv);
    #endif
@@ -894,8 +894,8 @@ void Temporal_PS
    // WIDEN MIN MAX
    {
       Half extend=new_flicker..; // in rare cases this should be even up to 1.0 (or sometimes more, visible on specular highlights on weapons in dark dungeons)
-      col_min.rgb=SRGBToLinearFast(Max(VecH(0,0,0), LinearToSRGBFast(col_min.rgb)-extend));
-      col_max.rgb=SRGBToLinearFast(                 LinearToSRGBFast(col_max.rgb)+extend );
+      col_min.rgb=SRGBToLinearFast(Max0(LinearToSRGBFast(col_min.rgb)-extend));
+      col_max.rgb=SRGBToLinearFast(     LinearToSRGBFast(col_max.rgb)+extend );
    }
 #endif
 

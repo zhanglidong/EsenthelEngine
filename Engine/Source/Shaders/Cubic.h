@@ -3,6 +3,11 @@
    !! Using Cubic Sampler requires setting 'ImgSize' !!
 
 /******************************************************************************/
+Half  Max0(Half  x, Bool max0=true) {return max0 ? Max(x,       0       ) : x;}
+VecH2 Max0(VecH2 x, Bool max0=true) {return max0 ? Max(x, VecH2(0,0    )) : x;}
+VecH  Max0(VecH  x, Bool max0=true) {return max0 ? Max(x, VecH (0,0,0  )) : x;}
+VecH4 Max0(VecH4 x, Bool max0=true) {return max0 ? Max(x, VecH4(0,0,0,0)) : x;}
+/******************************************************************************/
 struct CubicWeight
 {
    Half W3, W2, W1, W0; // to be used for x=0..1
@@ -181,56 +186,56 @@ struct CubicFastSampler
       d=Mid(d, min, max);
    }
 
-   VecH4 tex(Image img)
+   VecH4 tex(Image img, Bool max0=true)
    {
-      return TexLod(img, u)*wu  // sample upper edge (2 texels), both weights are negative
-            +TexLod(img, l)*wl  // sample left  edge (2 texels), both weights are negative
-            +TexLod(img, c)*wc  // sample center     (4 texels), all  weights are positive
-            +TexLod(img, r)*wr  // sample right edge (2 texels), both weights are negative
-            +TexLod(img, d)*wd; // sample lower edge (2 texels), both weights are negative
+      return Max0(TexLod(img, u)*wu         // sample upper edge (2 texels), both weights are negative
+                 +TexLod(img, l)*wl         // sample left  edge (2 texels), both weights are negative
+                 +TexLod(img, c)*wc         // sample center     (4 texels), all  weights are positive
+                 +TexLod(img, r)*wr         // sample right edge (2 texels), both weights are negative
+                 +TexLod(img, d)*wd, max0); // sample lower edge (2 texels), both weights are negative
    }
-   VecH texRGB(Image img) // ignores alpha channel
+   VecH texRGB(Image img, Bool max0=true) // ignores alpha channel
    {
-      return TexLod(img, u).rgb*wu  // sample upper edge (2 texels), both weights are negative
-            +TexLod(img, l).rgb*wl  // sample left  edge (2 texels), both weights are negative
-            +TexLod(img, c).rgb*wc  // sample center     (4 texels), all  weights are positive
-            +TexLod(img, r).rgb*wr  // sample right edge (2 texels), both weights are negative
-            +TexLod(img, d).rgb*wd; // sample lower edge (2 texels), both weights are negative
+      return Max0(TexLod(img, u).rgb*wu         // sample upper edge (2 texels), both weights are negative
+                 +TexLod(img, l).rgb*wl         // sample left  edge (2 texels), both weights are negative
+                 +TexLod(img, c).rgb*wc         // sample center     (4 texels), all  weights are positive
+                 +TexLod(img, r).rgb*wr         // sample right edge (2 texels), both weights are negative
+                 +TexLod(img, d).rgb*wd, max0); // sample lower edge (2 texels), both weights are negative
    }
-   Half texA(Image img) // only alpha channel
+   Half texA(Image img, Bool max0=true) // only alpha channel
    {
-      return TexLod(img, u).a*wu  // sample upper edge (2 texels), both weights are negative
-            +TexLod(img, l).a*wl  // sample left  edge (2 texels), both weights are negative
-            +TexLod(img, c).a*wc  // sample center     (4 texels), all  weights are positive
-            +TexLod(img, r).a*wr  // sample right edge (2 texels), both weights are negative
-            +TexLod(img, d).a*wd; // sample lower edge (2 texels), both weights are negative
+      return Max0(TexLod(img, u).a*wu         // sample upper edge (2 texels), both weights are negative
+                 +TexLod(img, l).a*wl         // sample left  edge (2 texels), both weights are negative
+                 +TexLod(img, c).a*wc         // sample center     (4 texels), all  weights are positive
+                 +TexLod(img, r).a*wr         // sample right edge (2 texels), both weights are negative
+                 +TexLod(img, d).a*wd, max0); // sample lower edge (2 texels), both weights are negative
    }
-   Half texX(ImageH img) // only X channel
+   Half texX(ImageH img, Bool max0=true) // only X channel
    {
-      return TexLod(img, u).x*wu  // sample upper edge (2 texels), both weights are negative
-            +TexLod(img, l).x*wl  // sample left  edge (2 texels), both weights are negative
-            +TexLod(img, c).x*wc  // sample center     (4 texels), all  weights are positive
-            +TexLod(img, r).x*wr  // sample right edge (2 texels), both weights are negative
-            +TexLod(img, d).x*wd; // sample lower edge (2 texels), both weights are negative
+      return Max0(TexLod(img, u).x*wu         // sample upper edge (2 texels), both weights are negative
+                 +TexLod(img, l).x*wl         // sample left  edge (2 texels), both weights are negative
+                 +TexLod(img, c).x*wc         // sample center     (4 texels), all  weights are positive
+                 +TexLod(img, r).x*wr         // sample right edge (2 texels), both weights are negative
+                 +TexLod(img, d).x*wd, max0); // sample lower edge (2 texels), both weights are negative
    }
-   VecH2 texXY(ImageH2 img) // only XY channel
+   VecH2 texXY(ImageH2 img, Bool max0=true) // only XY channel
    {
-      return TexLod(img, u).xy*wu  // sample upper edge (2 texels), both weights are negative
-            +TexLod(img, l).xy*wl  // sample left  edge (2 texels), both weights are negative
-            +TexLod(img, c).xy*wc  // sample center     (4 texels), all  weights are positive
-            +TexLod(img, r).xy*wr  // sample right edge (2 texels), both weights are negative
-            +TexLod(img, d).xy*wd; // sample lower edge (2 texels), both weights are negative
+      return Max0(TexLod(img, u).xy*wu         // sample upper edge (2 texels), both weights are negative
+                 +TexLod(img, l).xy*wl         // sample left  edge (2 texels), both weights are negative
+                 +TexLod(img, c).xy*wc         // sample center     (4 texels), all  weights are positive
+                 +TexLod(img, r).xy*wr         // sample right edge (2 texels), both weights are negative
+                 +TexLod(img, d).xy*wd, max0); // sample lower edge (2 texels), both weights are negative
    }
-   VecH4 texSlow(Image img)
+   VecH4 texSlow(Image img, Bool max0=true)
    {
       VecH4 c=0;
       UNROLL for(Int y=0; y<4; y++)
       UNROLL for(Int x=0; x<4; x++)c+=TexPointOfs(img, tc[0], VecI2(x, y))*weight(x, y);
-      return c;
+      return Max0(c, max0);
    }
 };
 /******************************************************************************/
-VecH4 TexCubicFastSharp(Image img, Vec2 uv, Half sharp) {CubicFastSampler cs; cs.setSharp(uv, ImgSize, sharp); return cs.texSlow(img);}
-VecH4 TexCubicFast     (Image img, Vec2 uv            ) {CubicFastSampler cs; cs.set     (uv                ); return cs.tex    (img);}
-VecH  TexCubicFastRGB  (Image img, Vec2 uv            ) {CubicFastSampler cs; cs.set     (uv                ); return cs.texRGB (img);} // ignores alpha channel
+VecH4 TexCubicFastSharp(Image img, Vec2 uv, Half sharp, Bool max0=true) {CubicFastSampler cs; cs.setSharp(uv, ImgSize, sharp); return cs.texSlow(img, max0);}
+VecH4 TexCubicFast     (Image img, Vec2 uv            , Bool max0=true) {CubicFastSampler cs; cs.set     (uv                ); return cs.tex    (img, max0);}
+VecH  TexCubicFastRGB  (Image img, Vec2 uv            , Bool max0=true) {CubicFastSampler cs; cs.set     (uv                ); return cs.texRGB (img, max0);} // ignores alpha channel
 /******************************************************************************/

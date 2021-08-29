@@ -5,6 +5,7 @@
 
 /******************************************************************************/
 #define GAMMA_FAST (IN_GAMMA && OUT_GAMMA) // can use fast gamma only if we do both conversions in the shader
+#define MAX_0      (!DITHER) // can do Max(0, in !DITHER because dither is always used only for low precision 0..1 RTs so Max is not needed
 /******************************************************************************/
 #include "!Header.h"
 #include "Cubic.h"
@@ -96,7 +97,7 @@ VecH4 GetColor(VecH4 col)
    return col;
 }
 /******************************************************************************/
-VecH4 TexCubicPlus(Vec2 uv)
+VecH4 TexCubicPlus(Vec2 uv, Bool max0=true)
 {
    Vec2  pixel =uv*ImgSize.zw-0.5,
          pixeli=Floor(pixel),
@@ -144,10 +145,10 @@ VecH4 TexCubicPlus(Vec2 uv)
       UNROLL for(int x=0; x<CUBIC_SAMPLES*2; x+=2)color+=TexLerp(Vec2(offset[x].x, offset[y].y), Vec2(offset[x+1].x, offset[y+1].y), weights[y][x], weights[y][x+1], weights[y+1][x], weights[y+1][x+1]);
    #endif
 #endif
-   return color/weight;
+   return Max0(color/weight, max0); // maximize to avoid <0 due to sharpening which could cause issues (for example 'LinearToSRGBFast' could give NaN due to Sqrt)
 }
 /******************************************************************************/
-VecH TexCubicPlusRGB(Vec2 uv) // ignores alpha channel
+VecH TexCubicPlusRGB(Vec2 uv, Bool max0=true) // ignores alpha channel
 {
    Vec2  pixel =uv*ImgSize.zw-0.5,
          pixeli=Floor(pixel),
@@ -195,7 +196,7 @@ VecH TexCubicPlusRGB(Vec2 uv) // ignores alpha channel
       UNROLL for(int x=0; x<CUBIC_SAMPLES*2; x+=2)color+=TexLerpRGB(Vec2(offset[x].x, offset[y].y), Vec2(offset[x+1].x, offset[y+1].y), weights[y][x], weights[y][x+1], weights[y+1][x], weights[y+1][x+1]);
    #endif
 #endif
-   return color/weight;
+   return Max0(color/weight, max0); // maximize to avoid <0 due to sharpening which could cause issues (for example 'LinearToSRGBFast' could give NaN due to Sqrt)
 }
 /******************************************************************************/
 VecH4 DrawTexCubicFast_PS
@@ -207,9 +208,9 @@ VecH4 DrawTexCubicFast_PS
 ):TARGET
 {
 #if ALPHA
-   VecH4 col=TexCubicFast(Img, uv);
+   VecH4 col=TexCubicFast(Img, uv, MAX_0);
 #else
-   VecH4 col=VecH4(TexCubicFastRGB(Img, uv), 1);
+   VecH4 col=VecH4(TexCubicFastRGB(Img, uv, MAX_0), 1);
 #endif
 
 #if COLORS
@@ -231,12 +232,12 @@ VecH4 DrawTexCubicPlus_PS
 ):TARGET
 {
 #if ALPHA
-   VecH4 col=TexCubicPlus(uv);
+   VecH4 col=TexCubicPlus(uv, MAX_0);
 #else
-   VecH4 col=VecH4(TexCubicPlusRGB(uv), 1);
+   VecH4 col=VecH4(TexCubicPlusRGB(uv, MAX_0), 1);
 #endif
 
-#if DITHER
+#if DITHER // ideally this should be done after 'COLORS', however for performance reasons it's done here, because at this stage color is in gamma space, and we can skip gamma conversions
    ApplyDither(col.rgb, pixel.xy, false); // here 'col' is already in gamma space
 #endif
 
