@@ -143,6 +143,7 @@ SlideBar& SlideBar::setLengths(Flt length, Flt length_total)
       T._length      =length;
       T._length_total=length_total;
       T._usable      =(length+EPS<length_total);
+      if(_scroll)_scroll_to=Max(0, Min(_scroll_to, lengthTotal()-T.length())); // adjust current scrolling if any
       return setOffset(_offset, false);
    }
    return T;
