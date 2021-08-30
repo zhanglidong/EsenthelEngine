@@ -777,7 +777,7 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
    {
       optimized.setNumDiscard(orns.elms()); REPAO(optimized)=i;
       REPA(optimized)if(optimized.elms()>=2)
-      {
+      { // here ignore this 'i' key, because we want to test if keys with 'i' removed will provide similar results as with 'i' present
          Int  prev2=optimized[Index(i-2, anim_loop, optimized.elms(), i)],
               prev =optimized[Index(i-1, anim_loop, optimized.elms(), i)],
               next =optimized[Index(i+1, anim_loop, optimized.elms(), i)],
@@ -795,7 +795,7 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
             {
                anim_params.time=Avg(prev_time, orn.time); // set time between previous and this key from the source
 
-               // calculate source orn
+               // calculate source orn (with 'i' key present)
                Int src_prev=Index(i-1, anim_loop, orns.elms()),
                    src_next=i; // here 'i' is included
                Orient orn;
@@ -811,8 +811,8 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
                   orn.dir =LerpTan(src_p.orn.dir , src_n.orn.dir , step, src_p.tan.dir , src_n.tan.dir );
                   orn.perp=LerpTan(src_p.orn.perp, src_n.orn.perp, step, src_p.tan.perp, src_n.tan.perp);
                #else
-                  Int src_prev2=Index(i-2, anim_loop, orns.elms()),
-                      src_next2=Index(i+1, anim_loop, orns.elms());
+                  Int  src_prev2=Index(i-2, anim_loop, orns.elms()),
+                       src_next2=Index(i+1, anim_loop, orns.elms());
                 C Orn &src_p2=orns[src_prev2], &src_n2=orns[src_next2];
                   orn.dir =Lerp4(src_p2.orn.dir , src_p.orn.dir , src_n.orn.dir , src_n2.orn.dir , step);
                   orn.perp=Lerp4(src_p2.orn.perp, src_p.orn.perp, src_n.orn.perp, src_n2.orn.perp, step);
@@ -820,7 +820,7 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
                }
                orn.fix();
 
-               // calculate optimized orn
+               // calculate optimized orn (with 'i' key removed)
                step=LerpRS(p->time, n_time, AfterTime(anim_params.time, p->time, anim_length)); // use Sat in case orn.time is outside of range, or 'p' has the same time as 'n'
                if(anim_linear)
                {
