@@ -65,17 +65,17 @@ class AnimEditor : Viewport4Region
                    cam_yaw, cam_pitch, cam_zoom;
       Camera       cam;
       Property    *length, *event;
-      
-      static void Play  (  Preview &editor, C Str &t);
-      static Str  Play  (C Preview &editor          );
-      static void Loop  (  Preview &editor, C Str &t);
-      static Str  Loop  (C Preview &editor          );
-      static void Linear(  Preview &editor, C Str &t);
-      static Str  Linear(C Preview &editor          );
-      static void Target(  Preview &editor, C Str &t);
-      static Str  Target(C Preview &editor          );
-      static void Split (  Preview &editor          );
-      static void Speed (  Preview &editor          );
+
+      static void Play      (  Preview &editor, C Str &t);
+      static Str  Play      (C Preview &editor          );
+      static void Loop      (  Preview &editor, C Str &t);
+      static Str  Loop      (C Preview &editor          );
+      static void Linear    (  Preview &editor, C Str &t);
+      static Str  Linear    (C Preview &editor          );
+      static void Target    (  Preview &editor, C Str &t);
+      static Str  Target    (C Preview &editor          );
+      static void Split     (  Preview &editor          );
+      static void ApplySpeed(  Preview &editor          );
 
       static void Render();
       static void Draw(Viewport &viewport);
@@ -207,6 +207,7 @@ public:
    static void ScalePosKey    (AnimEditor &editor);
    static void TimeRangeSp    (AnimEditor &editor);
    static void ReverseFrames  (AnimEditor &editor);
+   static void ApplySpeed     (AnimEditor &editor);
    static void FreezeBone     (AnimEditor &editor);
    static void Mirror         (AnimEditor &editor);
    void rotate(C Matrix3 &m);

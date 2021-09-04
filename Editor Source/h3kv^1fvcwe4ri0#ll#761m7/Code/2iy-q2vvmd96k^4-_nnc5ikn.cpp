@@ -301,17 +301,17 @@ class AnimEditor : Viewport4Region
                    cam_yaw=PI, cam_pitch=0, cam_zoom=1;
       Camera       cam;
       Property    *length=null, *event=null;
-      
-      static void Play  (  Preview &editor, C Str &t) {AnimEdit.play.set(TextBool(t));}
-      static Str  Play  (C Preview &editor          ) {return AnimEdit.play();}
-      static void Loop  (  Preview &editor, C Str &t) {AnimEdit.setLoop(TextBool(t));}
-      static Str  Loop  (C Preview &editor          ) {if(ElmAnim *d=AnimEdit.data())return d.loop(); return false;}
-      static void Linear(  Preview &editor, C Str &t) {AnimEdit.setLinear(TextBool(t));}
-      static Str  Linear(C Preview &editor          ) {if(ElmAnim *d=AnimEdit.data())return d.linear(); return false;}
-      static void Target(  Preview &editor, C Str &t) {AnimEdit.setTarget(t);}
-      static Str  Target(C Preview &editor          ) {return Proj.elmFullName(Proj.animToObj(AnimEdit.elm));}
-      static void Split (  Preview &editor          ) {SplitAnim.activate(AnimEdit.elm_id);}
-      static void Speed (  Preview &editor          ) {AnimEdit.applySpeed();}
+
+      static void Play      (  Preview &editor, C Str &t) {AnimEdit.play.set(TextBool(t));}
+      static Str  Play      (C Preview &editor          ) {return AnimEdit.play();}
+      static void Loop      (  Preview &editor, C Str &t) {AnimEdit.setLoop(TextBool(t));}
+      static Str  Loop      (C Preview &editor          ) {if(ElmAnim *d=AnimEdit.data())return d.loop(); return false;}
+      static void Linear    (  Preview &editor, C Str &t) {AnimEdit.setLinear(TextBool(t));}
+      static Str  Linear    (C Preview &editor          ) {if(ElmAnim *d=AnimEdit.data())return d.linear(); return false;}
+      static void Target    (  Preview &editor, C Str &t) {AnimEdit.setTarget(t);}
+      static Str  Target    (C Preview &editor          ) {return Proj.elmFullName(Proj.animToObj(AnimEdit.elm));}
+      static void Split     (  Preview &editor          ) {SplitAnim.activate(AnimEdit.elm_id);}
+      static void ApplySpeed(  Preview &editor          ) {AnimEdit.applySpeed();}
 
       static void Render()
       {
@@ -399,7 +399,7 @@ class AnimEditor : Viewport4Region
          obj.textline.resize(Vec2(h, 0));
          prop_max_x=r.max.x;
          T+=split.create(Rect_RU(r.max.x, r.max.y, 0.15, 0.055), "Split").func(Split, T).desc(S+"Split Animation\nKeyboard Shortcut: "+Kb.ctrlCmdName()+"+S");
-         T+=apply_speed.create(Rect_R(r.max.x, play.name.rect().centerY(), 0.23, h), "Apply Speed").func(Speed, T).desc("Animation length/speed will be adjusted according to current \"Anim Speed\".");
+         T+=apply_speed.create(Rect_R(r.max.x, play.name.rect().centerY(), 0.23, h), "Apply Speed").func(ApplySpeed, T).desc("Animation length/speed will be adjusted according to current \"Anim Speed\".");
          T+=edit.create(Rect_L(r.max.x/2, r.min.y, 0.17, 0.055), "Edit").func(Fullscreen, AnimEdit).focusable(false).desc(S+"Edit Animation KeyFrames\nKeyboard Shortcut: "+Kb.ctrlCmdName()+"+E");
          T+=locate.create(Rect_R(r.max.x/2-0.01, r.min.y, 0.17, 0.055), "Locate").func(Locate, AnimEdit).focusable(false).desc("Locate this element in the Project");
          T+=viewport.create(Draw); viewport.fov=PreviewFOV;
@@ -761,6 +761,7 @@ class AnimEditor : Viewport4Region
    static void ScalePosKey    (AnimEditor &editor) {editor.scale_pos_keys.activate();}
    static void TimeRangeSp    (AnimEditor &editor) {editor.time_range_speed.display();}
    static void ReverseFrames  (AnimEditor &editor) {editor.reverseFrames();}
+   static void ApplySpeed     (AnimEditor &editor) {editor.applySpeed();}
    static void FreezeBone     (AnimEditor &editor) {editor.freezeBone();}
    static void Mirror         (AnimEditor &editor) {if(editor.anim){editor.undos.set("mirror", true); Skeleton temp; editor.anim.mirror(editor.skel ? *editor.skel : temp); editor.setAnimSkel(); editor.setOrnTarget(); editor.setChanged(); editor.toGui();}}
    void rotate(C Matrix3 &m)
@@ -1165,6 +1166,7 @@ class AnimEditor : Viewport4Region
       n.New().create("Delete All Bone KeyFrames at End", DelFramesAtEnd, T).kbsc(KbSc(KB_DEL, KBSC_CTRL_CMD|KBSC_WIN_CTRL)).desc("This will delete keyframes located at the end of the animation, for all bones (except root motion).");
       n++;
       n.New().create("Reverse KeyFrames", ReverseFrames, T).kbsc(KbSc(KB_R, KBSC_CTRL_CMD|KBSC_SHIFT)); // avoid Ctrl+R collision with reload project element
+      n.New().create("Apply Speed"      , ApplySpeed   , T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD|KBSC_SHIFT|KBSC_ALT)); // avoid Ctrl+R collision with reload project element
       n++;
       n.New().create("Reduce KeyFrames"           , Optimize   , T).kbsc(KbSc(KB_O, KBSC_CTRL_CMD));
       n.New().create("Scale Position Keys"        , ScalePosKey, T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD));

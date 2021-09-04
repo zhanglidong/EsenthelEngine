@@ -268,7 +268,7 @@ AnimEditor AnimEdit;
       void AnimEditor::Preview::Target(  Preview &editor, C Str &t) {AnimEdit.setTarget(t);}
       Str  AnimEditor::Preview::Target(C Preview &editor          ) {return Proj.elmFullName(Proj.animToObj(AnimEdit.elm));}
       void AnimEditor::Preview::Split(  Preview &editor          ) {SplitAnim.activate(AnimEdit.elm_id);}
-      void AnimEditor::Preview::Speed(  Preview &editor          ) {AnimEdit.applySpeed();}
+      void AnimEditor::Preview::ApplySpeed(  Preview &editor          ) {AnimEdit.applySpeed();}
       void AnimEditor::Preview::Render()
       {
          switch(Renderer())
@@ -354,7 +354,7 @@ AnimEditor AnimEdit;
          obj->textline.resize(Vec2(h, 0));
          prop_max_x=r.max.x;
          T+=split.create(Rect_RU(r.max.x, r.max.y, 0.15f, 0.055f), "Split").func(Split, T).desc(S+"Split Animation\nKeyboard Shortcut: "+Kb.ctrlCmdName()+"+S");
-         T+=apply_speed.create(Rect_R(r.max.x, play->name.rect().centerY(), 0.23f, h), "Apply Speed").func(Speed, T).desc("Animation length/speed will be adjusted according to current \"Anim Speed\".");
+         T+=apply_speed.create(Rect_R(r.max.x, play->name.rect().centerY(), 0.23f, h), "Apply Speed").func(ApplySpeed, T).desc("Animation length/speed will be adjusted according to current \"Anim Speed\".");
          T+=edit.create(Rect_L(r.max.x/2, r.min.y, 0.17f, 0.055f), "Edit").func(Fullscreen, AnimEdit).focusable(false).desc(S+"Edit Animation KeyFrames\nKeyboard Shortcut: "+Kb.ctrlCmdName()+"+E");
          T+=locate.create(Rect_R(r.max.x/2-0.01f, r.min.y, 0.17f, 0.055f), "Locate").func(Locate, AnimEdit).focusable(false).desc("Locate this element in the Project");
          T+=viewport.create(Draw); viewport.fov=PreviewFOV;
@@ -647,6 +647,7 @@ AnimEditor AnimEdit;
    void AnimEditor::ScalePosKey(AnimEditor &editor) {editor.scale_pos_keys.activate();}
    void AnimEditor::TimeRangeSp(AnimEditor &editor) {editor.time_range_speed.display();}
    void AnimEditor::ReverseFrames(AnimEditor &editor) {editor.reverseFrames();}
+   void AnimEditor::ApplySpeed(AnimEditor &editor) {editor.applySpeed();}
    void AnimEditor::FreezeBone(AnimEditor &editor) {editor.freezeBone();}
    void AnimEditor::Mirror(AnimEditor &editor) {if(editor.anim){editor.undos.set("mirror", true); Skeleton temp; editor.anim->mirror(editor.skel ? *editor.skel : temp); editor.setAnimSkel(); editor.setOrnTarget(); editor.setChanged(); editor.toGui();}}
    void AnimEditor::rotate(C Matrix3 &m)
@@ -1042,6 +1043,7 @@ AnimEditor AnimEdit;
       n.New().create("Delete All Bone KeyFrames at End", DelFramesAtEnd, T).kbsc(KbSc(KB_DEL, KBSC_CTRL_CMD|KBSC_WIN_CTRL)).desc("This will delete keyframes located at the end of the animation, for all bones (except root motion).");
       n++;
       n.New().create("Reverse KeyFrames", ReverseFrames, T).kbsc(KbSc(KB_R, KBSC_CTRL_CMD|KBSC_SHIFT)); // avoid Ctrl+R collision with reload project element
+      n.New().create("Apply Speed"      , ApplySpeed   , T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD|KBSC_SHIFT|KBSC_ALT)); // avoid Ctrl+R collision with reload project element
       n++;
       n.New().create("Reduce KeyFrames"           , Optimize   , T).kbsc(KbSc(KB_O, KBSC_CTRL_CMD));
       n.New().create("Scale Position Keys"        , ScalePosKey, T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD));

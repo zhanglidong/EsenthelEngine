@@ -366,7 +366,7 @@ static void Test()
    }
 }
 /******************************************************************************/
-VecD2 SlideMovement(C CircleM &object, C VecD2 &move, Int vtxs, C Vec2 *vtx_pos, Int edges, C VecI2 *edge_ind, C Vec2 *edge_nrm, Int circles, C CircleM *circle)
+VecD2 SlideMovement(C CircleM &object, C VecD2 &move, Int vtxs, C Vec2 *vtx_pos, Int edges, C VecI2 *edge_ind, C Vec2 *edge_nrm, Int circles, C CircleM *circle, Bool slide)
 {
 #define DBL_PREC 1 // double precision needed because there are problems in Flt (object moves along the edge, then is getting blocked by that edge vertex with Dot(nrm, hit_nrm_prev)=0.999758601 which is too big)
 #if     DBL_PREC
@@ -538,11 +538,11 @@ VecD2 SlideMovement(C CircleM &object, C VecD2 &move, Int vtxs, C Vec2 *vtx_pos,
       {
       hit_found:
          cur_pos+=move_n*hit_len;
-         if(step==0)
+         if(step<Int(slide))
          {
-            move_len-=hit_len; // moved this already
-            move_n*=move_len; // remaining move
-            move_n-=Dot(move_n, hit_nrm)*hit_nrm;
+            move_len-= hit_len; // moved this already
+            move_n  *=move_len; // remaining move
+            move_n  -=Dot(move_n, hit_nrm)*hit_nrm;
             if(move_len=move_n.normalize())
             {
                step++;
