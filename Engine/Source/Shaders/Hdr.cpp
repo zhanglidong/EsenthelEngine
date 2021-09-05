@@ -142,7 +142,7 @@ Half ColTone(Half x, VecH4 p) // General tonemapping operator, p := {contrast,sh
 VecH TonemapAMD(VecH col)
 {
    const Half hdrMax  =MAX_LUM; // How much HDR range before clipping. HDR modes likely need this pushed up to say 25.0.
-   const Half shoulder=1; // Likely don�t need to mess with this factor, unless matching existing tonemapper is not working well..
+   const Half shoulder=1; // Likely don't need to mess with this factor, unless matching existing tonemapper is not working well..
    const Half contrast=1+1.0/16;
    const Half midIn   =0.18; // most games will have a {0.0 to 1.0} range for LDR so midIn should be 0.18.
    const Half midOut  =0.18; // Use for LDR. For HDR10 10:10:10:2 use maybe 0.18/25.0 to start. For scRGB, I forget what a good starting point is, need to re-calculate.
