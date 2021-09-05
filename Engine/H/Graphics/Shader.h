@@ -695,8 +695,9 @@ ShaderRWImage*  GetShaderRWImage(CChar8 *name); // find shader read write image,
 ShaderParam* FindShaderParam(CChar8 *name); // find shader parameter, null on fail (shader parameter can be returned only after loading a shader which contains the parameter)
 ShaderParam*  GetShaderParam(CChar8 *name); // find shader parameter, Exit on fail (shader parameter can be returned only after loading a shader which contains the parameter)
 
-inline ShaderParamBool* GetShaderParamBool(CChar8 *name) {return (ShaderParamBool*)GetShaderParam(name);}
-inline ShaderParamInt * GetShaderParamInt (CChar8 *name) {return (ShaderParamInt *)GetShaderParam(name);}
+inline ShaderParamInt * FindShaderParamInt (CChar8 *name) {return (ShaderParamInt *)FindShaderParam(name);}
+inline ShaderParamBool*  GetShaderParamBool(CChar8 *name) {return (ShaderParamBool*) GetShaderParam(name);}
+inline ShaderParamInt *  GetShaderParamInt (CChar8 *name) {return (ShaderParamInt *) GetShaderParam(name);}
 
          inline void SPSet(CChar8 *name,   Bool     b               ) {if(ShaderParam *sp=FindShaderParam(name))sp->set(b           );} // set boolean  value
          inline void SPSet(CChar8 *name,   Int      i               ) {if(ShaderParam *sp=FindShaderParam(name))sp->set(i           );} // set integer  value
@@ -721,6 +722,11 @@ inline ShaderParamInt * GetShaderParamInt (CChar8 *name) {return (ShaderParamInt
          inline void SPSet(CChar8 *name, C Matrix  *matrix, Int elms) {if(ShaderParam *sp=FindShaderParam(name))sp->set(matrix, elms);} // set matrix   array
          inline void SPSet(CChar8 *name,   CPtr     data  , Int size) {if(ShaderParam *sp=FindShaderParam(name))sp->set(data  , size);} // set memory
 T1(TYPE) inline void SPSet(CChar8 *name, C TYPE    &data            ) {if(ShaderParam *sp=FindShaderParam(name))sp->set(data        );} // set memory
+
+         inline void SPISet(CChar8 *name,   Int    i) {if(ShaderParamInt *sp=FindShaderParamInt(name))sp->set(i);} // set integer  value
+         inline void SPISet(CChar8 *name, C VecI2 &v) {if(ShaderParamInt *sp=FindShaderParamInt(name))sp->set(v);} // set vector2D value
+         inline void SPISet(CChar8 *name, C VecI  &v) {if(ShaderParamInt *sp=FindShaderParamInt(name))sp->set(v);} // set vector3D value
+         inline void SPISet(CChar8 *name, C VecI4 &v) {if(ShaderParamInt *sp=FindShaderParamInt(name))sp->set(v);} // set vector4D value
 
 #if EE_PRIVATE
 ShaderBuffer* FindShaderBuffer(CChar8 *name);

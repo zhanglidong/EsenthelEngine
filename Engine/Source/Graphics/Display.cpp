@@ -986,6 +986,8 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _eye_adapt_speed     =6.5f;
   _eye_adapt_weight.set(0.9f, 1, 0.7f); // use smaller value for blue, to make blue skies have brighter multiplier, because human eye sees blue color as darker than others
 
+//_tone_map_mode=TONE_MAP_OFF;
+
   _grass_range  =50;
   _grass_density=(MOBILE ? 0.5f : 1);
 //_grass_shadow =false;
@@ -3247,6 +3249,8 @@ DisplayClass& DisplayClass::resetEyeAdaptation     (  Flt  brightness)
    }
    return T;
 }
+/******************************************************************************/
+DisplayClass& DisplayClass::toneMap(TONE_MAP_MODE mode) {if(InRange(mode, TONE_MAP_NUM))_tone_map_mode=mode; return T;}
 /******************************************************************************/
 DisplayClass& DisplayClass::grassDensity(Flt  density) {_grass_density=Sat(density); return T;}
 DisplayClass& DisplayClass::grassShadow (Bool on     ) {_grass_shadow =    on      ; return T;}

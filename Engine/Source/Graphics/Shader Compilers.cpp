@@ -575,7 +575,14 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 
    src.New("HdrUpdate", "Draw_VS", "HdrUpdate_PS");
 
-   REPD(dither, 2)src.New("Hdr", "Hdr_VS", "Hdr_PS")("DITHER", dither);
+   ASSERT(TONE_MAP_OFF   ==STONE_MAP_OFF
+       && TONE_MAP_SIMPLE==STONE_MAP_SIMPLE
+       && TONE_MAP_ACES  ==STONE_MAP_ACES
+       && TONE_MAP_NUM   ==STONE_MAP_NUM);
+   REPD( tone_map, TONE_MAP_NUM)
+   REPD(adapt_eye,            2)if(tone_map || adapt_eye)
+   REPD(dither   ,            2)
+      src.New("Hdr", "Hdr_VS", "Hdr_PS")("TONE_MAP", tone_map, "ADAPT_EYE", adapt_eye, "DITHER", dither);
 }
 #endif
 

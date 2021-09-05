@@ -11,14 +11,14 @@ enum ASPECT_MODE : Byte // Aspect Ratio Mode, controls setting the sizes of scre
    ASPECT_Y      , // sets D.h to 1.0, D.w will be proportional to D.h depending on the display aspect and selected resolution
    ASPECT_X      , // sets D.w to 1.0, D.h will be proportional to D.w depending on the display aspect and selected resolution
    ASPECT_SMALLER, // this mode is useful for Mobile devices which can be rotated and changed aspect will not affect the display scale, 1.0 will be set to D.w and D.h will be set proportionally (if width is smaller than height) and 1.0 will be set to D.h and D.w will be set proportionally (if height is smaller than width)
-   ASPECT_NUM    , // number of aspect ratio modes
+   ASPECT_NUM    , // number of Aspect Ratio Modes
 };
 enum DIFFUSE_MODE : Byte // Diffuse Shading Mode
 {
    DIFFUSE_LAMBERT   , // fastest
    DIFFUSE_OREN_NAYAR, // based on roughness
    DIFFUSE_BURLEY    , // based on roughness (aka Disney)
-   DIFFUSE_NUM       , // number of diffuse modes
+   DIFFUSE_NUM       , // number of Diffuse Modes
 };
 enum BUMP_MODE : Byte // Bump Mapping Mode
 {
@@ -26,7 +26,7 @@ enum BUMP_MODE : Byte // Bump Mapping Mode
    BUMP_NORMAL  , // normal
    BUMP_PARALLAX, // parallax
    BUMP_RELIEF  , // relief
-   BUMP_NUM     , // number of bump mapping modes
+   BUMP_NUM     , // number of Bump Mapping Modes
 };
 enum AMBIENT_MODE : Byte // Ambient Occlusion Mode
 {
@@ -35,7 +35,7 @@ enum AMBIENT_MODE : Byte // Ambient Occlusion Mode
    AMBIENT_MED  , // medium quality
    AMBIENT_HIGH , // high   quality
    AMBIENT_ULTRA, // ultra  quality
-   AMBIENT_NUM  , // number of ambient modes
+   AMBIENT_NUM  , // number of Ambient Occlusion Modes
 };
 enum AMBIENT_SOFT_MODE : Byte
 {
@@ -45,7 +45,7 @@ enum SHADOW_MODE : Byte // Shadowing Mode
 {
    SHADOW_NONE, // none
    SHADOW_MAP , // shadow mapping
-   SHADOW_NUM , // number of shadowing modes
+   SHADOW_NUM , // number of Shadowing Modes
 };
 enum SHADOW_SOFT_MODE : Byte
 {
@@ -56,20 +56,27 @@ enum MOTION_MODE : Byte // Motion Blur Mode
    MOTION_NONE         , // none
    MOTION_CAMERA       , // screen is blurred according to camera velocities only, objects velocities are not taken into account, objects are treated as if they were all stationary (their velocity is zero)
    MOTION_CAMERA_OBJECT, // screen is blurred according to camera and object velocities, available only in RT_DEFERRED renderer
-   MOTION_NUM          , // number of motion blur modes
+   MOTION_NUM          , // number of Motion Blur modes
 };
 enum DOF_MODE : Byte // Depth of Field Mode
 {
    DOF_NONE    , // none
    DOF_GAUSSIAN, // based on Gaussian Blur, fast but not realistic
-   DOF_NUM     , // number of depth of field modes
+   DOF_NUM     , // number of Depth of Field modes
+};
+enum TONE_MAP_MODE : Byte // Tone Mapping Mode
+{
+   TONE_MAP_OFF   , // disabled
+   TONE_MAP_SIMPLE, // simple
+   TONE_MAP_ACES  , // ACES
+   TONE_MAP_NUM   , // number of Tone Mapping Modes
 };
 enum EDGE_DETECT_MODE : Byte // Edge Detect Mode
 {
    EDGE_DETECT_NONE, // disabled
    EDGE_DETECT_SOFT, // soft edges (slower)
    EDGE_DETECT_THIN, // thin edges
-   EDGE_DETECT_NUM , // number of edge detect modes
+   EDGE_DETECT_NUM , // number of Edge Detect Modes
 };
 enum EDGE_SOFTEN_MODE : Byte // Edge Softening Mode
 {
@@ -79,7 +86,7 @@ enum EDGE_SOFTEN_MODE : Byte // Edge Softening Mode
    EDGE_SOFTEN_MLAA, //          Morphological Anti Aliasing
 #endif
    EDGE_SOFTEN_SMAA, // Subpixel Morphological Anti Aliasing
-   EDGE_SOFTEN_NUM , // number of edge softening modes
+   EDGE_SOFTEN_NUM , // number of Edge Softening Modes
 };
 enum TEXTURE_USAGE : Byte // Information about using additional texture maps in material
 {
@@ -358,6 +365,9 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
    DisplayClass& eyeAdaptationWeight    (C Vec &weight      ); C Vec& eyeAdaptationWeight    ()C {return _eye_adapt_weight    ;} // set/get Eye Adaptation color weight         (           (0, 0, 0)..(1, 1, 1)             , default=(0.9, 1, 0.7)), the change is instant, you can call it real-time
    DisplayClass& resetEyeAdaptation     (  Flt  brightness=1);                                                                   // reset   Eye Adaptation value, eye adaptation changes over time according to screen colors, this method resets the adaptation to its original state, 'brightness'=initial brightness (0..Inf), the change is NOT instant, avoid calling real-time
 
+   // Tone Mapping
+   DisplayClass& toneMap(TONE_MAP_MODE mode);   TONE_MAP_MODE toneMap()C {return _tone_map_mode;} // set/get Tone Mapping Mode (TONE_MAP_MODE, default=TONE_MAP_OFF), the change is instant, you can call it real-time
+
    // Level of Detail
 #if EE_PRIVATE
    void lodSetCurrentFactor();
@@ -530,6 +540,7 @@ private:
    SHADOW_MODE       _shd_mode;
    MOTION_MODE       _mtn_mode;
    DOF_MODE          _dof_mode;
+   TONE_MAP_MODE     _tone_map_mode;
    EDGE_DETECT_MODE  _edge_detect, _outline_mode;
    EDGE_SOFTEN_MODE  _edge_soften;
    TEXTURE_USAGE     _tex_detail;

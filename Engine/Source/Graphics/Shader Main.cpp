@@ -869,8 +869,10 @@ void HDR::load()
       HdrDS[0] =shader->get("HdrDS0"   );
       HdrDS[1] =shader->get("HdrDS1"   );
       HdrUpdate=shader->get("HdrUpdate");
-      Hdr[0]   =shader->get("Hdr0"     );
-      Hdr[1]   =shader->get("Hdr1"     );
+      REPD( tone_map, TONE_MAP_NUM)
+      REPD(adapt_eye,            2)if(tone_map || adapt_eye)
+      REPD(dither   ,            2)
+         Hdr[tone_map][adapt_eye][dither]=shader->get(S8+"Hdr"+tone_map+adapt_eye+dither);
    }   
 }
 /******************************************************************************/
