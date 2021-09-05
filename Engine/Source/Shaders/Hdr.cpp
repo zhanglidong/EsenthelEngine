@@ -155,17 +155,17 @@ VecH TonemapAMD(VecH col)
    peak=ColTone(peak, VecH4(contrast, shoulder, b, c));
 
    // ratio
-   if(0)
+   if(1) // better quality
    {
-      Half crosstalk = 4; // controls amount of channel crosstalk
-      Half saturation = 1; // full tonal range saturation control
-      Half crossSaturation = 1*16; // crosstalk saturation use 1 for faster performance
+    //Half crossTalk      = 4; // controls amount of channel crossTalk
+      Half      saturation= 1; // full tonal range saturation control
+      Half crossSaturation=16; // crossTalk saturation
 
-      // wrap crosstalk in transform
-      ratio = Pow(ratio, saturation / crossSaturation);
-      ratio = Lerp(ratio, 1, Pow(peak, crosstalk));
-      ratio = Pow(ratio, crossSaturation);
-   }else // faster but slightly lower color accuracy for high values
+      // wrap crossTalk in transform
+      ratio=Pow (ratio, saturation/crossSaturation);
+      ratio=Lerp(ratio, 1, Quart(peak)); // Pow(peak, crossTalk)
+      ratio=Pow (ratio, crossSaturation);
+   }else // faster but lower color accuracy for high values
       ratio=Lerp(ratio, 1, Quart(peak));
 
    return peak*ratio;
