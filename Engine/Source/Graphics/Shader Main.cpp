@@ -1,5 +1,16 @@
 /******************************************************************************/
 #include "stdafx.h"
+
+#define SUPPORT_TONE_MAP_AMD_LPM 0 // doesn't handle saturation well for high values
+#if     SUPPORT_TONE_MAP_AMD_LPM
+   #define A_CPU 1
+   #include "../Shaders/FidelityFX/ffx_a.h"
+
+   AU1 AMD_LPT_constant[24*4]; // Upload this to a uint4[24] part of a constant buffer (for example 'constant.lpm[24]').
+   A_STATIC void LpmSetupOut(AU1 i,inAU4 v){AMD_LPT_constant[i*4+0]=v[0];AMD_LPT_constant[i*4+1]=v[1];AMD_LPT_constant[i*4+2]=v[2];AMD_LPT_constant[i*4+3]=v[3];}
+   #include "../Shaders/FidelityFX/ffx_lpm.h"
+#endif
+
 namespace EE{
 /******************************************************************************/
 MainShaderClass    Sh;
@@ -873,6 +884,21 @@ void HDR::load()
       REPD(adapt_eye,            2)if(tone_map || adapt_eye)
       REPD(dither   ,            2)
          Hdr[tone_map][adapt_eye][dither]=shader->get(S8+"Hdr"+tone_map+adapt_eye+dither);
+
+   #if SUPPORT_TONE_MAP_AMD_LPM
+      varAF3(saturation)=initAF3(-1.0/16, -1.0/16, -1.0/16);
+      varAF3(crosstalk)=initAF3(1.0, 1.0, 1.0);
+      LpmSetup(false,
+         LPM_CONFIG_709_709,
+         LPM_COLORS_709_709,
+         0.0, // softGap
+         256.0, // hdrMax
+         8.0, // exposure
+         1.0/16, // contrast
+         1.0, // shoulder contrast
+         saturation, crosstalk);
+      SPSet("AMD_LPT_constant", AMD_LPT_constant);
+   #endif
    }   
 }
 /******************************************************************************/

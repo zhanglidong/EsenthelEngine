@@ -2,6 +2,25 @@
 #include "!Header.h"
 #include "Hdr.h"
 
+#define Quart _Quart // "ffx_a.h" has its own 'Quart'
+#define A_GPU  1
+#define A_HLSL 1
+#define A_HALF 1
+#include "FidelityFX/ffx_a.h"
+
+BUFFER(AMD_LPT)
+   uint4 AMD_LPT_constant[24];
+BUFFER_END
+AU4 LpmFilterCtl(AU1 i) {return AMD_LPT_constant[i];}
+
+#define LPM_NO_SETUP 1
+#define AD1_(a) ((AD1)(a))
+#define AF1_(a) ((AF1)(a))
+#define AL1_(a) ((AL1)(a))
+#define AU1_(a) ((AU1)(a))
+#include "FidelityFX/ffx_lpm.h"
+#undef Quart
+
 // shader expects linear gamma
 
 #define BRIGHT    1 // if apply adjustment for scenes where half pixels are bright, and other half are dark, in that case prefer focus on brighter, to avoid making already bright pixels too bright
@@ -98,7 +117,7 @@ VecH TonemapReinhardJodieML(VecH x) // preserves saturation
    return Lerp(s, d, d);
 }
 
-// https://www.shadertoy.com/view/4dBcD1 and https://www.shadertoy.com/view/ldlcWX
+// robobo1221 - https://www.shadertoy.com/view/4dBcD1 and https://www.shadertoy.com/view/ldlcWX
 Half TonemapRobo(Half x) {return x/Sqrt(1+x*x);}
 VecH TonemapRobo(VecH x) {return x/Sqrt(1+x*x);}
 
@@ -139,7 +158,7 @@ Half ColTone(Half x, VecH4 p) // General tonemapping operator, p := {contrast,sh
    Half   z= Pow(x, p.r); 
    return z/(Pow(z, p.g)*p.b + p.a); 
 }
-VecH TonemapAMD(VecH col)
+VecH TonemapAMD_Cauldron(VecH col)
 {
    const Half hdrMax  =MAX_LUM; // How much HDR range before clipping. HDR modes likely need this pushed up to say 25.0.
    const Half shoulder=1; // Likely don't need to mess with this factor, unless matching existing tonemapper is not working well..
@@ -169,6 +188,12 @@ VecH TonemapAMD(VecH col)
       ratio=Lerp(ratio, 1, Quart(peak)); // ratio 0..1
 
    return peak*ratio;
+}
+/******************************************************************************
+VecH TonemapAMD_LPM(VecH col) currently disabled on the CPU side
+{
+   LpmFilter(col.r, col.g, col.b, false, LPM_CONFIG_709_709);
+   return col;
 }
 /******************************************************************************/
 VecH _TonemapHable(VecH x) // http://filmicworlds.com/blog/filmic-tonemapping-operators/
@@ -324,10 +349,10 @@ VecH ToneMapHejl(VecH col)
    return vf.xyz/vf.w;
 }
 /******************************************************************************/
-VecH ToneMapFilmic(VecH col) // Jim Hejl + Richard Burgess-Dawson - http://filmicworlds.com/blog/filmic-tonemapping-operators/
+VecH ToneMapHejlBurgessDawson(VecH col) // Jim Hejl + Richard Burgess-Dawson "Filmic" - http://filmicworlds.com/blog/filmic-tonemapping-operators/
 {
    col=Max(0, col-0.004);
-   col=(col*(6.2*col+0.5)) / (col*(6.2*col+1.7)+0.06);
+   col=(col*(6.2*col+0.5))/(col*(6.2*col+1.7)+0.06);
    return SRGBToLinear(col);
 }
 /******************************************************************************
