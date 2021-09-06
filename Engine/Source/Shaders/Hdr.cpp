@@ -90,6 +90,23 @@ void DrawLine(inout VecH col, VecH line_col, Vec2 screen, Flt y)
    col=Lerp(col, line_col, Sat(Half(1-Abs(screen.y-y)*512)));
 }
 /******************************************************************************/
+void DarkenDarks(inout VecH x, Flt exp=1.6)
+{  // parameters set to match ACES
+   Half start=1.0/16;
+   VecH step =Sat(x/start);
+   x=Lerp(Pow(step, exp)*start, x, Sqr(step));
+}
+/******************************************************************************/
+VecH TonemapLogarithmic(VecH x)
+{
+   Half p=3;
+   Half q=1;
+   VecH4 rgbl=VecH4(x, LinearLumOfLinearColor(x));
+   VecH4 d   =log2(1+p*rgbl)/log2(1+q*MAX_LUM);
+   VecH  s   =rgbl.w ? x.rgb*(d.w/rgbl.w) : 0; // saturated, luminance based
+   return Lerp(s, d.rgb, d.rgb);
+}
+/******************************************************************************/
 Half TonemapReinhard(Half x) {return x/(1+x);} // x=0..Inf
 VecH TonemapReinhard(VecH x) {return x/(1+x);} // x=0..Inf
 
@@ -114,12 +131,6 @@ VecH TonemapReinhardJodieML(VecH x) // preserves saturation
    VecH d=TonemapReinhardML   (x);
    VecH s=TonemapReinhardMLLum(x);
    return Lerp(s, d, d);
-}
-void DarkenDarks(inout VecH x, Flt exp=1.6)
-{  // parameters set to match ACES
-   Half start=1.0/16;
-   VecH step =Sat(x/start);
-   x=Lerp(Pow(step, exp)*start, x, Sqr(step));
 }
 VecH TonemapReinhardJodieToe(VecH x, Flt exp) // preserves saturation and darkens darks
 {
