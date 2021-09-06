@@ -118,18 +118,20 @@ VecH TonemapReinhardJodieML(VecH x) // preserves saturation
    VecH s=TonemapReinhardMLLum(x);
    return Lerp(s, d, d);
 }
-void DarkenDarks(inout VecH x)
+void DarkenDarks(inout VecH x, Flt exp=1.6)
 {  // parameters set to match ACES
    Half start=1.0/16;
    VecH step =Sat(x/start);
-   x=Lerp(Pow(step, 1.6)*start, x, Sqr(step));
+   x=Lerp(Pow(step, exp)*start, x, Sqr(step));
 }
-VecH TonemapReinhardJodieToe(VecH x) // preserves saturation and darkens darks
+VecH TonemapReinhardJodieToe(VecH x, Flt exp) // preserves saturation and darkens darks
 {
    x=TonemapReinhardJodie(x);
-   DarkenDarks(x); // better to do this after 'TonemapReinhardJodie' than before, curve looks smoother
+   DarkenDarks(x, exp); // better to do this after 'TonemapReinhardJodie' than before, curve looks smoother
    return x;
 }
+VecH TonemapReinhardJodieDDHalf(VecH x) {return TonemapReinhardJodieToe(x, 1.27);} // 1.27 is perceptually in the middle of 1.0 and 1.6
+VecH TonemapReinhardJodieDDFull(VecH x) {return TonemapReinhardJodieToe(x, 1.6 );} // 1.6 matches ACES
 
 // robobo1221 - https://www.shadertoy.com/view/4dBcD1 and https://www.shadertoy.com/view/ldlcWX
 Half TonemapRobo(Half x) {return x/Sqrt(1+x*x);}
