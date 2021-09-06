@@ -183,35 +183,43 @@ VecH _TonemapHable(VecH x) // http://filmicworlds.com/blog/filmic-tonemapping-op
 }
 VecH TonemapHable(VecH col)
 {
-#if   MAX_LUM==2
-   Half scale=1.28622985;
-#elif MAX_LUM==4
-   Half scale=1.86127877;
-#elif MAX_LUM==6
-   Half scale=2.18674517;
-#elif MAX_LUM==8
-   Half scale=2.39616013;
-#elif MAX_LUM==12
-   Half scale=2.64986658;
-#elif MAX_LUM==16
-   Half scale=2.79797029;
-#elif MAX_LUM==24
-   Half scale=2.96359253;
-#elif MAX_LUM==32
-   Half scale=3.05397701;
+#if MAX_LUM // col=0..MAX_LUM
+   #if   MAX_LUM==2
+      Half scale=1.74936676;
+   #elif MAX_LUM==4
+      Half scale=2.55470848;
+   #elif MAX_LUM==6
+      Half scale=2.82278252;
+   #elif MAX_LUM==8
+      Half scale=2.95678377;
+   #elif MAX_LUM==12
+      Half scale=3.09075975;
+   #elif MAX_LUM==16
+      Half scale=3.15773392;
+   #elif MAX_LUM==24
+      Half scale=3.22470760;
+   #elif MAX_LUM==32
+      Half scale=3.25820065;
+   #endif
+   return _TonemapHable(scale*col)/_TonemapHable(scale*MAX_LUM);
+#else // no limit = 0..Inf, this version is very similar to 'TonemapReinhard'
+   return _TonemapHable(3.35864878*col)/0.93333333333; // max value of _TonemapHable is 0.93333333333 calculated based on _TonemapHable(65536*256).x
 #endif
-   return _TonemapHable(scale*col)/_TonemapHable(MAX_LUM);
 }
 /* scale calculated using:
-Vec TonemapHable(Vec col, Flt scale)
+Vec TonemapHableNoLimit(Vec col, Flt scale)
 {
-   return _TonemapHable(scale*col)/_TonemapHable(MAX_LUM);
+   return _TonemapHable(scale*col)/0.93333333333;
+}
+Vec TonemapHableMaxLum(Vec col, Flt scale)
+{
+   return _TonemapHable(scale*col)/_TonemapHable(scale*MAX_LUM);
 }
 Flt scale=1, min=0, max=16;
 REP(65536)
 {
    scale=Avg(min, max);
-   Flt x=0.01, h=TonemapHable(x, scale).x;
+   Flt x=1.0/256, h=TonemapHable(x, scale).x;
    if(h<x)min=scale;
    if(h>x)max=scale;
 }
@@ -239,12 +247,12 @@ VecH _TonemapUchimura(VecH x, Half P, Half a, Half m, Half l, Half c, Half b) //
 }
 VecH TonemapUchimura(VecH x, Half black=1) // 'black' can also be 1.33
 {
-   const Half P = 1;     // max display brightness
-   const Half a = 1;     // contrast
-   const Half m = 0.22;  // linear section start
-   const Half l = 0.4;   // linear section length
-   const Half c = black; // black
-   const Half b = 0;     // pedestal
+   const Half P=1;     // max display brightness
+   const Half a=1;     // contrast
+   const Half m=0.22;  // linear section start
+   const Half l=0.4;   // linear section length
+   const Half c=black; // black
+   const Half b=0;     // pedestal
    return _TonemapUchimura(x, P, a, m, l, c, b);
 }
 /******************************************************************************/
