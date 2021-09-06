@@ -143,7 +143,7 @@ VecH TonemapAMD(VecH col)
 {
    const Half hdrMax  =MAX_LUM; // How much HDR range before clipping. HDR modes likely need this pushed up to say 25.0.
    const Half shoulder=1; // Likely don't need to mess with this factor, unless matching existing tonemapper is not working well..
-   const Half contrast=1+1.0/16;
+   const Half contrast=1+1.0/16; // good values are 1+1.0/16=darks closest to original, 1+1.0/8=slightly higher contrast (darks darker, brights brighter)
    const Half midIn   =0.18; // most games will have a {0.0 to 1.0} range for LDR so midIn should be 0.18.
    const Half midOut  =0.18; // Use for LDR. For HDR10 10:10:10:2 use maybe 0.18/25.0 to start. For scRGB, I forget what a good starting point is, need to re-calculate.
 
@@ -158,14 +158,14 @@ VecH TonemapAMD(VecH col)
    if(1) // better quality
    {
     //Half crossTalk      = 4; // controls amount of channel crossTalk
-      Half      saturation= 1; // full tonal range saturation control
-      Half crossSaturation=16; // crossTalk saturation
+      Half      saturation= 1; // full tonal range saturation control, "1" works better (saturation looks closer to original) than "contrast" from original source code
+      Half crossSaturation=16; // crossTalk saturation, using "16" or "contrast*16" as in original source code made no visual difference, so keep 16 as it might be faster
 
       // wrap crossTalk in transform
       ratio=Pow (ratio, saturation/crossSaturation); // ratio 0..1
       ratio=Lerp(ratio, 1, Quart(peak)); // Pow(peak, crossTalk), ratio 0..1
       ratio=Pow (ratio, crossSaturation); // ratio 0..1
-   }else // faster but lower color accuracy for high values
+   }else // faster but lower saturation for high values
       ratio=Lerp(ratio, 1, Quart(peak)); // ratio 0..1
 
    return peak*ratio;
