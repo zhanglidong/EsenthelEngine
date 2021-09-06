@@ -11,7 +11,6 @@ ALPHA, DITHER, IN_GAMMA, OUT_GAMMA, GATHER
 /******************************************************************************/
 #include "../!Header.h"
 #define Quart _Quart // "ffx_a.h" has its own 'Quart'
-/******************************************************************************/
 #define A_GPU  1
 #define A_HLSL 1
 #define A_HALF 1
