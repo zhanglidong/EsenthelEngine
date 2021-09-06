@@ -183,10 +183,11 @@ struct RendererClass // handles rendering
    void       resolveDepth ();
    void       resolveDepth1();
    Bool     dilateMotion   (ImageRTPtr *dilated_full_motion, ImageRTPtr *dilated_blur_motion);
-   ImageRT* hdr            (ImageRTC &src, ImageRT *dest);
+   ImageRT* adaptEye       (ImageRTC &src, ImageRT *dest);
    void     motionBlur     (ImageRT  &src, ImageRT &dest, ImageRTPtr &bloom_glow, ImageRTPtr &dilated_motion, Bool alpha, Bool combine, ImageRT *exposure);
    void     bloom          (ImageRT  &src, ImageRT &dest, ImageRTPtr &bloom_glow,                             Bool alpha, Bool combine, ImageRT *exposure);
    void     dof            (ImageRT  &src, ImageRT &dest,                                                     Bool alpha, Bool combine);
+   void     toneMap        (ImageRT  &src, ImageRT &dest,                                                     Bool alpha, Bool combine);
 
    void setAlphaFromDepth      ();
    void setAlphaFromDepthAndCol();

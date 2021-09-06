@@ -380,32 +380,29 @@ ImageRTPtr RendererClass::getBackBuffer() // this may get called during renderin
    return null;
 }
 /******************************************************************************/
-ImageRT* RendererClass::hdr(ImageRTC &src, ImageRT *dest)
+ImageRT* RendererClass::adaptEye(ImageRTC &src, ImageRT *dest)
 {
    Hdr.load();
    D.alpha(ALPHA_NONE);
-   Bool adapt_eye=hasEyeAdapt(); if(adapt_eye)
+   ImageRTPtr cur=&src;
+   VecI2    size=RoundPos(fx()*(D.viewRect().size()/D.size2())); // calculate viewport size in pixels
+   Int  max_size=size.min()/4;
+   Int  s=1, num=1; for(;;){Int next_size=s*4; if(next_size>max_size)break; s=next_size; num++;} // go from 1 up to 'max_size', increase *4 in each step
+   FREP(num) // now go backward, from up to 'max_size' to 1 inclusive
    {
-      ImageRTPtr cur=&src;
-      VecI2    size=RoundPos(fx()*(D.viewRect().size()/D.size2())); // calculate viewport size in pixels
-      Int  max_size=size.min()/4;
-      Int  s=1, num=1; for(;;){Int next_size=s*4; if(next_size>max_size)break; s=next_size; num++;} // go from 1 up to 'max_size', increase *4 in each step
-      FREP(num) // now go backward, from up to 'max_size' to 1 inclusive
-      {
-         ImageRTPtr next=cur; next.get(ImageRTDesc(s, s, IMAGERT_F32)); s/=4; // we could use 16-bit as according to calculations, the max error for 1920x1080, starting with 256x256 as first step and going down to 1x1, with average luminance of 1.0 (255 byte) is 0.00244140625 at the final stage, which gives 410 possible colors, however we may use some special tricks in the shader that requires higher precision (for example BRIGHT with Sqr and Sqrt later, or use Linear/sRGB)
-         set(next, null, false);
-         Sh.imgSize(*cur);
-         if(i){Sh.ImgXF[0]->set(cur); Hdr.HdrDS[1]->draw();}
-         else {Sh.Img  [0]->set(cur); Hdr.HdrDS[0]->draw(null, D.screenToUV(D.viewRect()));}
-         cur=next;
-      }
-      Sh.Step->set(Pow(Mid(1/D.eyeAdaptationSpeed(), EPS, 1.0f), Time.d())); // can use EPS and not EPS_GPU because we're using Pow here and not on GPU
-      Sh.ImgXF[0]->set(cur); Sh.ImgXF[1]->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.HdrUpdate->draw();
+      ImageRTPtr next=cur; next.get(ImageRTDesc(s, s, IMAGERT_F32)); s/=4; // we could use 16-bit as according to calculations, the max error for 1920x1080, starting with 256x256 as first step and going down to 1x1, with average luminance of 1.0 (255 byte) is 0.00244140625 at the final stage, which gives 410 possible colors, however we may use some special tricks in the shader that requires higher precision (for example BRIGHT with Sqr and Sqrt later, or use Linear/sRGB)
+      set(next, null, false);
+      Sh.imgSize(*cur);
+      if(i){Sh.ImgXF[0]->set(cur); Hdr.HdrDS[1]->draw();}
+      else {Sh.Img  [0]->set(cur); Hdr.HdrDS[0]->draw(null, D.screenToUV(D.viewRect()));}
+      cur=next;
    }
+   Sh.Step->set(Pow(Mid(1/D.eyeAdaptationSpeed(), EPS, 1.0f), Time.d())); // can use EPS and not EPS_GPU because we're using Pow here and not on GPU
+   Sh.ImgXF[0]->set(cur); Sh.ImgXF[1]->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.HdrUpdate->draw();
    ImageRT &mul=_eye_adapt_scale[_eye_adapt_scale_cur];
    if(dest)
    {  // even though in the shader we just multiply by luminance, in tests it was faster to always write to new RT rather than do ALPHA_MUL and write to existing RT
-      Sh.ImgX[0]->set(mul); set(dest, null, true); Hdr.Hdr[D.toneMap()][adapt_eye][D.dither() /*&& src.highPrecision()*/ && !dest->highPrecision()]->draw(src);
+      Sh.ImgX[0]->set(mul); set(dest, null, true); Hdr.AdaptEye[D.dither() /*&& src.highPrecision()*/ && !dest->highPrecision()]->draw(src);
       return null;
    }
    return &mul;
@@ -625,6 +622,13 @@ void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool alpha, Bool combine)
    Sh.Img [1]->set(          rt0 );
    Sh.ImgX[0]->set(blur_smooth[0]);
    GetDof(D.dither() /*&& (src.highPrecision() || rt0->highPrecision())*/ && !dest.highPrecision(), D.dofFocusMode(), alpha)->draw(src);
+}
+/******************************************************************************/
+void RendererClass::toneMap(ImageRT &src, ImageRT &dest, Bool alpha, Bool combine)
+{
+   Hdr.load();
+   set(&dest, null, true); D.alpha((combine && &dest==_final) ? ALPHA_MERGE : ALPHA_NONE);
+   Hdr.ToneMap[D.toneMap()][alpha][D.dither() && !dest.highPrecision()]->draw(src);
 }
 /******************************************************************************/
 INLINE Shader* GetSetAlphaFromDepth        (Bool sky) {Shader* &s=Sh.SetAlphaFromDepth        [sky]; if(SLOW_SHADER_LOAD && !s)s=Sh.get(S8+"SetAlphaFromDepth"        +sky); return s;}
@@ -2255,10 +2259,11 @@ void RendererClass::postProcess()
    // !! so if any effect wants to modify '_col' instead of drawing to another RT, it first must check it for 'ColConst' !!
    Bool temporal =_temporal_use       , // hasTemporal()
         alpha    = processAlphaFinal(), // this is always enabled for 'slowCombine'
-        hdr      = hasEyeAdapt      () || D.toneMap(),
+        adapt_eye= hasEyeAdapt      (),
         motion   = hasMotion        (),
         bloom    =(hasBloom         () || _has_glow),
         dof      = hasDof           (),
+        tone_map = D.toneMap        (),
         combine  = slowCombine      (),
         alpha_set= fastCombine      (), // if alpha channel is set properly in the RT, skip this if we're doing 'fastCombine' because we're rendering to existing RT which has its Alpha already set
         sharpen  = D.sharpen        ();
@@ -2280,17 +2285,17 @@ void RendererClass::postProcess()
 
    ImageRTDesc rt_desc(fxW(), fxH(), IMAGERT_SRGBA/*this is changed later*/);
    Bool upscale=(_final->w()>_col->w() || _final->h()>_col->h()); // we're going to upscale at the end, this needs to be set after 'temporal' which might upscale '_col'
-   Int  fxs=(_get_target ? -1 : alpha+hdr+motion+bloom+dof+upscale+sharpen); // this counter specifies how many effects are still left in the queue, and if we can render directly to '_final'
+   Int  fxs=(_get_target ? -1 : alpha+adapt_eye+motion+bloom+dof+tone_map+upscale+sharpen); // this counter specifies how many effects are still left in the queue, and if we can render directly to '_final'
    Sh.ImgClamp->setConditional(ImgClamp(rt_desc.size)); // set 'ImgClamp' that may be needed for Bloom, DoF, MotionBlur, this is the viewport rect within texture, so reading will be clamped to what was rendered inside the viewport
 
    ImageRT *exposure=null;
-   if(hdr)
+   if(adapt_eye)
    {
       --fxs;
-      if(bloom && !D.toneMap())exposure=T.hdr(*_col, null);else // if there will be bloom then don't apply now, but this will be done later in bloom
+      if(bloom)exposure=adaptEye(*_col, null);else // if there will be bloom then don't apply now, but this will be done later in bloom
       {
          if(!fxs)dest=_final;else dest.get(rt_desc.type(GetImageRTType(_has_glow, D.litColRTPrecision()))); // can't read and write to the same RT, glow requires Alpha channel
-         T.hdr(*_col, dest); Swap(_col, dest); // HDR keeps Alpha
+         adaptEye(*_col, dest); Swap(_col, dest); // Eye Adaptation keeps Alpha
       }
    }
 
@@ -2361,6 +2366,11 @@ void RendererClass::postProcess()
    {
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
       T.dof(*_col, *dest, alpha, combine); Swap(_col, dest); alpha_set=true; // DoF sets Alpha
+   }
+   if(tone_map)
+   {
+      if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
+      toneMap(*_col, *dest, alpha, combine); Swap(_col, dest); alpha_set=true; // ToneMap sets Alpha
    }
    if(upscale)
    {

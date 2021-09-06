@@ -425,7 +425,8 @@ struct HDR
    ShaderFile *shader;
    Shader     *HdrDS[2], // [Step]
               *HdrUpdate,
-              *Hdr[TONE_MAP_NUM][2][2]; // [ToneMap][AdaptEye][Dither]
+              *AdaptEye[2], // [Dither]
+              *ToneMap[TONE_MAP_NUM][2][2]; // [ToneMap][Alpha][Dither]
 
    void load();
 }extern

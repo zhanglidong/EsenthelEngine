@@ -1545,6 +1545,7 @@ VecH4 Lerp4(VecH4 v0, VecH4 v1, VecH4 v2, VecH4 v3, Half s)
 /******************************************************************************/
 Half LerpCube(Half s) {return (3-2*s)*s*s;}
 Flt  LerpCube(Flt  s) {return (3-2*s)*s*s;}
+VecH LerpCube(VecH s) {return (3-2*s)*s*s;}
 
 Half LerpCube(Half from, Half to, Half s) {return Lerp(from, to, LerpCube(s));}
 Flt  LerpCube(Flt  from, Flt  to, Flt  s) {return Lerp(from, to, LerpCube(s));}

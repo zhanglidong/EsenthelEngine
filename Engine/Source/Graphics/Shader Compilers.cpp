@@ -579,10 +579,14 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
        && TONE_MAP_SIMPLE==STONE_MAP_SIMPLE
        && TONE_MAP_ACES  ==STONE_MAP_ACES
        && TONE_MAP_NUM   ==STONE_MAP_NUM);
-   REPD( tone_map, TONE_MAP_NUM)
-   REPD(adapt_eye,            2)if(tone_map || adapt_eye)
-   REPD(dither   ,            2)
-      src.New("Hdr", "Hdr_VS", "Hdr_PS")("TONE_MAP", tone_map, "ADAPT_EYE", adapt_eye, "DITHER", dither);
+   REPD(dither, 2)
+   {
+      src.New("AdaptEye", "AdaptEye_VS", "AdaptEye_PS")("DITHER", dither);
+
+      REPD(tone_map, TONE_MAP_NUM)
+      REPD(alpha   ,            2)
+         src.New("ToneMap", "DrawUV_VS", "ToneMap_PS")("TONE_MAP", tone_map, "ALPHA", alpha, "DITHER", dither);
+   }
 }
 #endif
 

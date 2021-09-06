@@ -389,31 +389,33 @@ VecH ToneMapRomBinDaHouse(VecH color)
 	return color;
 }
 /******************************************************************************/
-void Hdr_VS(VtxInput vtx,
+void AdaptEye_VS(VtxInput vtx,
    NOPERSP  out Vec2 uv  :UV ,
-#if ADAPT_EYE
    NOINTERP out Half lum :LUM,
-#endif
    NOPERSP  out Vec4 vpos:POSITION)
 {
    uv=vtx.uv();
-
-#if ADAPT_EYE
    lum=ImgX[VecI2(0, 0)];
-#endif
-
    vpos=vtx.pos4();
 }
-VecH4 Hdr_PS(NOPERSP  Vec2 uv :UV ,
-#if ADAPT_EYE
-             NOINTERP Half lum:LUM,
-#endif
-             NOPERSP  PIXEL       ):TARGET
+VecH4 AdaptEye_PS(NOPERSP  Vec2 uv :UV ,
+                  NOINTERP Half lum:LUM,
+                  NOPERSP  PIXEL       ):TARGET
 {
    VecH4 col=TexLod(Img, uv); // can't use 'TexPoint' because 'Img' can be supersampled
-
-#if ADAPT_EYE
    col.rgb*=lum;
+#if DITHER
+   ApplyDither(col.rgb, pixel.xy);
+#endif
+   return col;
+}
+/******************************************************************************/
+VecH4 ToneMap_PS(NOPERSP Vec2 uv:UV,
+                 NOPERSP PIXEL     ):TARGET
+{
+   VecH4 col=TexLod(Img, uv); // can't use 'TexPoint' because 'Img' can be supersampled
+#if !ALPHA
+   col.a=1; // force full alpha so back buffer effects can work ok
 #endif
 
 

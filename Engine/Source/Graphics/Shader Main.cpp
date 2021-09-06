@@ -880,10 +880,14 @@ void HDR::load()
       HdrDS[0] =shader->get("HdrDS0"   );
       HdrDS[1] =shader->get("HdrDS1"   );
       HdrUpdate=shader->get("HdrUpdate");
-      REPD( tone_map, TONE_MAP_NUM)
-      REPD(adapt_eye,            2)if(tone_map || adapt_eye)
-      REPD(dither   ,            2)
-         Hdr[tone_map][adapt_eye][dither]=shader->get(S8+"Hdr"+tone_map+adapt_eye+dither);
+      REPD(dither, 2)
+      {
+         AdaptEye[dither]=shader->get(S8+"AdaptEye"+dither);
+
+         REPD(tone_map, TONE_MAP_NUM)
+         REPD(alpha   ,            2)
+            ToneMap[tone_map][alpha][dither]=shader->get(S8+"ToneMap"+tone_map+alpha+dither);
+      }
 
    #if SUPPORT_TONE_MAP_AMD_LPM
       varAF3(saturation)=initAF3(-1.0/16, -1.0/16, -1.0/16);
