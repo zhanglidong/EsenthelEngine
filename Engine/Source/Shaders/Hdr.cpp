@@ -27,8 +27,6 @@ AU4 LpmFilterCtl(AU1 i) {return AMD_LPT_constant[i];}
 #define GEOMETRIC 0 // don't use geometric mean, because of cases when bright sky is mostly occluded by dark objects, then entire scene will get brighter, making the sky look too bright and un-realistic
 
 #define MAX_LUM 16 // max value of linear color, keeping this low preserves contrast better
-
-Int Mode; // FIXME
 /******************************************************************************/
 // HDR
 /******************************************************************************/
