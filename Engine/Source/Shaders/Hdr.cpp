@@ -120,7 +120,7 @@ VecH TonemapReinhardJodieML(VecH x) // preserves saturation
 }
 void DarkenDarks(inout VecH x)
 {  // parameters set to match ACES
-   Half start=0.0625;
+   Half start=1.0/16;
    VecH step =Sat(x/start);
    x=Lerp(Pow(step, 1.6)*start, x, Sqr(step));
 }
@@ -322,6 +322,27 @@ VecH TonemapLottes(VecH x) // Timothy Lottes "Advanced Techniques and Optimizati
 
    return Pow(x, a)/(Pow(x, a*d)*b+c);
 }
+/******************************************************************************/
+VecH TonemapUnreal(VecH x) // Unreal 3, Documentation: "Color Grading", adapted to be close to TonemapACES with similar range
+{
+   x=x/(x+0.155)*1.019;
+   return SRGBToLinear(x);
+}
+/******************************************************************************
+VecH ToneMapHejl(VecH col) // too dark
+{
+   VecH4  vh=VecH4(col, MAX_LUM);
+   VecH4  va=(1.435*vh)+0.05;
+   VecH4  vf=((vh*va+0.004)/((vh*(va+0.55)+0.0491)))-0.0821;
+   return vf.xyz/vf.w;
+}
+/******************************************************************************/
+VecH ToneMapHejlBurgessDawson(VecH col) // Jim Hejl + Richard Burgess-Dawson "Filmic" - http://filmicworlds.com/blog/filmic-tonemapping-operators/
+{
+   col=Max(0, col-0.004);
+   col=(col*(6.2*col+0.5))/(col*(6.2*col+1.7)+0.06);
+   return SRGBToLinear(col);
+}
 /******************************************************************************
 static const MatrixH3 ACESInputMat = // sRGB => XYZ => D65_2_D60 => AP1 => RRT_SAT
 {
@@ -348,27 +369,6 @@ VecH TonemapACESHill(VecH color) // Stephen Hill "self_shadow", looks wrong, too
    color=mul(ACESOutputMat, color);
    color=Sat(color);
    return color;
-}
-/******************************************************************************/
-VecH TonemapUnreal(VecH x) // Unreal 3, Documentation: "Color Grading", adapted to be close to TonemapACES with similar range
-{
-   x=x/(x+0.155)*1.019;
-   return SRGBToLinear(x);
-}
-/******************************************************************************/
-VecH ToneMapHejl(VecH col) // too dark
-{
-   VecH4  vh=VecH4(col, MAX_LUM);
-   VecH4  va=(1.435*vh)+0.05;
-   VecH4  vf=((vh*va+0.004)/((vh*(va+0.55)+0.0491)))-0.0821;
-   return vf.xyz/vf.w;
-}
-/******************************************************************************/
-VecH ToneMapHejlBurgessDawson(VecH col) // Jim Hejl + Richard Burgess-Dawson "Filmic" - http://filmicworlds.com/blog/filmic-tonemapping-operators/
-{
-   col=Max(0, col-0.004);
-   col=(col*(6.2*col+0.5))/(col*(6.2*col+1.7)+0.06);
-   return SRGBToLinear(col);
 }
 /******************************************************************************
 VecH ToneMapRomBinDaHouse(VecH color)
