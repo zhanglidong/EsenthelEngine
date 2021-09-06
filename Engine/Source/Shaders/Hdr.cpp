@@ -1,7 +1,13 @@
 /******************************************************************************/
 #include "!Header.h"
 #include "Hdr.h"
+/******************************************************************************/
+#define BRIGHT    1 // if apply adjustment for scenes where half pixels are bright, and other half are dark, in that case prefer focus on brighter, to avoid making already bright pixels too bright
+#define GEOMETRIC 0 // don't use geometric mean, because of cases when bright sky is mostly occluded by dark objects, then entire scene will get brighter, making the sky look too bright and un-realistic
 
+#define MAX_LUM 16 // max value of linear color, keeping this low preserves contrast better
+/******************************************************************************
+// AMD LPM
 #define Quart _Quart // "ffx_a.h" has its own 'Quart'
 #define A_GPU  1
 #define A_HLSL 1
@@ -20,11 +26,6 @@ AU4 LpmFilterCtl(AU1 i) {return AMD_LPT_constant[i];}
 #define AU1_(a) ((AU1)(a))
 #include "FidelityFX/ffx_lpm.h"
 #undef Quart
-
-#define BRIGHT    1 // if apply adjustment for scenes where half pixels are bright, and other half are dark, in that case prefer focus on brighter, to avoid making already bright pixels too bright
-#define GEOMETRIC 0 // don't use geometric mean, because of cases when bright sky is mostly occluded by dark objects, then entire scene will get brighter, making the sky look too bright and un-realistic
-
-#define MAX_LUM 16 // max value of linear color, keeping this low preserves contrast better
 /******************************************************************************/
 // HDR
 /******************************************************************************/
@@ -415,18 +416,15 @@ VecH4 ToneMap_PS(NOPERSP Vec2 uv:UV,
 #endif
 
 #if TONE_MAP
-   switch(TONE_MAP)
-   {
-      case STONE_MAP_ROBO                    : col.rgb=TonemapRobo               (col.rgb); break;
-      case STONE_MAP_AMD_CAULDRON            : col.rgb=TonemapAMD_Cauldron       (col.rgb); break;
-      case STONE_MAP_REINHARD_JODIE          : col.rgb=TonemapReinhardJodie      (col.rgb); break;
-      case STONE_MAP_REINHARD_JODIE_DARK_HALF: col.rgb=TonemapReinhardJodieDDHalf(col.rgb); break;
-      case STONE_MAP_REINHARD_JODIE_DARK     : col.rgb=TonemapReinhardJodieDDFull(col.rgb); break;
-      case STONE_MAP_ACES_HILL               : col.rgb=TonemapACESHill           (col.rgb); break;
-      case STONE_MAP_ACES_NARKOWICZ          : col.rgb=TonemapACESNarkowicz      (col.rgb); break;
-      case STONE_MAP_ACES_LOTTES             : col.rgb=TonemapACESLottes         (col.rgb); break;
-      case STONE_MAP_HEJL_BURGESS_DAWSON     : col.rgb=ToneMapHejlBurgessDawson  (col.rgb); break;
-   }
+   if(TONE_MAP==STONE_MAP_ROBO                    )col.rgb=TonemapRobo               (col.rgb);
+   if(TONE_MAP==STONE_MAP_AMD_CAULDRON            )col.rgb=TonemapAMD_Cauldron       (col.rgb);
+   if(TONE_MAP==STONE_MAP_REINHARD_JODIE          )col.rgb=TonemapReinhardJodie      (col.rgb);
+   if(TONE_MAP==STONE_MAP_REINHARD_JODIE_DARK_HALF)col.rgb=TonemapReinhardJodieDDHalf(col.rgb);
+   if(TONE_MAP==STONE_MAP_REINHARD_JODIE_DARK     )col.rgb=TonemapReinhardJodieDDFull(col.rgb);
+   if(TONE_MAP==STONE_MAP_ACES_HILL               )col.rgb=TonemapACESHill           (col.rgb);
+   if(TONE_MAP==STONE_MAP_ACES_NARKOWICZ          )col.rgb=TonemapACESNarkowicz      (col.rgb);
+   if(TONE_MAP==STONE_MAP_ACES_LOTTES             )col.rgb=TonemapACESLottes         (col.rgb);
+   if(TONE_MAP==STONE_MAP_HEJL_BURGESS_DAWSON     )col.rgb=ToneMapHejlBurgessDawson  (col.rgb);
 #endif
 
 #if 0 // Debug Drawing
