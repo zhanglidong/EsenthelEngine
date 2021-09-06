@@ -21,8 +21,6 @@ AU4 LpmFilterCtl(AU1 i) {return AMD_LPT_constant[i];}
 #include "FidelityFX/ffx_lpm.h"
 #undef Quart
 
-// shader expects linear gamma
-
 #define BRIGHT    1 // if apply adjustment for scenes where half pixels are bright, and other half are dark, in that case prefer focus on brighter, to avoid making already bright pixels too bright
 #define GEOMETRIC 0 // don't use geometric mean, because of cases when bright sky is mostly occluded by dark objects, then entire scene will get brighter, making the sky look too bright and un-realistic
 
@@ -263,7 +261,7 @@ REP(65536)
    if(h<x)min=scale;
    if(h>x)max=scale;
 }
-/******************************************************************************/
+/******************************************************************************
 VecH _TonemapUchimura(VecH x, Half P, Half a, Half m, Half l, Half c, Half b) // Uchimura 2017, "HDR theory and practice"
 {  // Math: https://www.desmos.com/calculator/gslcdxvipg
    // Source: https://www.slideshare.net/nikuque/hdr-theory-and-practicce-jp
@@ -317,11 +315,12 @@ VecH ACESFilmRec2020(VecH x) // https://knarkowicz.wordpress.com/2016/08/31/hdr-
    return (x*(a*x+b))/(x*(c*x+d)+e);
 }
 /******************************************************************************/
+#define MUL 2 // to match 'TonemapACESNarkowicz'
 static const MatrixH3 ACESInputMat = // sRGB => XYZ => D65_2_D60 => AP1 => RRT_SAT
 {
-   {0.59719, 0.35458, 0.04823},
-   {0.07600, 0.90834, 0.01566},
-   {0.02840, 0.13383, 0.83777},
+   {0.59719*MUL, 0.35458*MUL, 0.04823*MUL},
+   {0.07600*MUL, 0.90834*MUL, 0.01566*MUL},
+   {0.02840*MUL, 0.13383*MUL, 0.83777*MUL},
 };
 static const MatrixH3 ACESOutputMat = // ODT_SAT => XYZ => D60_2_D65 => sRGB
 {
@@ -337,7 +336,6 @@ VecH RRTAndODTFit(VecH v)
 }
 VecH TonemapACESHill(VecH color) // Stephen Hill "self_shadow"
 {
-   color*=2; // to match 'TonemapACESNarkowicz'
    color=mul(ACESInputMat, color);
    color=RRTAndODTFit(color); // Apply RRT and ODT
    color=mul(ACESOutputMat, color);
@@ -345,7 +343,7 @@ VecH TonemapACESHill(VecH color) // Stephen Hill "self_shadow"
    return color;
 }
 /******************************************************************************/
-VecH TonemapLottes(VecH x) // Timothy Lottes "Advanced Techniques and Optimization of HDR Color Pipelines" - https://gpuopen.com/wp-content/uploads/2016/03/GdcVdrLottes.pdf
+VecH TonemapACESLottes(VecH x) // Timothy Lottes "Advanced Techniques and Optimization of HDR Color Pipelines" - https://gpuopen.com/wp-content/uploads/2016/03/GdcVdrLottes.pdf
 {
    const Half a     =1.6;
    const Half d     =0.977;
@@ -359,7 +357,7 @@ VecH TonemapLottes(VecH x) // Timothy Lottes "Advanced Techniques and Optimizati
 
    return Pow(x, a)/(Pow(x, a*d)*b+c);
 }
-/******************************************************************************/
+/******************************************************************************
 VecH TonemapUnreal(VecH x) // Unreal 3, Documentation: "Color Grading", adapted to be close to TonemapACES with similar range
 {
    x=x/(x+0.155)*1.019;
@@ -416,6 +414,51 @@ VecH4 ToneMap_PS(NOPERSP Vec2 uv:UV,
    col.a=1; // force full alpha so back buffer effects can work ok
 #endif
 
+#if TONE_MAP
+   switch(TONE_MAP)
+   {
+      case STONE_MAP_ROBO                    : col.rgb=TonemapRobo               (col.rgb); break;
+      case STONE_MAP_AMD_CAULDRON            : col.rgb=TonemapAMD_Cauldron       (col.rgb); break;
+      case STONE_MAP_REINHARD_JODIE          : col.rgb=TonemapReinhardJodie      (col.rgb); break;
+      case STONE_MAP_REINHARD_JODIE_DARK_HALF: col.rgb=TonemapReinhardJodieDDHalf(col.rgb); break;
+      case STONE_MAP_REINHARD_JODIE_DARK     : col.rgb=TonemapReinhardJodieDDFull(col.rgb); break;
+      case STONE_MAP_ACES_HILL               : col.rgb=TonemapACESHill           (col.rgb); break;
+      case STONE_MAP_ACES_NARKOWICZ          : col.rgb=TonemapACESNarkowicz      (col.rgb); break;
+      case STONE_MAP_ACES_LOTTES             : col.rgb=TonemapACESLottes         (col.rgb); break;
+      case STONE_MAP_HEJL_BURGESS_DAWSON     : col.rgb=ToneMapHejlBurgessDawson  (col.rgb); break;
+   }
+#endif
+
+#if 0 // Debug Drawing
+   Vec2 pos=Vec2(uv.x*AspectRatio, 1-uv.y);
+   //if(AL)pos*=2;
+   //pos*=1.0/16;
+   if(CT || SH)DrawLine(col.rgb, VecH(1,1,1), pos, pos.x);
+   if(CT)
+   {
+      DrawLine(col.rgb, VecH(0.5,0,0), pos, TonemapRobo(pos.x));
+      DrawLine(col.rgb, VecH(0,0.5,0), pos, TonemapAMD_Cauldron(pos.x));
+    //DrawLine(col.rgb, VecH(0,0,0.5), pos, TonemapHable(pos.x));
+      DrawLine(col.rgb, VecH(0,0,0.5), pos, TonemapReinhardJodie(pos.x));
+    //DrawLine(col.rgb, VecH(0.5,0.5,0), pos, TonemapReinhardJodieToe(pos.x));
+    //DrawLine(col.rgb, VecH(0,0.5,0.5), pos, TonemapAMD_LPM(pos.x));
+    //DrawLine(col.rgb, VecH(0,0.5,0.5), pos, TonemapUchimura(pos.x));
+    //DrawLine(col.rgb, VecH(0.5,0,0.5), pos, TonemapPersson(pos.x));
+    //DrawLine(col.rgb, VecH(1,1,1), pos, TonemapUchimura(pos.x, 1.33));
+    //DrawLine(col.rgb, VecH(0.5,0.5,0), pos, TonemapReinhard(pos.x));/**/
+   }
+   if(SH)
+   {
+      DrawLine(col.rgb, VecH(1,0,0), pos, TonemapACESNarkowicz(pos.x));
+      DrawLine(col.rgb, VecH(0,1,0), pos, TonemapACESLottes(pos.x));
+    //DrawLine(col.rgb, VecH(0,0,1), pos, TonemapUnreal(pos.x));
+      DrawLine(col.rgb, VecH(0,1,1), pos, ToneMapHejlBurgessDawson(pos.x));
+    //DrawLine(col.rgb, VecH(1,0,1), pos, TonemapUchimura(pos.x, 1.33));
+    //DrawLine(col.rgb, VecH(1,1,0), pos, ToneMapHejl(pos.x));
+    //DrawLine(col.rgb, VecH(1,0,1), pos, ToneMapRomBinDaHouse(pos.x));
+      DrawLine(col.rgb, VecH(1,1,1), pos, TonemapACESHill(pos.x));
+   }
+#endif
 
 #if DITHER
    ApplyDither(col.rgb, pixel.xy);

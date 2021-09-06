@@ -884,9 +884,9 @@ void HDR::load()
       {
          AdaptEye[dither]=shader->get(S8+"AdaptEye"+dither);
 
-         REPD(tone_map, TONE_MAP_NUM)
-         REPD(alpha   ,            2)
-            ToneMap[tone_map][alpha][dither]=shader->get(S8+"ToneMap"+tone_map+alpha+dither);
+         REPD(tone_map, TONE_MAP_NUM-1)
+         REPD(alpha   ,              2)
+            ToneMap[tone_map][alpha][dither]=shader->get(S8+"ToneMap"+(tone_map+1)+alpha+dither);
       }
 
    #if SUPPORT_TONE_MAP_AMD_LPM

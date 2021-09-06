@@ -32,10 +32,17 @@
 #define SDIFFUSE_NUM        3
 
 // Shader Tone Map Modes
-#define STONE_MAP_OFF    0
-#define STONE_MAP_SIMPLE 1
-#define STONE_MAP_ACES   2
-#define STONE_MAP_NUM    3
+#define STONE_MAP_OFF                      0
+#define STONE_MAP_ROBO                     1
+#define STONE_MAP_AMD_CAULDRON             2
+#define STONE_MAP_REINHARD_JODIE           3
+#define STONE_MAP_REINHARD_JODIE_DARK_HALF 4
+#define STONE_MAP_REINHARD_JODIE_DARK      5
+#define STONE_MAP_ACES_HILL                6
+#define STONE_MAP_ACES_NARKOWICZ           7
+#define STONE_MAP_ACES_LOTTES              8
+#define STONE_MAP_HEJL_BURGESS_DAWSON      9
+#define STONE_MAP_NUM                      10
 
 // Effects
 #define FX_NONE     0

@@ -628,7 +628,7 @@ void RendererClass::toneMap(ImageRT &src, ImageRT &dest, Bool alpha, Bool combin
 {
    Hdr.load();
    set(&dest, null, true); D.alpha((combine && &dest==_final) ? ALPHA_MERGE : ALPHA_NONE);
-   Hdr.ToneMap[D.toneMap()][alpha][D.dither() && !dest.highPrecision()]->draw(src);
+   Hdr.ToneMap[D.toneMap()-1][alpha][D.dither() && !dest.highPrecision()]->draw(src);
 }
 /******************************************************************************/
 INLINE Shader* GetSetAlphaFromDepth        (Bool sky) {Shader* &s=Sh.SetAlphaFromDepth        [sky]; if(SLOW_SHADER_LOAD && !s)s=Sh.get(S8+"SetAlphaFromDepth"        +sky); return s;}
@@ -2263,7 +2263,7 @@ void RendererClass::postProcess()
         motion   = hasMotion        (),
         bloom    =(hasBloom         () || _has_glow),
         dof      = hasDof           (),
-        tone_map = D.toneMap        (),
+        tone_map = D.toneMap        ()!=0,
         combine  = slowCombine      (),
         alpha_set= fastCombine      (), // if alpha channel is set properly in the RT, skip this if we're doing 'fastCombine' because we're rendering to existing RT which has its Alpha already set
         sharpen  = D.sharpen        ();

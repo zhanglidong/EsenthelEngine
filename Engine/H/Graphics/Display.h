@@ -66,10 +66,17 @@ enum DOF_MODE : Byte // Depth of Field Mode
 };
 enum TONE_MAP_MODE : Byte // Tone Mapping Mode
 {
-   TONE_MAP_OFF   , // disabled
-   TONE_MAP_SIMPLE, // simple
-   TONE_MAP_ACES  , // ACES
-   TONE_MAP_NUM   , // number of Tone Mapping Modes
+   TONE_MAP_OFF                     , // disabled
+   TONE_MAP_ROBO                    , // not strong, by robobo1221
+   TONE_MAP_AMD_CAULDRON            , // AMD Cauldron
+   TONE_MAP_REINHARD_JODIE          , // Reinhard and Jodie
+   TONE_MAP_REINHARD_JODIE_DARK_HALF, // Reinhard and Jodie with darks darkening (half)
+   TONE_MAP_REINHARD_JODIE_DARK     , // Reinhard and Jodie with darks darkening matching ACES
+   TONE_MAP_ACES_HILL               , // ACES by Stephen Hill
+   TONE_MAP_ACES_NARKOWICZ          , // ACES by Krzysztof Narkowicz
+   TONE_MAP_ACES_LOTTES             , // ACES by Timothy Lottes
+   TONE_MAP_HEJL_BURGESS_DAWSON     , // Filmic by Jim Hejl and Richard Burgess-Dawson
+   TONE_MAP_NUM                     , // number of Tone Mapping Modes
 };
 enum EDGE_DETECT_MODE : Byte // Edge Detect Mode
 {
