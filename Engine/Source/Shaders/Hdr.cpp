@@ -27,6 +27,8 @@ AU4 LpmFilterCtl(AU1 i) {return AMD_LPT_constant[i];}
 #define GEOMETRIC 0 // don't use geometric mean, because of cases when bright sky is mostly occluded by dark objects, then entire scene will get brighter, making the sky look too bright and un-realistic
 
 #define MAX_LUM 16 // max value of linear color, keeping this low preserves contrast better
+
+Int Mode; // FIXME
 /******************************************************************************/
 // HDR
 /******************************************************************************/
@@ -116,6 +118,18 @@ VecH TonemapReinhardJodieML(VecH x) // preserves saturation
    VecH s=TonemapReinhardMLLum(x);
    return Lerp(s, d, d);
 }
+void DarkenDarks(inout VecH x)
+{  // parameters set to match ACES
+   Half start=0.0625;
+   VecH step =Sat(x/start);
+   x=Lerp(Pow(step, 1.6)*start, x, Sqr(step));
+}
+VecH TonemapReinhardJodieToe(VecH x) // preserves saturation and darkens darks
+{
+   x=TonemapReinhardJodie(x);
+   DarkenDarks(x); // better to do this after 'TonemapReinhardJodie' than before, curve looks smoother
+   return x;
+}
 
 // robobo1221 - https://www.shadertoy.com/view/4dBcD1 and https://www.shadertoy.com/view/ldlcWX
 Half TonemapRobo(Half x) {return x/Sqrt(1+x*x);}
@@ -195,7 +209,8 @@ VecH TonemapAMD_LPM(VecH col) currently disabled on the CPU side
    LpmFilter(col.r, col.g, col.b, false, LPM_CONFIG_709_709);
    return col;
 }
-/******************************************************************************/
+/******************************************************************************
+Desaturates
 VecH _TonemapHable(VecH x) // http://filmicworlds.com/blog/filmic-tonemapping-operators/
 {
    Half A=0.15;
@@ -326,7 +341,7 @@ VecH RRTAndODTFit(VecH v)
    VecH b = v * (0.983729 * v + 0.4329510) + 0.238081;
    return a/b;
 }
-VecH TonemapACESHill(VecH color) // Stephen Hill "self_shadow"
+VecH TonemapACESHill(VecH color) // Stephen Hill "self_shadow", looks wrong, too dark
 {
    color=mul(ACESInputMat, color);
    color=RRTAndODTFit(color); // Apply RRT and ODT
@@ -341,7 +356,7 @@ VecH TonemapUnreal(VecH x) // Unreal 3, Documentation: "Color Grading", adapted 
    return SRGBToLinear(x);
 }
 /******************************************************************************/
-VecH ToneMapHejl(VecH col)
+VecH ToneMapHejl(VecH col) // too dark
 {
    VecH4  vh=VecH4(col, MAX_LUM);
    VecH4  va=(1.435*vh)+0.05;
