@@ -82,6 +82,19 @@ class VideoOptions : PropWin
          "Water Light"      , // 17
       }; ASSERT(RS_DEFAULT==0 && RS_DEPTH==1 && RS_COLOR==2 && RS_NORMAL==3 && RS_SMOOTH==4 && RS_REFLECT==5 && RS_GLOW==6 && RS_EMISSIVE==7 && RS_MOTION==8 && RS_LIGHT==9 && RS_LIGHT_AO==10 && RS_AO==11 && RS_LIT_COLOR==12
              && RS_ALPHA==13 && RS_REFLECTION==14 && RS_WATER_COLOR==15 && RS_WATER_NORMAL==16 && RS_WATER_LIGHT==17);
+      static cchar8 *ToneMap_t[]=
+      {
+         "Off"                     , // 0
+         "Robo"                    , // 1
+         "AMD Cauldron"            , // 2
+         "Reinhard Jodie"          , // 3
+         "Reinhard Jodie Dark Half", // 4
+         "Reinhard Jodie Dark"     , // 5
+         "ACES Hill"               , // 6
+         "ACES Narkowicz"          , // 7
+         "ACES Lottes"             , // 8
+         "Hejl Burgess-Dawson"     , // 9
+      }; ASSERT(TONE_MAP_OFF==0 && TONE_MAP_ROBO==1 && TONE_MAP_AMD_CAULDRON==2 && TONE_MAP_REINHARD_JODIE==3 && TONE_MAP_REINHARD_JODIE_DARK_HALF==4 && TONE_MAP_REINHARD_JODIE_DARK==5 && TONE_MAP_ACES_HILL==6 && TONE_MAP_ACES_NARKOWICZ==7 && TONE_MAP_ACES_LOTTES==8 && TONE_MAP_HEJL_BURGESS_DAWSON==9 && TONE_MAP_NUM==10);
       static cchar8 *ShadowReduceFlicker_t[]=
       {
          "Off",
@@ -127,6 +140,8 @@ class VideoOptions : PropWin
       static void EdgeDetect   (  Advanced &adv, C Str &text) {       D.edgeDetect(EDGE_DETECT_MODE(TextInt(text)));}
       static Str  Stage        (C Advanced &adv             ) {return Renderer.stage;}
       static void Stage        (  Advanced &adv, C Str &text) {       Renderer.stage=(RENDER_STAGE)TextInt(text);}
+      static Str  ToneMap      (C Advanced &adv             ) {return D.toneMap();}
+      static void ToneMap      (  Advanced &adv, C Str &text) {       D.toneMap((TONE_MAP_MODE)TextInt(text));}
       static Str  EyeAdaptBrigh(C Advanced &adv             ) {return D.eyeAdaptationBrightness();}
       static void EyeAdaptBrigh(  Advanced &adv, C Str &text) {       D.eyeAdaptationBrightness(TextFlt(text));}
       static Str  Exclusive    (C Advanced &adv             ) {return D.exclusive();}
@@ -285,7 +300,7 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
          props.New().create("Shadow Range Fraction"      , MemberDesc(DATA_REAL).setFunc(ShadowFrac   , ShadowFrac   )).range(0, 1).desc("This option can limit directional lights shadowing range to a fraction of the viewport range.");
          props.New().create("Shadow Fade  Fraction"      , MemberDesc(DATA_REAL).setFunc(ShadowFade   , ShadowFade   )).range(0, 1).desc("This option specifies at which part of the shadowing range,\nshadow fading occurs for directional lights.");
          props.New().create("Edge Detect"                , MemberDesc(         ).setFunc(EdgeDetect   , EdgeDetect   )).setEnum(EdgeDetect_t, Elms(EdgeDetect_t)).desc("Detect Edges");
-         props.New().create("Rendering Stage"            , MemberDesc(         ).setFunc(Stage        , Stage        )).setEnum(Stage_t,  Elms(Stage_t)).desc("Display specified rendering stage.\nSome options are available only in Deferred Renderer.");
+         props.New().create("Rendering Stage"            , MemberDesc(         ).setFunc(Stage        , Stage        )).setEnum(Stage_t, Elms(Stage_t)).desc("Display specified rendering stage.\nSome options are available only in Deferred Renderer.");
          props.New().create("Eye Adaptation Brightness"  , MemberDesc(DATA_REAL).setFunc(EyeAdaptBrigh, EyeAdaptBrigh)).range(0, 2).desc("Total light scale for Eye Adaptation Effect");
          props.New().create("Dither"                     , MemberDesc(DATA_BOOL).setFunc(Dither       , Dither       )).desc("If enable color dithering, which smoothens color gradients.");
          props.New().create("Monitor Precision"          , MemberDesc(         ).setFunc(MonitorPrec  , MonitorPrec  )).setEnum(Precision_t, Elms(Precision_t)).desc("Specify the exact precision of your Monitor Screen.\n8 bit per channel = 24 bit total\n10 bit per channel = 30 bit total\nIf you're not sure what your monitor supports, leave this option at \"8 bit\"\n\nAvoid setting higher precision than what your screen can actually support,\nbecause instead of getting higher quality results you will get lower quality.");
@@ -293,6 +308,7 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
          props.New().create("High Precision Color RT"    , MemberDesc(DATA_BOOL).setFunc(ColRTPrec    , ColRTPrec    )).desc("Enable high precision color render target\nThis increases precision of material color textures in Deferred Renderer.");
          props.New().create("High Precision Normal RT"   , MemberDesc(DATA_BOOL).setFunc(NrmRTPrec    , NrmRTPrec    )).desc("Enable high precision normal render target\nThis increases precision of specular lighting in Deferred Renderer.");
          props.New().create("High Precision Light RT"    , MemberDesc(DATA_BOOL).setFunc(LumRTPrec    , LumRTPrec    )).desc("Enable high precision light render target\nThis increases lighting precision in Deferred Renderer.");
+         props.New().create("Tone Mapping"               , MemberDesc(         ).setFunc(ToneMap      , ToneMap      )).setEnum(ToneMap_t, Elms(ToneMap_t));
          props.New().create("Bloom Scale"                , MemberDesc(DATA_REAL).setFunc(BloomScale   , BloomScale   )).range(0, 2);
          props.New().create("Ambient Light"              , MemberDesc(DATA_REAL).setFunc(AmbLight     , AmbLight     )).range(0, 1);
          props.New().create("Ambient Occlusion Contrast" , MemberDesc(DATA_REAL).setFunc(AOContrast   , AOContrast   )).range(0, 8);
