@@ -72,14 +72,14 @@ void DrawLine(inout VecH col, VecH line_col, Vec2 screen, Flt y)
    col=Lerp(col, line_col, Sat(Half(1-Abs(screen.y-y)*512)));
 }
 /******************************************************************************/
-Half TonemapReinhard(Half x) {return x/(1+x);}
-VecH TonemapReinhard(VecH x) {return x/(1+x);}
+Half TonemapReinhard(Half x) {return x/(1+x);} // x=0..Inf
+VecH TonemapReinhard(VecH x) {return x/(1+x);} // x=0..Inf
 
-Half _TonemapReinhardML(Half x) {return (1+x/Sqr(MAX_LUM))/(1+x);} // Max Lum version - internal without "x*"
-VecH _TonemapReinhardML(VecH x) {return (1+x/Sqr(MAX_LUM))/(1+x);} // Max Lum version - internal without "x*"
+Half _TonemapReinhardML(Half x) {return (1+x/Sqr(MAX_LUM))/(1+x);} // Max Lum version x=0..MAX_LUM - internal without "x*"
+VecH _TonemapReinhardML(VecH x) {return (1+x/Sqr(MAX_LUM))/(1+x);} // Max Lum version x=0..MAX_LUM - internal without "x*"
 
-Half TonemapReinhardML(Half x) {return x*_TonemapReinhardML(x);} // Max Lum version - full formula
-VecH TonemapReinhardML(VecH x) {return x*_TonemapReinhardML(x);} // Max Lum version - full formula
+Half TonemapReinhardML(Half x) {return x*_TonemapReinhardML(x);} // Max Lum version x=0..MAX_LUM - full formula
+VecH TonemapReinhardML(VecH x) {return x*_TonemapReinhardML(x);} // Max Lum version x=0..MAX_LUM - full formula
 
 VecH TonemapReinhardLum  (VecH x) {Half lum=LinearLumOfLinearColor(x); return x/(1+lum)                ;} // x*(TonemapReinhard  (lum)/lum)
 VecH TonemapReinhardMLLum(VecH x) {Half lum=LinearLumOfLinearColor(x); return x*_TonemapReinhardML(lum);} // x*(TonemapReinhardML(lum)/lum)
@@ -151,8 +151,8 @@ VecH TonemapAMD(VecH col)
    Half c=ColToneC(hdrMax, contrast, shoulder, midIn, midOut);
 
    Half peak =Max(Max(col), HALF_MIN);
-   VecH ratio=col/peak;
-   peak=ColTone(peak, VecH4(contrast, shoulder, b, c));
+   VecH ratio=col/peak; // always 0..1
+   peak=ColTone(peak, VecH4(contrast, shoulder, b, c)); // should be 0..1
 
    // ratio
    if(1) // better quality
@@ -162,11 +162,11 @@ VecH TonemapAMD(VecH col)
       Half crossSaturation=16; // crossTalk saturation
 
       // wrap crossTalk in transform
-      ratio=Pow (ratio, saturation/crossSaturation);
-      ratio=Lerp(ratio, 1, Quart(peak)); // Pow(peak, crossTalk)
-      ratio=Pow (ratio, crossSaturation);
+      ratio=Pow (ratio, saturation/crossSaturation); // ratio 0..1
+      ratio=Lerp(ratio, 1, Quart(peak)); // Pow(peak, crossTalk), ratio 0..1
+      ratio=Pow (ratio, crossSaturation); // ratio 0..1
    }else // faster but lower color accuracy for high values
-      ratio=Lerp(ratio, 1, Quart(peak));
+      ratio=Lerp(ratio, 1, Quart(peak)); // ratio 0..1
 
    return peak*ratio;
 }
