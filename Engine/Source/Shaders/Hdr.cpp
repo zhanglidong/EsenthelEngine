@@ -85,9 +85,9 @@ Flt HdrUpdate_PS():TARGET // here use full precision
    return Lerp(lum, ImgXF1[VecI2(0, 0)].x, Step); // lerp new with old
 }
 /******************************************************************************/
-void DrawLine(inout VecH col, VecH line_col, Vec2 screen, Flt y)
+void DrawLine(inout VecH col, VecH line_col, Vec2 screen, Flt eps, Flt y)
 {
-   col=Lerp(col, line_col, Sat(Half(1-Abs(screen.y-y)*512)));
+   col=Lerp(col, line_col, Sat(Half(1-Abs(screen.y-y)*eps)));
 }
 /******************************************************************************/
 void DarkenDarks(inout VecH x, Flt exp=1.6)
@@ -138,8 +138,8 @@ VecH TonemapReinhardJodieToe(VecH x, Flt exp) // preserves saturation and darken
    DarkenDarks(x, exp); // better to do this after 'TonemapReinhardJodie' than before, curve looks smoother
    return x;
 }
-VecH TonemapReinhardJodieDDHalf(VecH x) {return TonemapReinhardJodieToe(x, 1.27);} // 1.27 is perceptually in the middle of 1.0 and 1.6
-VecH TonemapReinhardJodieDDFull(VecH x) {return TonemapReinhardJodieToe(x, 1.6 );} // 1.6 matches ACES
+VecH TonemapReinhardJodieDDHalf(VecH x) {return TonemapReinhardJodieToe(x, Sqrt(1.6));} // ~1.265 is perceptually in the middle of 1.0 and 1.6
+VecH TonemapReinhardJodieDDFull(VecH x) {return TonemapReinhardJodieToe(x,      1.6 );} //  1.6 matches ACES
 
 // robobo1221 - https://www.shadertoy.com/view/4dBcD1 and https://www.shadertoy.com/view/ldlcWX
 Half TonemapRobo(Half x) {return x/Sqrt(1+x*x);}
@@ -310,11 +310,12 @@ VecH TonemapUchimura(VecH x, Half black=1) // 'black' can also be 1.33
 /******************************************************************************/
 VecH TonemapACESNarkowicz(VecH x) // Krzysztof Narkowicz "ACES Filmic Tone Mapping Curve" - https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
 {
-   const Half a=2.51;
-   const Half b=0.03;
-   const Half c=2.43;
-   const Half d=0.59;
-   const Half e=0.14;
+   Half a=2.51;
+   Half b=0.03;
+   Half c=2.43;
+   Half d=0.59;
+   Half e=0.14;
+
    return (x*(a*x+b))/(x*(c*x+d)+e);
 }
 VecH ACESFilmRec2020(VecH x) // https://knarkowicz.wordpress.com/2016/08/31/hdr-display-first-steps/
@@ -440,32 +441,36 @@ VecH4 ToneMap_PS(NOPERSP Vec2 uv:UV,
 
 #if 0 // Debug Drawing
    Vec2 pos=Vec2(uv.x*AspectRatio, 1-uv.y);
+   Flt eps=1/(SRGBToLinear(pos.y+1.0/512)-SRGBToLinear(pos.y));
+   pos=SRGBToLinear(pos);
+   //Flt eps=1/pos.y*128;//pos.x;
    //if(AL)pos*=2;
    //pos*=1.0/16;
-   if(CT || SH)DrawLine(col.rgb, VecH(1,1,1), pos, pos.x);
+   if(CT || SH)DrawLine(col.rgb, VecH(1,1,1), pos, eps, pos.x);
    if(CT)
    {
-      DrawLine(col.rgb, VecH(0.5,0,0), pos, TonemapRobo(pos.x));
-      DrawLine(col.rgb, VecH(0,0.5,0), pos, TonemapAMD_Cauldron(pos.x));
-    //DrawLine(col.rgb, VecH(0,0,0.5), pos, TonemapHable(pos.x));
-      DrawLine(col.rgb, VecH(0,0,0.5), pos, TonemapReinhardJodie(pos.x));
-    //DrawLine(col.rgb, VecH(0.5,0.5,0), pos, TonemapReinhardJodieToe(pos.x));
-    //DrawLine(col.rgb, VecH(0,0.5,0.5), pos, TonemapAMD_LPM(pos.x));
-    //DrawLine(col.rgb, VecH(0,0.5,0.5), pos, TonemapUchimura(pos.x));
-    //DrawLine(col.rgb, VecH(0.5,0,0.5), pos, TonemapPersson(pos.x));
-    //DrawLine(col.rgb, VecH(1,1,1), pos, TonemapUchimura(pos.x, 1.33));
-    //DrawLine(col.rgb, VecH(0.5,0.5,0), pos, TonemapReinhard(pos.x));/**/
+      DrawLine(col.rgb, VecH(0.5,0,0), pos, eps, TonemapRobo(pos.x));
+      DrawLine(col.rgb, VecH(0,0.5,0), pos, eps, TonemapAMD_Cauldron(pos.x));
+    //DrawLine(col.rgb, VecH(0,0,0.5), pos, eps, TonemapHable(pos.x));
+      DrawLine(col.rgb, VecH(0,0,0.5), pos, eps, TonemapReinhardJodieDDFull(pos.x));
+      DrawLine(col.rgb, VecH(0.5,0.5,0), pos, eps, TonemapLogarithmic(pos.x));
+    //DrawLine(col.rgb, VecH(0.5,0.5,0), pos, eps, TonemapReinhardJodieToe(pos.x));
+    //DrawLine(col.rgb, VecH(0,0.5,0.5), pos, eps, TonemapAMD_LPM(pos.x));
+    //DrawLine(col.rgb, VecH(0,0.5,0.5), pos, eps, TonemapUchimura(pos.x));
+    //DrawLine(col.rgb, VecH(0.5,0,0.5), pos, eps, TonemapPersson(pos.x));
+    //DrawLine(col.rgb, VecH(1,1,1), pos, eps, TonemapUchimura(pos.x, 1.33));
+    //DrawLine(col.rgb, VecH(0.5,0.5,0), pos, eps, TonemapReinhard(pos.x));/**/
    }
    if(SH)
    {
-      DrawLine(col.rgb, VecH(1,0,0), pos, TonemapACESNarkowicz(pos.x));
-      DrawLine(col.rgb, VecH(0,1,0), pos, TonemapACESLottes(pos.x));
-    //DrawLine(col.rgb, VecH(0,0,1), pos, TonemapUnreal(pos.x));
-      DrawLine(col.rgb, VecH(0,1,1), pos, ToneMapHejlBurgessDawson(pos.x));
-    //DrawLine(col.rgb, VecH(1,0,1), pos, TonemapUchimura(pos.x, 1.33));
-    //DrawLine(col.rgb, VecH(1,1,0), pos, ToneMapHejl(pos.x));
-    //DrawLine(col.rgb, VecH(1,0,1), pos, ToneMapRomBinDaHouse(pos.x));
-      DrawLine(col.rgb, VecH(1,1,1), pos, TonemapACESHill(pos.x));
+      DrawLine(col.rgb, VecH(1,0,0), pos, eps, TonemapACESNarkowicz(pos.x));
+      DrawLine(col.rgb, VecH(0,1,0), pos, eps, TonemapACESLottes(pos.x));
+    //DrawLine(col.rgb, VecH(0,0,1), pos, eps, TonemapUnreal(pos.x));
+      DrawLine(col.rgb, VecH(0,0,1), pos, eps, ToneMapHejlBurgessDawson(pos.x));
+    //DrawLine(col.rgb, VecH(1,0,1), pos, eps, TonemapUchimura(pos.x, 1.33));
+    //DrawLine(col.rgb, VecH(1,1,0), pos, eps, ToneMapHejl(pos.x));
+    //DrawLine(col.rgb, VecH(1,0,1), pos, eps, ToneMapRomBinDaHouse(pos.x));
+      DrawLine(col.rgb, VecH(1,1,0), pos, eps, TonemapACESHill(pos.x));
    }
 #endif
 
