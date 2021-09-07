@@ -1995,17 +1995,17 @@ void RendererClass::blend()
    D.stencilRef(STENCIL_REF_TERRAIN); // set in case draw codes will use stencil
 
    const Bool blend_affect_vel=true;
+   ALPHA_MODE alpha=(Renderer.fastCombine() ? ALPHA_BLEND : ALPHA_RENDER_BLEND);
    set(_col, _alpha, blend_affect_vel ? _vel() : null, null, _ds, true); setDSLookup(); // 'setDSLookup' after 'set' #RTOutput.Blend, needed for 'DrawBlendInstances'
-   D.alpha(Renderer.fastCombine() ? ALPHA_BLEND : ALPHA_RENDER_BLEND);
    D.set3D(); D.depthOnWriteFunc(true, false, FUNC_LESS_EQUAL); mode(RM_BLEND); // use LESS_EQUAL for blend because we may want to draw blend graphics on top of existing pixels (for example world editor terrain highlight)
    SortBlendInstances();
    REPS(_eye, _eye_num)
    {
       setEyeViewportCam();
    #if 1
-     _render(); DrawBlendInstances(); // first call '_render' to for example get 'getBackBuffer' and then draw objects in 'DrawBlendInstances'
+      D.alpha(alpha); _render(); DrawBlendInstances(); // first call '_render' to for example get 'getBackBuffer' and then draw objects in 'DrawBlendInstances'
    #else
-      DrawBlendInstances(); _render();
+      DrawBlendInstances(); D.alpha(alpha); _render();
    #endif
    }
    ClearBlendInstances();
