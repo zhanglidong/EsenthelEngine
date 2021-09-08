@@ -100,6 +100,8 @@ void DarkenDarks(inout VecH x, Half end=0.123, Half exp=1.3) // end=0.123, exp=1
    x=Lerp(Pow(step, exp)*end, x, Sqr(step)); // alternative: LerpCube(step), but it's more expensive and only a small difference, not necessarily better
 }
 /******************************************************************************/
+Half TonemapLum(VecH x) {return LinearLumOfLinearColor(x);} // could also be "Avg(x)" to darken bright blue skies
+/******************************************************************************/
 Half  TonemapRcp(Half  x) {return x/(1+x);} // x=0..Inf
 VecH  TonemapRcp(VecH  x) {return x/(1+x);} // x=0..Inf
 VecH4 TonemapRcp(VecH4 x) {return x/(1+x);} // x=0..Inf
@@ -157,8 +159,8 @@ Half  TonemapRcp(Half  x, Half max_lum) {return x*_TonemapRcp(x, max_lum);} // M
 VecH  TonemapRcp(VecH  x, Half max_lum) {return x*_TonemapRcp(x, max_lum);} // Max Lum version x=0..max_lum
 VecH4 TonemapRcp(VecH4 x, Half max_lum) {return x*_TonemapRcp(x, max_lum);} // Max Lum version x=0..max_lum
 
-VecH TonemapRcpLum(VecH x              ) {Half lum=LinearLumOfLinearColor(x); return x/(1+lum)                  ;} // optimized "x*(TonemapRcp(lum         )/lum)"
-VecH TonemapRcpLum(VecH x, Half max_lum) {Half lum=LinearLumOfLinearColor(x); return x*_TonemapRcp(lum, max_lum);} // optimized "x*(TonemapRcp(lum, max_lum)/lum)"
+VecH TonemapRcpLum(VecH x              ) {Half lum=TonemapLum(x); return x/(1+lum)                  ;} // optimized "x*(TonemapRcp(lum         )/lum)"
+VecH TonemapRcpLum(VecH x, Half max_lum) {Half lum=TonemapLum(x); return x*_TonemapRcp(lum, max_lum);} // optimized "x*(TonemapRcp(lum, max_lum)/lum)"
 
 VecH TonemapRcpSat(VecH x) // preserves saturation
 {
@@ -195,42 +197,42 @@ VecH4 TonemapLogML16(VecH4 x) {Half mul=6.11720181, max_lum=16; return TonemapLo
 
 VecH TonemapLogSat(VecH x)
 {
-   VecH4 rgbl=VecH4(x, LinearLumOfLinearColor(x));
+   VecH4 rgbl=VecH4(x, TonemapLum(x));
    VecH4 d=TonemapLog(rgbl);            // desaturated, per channel
    VecH  s=rgbl.w ? x*(d.w/rgbl.w) : 0; //   saturated, luminance based
    return Lerp(s, d.rgb, d.rgb);
 }
 VecH TonemapLogML4Sat(VecH x)
 {
-   VecH4 rgbl=VecH4(x, LinearLumOfLinearColor(x));
+   VecH4 rgbl=VecH4(x, TonemapLum(x));
    VecH4 d=TonemapLogML4(rgbl);         // desaturated, per channel
    VecH  s=rgbl.w ? x*(d.w/rgbl.w) : 0; //   saturated, luminance based
    return Lerp(s, d.rgb, d.rgb);
 }
 VecH TonemapLogML5Sat(VecH x)
 {
-   VecH4 rgbl=VecH4(x, LinearLumOfLinearColor(x));
+   VecH4 rgbl=VecH4(x, TonemapLum(x));
    VecH4 d=TonemapLogML5(rgbl);         // desaturated, per channel
    VecH  s=rgbl.w ? x*(d.w/rgbl.w) : 0; //   saturated, luminance based
    return Lerp(s, d.rgb, d.rgb);
 }
 VecH TonemapLogML6Sat(VecH x)
 {
-   VecH4 rgbl=VecH4(x, LinearLumOfLinearColor(x));
+   VecH4 rgbl=VecH4(x, TonemapLum(x));
    VecH4 d=TonemapLogML6(rgbl);         // desaturated, per channel
    VecH  s=rgbl.w ? x*(d.w/rgbl.w) : 0; //   saturated, luminance based
    return Lerp(s, d.rgb, d.rgb);
 }
 VecH TonemapLogML8Sat(VecH x)
 {
-   VecH4 rgbl=VecH4(x, LinearLumOfLinearColor(x));
+   VecH4 rgbl=VecH4(x, TonemapLum(x));
    VecH4 d=TonemapLogML8(rgbl);         // desaturated, per channel
    VecH  s=rgbl.w ? x*(d.w/rgbl.w) : 0; //   saturated, luminance based
    return Lerp(s, d.rgb, d.rgb);
 }
 VecH TonemapLogML16Sat(VecH x)
 {
-   VecH4 rgbl=VecH4(x, LinearLumOfLinearColor(x));
+   VecH4 rgbl=VecH4(x, TonemapLum(x));
    VecH4 d=TonemapLogML16(rgbl);        // desaturated, per channel
    VecH  s=rgbl.w ? x*(d.w/rgbl.w) : 0; //   saturated, luminance based
    return Lerp(s, d.rgb, d.rgb);
@@ -247,13 +249,15 @@ VecH TonemapEsenthel(VecH x)
    VecH f=Max(0, LerpR(start, end, x)); // max 0 needed because negative colors are not allowed and may cause artifacts
 
    // the only sensible functions here are TonemapRcpSat and TonemapLogML*Sat
-#if 0 // testing
    VecH l=TonemapLogML8Sat(f); // have to use 'f' instead of "x-start" because that would break continuity
+#if 0 // testing
    if(TONE_MAP==1)l=TonemapRcpSat   (f, 6); // works OK with start=0.123
-   if(TONE_MAP==2)l=TonemapRcpSat   (f, 7);
+   if(TONE_MAP==2)l=TonemapRcpSat   (f, 7); // works OK with start=0.18
    if(TONE_MAP==3)l=TonemapRcpSat   (f);
-   if(TONE_MAP==5)l=TonemapLogML6Sat(f); // works OK with start=0.123
-   if(TONE_MAP==6)l=TonemapLogML8Sat(f); // works OK with start=0.123
+   if(TONE_MAP==4)l=TonemapLogML4Sat(f);
+   if(TONE_MAP==5)l=TonemapLogML6Sat(f);
+   if(TONE_MAP==6)l=TonemapLogML8Sat(f); // works OK with start=0.18
+   if(TONE_MAP==7)l=TonemapLogSat   (f);
 #endif
 
    x=(x>start ? Lerp(start, end, l) : x);
@@ -296,7 +300,7 @@ Half ColTone(Half x, VecH4 p) // General tonemapping operator, p := {contrast,sh
    Half   z= Pow(x, p.r); 
    return z/(Pow(z, p.g)*p.b + p.a); 
 }
-VecH TonemapAMD_Cauldron(VecH col, Half Contrast=0)
+VecH TonemapAMD_Cauldron(VecH col, Half Contrast=0) // Contrast=0..1, 1=desaturates too much, so don't use
 {
    Contrast=SH/2;
    const Half hdrMax  =MAX_LUM; // How much HDR range before clipping. HDR modes likely need this pushed up to say 25.0.
