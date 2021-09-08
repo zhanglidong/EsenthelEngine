@@ -446,21 +446,22 @@ Vec  GetTangent   (C Vec  &prev, C Vec  &cur, C Vec  &next); // get tangent from
 Vec4 GetTangent   (C Vec4 &prev, C Vec4 &cur, C Vec4 &next); // get tangent from previous, current and next values
 
 // linear interpolation, 'step'=0..1
-inline Flt   Lerp(  Int    from,   Int    to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline Flt   Lerp(  Int    from,   Flt    to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline Flt   Lerp(  Flt    from,   Int    to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline Flt   Lerp(  Flt    from,   Flt    to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline Dbl   Lerp(  Dbl    from,   Dbl    to, Dbl step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline Vec2  Lerp(C VecI2 &from, C VecI2 &to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline Vec2  Lerp(C Vec2  &from, C Vec2  &to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline VecD2 Lerp(C VecD2 &from, C VecD2 &to, Dbl step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline Vec   Lerp(C VecI  &from, C VecI  &to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline Vec   Lerp(C Vec   &from, C Vec   &to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline VecD  Lerp(C VecD  &from, C VecD  &to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline VecD  Lerp(C VecD  &from, C VecD  &to, Dbl step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline Vec4  Lerp(C VecI4 &from, C VecI4 &to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline Vec4  Lerp(C Vec4  &from, C Vec4  &to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline VecD4 Lerp(C VecD4 &from, C VecD4 &to, Dbl step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Flt   Lerp(  Int    from,   Int    to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Flt   Lerp(  Int    from,   Flt    to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Flt   Lerp(  Flt    from,   Int    to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Flt   Lerp(  Flt    from,   Flt    to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Dbl   Lerp(  Dbl    from,   Dbl    to,   Dbl  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Vec2  Lerp(C VecI2 &from, C VecI2 &to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Vec2  Lerp(C Vec2  &from, C Vec2  &to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline VecD2 Lerp(C VecD2 &from, C VecD2 &to,   Dbl  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Vec   Lerp(C VecI  &from, C VecI  &to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Vec   Lerp(C Vec   &from, C Vec   &to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Vec   Lerp(C Vec   &from, C Vec   &to, C Vec &step) {return from+step*(to-from);}
+inline VecD  Lerp(C VecD  &from, C VecD  &to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline VecD  Lerp(C VecD  &from, C VecD  &to,   Dbl  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Vec4  Lerp(C VecI4 &from, C VecI4 &to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Vec4  Lerp(C Vec4  &from, C Vec4  &to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline VecD4 Lerp(C VecD4 &from, C VecD4 &to,   Dbl  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
 #if EE_PRIVATE
 VecB4 Lerp(C VecB4 &from, C VecB4 &to, Flt step);
 VecB4 Lerp(C VecB4 &a   , C VecB4 &b , C VecB4 &c, C Vec &blend); // linear interpolation between vectors, returns a*blend.x + b*blend.y + c*blend.z

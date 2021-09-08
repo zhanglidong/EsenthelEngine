@@ -5,7 +5,12 @@
 #define BRIGHT    1 // if apply adjustment for scenes where half pixels are bright, and other half are dark, in that case prefer focus on brighter, to avoid making already bright pixels too bright
 #define GEOMETRIC 0 // don't use geometric mean, because of cases when bright sky is mostly occluded by dark objects, then entire scene will get brighter, making the sky look too bright and un-realistic
 
-#define MAX_LUM 16 // max value of linear color, keeping this low preserves contrast better
+#ifndef TONE_MAP
+#define TONE_MAP 0
+#endif
+
+#define MID     0.123 // matches ACES (without 0.8 adjustment this should be 0.06219 which is close to 1.0/16), AMD recommends 0.18
+#define MAX_LUM 16 // max value of linear color, keeping this low preserves contrast better, works good for AMD Cauldron, Lottes (that one seems to doesn't matter much)
 /******************************************************************************
 // AMD LPM
 #define Quart _Quart // "ffx_a.h" has its own 'Quart'
@@ -90,62 +95,165 @@ void DrawLine(inout VecH col, VecH line_col, Vec2 screen, Flt eps, Flt y)
    col=Lerp(col, line_col, Sat(Half(1-Abs(screen.y-y)*eps)));
 }
 /******************************************************************************/
-void DarkenDarks(inout VecH x, Flt exp=1.6)
-{  // parameters set to match ACES
-   Half start=1.0/16;
-   VecH step =Sat(x/start);
-   x=Lerp(Pow(step, exp)*start, x, Sqr(step));
+void DarkenDarks(inout VecH x, Half end=0.123, Half exp=1.3) // end=0.123, exp=1.6 match ACES
+{
+   VecH step=Sat(x/end);
+   x=Lerp(Pow(step, exp)*end, x, Sqr(step)); // alternative: LerpCube(step), but it's more expensive and only a small difference, not necessarily better
 }
 /******************************************************************************/
-VecH TonemapLogarithmic(VecH x)
+Half  TonemapRcp(Half  x) {return x/(1+x);} // x=0..Inf
+VecH  TonemapRcp(VecH  x) {return x/(1+x);} // x=0..Inf
+VecH4 TonemapRcp(VecH4 x) {return x/(1+x);} // x=0..Inf
+
+Half  TonemapRcpSqr(Half  x) {return x/Sqrt(1+x*x);} // x=0..Inf
+VecH  TonemapRcpSqr(VecH  x) {return x/Sqrt(1+x*x);} // x=0..Inf
+VecH4 TonemapRcpSqr(VecH4 x) {return x/Sqrt(1+x*x);} // x=0..Inf
+
+/* constants calculated using:
+Half  TonemapLog(Half x) {return log2(1+x);}
+Half  TonemapExp(Half x) {return 1-exp2(-x);}
+
+Flt scale=1, min=0, max=16;
+Flt x=1.0/65536;
+REP(65536)
 {
-   Half p=3;
-   Half q=1;
+   scale=Avg(min, max);
+   Flt h=TonemapLog(x*scale);
+   if(h<x)min=scale;
+   if(h>x)max=scale;
+}
+Flt z=TonemapLog(x*scale)/x;
+
+Half TonemapLog(Half  x) {return log2(1+x*0.69140625);} // x=0..Inf
+Half TonemapExp(Half  x) {return 1-exp2(x*-1.4375);} // x=0..Inf
+
+Half TonemapLog(Half x, Half max_lum, Half mul) {return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+Half TonemapExp(Half x, Half max_lum, Half mul) {return TonemapExp(mul*x)/TonemapExp(mul*max_lum);}
+
+Flt scale=1, min=0, max=16, max_lum=4;
+Flt x=1.0/65536;
+REP(65536)
+{
+   scale=Avg(min, max);
+   Flt h=TonemapLog(x, max_lum, scale);
+   if(h<x)min=scale;
+   if(h>x)max=scale;
+}
+Flt z=_TonemapLog(x, max_lum, scale)/x; */
+
+Half  TonemapLog(Half  x) {return log2(1+x*0.69140625);} // x=0..Inf
+VecH  TonemapLog(VecH  x) {return log2(1+x*0.69140625);} // x=0..Inf
+VecH4 TonemapLog(VecH4 x) {return log2(1+x*0.69140625);} // x=0..Inf
+
+Half  TonemapExp(Half  x) {return 1-exp2(x*-1.4375);} // x=0..Inf
+VecH  TonemapExp(VecH  x) {return 1-exp2(x*-1.4375);} // x=0..Inf
+VecH4 TonemapExp(VecH4 x) {return 1-exp2(x*-1.4375);} // x=0..Inf
+
+// Max Lum versions
+Half  _TonemapRcp(Half  x, Half max_lum) {return (1+x/Sqr(max_lum))/(1+x);} // Max Lum version x=0..max_lum - internal without "x*"
+VecH  _TonemapRcp(VecH  x, Half max_lum) {return (1+x/Sqr(max_lum))/(1+x);} // Max Lum version x=0..max_lum - internal without "x*"
+VecH4 _TonemapRcp(VecH4 x, Half max_lum) {return (1+x/Sqr(max_lum))/(1+x);} // Max Lum version x=0..max_lum - internal without "x*"
+
+Half  TonemapRcp(Half  x, Half max_lum) {return x*_TonemapRcp(x, max_lum);} // Max Lum version x=0..max_lum
+VecH  TonemapRcp(VecH  x, Half max_lum) {return x*_TonemapRcp(x, max_lum);} // Max Lum version x=0..max_lum
+VecH4 TonemapRcp(VecH4 x, Half max_lum) {return x*_TonemapRcp(x, max_lum);} // Max Lum version x=0..max_lum
+
+VecH TonemapRcpLum(VecH x              ) {Half lum=LinearLumOfLinearColor(x); return x/(1+lum)                  ;} // optimized "x*(TonemapRcp(lum         )/lum)"
+VecH TonemapRcpLum(VecH x, Half max_lum) {Half lum=LinearLumOfLinearColor(x); return x*_TonemapRcp(lum, max_lum);} // optimized "x*(TonemapRcp(lum, max_lum)/lum)"
+
+VecH TonemapRcpSat(VecH x) // preserves saturation
+{
+   VecH d=TonemapRcp   (x); // desaturated, per channel
+   VecH s=TonemapRcpLum(x); //   saturated, luminance based
+   return Lerp(s, d, d);
+}
+VecH TonemapRcpSat(VecH x, Half max_lum) // preserves saturation
+{
+   VecH d=TonemapRcp   (x, max_lum); // desaturated, per channel
+   VecH s=TonemapRcpLum(x, max_lum); //   saturated, luminance based
+   return Lerp(s, d, d);
+}
+
+Half  TonemapLogML4(Half  x) {Half mul=3.37967825, max_lum=4; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+VecH  TonemapLogML4(VecH  x) {Half mul=3.37967825, max_lum=4; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+VecH4 TonemapLogML4(VecH4 x) {Half mul=3.37967825, max_lum=4; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+
+Half  TonemapLogML5(Half  x) {Half mul=3.84792900, max_lum=5; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+VecH  TonemapLogML5(VecH  x) {Half mul=3.84792900, max_lum=5; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+VecH4 TonemapLogML5(VecH4 x) {Half mul=3.84792900, max_lum=5; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+
+Half  TonemapLogML6(Half  x) {Half mul=4.22095823, max_lum=6; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+VecH  TonemapLogML6(VecH  x) {Half mul=4.22095823, max_lum=6; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+VecH4 TonemapLogML6(VecH4 x) {Half mul=4.22095823, max_lum=6; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+
+Half  TonemapLogML8(Half  x) {Half mul=4.79456997, max_lum=8; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+VecH  TonemapLogML8(VecH  x) {Half mul=4.79456997, max_lum=8; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+VecH4 TonemapLogML8(VecH4 x) {Half mul=4.79456997, max_lum=8; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+
+Half  TonemapLogML16(Half  x) {Half mul=6.11720181, max_lum=16; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+VecH  TonemapLogML16(VecH  x) {Half mul=6.11720181, max_lum=16; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+VecH4 TonemapLogML16(VecH4 x) {Half mul=6.11720181, max_lum=16; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+
+VecH TonemapLogML4Sat(VecH x)
+{
    VecH4 rgbl=VecH4(x, LinearLumOfLinearColor(x));
-   VecH4 d   =log2(1+p*rgbl)/log2(1+q*MAX_LUM);
-   VecH  s   =rgbl.w ? x.rgb*(d.w/rgbl.w) : 0; // saturated, luminance based
+   VecH4 d=TonemapLogML4(rgbl);         // desaturated, per channel
+   VecH  s=rgbl.w ? x*(d.w/rgbl.w) : 0; //   saturated, luminance based
    return Lerp(s, d.rgb, d.rgb);
 }
+VecH TonemapLogML5Sat(VecH x)
+{
+   VecH4 rgbl=VecH4(x, LinearLumOfLinearColor(x));
+   VecH4 d=TonemapLogML5(rgbl);         // desaturated, per channel
+   VecH  s=rgbl.w ? x*(d.w/rgbl.w) : 0; //   saturated, luminance based
+   return Lerp(s, d.rgb, d.rgb);
+}
+VecH TonemapLogML6Sat(VecH x)
+{
+   VecH4 rgbl=VecH4(x, LinearLumOfLinearColor(x));
+   VecH4 d=TonemapLogML6(rgbl);         // desaturated, per channel
+   VecH  s=rgbl.w ? x*(d.w/rgbl.w) : 0; //   saturated, luminance based
+   return Lerp(s, d.rgb, d.rgb);
+}
+VecH TonemapLogML8Sat(VecH x)
+{
+   VecH4 rgbl=VecH4(x, LinearLumOfLinearColor(x));
+   VecH4 d=TonemapLogML8(rgbl);         // desaturated, per channel
+   VecH  s=rgbl.w ? x*(d.w/rgbl.w) : 0; //   saturated, luminance based
+   return Lerp(s, d.rgb, d.rgb);
+}
+VecH TonemapLogML16Sat(VecH x)
+{
+   VecH4 rgbl=VecH4(x, LinearLumOfLinearColor(x));
+   VecH4 d=TonemapLogML16(rgbl);        // desaturated, per channel
+   VecH  s=rgbl.w ? x*(d.w/rgbl.w) : 0; //   saturated, luminance based
+   return Lerp(s, d.rgb, d.rgb);
+}
+
+// here 'mul' can be ignored because in tests it was 0.983722866 for max_lum=4, and 1.00362146 for max_lum=16, for max_lum>=4 they look almost identical, so maybe no need to use them
+Half  TonemapExp(Half  x, Half max_lum) {return TonemapExp(x)/TonemapExp(max_lum);}
+VecH  TonemapExp(VecH  x, Half max_lum) {return TonemapExp(x)/TonemapExp(max_lum);}
+VecH4 TonemapExp(VecH4 x, Half max_lum) {return TonemapExp(x)/TonemapExp(max_lum);}
 /******************************************************************************/
-Half TonemapReinhard(Half x) {return x/(1+x);} // x=0..Inf
-VecH TonemapReinhard(VecH x) {return x/(1+x);} // x=0..Inf
-
-Half _TonemapReinhardML(Half x) {return (1+x/Sqr(MAX_LUM))/(1+x);} // Max Lum version x=0..MAX_LUM - internal without "x*"
-VecH _TonemapReinhardML(VecH x) {return (1+x/Sqr(MAX_LUM))/(1+x);} // Max Lum version x=0..MAX_LUM - internal without "x*"
-
-Half TonemapReinhardML(Half x) {return x*_TonemapReinhardML(x);} // Max Lum version x=0..MAX_LUM - full formula
-VecH TonemapReinhardML(VecH x) {return x*_TonemapReinhardML(x);} // Max Lum version x=0..MAX_LUM - full formula
-
-VecH TonemapReinhardLum  (VecH x) {Half lum=LinearLumOfLinearColor(x); return x/(1+lum)                ;} // x*(TonemapReinhard  (lum)/lum)
-VecH TonemapReinhardMLLum(VecH x) {Half lum=LinearLumOfLinearColor(x); return x*_TonemapReinhardML(lum);} // x*(TonemapReinhardML(lum)/lum)
-
-// Jodie - https://www.shadertoy.com/view/4dBcD1
-VecH TonemapReinhardJodie(VecH x) // preserves saturation
+VecH TonemapEsenthel(VecH x)
 {
-   VecH d=TonemapReinhard   (x);
-   VecH s=TonemapReinhardLum(x);
-   return Lerp(s, d, d);
-}
-VecH TonemapReinhardJodieML(VecH x) // preserves saturation
-{
-   VecH d=TonemapReinhardML   (x);
-   VecH s=TonemapReinhardMLLum(x);
-   return Lerp(s, d, d);
-}
-VecH TonemapReinhardJodieToe(VecH x, Flt exp) // preserves saturation and darkens darks
-{
-   x=TonemapReinhardJodie(x);
-   DarkenDarks(x, exp); // better to do this after 'TonemapReinhardJodie' than before, curve looks smoother
+   Half start=0.18, end=1;
+   VecH f=Max(0, LerpR(start, end, x)); // max 0 needed because negative colors are not allowed and may cause artifacts
+
+   // the only sensible functions here are TonemapRcpSat and TonemapLogML*Sat
+   VecH l=TonemapLogML8Sat(f);
+#if 0 // testing
+   if(TONE_MAP==1)l=TonemapRcpSat   (f, 6); // works OK with start=0.123
+   if(TONE_MAP==2)l=TonemapRcpSat   (f, 7);
+   if(TONE_MAP==3)l=TonemapRcpSat   (f);
+   if(TONE_MAP==5)l=TonemapLogML6Sat(f); // works OK with start=0.123
+   if(TONE_MAP==6)l=TonemapLogML8Sat(f); // works OK with start=0.123
+#endif
+
+   x=(x>start ? Lerp(start, end, l) : x); // have to use 'f' instead of "x-start" because that would break continuity
+   DarkenDarks(x);
    return x;
 }
-VecH TonemapReinhardJodieDDHalf(VecH x) {return TonemapReinhardJodieToe(x, Sqrt(1.6));} // ~1.265 is perceptually in the middle of 1.0 and 1.6
-VecH TonemapReinhardJodieDDFull(VecH x) {return TonemapReinhardJodieToe(x,      1.6 );} //  1.6 matches ACES
-
-// robobo1221 - https://www.shadertoy.com/view/4dBcD1 and https://www.shadertoy.com/view/ldlcWX
-Half TonemapRobo(Half x) {return x/Sqrt(1+x*x);}
-VecH TonemapRobo(VecH x) {return x/Sqrt(1+x*x);}
-
-VecH TonemapPersson(VecH x) {return exp2(-x)*-SQRT2+SQRT2;} // (1-exp2(-x))*SQRT2 - Emil Persson
 /******************************************************************************
 AMD Tonemapper
 AMD Cauldron code
@@ -182,13 +290,14 @@ Half ColTone(Half x, VecH4 p) // General tonemapping operator, p := {contrast,sh
    Half   z= Pow(x, p.r); 
    return z/(Pow(z, p.g)*p.b + p.a); 
 }
-VecH TonemapAMD_Cauldron(VecH col)
+VecH TonemapAMD_Cauldron(VecH col, Half Contrast=0)
 {
+   Contrast=SH/2;
    const Half hdrMax  =MAX_LUM; // How much HDR range before clipping. HDR modes likely need this pushed up to say 25.0.
    const Half shoulder=1; // Likely don't need to mess with this factor, unless matching existing tonemapper is not working well..
-   const Half contrast=1+1.0/16; // good values are 1+1.0/16=darks closest to original, 1+1.0/8=slightly higher contrast (darks darker, brights brighter)
-   const Half midIn   =0.18; // most games will have a {0.0 to 1.0} range for LDR so midIn should be 0.18.
-   const Half midOut  =0.18; // Use for LDR. For HDR10 10:10:10:2 use maybe 0.18/25.0 to start. For scRGB, I forget what a good starting point is, need to re-calculate.
+   const Half contrast=Lerp(1+1.0/16, 1+2.0/3, Contrast); // good values are 1+1.0/16=darks closest to original, 1+2.0/3=matches ACES
+   const Half midIn   =MID; // most games will have a {0.0 to 1.0} range for LDR so midIn should be 0.18.
+   const Half midOut  =MID; // Use for LDR. For HDR10 10:10:10:2 use maybe 0.18/25.0 to start. For scRGB, I forget what a good starting point is, need to re-calculate.
 
    Half b=ColToneB(hdrMax, contrast, shoulder, midIn, midOut);
    Half c=ColToneC(hdrMax, contrast, shoulder, midIn, midOut);
@@ -310,6 +419,8 @@ VecH TonemapUchimura(VecH x, Half black=1) // 'black' can also be 1.33
 /******************************************************************************/
 VecH TonemapACESNarkowicz(VecH x) // Krzysztof Narkowicz "ACES Filmic Tone Mapping Curve" - https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
 {
+   x*=0.8; // everything is too bright, so darken, also this matches UE4
+
    Half a=2.51;
    Half b=0.03;
    Half c=2.43;
@@ -328,14 +439,14 @@ VecH ACESFilmRec2020(VecH x) // https://knarkowicz.wordpress.com/2016/08/31/hdr-
    return (x*(a*x+b))/(x*(c*x+d)+e);
 }
 /******************************************************************************/
-#define MUL 2 // to match 'TonemapACESNarkowicz'
-static const MatrixH3 ACESInputMat = // sRGB => XYZ => D65_2_D60 => AP1 => RRT_SAT
+#define MUL (2*0.8) // to match 'TonemapACESNarkowicz'
+static const MatrixH3 ACESInputMat= // sRGB => XYZ => D65_2_D60 => AP1 => RRT_SAT
 {
    {0.59719*MUL, 0.35458*MUL, 0.04823*MUL},
    {0.07600*MUL, 0.90834*MUL, 0.01566*MUL},
    {0.02840*MUL, 0.13383*MUL, 0.83777*MUL},
 };
-static const MatrixH3 ACESOutputMat = // ODT_SAT => XYZ => D60_2_D65 => sRGB
+static const MatrixH3 ACESOutputMat= // ODT_SAT => XYZ => D60_2_D65 => sRGB
 {
    { 1.60475, -0.53108, -0.07367},
    {-0.10208,  1.10813, -0.00605},
@@ -343,8 +454,8 @@ static const MatrixH3 ACESOutputMat = // ODT_SAT => XYZ => D60_2_D65 => sRGB
 };
 VecH RRTAndODTFit(VecH v)
 {
-   VecH a = v * (v + 0.0245786) - 0.000090537;
-   VecH b = v * (0.983729 * v + 0.4329510) + 0.238081;
+   VecH a=v*(v+0.0245786)-0.000090537;
+   VecH b=v*(0.983729*v+0.4329510)+0.238081;
    return a/b;
 }
 VecH TonemapACESHill(VecH color) // Stephen Hill "self_shadow"
@@ -355,7 +466,8 @@ VecH TonemapACESHill(VecH color) // Stephen Hill "self_shadow"
    color=Sat(color);
    return color;
 }
-/******************************************************************************/
+/******************************************************************************
+after tweaking 'mid' parameters it's almost the same as Narkowicz
 VecH TonemapACESLottes(VecH x) // Timothy Lottes "Advanced Techniques and Optimization of HDR Color Pipelines" - https://gpuopen.com/wp-content/uploads/2016/03/GdcVdrLottes.pdf
 {
    const Half a     =1.6;
@@ -390,12 +502,6 @@ VecH ToneMapHejlBurgessDawson(VecH col) // Jim Hejl + Richard Burgess-Dawson "Fi
    col=Max(0, col-0.004);
    col=(col*(6.2*col+0.5))/(col*(6.2*col+1.7)+0.06);
    return SRGBToLinear(col);
-}
-/******************************************************************************
-VecH ToneMapRomBinDaHouse(VecH color)
-{
-   color = exp( -1.0 / ( 2.72*color + 0.15 ) );
-	return color;
 }
 /******************************************************************************/
 void AdaptEye_VS(VtxInput vtx,
@@ -441,19 +547,29 @@ VecH4 ToneMap_PS(NOPERSP Vec2 uv:UV,
 
 #if 0 // Debug Drawing
    Vec2 pos=Vec2(uv.x*AspectRatio, 1-uv.y);
+#if 1
    Flt eps=1/(SRGBToLinear(pos.y+1.0/512)-SRGBToLinear(pos.y));
    pos=SRGBToLinear(pos);
+#else
+   Flt eps=256;
+#endif
    //Flt eps=1/pos.y*128;//pos.x;
    //if(AL)pos*=2;
-   //pos*=1.0/16;
-   if(CT || SH)DrawLine(col.rgb, VecH(1,1,1), pos, eps, pos.x);
-   if(CT)
+   //pos*=1.0/8;
+   //eps*=4;
+   if(1 || SH)DrawLine(col.rgb, VecH(1,1,1), pos, eps, pos.x);
+   if(1)
    {
-      DrawLine(col.rgb, VecH(0.5,0,0), pos, eps, TonemapRobo(pos.x));
-      DrawLine(col.rgb, VecH(0,0.5,0), pos, eps, TonemapAMD_Cauldron(pos.x));
+      DrawLine(col.rgb, VecH(0.5,0,0), pos, eps, TonemapLog(pos.x));
+      DrawLine(col.rgb, VecH(0.5,0,0), pos, eps, TonemapLogML4(pos.x));
+      DrawLine(col.rgb, VecH(0.5,0,0), pos, eps, TonemapLogML5(pos.x));
+      DrawLine(col.rgb, VecH(0.5,0,0), pos, eps, TonemapLogML6(pos.x));
+      DrawLine(col.rgb, VecH(0,0.5,0), pos, eps, TonemapRcpSqr(pos.x));
+      DrawLine(col.rgb, VecH(0,0,0.5), pos, eps, TonemapExp(pos.x));
+      DrawLine(col.rgb, VecH(0.5,0.5,0), pos, eps, TonemapRcp(pos.x));
+      DrawLine(col.rgb, VecH(1,0,1), pos, eps, TonemapEsenthel(pos.x));
+    //DrawLine(col.rgb, VecH(0,0.5,0), pos, eps, TonemapAMD_Cauldron(pos.x));
     //DrawLine(col.rgb, VecH(0,0,0.5), pos, eps, TonemapHable(pos.x));
-      DrawLine(col.rgb, VecH(0,0,0.5), pos, eps, TonemapReinhardJodieDDFull(pos.x));
-      DrawLine(col.rgb, VecH(0.5,0.5,0), pos, eps, TonemapLogarithmic(pos.x));
     //DrawLine(col.rgb, VecH(0.5,0.5,0), pos, eps, TonemapReinhardJodieToe(pos.x));
     //DrawLine(col.rgb, VecH(0,0.5,0.5), pos, eps, TonemapAMD_LPM(pos.x));
     //DrawLine(col.rgb, VecH(0,0.5,0.5), pos, eps, TonemapUchimura(pos.x));
@@ -461,16 +577,15 @@ VecH4 ToneMap_PS(NOPERSP Vec2 uv:UV,
     //DrawLine(col.rgb, VecH(1,1,1), pos, eps, TonemapUchimura(pos.x, 1.33));
     //DrawLine(col.rgb, VecH(0.5,0.5,0), pos, eps, TonemapReinhard(pos.x));/**/
    }
-   if(SH)
+   if(0)
    {
-      DrawLine(col.rgb, VecH(1,0,0), pos, eps, TonemapACESNarkowicz(pos.x));
-      DrawLine(col.rgb, VecH(0,1,0), pos, eps, TonemapACESLottes(pos.x));
+      DrawLine(col.rgb, VecH(1,0,0), pos, eps, TonemapACESHill(pos.x));
+      DrawLine(col.rgb, VecH(0,1,0), pos, eps, TonemapACESNarkowicz(pos.x));
+    //DrawLine(col.rgb, VecH(0,1,0), pos, eps, TonemapACESLottes(pos.x));
     //DrawLine(col.rgb, VecH(0,0,1), pos, eps, TonemapUnreal(pos.x));
       DrawLine(col.rgb, VecH(0,0,1), pos, eps, ToneMapHejlBurgessDawson(pos.x));
     //DrawLine(col.rgb, VecH(1,0,1), pos, eps, TonemapUchimura(pos.x, 1.33));
     //DrawLine(col.rgb, VecH(1,1,0), pos, eps, ToneMapHejl(pos.x));
-    //DrawLine(col.rgb, VecH(1,0,1), pos, eps, ToneMapRomBinDaHouse(pos.x));
-      DrawLine(col.rgb, VecH(1,1,0), pos, eps, TonemapACESHill(pos.x));
    }
 #endif
 
