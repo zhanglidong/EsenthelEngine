@@ -260,7 +260,8 @@ VecH TonemapEsenthel(VecH x)
    if(TONE_MAP==6)l=TonemapLogML8Sat(f); // works OK with start=0.18
 #endif
 
-   x=(x>start ? Lerp(start, end, l) : x);
+ //x=(x>start ? Lerp(start, end, l) : x);
+   x=(x>start ? l*ToneMapTopRange+start : x);
    DarkenDarks(x);
    return x;
 }
@@ -443,7 +444,7 @@ VecH TonemapACES_LDR_Narkowicz(VecH x) // returns 0..1 (0..80 nits), Krzysztof N
 }
 VecH TonemapACES_HDR_Narkowicz(VecH x) // returns 0 .. 12.5 (0..1000 nits), Krzysztof Narkowicz - https://knarkowicz.wordpress.com/2016/08/31/hdr-display-first-steps/
 {
-   // TODO: does this need x*=; scaling?
+   x*=0.8; // to have consistency with 'TonemapACES_LDR_Narkowicz'
 
    Half a=15.8;
    Half b=2.12;
