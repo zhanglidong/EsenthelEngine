@@ -9,7 +9,6 @@
 #define TONE_MAP 0
 #endif
 
-#define MID     0.123 // matches ACES (without 0.8 adjustment this should be 0.06219 which is close to 1.0/16), AMD recommends 0.18
 #define MAX_LUM 16 // max value of linear color, keeping this low preserves contrast better, works good for AMD Cauldron, Lottes (that one seems to doesn't matter much)
 /******************************************************************************
 // AMD LPM
@@ -194,6 +193,13 @@ Half  TonemapLogML16(Half  x) {Half mul=6.11720181, max_lum=16; return TonemapLo
 VecH  TonemapLogML16(VecH  x) {Half mul=6.11720181, max_lum=16; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
 VecH4 TonemapLogML16(VecH4 x) {Half mul=6.11720181, max_lum=16; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
 
+VecH TonemapLogSat(VecH x)
+{
+   VecH4 rgbl=VecH4(x, LinearLumOfLinearColor(x));
+   VecH4 d=TonemapLog(rgbl);            // desaturated, per channel
+   VecH  s=rgbl.w ? x*(d.w/rgbl.w) : 0; //   saturated, luminance based
+   return Lerp(s, d.rgb, d.rgb);
+}
 VecH TonemapLogML4Sat(VecH x)
 {
    VecH4 rgbl=VecH4(x, LinearLumOfLinearColor(x));
@@ -296,8 +302,8 @@ VecH TonemapAMD_Cauldron(VecH col, Half Contrast=0)
    const Half hdrMax  =MAX_LUM; // How much HDR range before clipping. HDR modes likely need this pushed up to say 25.0.
    const Half shoulder=1; // Likely don't need to mess with this factor, unless matching existing tonemapper is not working well..
    const Half contrast=Lerp(1+1.0/16, 1+2.0/3, Contrast); // good values are 1+1.0/16=darks closest to original, 1+2.0/3=matches ACES
-   const Half midIn   =MID; // most games will have a {0.0 to 1.0} range for LDR so midIn should be 0.18.
-   const Half midOut  =MID; // Use for LDR. For HDR10 10:10:10:2 use maybe 0.18/25.0 to start. For scRGB, I forget what a good starting point is, need to re-calculate.
+   const Half midIn   =0.18; // most games will have a {0.0 to 1.0} range for LDR so midIn should be 0.18.
+   const Half midOut  =0.18; // Use for LDR. For HDR10 10:10:10:2 use maybe 0.18/25.0 to start. For scRGB, I forget what a good starting point is, need to re-calculate.
 
    Half b=ColToneB(hdrMax, contrast, shoulder, midIn, midOut);
    Half c=ColToneC(hdrMax, contrast, shoulder, midIn, midOut);
@@ -417,7 +423,7 @@ VecH TonemapUchimura(VecH x, Half black=1) // 'black' can also be 1.33
 /******************************************************************************/
 // TOE
 /******************************************************************************/
-VecH TonemapACESNarkowicz(VecH x) // Krzysztof Narkowicz "ACES Filmic Tone Mapping Curve" - https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
+VecH TonemapACES_LDR_Narkowicz(VecH x) // returns 0..1 (0..80 nits), Krzysztof Narkowicz - https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
 {
    x*=0.8; // everything is too bright, so darken, also this matches UE4
 
@@ -429,7 +435,7 @@ VecH TonemapACESNarkowicz(VecH x) // Krzysztof Narkowicz "ACES Filmic Tone Mappi
 
    return (x*(a*x+b))/(x*(c*x+d)+e);
 }
-VecH ACESFilmRec2020(VecH x) // https://knarkowicz.wordpress.com/2016/08/31/hdr-display-first-steps/
+VecH TonemapACES_HDR_Narkowicz(VecH x) // returns 0 .. 12.5 (0..1000 nits), Krzysztof Narkowicz - https://knarkowicz.wordpress.com/2016/08/31/hdr-display-first-steps/
 {
    Half a=15.8;
    Half b=2.12;
@@ -439,7 +445,7 @@ VecH ACESFilmRec2020(VecH x) // https://knarkowicz.wordpress.com/2016/08/31/hdr-
    return (x*(a*x+b))/(x*(c*x+d)+e);
 }
 /******************************************************************************/
-#define MUL (2*0.8) // to match 'TonemapACESNarkowicz'
+#define MUL (2*0.8) // to match 'TonemapACES_LDR_Narkowicz'
 static const MatrixH3 ACESInputMat= // sRGB => XYZ => D65_2_D60 => AP1 => RRT_SAT
 {
    {0.59719*MUL, 0.35458*MUL, 0.04823*MUL},
@@ -458,7 +464,7 @@ VecH RRTAndODTFit(VecH v)
    VecH b=v*(0.983729*v+0.4329510)+0.238081;
    return a/b;
 }
-VecH TonemapACESHill(VecH color) // Stephen Hill "self_shadow"
+VecH TonemapACESHill(VecH color) // Stephen Hill "self_shadow", desaturates a bit
 {
    color=mul(ACESInputMat, color);
    color=RRTAndODTFit(color); // Apply RRT and ODT
