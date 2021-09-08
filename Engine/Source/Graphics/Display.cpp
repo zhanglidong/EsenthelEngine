@@ -1036,6 +1036,10 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
 
   _output_prec   =IMAGE_PRECISION_8;
   _output_max_lum=1;
+  _tone_map_max_lum=1;
+  _tone_map_top_range=0.82f;
+  _tone_map_dark_range=0.123f;
+  _tone_map_dark_exp=1.3f;
 }
 void DisplayClass::init() // make this as a method because if we put this to Display constructor, then 'SecondaryContexts' may not have been initialized yet
 {
@@ -1707,14 +1711,14 @@ _linear_gamma^=1; linearGamma(!_linear_gamma); // set after loading shaders
              Gui.create();
 
    // set default settings
-   {auto v=texFilter        (); _tex_filter    ^=1               ; texFilter        (v);}
-   {auto v=texMipFilter     (); _tex_mip_filter^=1               ; texMipFilter     (v);}
-   {auto v=edgeSoften       (); _edge_soften    =EDGE_SOFTEN_NONE; edgeSoften       (v);} // resetting will load shaders
-   {auto v=edgeDetect       (); _edge_detect    =EDGE_DETECT_NONE; edgeDetect       (v);} // resetting will load shaders
-   {auto v=temporalAntiAlias(); _temp_anti_alias=false           ; temporalAntiAlias(v);} // resetting will load shaders
-   {auto v=temporalSuperRes (); _temp_super_res =false           ; temporalSuperRes (v);} // resetting will load shaders
-   {auto v=grassRange       (); _grass_range    =-1              ; grassRange       (v);}
-   {auto v=sharpenIntensity (); _sharpen_intensity=-1;           ; sharpenIntensity (v);}
+   {auto v=texFilter        (); _tex_filter      ^=1               ; texFilter        (v);}
+   {auto v=texMipFilter     (); _tex_mip_filter  ^=1               ; texMipFilter     (v);}
+   {auto v=edgeSoften       (); _edge_soften      =EDGE_SOFTEN_NONE; edgeSoften       (v);} // resetting will load shaders
+   {auto v=edgeDetect       (); _edge_detect      =EDGE_DETECT_NONE; edgeDetect       (v);} // resetting will load shaders
+   {auto v=temporalAntiAlias(); _temp_anti_alias  =false           ; temporalAntiAlias(v);} // resetting will load shaders
+   {auto v=temporalSuperRes (); _temp_super_res   =false           ; temporalSuperRes (v);} // resetting will load shaders
+   {auto v=grassRange       (); _grass_range      =-1              ; grassRange       (v);}
+   {auto v=sharpenIntensity (); _sharpen_intensity=-1;             ; sharpenIntensity (v);}
    lod            (_lod_factor, _lod_factor_mirror);
    shadowJitterSet();
    shadowRangeSet ();
@@ -3256,7 +3260,11 @@ DisplayClass& DisplayClass::resetEyeAdaptation     (  Flt  brightness)
    return T;
 }
 /******************************************************************************/
-DisplayClass& DisplayClass::toneMap(TONE_MAP_MODE mode) {if(InRange(mode, TONE_MAP_NUM))_tone_map_mode=mode; return T;}
+DisplayClass& DisplayClass::toneMap             (TONE_MAP_MODE mode) {if(InRange(mode, TONE_MAP_NUM))_tone_map_mode=mode; return T;}
+DisplayClass& DisplayClass::toneMapMonitorMaxLum(Flt        max_lum) {MAX  (max_lum,           1); if(_tone_map_max_lum   !=max_lum){_tone_map_max_lum   =max_lum; SPSet("ToneMapMonitorMaxLum", max_lum);} return T;}
+DisplayClass& DisplayClass::toneMapTopRange     (Flt          range) {Clamp(range  , HALF_MIN, 1); if(_tone_map_top_range !=range  ){_tone_map_top_range =range  ; SPSet("ToneMapTopRange"     , range  );} return T;}
+DisplayClass& DisplayClass::toneMapDarkenRange  (Flt          range) {Clamp(range  , HALF_MIN, 1); if(_tone_map_dark_range!=range  ){_tone_map_dark_range=range  ; SPSet("ToneMapDarkenRange"  , range  );} return T;}
+DisplayClass& DisplayClass::toneMapDarkenExp    (Flt            exp) {Clamp(exp    ,        1, 2); if(_tone_map_dark_exp  !=exp    ){_tone_map_dark_exp  =exp    ; SPSet("ToneMapDarkenExp"    , exp    );} return T;}
 /******************************************************************************/
 DisplayClass& DisplayClass::grassDensity(Flt  density) {_grass_density=Sat(density); return T;}
 DisplayClass& DisplayClass::grassShadow (Bool on     ) {_grass_shadow =    on      ; return T;}

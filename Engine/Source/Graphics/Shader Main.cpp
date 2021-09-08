@@ -889,6 +889,11 @@ void HDR::load()
             ToneMap[tone_map][alpha][dither]=shader->get(S8+"ToneMap"+(tone_map+1)+alpha+dither);
       }
 
+      SPSet("ToneMapMonitorMaxLum", D.toneMapMonitorMaxLum());
+      SPSet("ToneMapTopRange"     , D.toneMapTopRange     ());
+      SPSet("ToneMapDarkenRange"  , D.toneMapDarkenRange  ());
+      SPSet("ToneMapDarkenExp"    , D.toneMapDarkenExp    ());
+
    #if SUPPORT_TONE_MAP_AMD_LPM
       varAF3(saturation)=initAF3(-1.0/16, -1.0/16, -1.0/16);
       varAF3(crosstalk)=initAF3(1.0, 1.0, 1.0);

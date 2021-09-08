@@ -85,16 +85,10 @@ VideoOptions VidOpt;
       };
       cchar8 *VideoOptions::Advanced::ToneMap_t[]=
       {
-         "Off"                , // 0
-         "Robo"               , // 1
-         "AMD Cauldron"       , // 2
-         "Reinhard"           , // 3
-         "Reinhard Dark Half" , // 4
-         "Reinhard Dark"      , // 5
-         "ACES Hill"          , // 6
-         "ACES Narkowicz"     , // 7
-         "ACES Lottes"        , // 8
-         "Hejl Burgess-Dawson", // 9
+         "Off"     , // 0
+         "Default" , // 1
+         "ACES LDR", // 2
+         "ACES HDR", // 3
       };
       cchar8 *VideoOptions::Advanced::ShadowReduceFlicker_t[]=
       {

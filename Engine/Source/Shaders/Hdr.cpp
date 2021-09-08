@@ -94,10 +94,10 @@ void DrawLine(inout VecH col, VecH line_col, Vec2 screen, Flt eps, Flt y)
    col=Lerp(col, line_col, Sat(Half(1-Abs(screen.y-y)*eps)));
 }
 /******************************************************************************/
-void DarkenDarks(inout VecH x, Half end=0.123, Half exp=1.3) // end=0.123, exp=1.6 match ACES
+void DarkenDarks(inout VecH x)
 {
-   VecH step=Sat(x/end);
-   x=Lerp(Pow(step, exp)*end, x, Sqr(step)); // alternative: LerpCube(step), but it's more expensive and only a small difference, not necessarily better
+   VecH step=Sat(x/ToneMapDarkenRange);
+   x=Lerp(Pow(step, ToneMapDarkenExp)*ToneMapDarkenRange, x, Sqr(step)); // alternative: LerpCube(step), but it's more expensive and only a small difference, not necessarily better
 }
 /******************************************************************************/
 Half TonemapLum(VecH x) {return LinearLumOfLinearColor(x);} // could also be "Avg(x)" to darken bright blue skies
@@ -245,8 +245,9 @@ VecH4 TonemapExp(VecH4 x, Half max_lum) {return TonemapExp(x)/TonemapExp(max_lum
 /******************************************************************************/
 VecH TonemapEsenthel(VecH x)
 {
-   Half start=0.18, end=1;
-   VecH f=Max(0, LerpR(start, end, x)); // max 0 needed because negative colors are not allowed and may cause artifacts
+   Half end=ToneMapMonitorMaxLum, start=end-ToneMapTopRange;
+ //VecH f=Max(0, LerpR(start, end, x)); // max 0 needed because negative colors are not allowed and may cause artifacts
+   VecH f=Max(0, (x-start)/ToneMapTopRange); // max 0 needed because negative colors are not allowed and may cause artifacts
 
    // the only sensible functions here are TonemapRcpSat and TonemapLogML*Sat
    VecH l=TonemapLogML8Sat(f); // have to use 'f' instead of "x-start" because that would break continuity
@@ -255,9 +256,8 @@ VecH TonemapEsenthel(VecH x)
    if(TONE_MAP==2)l=TonemapRcpSat   (f, 7); // works OK with start=0.18
    if(TONE_MAP==3)l=TonemapRcpSat   (f);
    if(TONE_MAP==4)l=TonemapLogML4Sat(f);
-   if(TONE_MAP==5)l=TonemapLogML6Sat(f);
+   if(TONE_MAP==5)l=TonemapLogML6Sat(f); // works OK with start=0.0
    if(TONE_MAP==6)l=TonemapLogML8Sat(f); // works OK with start=0.18
-   if(TONE_MAP==7)l=TonemapLogSat   (f);
 #endif
 
    x=(x>start ? Lerp(start, end, l) : x);
@@ -300,9 +300,9 @@ Half ColTone(Half x, VecH4 p) // General tonemapping operator, p := {contrast,sh
    Half   z= Pow(x, p.r); 
    return z/(Pow(z, p.g)*p.b + p.a); 
 }
-VecH TonemapAMD_Cauldron(VecH col, Half Contrast=0) // Contrast=0..1, 1=desaturates too much, so don't use
+VecH TonemapAMD_Cauldron(VecH col, Half Contrast=0) // Contrast=0..1, 1=desaturates too much, so don't use, can use 0 and 0.5
 {
-   Contrast=SH/2;
+   //Contrast=SH/2;
    const Half hdrMax  =MAX_LUM; // How much HDR range before clipping. HDR modes likely need this pushed up to say 25.0.
    const Half shoulder=1; // Likely don't need to mess with this factor, unless matching existing tonemapper is not working well..
    const Half contrast=Lerp(1+1.0/16, 1+2.0/3, Contrast); // good values are 1+1.0/16=darks closest to original, 1+2.0/3=matches ACES
@@ -330,7 +330,9 @@ VecH TonemapAMD_Cauldron(VecH col, Half Contrast=0) // Contrast=0..1, 1=desatura
    }else // faster but lower saturation for high values
       ratio=Lerp(ratio, 1, Quart(peak)); // ratio 0..1
 
-   return peak*ratio;
+   col=peak*ratio;
+   //DarkenDarks(col);
+   return col;
 }
 /******************************************************************************
 VecH TonemapAMD_LPM(VecH col) currently disabled on the CPU side
@@ -441,6 +443,8 @@ VecH TonemapACES_LDR_Narkowicz(VecH x) // returns 0..1 (0..80 nits), Krzysztof N
 }
 VecH TonemapACES_HDR_Narkowicz(VecH x) // returns 0 .. 12.5 (0..1000 nits), Krzysztof Narkowicz - https://knarkowicz.wordpress.com/2016/08/31/hdr-display-first-steps/
 {
+   // TODO: does this need x*=; scaling?
+
    Half a=15.8;
    Half b=2.12;
    Half c=1.2;
@@ -506,7 +510,8 @@ VecH ToneMapHejl(VecH col) // too dark
    VecH4  vf=((vh*va+0.004)/((vh*(va+0.55)+0.0491)))-0.0821;
    return vf.xyz/vf.w;
 }
-/******************************************************************************/
+/******************************************************************************
+OK but Esenthel is better
 VecH ToneMapHejlBurgessDawson(VecH col) // Jim Hejl + Richard Burgess-Dawson "Filmic" - http://filmicworlds.com/blog/filmic-tonemapping-operators/
 {
    col=Max(0, col-0.004);
@@ -544,15 +549,35 @@ VecH4 ToneMap_PS(NOPERSP Vec2 uv:UV,
 #endif
 
 #if TONE_MAP
-   if(TONE_MAP==STONE_MAP_ROBO                    )col.rgb=TonemapRobo               (col.rgb);
-   if(TONE_MAP==STONE_MAP_AMD_CAULDRON            )col.rgb=TonemapAMD_Cauldron       (col.rgb);
-   if(TONE_MAP==STONE_MAP_REINHARD_JODIE          )col.rgb=TonemapReinhardJodie      (col.rgb);
-   if(TONE_MAP==STONE_MAP_REINHARD_JODIE_DARK_HALF)col.rgb=TonemapReinhardJodieDDHalf(col.rgb);
-   if(TONE_MAP==STONE_MAP_REINHARD_JODIE_DARK     )col.rgb=TonemapReinhardJodieDDFull(col.rgb);
-   if(TONE_MAP==STONE_MAP_ACES_HILL               )col.rgb=TonemapACESHill           (col.rgb);
-   if(TONE_MAP==STONE_MAP_ACES_NARKOWICZ          )col.rgb=TonemapACESNarkowicz      (col.rgb);
-   if(TONE_MAP==STONE_MAP_ACES_LOTTES             )col.rgb=TonemapACESLottes         (col.rgb);
-   if(TONE_MAP==STONE_MAP_HEJL_BURGESS_DAWSON     )col.rgb=ToneMapHejlBurgessDawson  (col.rgb);
+   if(TONE_MAP==STONE_MAP_DEFAULT )col.rgb=TonemapEsenthel(col.rgb);
+   if(TONE_MAP==STONE_MAP_ACES_LDR)col.rgb=TonemapACES_LDR_Narkowicz(col.rgb);
+   if(TONE_MAP==STONE_MAP_ACES_HDR)col.rgb=TonemapACES_HDR_Narkowicz(col.rgb);
+
+ /*if(TONE_MAP==4                                 )col.rgb=TonemapAMD_Cauldron(col.rgb);
+   if(TONE_MAP==1                                 )col.rgb=TonemapLog     (col.rgb);
+   if(TONE_MAP==2                                 )col.rgb=TonemapRcpSqr  (col.rgb);
+   if(TONE_MAP==3                                 )col.rgb=TonemapExp     (col.rgb);
+   if(TONE_MAP==5                                 )col.rgb=TonemapRcp     (col.rgb);
+   if(TONE_MAP==6                                 )col.rgb=TonemapEsenthel(col.rgb);
+   if(TONE_MAP==7                                 )col.rgb=TonemapLogML4  (col.rgb);
+   if(TONE_MAP==8                                 )col.rgb=TonemapLogML5  (col.rgb);
+   if(TONE_MAP==9                                 )col.rgb=TonemapLogML6  (col.rgb);
+
+ /*if(TONE_MAP==STONE_MAP_AMD_CAULDRON            )col.rgb=TonemapAMD_Cauldron     (col.rgb);
+   if(TONE_MAP==STONE_MAP_ACES_HILL               )col.rgb=TonemapACESHill         (col.rgb);
+   if(TONE_MAP==STONE_MAP_ACES_NARKOWICZ          )col.rgb=TonemapACESNarkowicz    (col.rgb);
+ //if(TONE_MAP==STONE_MAP_ACES_LOTTES             )col.rgb=TonemapACESLottes       (col.rgb);
+   if(TONE_MAP==STONE_MAP_HEJL_BURGESS_DAWSON     )col.rgb=ToneMapHejlBurgessDawson(col.rgb);*/
+
+ /*if(TONE_MAP==STONE_MAP_ROBO                    )col.rgb=TonemapRobo             (col.rgb);
+   if(TONE_MAP==STONE_MAP_AMD_CAULDRON            )col.rgb=TonemapAMD_Cauldron     (col.rgb);
+   if(TONE_MAP==STONE_MAP_REINHARD_JODIE          )col.rgb=TonemapReinhardJodieML  (col.rgb);
+   if(TONE_MAP==STONE_MAP_REINHARD_JODIE_DARK_HALF)col.rgb=TonemapLogarithmic      (col.rgb);
+   if(TONE_MAP==STONE_MAP_REINHARD_JODIE_DARK     )col.rgb=TonemapEsenthel         (col.rgb);
+   if(TONE_MAP==STONE_MAP_ACES_HILL               )col.rgb=TonemapACESHill         (col.rgb);
+   if(TONE_MAP==STONE_MAP_ACES_NARKOWICZ          )col.rgb=TonemapACESNarkowicz    (col.rgb);
+ //if(TONE_MAP==STONE_MAP_ACES_LOTTES             )col.rgb=TonemapACESLottes       (col.rgb);
+   if(TONE_MAP==STONE_MAP_HEJL_BURGESS_DAWSON     )col.rgb=ToneMapHejlBurgessDawson(col.rgb);*/
 #endif
 
 #if 0 // Debug Drawing
@@ -565,20 +590,20 @@ VecH4 ToneMap_PS(NOPERSP Vec2 uv:UV,
 #endif
    //Flt eps=1/pos.y*128;//pos.x;
    //if(AL)pos*=2;
-   //pos*=1.0/8;
+   //pos/=1.0/16;
    //eps*=4;
    if(1 || SH)DrawLine(col.rgb, VecH(1,1,1), pos, eps, pos.x);
    if(1)
    {
-      DrawLine(col.rgb, VecH(0.5,0,0), pos, eps, TonemapLog(pos.x));
+      /*DrawLine(col.rgb, VecH(0.5,0,0), pos, eps, TonemapLog(pos.x));
       DrawLine(col.rgb, VecH(0.5,0,0), pos, eps, TonemapLogML4(pos.x));
       DrawLine(col.rgb, VecH(0.5,0,0), pos, eps, TonemapLogML5(pos.x));
       DrawLine(col.rgb, VecH(0.5,0,0), pos, eps, TonemapLogML6(pos.x));
       DrawLine(col.rgb, VecH(0,0.5,0), pos, eps, TonemapRcpSqr(pos.x));
       DrawLine(col.rgb, VecH(0,0,0.5), pos, eps, TonemapExp(pos.x));
-      DrawLine(col.rgb, VecH(0.5,0.5,0), pos, eps, TonemapRcp(pos.x));
+      DrawLine(col.rgb, VecH(0.5,0.5,0), pos, eps, TonemapRcp(pos.x));*/
       DrawLine(col.rgb, VecH(1,0,1), pos, eps, TonemapEsenthel(pos.x));
-    //DrawLine(col.rgb, VecH(0,0.5,0), pos, eps, TonemapAMD_Cauldron(pos.x));
+      DrawLine(col.rgb, VecH(0,0.5,0), pos, eps, TonemapAMD_Cauldron(pos.x));
     //DrawLine(col.rgb, VecH(0,0,0.5), pos, eps, TonemapHable(pos.x));
     //DrawLine(col.rgb, VecH(0.5,0.5,0), pos, eps, TonemapReinhardJodieToe(pos.x));
     //DrawLine(col.rgb, VecH(0,0.5,0.5), pos, eps, TonemapAMD_LPM(pos.x));
@@ -589,11 +614,11 @@ VecH4 ToneMap_PS(NOPERSP Vec2 uv:UV,
    }
    if(0)
    {
-      DrawLine(col.rgb, VecH(1,0,0), pos, eps, TonemapACESHill(pos.x));
-      DrawLine(col.rgb, VecH(0,1,0), pos, eps, TonemapACESNarkowicz(pos.x));
+      //DrawLine(col.rgb, VecH(1,0,0), pos, eps, TonemapACESHill(pos.x));
+      //DrawLine(col.rgb, VecH(0,1,0), pos, eps, TonemapACESNarkowicz(pos.x));
     //DrawLine(col.rgb, VecH(0,1,0), pos, eps, TonemapACESLottes(pos.x));
     //DrawLine(col.rgb, VecH(0,0,1), pos, eps, TonemapUnreal(pos.x));
-      DrawLine(col.rgb, VecH(0,0,1), pos, eps, ToneMapHejlBurgessDawson(pos.x));
+      //DrawLine(col.rgb, VecH(0,0,1), pos, eps, ToneMapHejlBurgessDawson(pos.x));
     //DrawLine(col.rgb, VecH(1,0,1), pos, eps, TonemapUchimura(pos.x, 1.33));
     //DrawLine(col.rgb, VecH(1,1,0), pos, eps, ToneMapHejl(pos.x));
    }

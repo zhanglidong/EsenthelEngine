@@ -84,17 +84,11 @@ class VideoOptions : PropWin
              && RS_ALPHA==13 && RS_REFLECTION==14 && RS_WATER_COLOR==15 && RS_WATER_NORMAL==16 && RS_WATER_LIGHT==17);
       static cchar8 *ToneMap_t[]=
       {
-         "Off"                , // 0
-         "Robo"               , // 1
-         "AMD Cauldron"       , // 2
-         "Reinhard"           , // 3
-         "Reinhard Dark Half" , // 4
-         "Reinhard Dark"      , // 5
-         "ACES Hill"          , // 6
-         "ACES Narkowicz"     , // 7
-         "ACES Lottes"        , // 8
-         "Hejl Burgess-Dawson", // 9
-      }; ASSERT(TONE_MAP_OFF==0 && TONE_MAP_ROBO==1 && TONE_MAP_AMD_CAULDRON==2 && TONE_MAP_REINHARD_JODIE==3 && TONE_MAP_REINHARD_JODIE_DARK_HALF==4 && TONE_MAP_REINHARD_JODIE_DARK==5 && TONE_MAP_ACES_HILL==6 && TONE_MAP_ACES_NARKOWICZ==7 && TONE_MAP_ACES_LOTTES==8 && TONE_MAP_HEJL_BURGESS_DAWSON==9 && TONE_MAP_NUM==10);
+         "Off"     , // 0
+         "Default" , // 1
+         "ACES LDR", // 2
+         "ACES HDR", // 3
+      }; ASSERT(TONE_MAP_OFF==0 && TONE_MAP_DEFAULT==1 && TONE_MAP_ACES_LDR==2 && TONE_MAP_ACES_HDR==3 && TONE_MAP_NUM==4);
       static cchar8 *ShadowReduceFlicker_t[]=
       {
          "Off",

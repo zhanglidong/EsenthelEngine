@@ -7,5 +7,12 @@ BUFFER(Hdr)
         HdrMaxBright ;
    VecH HdrWeight    ;
 BUFFER_END
+
+BUFFER(ToneMap)
+   Half ToneMapMonitorMaxLum,
+        ToneMapTopRange,
+        ToneMapDarkenRange,
+        ToneMapDarkenExp;
+BUFFER_END
 #include "!Set Prec Default.h"
 /******************************************************************************/

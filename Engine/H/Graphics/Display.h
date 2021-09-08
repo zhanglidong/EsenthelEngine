@@ -66,17 +66,11 @@ enum DOF_MODE : Byte // Depth of Field Mode
 };
 enum TONE_MAP_MODE : Byte // Tone Mapping Mode
 {
-   TONE_MAP_OFF                     , // disabled
-   TONE_MAP_ROBO                    , // not strong, by robobo1221
-   TONE_MAP_AMD_CAULDRON            , // AMD Cauldron
-   TONE_MAP_REINHARD_JODIE          , // Reinhard and Jodie
-   TONE_MAP_REINHARD_JODIE_DARK_HALF, // Reinhard and Jodie with darks darkening (half)
-   TONE_MAP_REINHARD_JODIE_DARK     , // Reinhard and Jodie with darks darkening matching ACES
-   TONE_MAP_ACES_HILL               , // ACES by Stephen Hill
-   TONE_MAP_ACES_NARKOWICZ          , // ACES by Krzysztof Narkowicz
-   TONE_MAP_ACES_LOTTES             , // ACES by Timothy Lottes
-   TONE_MAP_HEJL_BURGESS_DAWSON     , // Filmic by Jim Hejl and Richard Burgess-Dawson
-   TONE_MAP_NUM                     , // number of Tone Mapping Modes
+   TONE_MAP_OFF     , // disabled
+   TONE_MAP_DEFAULT , // default
+   TONE_MAP_ACES_LDR, // ACES 0 ..  1.0 (  80 nits) for use on  Low Dynamic Range Monitors
+   TONE_MAP_ACES_HDR, // ACES 0 .. 12.5 (1000 nits) for use on High Dynamic Range Monitors
+   TONE_MAP_NUM     , // number of Tone Mapping Modes
 };
 enum EDGE_DETECT_MODE : Byte // Edge Detect Mode
 {
@@ -373,7 +367,11 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
    DisplayClass& resetEyeAdaptation     (  Flt  brightness=1);                                                                   // reset   Eye Adaptation value, eye adaptation changes over time according to screen colors, this method resets the adaptation to its original state, 'brightness'=initial brightness (0..Inf), the change is NOT instant, avoid calling real-time
 
    // Tone Mapping
-   DisplayClass& toneMap(TONE_MAP_MODE mode);   TONE_MAP_MODE toneMap()C {return _tone_map_mode;} // set/get Tone Mapping Mode (TONE_MAP_MODE, default=TONE_MAP_OFF), the change is instant, you can call it real-time
+   DisplayClass& toneMap             (TONE_MAP_MODE mode);   TONE_MAP_MODE toneMap             ()C {return _tone_map_mode      ;} // set/get Tone Mapping Mode                       (TONE_MAP_MODE, default=TONE_MAP_OFF), the change is instant, you can call it real-time
+   DisplayClass& toneMapMonitorMaxLum(Flt        max_lum);   Flt           toneMapMonitorMaxLum()C {return _tone_map_max_lum   ;} // set/get Tone Mapping Monitor Max Luminance      (0..Inf       , default=1           ), the change is instant, you can call it real-time, this is the maximum luminance supported by your monitor, LDR monitors have 1, while HDR monitors can be higher
+   DisplayClass& toneMapTopRange     (Flt          range);   Flt           toneMapTopRange     ()C {return _tone_map_top_range ;} // set/get Tone Mapping Top    (Shoulder) Range    (0..1         , default=0.82        ), the change is instant, you can call it real-time, this is the range used for fitting too bright colors, too bright colors will be compressed into "max_lum-top_range .. max_lum" range. So for example with top_range=0.82 and monitor_max_lum=1.0, bright colors will be compressed into "1.0-0.82 .. 1.0" range, which is "0.18 .. 1.0", which makes colors in "0 .. 0.18" unaffected, and all colors >0.18 compressed into "0.18 .. 1.0" range.
+   DisplayClass& toneMapDarkenRange  (Flt          range);   Flt           toneMapDarkenRange  ()C {return _tone_map_dark_range;} // set/get Tone Mapping Darken (Toe     ) Range    (0..1         , default=0.123       ), the change is instant, you can call it real-time, this is the luminance range for darkening dark colors, affected colors are in range [0..toneMapDarkenRange)
+   DisplayClass& toneMapDarkenExp    (Flt            exp);   Flt           toneMapDarkenExp    ()C {return _tone_map_dark_exp  ;} // set/get Tone Mapping Darken (Toe     ) Exponent (1..2         , default=1.3         ), the change is instant, you can call it real-time, this is the power exponent  for darkening dark colors, colors are darkened using function "Pow(color, exp)", using 1.0 exponent disables darkening
 
    // Level of Detail
 #if EE_PRIVATE
@@ -597,7 +595,8 @@ private:
                      _fade_alpha, _fade_speed,
                      _sharpen_intensity,
                      _smaa_threshold,
-                     _output_max_lum;
+                     _output_max_lum,
+                     _tone_map_max_lum, _tone_map_top_range, _tone_map_dark_range, _tone_map_dark_exp;
    Vec2              _unscaled_size, _size2, _pixel_size, _pixel_size_2, _pixel_size_inv,
                      _window_pixel_to_screen_mul, _window_pixel_to_screen_add, _window_pixel_to_screen_scale,
                      _shd_map_split;

@@ -575,17 +575,11 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 
    src.New("HdrUpdate", "Draw_VS", "HdrUpdate_PS");
 
-   ASSERT(TONE_MAP_OFF                     ==STONE_MAP_OFF
-       && TONE_MAP_ROBO                    ==STONE_MAP_ROBO
-       && TONE_MAP_AMD_CAULDRON            ==STONE_MAP_AMD_CAULDRON
-       && TONE_MAP_REINHARD_JODIE          ==STONE_MAP_REINHARD_JODIE
-       && TONE_MAP_REINHARD_JODIE_DARK_HALF==STONE_MAP_REINHARD_JODIE_DARK_HALF
-       && TONE_MAP_REINHARD_JODIE_DARK     ==STONE_MAP_REINHARD_JODIE_DARK
-       && TONE_MAP_ACES_HILL               ==STONE_MAP_ACES_HILL
-       && TONE_MAP_ACES_NARKOWICZ          ==STONE_MAP_ACES_NARKOWICZ
-       && TONE_MAP_ACES_LOTTES             ==STONE_MAP_ACES_LOTTES
-       && TONE_MAP_HEJL_BURGESS_DAWSON     ==STONE_MAP_HEJL_BURGESS_DAWSON
-       && TONE_MAP_NUM                     ==STONE_MAP_NUM);
+   ASSERT(TONE_MAP_OFF     ==STONE_MAP_OFF
+       && TONE_MAP_DEFAULT ==STONE_MAP_DEFAULT
+       && TONE_MAP_ACES_LDR==STONE_MAP_ACES_LDR
+       && TONE_MAP_ACES_HDR==STONE_MAP_ACES_HDR
+       && TONE_MAP_NUM     ==STONE_MAP_NUM);
    REPD(dither, 2)
    {
       src.New("AdaptEye", "AdaptEye_VS", "AdaptEye_PS")("DITHER", dither);
