@@ -1033,6 +1033,9 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
 
 //_max_lights     =0;
   _max_lights_soft=true;
+
+  _output_prec   =IMAGE_PRECISION_8;
+  _output_max_lum=1;
 }
 void DisplayClass::init() // make this as a method because if we put this to Display constructor, then 'SecondaryContexts' may not have been initialized yet
 {
@@ -2167,19 +2170,22 @@ void DisplayClass::getCaps()
       swap_chain4->Release();
    }*/
    
-   /*IDXGIOutput *output=null; SwapChain->GetContainingOutput(&output); if(output)
+   IDXGIOutput *output=null; SwapChain->GetContainingOutput(&output); if(output)
    {
       IDXGIOutput6 *output6=null; output->QueryInterface(__uuidof(IDXGIOutput6), (Ptr*)&output6); if(output6)
       {
          DXGI_OUTPUT_DESC1 desc; if(OK(output6->GetDesc1(&desc)))
          {
+            // TODO: this could replace 'highMonitorPrecision'?
+            // Warning: these might be reported wrong
+           _output_prec   =BitsToPrecision(desc.BitsPerColor);
+           _output_max_lum=desc.MaxLuminance/80.0f; // "color value of (1.0, 1.0, 1.0) corresponds to a luminance level of 80 nits" - https://www.khronos.org/registry/EGL/extensions/EXT/EGL_EXT_gl_colorspace_scrgb_linear.txt
             // get info about color space
-            // TODO: this could replace 'highMonitorPrecision', however on a computer that returns 8-bit, using 10-bit still gives better quality, so perhaps it's not yet ready
          }
          output6->Release();
       }
       output->Release();
-   }*/
+   }
    /*void SetCS(Int cs)
    {
       Clamp(cs, 0, DXGI_COLOR_SPACE_YCBCR_FULL_GHLG_TOPLEFT_P2020);

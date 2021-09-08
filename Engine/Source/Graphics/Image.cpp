@@ -569,6 +569,15 @@ IMAGE_TYPE                 ImageFormatToType(GPU_API(DXGI_FORMAT, UInt) format
    return IMAGE_NONE;
 }
 /******************************************************************************/
+IMAGE_PRECISION BitsToPrecision(Int bits)
+{
+   ASSERT(IMAGE_PRECISION_64+1==IMAGE_PRECISION_NUM);
+   if(bits>=64)return IMAGE_PRECISION_64;
+   if(bits>=32)return IMAGE_PRECISION_32;
+   if(bits>=16)return IMAGE_PRECISION_16;
+   if(bits>=10)return IMAGE_PRECISION_10;
+ /*if(bits>= 8)*/return IMAGE_PRECISION_8;
+}
 IMAGE_TYPE BytesToImageType(Int byte_pp)
 {
    switch(byte_pp)

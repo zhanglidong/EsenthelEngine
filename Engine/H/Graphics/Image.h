@@ -164,6 +164,8 @@ enum IMAGE_PRECISION : Byte // Image Precision
 #if EE_PRIVATE
 inline IMAGE_PRECISION Min(IMAGE_PRECISION a, IMAGE_PRECISION b) {return (a<b) ? a : b;}
 inline IMAGE_PRECISION Max(IMAGE_PRECISION a, IMAGE_PRECISION b) {return (a>b) ? a : b;}
+
+IMAGE_PRECISION BitsToPrecision(Int bits);
 #endif
 enum CUBE_LAYOUT : Byte
 {

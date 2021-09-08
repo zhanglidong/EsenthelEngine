@@ -824,6 +824,7 @@ Vec2 Rotate(Vec2 vec, Vec2 cos_sin) // rotate vector by cos and sin values obtai
 
 Half LerpR (Half from, Half to, Half v) {return     (v-from)/(to-from) ;}
 Flt  LerpR (Flt  from, Flt  to, Flt  v) {return     (v-from)/(to-from) ;}
+VecH LerpR (VecH from, VecH to, VecH v) {return     (v-from)/(to-from) ;}
 Half LerpRS(Half from, Half to, Half v) {return Sat((v-from)/(to-from));}
 Flt  LerpRS(Flt  from, Flt  to, Flt  v) {return Sat((v-from)/(to-from));}
 

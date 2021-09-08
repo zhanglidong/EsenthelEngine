@@ -552,7 +552,7 @@ private:
    EDGE_SOFTEN_MODE  _edge_soften;
    TEXTURE_USAGE     _tex_detail;
    SHADER_MODEL      _shader_model;
-   IMAGE_PRECISION   _monitor_prec, _lit_col_rt_prec;
+   IMAGE_PRECISION   _monitor_prec, _lit_col_rt_prec, _output_prec;
    FILTER_TYPE       _density_filter;
    COLOR_SPACE       _color_space;
    Bool              _full, _sync, _exclusive,
@@ -596,7 +596,8 @@ private:
                      _view_fov, _view_from,
                      _fade_alpha, _fade_speed,
                      _sharpen_intensity,
-                     _smaa_threshold;
+                     _smaa_threshold,
+                     _output_max_lum;
    Vec2              _unscaled_size, _size2, _pixel_size, _pixel_size_2, _pixel_size_inv,
                      _window_pixel_to_screen_mul, _window_pixel_to_screen_add, _window_pixel_to_screen_scale,
                      _shd_map_split;
