@@ -247,8 +247,8 @@ VecH TonemapEsenthel(VecH x)
    VecH f=Max(0, LerpR(start, end, x)); // max 0 needed because negative colors are not allowed and may cause artifacts
 
    // the only sensible functions here are TonemapRcpSat and TonemapLogML*Sat
-   VecH l=TonemapLogML8Sat(f);
 #if 0 // testing
+   VecH l=TonemapLogML8Sat(f); // have to use 'f' instead of "x-start" because that would break continuity
    if(TONE_MAP==1)l=TonemapRcpSat   (f, 6); // works OK with start=0.123
    if(TONE_MAP==2)l=TonemapRcpSat   (f, 7);
    if(TONE_MAP==3)l=TonemapRcpSat   (f);
@@ -256,7 +256,7 @@ VecH TonemapEsenthel(VecH x)
    if(TONE_MAP==6)l=TonemapLogML8Sat(f); // works OK with start=0.123
 #endif
 
-   x=(x>start ? Lerp(start, end, l) : x); // have to use 'f' instead of "x-start" because that would break continuity
+   x=(x>start ? Lerp(start, end, l) : x);
    DarkenDarks(x);
    return x;
 }
