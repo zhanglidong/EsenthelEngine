@@ -220,9 +220,15 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
          REPD(half_res , 2)
             src.New("BloomDS", "BloomDS_VS", "BloomDS_PS")("GLOW", glow, "VIEW_FULL", view_full, "HALF_RES", half_res, "EXPOSURE", exposure);
 
-         REPD(alpha , 3)
-         REPD(dither, 2)
-            src.New("Bloom", "Bloom_VS", "Bloom_PS")("ALPHA", alpha, "DITHER", dither, "EXPOSURE", exposure);
+         ASSERT(TONE_MAP_OFF     ==STONE_MAP_OFF
+             && TONE_MAP_DEFAULT ==STONE_MAP_DEFAULT
+             && TONE_MAP_ACES_LDR==STONE_MAP_ACES_LDR
+             && TONE_MAP_ACES_HDR==STONE_MAP_ACES_HDR
+             && TONE_MAP_NUM     ==STONE_MAP_NUM);
+         REPD(tone_map, TONE_MAP_NUM)
+         REPD(alpha   , 3)
+         REPD(dither  , 2)
+            src.New("Bloom", "Bloom_VS", "Bloom_PS")("TONE_MAP", tone_map, "ALPHA", alpha, "DITHER", dither, "EXPOSURE", exposure);
       }
    }
    { // BLUR
@@ -575,19 +581,7 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
 
    src.New("HdrUpdate", "Draw_VS", "HdrUpdate_PS");
 
-   ASSERT(TONE_MAP_OFF     ==STONE_MAP_OFF
-       && TONE_MAP_DEFAULT ==STONE_MAP_DEFAULT
-       && TONE_MAP_ACES_LDR==STONE_MAP_ACES_LDR
-       && TONE_MAP_ACES_HDR==STONE_MAP_ACES_HDR
-       && TONE_MAP_NUM     ==STONE_MAP_NUM);
-   REPD(dither, 2)
-   {
-      src.New("AdaptEye", "AdaptEye_VS", "AdaptEye_PS")("DITHER", dither);
-
-      REPD(tone_map, TONE_MAP_NUM-1)
-      REPD(alpha   ,              2)
-         src.New("ToneMap", "DrawUV_VS", "ToneMap_PS")("TONE_MAP", tone_map+1, "ALPHA", alpha, "DITHER", dither);
-   }
+   REPD(dither, 2)src.New("AdaptEye", "AdaptEye_VS", "AdaptEye_PS")("DITHER", dither);
 }
 #endif
 

@@ -350,12 +350,12 @@ struct MainShaderClass
    ShaderParam
       *BloomParams;
    Shader
-      *PrecomputedBloomDS[2][2], // [ViewFull] [HalfRes]
-      *BloomDS[2][2][2][2], // [Glow] [ViewFull] [HalfRes] [Exposure]
-      *Bloom  [3][2][2]   ; // [Alpha] [Dither] [Exposure]
+      *PrecomputedBloomDS    [2][2], // [ViewFull] [HalfRes]
+      *BloomDS         [2][2][2][2], // [Glow] [ViewFull] [HalfRes] [Exposure]
+      *Bloom[TONE_MAP_NUM][3][2][2]; // [ToneMap] [Alpha] [Dither] [Exposure]
    Shader* getPrecomputedBloomDS(Bool view_full, Bool half_res);
    Shader* getBloomDS(Bool glow, Bool view_full, Bool half_res, Bool exposure);
-   Shader* getBloom  (Int alpha, Bool dither                  , Bool exposure);
+   Shader* getBloom  (Int tone_map, Int alpha, Bool dither, Bool exposure);
 
    // SUN
    Shader *SunRays[2][2][2][2]; // [Alpha] [Dither] [Jitter] [Gamma]
@@ -425,8 +425,7 @@ struct HDR
    ShaderFile *shader;
    Shader     *HdrDS[2], // [Step]
               *HdrUpdate,
-              *AdaptEye[2], // [Dither]
-              *ToneMap[TONE_MAP_NUM-1][2][2]; // [ToneMap][Alpha][Dither]
+              *AdaptEye[2]; // [Dither]
 
    void load();
 }extern

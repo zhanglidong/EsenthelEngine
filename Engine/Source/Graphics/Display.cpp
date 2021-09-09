@@ -1568,13 +1568,13 @@ again:
       if(Compare(_gl_ver, VecB2(3, 2))>=0)_shader_model=SM_GL_ES_3_2;else
       if(Compare(_gl_ver, VecB2(3, 1))>=0)_shader_model=SM_GL_ES_3_1;else
       if(Compare(_gl_ver, VecB2(3, 0))>=0)_shader_model=SM_GL_ES_3  ;else
-                                          Exit("OpenGL ES 3.0 support not available.\nGraphics Driver not installed or better video card is required.");
+                                           Exit("OpenGL ES 3.0 support not available.\nGraphics Driver not installed or better video card is required.");
    #else
       if(Compare(_gl_ver, VecB2(4, 3))>=0)_shader_model=SM_GL_4_3;else
       if(Compare(_gl_ver, VecB2(4, 2))>=0)_shader_model=SM_GL_4_2;else
       if(Compare(_gl_ver, VecB2(4, 0))>=0)_shader_model=SM_GL_4  ;else
       if(Compare(_gl_ver, VecB2(3, 2))>=0)_shader_model=SM_GL_3  ;else
-                                          Exit("OpenGL 3.2 support not available.\nGraphics Driver not installed or better video card is required.");
+                                           Exit("OpenGL 3.2 support not available.\nGraphics Driver not installed or better video card is required.");
    #endif
 
    if(!deviceName().is())
@@ -1719,6 +1719,10 @@ _linear_gamma^=1; linearGamma(!_linear_gamma); // set after loading shaders
    {auto v=temporalSuperRes (); _temp_super_res   =false           ; temporalSuperRes (v);} // resetting will load shaders
    {auto v=grassRange       (); _grass_range      =-1              ; grassRange       (v);}
    {auto v=sharpenIntensity (); _sharpen_intensity=-1;             ; sharpenIntensity (v);}
+   SPSet("ToneMapMonitorMaxLum", D.toneMapMonitorMaxLum());
+   SPSet("ToneMapTopRange"     , D.toneMapTopRange     ());
+   SPSet("ToneMapDarkenRange"  , D.toneMapDarkenRange  ());
+   SPSet("ToneMapDarkenExp"    , D.toneMapDarkenExp    ());
    lod            (_lod_factor, _lod_factor_mirror);
    shadowJitterSet();
    shadowRangeSet ();

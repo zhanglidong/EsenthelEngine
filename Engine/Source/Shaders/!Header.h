@@ -122,7 +122,7 @@
 // CONSTANTS
 /******************************************************************************/
 #define MAX_MATRIX 256 // maximum number of matrixes
-#define FLT_MIN    1.175494351e-38F                   // Minimum positive value of 32-bit real (Flt )
+#define FLT_MIN    1.175494351e-38f                   // Minimum positive value of 32-bit real (Flt )
 #define HALF_MIN   0.00006103515625                   // Minimum positive value of 16-bit real (Half)
 #define HALF_MAX   65504                              // Maximum possible value of 16-bit real (Half)
 #define EPS        0.0001                             // float epsilon
@@ -2438,6 +2438,11 @@ void SetDSPosNrm(out Vec pos, out Vec nrm, Vec pos0, Vec pos1, Vec pos2, Vec nrm
 void TestDepth(inout Flt depth, Flt d, inout VecI2 ofs, VecI2 o)
 {
    if(DEPTH_SMALLER(d, depth)){depth=d; ofs=o;}
+}
+/******************************************************************************/
+void DrawLine(inout VecH col, VecH line_col, Vec2 screen, Flt eps, Flt y)
+{
+   col=Lerp(col, line_col, Sat(Half(1-Abs(screen.y-y)*eps)));
 }
 /******************************************************************************
 Flt CT, SH, AL, WI, SP, TB, MX, MY; // variables that can be used for testing, Ctrl, Shift, ..

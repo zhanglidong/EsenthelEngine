@@ -528,7 +528,7 @@ void RendererClass::motionBlur(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_gl
 /******************************************************************************/
 INLINE Shader* GetPrecomputedBloomDS(Bool view_full, Bool half_res               ) {Shader* &s=Sh.PrecomputedBloomDS[view_full][half_res]     ; if(SLOW_SHADER_LOAD && !s)s=Sh.getPrecomputedBloomDS(view_full, half_res     ); return s;}
 INLINE Shader* GetBloomDS(Bool glow, Bool view_full, Bool half_res, Bool exposure) {Shader* &s=Sh.BloomDS[glow][view_full][half_res][exposure]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow, view_full, half_res, exposure); return s;}
-INLINE Shader* GetBloom  (Int alpha, Bool dither                  , Bool exposure) {Shader* &s=Sh.Bloom  [alpha][dither]            [exposure]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloom  (alpha, dither            , exposure); return s;}
+INLINE Shader* GetBloom  (Int tone_map, Int alpha, Bool dither    , Bool exposure) {Shader* &s=Sh.Bloom[tone_map][alpha][dither]    [exposure]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloom  (tone_map, alpha, dither  , exposure); return s;}
 // !! Assumes that 'ImgClamp' was already set !!
 void RendererClass::bloom(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_glow, Bool alpha, Bool combine, ImageRT *exposure)
 {
@@ -539,7 +539,8 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_glow, B
 
    D.alpha(ALPHA_NONE);
    Sh.ImgX[1]->set(exposure); // this is used by both BloomDS and Bloom
-   if(_has_glow || D.bloomScale()) // if we have something there
+   if(D.bloomAllow() && // this has to be checked because bloom is merged with tonemapping, and if bloom is disabled but tone mapping enabled, then we will still run this code
+     (_has_glow || D.bloomScale())) // if we have something there
    {
       ImageRTDesc rt_desc(fxW()>>shift, fxH()>>shift, IMAGERT_SRGB); // using IMAGERT_SRGB will clip to 0..1 range !! using high precision would require clamping in the shader to make sure values don't go below 0 !!
                                            rt0.get(rt_desc);
@@ -583,7 +584,7 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_glow, B
    set(&dest, null, true); if(combine && &dest==_final)D.alpha(ALPHA_MERGE);
    Sh.Img [1]->set( rt0  );
    Sh.ImgX[0]->set(_alpha);
-   GetBloom(_alpha ? 2 : alpha ? 1 : 0, D.dither() /*&& (src.highPrecision() || rt0->highPrecision())*/ && !dest.highPrecision(), exposure!=null)->draw(src); // merging 2 RT's ('src' and 'rt0') with some scaling factors will give high precision
+   GetBloom(D.toneMap(), _alpha ? 2 : alpha ? 1 : 0, D.dither() /*&& (src.highPrecision() || rt0->highPrecision())*/ && !dest.highPrecision(), exposure!=null)->draw(src); // merging 2 RT's ('src' and 'rt0') with some scaling factors will give high precision
    bloom_glow.clear(); // not needed anymore
 }
 /******************************************************************************/
@@ -623,7 +624,7 @@ void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool alpha, Bool combine)
    Sh.ImgX[0]->set(blur_smooth[0]);
    GetDof(D.dither() /*&& (src.highPrecision() || rt0->highPrecision())*/ && !dest.highPrecision(), D.dofFocusMode(), alpha)->draw(src);
 }
-/******************************************************************************/
+/******************************************************************************
 void RendererClass::toneMap(ImageRT &src, ImageRT &dest, Bool alpha, Bool combine)
 {
    Hdr.load();
@@ -2261,9 +2262,8 @@ void RendererClass::postProcess()
         alpha    = processAlphaFinal(), // this is always enabled for 'slowCombine'
         adapt_eye= hasEyeAdapt      (),
         motion   = hasMotion        (),
-        bloom    =(hasBloom         () || _has_glow),
+        bloom    =(hasBloom         () || _has_glow || D.toneMap()),
         dof      = hasDof           (),
-        tone_map = D.toneMap        ()!=0,
         combine  = slowCombine      (),
         alpha_set= fastCombine      (), // if alpha channel is set properly in the RT, skip this if we're doing 'fastCombine' because we're rendering to existing RT which has its Alpha already set
         sharpen  = D.sharpen        ();
@@ -2285,7 +2285,7 @@ void RendererClass::postProcess()
 
    ImageRTDesc rt_desc(fxW(), fxH(), IMAGERT_SRGBA/*this is changed later*/);
    Bool upscale=(_final->w()>_col->w() || _final->h()>_col->h()); // we're going to upscale at the end, this needs to be set after 'temporal' which might upscale '_col'
-   Int  fxs=(_get_target ? -1 : alpha+adapt_eye+motion+bloom+dof+tone_map+upscale+sharpen); // this counter specifies how many effects are still left in the queue, and if we can render directly to '_final'
+   Int  fxs=(_get_target ? -1 : alpha+adapt_eye+motion+bloom+dof+upscale+sharpen); // this counter specifies how many effects are still left in the queue, and if we can render directly to '_final'
    Sh.ImgClamp->setConditional(ImgClamp(rt_desc.size)); // set 'ImgClamp' that may be needed for Bloom, DoF, MotionBlur, this is the viewport rect within texture, so reading will be clamped to what was rendered inside the viewport
 
    ImageRT *exposure=null;
@@ -2367,11 +2367,11 @@ void RendererClass::postProcess()
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
       T.dof(*_col, *dest, alpha, combine); Swap(_col, dest); alpha_set=true; // DoF sets Alpha
    }
-   if(tone_map)
+   /*if(tone_map)
    {
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT
       toneMap(*_col, *dest, alpha, combine); Swap(_col, dest); alpha_set=true; // ToneMap sets Alpha
-   }
+   }*/
    if(upscale)
    {
       if(!--fxs)dest=_final;else

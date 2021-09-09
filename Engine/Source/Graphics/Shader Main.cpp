@@ -350,9 +350,9 @@ void MainShaderClass::draw (C Image &image                  ,                   
 void MainShaderClass::draw (C Image &image, C   Vec4  &color, C   Vec4  &color_add, C Rect *rect) {Sh.Color[0]->set(color); Sh.Color[1]->set(color_add); Sh.DrawC            ->draw(image, rect);}
 void MainShaderClass::draw (C Image &image, C ::Color &color, C ::Color &color_add, C Rect *rect) {Sh.Color[0]->set(color); Sh.Color[1]->set(color_add); Sh.DrawC            ->draw(image, rect);}
 /******************************************************************************/
-Shader* MainShaderClass::getPrecomputedBloomDS(Bool view_full, Bool half_res                ) {return get(S8+"PrecomputedBloomDS"+view_full+half_res);}
-Shader* MainShaderClass::getBloomDS(Bool glow, Bool view_full, Bool half_res, Bool adapt_eye) {return get(S8+"BloomDS"+glow+view_full+half_res+adapt_eye);}
-Shader* MainShaderClass::getBloom  (Int alpha, Bool dither                  , Bool adapt_eye) {return get(S8+"Bloom"  +alpha+dither+adapt_eye);}
+Shader* MainShaderClass::getPrecomputedBloomDS(Bool view_full, Bool half_res               ) {return get(S8+"PrecomputedBloomDS"+view_full+half_res);}
+Shader* MainShaderClass::getBloomDS(Bool glow, Bool view_full, Bool half_res, Bool exposure) {return get(S8+"BloomDS"+glow+view_full+half_res+exposure);}
+Shader* MainShaderClass::getBloom  (Int tone_map, Int alpha, Bool dither    , Bool exposure) {return get(S8+"Bloom"  +tone_map+alpha+dither+exposure);}
 
 Shader* MainShaderClass::getShdDir  (Int map_num, Bool clouds, Bool multi_sample) {return get(S8+"ShdDir"  +multi_sample+map_num+clouds);}
 Shader* MainShaderClass::getShdPoint(                          Bool multi_sample) {return get(S8+"ShdPoint"+multi_sample);}
@@ -665,9 +665,10 @@ void MainShaderClass::getTechniques()
       REPD(half     , 2)
          BloomDS[glow][view_full][half][adapt_eye]=getBloomDS(glow, view_full, half, adapt_eye);
 
-      REPD(alpha , 3)
-      REPD(dither, 2)
-         Bloom[alpha][dither][adapt_eye]=getBloom(alpha, dither, adapt_eye);
+      REPD(tone_map, TONE_MAP_NUM)
+      REPD(alpha   , 3)
+      REPD(dither  , 2)
+         Bloom[tone_map][alpha][dither][adapt_eye]=getBloom(tone_map, alpha, dither, adapt_eye);
    }
 #endif
 
@@ -880,19 +881,7 @@ void HDR::load()
       HdrDS[0] =shader->get("HdrDS0"   );
       HdrDS[1] =shader->get("HdrDS1"   );
       HdrUpdate=shader->get("HdrUpdate");
-      REPD(dither, 2)
-      {
-         AdaptEye[dither]=shader->get(S8+"AdaptEye"+dither);
-
-         REPD(tone_map, TONE_MAP_NUM-1)
-         REPD(alpha   ,              2)
-            ToneMap[tone_map][alpha][dither]=shader->get(S8+"ToneMap"+(tone_map+1)+alpha+dither);
-      }
-
-      SPSet("ToneMapMonitorMaxLum", D.toneMapMonitorMaxLum());
-      SPSet("ToneMapTopRange"     , D.toneMapTopRange     ());
-      SPSet("ToneMapDarkenRange"  , D.toneMapDarkenRange  ());
-      SPSet("ToneMapDarkenExp"    , D.toneMapDarkenExp    ());
+      REPD(dither, 2)AdaptEye[dither]=shader->get(S8+"AdaptEye"+dither);
 
    #if SUPPORT_TONE_MAP_AMD_LPM
       varAF3(saturation)=initAF3(-1.0/16, -1.0/16, -1.0/16);
