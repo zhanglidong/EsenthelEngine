@@ -237,7 +237,7 @@ Half GetBlend1(VecH4 old, VecH4 cur, VecH4 min, VecH4 max) // returns "1-GetBlen
 VecH2 UVToScreen   (VecH2 uv) {return VecH2(uv.x*AspectRatio, uv.y);} // this is only to maintain XY proportions (it does not convert to screen coordinates)
 Half  ScreenLength2(VecH2 uv) {return Length2(UVToScreen(uv));}
 /******************************************************************************
-void NearestDepthRaw3x3(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gather) // get 'ofs' with raw depth nearest to camera around 'uv' !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' for uv+ofs can be removed !!
+Flt NearestDepthRaw3x3(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gather) // get 'ofs' with raw depth nearest to camera around 'uv' !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' for uv+ofs can be removed !!
 {
    Flt depth;
    if(gather)
@@ -262,9 +262,10 @@ void NearestDepthRaw3x3(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gathe
       UNROLL for(Int y=-1; y<=1; y++)
       UNROLL for(Int x=-1; x<=1; x++)if(x || y)TestDepth(depth, TexDepthRawPointOfs(uv, VecI2(x, y)), ofs, VecI2(x, y));
    }
+   return depth;
 }
 /******************************************************************************/
-void NearestDepthRaw4x4(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gather) // get 'ofs' with raw depth nearest to camera around 'uv' !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' for uv+ofs can be removed !!
+Flt NearestDepthRaw4x4(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gather) // get 'ofs' with raw depth nearest to camera around 'uv' !! TODO: Warning: this ignores VIEW_FULL, if this is fixed then 'UVClamp/UVInView' for uv+ofs can be removed !!
 { /* Unoptimized:
    depth_center=depth=TexDepthRawPoint(uv); ofs=0;
    Int min_y=-1, max_y=1, min_x=-1, max_x=1;
@@ -349,6 +350,7 @@ void NearestDepthRaw4x4(out Flt depth_center, out VecI2 ofs, Vec2 uv, bool gathe
       }
    }
    ofs-=sub_offset;
+   return depth;
 }
 /******************************************************************************/
 void TestSample // !! This operates on relative UV's !!
@@ -640,9 +642,9 @@ void Temporal_PS
    Vec2  uv=(pixel+0.5)*ImgSize.xy;
 #endif
    // GET DEPTH
-   Flt depth_raw; VecI2 ofs;
-   if(NEAREST_DEPTH_VEL)NearestDepthRaw4x4(depth_raw, ofs, uv, GATHER); // now we use 4x4 samples (old: need to use 3x3 because 2x2 are not enough), best results are when depth is from center and motion from 'ofs' (all combinations were tested)
-   else                 depth_raw=TexDepthRawPoint(uv);
+   Flt nearest_depth_raw, depth_raw; VecI2 ofs;
+   if(NEAREST_DEPTH_VEL)nearest_depth_raw=NearestDepthRaw4x4(depth_raw, ofs, uv, GATHER); // now we use 4x4 samples (old: need to use 3x3 because 2x2 are not enough), best results are when depth is from center and motion from 'ofs' (all combinations were tested)
+   else                 nearest_depth_raw=depth_raw=TexDepthRawPoint(uv);
    Flt depth=LinearizeDepth(depth_raw);
 
    // DEBUG
@@ -922,7 +924,7 @@ void Temporal_PS
     //clamp_dist*=clamp_dist;
 		blend*=Sat(clamp_dist*0.5);
    }else*/
-   if(DEPTH_FOREGROUND(depth_raw))
+   if(DEPTH_FOREGROUND(nearest_depth_raw))
    {
       // calculate difference between 'old' and 'cur'
    #if 1
