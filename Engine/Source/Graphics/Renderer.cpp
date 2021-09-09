@@ -2328,7 +2328,7 @@ void RendererClass::postProcess()
    }
   _vel.clear(); // velocity could've been used for MotionBlur or Temporal, but after this stage we no longer need it
 
-   if(bloom) // bloom needs to be done before dof because of per-pixel glow
+   if(bloom) // bloom needs to be done before DoF because of per-pixel glow
    {
       if(_alpha)fxs--; // bloom always merges '_alpha' so remove it from list
       if(!--fxs)dest=_final;else dest.get(rt_desc); // can't read and write to the same RT

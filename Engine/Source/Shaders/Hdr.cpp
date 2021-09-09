@@ -140,7 +140,7 @@ REP(65536)
    if(h<x)min=scale;
    if(h>x)max=scale;
 }
-Flt z=_TonemapLog(x, max_lum, scale)/x; */
+Flt z=TonemapLog(x, max_lum, scale)/x; */
 
 Half  TonemapLog(Half  x) {return log2(1+x*0.69140625);} // x=0..Inf
 VecH  TonemapLog(VecH  x) {return log2(1+x*0.69140625);} // x=0..Inf
@@ -175,6 +175,14 @@ VecH TonemapRcpSat(VecH x, Half max_lum) // preserves saturation
    return Lerp(s, d, d);
 }
 
+Half  TonemapLogML2(Half  x) {Half mul=1.81725168, max_lum=2; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+VecH  TonemapLogML2(VecH  x) {Half mul=1.81725168, max_lum=2; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+VecH4 TonemapLogML2(VecH4 x) {Half mul=1.81725168, max_lum=2; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+
+Half  TonemapLogML3(Half  x) {Half mul=2.75361061, max_lum=3; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+VecH  TonemapLogML3(VecH  x) {Half mul=2.75361061, max_lum=3; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+VecH4 TonemapLogML3(VecH4 x) {Half mul=2.75361061, max_lum=3; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
+
 Half  TonemapLogML4(Half  x) {Half mul=3.37967825, max_lum=4; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
 VecH  TonemapLogML4(VecH  x) {Half mul=3.37967825, max_lum=4; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
 VecH4 TonemapLogML4(VecH4 x) {Half mul=3.37967825, max_lum=4; return TonemapLog(mul*x)/TonemapLog(mul*max_lum);}
@@ -199,6 +207,20 @@ VecH TonemapLogSat(VecH x)
 {
    VecH4 rgbl=VecH4(x, TonemapLum(x));
    VecH4 d=TonemapLog(rgbl);            // desaturated, per channel
+   VecH  s=rgbl.w ? x*(d.w/rgbl.w) : 0; //   saturated, luminance based
+   return Lerp(s, d.rgb, d.rgb);
+}
+VecH TonemapLogML2Sat(VecH x)
+{
+   VecH4 rgbl=VecH4(x, TonemapLum(x));
+   VecH4 d=TonemapLogML2(rgbl);         // desaturated, per channel
+   VecH  s=rgbl.w ? x*(d.w/rgbl.w) : 0; //   saturated, luminance based
+   return Lerp(s, d.rgb, d.rgb);
+}
+VecH TonemapLogML3Sat(VecH x)
+{
+   VecH4 rgbl=VecH4(x, TonemapLum(x));
+   VecH4 d=TonemapLogML3(rgbl);         // desaturated, per channel
    VecH  s=rgbl.w ? x*(d.w/rgbl.w) : 0; //   saturated, luminance based
    return Lerp(s, d.rgb, d.rgb);
 }
@@ -249,15 +271,17 @@ VecH TonemapEsenthel(VecH x)
  //VecH f=Max(0, LerpR(start, end, x)); // max 0 needed because negative colors are not allowed and may cause artifacts
    VecH f=Max(0, (x-start)/ToneMapTopRange); // max 0 needed because negative colors are not allowed and may cause artifacts
 
-   // the only sensible functions here are TonemapRcpSat and TonemapLogML*Sat
    VecH l=TonemapLogML8Sat(f); // have to use 'f' instead of "x-start" because that would break continuity
 #if 0 // testing
-   if(TONE_MAP==1)l=TonemapRcpSat   (f, 6); // works OK with start=0.123
-   if(TONE_MAP==2)l=TonemapRcpSat   (f, 7); // works OK with start=0.18
-   if(TONE_MAP==3)l=TonemapRcpSat   (f);
-   if(TONE_MAP==4)l=TonemapLogML4Sat(f);
-   if(TONE_MAP==5)l=TonemapLogML6Sat(f); // works OK with start=0.0
-   if(TONE_MAP==6)l=TonemapLogML8Sat(f); // works OK with start=0.18
+   if(Mode==1)l=TonemapRcpSat   (f, 3);
+   if(Mode==2)l=TonemapRcpSat   (f, 4);
+   if(Mode==3)l=TonemapRcpSat   (f, 5);
+   if(Mode==4)l=TonemapRcpSat   (f, 8);
+   if(Mode==5)l=TonemapLogML3Sat(f);
+   if(Mode==6)l=TonemapLogML4Sat(f);
+   if(Mode==7)l=TonemapLogML5Sat(f);
+   if(Mode==8)l=TonemapLogML8Sat(f);
+   if(Mode==9)l=TonemapExp      (f);
 #endif
 
  //x=(x>start ? Lerp(start, end, l) : x);
@@ -550,7 +574,7 @@ VecH4 ToneMap_PS(NOPERSP Vec2 uv:UV,
 #endif
 
 #if TONE_MAP
-   if(TONE_MAP==STONE_MAP_DEFAULT )col.rgb=TonemapEsenthel(col.rgb);
+   if(TONE_MAP==STONE_MAP_DEFAULT )col.rgb=TonemapEsenthel          (col.rgb);
    if(TONE_MAP==STONE_MAP_ACES_LDR)col.rgb=TonemapACES_LDR_Narkowicz(col.rgb);
    if(TONE_MAP==STONE_MAP_ACES_HDR)col.rgb=TonemapACES_HDR_Narkowicz(col.rgb);
 
@@ -603,8 +627,9 @@ VecH4 ToneMap_PS(NOPERSP Vec2 uv:UV,
       DrawLine(col.rgb, VecH(0,0.5,0), pos, eps, TonemapRcpSqr(pos.x));
       DrawLine(col.rgb, VecH(0,0,0.5), pos, eps, TonemapExp(pos.x));
       DrawLine(col.rgb, VecH(0.5,0.5,0), pos, eps, TonemapRcp(pos.x));*/
-      DrawLine(col.rgb, VecH(1,0,1), pos, eps, TonemapEsenthel(pos.x));
-      DrawLine(col.rgb, VecH(0,0.5,0), pos, eps, TonemapAMD_Cauldron(pos.x));
+      DrawLine(col.rgb, VecH(1,0,0), pos, eps, TonemapEsenthel(pos.x));
+      DrawLine(col.rgb, VecH(0,1,0), pos, eps, TonemapACES_LDR_Narkowicz(pos.x));
+      //DrawLine(col.rgb, VecH(0,0.5,0), pos, eps, TonemapAMD_Cauldron(pos.x));
     //DrawLine(col.rgb, VecH(0,0,0.5), pos, eps, TonemapHable(pos.x));
     //DrawLine(col.rgb, VecH(0.5,0.5,0), pos, eps, TonemapReinhardJodieToe(pos.x));
     //DrawLine(col.rgb, VecH(0,0.5,0.5), pos, eps, TonemapAMD_LPM(pos.x));

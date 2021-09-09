@@ -1037,7 +1037,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _output_prec   =IMAGE_PRECISION_8;
   _output_max_lum=1;
   _tone_map_max_lum=1;
-  _tone_map_top_range=0.82f;
+  _tone_map_top_range=0.7f;
   _tone_map_dark_range=0.123f;
   _tone_map_dark_exp=1.3f;
 }
