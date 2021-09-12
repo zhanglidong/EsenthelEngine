@@ -3181,7 +3181,7 @@ cur_skel_to_saved_skel.removeBone(bone->name);
                      dest->add(src);
          editor.edit_skel.add(Proj.edit_skel_mem, true);
          editor.clearBones();
-         editor.mesh.skeleton(dest).skeleton(null);
+         editor.mesh.skeleton(dest, true).skeleton(null);
          editor.setChangedMesh(true, false);
          editor.setChangedSkel(true);
       }
