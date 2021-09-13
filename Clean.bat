@@ -15,6 +15,7 @@ rmdir /s /q "Engine\Release DX11"
 rmdir /s /q "Engine\Release GL"
 rmdir /s /q "Engine\Release Universal DX11"
 rmdir /s /q "Engine\x64"
+rmdir /s /q "Engine\NX64"
 
 rmdir /s /q "Project\Arm"
 rmdir /s /q "Project\Debug DX11"
@@ -26,6 +27,7 @@ rmdir /s /q "Project\Release DX11"
 rmdir /s /q "Project\Release GL"
 rmdir /s /q "Project\Release Universal DX11"
 rmdir /s /q "Project\x64"
+rmdir /s /q "Project\NX64"
 
 rmdir /s /q "x64"
 
