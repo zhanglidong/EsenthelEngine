@@ -896,7 +896,9 @@ Image& Image::del()
       if(_txtr || _srv)
       {
          D.texClearAll(_srv);
-       //SyncLocker locker(D._lock); lock not needed for DX11 'Release'
+      #if GPU_LOCK // lock not needed for 'Release'
+         SyncLocker locker(D._lock);
+      #endif
          if(D.created())
          {
             // release children first
@@ -909,7 +911,7 @@ Image& Image::del()
       if(_txtr || _rb)
       {
          D.texClearAll(_txtr);
-      #if GL_LOCK
+      #if GPU_LOCK
          SyncLocker locker(D._lock);
       #endif
          if(D.created())
@@ -932,7 +934,6 @@ void Image::setPartial()
 Bool Image::setInfo()
 {
 #if DX11
-   // lock not needed for DX11 'D3D'
    if(_txtr)
    {
       if(mode()==IMAGE_3D)
@@ -976,6 +977,9 @@ Bool Image::setInfo()
             if(cube()          ){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURECUBE; srvd.TextureCube.MipLevels=mipMaps();}else
             if(!multiSample()  ){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D  .MipLevels=mipMaps();}else
                                 {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
+         #if GPU_LOCK // lock not needed for 'D3D'
+            SyncLocker locker(D._lock);
+         #endif
             D3D->CreateShaderResourceView(_txtr, &srvd, &_srv); if(!_srv && mode()!=IMAGE_DS)return false; // allow '_srv' optional in IMAGE_DS (for example it can fail for multi-sampled DS on FeatureLevel 10.0)
          }break;
       }
@@ -1064,7 +1068,7 @@ void Image::adjustInfo(Int w, Int h, Int d, IMAGE_TYPE type)
 void Image::setGLParams()
 {
 #if GL
-#if GL_LOCK
+#if GPU_LOCK
    SyncLocker locker(D._lock);
 #endif
    if(D.created() && _txtr)
@@ -1195,8 +1199,8 @@ Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
       }
    #endif
 
-   #if GL_LOCK
-      SyncLockerEx locker(D._lock, IsHW(mode)); // lock not needed for DX11 'D3D'
+   #if GPU_LOCK // lock not needed for 'D3D'
+      SyncLockerEx locker(D._lock, IsHW(mode));
    #endif
       if(IsHW(mode) && !D.created())goto error; // device not yet created
 

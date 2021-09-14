@@ -276,7 +276,9 @@ void ImageRT:: delThis() // delete only this class members without super
    {
       D.texClearAll(_srv_srgb);
       D.uavClear   (_uav     );
-    //SyncLocker locker(D._lock); lock not needed for DX11 'Release'
+   #if GPU_LOCK // lock not needed for 'Release'
+      SyncLocker locker(D._lock);
+   #endif
       if(D.created())
       {
          RELEASE(_srv_srgb);
@@ -293,7 +295,7 @@ void ImageRT:: delThis() // delete only this class members without super
    {
       D.uavClear   (_txtr_srgb);
       D.texClearAll(_txtr_srgb);
-   #if GL_LOCK
+   #if GPU_LOCK
       SyncLocker locker(D._lock);
    #endif
       if(D.created())
@@ -319,6 +321,9 @@ Bool ImageRT::createViews()
          if(_rtv)return true; // if already has a view then keep it, this is important and needed for #SwapImageRT
          D3D11_RENDER_TARGET_VIEW_DESC rtvd; Zero(rtvd); rtvd.Format=hwTypeInfo().format;
          rtvd.ViewDimension=(multiSample() ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D);
+      #if GPU_LOCK // lock not needed for 'D3D'
+         SyncLocker locker(D._lock);
+      #endif
          D3D->CreateRenderTargetView(_txtr, &rtvd, &_rtv); if(!_rtv)return false;
          
          if(D.computeAvailable())
@@ -339,12 +344,14 @@ Bool ImageRT::createViews()
             if(multiSample()){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
             else             {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=mipMaps();}
             srvd.Format=rtvd.Format=ImageTI[type_srgb].format;
-            // lock not needed for DX11 'D3D'
             D3D->CreateShaderResourceView(_txtr, &srvd, &_srv_srgb);
             D3D->CreateRenderTargetView  (_txtr, &rtvd, &_rtv_srgb);
          #elif GL
             if(D.canSwapSRGB())
             {
+            #if GPU_LOCK
+               SyncLocker locker(D._lock);
+            #endif
                glGenTextures(1, &_txtr_srgb); if(_txtr_srgb)
                {
                   glGetError(); // clear any previous errors
@@ -362,6 +369,9 @@ Bool ImageRT::createViews()
       #if DX11
          if(_dsv)return true; // if already has a view then keep it, this is important and needed for #SwapImageRT
          D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=hwTypeInfo().format; dsvd.ViewDimension=(multiSample() ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
+      #if GPU_LOCK // lock not needed for 'D3D'
+         SyncLocker locker(D._lock);
+      #endif
                                                                                                           D3D->CreateDepthStencilView(_txtr, &dsvd, &_dsv ); if(!_dsv)return false;
          dsvd.Flags=D3D11_DSV_READ_ONLY_DEPTH; if(hwTypeInfo().s)dsvd.Flags|=D3D11_DSV_READ_ONLY_STENCIL; D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // this will work only on DX11.0 but not 10.0, 10.1
       #endif

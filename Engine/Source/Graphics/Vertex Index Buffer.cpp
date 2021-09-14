@@ -208,7 +208,9 @@ static Byte VS_Code[1032]={68,88,66,67,40,254,223,128,245,209,8,145,235,142,14,1
 
 Bool VtxFormat::createTry(D3D11_INPUT_ELEMENT_DESC ve[], Int elms)
 {
- //SyncLocker locker(D._lock); lock not needed for DX11 'D3D'
+#if GPU_LOCK // lock not needed for 'D3D'
+   SyncLocker locker(D._lock);
+#endif
    del();
    if(D3D)return OK(D3D->CreateInputLayout(ve, elms, VS_Code, Elms(VS_Code), &vf));
    return false;
@@ -272,7 +274,7 @@ void VtxFormatGL::enableSet()C
 void VtxFormatGL::bind(C VtxBuf &vb) // this is called only on the main thread
 {
    // VAO
-#if GL_LOCK
+#if GPU_LOCK
    SyncLocker lock(D._lock);
 #endif
    if(!vao)
@@ -371,16 +373,17 @@ VtxBuf& VtxBuf::del()
    unlock();
    if(_buf)
    {
-   #if GL_LOCK // lock not needed for DX11 'Release'
-      SafeSyncLocker lock(D._lock);
+   #if GPU_LOCK // lock not needed for 'Release'
+      SafeSyncLocker lock(D._lock); if(_buf)
    #endif
-
-	#if DX11
-      if(D.created())_buf->Release();
-   #elif GL
-      if(D.created())glDeleteBuffers(1, &_buf);
-      if(!IsMap(_dynamic))Free(_data);
-   #endif
+      {
+	   #if DX11
+         if(D.created())_buf->Release();
+      #elif GL
+         if(D.created())glDeleteBuffers(1, &_buf);
+         if(!IsMap(_dynamic))Free(_data);
+      #endif
+      }
    }
    Zero(T); return T;
 }
@@ -389,16 +392,17 @@ IndBuf& IndBuf::del()
    unlock();
    if(_buf)
    {
-   #if GL_LOCK // lock not needed for DX11 'Release'
-      SafeSyncLocker lock(D._lock);
+   #if GPU_LOCK // lock not needed for 'Release'
+      SafeSyncLocker lock(D._lock); if(_buf)
    #endif
-
-   #if DX11
-      if(D.created())_buf->Release();
-   #elif GL
-      if(D.created())glDeleteBuffers(1, &_buf);
-      if(!IsMap(_dynamic))Free(_data);
-   #endif
+      {
+      #if DX11
+         if(D.created())_buf->Release();
+      #elif GL
+         if(D.created())glDeleteBuffers(1, &_buf);
+         if(!IsMap(_dynamic))Free(_data);
+      #endif
+      }
    }
    Zero(T); return T;
 }
@@ -412,7 +416,7 @@ Bool VtxBuf::createRaw(Int memory_size, Bool dynamic, CPtr data)
 
    if(memory_size<=0){del(); return !memory_size;}
 
-#if GL_LOCK // lock not needed for DX11 'D3D'
+#if GPU_LOCK // lock not needed for 'D3D'
    SyncLocker locker(D._lock);
 #endif
 
@@ -460,7 +464,7 @@ Bool IndBuf::create(Int indexes, Bool bit16, Bool dynamic, CPtr data)
 
    if(indexes<=0){del(); return !indexes;}
 
-#if GL_LOCK // lock not needed for DX11 'D3D'
+#if GPU_LOCK // lock not needed for 'D3D'
    SyncLocker locker(D._lock);
 #endif
 

@@ -54,7 +54,7 @@
 
    #define GL_ES (GL && (IOS || ANDROID || WEB))
 
-   #define GL_LOCK (GL && 0) // if surround all GL calls with a lock
+   #define GPU_LOCK 0 // if force using a lock around GPU API calls (this shouldn't be needed)
 
    #define SLOW_SHADER_LOAD GL // Only OpenGL has slow shader loads because it compiles on the fly from text instead of binary
 

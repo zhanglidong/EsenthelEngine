@@ -113,7 +113,9 @@ static struct ovrTexture
       desc.SampleDesc.Count  =1;
       desc.SampleDesc.Quality=0;
       desc.ArraySize         =1;
-    //SyncLockerEx locker(D._lock); lock not needed for DX11 'D3D'
+   #if GPU_LOCK // lock not needed for 'D3D'
+      SyncLocker locker(D._lock);
+   #endif
       if(ovr_CreateSwapTextureSetD3D11(OculusRift._session, D3D, &desc, ovrSwapTextureSetD3D11_Typeless, &texture_set)==ovrSuccess)
       {
          if  (texture_set->TextureCount>Elms(rtv))Exit("Oculus Rift Swap Chain has too many textures");
