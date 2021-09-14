@@ -2330,7 +2330,15 @@ void DisplayClass::flip()
          static Bool showed=false; if(!showed) // check if not yet showed, because this can be called on another thread, while the main thread already started 'DrawState', which would then call this again, and show the message box 2 times
          {
             showed=true;
-            OSMsgBox("Error", "DirectX Device lost, please restart application.", true);
+            Str msg="DirectX Device lost: ";
+            switch(present)
+            {
+               case DXGI_ERROR_DEVICE_RESET  : msg+="DXGI_ERROR_DEVICE_RESET"  ; break;
+               case DXGI_ERROR_DEVICE_REMOVED: msg+="DXGI_ERROR_DEVICE_REMOVED"; break;
+               default                       : msg+=TextHex(Unsigned(present)) ; break;
+            }
+            msg+=", please restart application."; 
+            OSMsgBox("Error", msg, true);
             StateExit.set();
          }
       }
