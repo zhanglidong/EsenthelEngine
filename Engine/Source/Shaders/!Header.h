@@ -1674,15 +1674,15 @@ VecH2 GetLeafBend(VecH center, Bool prev=false)
 {
    VecH4 bend_factor=(prev ? BendFactorPrev : BendFactor);
    Half  offset=Dot(center.xy, VecH2(0.7, 0.8)*LeafBendFreq);
-   return VecH2((1.0*LeafBendScale)*(Half)Sin(offset+bend_factor.x) + (1.0*LeafBendScale)*(Half)Sin(offset+bend_factor.y),
-                (1.0*LeafBendScale)*(Half)Sin(offset+bend_factor.z) + (1.0*LeafBendScale)*(Half)Sin(offset+bend_factor.w));
+   return VecH2((1.0*LeafBendScale)*Sin(offset+bend_factor.x) + (1.0*LeafBendScale)*Sin(offset+bend_factor.y),
+                (1.0*LeafBendScale)*Sin(offset+bend_factor.z) + (1.0*LeafBendScale)*Sin(offset+bend_factor.w));
 }
 VecH2 GetLeafsBend(VecH center, Bool prev=false)
 {
    VecH4 bend_factor=(prev ? BendFactorPrev : BendFactor);
    Half  offset=Dot(center.xy, VecH2(0.7, 0.8)*LeafBendFreq);
-   return VecH2((1.0*LeafsBendScale)*(Half)Sin(offset+bend_factor.x) + (1.0*LeafsBendScale)*(Half)Sin(offset+bend_factor.y),
-                (1.0*LeafsBendScale)*(Half)Sin(offset+bend_factor.z) + (1.0*LeafsBendScale)*(Half)Sin(offset+bend_factor.w));
+   return VecH2((1.0*LeafsBendScale)*Sin(offset+bend_factor.x) + (1.0*LeafsBendScale)*Sin(offset+bend_factor.y),
+                (1.0*LeafsBendScale)*Sin(offset+bend_factor.z) + (1.0*LeafsBendScale)*Sin(offset+bend_factor.w));
 }
 /******************************************************************************/
 Half GrassFadeOut(UInt mtrx=0)
