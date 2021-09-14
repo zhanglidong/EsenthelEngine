@@ -156,8 +156,7 @@
 #define MS_SAMPLES 4 // number of samples in multi-sampled render targets
 
 // signed formats in GL depend on "GL_EXT_render_snorm"
-#define SIGNED_NRM_RT 0 // if Normal     Render Target  is  signed, never because we use IMAGE_R10G10B10A2 which is unsigned
-#define SIGNED_MTN_RT 0 // if MotionBlur Render Targets are signed, never because we use IMAGE_R10G10B10A2 which is unsigned
+#define SIGNED_NRM_RT 0 // if Normal Render Target is signed, never because we use IMAGE_R10G10B10A2 which is unsigned
 
 #define REVERSE_DEPTH (!GL) // if Depth Buffer is reversed. Can't enable on GL because for some reason (might be related to #glClipControl) it disables far-plane depth clipping, which can be observed when using func=FUNC_ALWAYS inside 'D.depthFunc'. Even though we clear the depth buffer, there may still be performance hit, because normally geometry would already get clipped due to far plane, but without it, per-pixel depth tests need to be performed.
 #if     REVERSE_DEPTH
