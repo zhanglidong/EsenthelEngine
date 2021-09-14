@@ -20,12 +20,12 @@ namespace EE{
 const Half HalfZero=false, HalfOne=true;
 const Int PrimeNumbers[16]={2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53};
 /******************************************************************************/
-Bool Special(C Flt &r) {UInt *d=(UInt*)&r; return (d[0]&0x7F800000)==0x7F800000         ;} // all exponent bits are on
-Bool Special(C Dbl &r) {UInt *d=(UInt*)&r; return (d[1]&0x7FF00000)==0x7FF00000         ;} // all exponent bits are on
-Bool NaN    (C Flt &r) {UInt *d=(UInt*)&r; return Special(r) &&  (d[0]&0x7FFFFF        );} // significand!=0
-Bool Inf    (C Flt &r) {UInt *d=(UInt*)&r; return Special(r) && !(d[0]&0x7FFFFF        );} // significand==0
-Bool NaN    (C Dbl &r) {UInt *d=(UInt*)&r; return Special(r) &&  (d[1]&0x0FFFFF || d[0]);} // significand!=0
-Bool Inf    (C Dbl &r) {UInt *d=(UInt*)&r; return Special(r) && !(d[1]&0x0FFFFF || d[0]);} // significand==0
+Bool Special(C Flt &r) {UInt  *u=(UInt *)&r; return (u[0]&0x7F800000        )==0x7F800000        ;} // all exponent bits are on
+Bool Special(C Dbl &r) {UInt  *u=(UInt *)&r; return (u[1]&0x7FF00000        )==0x7FF00000        ;} // all exponent bits are on
+Bool NaN    (C Flt &r) {UInt  *u=(UInt *)&r; return (u[0]&0x7FFFFFFF        )> 0x7F800000        ;}
+Bool Inf    (C Flt &r) {UInt  *u=(UInt *)&r; return (u[0]&0x7FFFFFFF        )==0x7F800000        ;}
+Bool NaN    (C Dbl &r) {ULong *u=(ULong*)&r; return (u[0]&0x7FFFFFFFFFFFFFFF)> 0x7FF0000000000000;}
+Bool Inf    (C Dbl &r) {ULong *u=(ULong*)&r; return (u[0]&0x7FFFFFFFFFFFFFFF)==0x7FF0000000000000;}
 /******************************************************************************/
 Vec2  ScaleFactor(C Vec2  &vec) {return Vec2 (ScaleFactor(vec.x), ScaleFactor(vec.y));}
 VecD2 ScaleFactor(C VecD2 &vec) {return VecD2(ScaleFactor(vec.x), ScaleFactor(vec.y));}

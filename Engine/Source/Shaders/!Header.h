@@ -544,6 +544,16 @@ VecH2 HALF(Vec2 x) {return f16tof32(f32tof16(x));}
 VecH  HALF(Vec  x) {return f16tof32(f32tof16(x));}
 VecH4 HALF(Vec4 x) {return f16tof32(f32tof16(x));}
 
+// have to use custom functions because DX compiler might optimize-away default 'isnan' and 'isinf'
+Bool  NaN(Flt  x) {return (asuint(x)&0x7FFFFFFF)> 0x7F800000;}
+Bool  Inf(Flt  x) {return (asuint(x)&0x7FFFFFFF)==0x7F800000;}
+bool2 NaN(Vec2 x) {return bool2(NaN(x.x), NaN(x.y));}
+bool2 Inf(Vec2 x) {return bool2(Inf(x.x), Inf(x.y));}
+bool3 NaN(Vec  x) {return bool3(NaN(x.x), NaN(x.y), NaN(x.z));}
+bool3 Inf(Vec  x) {return bool3(Inf(x.x), Inf(x.y), Inf(x.z));}
+bool4 NaN(Vec4 x) {return bool4(NaN(x.x), NaN(x.y), NaN(x.z), NaN(x.w));}
+bool4 Inf(Vec4 x) {return bool4(Inf(x.x), Inf(x.y), Inf(x.z), Inf(x.w));}
+
 Int   Min(Int   x, Int   y                  ) {return min(x, y);}
 Half  Min(Half  x, Half  y                  ) {return min(x, y);}
 Half  Min(Bool  x, Half  y                  ) {return min(x, y);}
