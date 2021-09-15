@@ -369,7 +369,7 @@ MeshBase& MeshBase::setTanBin()
          if(set_tan)
          {
             Vec &tan=vtx.tan(i);
-            if(vtx.nrm())tan=PointOnPlane(tan, vtx.nrm(i)); // put on normal plane, this is needed for some models that have smooth vtx normals, but achieve flat surfaces due to normal maps, this is also needed to make sure that 'tan' will be different from 'nrm' and thus valid non-zero 'bin' can be generated out of the pair (in order to avoid zero which might generate NaN in the shader)
+            if(vtx.nrm())tan=PointOnPlane(tan, vtx.nrm(i)); // put on normal plane, this is needed for some models that have smooth vtx normals, but achieve flat surfaces due to normal maps, this is also needed to make sure that 'tan' will be perpendicular to 'nrm' and thus valid non-zero 'bin' can be generated out of the pair (in order to avoid zero which might generate NaN in the shader)
             if(!tan.normalize()) // !! valid non-zero tangent must be set because otherwise NaN might get generated in the shader due to normalization of zero vectors !!
             {
                if(vtx.nrm())tan=PerpN(vtx.nrm(i));
