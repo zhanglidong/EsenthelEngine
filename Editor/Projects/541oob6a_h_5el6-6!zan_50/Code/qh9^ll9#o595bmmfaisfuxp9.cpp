@@ -24,7 +24,7 @@ bool Init()
 
    // create holographic image
    int size=64;
-   image.create(size, size, size, IMAGE_R8G8B8A8_SRGB, IMAGE_3D, 1); // size x size x size dimensions, IMAGE_R8G8B8A8_SRGB type, 3D mode, 1 mip map
+   image.mustCreate(size, size, size, IMAGE_R8G8B8A8_SRGB, IMAGE_3D, 1); // size x size x size dimensions, IMAGE_R8G8B8A8_SRGB type, 3D mode, 1 mip map
    if(image.lock()) // start manual pixel editing
    {
       REPD(z, image.d())
