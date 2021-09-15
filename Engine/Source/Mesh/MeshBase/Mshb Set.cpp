@@ -2,10 +2,6 @@
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
-#define DEFAULT_NRM 0, 1,  0
-#define DEFAULT_TAN 1, 0,  0
-#define DEFAULT_BIN 0, 0, -1 // Cross(Vec(DEFAULT_NRM), Vec(DEFAULT_TAN))
-/******************************************************************************/
 // GET
 /******************************************************************************/
 Int MeshBase::maxID()C
@@ -206,7 +202,7 @@ MeshBase& MeshBase::setNormals()
    REPA(vtx)vtx.nrm(i)=vtx_qm[i].normal(vtx.pos(i)+offset); // <- here we would have to use some offset because normal at the surface is not precise, best offset is vtx.nrm which we're trying to calculate
 */
 
-   REPA(vtx){Vec &nrm=vtx.nrm(i); if(!nrm.normalize())nrm.set(DEFAULT_NRM);} // !! valid non-zero normal must be set because otherwise NaN might get generated in the shader due to normalization of zero vectors !!
+   REPA(vtx){Vec &nrm=vtx.nrm(i); if(!nrm.normalize())nrm.set(DEFAULT_VTX_NRM);} // !! valid non-zero normal must be set because otherwise NaN might get generated in the shader due to normalization of zero vectors !!
    if(vtx.dup())REPA(vtx)vtx.nrm(i)=vtx.nrm(vtx.dup(i));
    return T;
 }
@@ -260,7 +256,7 @@ MeshBase& MeshBase::setNormalsAuto(Flt angle, Flt pos_eps)
       }
    } // <- releases temp memory
 
-   REPA(vtx){Vec &nrm=vtx.nrm(i); if(!nrm.normalize())nrm.set(DEFAULT_NRM);} // !! valid non-zero normal must be set because otherwise NaN might get generated in the shader due to normalization of zero vectors !!
+   REPA(vtx){Vec &nrm=vtx.nrm(i); if(!nrm.normalize())nrm.set(DEFAULT_VTX_NRM);} // !! valid non-zero normal must be set because otherwise NaN might get generated in the shader due to normalization of zero vectors !!
 
    return T;
 }
@@ -377,7 +373,7 @@ MeshBase& MeshBase::setTanBin()
             if(!tan.normalize()) // !! valid non-zero tangent must be set because otherwise NaN might get generated in the shader due to normalization of zero vectors !!
             {
                if(vtx.nrm())tan=PerpN(vtx.nrm(i));
-               else         tan.set(DEFAULT_TAN);
+               else         tan.set(DEFAULT_VTX_TAN);
             }
          }
          if(set_bin)
@@ -387,7 +383,7 @@ MeshBase& MeshBase::setTanBin()
                if(vtx.nrm() && vtx.tan())bin=CrossN(vtx.nrm(i), vtx.tan(i));else
                if(vtx.nrm()             )bin= PerpN(vtx.nrm(i)            );else
                if(             vtx.tan())bin= PerpN(            vtx.tan(i));else
-                                         bin.set(DEFAULT_BIN);
+                                         bin.set(DEFAULT_VTX_BIN);
             }
          }
       }

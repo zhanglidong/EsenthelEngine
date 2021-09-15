@@ -576,6 +576,10 @@ struct MeshBaseIndex : MeshBase
 {
    Int index;
 };
+
+#define DEFAULT_VTX_NRM 0, 1,  0 // value was chosen to point up, so if object is viewed from all ground sides (left/right/front/back) it will have same relative normal
+#define DEFAULT_VTX_TAN 1, 0,  0
+#define DEFAULT_VTX_BIN 0, 0, -1 // Cross(Vec(DEFAULT_VTX_NRM), Vec(DEFAULT_VTX_TAN))
 #endif
 /******************************************************************************/
 inline Int Elms(C MeshVtxs  &vtx ) {return vtx .elms();}
