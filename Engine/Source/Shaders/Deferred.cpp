@@ -242,8 +242,8 @@ void VS
 /******************************************************************************/
 // PS
 /******************************************************************************/
-//Half Pixels(VecH2 uv, Vec2 ImgSize, Flt lod) {return  Length(uv*ImgSize) /exp2(lod);} // how many pixels, Pow(2, lod)=exp2(lod)
-  Half Pixels(VecH2 uv, Vec2 ImgSize, Flt lod) {return Max(Abs(uv*ImgSize))/exp2(lod);} // how many pixels, Pow(2, lod)=exp2(lod)
+//Half Pixels(VecH2 uv, Vec2 ImgSize, Flt lod) {return  Length(uv*ImgSize) /exp2(lod);} // how many pixels, exp2(lod)=Pow(2, lod)
+  Half Pixels(VecH2 uv, Vec2 ImgSize, Flt lod) {return Max(Abs(uv*ImgSize))/exp2(lod);} // how many pixels, exp2(lod)=Pow(2, lod)
 
 void PS
 (
