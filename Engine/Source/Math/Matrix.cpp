@@ -767,7 +767,7 @@ void Matrix::mulTimes(Int n, C Matrix &matrix, Matrix &dest)C
             dest.orn()=T.orn();
             dest.pos  =T.pos+matrix.pos*n;
          }else
-         if(!matrix.pos.any() && Equal(matrix.scale2(), VecOne)) // no position and no scale - we can just rotate by "n*angle"
+         if(matrix.pos.allZero() && Equal(matrix.scale2(), VecOne)) // no position and no scale - we can just rotate by "n*angle"
          {
             Vec axis; Flt angle=matrix.axisAngle(axis);
             Matrix matrix_n; matrix_n.setRotate(axis, angle*n);
@@ -798,7 +798,7 @@ void Matrix::mulTimes(Int n, C RevMatrix &matrix, Matrix &dest)C
             dest.orn()=T.orn();
             dest.pos  =T.pos+(matrix.pos*n)*T.orn();
          }else
-         if(!matrix.pos.any() && Equal(matrix.scale2(), VecOne)) // no position and no scale - we can just rotate by "n*angle"
+         if(matrix.pos.allZero() && Equal(matrix.scale2(), VecOne)) // no position and no scale - we can just rotate by "n*angle"
          {
             Vec axis; Flt angle=matrix.axisAngle(axis);
             RevMatrix matrix_n; matrix_n.setRotate(axis, angle*n);

@@ -27,13 +27,17 @@ struct BlendState
    {
       if(state)
       {
-       //SyncLocker locker(D._lock); if(state) lock not needed for DX11 'Release'
+      #if GPU_LOCK // lock not needed for 'Release'
+         SyncLocker locker(D._lock); if(state)
+      #endif
             {if(D.created())state->Release(); state=null;}
       }
    }
    void create(D3D11_BLEND_DESC &desc)
    {
-    //SyncLocker locker(D._lock); lock not needed for DX11 'D3D'
+   #if GPU_LOCK // lock not needed for 'D3D'
+      SyncLocker locker(D._lock);
+   #endif
       del();
       if(D3D && OK(D3D->CreateBlendState(&desc, &state)))return;
       Exit("Can't create a Blend State");
@@ -54,13 +58,17 @@ struct DepthState
    {
       if(state)
       {
-       //SyncLocker locker(D._lock); if(state) lock not needed for DX11 'Release'
+      #if GPU_LOCK // lock not needed for 'Release'
+         SyncLocker locker(D._lock); if(state)
+      #endif
             {if(D.created())state->Release(); state=null;}
       }
    }
    void create(D3D11_DEPTH_STENCIL_DESC &desc)
    {
-    //SyncLocker locker(D._lock); lock not needed for DX11 'D3D'
+   #if GPU_LOCK // lock not needed for 'D3D'
+      SyncLocker locker(D._lock);
+   #endif
       del();
       if(D3D && OK(D3D->CreateDepthStencilState(&desc, &state)))return;
       Exit("Can't create a DepthStencil State");
@@ -81,13 +89,17 @@ struct RasterizerState
    {
       if(state)
       {
-       //SyncLocker locker(D._lock); if(state) lock not needed for DX11 'Release'
+      #if GPU_LOCK // lock not needed for 'Release'
+         SyncLocker locker(D._lock); if(state)
+      #endif
             {if(D.created())state->Release(); state=null;}
       }
    }
    void create(D3D11_RASTERIZER_DESC &desc)
    {
-    //SyncLocker locker(D._lock); lock not needed for DX11 'D3D'
+   #if GPU_LOCK // lock not needed for 'D3D'
+      SyncLocker locker(D._lock);
+   #endif
       del();
       if(D3D && OK(D3D->CreateRasterizerState(&desc, &state)))return;
       Exit("Can't create a Rasterizer State");

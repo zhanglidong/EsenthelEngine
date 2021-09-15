@@ -386,13 +386,15 @@ void ShaderSampler::del()
 #if DX11
    if(state)
    {
-    //SyncLocker locker(D._lock); if(state) lock not needed for DX11 'Release'
+   #if GPU_LOCK // lock not needed for 'Release'
+      SyncLocker locker(D._lock); if(state)
+   #endif
          {if(D.created())state->Release(); state=null;} // clear while in lock
    }
 #elif GL
    if(sampler)
    {
-   #if GL_LOCK
+   #if GPU_LOCK
       SyncLocker locker(D._lock); if(sampler)
    #endif
       {
@@ -406,7 +408,7 @@ void ShaderSampler::del()
 #if GL_ES
    if(sampler_no_filter)
    {
-   #if GL_LOCK
+   #if GPU_LOCK
       SyncLocker locker(D._lock); if(sampler_no_filter)
    #endif
       {
@@ -420,7 +422,9 @@ void ShaderSampler::del()
 #if DX11
 Bool ShaderSampler::createTry(D3D11_SAMPLER_DESC &desc)
 {
- //SyncLocker locker(D._lock); lock not needed for DX11 'D3D'
+#if GPU_LOCK // lock not needed for 'D3D'
+   SyncLocker locker(D._lock);
+#endif
    del();
    if(D3D)D3D->CreateSamplerState(&desc, &state);
    return state!=null;
@@ -487,20 +491,21 @@ void ShaderBuffer::Buffer::del()
 {
    if(buffer)
    {
-   #if GL_LOCK // lock not needed for DX11 'Release'
-      SafeSyncLocker lock(D._lock);
+   #if GPU_LOCK // lock not needed for 'Release'
+      SafeSyncLocker lock(D._lock); if(buffer)
    #endif
-
-      if(D.created())
       {
-      #if DX11
-         buffer->Release();
-      #elif GL
-         glDeleteBuffers(1, &buffer);
-      #endif
-      }
+         if(D.created())
+         {
+         #if DX11
+            buffer->Release();
+         #elif GL
+            glDeleteBuffers(1, &buffer);
+         #endif
+         }
       
-      buffer=GPU_API(null, 0);
+         buffer=GPU_API(null, 0);
+      }
    }
    size=0;
 }
@@ -508,7 +513,7 @@ void ShaderBuffer::Buffer::create(Int size)
 {
  //if(T.size!=size) can't check for this, because buffers can be dynamically resized
    {
-   #if GL_LOCK // lock not needed for DX11 'D3D'
+   #if GPU_LOCK // lock not needed for 'D3D'
       SyncLocker locker(D._lock);
    #endif
 
@@ -1067,28 +1072,35 @@ void ShaderParam::setSafe(C Vec4 &v) {setChanged(); CopyFast(_data, &v, Min(_gpu
 // SHADERS
 /******************************************************************************/
 #if DX11
-// lock not needed for DX11 'Release'
-ShaderVS11::~ShaderVS11() {if(vs){/*SyncLocker locker(D._lock); if(vs)*/{if(D.created())vs->Release(); vs=null;}}} // clear while in lock
-ShaderHS11::~ShaderHS11() {if(hs){/*SyncLocker locker(D._lock); if(hs)*/{if(D.created())hs->Release(); hs=null;}}} // clear while in lock
-ShaderDS11::~ShaderDS11() {if(ds){/*SyncLocker locker(D._lock); if(ds)*/{if(D.created())ds->Release(); ds=null;}}} // clear while in lock
-ShaderPS11::~ShaderPS11() {if(ps){/*SyncLocker locker(D._lock); if(ps)*/{if(D.created())ps->Release(); ps=null;}}} // clear while in lock
-ShaderCS11::~ShaderCS11() {if(cs){/*SyncLocker locker(D._lock); if(cs)*/{if(D.created())cs->Release(); cs=null;}}} // clear while in lock
+#if GPU_LOCK
+ShaderVS11::~ShaderVS11() {if(vs){SyncLocker locker(D._lock); if(vs){if(D.created())vs->Release(); vs=null;}}} // clear while in lock
+ShaderHS11::~ShaderHS11() {if(hs){SyncLocker locker(D._lock); if(hs){if(D.created())hs->Release(); hs=null;}}} // clear while in lock
+ShaderDS11::~ShaderDS11() {if(ds){SyncLocker locker(D._lock); if(ds){if(D.created())ds->Release(); ds=null;}}} // clear while in lock
+ShaderPS11::~ShaderPS11() {if(ps){SyncLocker locker(D._lock); if(ps){if(D.created())ps->Release(); ps=null;}}} // clear while in lock
+ShaderCS11::~ShaderCS11() {if(cs){SyncLocker locker(D._lock); if(cs){if(D.created())cs->Release(); cs=null;}}} // clear while in lock
+#else // lock not needed for 'Release'
+ShaderVS11::~ShaderVS11() {if(vs){if(D.created())vs->Release(); vs=null;}}
+ShaderHS11::~ShaderHS11() {if(hs){if(D.created())hs->Release(); hs=null;}}
+ShaderDS11::~ShaderDS11() {if(ds){if(D.created())ds->Release(); ds=null;}}
+ShaderPS11::~ShaderPS11() {if(ps){if(D.created())ps->Release(); ps=null;}}
+ShaderCS11::~ShaderCS11() {if(cs){if(D.created())cs->Release(); cs=null;}}
 #endif
-
-#if GL_LOCK
-ShaderSubGL::~ShaderSubGL() {if(shader){SyncLocker locker(D._lock); if(D.created())glDeleteShader(shader); shader=0;}} // clear while in lock
 #elif GL
+#if GPU_LOCK
+ShaderSubGL::~ShaderSubGL() {if(shader){SyncLocker locker(D._lock); if(D.created())glDeleteShader(shader); shader=0;}} // clear while in lock
+#else
 ShaderSubGL::~ShaderSubGL() {if(shader){if(D.created())glDeleteShader(shader); shader=0;}} // clear while in lock
+#endif
 #endif
 
 #if DX11
-// lock not needed for DX11 'D3D', however we need a lock because this may get called from multiple threads at the same time, but we can use another lock to allow processing during rendering (when D._lock is locked)
+// lock not needed for 'D3D', however we need a lock because this may get called from multiple threads at the same time, but we can use another lock to allow processing during rendering (when D._lock is locked)
 static SyncLock ShaderLock; // use custom lock instead of 'D._lock' to allow shader creation while rendering
-ID3D11VertexShader * ShaderVS11::create() {if(!vs && elms()){SyncLocker locker(ShaderLock); if(!vs && elms() && D3D){D3D->CreateVertexShader (data(), elms(), null, &vs); clean();}} return vs;}
-ID3D11HullShader   * ShaderHS11::create() {if(!hs && elms()){SyncLocker locker(ShaderLock); if(!hs && elms() && D3D){D3D->CreateHullShader   (data(), elms(), null, &hs); clean();}} return hs;}
-ID3D11DomainShader * ShaderDS11::create() {if(!ds && elms()){SyncLocker locker(ShaderLock); if(!ds && elms() && D3D){D3D->CreateDomainShader (data(), elms(), null, &ds); clean();}} return ds;}
-ID3D11PixelShader  * ShaderPS11::create() {if(!ps && elms()){SyncLocker locker(ShaderLock); if(!ps && elms() && D3D){D3D->CreatePixelShader  (data(), elms(), null, &ps); clean();}} return ps;}
-ID3D11ComputeShader* ShaderCS11::create() {if(!cs && elms()){SyncLocker locker(ShaderLock); if(!cs && elms() && D3D){D3D->CreateComputeShader(data(), elms(), null, &cs); clean();}} return cs;}
+ID3D11VertexShader * ShaderVS11::create() {if(!vs && elms()){SyncLocker locker(GPU_LOCK ? D._lock : ShaderLock); if(!vs && elms() && D3D){D3D->CreateVertexShader (data(), elms(), null, &vs); clean();}} return vs;}
+ID3D11HullShader   * ShaderHS11::create() {if(!hs && elms()){SyncLocker locker(GPU_LOCK ? D._lock : ShaderLock); if(!hs && elms() && D3D){D3D->CreateHullShader   (data(), elms(), null, &hs); clean();}} return hs;}
+ID3D11DomainShader * ShaderDS11::create() {if(!ds && elms()){SyncLocker locker(GPU_LOCK ? D._lock : ShaderLock); if(!ds && elms() && D3D){D3D->CreateDomainShader (data(), elms(), null, &ds); clean();}} return ds;}
+ID3D11PixelShader  * ShaderPS11::create() {if(!ps && elms()){SyncLocker locker(GPU_LOCK ? D._lock : ShaderLock); if(!ps && elms() && D3D){D3D->CreatePixelShader  (data(), elms(), null, &ps); clean();}} return ps;}
+ID3D11ComputeShader* ShaderCS11::create() {if(!cs && elms()){SyncLocker locker(GPU_LOCK ? D._lock : ShaderLock); if(!cs && elms() && D3D){D3D->CreateComputeShader(data(), elms(), null, &cs); clean();}} return cs;}
 #elif GL
 CChar8* GLSLVersion()
 {
@@ -1110,7 +1122,7 @@ UInt ShaderSubGL::create(UInt gl_type, Str *messages)
 {
    if(!shader && elms())
    {
-      SyncLocker locker(GL_LOCK ? D._lock : ShaderLock);
+      SyncLocker locker(GPU_LOCK ? D._lock : ShaderLock);
       if(!shader && elms())
       {
          CPtr data; Int size;
@@ -1188,7 +1200,9 @@ ALIGN_ASSERT(ComputeShader11, cs);
    /* can't release 'vs,hs,ds,ps' shaders since they're just copies from 'Shader*11'
    if(D.created())
    {
-    //SyncLocker locker(D._lock); lock not needed for DX11 'Release'
+   #if GPU_LOCK // lock not needed for 'Release'
+      SyncLocker locker(D._lock);
+   #endif
       if(vs)vs->Release();
       if(hs)hs->Release();
       if(ds)ds->Release();
@@ -1200,7 +1214,9 @@ ComputeShader11::~ComputeShader11()
    /* can't release 'cs' shaders since they're just copies from 'Shader*11'
    if(D.created())
    {
-    //SyncLocker locker(D._lock); lock not needed for DX11 'Release'
+   #if GPU_LOCK // lock not needed for 'Release'
+      SyncLocker locker(D._lock);
+   #endif
       if(cs)cs->Release();
    }*
 }*/
@@ -1472,7 +1488,7 @@ ShaderGL::~ShaderGL()
 {
    if(prog)
    {
-   #if GL_LOCK
+   #if GPU_LOCK
       SyncLocker locker(D._lock);
    #endif
       if(D.created())glDeleteProgram(prog); prog=0; // clear while in lock
@@ -1483,7 +1499,7 @@ ComputeShaderGL::~ComputeShaderGL()
 {
    if(prog)
    {
-   #if GL_LOCK
+   #if GPU_LOCK
       SyncLocker locker(D._lock);
    #endif
       if(D.created())glDeleteProgram(prog); prog=0; // clear while in lock
@@ -1770,7 +1786,7 @@ static void GetProgramUniforms(UInt prog, MemtN<SamplerImageLink, 256> &images, 
 Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function should be multi-threaded safe
 {
    if(prog || !D.created())return true; // needed for APP_ALLOW_NO_GPU/APP_ALLOW_NO_XDISPLAY, skip shader compilation if we don't need it (this is because compiling shaders on Linux with no GPU can exit the app with a message like "Xlib:  extension "XFree86-VidModeExtension" missing on display ":99".")
-   SyncLocker locker(GL_LOCK ? D._lock : ShaderLock);
+   SyncLocker locker(GPU_LOCK ? D._lock : ShaderLock);
    if(!prog)
       if(UInt prog=compile(shader._vs, shader._ps, &shader, messages)) // create into temp var first and set to this only after fully initialized
    {
@@ -1789,7 +1805,7 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
 Bool ComputeShaderGL::validate(ShaderFile &shader, Str *messages) // this function should be multi-threaded safe
 {
    if(prog || !D.created())return true; // needed for APP_ALLOW_NO_GPU/APP_ALLOW_NO_XDISPLAY, skip shader compilation if we don't need it (this is because compiling shaders on Linux with no GPU can exit the app with a message like "Xlib:  extension "XFree86-VidModeExtension" missing on display ":99".")
-   SyncLocker locker(GL_LOCK ? D._lock : ShaderLock);
+   SyncLocker locker(GPU_LOCK ? D._lock : ShaderLock);
    if(!prog)
       if(UInt prog=compile(shader._cs, &shader, messages)) // create into temp var first and set to this only after fully initialized
    {

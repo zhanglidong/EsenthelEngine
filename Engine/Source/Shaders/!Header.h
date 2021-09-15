@@ -156,8 +156,7 @@
 #define MS_SAMPLES 4 // number of samples in multi-sampled render targets
 
 // signed formats in GL depend on "GL_EXT_render_snorm"
-#define SIGNED_NRM_RT 0 // if Normal     Render Target  is  signed, never because we use IMAGE_R10G10B10A2 which is unsigned
-#define SIGNED_MTN_RT 0 // if MotionBlur Render Targets are signed, never because we use IMAGE_R10G10B10A2 which is unsigned
+#define SIGNED_NRM_RT 0 // if Normal Render Target is signed, never because we use IMAGE_R10G10B10A2 which is unsigned
 
 #define REVERSE_DEPTH (!GL) // if Depth Buffer is reversed. Can't enable on GL because for some reason (might be related to #glClipControl) it disables far-plane depth clipping, which can be observed when using func=FUNC_ALWAYS inside 'D.depthFunc'. Even though we clear the depth buffer, there may still be performance hit, because normally geometry would already get clipped due to far plane, but without it, per-pixel depth tests need to be performed.
 #if     REVERSE_DEPTH
@@ -428,6 +427,8 @@ BUFFER_END
 /******************************************************************************/
 BUFFER_I(Frame, SBI_FRAME) // once per-frame
    Vec4  ClipPlane=Vec4(0, 0, 0, 1); // clipping plane
+   Vec4  BendFactor                ; // factors used for grass/leaf bending calculation
+   Vec4  BendFactorPrev            ; // factors used for grass/leaf bending calculation (for previous frame)
    VecI2 NoiseOffset               ; // per-frame texture noise offset
    Vec2  GrassRangeMulAdd          ; // factors used for grass opacity calculation
    Flt   TesselationDensity        ; // tesselation density
@@ -436,8 +437,6 @@ BUFFER_I(Frame, SBI_FRAME) // once per-frame
    Half  AspectRatio               ; // converts UV to Screen aspect ratio
    VecH  EnvColor                  ; // environment map color
    Half  EnvMipMaps                ; // environment map mip-maps
-   VecH4 BendFactor                ; // factors used for grass/leaf bending calculation
-   VecH4 BendFactorPrev            ; // factors used for grass/leaf bending calculation (for previous frame)
 BUFFER_END
 
 BUFFER_I(Camera, SBI_CAMERA) // this gets changed when drawing shadow maps
@@ -544,6 +543,16 @@ Half  HALF(Flt  x) {return f16tof32(f32tof16(x));}
 VecH2 HALF(Vec2 x) {return f16tof32(f32tof16(x));}
 VecH  HALF(Vec  x) {return f16tof32(f32tof16(x));}
 VecH4 HALF(Vec4 x) {return f16tof32(f32tof16(x));}
+
+// have to use custom functions because DX compiler might optimize-away default 'isnan' and 'isinf'
+Bool  NaN(Flt  x) {return (asuint(x)&0x7FFFFFFF)> 0x7F800000;}
+Bool  Inf(Flt  x) {return (asuint(x)&0x7FFFFFFF)==0x7F800000;}
+bool2 NaN(Vec2 x) {return bool2(NaN(x.x), NaN(x.y));}
+bool2 Inf(Vec2 x) {return bool2(Inf(x.x), Inf(x.y));}
+bool3 NaN(Vec  x) {return bool3(NaN(x.x), NaN(x.y), NaN(x.z));}
+bool3 Inf(Vec  x) {return bool3(Inf(x.x), Inf(x.y), Inf(x.z));}
+bool4 NaN(Vec4 x) {return bool4(NaN(x.x), NaN(x.y), NaN(x.z), NaN(x.w));}
+bool4 Inf(Vec4 x) {return bool4(Inf(x.x), Inf(x.y), Inf(x.z), Inf(x.w));}
 
 Int   Min(Int   x, Int   y                  ) {return min(x, y);}
 Half  Min(Half  x, Half  y                  ) {return min(x, y);}
@@ -1339,7 +1348,7 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
 #if GL || VULKAN
    // !! LOC, ATTR numbers AND list order, must be in sync with GL_VTX_SEMANTIC !!
    LOC( 0) Vec4  _pos     :ATTR0 ;
-   LOC( 1) VecH  _hlp     :ATTR1 ;
+   LOC( 1) Vec   _hlp     :ATTR1 ;
    LOC( 2) VecH  _nrm     :ATTR2 ;
    LOC( 3) VecH4 _tan     :ATTR3 ;
    LOC( 4) Vec2  _uv      :ATTR4 ;
@@ -1355,7 +1364,7 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
 #else
    // !! IF MAKING ANY CHANGE (EVEN PRECISION) THEN DON'T FORGET TO RE-CREATE 'VS_Code' FOR 'CreateInputLayout', see #VTX_INPUT_LAYOUT !!
    Vec4  _pos     :POSITION0   ;
-   VecH  _hlp     :POSITION1   ;
+   Vec   _hlp     :POSITION1   ;
    VecH  _nrm     :NORMAL      ;
    VecH4 _tan     :TANGENT     ;
    Vec2  _uv      :UV0         ;
@@ -1380,7 +1389,7 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    Vec   pos      (                                        ) {return _pos.xyz                                                              ;} // vertex position
    Vec4  pos4     (                                        ) {return _pos                                                                  ;} // vertex position in Vec4(pos.xyz, 1) format
    Flt   posZ     (                                        ) {return _pos.z                                                                ;} // vertex position Z
-   VecH  hlp      (                                        ) {return _hlp                                                                  ;} // helper position
+   Vec   hlp      (                                        ) {return _hlp                                                                  ;} // helper position
    VecH  tan      (                                        ) {return _tan.xyz                                                              ;} // helper position
    Vec2  uv       (                    Bool heightmap=false) {return heightmap ? Vec2(_pos.x, -_pos.z) : _uv                               ;} // tex coords 0
    Vec2  uv1      (                                        ) {return                                     _uv1                              ;} // tex coords 1
@@ -1665,24 +1674,24 @@ Flt GetLod(Vec2 uv, Vec2 tex_size) {Vec2 pix=uv*tex_size; return 0.5*log2(Max(Le
 /******************************************************************************/
 Vec2 GetGrassBend(Vec world_pos, Bool prev=false)
 {
-   VecH4 bend_factor=(prev ? BendFactorPrev : BendFactor);
-   Flt   offset=Dot(world_pos.xz, Vec2(0.7, 0.9)*GrassBendFreq);
+   Vec4 bend_factor=(prev ? BendFactorPrev : BendFactor);
+   Flt  offset=Dot(world_pos.xz, Vec2(0.7, 0.9)*GrassBendFreq);
    return Vec2((1.0*GrassBendScale)*Sin(offset+bend_factor.x) + (1.0*GrassBendScale)*Sin(offset+bend_factor.y),
                (1.0*GrassBendScale)*Sin(offset+bend_factor.z) + (1.0*GrassBendScale)*Sin(offset+bend_factor.w));
 }
-VecH2 GetLeafBend(VecH center, Bool prev=false)
+Vec2 GetLeafBend(Vec center, Bool prev=false)
 {
-   VecH4 bend_factor=(prev ? BendFactorPrev : BendFactor);
-   Half  offset=Dot(center.xy, VecH2(0.7, 0.8)*LeafBendFreq);
-   return VecH2((1.0*LeafBendScale)*(Half)Sin(offset+bend_factor.x) + (1.0*LeafBendScale)*(Half)Sin(offset+bend_factor.y),
-                (1.0*LeafBendScale)*(Half)Sin(offset+bend_factor.z) + (1.0*LeafBendScale)*(Half)Sin(offset+bend_factor.w));
+   Vec4 bend_factor=(prev ? BendFactorPrev : BendFactor);
+   Flt  offset=Dot(center.xy, Vec2(0.7, 0.8)*LeafBendFreq);
+   return Vec2((1.0*LeafBendScale)*Sin(offset+bend_factor.x) + (1.0*LeafBendScale)*Sin(offset+bend_factor.y),
+               (1.0*LeafBendScale)*Sin(offset+bend_factor.z) + (1.0*LeafBendScale)*Sin(offset+bend_factor.w));
 }
-VecH2 GetLeafsBend(VecH center, Bool prev=false)
+Vec2 GetLeafsBend(Vec center, Flt offset, Bool prev=false)
 {
-   VecH4 bend_factor=(prev ? BendFactorPrev : BendFactor);
-   Half  offset=Dot(center.xy, VecH2(0.7, 0.8)*LeafBendFreq);
-   return VecH2((1.0*LeafsBendScale)*(Half)Sin(offset+bend_factor.x) + (1.0*LeafsBendScale)*(Half)Sin(offset+bend_factor.y),
-                (1.0*LeafsBendScale)*(Half)Sin(offset+bend_factor.z) + (1.0*LeafsBendScale)*(Half)Sin(offset+bend_factor.w));
+   Vec4 bend_factor=(prev ? BendFactorPrev : BendFactor);
+   offset+=Dot(center.xy, Vec2(0.7, 0.8)*LeafBendFreq);
+   return Vec2((1.0*LeafsBendScale)*Sin(offset+bend_factor.x) + (1.0*LeafsBendScale)*Sin(offset+bend_factor.y),
+               (1.0*LeafsBendScale)*Sin(offset+bend_factor.z) + (1.0*LeafsBendScale)*Sin(offset+bend_factor.w));
 }
 /******************************************************************************/
 Half GrassFadeOut(UInt mtrx=0)
@@ -1733,51 +1742,53 @@ void BendGrass(Vec local_pos, inout Vec view_pos, UInt mtrx=0, Bool prev=false)
 #endif
 }
 /******************************************************************************/
-void BendLeaf(VecH center, inout Vec pos, Bool prev=false)
+// Here can't use Half's because precision was not good enough
+void BendLeaf(Vec center, inout Vec pos, Bool prev=false)
 {
-   VecH   delta=(VecH)pos-center;
+   VecH   delta=pos-center;
    VecH2  cos_sin, bend=GetLeafBend(center, prev);
    CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin);
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin);
    pos=center+delta;
 }
-void BendLeaf(VecH center, inout Vec pos, inout VecH nrm, Bool prev=false)
+void BendLeaf(Vec center, inout Vec pos, inout VecH nrm, Bool prev=false)
 {
-   VecH   delta=(VecH)pos-center;
+   VecH   delta=pos-center;
    VecH2  cos_sin, bend=GetLeafBend(center, prev);
    CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin); nrm.xy=Rotate(nrm.xy, cos_sin);
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin);
    pos=center+delta;
 }
-void BendLeaf(VecH center, inout Vec pos, inout VecH nrm, inout VecH tan, Bool prev=false)
+void BendLeaf(Vec center, inout Vec pos, inout VecH nrm, inout VecH tan, Bool prev=false)
 {
-   VecH   delta=(VecH)pos-center;
+   VecH   delta=pos-center;
    VecH2  cos_sin, bend=GetLeafBend(center, prev);
    CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin); nrm.xy=Rotate(nrm.xy, cos_sin); tan.xy=Rotate(tan.xy, cos_sin);
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin); tan.zy=Rotate(tan.zy, cos_sin);
    pos=center+delta;
 }
 /******************************************************************************/
-void BendLeafs(VecH center, Half offset, inout Vec pos, Bool prev=false)
+// Here can't use Half's because precision was not good enough
+void BendLeafs(Vec center, Flt offset, inout Vec pos, Bool prev=false)
 {
-   VecH   delta=(VecH)pos-center;
-   VecH2  cos_sin, bend=GetLeafsBend(center+offset, prev);
+   VecH   delta=pos-center;
+   VecH2  cos_sin, bend=GetLeafsBend(center, offset, prev);
    CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin);
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin);
    pos=center+delta;
 }
-void BendLeafs(VecH center, Half offset, inout Vec pos, inout VecH nrm, Bool prev=false)
+void BendLeafs(Vec center, Flt offset, inout Vec pos, inout VecH nrm, Bool prev=false)
 {
-   VecH   delta=(VecH)pos-center;
-   VecH2  cos_sin, bend=GetLeafsBend(center+offset, prev);
+   VecH   delta=pos-center;
+   VecH2  cos_sin, bend=GetLeafsBend(center, offset, prev);
    CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin); nrm.xy=Rotate(nrm.xy, cos_sin);
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin);
    pos=center+delta;
 }
-void BendLeafs(VecH center, Half offset, inout Vec pos, inout VecH nrm, inout VecH tan, Bool prev=false)
+void BendLeafs(Vec center, Flt offset, inout Vec pos, inout VecH nrm, inout VecH tan, Bool prev=false)
 {
-   VecH   delta=(VecH)pos-center;
-   VecH2  cos_sin, bend=GetLeafsBend(center+offset, prev);
+   VecH   delta=pos-center;
+   VecH2  cos_sin, bend=GetLeafsBend(center, offset, prev);
    CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin); nrm.xy=Rotate(nrm.xy, cos_sin); tan.xy=Rotate(tan.xy, cos_sin);
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin); tan.zy=Rotate(tan.zy, cos_sin);
    pos=center+delta;

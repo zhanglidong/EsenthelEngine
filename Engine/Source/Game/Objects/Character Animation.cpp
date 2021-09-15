@@ -307,7 +307,7 @@ void Chr::updateAnimation()
       Matrix3 m;
 
       // body
-      v=skel.root.orn.cross(); if(!v.any())v.x=1; CHS(v.z); // body x-axis
+      v=skel.root.orn.cross(); if(v.allZero())v.x=1; CHS(v.z); // body x-axis
       if(sac.body>=0){m.setRotate(v, body_pitch_part*-body_sign).rotateY(body_roll); skel.bones[sac.body].orn*=m;}
 
       // body_u

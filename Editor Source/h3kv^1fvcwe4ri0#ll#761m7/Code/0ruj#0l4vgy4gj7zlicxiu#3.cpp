@@ -3184,9 +3184,9 @@ bool FixVtxNrm(MeshBase &base)
          ok=true;
          REPA(base.vtx)
          {
-            Vec &nrm=base.vtx.nrm(i); if(!nrm.any()) // if any 'base' vtx normal is zero
+            Vec &nrm=base.vtx.nrm(i); if(nrm.allZero()) // if any 'base' vtx normal is zero
             {
-               nrm=temp.vtx.nrm(i); if(!nrm.any())ok=false; // copy from 'temp'
+               nrm=temp.vtx.nrm(i); if(nrm.allZero())ok=false; // copy from 'temp'
             }
          }
       }
