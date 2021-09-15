@@ -364,7 +364,7 @@ void GUI::update()
    // mouse description
    if(_desc!=ms()) // if there is a new object under mouse than previous description
    {
-      if(!Ms.pixelDelta().any())_desc=null;else // set it only if we've moved the mouse (to eliminate showing description by elements activated with keyboard, touch or programatically)
+      if(Ms.pixelDelta().allZero())_desc=null;else // set it only if we've moved the mouse (to eliminate showing description by elements activated with keyboard, touch or programatically)
       {
         _desc     =ms();
         _desc_time=Time.appTime();
