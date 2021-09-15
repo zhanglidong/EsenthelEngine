@@ -2,6 +2,10 @@
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
+#define DEFAULT_NRM 0, 1,  0
+#define DEFAULT_TAN 1, 0,  0
+#define DEFAULT_BIN 0, 0, -1 // Cross(Vec(DEFAULT_NRM), Vec(DEFAULT_TAN))
+/******************************************************************************/
 // GET
 /******************************************************************************/
 Int MeshBase::maxID()C
@@ -164,7 +168,6 @@ MeshBase& MeshBase::setNormals()
       vtx.nrm(f.c[2])+=nrm;
       vtx.nrm(f.c[3])+=nrm;
    }
-   Normalize(vtx.nrm(), vtxs());
 /* Calculate using Quadrics (this is only for testing)
    Memt<QuadricMatrix> vtx_qm; vtx_qm.setNumZero(vtxs());
    REPA(tri)
@@ -203,6 +206,7 @@ MeshBase& MeshBase::setNormals()
    REPA(vtx)vtx.nrm(i)=vtx_qm[i].normal(vtx.pos(i)+offset); // <- here we would have to use some offset because normal at the surface is not precise, best offset is vtx.nrm which we're trying to calculate
 */
 
+   REPA(vtx){Vec &nrm=vtx.nrm(i); if(!nrm.normalize())nrm.set(DEFAULT_NRM);} // !! valid non-zero normal must be set because otherwise NaN might get generated in the shader due to normalization of zero vectors !!
    if(vtx.dup())REPA(vtx)vtx.nrm(i)=vtx.nrm(vtx.dup(i));
    return T;
 }
@@ -256,7 +260,7 @@ MeshBase& MeshBase::setNormalsAuto(Flt angle, Flt pos_eps)
       }
    } // <- releases temp memory
 
-   Normalize(vtx.nrm(), vtxs());
+   REPA(vtx){Vec &nrm=vtx.nrm(i); if(!nrm.normalize())nrm.set(DEFAULT_NRM);} // !! valid non-zero normal must be set because otherwise NaN might get generated in the shader due to normalization of zero vectors !!
 
    return T;
 }
@@ -370,20 +374,20 @@ MeshBase& MeshBase::setTanBin()
          {
             Vec &tan=vtx.tan(i);
             if(vtx.nrm())tan=PointOnPlane(tan, vtx.nrm(i)); // put on normal plane, this is needed for some models that have smooth vtx normals, but achieve flat surfaces due to normal maps
-            if(!tan.normalize()) // !! valid non-zero tangent must be set because otherwise triangles can become black !!
+            if(!tan.normalize()) // !! valid non-zero tangent must be set because otherwise NaN might get generated in the shader due to normalization of zero vectors !!
             {
                if(vtx.nrm())tan=PerpN(vtx.nrm(i));
-               else         tan.set(1, 0, 0);
+               else         tan.set(DEFAULT_TAN);
             }
          }
          if(set_bin)
          {
-            Vec &bin=vtx.bin(i); if(!bin.normalize()) // !! valid non-zero binormal must be set because otherwise triangles can become black !!
+            Vec &bin=vtx.bin(i); if(!bin.normalize()) // !! valid non-zero binormal must be set because otherwise NaN might get generated in the shader due to normalization of zero vectors !!
             {
                if(vtx.nrm() && vtx.tan())bin=CrossN(vtx.nrm(i), vtx.tan(i));else
                if(vtx.nrm()             )bin= PerpN(vtx.nrm(i)            );else
                if(             vtx.tan())bin= PerpN(            vtx.tan(i));else
-                                         bin.set(0, 0, -1); // Cross(Vec(0,1,0), Vec(1,0,0))
+                                         bin.set(DEFAULT_BIN);
             }
          }
       }
