@@ -753,7 +753,8 @@ void PS
    col+=Highlight.rgb;
 
 #if BUMP_MODE!=SBUMP_ZERO
-   nrm=Normalize(nrm); // transforming by matrix might scale normal, however we're storing to 0..1 range, so have to normalize
+   nrm=Normalize(nrm); // transforming by matrix might scale normal in >SBUMP_FLAT, and in SBUMP_FLAT normal is interpolated linearly and normalization will push to full range, however we're storing to 0..1 range, so have to normalize
+ //if(!any(nrm))nrm.z=-1; // make sure we will don't have zero on output, for unknown reason this can happen on GeForce 3080
 #endif
 
 #if FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
