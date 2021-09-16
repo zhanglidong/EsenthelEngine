@@ -1,3 +1,7 @@
+/******************************************************************************
+On GeForce with Half support (GeForce 1150+) there's a bug that in MSAA 'nrm' Length in PS might be >250 and doing Normalize on that vector might result in (0,0,0) which later causes NaN
+   even in SBUMP_FLAT, FX_NONE and with normalizing 'nrm' in VS O.nrm=Normalize(O.nrm);
+Simplest workaround is "if(!any(nrm))nrm.z=-1;" in PS after Normalization, however that would reduce performance for non-MSAA as well, since MSAA is rarely used (TAA is better), then don't use it and hope Nvidia will fix.
 /******************************************************************************/
 #include "!Header.h"
 /******************************************************************************/
@@ -452,7 +456,7 @@ void PS
 #if   BUMP_MODE==SBUMP_ZERO
    nrm=VecH(0, 0, -1);
 #elif BUMP_MODE==SBUMP_FLAT
-   nrm=Normalize(I.Nrm()); // can't add DETAIL normal because it would need 'I.mtrx'
+   nrm=I.Nrm(); // can't add DETAIL normal because it would need 'I.mtrx'
 #else
    #if 0 // lower quality, but compatible with multi-materials
                 nrm.xy =RTex(Nrm, I.uv).BASE_CHANNEL_NORMAL*Material.normal;
@@ -464,7 +468,7 @@ void PS
                 nrm.xy*=Material.normal; // alternatively this could be "nrm.z*=Material.normal_inv", with "normal_inv=1/Max(normal, HALF_EPS)" to avoid div by 0 and also big numbers which would be problematic for Halfs, however this would make detail nrm unproportional (too big/small compared to base nrm)
       if(DETAIL)nrm.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
    #endif
-      nrm=Normalize(Transform(nrm, I.mtrx));
+      nrm=Transform(nrm, I.mtrx);
 #endif
 
 #else // MATERIALS>1
@@ -725,7 +729,7 @@ void PS
 #if   BUMP_MODE==SBUMP_ZERO
    nrm=VecH(0, 0, -1);
 #elif BUMP_MODE==SBUMP_FLAT
-   nrm=Normalize(I.Nrm()); // can't add DETAIL normal because it would need 'I.mtrx'
+   nrm=I.Nrm(); // can't add DETAIL normal because it would need 'I.mtrx'
 #else
    if(DETAIL)
    { // #MaterialTextureLayoutDetail
@@ -741,12 +745,16 @@ void PS
       if(MATERIALS>=4)nrm.xy+=RTex(Nrm3, uv3).BASE_CHANNEL_NORMAL*(MultiMaterial3.normal*I.material.w);
    }
    nrm.z=CalcZ(nrm.xy);
-   nrm  =Normalize(Transform(nrm, I.mtrx));
+   nrm  =Transform(nrm, I.mtrx);
 #endif
 
 #endif // MATERIALS
 
    col+=Highlight.rgb;
+
+#if BUMP_MODE!=SBUMP_ZERO
+   nrm=Normalize(nrm); // transforming by matrix might scale normal, however we're storing to 0..1 range, so have to normalize
+#endif
 
 #if FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
    BackFlip(nrm, front);
