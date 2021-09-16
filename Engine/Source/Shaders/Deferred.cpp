@@ -450,7 +450,7 @@ void PS
 
    // normal
 #if   BUMP_MODE==SBUMP_ZERO
-   nrm=Vec(0, 0, -1);
+   nrm=VecH(0, 0, -1);
 #elif BUMP_MODE==SBUMP_FLAT
    nrm=Normalize(I.Nrm()); // can't add DETAIL normal because it would need 'I.mtrx'
 #else
@@ -723,7 +723,7 @@ void PS
 
    // normal
 #if   BUMP_MODE==SBUMP_ZERO
-   nrm=Vec(0, 0, -1);
+   nrm=VecH(0, 0, -1);
 #elif BUMP_MODE==SBUMP_FLAT
    nrm=Normalize(I.Nrm()); // can't add DETAIL normal because it would need 'I.mtrx'
 #else
