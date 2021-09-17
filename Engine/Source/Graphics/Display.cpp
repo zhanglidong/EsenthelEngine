@@ -2536,25 +2536,45 @@ DisplayClass& DisplayClass::exclusive(Bool exclusive)
 void DisplayClass::getScreenInfo()
 {
 #if DX11
+   IDXGIOutput *output=null;
+/*#if WINDOWS_OLD // according to https://docs.microsoft.com/en-us/windows/win32/direct3darticles/high-dynamic-range this should be obtained by using new adapters, however in tests it didn't update either
+   if(HMONITOR hmonitor=App.hmonitor())
+      if(Factory)
+   {
+      IDXGIAdapter *adapter=null; Factory->EnumAdapters(0, &adapter); if(adapter) // first adapter only
+      {
+         for(Int i=0; ; i++) // iterate all outputs
+         {
+            adapter->EnumOutputs(i, &output); if(output)
+            {
+               DXGI_OUTPUT_DESC desc; if(OK(output->GetDesc(&desc)) && desc.Monitor==hmonitor)break; // if found the monitor that we're going to use, then keep 'output' and stop looking
+               output->Release(); output=null; // release, clear and continue looking
+            }else break; // no more outputs available
+         }
+         adapter->Release();
+      }
+   }
+#endif*/
    if(SwapChain)
    {
-      IDXGIOutput *output=null; SwapChain->GetContainingOutput(&output); if(output)
-      {
-         IDXGIOutput6 *output6=null; output->QueryInterface(__uuidof(IDXGIOutput6), (Ptr*)&output6); if(output6)
-         {
-            DXGI_OUTPUT_DESC1 desc; if(OK(output6->GetDesc1(&desc)))
-            {
-               // TODO: this could replace 'highMonitorPrecision'?
-               // Warning: these might be reported wrong
-              _color_prec    =BitsToPrecision(desc.BitsPerColor);
-              _screen_max_lum=desc.MaxLuminance/80.0f; // "color value of (1.0, 1.0, 1.0) corresponds to a luminance level of 80 nits" - https://www.khronos.org/registry/EGL/extensions/EXT/EGL_EXT_gl_colorspace_scrgb_linear.txt
-              _hdr           =(desc.ColorSpace==DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
-            }
-            output6->Release();
-         }
-         output->Release();
-      }
+      if(!output)SwapChain->GetContainingOutput(&output); // if still didn't get an output, then use from SwapChain
       DXGI_SWAP_CHAIN_DESC desc; SwapChain->GetDesc(&desc); _freq_got=(desc.BufferDesc.RefreshRate.Denominator ? RoundPos(Flt(desc.BufferDesc.RefreshRate.Numerator)/desc.BufferDesc.RefreshRate.Denominator) : 0);
+   }
+   if(output)
+   {
+      IDXGIOutput6 *output6=null; output->QueryInterface(__uuidof(IDXGIOutput6), (Ptr*)&output6); if(output6)
+      {
+         DXGI_OUTPUT_DESC1 desc; if(OK(output6->GetDesc1(&desc)))
+         {
+            // TODO: this could replace 'highMonitorPrecision'?
+            // Warning: these might be reported wrong
+           _color_prec    =BitsToPrecision(desc.BitsPerColor);
+           _screen_max_lum=desc.MaxLuminance/80.0f; // "color value of (1.0, 1.0, 1.0) corresponds to a luminance level of 80 nits" - https://www.khronos.org/registry/EGL/extensions/EXT/EGL_EXT_gl_colorspace_scrgb_linear.txt
+           _hdr           =(desc.ColorSpace==DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+         }
+         output6->Release();
+      }
+      output->Release();
    }
 #endif
 }
