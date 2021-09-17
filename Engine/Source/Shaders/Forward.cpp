@@ -370,12 +370,6 @@ VecH4 PS
    #endif
 
 #else // MATERIALS>1
-   // on GeForce with Half support (GeForce 1150+) it was verified that these values can get outside of 0..1 range (especially in MSAA), which might cause infinite loop in Relief=crash and cause normals to be very big and after Normalization make them equal to 0,0,0 which later causes NaN on normalization in other shaders
-   if(MATERIALS==1)I.material.x   =Sat(I.material.x   );
-   if(MATERIALS==2)I.material.xy  =Sat(I.material.xy  );
-   if(MATERIALS==3)I.material.xyz =Sat(I.material.xyz );
-   if(MATERIALS==4)I.material.xyzw=Sat(I.material.xyzw);
-
    // assuming that in multi materials LAYOUT!=0
    Vec2 uv0, uv1, uv2, uv3;
                    uv0=I.uv*MultiMaterial0.uv_scale;
