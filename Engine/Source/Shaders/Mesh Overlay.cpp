@@ -13,9 +13,9 @@ struct Data
    Vec2 uv:UV;
    Half alpha:ALPHA;
 #if NORMALS
-   MatrixH3 mtrx:MATRIX;
+   centroid MatrixH3 mtrx:MATRIX; // have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
 #else
-   VecH nrm:NORMAL;
+   centroid VecH nrm:NORMAL; // have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
 #endif
 };
 /******************************************************************************/

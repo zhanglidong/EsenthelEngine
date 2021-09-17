@@ -1,7 +1,3 @@
-/******************************************************************************
-On GeForce with Half support (GeForce 1150+) there's a bug that in MSAA 'nrm' Length in PS might be >250 and doing Normalize on that vector might result in (0,0,0) which later causes NaN
-   even in SBUMP_FLAT, FX_NONE and with normalizing 'nrm' in VS O.nrm=Normalize(O.nrm);
-Simplest workaround is "if(!any(nrm))nrm.z=-1;" in PS after Normalization, however that would reduce performance for non-MSAA as well, since MSAA is rarely used (TAA is better), then don't use it and hope Nvidia will fix.
 /******************************************************************************/
 #include "!Header.h"
 /******************************************************************************/
@@ -56,7 +52,7 @@ struct Data
 #endif
 
 #if MATERIALS>1
-   VecH4 material:MATERIAL;
+   centroid VecH4 material:MATERIAL; // have to use 'centroid' to prevent values from getting outside of 0..1 range, without centroid values can get MUCH different which might cause infinite loop in Relief=crash, and cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
 #endif
 
 #if COLORS
@@ -68,17 +64,17 @@ struct Data
 #endif
 
 #if   BUMP_MODE> SBUMP_FLAT
-   MatrixH3 mtrx:MATRIX; // !! may not be Normalized !!
+   centroid MatrixH3 mtrx:MATRIX; // !! may not be Normalized !! have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
    VecH Nrm() {return mtrx[2];}
 #elif BUMP_MODE==SBUMP_FLAT
-   VecH nrm:NORMAL; // !! may not be Normalized !!
+   centroid VecH nrm:NORMAL; // !! may not be Normalized !! have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
    VecH Nrm() {return nrm;}
 #else
    VecH Nrm() {return 0;}
 #endif
 
 #if TESSELATE_VEL
-   VecH nrm_prev:PREV_NORMAL;
+   centroid VecH nrm_prev:PREV_NORMAL;
 #endif
 
 #if ALPHA_TEST==ALPHA_TEST_DITHER
@@ -473,12 +469,6 @@ void PS
 #endif
 
 #else // MATERIALS>1
-   // on GeForce with Half support (GeForce 1150+) it was verified that these values can get outside of 0..1 range (especially in MSAA), which might cause infinite loop in Relief=crash and cause normals to be very big and after Normalization make them equal to 0,0,0 which later causes NaN on normalization in other shaders
-   if(MATERIALS==1)I.material.x   =Sat(I.material.x   );
-   if(MATERIALS==2)I.material.xy  =Sat(I.material.xy  );
-   if(MATERIALS==3)I.material.xyz =Sat(I.material.xyz );
-   if(MATERIALS==4)I.material.xyzw=Sat(I.material.xyzw);
-
    // assuming that in multi materials LAYOUT!=0
    Vec2 uv0, uv1, uv2, uv3;
                    uv0=I.uv*MultiMaterial0.uv_scale;
@@ -761,7 +751,6 @@ void PS
 
 #if BUMP_MODE!=SBUMP_ZERO
    nrm=Normalize(nrm); // transforming by matrix might scale normal in >SBUMP_FLAT, and in SBUMP_FLAT normal is interpolated linearly and normalization will push to full range, however we're storing to 0..1 range, so have to normalize
- //if(!any(nrm))nrm.z=-1; // make sure we will don't have zero on output, for unknown reason this can happen on GeForce 3080
 #endif
 
 #if FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D

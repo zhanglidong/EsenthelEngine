@@ -2353,16 +2353,16 @@ struct HSData
 
 #define NORMAL_CUBIC_INTERPOLATE 0 // if use cubic interpolation for vertex normals
 #if     NORMAL_CUBIC_INTERPOLATE
-   Vec N110:NORMAL0,
-       N011:NORMAL1,
-       N101:NORMAL2;
+   VecH N110:NORMAL0,
+        N011:NORMAL1,
+        N101:NORMAL2;
 #endif
 };
 Vec2 ToScreen(Vec pos)
 {
    return pos.xy/Max(0.1, pos.z);
 }
-HSData GetHSData(Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nrm2, Bool shadow_map=false)
+HSData GetHSData(Vec pos0, Vec pos1, Vec pos2, VecH nrm0, VecH nrm1, VecH nrm2, Bool shadow_map=false)
 {
    HSData O;
 
@@ -2387,9 +2387,9 @@ HSData GetHSData(Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nrm2, Boo
           B030=pos1,
           B300=pos2;
 
-      Vec N002=nrm0,
-          N020=nrm1,
-          N200=nrm2;
+      VecH N002=nrm0,
+           N020=nrm1,
+           N200=nrm2;
 
       O.B210=2*B003+B030-Dot(B030-B003,N002)*N002;
       O.B120=2*B030+B003-Dot(B003-B030,N020)*N020;
@@ -2412,7 +2412,7 @@ HSData GetHSData(Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nrm2, Boo
    return O;
 }
 /******************************************************************************/
-void SetDSPosNrm(out Vec pos, out Vec nrm, Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nrm2, Vec B, HSData hs_data, Bool clamp_tess, Flt clamp_tess_factor)
+void SetDSPosNrm(out Vec pos, out VecH nrm, Vec pos0, Vec pos1, Vec pos2, VecH nrm0, VecH nrm1, VecH nrm2, Vec B, HSData hs_data, Bool clamp_tess, Flt clamp_tess_factor)
 {
    // TODO: we could encode 'clamp_tess_factor' in vtx.nrm.w
 

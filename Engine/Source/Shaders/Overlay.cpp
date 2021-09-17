@@ -9,7 +9,7 @@ SKIN, TESSELATE
 /******************************************************************************/
 struct Data
 {
-   Vec2 uv :UV;
+   Vec2 uv:UV;
 #if TESSELATE
    Vec  pos:POS;
    VecH nrm:NORMAL;

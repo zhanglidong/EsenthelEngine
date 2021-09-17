@@ -37,26 +37,26 @@ struct Data
    Vec2 uv:UV;
 #endif
 
+#if VTX_REFLECT
+   Vec reflect_dir:REFLECTION;
+#endif
+
 #if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
-   MatrixH3 mtrx:MATRIX; // !! may not be Normalized !!
+   centroid MatrixH3 mtrx:MATRIX; // !! may not be Normalized !! have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
    VecH Nrm() {return mtrx[2];}
 #elif BUMP_MODE>=SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
-   VecH nrm:NORMAL; // !! may not be Normalized !!
+   centroid VecH nrm:NORMAL; // !! may not be Normalized !! have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
    VecH Nrm() {return nrm;}
 #else
    VecH Nrm() {return 0;}
 #endif
 
 #if MATERIALS>1
-   VecH4 material:MATERIAL;
+   centroid VecH4 material:MATERIAL; // have to use 'centroid' to prevent values from getting outside of 0..1 range, without centroid values can get MUCH different which might cause infinite loop in Relief=crash, and cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
 #endif
 
 #if SET_COL
    VecH col:COLOR;
-#endif
-
-#if VTX_REFLECT
-   Vec reflect_dir:REFLECTION;
 #endif
 
 #if GRASS_FADE

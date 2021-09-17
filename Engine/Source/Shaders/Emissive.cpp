@@ -8,8 +8,8 @@ SKIN, ALPHA_TEST, EMISSIVE_MAP, FX, TESSELATE
 struct Data
 {
 #if TESSELATE
-   Vec pos:POS   ,
-       nrm:NORMAL;
+   Vec  pos:POS;
+   VecH nrm:NORMAL;
 #endif
 
 #if SET_UV

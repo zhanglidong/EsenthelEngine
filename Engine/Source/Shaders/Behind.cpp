@@ -14,6 +14,7 @@ struct Data
    VecH nrm:NORMAL; // !! not Normalized !!
    Vec  pos:POS;
 };
+/******************************************************************************/
 void VS
 (
    VtxInput vtx,

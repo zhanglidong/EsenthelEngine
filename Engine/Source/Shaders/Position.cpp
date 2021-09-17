@@ -6,8 +6,8 @@ SKIN, ALPHA_TEST, TEST_BLEND, FX, TESSELATE
 struct Data
 {
 #if TESSELATE
-   Vec pos:POS   ,
-       nrm:NORMAL;
+   Vec  pos:POS;
+   VecH nrm:NORMAL;
 #endif
 
 #if ALPHA_TEST

@@ -11,11 +11,14 @@ VecH GetBoneFurVel(VecU bone, VecH weight) {return weight.x*FurVel[bone.x] + wei
 /******************************************************************************/
 struct BaseData
 {
-   Vec2 uv :UV;
-   VecH nrm:NORMAL; // !! not Normalized !!
+   Vec2 uv:UV;
+
+   centroid VecH nrm:NORMAL; // !! not Normalized !! have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
+
 #if USE_VEL
    Vec projected_prev_pos_xyw:PREV_POS;
 #endif
+
 #if SIZE
    Half len:LENGTH;
 #endif
