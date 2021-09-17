@@ -45,8 +45,26 @@ struct Data
 #if USE_VEL
    Vec projected_prev_pos_xyw:PREV_POS;
 #endif
-#if TESSELATE_VEL
-   VecH nrm_prev:PREV_NORMAL;
+
+#if FAST_TPOS
+   Vec _tpos:TPOS;
+   Vec  tpos() {return Normalize(_tpos);}
+#elif BUMP_MODE>SBUMP_FLAT
+   Vec  tpos() {return Normalize(TransformTP(-pos, mtrx));} // need high precision here for 'TransformTP'
+#else
+   Vec  tpos() {return 0;}
+#endif
+
+#if MATERIALS>1
+   VecH4 material:MATERIAL;
+#endif
+
+#if COLORS
+   VecH col:COLOR;
+#endif
+
+#if GRASS_FADE
+   Half fade_out:FADE_OUT;
 #endif
 
 #if   BUMP_MODE> SBUMP_FLAT
@@ -59,25 +77,8 @@ struct Data
    VecH Nrm() {return 0;}
 #endif
 
-#if MATERIALS>1
-   VecH4 material:MATERIAL;
-#endif
-
-#if COLORS
-   VecH col:COLOR;
-#endif
-
-#if FAST_TPOS
-   Vec _tpos:TPOS;
-   Vec  tpos() {return Normalize(_tpos);}
-#elif BUMP_MODE>SBUMP_FLAT
-   Vec  tpos() {return Normalize(TransformTP(-pos, mtrx));} // need high precision here for 'TransformTP'
-#else
-   Vec  tpos() {return 0;}
-#endif
-
-#if GRASS_FADE
-   Half fade_out:FADE_OUT;
+#if TESSELATE_VEL
+   VecH nrm_prev:PREV_NORMAL;
 #endif
 
 #if ALPHA_TEST==ALPHA_TEST_DITHER
