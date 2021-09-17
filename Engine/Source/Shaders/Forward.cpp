@@ -404,9 +404,9 @@ VecH4 PS
       if(MTRL_BLEND)
       {
                           I.material.x=MultiMaterialWeight(I.material.x, ext0.BASE_CHANNEL_BUMP);
-                          I.material.y=MultiMaterialWeight(I.material.y, ext1.BASE_CHANNEL_BUMP); if(MATERIALS==2)I.material.xy  /=I.material.x+I.material.y;
-         if(MATERIALS>=3){I.material.z=MultiMaterialWeight(I.material.z, ext2.BASE_CHANNEL_BUMP); if(MATERIALS==3)I.material.xyz /=I.material.x+I.material.y+I.material.z;}
-         if(MATERIALS>=4){I.material.w=MultiMaterialWeight(I.material.w, ext3.BASE_CHANNEL_BUMP); if(MATERIALS==4)I.material.xyzw/=I.material.x+I.material.y+I.material.z+I.material.w;}
+                          I.material.y=MultiMaterialWeight(I.material.y, ext1.BASE_CHANNEL_BUMP); if(MATERIALS==2)I.material.xy  /=Sum(I.material.xy);
+         if(MATERIALS>=3){I.material.z=MultiMaterialWeight(I.material.z, ext2.BASE_CHANNEL_BUMP); if(MATERIALS==3)I.material.xyz /=Sum(I.material.xyz);}
+         if(MATERIALS>=4){I.material.w=MultiMaterialWeight(I.material.w, ext3.BASE_CHANNEL_BUMP); if(MATERIALS==4)I.material.xyzw/=Sum(I.material.xyzw);}
       }
                       {VecH refl_rogh_glow0=ext0.xyw*MultiMaterial0.refl_rogh_glow_mul+MultiMaterial0.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow0.y, det0.DETAIL_CHANNEL_ROUGH); refl_rogh_glow =refl_rogh_glow0*I.material.x;} // #MaterialTextureLayoutDetail
                       {VecH refl_rogh_glow1=ext1.xyw*MultiMaterial1.refl_rogh_glow_mul+MultiMaterial1.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow1.y, det1.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow1*I.material.y;}
