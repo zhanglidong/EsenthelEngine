@@ -571,7 +571,7 @@ void Application::setActive(Bool active)
 
       if(_initialized)
       {
-         if(active){if(T.resumed)T.resumed(); D.setColorLUT();} // reset color LUT on activate in case it was changed in the system
+         if(active){if(T.resumed)T.resumed(); D.getScreenInfo(); D.setColorLUT();} // reset color LUT on activate in case it was changed in the system
          else      {if(T. paused)T. paused();}
       }
    #if DESKTOP || ANDROID // also on Android in case a new Activity/Window was created, call this after potential 'paused/resumed' in case user modifies APP_WORK_IN_BACKGROUND which affect 'stayAwake'

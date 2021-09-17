@@ -145,32 +145,35 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
    void (*set_shader)(); // pointer to custom function (may be null) called when Mesh shaders need to be updated, when changing some display options during application runtime, meshes require to have their shaders updated, Meshes created by using Cache are processed automatically, however manually created meshes need to be processed manually, to do this - create a global function which calls 'Mesh.setShader()' on all manually created meshes and then in 'InitPre' function set 'D.set_shader' to point to that function
 
    // get
- C Vec2&        size           ()C {return _rect.max      ;} // get Application           Screen     Size     (in screen coordinates, depends on selected resolution, aspect mode and scale
-   Flt          w              ()C {return _rect.max.x    ;} // get Application           Screen     Width    (in screen coordinates, depends on selected resolution, aspect mode and scale, usually something near 1.3)
-   Flt          h              ()C {return _rect.max.y    ;} // get Application           Screen     Height   (in screen coordinates, depends on selected resolution, aspect mode and scale, usually something near 1.0)
- C Vec2&        size2          ()C {return _size2         ;} // get Application           Screen     Size  *2 (in screen coordinates, depends on selected resolution, aspect mode and scale
-   Flt          w2             ()C {return _size2.x       ;} // get Application           Screen     Width *2 (in screen coordinates, depends on selected resolution, aspect mode and scale, usually something near 2.6)
-   Flt          h2             ()C {return _size2.y       ;} // get Application           Screen     Height*2 (in screen coordinates, depends on selected resolution, aspect mode and scale, usually something near 2.0)
- C VecI2&       res            ()C {return _res           ;} // get Application           Resolution          (in pixels)
-   Int          resW           ()C {return _res.x         ;} // get Application           Resolution Width    (in pixels)
-   Int          resH           ()C {return _res.y         ;} // get Application           Resolution Height   (in pixels)
- C VecI2&       render         ()C {return _render_res    ;} // get Application Rendering Resolution          (in pixels), which is Resolution affected by 'density'
-   Int          renderW        ()C {return _render_res.x  ;} // get Application Rendering Resolution Width    (in pixels), which is Resolution affected by 'density'
-   Int          renderH        ()C {return _render_res.y  ;} // get Application Rendering Resolution Height   (in pixels), which is Resolution affected by 'density'
-   VecI2        screen         ()C;                          // get          Main Display Screen              (in pixels) at the current moment
-   Int          screenW        ()C {return  screen().x    ;} // get          Main Display Screen     Width    (in pixels) at the current moment
-   Int          screenH        ()C {return  screen().y    ;} // get          Main Display Screen     Height   (in pixels) at the current moment
-   Int          freq           ()C {return _freq_got      ;} // get               Display Screen     Frequency (refresh rate)
-   SHADER_MODEL shaderModel    ()C {return _shader_model  ;} // get available Shader Model
-   Str8         shaderModelName()C;                          // get available Shader Model in text format
-   Str8         apiName        ()C;                          // get Rendering API          in text format
-   Int          maxTexFilter   ()C {return _max_tex_filter;} // get maximum available Anisotropic Filtering
-   Int          maxTexSize     ()C {return _max_tex_size  ;} // get maximum available Texture     Size
- C Mems<VecI2>& modes          ()C {return _modes         ;} // get fullscreen display modes, where x=width, y=height (in pixels)
- C Str8&        deviceName     ()C {return _device_name   ;} // get GPU device name
-   Long         deviceMemory   ()C {return _device_mem    ;} // get GPU memory (-1 if unknown)
-   Bool         smallSize      ()C;                          // if  display device is of a small size (phone size)
-   Flt          browserZoom    ()C;                          // get current browser zoom level (1.0=100%, 2.0=200%, etc), this is valid only for the WEB platform (other platforms always return 1.0)
+ C Vec2&           size           ()C {return _rect.max      ;} // get Application           Screen     Size     (in screen coordinates, depends on selected resolution, aspect mode and scale
+   Flt             w              ()C {return _rect.max.x    ;} // get Application           Screen     Width    (in screen coordinates, depends on selected resolution, aspect mode and scale, usually something near 1.3)
+   Flt             h              ()C {return _rect.max.y    ;} // get Application           Screen     Height   (in screen coordinates, depends on selected resolution, aspect mode and scale, usually something near 1.0)
+ C Vec2&           size2          ()C {return _size2         ;} // get Application           Screen     Size  *2 (in screen coordinates, depends on selected resolution, aspect mode and scale
+   Flt             w2             ()C {return _size2.x       ;} // get Application           Screen     Width *2 (in screen coordinates, depends on selected resolution, aspect mode and scale, usually something near 2.6)
+   Flt             h2             ()C {return _size2.y       ;} // get Application           Screen     Height*2 (in screen coordinates, depends on selected resolution, aspect mode and scale, usually something near 2.0)
+ C VecI2&          res            ()C {return _res           ;} // get Application           Resolution          (in pixels)
+   Int             resW           ()C {return _res.x         ;} // get Application           Resolution Width    (in pixels)
+   Int             resH           ()C {return _res.y         ;} // get Application           Resolution Height   (in pixels)
+ C VecI2&          render         ()C {return _render_res    ;} // get Application Rendering Resolution          (in pixels), which is Resolution affected by 'density'
+   Int             renderW        ()C {return _render_res.x  ;} // get Application Rendering Resolution Width    (in pixels), which is Resolution affected by 'density'
+   Int             renderH        ()C {return _render_res.y  ;} // get Application Rendering Resolution Height   (in pixels), which is Resolution affected by 'density'
+   VecI2           screen         ()C;                          // get          Main Display Screen              (in pixels) at the current moment
+   Int             screenW        ()C {return  screen().x    ;} // get          Main Display Screen     Width    (in pixels) at the current moment
+   Int             screenH        ()C {return  screen().y    ;} // get          Main Display Screen     Height   (in pixels) at the current moment
+   Int             freq           ()C {return _freq_got      ;} // get               Display Screen     Frequency (refresh rate)
+   Bool            hdr            ()C {return _hdr           ;} // get            if Display Screen is in HDR mode
+   IMAGE_PRECISION colorPrecision ()C {return _color_prec    ;} // get               Display Screen Color   Precision (bits per color, default=IMAGE_PRECISION_8 which is 8-bits per color)
+   Flt             screenMaxLum   ()C {return _screen_max_lum;} // get               Display Screen Maximum Luminance (default=1)
+   SHADER_MODEL    shaderModel    ()C {return _shader_model  ;} // get available Shader Model
+   Str8            shaderModelName()C;                          // get available Shader Model in text format
+   Str8            apiName        ()C;                          // get Rendering API          in text format
+   Int             maxTexFilter   ()C {return _max_tex_filter;} // get maximum available Anisotropic Filtering
+   Int             maxTexSize     ()C {return _max_tex_size  ;} // get maximum available Texture     Size
+ C Mems<VecI2>&    modes          ()C {return _modes         ;} // get fullscreen display modes, where x=width, y=height (in pixels)
+ C Str8&           deviceName     ()C {return _device_name   ;} // get GPU device name
+   Long            deviceMemory   ()C {return _device_mem    ;} // get GPU memory (-1 if unknown)
+   Bool            smallSize      ()C;                          // if  display device is of a small size (phone size)
+   Flt             browserZoom    ()C;                          // get current browser zoom level (1.0=100%, 2.0=200%, etc), this is valid only for the WEB platform (other platforms always return 1.0)
 
    // settings
    DisplayClass& mode  (Int w=-1, Int h=-1, Int  full=-1, Bool auto_full  =true );                 // set    Display Resolution  Mode, 'w'=width in pixels, 'h'=height in pixels, 'full'=if fullscreen (true/false), 'auto_full'=if allow forcing fullscreen when mode covers entire screen, -1=keep current value, if the method fails then previous mode is restored, if previous mode can't be restored then Exit is called
@@ -187,6 +190,7 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
    Bool          ambientResFast   (Byte             scale       );
    void          ambientResFast1  (                             ) {ambientResFast(255);}
    void          setColorLUT      (                             );
+   void          getScreenInfo    (                             );
                                                                      Bool             densityUsed       ()C {return _density!=127     ;} // get if Density is != 1.0
                                                                      Bool             densityUpsample   ()C {return _density> 127     ;} // get if Density is >  1.0
                                                                      Byte             densityFast       ()C {return _density          ;} // get    Density
@@ -200,7 +204,7 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
                                                                      Bool             colorManaged      ()C {return _color_lut.is()   ;} // if need to perform any color transformations
 #endif
                                                                    C Rect&            rect              ()C {return _rect             ;} // get     full screen rectangle Rect(-w(), -h(), w(), h())
-   DisplayClass& exclusive        (Bool             exclusive   );   Bool             exclusive         ()C {return _exclusive        ;} // get/set if fullscreen mode should be exclusive (true/false                         , default=             true                             ), this affects only Windows DirectX fullscreen mode, exclusive offers better performance, non-exclusive offers faster Alt+Tab switching
+   DisplayClass& exclusive        (Bool             exclusive   );   Bool             exclusive         ()C {return _exclusive        ;} // get/set if fullscreen mode should be exclusive (true/false                         , default=            false                             ), this affects only Windows DirectX fullscreen mode, exclusive offers better performance, non-exclusive offers faster Alt+Tab switching
    DisplayClass& colorSpace       (COLOR_SPACE      color_space );   COLOR_SPACE      colorSpace        ()C {return _color_space      ;} // get/set if App should be color managed         (COLOR_SPACE                        , default= COLOR_SPACE_NONE                             ), if enabled then Application will convert colors from specified color space into monitor color space, based on selected monitor color profile in the Operating System. If there's no monitor color profile selected in the Operating System, then this option will have no effect. Using COLOR_SPACE_NONE disables color management, while other modes enable it. Warning: enabling color management reduces performance.
    DisplayClass& density          (Flt              density     );   Flt              density           ()C;                             // get/set Rendering Pixel Density                (0..2                               , default=                1                             ), density affects the number of pixels used during rendering, density=2 makes the rendering use 2x bigger render targets (super sampling) but slower performance, density=0.5 makes the rendering use 2x smaller render targets making the result more blurry but with faster performance, the change is NOT instant, avoid calling real-time
    DisplayClass& densityFilter    (FILTER_TYPE      filter      );   FILTER_TYPE      densityFilter     ()C {return _density_filter   ;} // get/set Density Filtering                      (FILTER_TYPE                        , default=      FILTER_EASU                             ), density filter affects filtering used when up-scaling the image, this method supports only FILTER_NONE, FILTER_LINEAR, FILTER_CUBIC_FAST and FILTER_CUBIC_PLUS, the change is instant, you can call it real-time
@@ -550,10 +554,10 @@ private:
    EDGE_SOFTEN_MODE  _edge_soften;
    TEXTURE_USAGE     _tex_detail;
    SHADER_MODEL      _shader_model;
-   IMAGE_PRECISION   _monitor_prec, _lit_col_rt_prec, _output_prec;
+   IMAGE_PRECISION   _monitor_prec, _lit_col_rt_prec, _color_prec;
    FILTER_TYPE       _density_filter;
    COLOR_SPACE       _color_space;
-   Bool              _full, _sync, _exclusive,
+   Bool              _full, _sync, _exclusive, _hdr,
                      _hp_col_rt, _hp_nrm_rt, _hp_lum_rt,
                      _particles_soft, _particles_smooth,
                      _tex_mip_filter, _tex_macro, _tex_detail_lod,
@@ -595,7 +599,7 @@ private:
                      _fade_alpha, _fade_speed,
                      _sharpen_intensity,
                      _smaa_threshold,
-                     _output_max_lum,
+                     _screen_max_lum,
                      _tone_map_max_lum, _tone_map_top_range, _tone_map_dark_range, _tone_map_dark_exp;
    Vec2              _unscaled_size, _size2, _pixel_size, _pixel_size_2, _pixel_size_inv,
                      _window_pixel_to_screen_mul, _window_pixel_to_screen_add, _window_pixel_to_screen_scale,
