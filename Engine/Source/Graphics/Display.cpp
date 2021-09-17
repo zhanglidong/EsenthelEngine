@@ -893,7 +893,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _dither          =true;
   _mtrl_blend      =true;
   _device_mem      =-1;
-  _monitor_prec    =IMAGE_PRECISION_8;
+  _output_prec     =IMAGE_PRECISION_8;
   _lit_col_rt_prec =IMAGE_PRECISION_8;
   _aspect_mode     =(MOBILE ? ASPECT_SMALLER : ASPECT_Y);
   _tex_filter      =(MOBILE ? 4 : 16);
@@ -1805,12 +1805,12 @@ static DXGI_FORMAT SwapChainFormat()
 #endif
    {
    #if LINEAR_GAMMA
-      if(D.monitorPrecision()>IMAGE_PRECISION_16)return DXGI_FORMAT_R32G32B32A32_FLOAT;
-      if(D.monitorPrecision()>IMAGE_PRECISION_8 )return DXGI_FORMAT_R16G16B16A16_FLOAT;
+      if(D.outputPrecision()>IMAGE_PRECISION_16)return DXGI_FORMAT_R32G32B32A32_FLOAT;
+      if(D.outputPrecision()>IMAGE_PRECISION_8 )return DXGI_FORMAT_R16G16B16A16_FLOAT;
       // can't use DXGI_FORMAT_R10G10B10A2_UNORM because it's non-sRGB
    #else
       // can't use DXGI_FORMAT_R32G32B32A32_FLOAT DXGI_FORMAT_R16G16B16A16_FLOAT because on Windows it means linear gamma
-      if(D.monitorPrecision()>IMAGE_PRECISION_8 )return DXGI_FORMAT_R10G10B10A2_UNORM;
+      if(D.outputPrecision()>IMAGE_PRECISION_8 )return DXGI_FORMAT_R10G10B10A2_UNORM;
    #endif
    }
    return LINEAR_GAMMA ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -2500,11 +2500,11 @@ DisplayClass& DisplayClass::full(Bool full, Bool window_size)
    if(full!=T.full())toggle(window_size);
    return T;
 }
-DisplayClass& DisplayClass::monitorPrecision(IMAGE_PRECISION precision)
+DisplayClass& DisplayClass::outputPrecision(IMAGE_PRECISION precision)
 {
    Clamp(precision, IMAGE_PRECISION_8, IMAGE_PRECISION(IMAGE_PRECISION_NUM-1));
-   if(!created())_monitor_prec=precision;else
-   if(monitorPrecision()!=precision){_monitor_prec=precision; if(findMode())Reset();}
+   if(!created())_output_prec=precision;else
+   if(outputPrecision()!=precision){_output_prec=precision; if(findMode())Reset();}
    return T;
 }
 Bool DisplayClass::exclusiveFull()C
@@ -2566,7 +2566,6 @@ void DisplayClass::getScreenInfo()
       {
          DXGI_OUTPUT_DESC1 desc; if(OK(output6->GetDesc1(&desc)))
          {
-            // TODO: this could replace 'highMonitorPrecision'?
             // Warning: these might be reported wrong
            _color_prec    =BitsToPrecision(desc.BitsPerColor);
            _screen_max_lum=desc.MaxLuminance/80.0f; // "color value of (1.0, 1.0, 1.0) corresponds to a luminance level of 80 nits" - https://www.khronos.org/registry/EGL/extensions/EXT/EGL_EXT_gl_colorspace_scrgb_linear.txt
