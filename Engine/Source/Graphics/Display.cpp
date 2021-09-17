@@ -1205,14 +1205,15 @@ void DisplayClass::createDevice()
    {
       IDXGIFactory1 *factory=null; CreateDXGIFactory1(__uuidof(IDXGIFactory1), (Ptr*)&factory); if(factory)
       {
-         for(Int i=0; OK(factory->EnumAdapters(i, &Adapter)); i++)
+         for(Int i=0; ; i++)
          {
-            if(!Adapter)break;
+            factory->EnumAdapters(i, &Adapter); if(!Adapter)break;
          #if DEBUG
-            IDXGIOutput *output=null; for(Int i=0; OK(Adapter->EnumOutputs(i, &output)); i++)
+            for(Int i=0; ; i++)
             {
+               IDXGIOutput *output=null; Adapter->EnumOutputs(i, &output); if(!output)break;
                DXGI_OUTPUT_DESC desc; output->GetDesc(&desc);
-               RELEASE(output);
+               output->Release();
             }
          #endif
             DXGI_ADAPTER_DESC desc; if(OK(Adapter->GetDesc(&desc)))
@@ -1222,7 +1223,7 @@ void DisplayClass::createDevice()
             }
             RELEASE(Adapter);
          }
-         RELEASE(factory); // release 'factory' because we need to obtain it from the D3D Device in case it will be different
+         factory->Release(); // release 'factory' because we need to obtain it from the D3D Device in case it will be different
       }
    }
 
