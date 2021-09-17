@@ -12,7 +12,7 @@ SKIN, BUMP_MODE
 struct Data
 {
 #if BUMP_MODE>=SBUMP_FLAT
-   VecH nrm:NORMAL;
+   centroid VecH nrm:NORMAL; // !! may not be Normalized !! have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
 #endif
    VecH col:COLOR;
 };

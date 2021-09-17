@@ -37,26 +37,26 @@ struct Data
    Vec2 uv:UV;
 #endif
 
+#if VTX_REFLECT
+   Vec reflect_dir:REFLECTION;
+#endif
+
 #if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
-   MatrixH3 mtrx:MATRIX; // !! may not be Normalized !!
+   centroid MatrixH3 mtrx:MATRIX; // !! may not be Normalized !! have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
    VecH Nrm() {return mtrx[2];}
 #elif BUMP_MODE>=SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
-   VecH nrm:NORMAL; // !! may not be Normalized !!
+   centroid VecH nrm:NORMAL; // !! may not be Normalized !! have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
    VecH Nrm() {return nrm;}
 #else
    VecH Nrm() {return 0;}
 #endif
 
 #if MATERIALS>1
-   VecH4 material:MATERIAL;
+   centroid VecH4 material:MATERIAL; // have to use 'centroid' to prevent values from getting outside of 0..1 range, without centroid values can get MUCH different which might cause infinite loop in Relief=crash, and cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
 #endif
 
 #if SET_COL
    VecH col:COLOR;
-#endif
-
-#if VTX_REFLECT
-   Vec reflect_dir:REFLECTION;
 #endif
 
 #if GRASS_FADE
@@ -370,6 +370,12 @@ VecH4 PS
    #endif
 
 #else // MATERIALS>1
+   // on GeForce with Half support (GeForce 1150+) it was verified that these values can get outside of 0..1 range (especially in MSAA), which might cause infinite loop in Relief=crash and cause normals to be very big and after Normalization make them equal to 0,0,0 which later causes NaN on normalization in other shaders
+   if(MATERIALS==1)I.material.x   =Sat(I.material.x   );
+   if(MATERIALS==2)I.material.xy  =Sat(I.material.xy  );
+   if(MATERIALS==3)I.material.xyz =Sat(I.material.xyz );
+   if(MATERIALS==4)I.material.xyzw=Sat(I.material.xyzw);
+
    // assuming that in multi materials LAYOUT!=0
    Vec2 uv0, uv1, uv2, uv3;
                    uv0=I.uv*MultiMaterial0.uv_scale;
@@ -403,10 +409,10 @@ VecH4 PS
       if(MATERIALS>=4)ext3=RTex(Ext3, uv3);
       if(MTRL_BLEND)
       {
-                          I.material.x=MultiMaterialWeight(I.material.x, ext0.BASE_CHANNEL_BUMP);
-                          I.material.y=MultiMaterialWeight(I.material.y, ext1.BASE_CHANNEL_BUMP); if(MATERIALS==2)I.material.xy  /=I.material.x+I.material.y;
-         if(MATERIALS>=3){I.material.z=MultiMaterialWeight(I.material.z, ext2.BASE_CHANNEL_BUMP); if(MATERIALS==3)I.material.xyz /=I.material.x+I.material.y+I.material.z;}
-         if(MATERIALS>=4){I.material.w=MultiMaterialWeight(I.material.w, ext3.BASE_CHANNEL_BUMP); if(MATERIALS==4)I.material.xyzw/=I.material.x+I.material.y+I.material.z+I.material.w;}
+         VecH4 mtrl;      mtrl.x=MultiMaterialWeight(I.material.x, ext0.BASE_CHANNEL_BUMP);
+                          mtrl.y=MultiMaterialWeight(I.material.y, ext1.BASE_CHANNEL_BUMP); if(MATERIALS==2){Half sum=Sum(mtrl.xy  ); if(sum>=HALF_MIN)I.material.xy  =mtrl.xy  /sum;}  // need to compare with HALF_MIN because subnormals might produce bad results
+         if(MATERIALS>=3){mtrl.z=MultiMaterialWeight(I.material.z, ext2.BASE_CHANNEL_BUMP); if(MATERIALS==3){Half sum=Sum(mtrl.xyz ); if(sum>=HALF_MIN)I.material.xyz =mtrl.xyz /sum;}} // need to compare with HALF_MIN because subnormals might produce bad results
+         if(MATERIALS>=4){mtrl.w=MultiMaterialWeight(I.material.w, ext3.BASE_CHANNEL_BUMP); if(MATERIALS==4){Half sum=Sum(mtrl.xyzw); if(sum>=HALF_MIN)I.material.xyzw=mtrl.xyzw/sum;}} // need to compare with HALF_MIN because subnormals might produce bad results
       }
                       {VecH refl_rogh_glow0=ext0.xyw*MultiMaterial0.refl_rogh_glow_mul+MultiMaterial0.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow0.y, det0.DETAIL_CHANNEL_ROUGH); refl_rogh_glow =refl_rogh_glow0*I.material.x;} // #MaterialTextureLayoutDetail
                       {VecH refl_rogh_glow1=ext1.xyw*MultiMaterial1.refl_rogh_glow_mul+MultiMaterial1.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow1.y, det1.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow1*I.material.y;}

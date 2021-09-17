@@ -150,7 +150,8 @@ Int SqrtI(Long x) {return (x>0) ? SqrtI(ULong(x)) : 0;}
 Flt Log(Flt x, Flt base) {return logf(x)/logf(base);}
 Dbl Log(Dbl x, Dbl base) {return log (x)/log (base);}
 
-Flt Pinch(Flt x, Flt pinch) {return x*pinch/(1+x*(pinch-1));}
+Flt Pinch      (Flt x, Flt pinch) {return x*pinch/(1+x*(pinch-1));}
+Flt PinchFactor(Flt x, Flt pinch) {return Pinch(x, ScaleFactor(pinch));}
 /******************************************************************************/
 Flt Dist(Int x, Int y       ) {return SqrtFast(Dist2(x, y   ));}
 Flt Dist(Flt x, Flt y       ) {return SqrtFast(Dist2(x, y   ));}

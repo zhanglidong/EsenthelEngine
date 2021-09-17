@@ -229,7 +229,8 @@ inline Dbl Log2(Dbl x) {return log2 (x);} // 2-base logarithm
        Flt Log (Flt x, Flt base);         //        logarithm
        Dbl Log (Dbl x, Dbl base);         //        logarithm
 
-Flt Pinch(Flt x, Flt pinch); // pinch, 'x'=0..1, 'pinch'=0..Inf (<1 makes the curve start slow and accelerate, 1 makes the curve linear, >1 makes the curve start fast and deccelerate)
+Flt Pinch      (Flt x, Flt pinch       ); // pinch, 'x'=0..1, 'pinch'       =   0..Inf (<1 makes the curve start slow and accelerate, 1 makes the curve linear, >1 makes the curve start fast and deccelerate)
+Flt PinchFactor(Flt x, Flt pinch_factor); // pinch, 'x'=0..1, 'pinch_factor'=-Inf..Inf (<0 makes the curve start slow and accelerate, 0 makes the curve linear, >0 makes the curve start fast and deccelerate)
 
 // calculate squared distance of coordinates from point zero
 inline Int Dist2(Int x, Int y              ) {return x*x + y*y            ;}

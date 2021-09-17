@@ -41,27 +41,6 @@ struct Data
 #if USE_VEL
    Vec projected_prev_pos_xyw:PREV_POS;
 #endif
-#if TESSELATE_VEL
-   VecH nrm_prev:PREV_NORMAL;
-#endif
-
-#if   BUMP_MODE> SBUMP_FLAT
-   MatrixH3 mtrx:MATRIX; // !! may not be Normalized !!
-   VecH Nrm() {return mtrx[2];}
-#elif BUMP_MODE==SBUMP_FLAT
-   VecH nrm:NORMAL; // !! may not be Normalized !!
-   VecH Nrm() {return nrm;}
-#else
-   VecH Nrm() {return 0;}
-#endif
-
-#if MATERIALS>1
-   VecH4 material:MATERIAL;
-#endif
-
-#if COLORS
-   VecH col:COLOR;
-#endif
 
 #if FAST_TPOS
    Vec _tpos:TPOS;
@@ -72,8 +51,30 @@ struct Data
    Vec  tpos() {return 0;}
 #endif
 
+#if MATERIALS>1
+   centroid VecH4 material:MATERIAL; // have to use 'centroid' to prevent values from getting outside of 0..1 range, without centroid values can get MUCH different which might cause infinite loop in Relief=crash, and cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
+#endif
+
+#if COLORS
+   VecH col:COLOR;
+#endif
+
 #if GRASS_FADE
    Half fade_out:FADE_OUT;
+#endif
+
+#if   BUMP_MODE> SBUMP_FLAT
+   centroid MatrixH3 mtrx:MATRIX; // !! may not be Normalized !! have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
+   VecH Nrm() {return mtrx[2];}
+#elif BUMP_MODE==SBUMP_FLAT
+   centroid VecH nrm:NORMAL; // !! may not be Normalized !! have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
+   VecH Nrm() {return nrm;}
+#else
+   VecH Nrm() {return 0;}
+#endif
+
+#if TESSELATE_VEL
+   centroid VecH nrm_prev:PREV_NORMAL;
 #endif
 
 #if ALPHA_TEST==ALPHA_TEST_DITHER
@@ -242,8 +243,8 @@ void VS
 /******************************************************************************/
 // PS
 /******************************************************************************/
-//Half Pixels(VecH2 uv, Vec2 ImgSize, Flt lod) {return  Length(uv*ImgSize) /exp2(lod);} // how many pixels, Pow(2, lod)=exp2(lod)
-  Half Pixels(VecH2 uv, Vec2 ImgSize, Flt lod) {return Max(Abs(uv*ImgSize))/exp2(lod);} // how many pixels, Pow(2, lod)=exp2(lod)
+//Half Pixels(VecH2 uv, Vec2 ImgSize, Flt lod) {return  Length(uv*ImgSize) /exp2(lod);} // how many pixels, exp2(lod)=Pow(2, lod)
+  Half Pixels(VecH2 uv, Vec2 ImgSize, Flt lod) {return Max(Abs(uv*ImgSize))/exp2(lod);} // how many pixels, exp2(lod)=Pow(2, lod)
 
 void PS
 (
@@ -450,9 +451,9 @@ void PS
 
    // normal
 #if   BUMP_MODE==SBUMP_ZERO
-   nrm=0;
+   nrm=VecH(0, 0, -1);
 #elif BUMP_MODE==SBUMP_FLAT
-   nrm=Normalize(I.Nrm()); // can't add DETAIL normal because it would need 'I.mtrx'
+   nrm=I.Nrm(); // can't add DETAIL normal because it would need 'I.mtrx'
 #else
    #if 0 // lower quality, but compatible with multi-materials
                 nrm.xy =RTex(Nrm, I.uv).BASE_CHANNEL_NORMAL*Material.normal;
@@ -464,7 +465,7 @@ void PS
                 nrm.xy*=Material.normal; // alternatively this could be "nrm.z*=Material.normal_inv", with "normal_inv=1/Max(normal, HALF_EPS)" to avoid div by 0 and also big numbers which would be problematic for Halfs, however this would make detail nrm unproportional (too big/small compared to base nrm)
       if(DETAIL)nrm.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
    #endif
-      nrm=Normalize(Transform(nrm, I.mtrx));
+      nrm=Transform(nrm, I.mtrx);
 #endif
 
 #else // MATERIALS>1
@@ -689,10 +690,10 @@ void PS
       if(MATERIALS>=4)ext3=RTex(Ext3, uv3);
       if(MTRL_BLEND)
       {
-                          I.material.x=MultiMaterialWeight(I.material.x, ext0.BASE_CHANNEL_BUMP);
-                          I.material.y=MultiMaterialWeight(I.material.y, ext1.BASE_CHANNEL_BUMP); if(MATERIALS==2)I.material.xy  /=I.material.x+I.material.y;
-         if(MATERIALS>=3){I.material.z=MultiMaterialWeight(I.material.z, ext2.BASE_CHANNEL_BUMP); if(MATERIALS==3)I.material.xyz /=I.material.x+I.material.y+I.material.z;}
-         if(MATERIALS>=4){I.material.w=MultiMaterialWeight(I.material.w, ext3.BASE_CHANNEL_BUMP); if(MATERIALS==4)I.material.xyzw/=I.material.x+I.material.y+I.material.z+I.material.w;}
+         VecH4 mtrl;      mtrl.x=MultiMaterialWeight(I.material.x, ext0.BASE_CHANNEL_BUMP);
+                          mtrl.y=MultiMaterialWeight(I.material.y, ext1.BASE_CHANNEL_BUMP); if(MATERIALS==2){Half sum=Sum(mtrl.xy  ); if(sum>=HALF_MIN)I.material.xy  =mtrl.xy  /sum;}  // need to compare with HALF_MIN because subnormals might produce bad results
+         if(MATERIALS>=3){mtrl.z=MultiMaterialWeight(I.material.z, ext2.BASE_CHANNEL_BUMP); if(MATERIALS==3){Half sum=Sum(mtrl.xyz ); if(sum>=HALF_MIN)I.material.xyz =mtrl.xyz /sum;}} // need to compare with HALF_MIN because subnormals might produce bad results
+         if(MATERIALS>=4){mtrl.w=MultiMaterialWeight(I.material.w, ext3.BASE_CHANNEL_BUMP); if(MATERIALS==4){Half sum=Sum(mtrl.xyzw); if(sum>=HALF_MIN)I.material.xyzw=mtrl.xyzw/sum;}} // need to compare with HALF_MIN because subnormals might produce bad results
       }
                       {VecH refl_rogh_glow0=ext0.xyw*MultiMaterial0.refl_rogh_glow_mul+MultiMaterial0.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow0.y, det0.DETAIL_CHANNEL_ROUGH); refl_rogh_glow =refl_rogh_glow0*I.material.x;} // #MaterialTextureLayoutDetail
                       {VecH refl_rogh_glow1=ext1.xyw*MultiMaterial1.refl_rogh_glow_mul+MultiMaterial1.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow1.y, det1.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow1*I.material.y;}
@@ -723,9 +724,9 @@ void PS
 
    // normal
 #if   BUMP_MODE==SBUMP_ZERO
-   nrm=0;
+   nrm=VecH(0, 0, -1);
 #elif BUMP_MODE==SBUMP_FLAT
-   nrm=Normalize(I.Nrm()); // can't add DETAIL normal because it would need 'I.mtrx'
+   nrm=I.Nrm(); // can't add DETAIL normal because it would need 'I.mtrx'
 #else
    if(DETAIL)
    { // #MaterialTextureLayoutDetail
@@ -741,12 +742,16 @@ void PS
       if(MATERIALS>=4)nrm.xy+=RTex(Nrm3, uv3).BASE_CHANNEL_NORMAL*(MultiMaterial3.normal*I.material.w);
    }
    nrm.z=CalcZ(nrm.xy);
-   nrm  =Normalize(Transform(nrm, I.mtrx));
+   nrm  =Transform(nrm, I.mtrx);
 #endif
 
 #endif // MATERIALS
 
    col+=Highlight.rgb;
+
+#if BUMP_MODE!=SBUMP_ZERO
+   nrm=Normalize(nrm); // transforming by matrix might scale normal in >SBUMP_FLAT, and in SBUMP_FLAT normal is interpolated linearly and normalization will push to full range, however we're storing to 0..1 range, so have to normalize
+#endif
 
 #if FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
    BackFlip(nrm, front);

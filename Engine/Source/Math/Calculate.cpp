@@ -1187,6 +1187,16 @@ static Bool CPinch(CalcValue &x, CalcValue &y)
    x.r   =Pinch(step, pinch);
    x.type=CVAL_REAL; return true;
 }
+static Bool CPinchFactor(CalcValue &x, CalcValue &y)
+{
+   Dbl step, pinch;
+   if(x.type==CVAL_INT )step =x.i;else
+   if(x.type==CVAL_REAL)step =x.r;else return false;
+   if(y.type==CVAL_INT )pinch=y.i;else
+   if(y.type==CVAL_REAL)pinch=y.r;else return false;
+   x.r   =PinchFactor(step, pinch);
+   x.type=CVAL_REAL; return true;
+}
 
 static Bool CSmoothSqr(CalcValue &x)
 {
@@ -1558,6 +1568,7 @@ static struct CalcFuncInfo
    {1, "Cbrt"            , (Ptr)CCbrt            },
    {2, "Pow"             , (Ptr)CPow             },
    {2, "Pinch"           , (Ptr)CPinch           },
+   {2, "PinchFactor"     , (Ptr)CPinchFactor     },
    {1, "SmoothSqr"       , (Ptr)CSmoothSqr       },
    {1, "SmoothCube"      , (Ptr)CSmoothCube      },
    {1, "SmoothCubeInv"   , (Ptr)CSmoothCubeInv   },

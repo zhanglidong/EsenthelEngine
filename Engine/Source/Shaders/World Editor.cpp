@@ -71,15 +71,15 @@ Image XZImage;
 /******************************************************************************/
 struct Data
 {
-   Vec  pos  :POS,
-        nrm  :NORMAL;
+   Vec  pos  :POS;
+   VecH nrm  :NORMAL;
    Vec2 pos2D:POS2D;
    Vec4 vtx  :POSITION;
 };
 struct DataNoPixel
 {
-   Vec  pos  :POS,
-        nrm  :NORMAL;
+   Vec  pos  :POS;
+   VecH nrm  :NORMAL;
    Vec2 pos2D:POS2D;
 };
 /******************************************************************************/
