@@ -1578,6 +1578,16 @@ Flt  BlendSmoothSin(Flt  x) {x=Sat(Abs(x)); return Cos(x*PI)*0.5+0.5;}
 
 Half Gaussian(Half x) {return exp(-x*x);}
 Flt  Gaussian(Flt  x) {return exp(-x*x);}
+
+Half ScaleFactor (Half x) {return (x>=0) ? (1+x) : (1/(1-x));}
+Flt  ScaleFactor (Flt  x) {return (x>=0) ? (1+x) : (1/(1-x));}
+Half ScaleFactorR(Half s) {return (s>=1) ? (s-1) : (1-(1/s));}
+Flt  ScaleFactorR(Flt  s) {return (s>=1) ? (s-1) : (1-(1/s));}
+
+Half Pinch      (Half x, Half pinch) {return x*pinch/(1+x*(pinch-1));}
+Flt  Pinch      (Flt  x, Flt  pinch) {return x*pinch/(1+x*(pinch-1));}
+Half PinchFactor(Half x, Half pinch) {return Pinch(x, ScaleFactor(pinch));}
+Flt  PinchFactor(Flt  x, Flt  pinch) {return Pinch(x, ScaleFactor(pinch));}
 /******************************************************************************/
 Half     VisibleOpacity(Flt density, Flt range) {return   Pow(1-density, range);} // calculate visible     opacity (0..1) having 'density' environment density (0..1), and 'range' (0..Inf)
 Half AccumulatedDensity(Flt density, Flt range) {return 1-Pow(1-density, range);} // calculate accumulated density (0..1) having 'density' environment density (0..1), and 'range' (0..Inf)
