@@ -1851,27 +1851,21 @@ void BackFlip(inout VecH dir, Bool front) {if(!front)dir=-dir;}
 /******************************************************************************/
 Half MultiMaterialWeight(Half weight, Half alpha) // 'weight'=weight of this material, 'alpha'=color texture alpha (opacity or bump)
 {
-   // sharpen alpha
-#if 0 // not needed when ALPHA_POWER is big
-   #if 0 // good but slow
-      if(alpha<=0.5)alpha=  2*Sqr(  alpha);
-      else          alpha=1-2*Sqr(1-alpha);
-   #else // fast approximation
-      alpha=Sat(alpha*1.5 + (-0.5*1.5+0.5)); // Sat((alpha-0.5)*1.5+0.5)
-   #endif
-#endif
-
-#if 1 // works best
-   #define ALPHA_POWER 10.0
-   Half w=weight // base
-         +weight*(1-weight)*(alpha*ALPHA_POWER - 0.5*ALPHA_POWER); // "weight"=ignore alpha at start "1-weight" ignore alpha at end, "(alpha-0.5)*ALPHA_POWER" alpha
-   if(ALPHA_POWER>2)w=Max(w, weight/16); // if ALPHA_POWER>2 then this formula could go below zero which could result in artifacts, because weights could be negative or all zero, so maximize with a small slope (has to be zero at start, and small after that)
-   return w;
-#elif 1
-   #define ALPHA_POWER 0.5
-   return Sat(weight*(1+ALPHA_POWER) + alpha*ALPHA_POWER - ALPHA_POWER); // start at "-ALPHA_POWER" so it can clear out any alpha we have at the start (we always want up to zero weight at the start even if we have high alpha) and always want at least 1 weight at the end, even if we have low alpha
-#else
-   return Lerp(weight, alpha, weight*(1-weight)*2);
+#if 0 // linear
+   return weight;
+#elif 0 // Pow (too bright on low weights, causing visible jumps due to material reduction for low weights, also blurry (small contrast) compared to Pinch
+   const Half sharpen=-5;
+   return Pow(weight, ScaleFactor(alpha*sharpen - 0.5*sharpen));
+#elif 0 // Pinch (too sharp transitions)
+   const Half sharpen=32;
+   return PinchFactor(weight, alpha*sharpen - 0.5*sharpen);
+#elif 0 // uses alpha on middle and high, too bright on low weights, causing visible jumps due to material reduction for low weights
+   const Half sharpen=4;
+   return Max(0, weight*(alpha*sharpen - 0.5*sharpen + 1));
+#else // uses alpha on middle
+   const Half sharpen=8;
+   return Max(0, weight // base
+                +weight*(1-weight)*(alpha*sharpen - 0.5*sharpen)); // "weight"=ignore alpha at start "1-weight" ignore alpha at end, "(alpha-0.5)*sharpen" alpha
 #endif
 }
 /******************************************************************************/
