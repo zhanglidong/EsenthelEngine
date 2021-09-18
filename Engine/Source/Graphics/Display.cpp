@@ -884,7 +884,8 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
    // there's only one 'DisplayClass' global 'D' and it doesn't need clearing members to zero
   _full            =MOBILE; // by default request fullscreen for MOBILE
   _sync            =true;
-  _exclusive       =true;
+//_exclusive       =false;
+//_hdr             =false;
   _color_space     =COLOR_SPACE_NONE;
 //_hp_col_rt       =false;
 //_hp_nrm_rt       =false;
@@ -892,7 +893,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _dither          =true;
   _mtrl_blend      =true;
   _device_mem      =-1;
-  _monitor_prec    =IMAGE_PRECISION_8;
+  _output_prec     =IMAGE_PRECISION_8;
   _lit_col_rt_prec =IMAGE_PRECISION_8;
   _aspect_mode     =(MOBILE ? ASPECT_SMALLER : ASPECT_Y);
   _tex_filter      =(MOBILE ? 4 : 16);
@@ -1034,8 +1035,8 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
 //_max_lights     =0;
   _max_lights_soft=true;
 
-  _output_prec   =IMAGE_PRECISION_8;
-  _output_max_lum=1;
+  _color_prec    =IMAGE_PRECISION_8;
+  _screen_max_lum=1;
   _tone_map_max_lum=1;
   _tone_map_top_range=0.7f;
   _tone_map_dark_range=0.123f;
@@ -1204,14 +1205,15 @@ void DisplayClass::createDevice()
    {
       IDXGIFactory1 *factory=null; CreateDXGIFactory1(__uuidof(IDXGIFactory1), (Ptr*)&factory); if(factory)
       {
-         for(Int i=0; OK(factory->EnumAdapters(i, &Adapter)); i++)
+         for(Int i=0; ; i++)
          {
-            if(!Adapter)break;
+            factory->EnumAdapters(i, &Adapter); if(!Adapter)break;
          #if DEBUG
-            IDXGIOutput *output=null; for(Int i=0; OK(Adapter->EnumOutputs(i, &output)); i++)
+            for(Int i=0; ; i++)
             {
+               IDXGIOutput *output=null; Adapter->EnumOutputs(i, &output); if(!output)break;
                DXGI_OUTPUT_DESC desc; output->GetDesc(&desc);
-               RELEASE(output);
+               output->Release();
             }
          #endif
             DXGI_ADAPTER_DESC desc; if(OK(Adapter->GetDesc(&desc)))
@@ -1221,7 +1223,7 @@ void DisplayClass::createDevice()
             }
             RELEASE(Adapter);
          }
-         RELEASE(factory); // release 'factory' because we need to obtain it from the D3D Device in case it will be different
+         factory->Release(); // release 'factory' because we need to obtain it from the D3D Device in case it will be different
       }
    }
 
@@ -1803,12 +1805,12 @@ static DXGI_FORMAT SwapChainFormat()
 #endif
    {
    #if LINEAR_GAMMA
-      if(D.monitorPrecision()>IMAGE_PRECISION_16)return DXGI_FORMAT_R32G32B32A32_FLOAT;
-      if(D.monitorPrecision()>IMAGE_PRECISION_8 )return DXGI_FORMAT_R16G16B16A16_FLOAT;
+      if(D.outputPrecision()>IMAGE_PRECISION_16)return DXGI_FORMAT_R32G32B32A32_FLOAT;
+      if(D.outputPrecision()>IMAGE_PRECISION_8 )return DXGI_FORMAT_R16G16B16A16_FLOAT;
       // can't use DXGI_FORMAT_R10G10B10A2_UNORM because it's non-sRGB
    #else
       // can't use DXGI_FORMAT_R32G32B32A32_FLOAT DXGI_FORMAT_R16G16B16A16_FLOAT because on Windows it means linear gamma
-      if(D.monitorPrecision()>IMAGE_PRECISION_8 )return DXGI_FORMAT_R10G10B10A2_UNORM;
+      if(D.outputPrecision()>IMAGE_PRECISION_8 )return DXGI_FORMAT_R10G10B10A2_UNORM;
    #endif
    }
    return LINEAR_GAMMA ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -2144,8 +2146,6 @@ void DisplayClass::getCaps()
    if(LogInit)LogN("Display.getCaps");
 #if DX11
    // values taken from - https://msdn.microsoft.com/en-us/library/windows/desktop/ff476876(v=vs.85).aspx
-   DXGI_SWAP_CHAIN_DESC desc;
-   SwapChain->GetDesc(&desc); _freq_got=(desc.BufferDesc.RefreshRate.Denominator ? RoundPos(Flt(desc.BufferDesc.RefreshRate.Numerator)/desc.BufferDesc.RefreshRate.Denominator) : 0);
   _max_rt        =((FeatureLevel>=D3D_FEATURE_LEVEL_10_0) ? 8 : (FeatureLevel>=D3D_FEATURE_LEVEL_9_3) ? 4 : 1);
   _max_tex_filter=((FeatureLevel>=D3D_FEATURE_LEVEL_9_2 ) ? 16 : 2);
   _max_tex_size  =((FeatureLevel>=D3D_FEATURE_LEVEL_11_0) ? 16384 : (FeatureLevel>=D3D_FEATURE_LEVEL_10_0) ? 8192 : (FeatureLevel>=D3D_FEATURE_LEVEL_9_3) ? 4096 : 2048);
@@ -2178,22 +2178,6 @@ void DisplayClass::getCaps()
       swap_chain4->Release();
    }*/
    
-   IDXGIOutput *output=null; SwapChain->GetContainingOutput(&output); if(output)
-   {
-      IDXGIOutput6 *output6=null; output->QueryInterface(__uuidof(IDXGIOutput6), (Ptr*)&output6); if(output6)
-      {
-         DXGI_OUTPUT_DESC1 desc; if(OK(output6->GetDesc1(&desc)))
-         {
-            // TODO: this could replace 'highMonitorPrecision'?
-            // Warning: these might be reported wrong
-           _output_prec   =BitsToPrecision(desc.BitsPerColor);
-           _output_max_lum=desc.MaxLuminance/80.0f; // "color value of (1.0, 1.0, 1.0) corresponds to a luminance level of 80 nits" - https://www.khronos.org/registry/EGL/extensions/EXT/EGL_EXT_gl_colorspace_scrgb_linear.txt
-            // get info about color space
-         }
-         output6->Release();
-      }
-      output->Release();
-   }
    /*void SetCS(Int cs)
    {
       Clamp(cs, 0, DXGI_COLOR_SPACE_YCBCR_FULL_GHLG_TOPLEFT_P2020);
@@ -2275,7 +2259,7 @@ void DisplayClass::getCaps()
       }
    }
 #endif
-  
+
    if(!Physics.precision())Physics.precision(0); // adjust physics precision when possibility of screen refresh rate change
    densityUpdate(); // max texture size affects max allowed density
   _samples=DisplaySamples(_samples);
@@ -2297,6 +2281,7 @@ void DisplayClass::after(Bool resize_callback)
    )App._window_size=res();
    if(_gamma)gammaSet(); // force reset gamma
    aspectRatioEx(true, !resize_callback);
+   getScreenInfo();
    setColorLUT();
 }
 /******************************************************************************/
@@ -2515,11 +2500,11 @@ DisplayClass& DisplayClass::full(Bool full, Bool window_size)
    if(full!=T.full())toggle(window_size);
    return T;
 }
-DisplayClass& DisplayClass::monitorPrecision(IMAGE_PRECISION precision)
+DisplayClass& DisplayClass::outputPrecision(IMAGE_PRECISION precision)
 {
    Clamp(precision, IMAGE_PRECISION_8, IMAGE_PRECISION(IMAGE_PRECISION_NUM-1));
-   if(!created())_monitor_prec=precision;else
-   if(monitorPrecision()!=precision){_monitor_prec=precision; if(findMode())Reset();}
+   if(!created())_output_prec=precision;else
+   if(outputPrecision()!=precision){_output_prec=precision; if(findMode())Reset();}
    return T;
 }
 Bool DisplayClass::exclusiveFull()C
@@ -2547,6 +2532,50 @@ DisplayClass& DisplayClass::exclusive(Bool exclusive)
    #endif
    }
    return T;
+}
+void DisplayClass::getScreenInfo()
+{
+#if DX11
+   IDXGIOutput *output=null;
+/*#if WINDOWS_OLD // according to https://docs.microsoft.com/en-us/windows/win32/direct3darticles/high-dynamic-range this should be obtained by using new adapters, however in tests it didn't update either
+   if(HMONITOR hmonitor=App.hmonitor())
+      if(Factory)
+   {
+      IDXGIAdapter *adapter=null; Factory->EnumAdapters(0, &adapter); if(adapter) // first adapter only
+      {
+         for(Int i=0; ; i++) // iterate all outputs
+         {
+            adapter->EnumOutputs(i, &output); if(output)
+            {
+               DXGI_OUTPUT_DESC desc; if(OK(output->GetDesc(&desc)) && desc.Monitor==hmonitor)break; // if found the monitor that we're going to use, then keep 'output' and stop looking
+               output->Release(); output=null; // release, clear and continue looking
+            }else break; // no more outputs available
+         }
+         adapter->Release();
+      }
+   }
+#endif*/
+   if(SwapChain)
+   {
+      if(!output)SwapChain->GetContainingOutput(&output); // if still didn't get an output, then use from SwapChain
+      DXGI_SWAP_CHAIN_DESC desc; SwapChain->GetDesc(&desc); _freq_got=(desc.BufferDesc.RefreshRate.Denominator ? RoundPos(Flt(desc.BufferDesc.RefreshRate.Numerator)/desc.BufferDesc.RefreshRate.Denominator) : 0);
+   }
+   if(output)
+   {
+      IDXGIOutput6 *output6=null; output->QueryInterface(__uuidof(IDXGIOutput6), (Ptr*)&output6); if(output6)
+      {
+         DXGI_OUTPUT_DESC1 desc; if(OK(output6->GetDesc1(&desc)))
+         {
+            // Warning: these might be reported wrong
+           _color_prec    =BitsToPrecision(desc.BitsPerColor);
+           _screen_max_lum=desc.MaxLuminance/80.0f; // "color value of (1.0, 1.0, 1.0) corresponds to a luminance level of 80 nits" - https://www.khronos.org/registry/EGL/extensions/EXT/EGL_EXT_gl_colorspace_scrgb_linear.txt
+           _hdr           =(desc.ColorSpace==DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+         }
+         output6->Release();
+      }
+      output->Release();
+   }
+#endif
 }
 static COLOR_SPACE LastSrcColorSpace;
 static Str         LastDestColorSpace;

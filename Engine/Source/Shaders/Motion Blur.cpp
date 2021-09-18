@@ -57,8 +57,10 @@
 
 #define SHOW_BLUR_PIXELS 0 // show what pixels actually get blurred (they will be set to GREEN for fast blur and RED for slow blur) use only for debugging
 
+#define MAX_UNROLL_RANGE 5 // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range, however limit to 5 because compilation on GL is very slow, and loading compiled shaders on DX GeForce 3080 is very slow too
+
 #if 0 // use only for testing for fast compilation
-   #define FAST_COMPILE 1
+   #define MAX_UNROLL_RANGE 0
    #define UNROLL LOOP
 #endif
 #define FAST_UNROLL [unroll] // always unroll because the operation is fast and won't slow down compilation
@@ -467,7 +469,7 @@ VecH4 Dilate_PS
    #endif
 
       // find new max
-   #if !FAST_COMPILE && RANGE<=(GL ? 5 : 7) // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range, for GL limit to 5 because compilation is very slow
+   #if RANGE<=MAX_UNROLL_RANGE
       VecH2 motion_xy=motion.xy; // keep copy of 'motion.xy' because it might get overwritten
       Half  max_length2=ScreenLength2(motion.xy);
    #if DUAL_DILATE_MOTION
@@ -519,7 +521,7 @@ VecH4 Dilate_PS
       PixelMotion base_pixel_blur_motion; base_pixel_blur_motion.set(blur_motion.xy, uv_to_pixel);
    #endif
 
-   #if !FAST_COMPILE && RANGE<=(GL ? 5 : 7) // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range, for GL limit to 5 because compilation is very slow
+   #if RANGE<=MAX_UNROLL_RANGE
       UNROLL for(Int y=-RANGE; y<=RANGE; y++)
       UNROLL for(Int x=-RANGE; x<=RANGE; x++)if(x || y)
       {
@@ -568,7 +570,7 @@ VecH4 Dilate_PS
    #endif
       PixelMotion base_pixel_motion; base_pixel_motion.set(motion.xy, uv_to_pixel);
 
-   #if !FAST_COMPILE && RANGE<=(GL ? 5 : 7) // only up to 7 is supported here because 'TexPointOfs' accepts offsets in -8..7 range, for GL limit to 5 because compilation is very slow
+   #if RANGE<=MAX_UNROLL_RANGE
       UNROLL for(Int y=-RANGE; y<=RANGE; y++)
       UNROLL for(Int x=-RANGE; x<=RANGE; x++)if(x || y)
       #if !DUAL_DILATE_MOTION

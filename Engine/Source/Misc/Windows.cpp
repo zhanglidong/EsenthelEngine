@@ -924,7 +924,7 @@ static LRESULT CALLBACK WindowMsg(HWND window, UInt msg, WPARAM wParam, LPARAM l
 
       case WM_INITMENUPOPUP  : case WM_ENTERSIZEMOVE: Pause(true); break;
       case WM_UNINITMENUPOPUP: Pause(false); break;
-      case WM_EXITSIZEMOVE   : Pause(false); D.setColorLUT(); break; // called when (finished dragging by title bar or resizing by edge/corner, snapped by User), NOT called when (maximized, snapped by OS), call 'setColorLUT' in case moved to another monitor with different color profile
+      case WM_EXITSIZEMOVE   : Pause(false); D.getScreenInfo(); D.setColorLUT(); break; // called when (finished dragging by title bar or resizing by edge/corner, snapped by User), NOT called when (maximized, snapped by OS), call 'setColorLUT' in case moved to another monitor with different color profile
 
       case WM_MOVE: // called when moved (dragged by title bar, snapped by User/OS, maximized, minimized)
       {
@@ -953,6 +953,7 @@ static LRESULT CALLBACK WindowMsg(HWND window, UInt msg, WPARAM wParam, LPARAM l
       {
        //VecI2 res(LOWORD(lParam), HIWORD(lParam)); // this is resolution of the primary monitor and not the one that's changing
          ResetCursorCounter=8; App._callbacks.include(ResetCursor); // it was noticed that after changing resolution, Windows will rescale current cursor, to prevent that, we need to reset it, calling immediately may not have any effect, we have to try a few times
+         D.getScreenInfo();
          if(auto screen_changed=D.screen_changed)screen_changed(D.w(), D.h()); // if 'D.scale' is set based on current screen resolution, then we may need to adjust it
       }break;
 
