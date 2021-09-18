@@ -206,6 +206,7 @@ void DrawCopyElms()
    UpdateProgress.draw(gpc);
    D.clip();
    Gui.draw();
+   Draw();
 }
 /******************************************************************************/
 

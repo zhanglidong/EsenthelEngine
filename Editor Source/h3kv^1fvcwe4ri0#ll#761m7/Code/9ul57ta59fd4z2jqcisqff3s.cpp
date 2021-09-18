@@ -319,5 +319,14 @@ void Shut()
 }
 /******************************************************************************/
 bool Update() {return false;}
-void Draw  () {}
+void Draw  ()
+{
+   if(D.hdr() && D.outputPrecision()>IMAGE_PRECISION_8)
+   {
+      ALPHA_MODE alpha=D.alpha(ALPHA_MUL);
+      Flt mul=3.5;
+      D.rect().draw(Vec4(mul, mul, mul, 1));
+      D.alpha(alpha);
+   }
+}
 /******************************************************************************/

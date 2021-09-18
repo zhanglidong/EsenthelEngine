@@ -108,6 +108,7 @@ void DrawMiniMap()
    UpdateProgress.draw(gpc);
    D.clip();
  //Gui.draw(); do not draw gui as it's not hidden
+   Draw();
 }
 /******************************************************************************/
 

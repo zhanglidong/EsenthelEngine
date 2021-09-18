@@ -50,5 +50,6 @@ void DrawProjectUpdate()
    gpc.offset.zero();
    UpdateProgress.draw(gpc);
    D.clip();
+   Draw();
 }
 /******************************************************************************/

@@ -366,6 +366,7 @@ void DrawUpdate()
    D.clear(BackgroundColor());
    Gui.draw();
    D.text(D.rect(), UpdateMessage);
+   Draw();
 }
 /******************************************************************************/
 State    StateInstall(UpdateInstall, DrawInstall, InitInstall, ShutInstall);
@@ -443,5 +444,6 @@ void DrawInstall()
    ts.size=0.055; D.text(ts, 0, D.h()-0.05, InstallIO.visible() ? "Please select path for Esenthel installation" : "Installing to");
    ts.size=0.045; D.text(ts, 0, D.h()-0.11, S+"\""+InstallPath()+'"');
    Gui.draw();
+   Draw();
 }
 /******************************************************************************/
