@@ -133,7 +133,7 @@ Flt Weight(Flt center_blur, Flt test_blur, Int dist, Int range) // center_blur=-
         *Sat(FRONT_EXTEND ? (tb-center_blur)*DEPTH_TOLERANCE+1 : -center_blur*DEPTH_TOLERANCE)) // skip if: test focused and center in the back, or apply if: center in front
         *Sat((cb-test_blur)*DEPTH_TOLERANCE+1); // skip if: center focused and test in the back
 
-   if(!b)return 0; // this check is needed only for low precision devices, or when using high precision RT's. Low precision unsigned RT's don't have exact zero, however we scale 'b' above and zero could be reached?
+   if(!CanDiv(b))return 0; // this check is needed only for low precision devices, or when using high precision RT's. Low precision unsigned RT's don't have exact zero, however we scale 'b' above and zero could be reached?
 
    Flt x=f/b; // NaN
    x=Sat(x); // x=Min(x, 1); to prevent for returning 'Weight' values outside 0..1 range
