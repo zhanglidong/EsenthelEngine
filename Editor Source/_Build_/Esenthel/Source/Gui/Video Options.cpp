@@ -215,6 +215,8 @@ VideoOptions VidOpt;
       void VideoOptions::Advanced::ColorSpace(  Advanced &adv, C Str &text) {       D.colorSpace((COLOR_SPACE)TextInt(text));}
       Str  VideoOptions::Advanced::DiffuseMode(C Advanced &adv             ) {return D.diffuseMode();}
       void VideoOptions::Advanced::DiffuseMode(  Advanced &adv, C Str &text) {       D.diffuseMode((DIFFUSE_MODE)TextInt(text));}
+      Str  VideoOptions::Advanced::Hdr(C Advanced &adv             ) {return D.outputPrecision()>IMAGE_PRECISION_8;}
+      void VideoOptions::Advanced::Hdr(  Advanced &adv, C Str &text) {       D.outputPrecision(TextBool(text) ? IMAGE_PRECISION_16 : IMAGE_PRECISION_8);}
       Str  VideoOptions::Advanced::Sharpen(C Advanced &adv             ) {return D.sharpen();}
       void VideoOptions::Advanced::Sharpen(  Advanced &adv, C Str &text) {       D.sharpen(TextBool(text));}
       Str  VideoOptions::Advanced::Dither(C Advanced &adv             ) {return D.dither();}
@@ -349,6 +351,7 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
          props.New().create("Rendering Stage"            , MemberDesc(         ).setFunc(Stage        , Stage        )).setEnum(Stage_t, Elms(Stage_t)).desc("Display specified rendering stage.\nSome options are available only in Deferred Renderer.");
          props.New().create("Dither"                     , MemberDesc(DATA_BOOL).setFunc(Dither       , Dither       )).desc("If enable color dithering, which smoothens color gradients.");
        //props.New().create("Monitor Precision"          , MemberDesc(         ).setFunc(MonitorPrec  , MonitorPrec  )).setEnum(Precision_t, Elms(Precision_t)).desc("Specify the exact precision of your Monitor Screen.\n8 bit per channel = 24 bit total\n10 bit per channel = 30 bit total\nIf you're not sure what your monitor supports, leave this option at \"8 bit\"\n\nAvoid setting higher precision than what your screen can actually support,\nbecause instead of getting higher quality results you will get lower quality.");
+         props.New().create("HDR"                        , MemberDesc(DATA_BOOL).setFunc(Hdr          , Hdr          ));
          props.New().create("High Precision Lit Color RT", MemberDesc(DATA_BOOL).setFunc(LitColRTPrec , LitColRTPrec )).desc("Enable high precision lit color render target\nThis increases precision of colors adjusted by lighting.");
          props.New().create("High Precision Color RT"    , MemberDesc(DATA_BOOL).setFunc(ColRTPrec    , ColRTPrec    )).desc("Enable high precision color render target\nThis increases precision of material color textures in Deferred Renderer.");
          props.New().create("High Precision Normal RT"   , MemberDesc(DATA_BOOL).setFunc(NrmRTPrec    , NrmRTPrec    )).desc("Enable high precision normal render target\nThis increases precision of specular lighting in Deferred Renderer.");

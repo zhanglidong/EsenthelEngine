@@ -538,6 +538,9 @@ SHADOW_SAMPLER(SamplerShadowMap  , SSI_SHADOW      );
        SAMPLER(SamplerMinimum    , SSI_MINIMUM     );
        SAMPLER(SamplerMaximum    , SSI_MAXIMUM     );
 /******************************************************************************/
+Bool CanDiv(Half x) {return x>=HALF_MIN;} // instead of >0 to skip subnormals in case they might cause bad values
+Bool CanDiv(Flt  x) {return x>= FLT_MIN;} // instead of >0 to skip subnormals in case they might cause bad values
+
 // force convert to Half (can be used for testing Precisions)
 Half  HALF(Flt  x) {return f16tof32(f32tof16(x));}
 VecH2 HALF(Vec2 x) {return f16tof32(f32tof16(x));}

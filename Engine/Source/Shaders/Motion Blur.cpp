@@ -320,7 +320,7 @@ struct PixelMotion
    {
       dir=uv_motion*uv_to_pixel; // convert UV motion to pixel motion
       len=Length(dir);
-      if(len)dir/=len; // normalize
+      if(CanDiv(len))dir/=len; // normalize, NaN
       perp=Perp(dir); // perpendicular to movement
       ext=(Abs(dir.x)+Abs(dir.y))*2; // make smallest movements dilate neighbors, increase extent because later we use linear filtering, so because of blending, movement might get minimized, especially visible in cases such as moving object to the right (motion x=1, y=0) row up and down could have velocity at 0 and linear filtering could reduce motion at the object border (2 value was the smallest that fixed most problems)
       
@@ -854,8 +854,8 @@ VecH4 Blur_PS
          }
          base_depth=LinearizeDepth(base_depth);
 
-         Half uv_motion_len_to_step0=1/Length(dir.xy); // allows to convert travelled UV distance into how many steps (travelled_uv*uv_motion_len_to_step=step)
-         Half uv_motion_len_to_step1=1/Length(dir.zw);
+         Half uv_motion_len_to_step0=1/Length(dir.xy); // NaN, allows to convert travelled UV distance into how many steps (travelled_uv*uv_motion_len_to_step=step)
+         Half uv_motion_len_to_step1=1/Length(dir.zw); // NaN
          Half step_add=-1.5; // this value allows the last step to still has some weight, use -1.5 instead of -1 because on a 3D ball moving right, pixels in the center have higher movement due to perspective correction (pixels closer to camera move faster than those far), so when calculating biggest movement from neighbors, then the pixels at the border will get biggest/dilated movement (coming from ball center) that's slightly bigger than border movement. So the search vector that's set from biggest/dilated motion will be bigger than the sample movement, and for example its motion might cover only 9/10 steps instead of 10/10. To workaround this, make step offset slightly smaller.
          if(JITTER) // for JITTER we have to process steps starting from 0.5 because we're not leaving extra weight for the base sample (since it has to be jittered too), so move the starting UV's by 0.5 back and apply jitter offset
          {
@@ -969,7 +969,7 @@ VecH4 Blur_PS
                near.div(weight.x+1); // normalize including base sample
             }
          #if 0 // original
-            if(weight.y)far/=weight.y; // normalize
+            if(CanDiv(weight.y))far/=weight.y; // normalize, NaN
             weight.y*=mul;
             base=Lerp(near, far, weight.y);
          #else // optimized
@@ -980,11 +980,11 @@ VecH4 Blur_PS
          }else
          if(1) // process using near/far weights
          {
-            if(weight.x) // process if we've got any samples (if not then just keep 'base' as is)
+            if(CanDiv(weight.x)) // process if we've got any samples (if not then just keep 'base' as is)
             {
                weight.y*=mul;
             #if 0 // original
-               near/=weight.x; // normalize
+               near/=weight.x; // normalize, NaN
                base=Lerp(base, near, weight.y);
             #else // optimized
                near.mul(weight.y/weight.x); base.mulAdd(1-weight.y, near); // base=base*(1-weight.y) + near*(weight.y/weight.x);

@@ -54,26 +54,26 @@ class VideoOptions : PropWin
     //static void ColorPalette (  Advanced &adv, C Str &text) {Renderer.color_palette.get(ImageName(text));}
     //static Str  ColorPalette1(C Advanced &adv             ) {return Renderer.color_palette1.name();}
     //static void ColorPalette1(  Advanced &adv, C Str &text) {Renderer.color_palette1.get(ImageName(text));}
-      static Str  VolLight     (C Advanced &adv             );
-      static void VolLight     (  Advanced &adv, C Str &text);
-      static Str  MaxLights    (C Advanced &adv             );
-      static void MaxLights    (  Advanced &adv, C Str &text);
-      static Str  EdgeDetect   (C Advanced &adv             );
-      static void EdgeDetect   (  Advanced &adv, C Str &text);
-      static Str  Stage        (C Advanced &adv             );
-      static void Stage        (  Advanced &adv, C Str &text);
-      static Str  ToneMap      (C Advanced &adv             );
-      static void ToneMap      (  Advanced &adv, C Str &text);
-      static Str  EyeAdaptBrigh(C Advanced &adv             );
-      static void EyeAdaptBrigh(  Advanced &adv, C Str &text);
-      static Str  Exclusive    (C Advanced &adv             );
-      static void Exclusive    (  Advanced &adv, C Str &text);
-      static Str  ColorSpace   (C Advanced &adv             );
-      static void ColorSpace   (  Advanced &adv, C Str &text);
-      static Str  DiffuseMode  (C Advanced &adv             );
-      static void DiffuseMode  (  Advanced &adv, C Str &text);
-    //static Str  MonitorPrec  (C Advanced &adv             ) {return D.monitorPrecision();}
-    //static void MonitorPrec  (  Advanced &adv, C Str &text) {       D.monitorPrecision(IMAGE_PRECISION(TextInt(text)));}
+      static Str  VolLight     (C Advanced &adv             );        
+      static void VolLight     (  Advanced &adv, C Str &text);        
+      static Str  MaxLights    (C Advanced &adv             );        
+      static void MaxLights    (  Advanced &adv, C Str &text);        
+      static Str  EdgeDetect   (C Advanced &adv             );        
+      static void EdgeDetect   (  Advanced &adv, C Str &text);        
+      static Str  Stage        (C Advanced &adv             );        
+      static void Stage        (  Advanced &adv, C Str &text);        
+      static Str  ToneMap      (C Advanced &adv             );        
+      static void ToneMap      (  Advanced &adv, C Str &text);        
+      static Str  EyeAdaptBrigh(C Advanced &adv             );        
+      static void EyeAdaptBrigh(  Advanced &adv, C Str &text);        
+      static Str  Exclusive    (C Advanced &adv             );        
+      static void Exclusive    (  Advanced &adv, C Str &text);        
+      static Str  ColorSpace   (C Advanced &adv             );        
+      static void ColorSpace   (  Advanced &adv, C Str &text);        
+      static Str  DiffuseMode  (C Advanced &adv             );        
+      static void DiffuseMode  (  Advanced &adv, C Str &text);        
+      static Str  Hdr          (C Advanced &adv             );        
+      static void Hdr          (  Advanced &adv, C Str &text);        
       static Str  Sharpen      (C Advanced &adv             );        
       static void Sharpen      (  Advanced &adv, C Str &text);        
       static Str  Dither       (C Advanced &adv             );        

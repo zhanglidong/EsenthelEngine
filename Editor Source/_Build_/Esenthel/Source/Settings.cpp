@@ -97,6 +97,7 @@ bool SaveSettings(C Str &name)
       video.nodes.New().set("DiffuseMode"             , D.diffuseMode());
       video.nodes.New().set("BumpMapping"             , D.bumpMode());
       video.nodes.New().set("MotionBlur"              , D.motionMode());
+      video.nodes.New().set("DepthOfField"            , D.dofMode());
       video.nodes.New().set("BloomScale"              , DefaultEnvironment.bloom.scale);
       video.nodes.New().set("AmbientLight"            , DefaultEnvironment.ambient.color_s.max());
       video.nodes.New().set("AmbientOcclusion"        , D.ambientMode());
@@ -104,7 +105,7 @@ bool SaveSettings(C Str &name)
       video.nodes.New().set("AmbientOcclusionContrast", D.ambientContrast());
       video.nodes.New().set("EyeAdaptation"           , D.eyeAdaptation());
       video.nodes.New().set("EyeAdaptationBrightness" , D.eyeAdaptationBrightness());
-    //video.nodes.New().set("MonitorPrecision"        , D.monitorPrecision());
+      video.nodes.New().set("HDR"                     , D.outputPrecision()>IMAGE_PRECISION_8);
       video.nodes.New().set("ToneMapping"             , D.toneMap());
       video.nodes.New().set("Dither"                  , D.dither());
       video.nodes.New().set("ColRTPrecision"          , D.highPrecColRT    ());
@@ -171,12 +172,13 @@ void ApplyVideoSettings(C TextData &data)
       if(C TextParam *p=video->findNode("DiffuseMode"             ))D.diffuseMode(DIFFUSE_MODE(p->asInt()));
       if(C TextParam *p=video->findNode("BumpMapping"             ))D.bumpMode(BUMP_MODE(p->asInt()));
       if(C TextParam *p=video->findNode("MotionBlur"              ))D.motionMode(MOTION_MODE(p->asInt()));
+      if(C TextParam *p=video->findNode("DepthOfField"            ))D.dofMode(DOF_MODE(p->asInt()));
       if(C TextParam *p=video->findNode("AmbientOcclusion"        ))D.ambientMode    (AMBIENT_MODE(p->asInt()));
       if(C TextParam *p=video->findNode("AmbientOcclusionRange"   ))D.ambientRange   (p->asFlt());
       if(C TextParam *p=video->findNode("AmbientOcclusionContrast"))D.ambientContrast(p->asFlt());
       if(C TextParam *p=video->findNode("EyeAdaptation"           ))D.eyeAdaptation(p->asBool());
       if(C TextParam *p=video->findNode("EyeAdaptationBrightness" ))D.eyeAdaptationBrightness(p->asFlt());
-    //if(C TextParam *p=video.findNode("MonitorPrecision"        ))D.monitorPrecision(IMAGE_PRECISION(p.asInt()));
+      if(C TextParam *p=video->findNode("HDR"                     ))D.outputPrecision(p->asBool() ? IMAGE_PRECISION_16 : IMAGE_PRECISION_8);
       if(C TextParam *p=video->findNode("ToneMapping"             ))D.toneMap(TONE_MAP_MODE(p->asInt()));
       if(C TextParam *p=video->findNode("Dither"                  ))D.dither(p->asBool());
       if(C TextParam *p=video->findNode("ColRTPrecision"          ))D.highPrecColRT    (p->asBool());

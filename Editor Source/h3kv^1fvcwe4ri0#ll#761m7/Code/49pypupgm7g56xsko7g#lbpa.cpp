@@ -1269,5 +1269,6 @@ void DrawPublish()
       TextStyleParams ts; ts.align.set(0, -1); ts.size=0.05; D.text(ts, Gui.desktop().rect(), "Compressing PVRTC (iOS Texture Format) - this may take a while.\nMaking sure textures look beautiful and use little space.");
    }
    Gui.draw();
+   Draw();
 }
 /******************************************************************************/

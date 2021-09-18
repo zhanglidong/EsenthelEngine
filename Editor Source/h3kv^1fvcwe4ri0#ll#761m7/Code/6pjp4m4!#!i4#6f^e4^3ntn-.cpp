@@ -218,5 +218,6 @@ void DrawCreateMaterials()
    gpc.offset.zero();
    UpdateProgress.draw(gpc);
    D.clip();
+   Draw();
 }
 /******************************************************************************/

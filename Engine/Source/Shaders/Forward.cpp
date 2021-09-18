@@ -370,7 +370,7 @@ VecH4 PS
    #endif
 
 #else // MATERIALS>1
-   // on GeForce with Half support (GeForce 1150+) it was verified that these values can get outside of 0..1 range (especially in MSAA), which might cause infinite loop in Relief=crash and cause normals to be very big and after Normalization make them equal to 0,0,0 which later causes NaN on normalization in other shaders
+   // on GeForce with Half support (GeForce 1150+) it was verified that these values can get outside of 0..1 range, which might cause infinite loop in Relief=crash and cause normals to be very big and after Normalization make them equal to 0,0,0 which later causes NaN on normalization in other shaders
    if(MATERIALS==1)I.material.x   =Sat(I.material.x   );
    if(MATERIALS==2)I.material.xy  =Sat(I.material.xy  );
    if(MATERIALS==3)I.material.xyz =Sat(I.material.xyz );
@@ -410,9 +410,9 @@ VecH4 PS
       if(MTRL_BLEND)
       {
          VecH4 mtrl;      mtrl.x=MultiMaterialWeight(I.material.x, ext0.BASE_CHANNEL_BUMP);
-                          mtrl.y=MultiMaterialWeight(I.material.y, ext1.BASE_CHANNEL_BUMP); if(MATERIALS==2){Half sum=Sum(mtrl.xy  ); if(sum>=HALF_MIN)I.material.xy  =mtrl.xy  /sum;}  // need to compare with HALF_MIN because subnormals might produce bad results
-         if(MATERIALS>=3){mtrl.z=MultiMaterialWeight(I.material.z, ext2.BASE_CHANNEL_BUMP); if(MATERIALS==3){Half sum=Sum(mtrl.xyz ); if(sum>=HALF_MIN)I.material.xyz =mtrl.xyz /sum;}} // need to compare with HALF_MIN because subnormals might produce bad results
-         if(MATERIALS>=4){mtrl.w=MultiMaterialWeight(I.material.w, ext3.BASE_CHANNEL_BUMP); if(MATERIALS==4){Half sum=Sum(mtrl.xyzw); if(sum>=HALF_MIN)I.material.xyzw=mtrl.xyzw/sum;}} // need to compare with HALF_MIN because subnormals might produce bad results
+                          mtrl.y=MultiMaterialWeight(I.material.y, ext1.BASE_CHANNEL_BUMP); if(MATERIALS==2){Half sum=Sum(mtrl.xy  ); if(CanDiv(sum))I.material.xy  =mtrl.xy  /sum;}
+         if(MATERIALS>=3){mtrl.z=MultiMaterialWeight(I.material.z, ext2.BASE_CHANNEL_BUMP); if(MATERIALS==3){Half sum=Sum(mtrl.xyz ); if(CanDiv(sum))I.material.xyz =mtrl.xyz /sum;}}
+         if(MATERIALS>=4){mtrl.w=MultiMaterialWeight(I.material.w, ext3.BASE_CHANNEL_BUMP); if(MATERIALS==4){Half sum=Sum(mtrl.xyzw); if(CanDiv(sum))I.material.xyzw=mtrl.xyzw/sum;}}
       }
                       {VecH refl_rogh_glow0=ext0.xyw*MultiMaterial0.refl_rogh_glow_mul+MultiMaterial0.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow0.y, det0.DETAIL_CHANNEL_ROUGH); refl_rogh_glow =refl_rogh_glow0*I.material.x;} // #MaterialTextureLayoutDetail
                       {VecH refl_rogh_glow1=ext1.xyw*MultiMaterial1.refl_rogh_glow_mul+MultiMaterial1.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow1.y, det1.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow1*I.material.y;}

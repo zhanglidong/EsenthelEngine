@@ -635,5 +635,6 @@ void DrawProjectList()
 {
    D.clear(BackgroundColorLight());
    Gui.draw();
+   Draw();
 }
 /******************************************************************************/

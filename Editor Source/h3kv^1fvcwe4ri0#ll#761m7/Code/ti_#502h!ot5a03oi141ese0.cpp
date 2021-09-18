@@ -395,5 +395,6 @@ void DrawIDReplace()
    gpc.offset.zero();
    UpdateProgress.draw(gpc);
    D.clip();
+   Draw();
 }
 /******************************************************************************/
