@@ -320,7 +320,7 @@ struct PixelMotion
    {
       dir=uv_motion*uv_to_pixel; // convert UV motion to pixel motion
       len=Length(dir);
-      if(len)dir/=len; // normalize, NaN
+      if(CanDiv(len))dir/=len; // normalize, NaN
       perp=Perp(dir); // perpendicular to movement
       ext=(Abs(dir.x)+Abs(dir.y))*2; // make smallest movements dilate neighbors, increase extent because later we use linear filtering, so because of blending, movement might get minimized, especially visible in cases such as moving object to the right (motion x=1, y=0) row up and down could have velocity at 0 and linear filtering could reduce motion at the object border (2 value was the smallest that fixed most problems)
       
@@ -969,7 +969,7 @@ VecH4 Blur_PS
                near.div(weight.x+1); // normalize including base sample
             }
          #if 0 // original
-            if(weight.y)far/=weight.y; // normalize, NaN
+            if(CanDiv(weight.y))far/=weight.y; // normalize, NaN
             weight.y*=mul;
             base=Lerp(near, far, weight.y);
          #else // optimized
@@ -980,7 +980,7 @@ VecH4 Blur_PS
          }else
          if(1) // process using near/far weights
          {
-            if(weight.x) // process if we've got any samples (if not then just keep 'base' as is)
+            if(CanDiv(weight.x)) // process if we've got any samples (if not then just keep 'base' as is)
             {
                weight.y*=mul;
             #if 0 // original
