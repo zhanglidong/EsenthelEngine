@@ -854,8 +854,8 @@ VecH4 Blur_PS
          }
          base_depth=LinearizeDepth(base_depth);
 
-         Half uv_motion_len_to_step0=1/Length(dir.xy); // allows to convert travelled UV distance into how many steps (travelled_uv*uv_motion_len_to_step=step)
-         Half uv_motion_len_to_step1=1/Length(dir.zw);
+         Half uv_motion_len_to_step0=1/Length(dir.xy); // NaN, allows to convert travelled UV distance into how many steps (travelled_uv*uv_motion_len_to_step=step)
+         Half uv_motion_len_to_step1=1/Length(dir.zw); // NaN
          Half step_add=-1.5; // this value allows the last step to still has some weight, use -1.5 instead of -1 because on a 3D ball moving right, pixels in the center have higher movement due to perspective correction (pixels closer to camera move faster than those far), so when calculating biggest movement from neighbors, then the pixels at the border will get biggest/dilated movement (coming from ball center) that's slightly bigger than border movement. So the search vector that's set from biggest/dilated motion will be bigger than the sample movement, and for example its motion might cover only 9/10 steps instead of 10/10. To workaround this, make step offset slightly smaller.
          if(JITTER) // for JITTER we have to process steps starting from 0.5 because we're not leaving extra weight for the base sample (since it has to be jittered too), so move the starting UV's by 0.5 back and apply jitter offset
          {
