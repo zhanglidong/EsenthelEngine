@@ -542,7 +542,7 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, ImageRTPtr &bloom_glow, B
    if(D.bloomAllow() && // this has to be checked because bloom is merged with tonemapping, and if bloom is disabled but tone mapping enabled, then we will still run this code
      (_has_glow || D.bloomScale())) // if we have something there
    {
-      ImageRTDesc rt_desc(fxW()>>shift, fxH()>>shift, IMAGERT_SRGB); // using IMAGERT_SRGB will clip to 0..1 range !! using high precision would require clamping in the shader to make sure values don't go below 0 !!
+      ImageRTDesc rt_desc(fxW()>>shift, fxH()>>shift, IMAGERT_SRGB); // using IMAGERT_SRGB will clip to 0..1 range !! USING HIGH PRECISION WOULD REQUIRE CLAMPING IN THE SHADER TO MAKE SURE VALUES DON'T GO BELOW 0 !!
                                            rt0.get(rt_desc);
       ImageRTPtrRef rt1(half ? _h1 : _q1); rt1.get(rt_desc); Bool discard=false; // we've already discarded in 'get' so no need to do it again
 

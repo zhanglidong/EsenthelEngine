@@ -397,6 +397,7 @@ VecH TonemapUchimura(VecH x, Half black=1) // 'black' can also be 1.33
 VecH TonemapACES_LDR_Narkowicz(VecH x) // returns 0..1 (0..80 nits), Krzysztof Narkowicz - https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
 {
    x*=0.8; // everything is too bright, so darken, also this matches UE4
+   x=Min(x, 160); // for Half, values bigger than 160 will result in Infinity
 
    Half a=2.51;
    Half b=0.03;
@@ -409,6 +410,7 @@ VecH TonemapACES_LDR_Narkowicz(VecH x) // returns 0..1 (0..80 nits), Krzysztof N
 VecH TonemapACES_HDR_Narkowicz(VecH x) // returns 0 .. 12.5 (0..1000 nits), Krzysztof Narkowicz - https://knarkowicz.wordpress.com/2016/08/31/hdr-display-first-steps/
 {
    x*=0.8; // to have consistency with 'TonemapACES_LDR_Narkowicz'
+   x=Min(x, 64); // for Half, values bigger than 64 will result in Infinity
 
    Half a=15.8;
    Half b=2.12;
