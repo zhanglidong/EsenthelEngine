@@ -140,6 +140,8 @@ ref struct FrameworkView sealed : IFrameworkView
 
             display_info->                DpiChanged += ref new TypedEventHandler<DisplayInformation^, Object^>(this, &FrameworkView::OnDpiChanged                );
             display_info->        OrientationChanged += ref new TypedEventHandler<DisplayInformation^, Object^>(this, &FrameworkView::OnOrientationChanged        );
+            display_info->       ColorProfileChanged += ref new TypedEventHandler<DisplayInformation^, Object^>(this, &FrameworkView::OnColorProfileChanged       );
+            display_info->  AdvancedColorInfoChanged += ref new TypedEventHandler<DisplayInformation^, Object^>(this, &FrameworkView::OnAdvancedColorInfoChanged  );
       DisplayInformation::DisplayContentsInvalidated += ref new TypedEventHandler<DisplayInformation^, Object^>(this, &FrameworkView::OnDisplayContentsInvalidated);
 
       MouseToken = (MouseDevice::GetForCurrentView()->MouseMoved += ref new TypedEventHandler<MouseDevice^, MouseEventArgs^>(this, &FrameworkView::OnMouseMoved));
@@ -286,6 +288,14 @@ ref struct FrameworkView sealed : IFrameworkView
    {
       setOrientation(sender->CurrentOrientation, sender->NativeOrientation);
       setMode();
+   }
+   void OnColorProfileChanged(DisplayInformation^ sender, Object^ args)
+   {
+      D.getScreenInfo(); D.setColorLUT();
+   }
+   void OnAdvancedColorInfoChanged(DisplayInformation^ sender, Object^ args)
+   {
+      D.getScreenInfo(); D.setColorLUT();
    }
    void OnDisplayContentsInvalidated(DisplayInformation^ sender, Object^ args)
    {
