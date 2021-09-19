@@ -612,15 +612,19 @@ void MainShaderClass::getTechniques()
       Easu=GetShaderParam("Easu");
       Rcas=GetShaderParam("Rcas");
       Bool gather=(D.gatherChannelAvailable() && D.packHalf2x16Available()); // these shaders with gather version use 'packHalf2x16'
+      Bool half  =(D._half_supported!=0); // enable half if supported or unknown #NvidiaGeForceFidelityFXHalf
+   #if WINDOWS // workaround for NVIDIA GeForce with Half support having AMD Fidelity FX broken FIXME: TODO: check again in the future if this is still needed
+      if(D._half_supported==1 && ContainsAny(D.deviceName(), "NVIDIA GeForce", false, WHOLE_WORD_YES))half=false;
+   #endif
       REPD(alpha   , 2)
       REPD(dither  , 2)
     //REPD(in_gamma, 2)REPD(out_gamma, 2)
       REPD(   gamma, 2)
       {
-         EASU[alpha][dither][gamma]=get(S8+"EASU"+alpha+dither+gamma+gamma+gather);
-         RCAS[alpha][dither][gamma]=get(S8+"RCAS"+alpha+dither+gamma+gamma+gather);
+         EASU[alpha][dither][gamma]=get(S8+"EASU"+alpha+dither+gamma+gamma+gather+half);
+         RCAS[alpha][dither][gamma]=get(S8+"RCAS"+alpha+dither+gamma+gamma+gather+half);
       }
-      REPD(color, 2)EASUScreen[color]=get(S8+"EASUScreen"+color+gather);
+      REPD(color, 2)EASUScreen[color]=get(S8+"EASUScreen"+color+gather+half);
    }
 
    // FONT

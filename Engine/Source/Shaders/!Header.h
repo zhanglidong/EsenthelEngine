@@ -542,10 +542,10 @@ Bool CanDiv(Half x) {return x>=HALF_MIN;} // instead of >0 to skip subnormals in
 Bool CanDiv(Flt  x) {return x>= FLT_MIN;} // instead of >0 to skip subnormals in case they might cause bad values
 
 // force convert to Half (can be used for testing Precisions)
-Half  HALF(Flt  x) {return f16tof32(f32tof16(x));}
-VecH2 HALF(Vec2 x) {return f16tof32(f32tof16(x));}
-VecH  HALF(Vec  x) {return f16tof32(f32tof16(x));}
-VecH4 HALF(Vec4 x) {return f16tof32(f32tof16(x));}
+Half  AsHalf(Flt  x) {return f16tof32(f32tof16(x));}
+VecH2 AsHalf(Vec2 x) {return f16tof32(f32tof16(x));}
+VecH  AsHalf(Vec  x) {return f16tof32(f32tof16(x));}
+VecH4 AsHalf(Vec4 x) {return f16tof32(f32tof16(x));}
 
 // have to use custom functions because DX compiler might optimize-away default 'isnan' and 'isinf'
 Bool  NaN(Flt  x) {return (asuint(x)&0x7FFFFFFF)> 0x7F800000;}
@@ -2002,9 +2002,9 @@ struct LightParams
    }
    void set(Vec N, Vec L, Vec nV) // nV=-V, High Precision required for all 3 vectors (this was tested)
    {
-    /*if(Q)N=HALF(N);
-      if(W)L=HALF(L);
-      if(E)nV=HALF(nV);*/
+    /*if(Q)N=AsHalf(N);
+      if(W)L=AsHalf(L);
+      if(E)nV=AsHalf(nV);*/
 	   NdotV=NdotV_HP=-Dot(N, nV);
 	   VdotL=VdotL_HP=-Dot(nV, L);
    #if 0
@@ -2017,10 +2017,10 @@ struct LightParams
 	   NdotH_HP=(NdotL_HP+NdotV_HP)*VL;
 	   VdotH   =       VL*VdotL_HP +VL;
    #endif
-    /*if(Q)NdotV=HALF(NdotV);
-      if(W)VdotL=HALF(VdotL);
-      if(E)NdotV_HP=HALF(NdotV_HP);
-      if(R)NdotH_HP=HALF(NdotH_HP);*/
+    /*if(Q)NdotV=AsHalf(NdotV);
+      if(W)VdotL=AsHalf(VdotL);
+      if(E)NdotV_HP=AsHalf(NdotV_HP);
+      if(R)NdotH_HP=AsHalf(NdotH_HP);*/
    }
 
    // High Precision not needed for Diffuse
