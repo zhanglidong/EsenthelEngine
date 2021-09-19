@@ -137,9 +137,10 @@ struct Application // Application Settings
    Bool create ();
    void update ();
    void loop   ();
-#if WINDOWS_OLD
+#if WINDOWS
    HMONITOR hmonitor()C;
-#elif WINDOWS_NEW
+#endif
+#if WINDOWS_NEW
    void wait(SyncEvent &event); // wait for async operation to complete
    static void ExecuteRecordedEvents();
 #elif LINUX

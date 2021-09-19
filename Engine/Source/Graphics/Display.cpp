@@ -2538,7 +2538,7 @@ void DisplayClass::getScreenInfo()
 {
 #if DX11
    IDXGIOutput *output=null;
-#if WINDOWS_OLD // according to https://docs.microsoft.com/en-us/windows/win32/direct3darticles/high-dynamic-range this should be obtained by using new factory/adapter, if using SwapChain output then values are outdated
+   // according to https://docs.microsoft.com/en-us/windows/win32/direct3darticles/high-dynamic-range this should be obtained by using new factory/adapter, if using SwapChain output then values are outdated
    if(HMONITOR hmonitor=App.hmonitor())
    {
       IDXGIFactory1 *factory=null; CreateDXGIFactory1(__uuidof(IDXGIFactory1), (Ptr*)&factory); if(factory)
@@ -2558,7 +2558,6 @@ void DisplayClass::getScreenInfo()
          factory->Release();
       }
    }
-#endif
    if(SwapChain)
    {
       if(!output)SwapChain->GetContainingOutput(&output); // if still didn't get an output, then use from SwapChain
