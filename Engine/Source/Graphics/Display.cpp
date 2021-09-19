@@ -1036,6 +1036,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _max_lights_soft=true;
 
   _color_prec    =IMAGE_PRECISION_8;
+  _white_lum     =1;
   _screen_max_lum=1;
 //_screen_nits=0;
   _tone_map_max_lum=1;
@@ -2575,9 +2576,15 @@ void DisplayClass::getScreenInfo()
             if(_hdr=(desc.ColorSpace==DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020))
             {
               _screen_max_lum=desc.MaxLuminance/80.0f; // "color value of (1.0, 1.0, 1.0) corresponds to a luminance level of 80 nits" - https://www.khronos.org/registry/EGL/extensions/EXT/EGL_EXT_gl_colorspace_scrgb_linear.txt
+                   _white_lum=Min(3.5f, _screen_max_lum); // first set default value (this value was obtained when using HDR/SDR brightness balance at 50% in Windows Settings, on Samsung Odyssey G7 HDR Monitor)
+            #if WINDOWS_NEW // on UWP we can get a precise value
+               if(auto display_info=Windows::Graphics::Display::DisplayInformation::GetForCurrentView())
+                  if(auto color_info=display_info->GetAdvancedColorInfo())
+                    _white_lum=color_info->SdrWhiteLevelInNits/80.0f;
+            #endif
             }else
             {
-              _screen_max_lum=1;
+              _screen_max_lum=_white_lum=1;
             }
          }
          output6->Release();
