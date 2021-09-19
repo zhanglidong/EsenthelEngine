@@ -133,6 +133,7 @@ ref struct FrameworkView sealed : IFrameworkView
       ScreenScale=display_info->RawPixelsPerViewPixel;
 
       window->SizeChanged       += ref new TypedEventHandler<CoreWindow^, WindowSizeChangedEventArgs^>(this, &FrameworkView::OnWindowSizeChanged);
+      window->ResizeCompleted   += ref new TypedEventHandler<CoreWindow^,                     Object^>(this, &FrameworkView::OnResizeCompleted  );
       window->VisibilityChanged += ref new TypedEventHandler<CoreWindow^, VisibilityChangedEventArgs^>(this, &FrameworkView::OnVisibilityChanged);
       window->Closed            += ref new TypedEventHandler<CoreWindow^,        CoreWindowEventArgs^>(this, &FrameworkView::OnWindowClosed     );
       window->Activated         += ref new TypedEventHandler<CoreWindow^,   WindowActivatedEventArgs^>(this, &FrameworkView::OnWindowActivated  );
@@ -258,6 +259,10 @@ ref struct FrameworkView sealed : IFrameworkView
     //App.setActive(true); just use 'OnWindowActivated'
    }
    void OnWindowSizeChanged(CoreWindow^ sender, WindowSizeChangedEventArgs^ args)
+   {
+      setMode();
+   }
+   void OnResizeCompleted(CoreWindow^ sender, Object^ args)
    {
       setMode();
    }
@@ -730,6 +735,7 @@ ref struct FrameworkView sealed : IFrameworkView
       if(App._closed)return; // do nothing if app called 'Exit'
       VecI2 mode(DipsToPixelsI(App.window()->Bounds.Width), DipsToPixelsI(App.window()->Bounds.Height));
       D.modeSet(mode.x, mode.y, -1);
+      D.getScreenInfo(); D.setColorLUT();
    }
 };
 ref struct FrameworkViewSource sealed : IFrameworkViewSource
