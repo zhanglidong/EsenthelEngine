@@ -1036,7 +1036,9 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _max_lights_soft=true;
 
   _color_prec    =IMAGE_PRECISION_8;
+  _white_lum     =1;
   _screen_max_lum=1;
+//_screen_nits=0;
   _tone_map_max_lum=1;
   _tone_map_top_range=0.7f;
   _tone_map_dark_range=0.123f;
@@ -2537,24 +2539,26 @@ void DisplayClass::getScreenInfo()
 {
 #if DX11
    IDXGIOutput *output=null;
-/*#if WINDOWS_OLD // according to https://docs.microsoft.com/en-us/windows/win32/direct3darticles/high-dynamic-range this should be obtained by using new adapters, however in tests it didn't update either
+   // according to https://docs.microsoft.com/en-us/windows/win32/direct3darticles/high-dynamic-range this should be obtained by using new factory/adapter, if using SwapChain output then values are outdated
    if(HMONITOR hmonitor=App.hmonitor())
-      if(Factory)
    {
-      IDXGIAdapter *adapter=null; Factory->EnumAdapters(0, &adapter); if(adapter) // first adapter only
+      IDXGIFactory1 *factory=null; CreateDXGIFactory1(__uuidof(IDXGIFactory1), (Ptr*)&factory); if(factory)
       {
-         for(Int i=0; ; i++) // iterate all outputs
+         IDXGIAdapter *adapter=null; factory->EnumAdapters(0, &adapter); if(adapter) // first adapter only
          {
-            adapter->EnumOutputs(i, &output); if(output)
+            for(Int i=0; ; i++) // iterate all outputs
             {
-               DXGI_OUTPUT_DESC desc; if(OK(output->GetDesc(&desc)) && desc.Monitor==hmonitor)break; // if found the monitor that we're going to use, then keep 'output' and stop looking
-               output->Release(); output=null; // release, clear and continue looking
-            }else break; // no more outputs available
+               adapter->EnumOutputs(i, &output); if(output)
+               {
+                  DXGI_OUTPUT_DESC desc; if(OK(output->GetDesc(&desc)) && desc.Monitor==hmonitor)break; // if found the monitor that we're going to use, then keep 'output' and stop looking
+                  output->Release(); output=null; // release, clear and continue looking
+               }else break; // no more outputs available
+            }
+            adapter->Release();
          }
-         adapter->Release();
+         factory->Release();
       }
    }
-#endif*/
    if(SwapChain)
    {
       if(!output)SwapChain->GetContainingOutput(&output); // if still didn't get an output, then use from SwapChain
@@ -2567,9 +2571,21 @@ void DisplayClass::getScreenInfo()
          DXGI_OUTPUT_DESC1 desc; if(OK(output6->GetDesc1(&desc)))
          {
             // Warning: these might be reported wrong
-           _color_prec    =BitsToPrecision(desc.BitsPerColor);
-           _screen_max_lum=desc.MaxLuminance/80.0f; // "color value of (1.0, 1.0, 1.0) corresponds to a luminance level of 80 nits" - https://www.khronos.org/registry/EGL/extensions/EXT/EGL_EXT_gl_colorspace_scrgb_linear.txt
-           _hdr           =(desc.ColorSpace==DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+           _color_prec =BitsToPrecision(desc.BitsPerColor);
+           _screen_nits=desc.MaxLuminance;
+            if(_hdr=(desc.ColorSpace==DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020))
+            {
+              _screen_max_lum=desc.MaxLuminance/80.0f; // "color value of (1.0, 1.0, 1.0) corresponds to a luminance level of 80 nits" - https://www.khronos.org/registry/EGL/extensions/EXT/EGL_EXT_gl_colorspace_scrgb_linear.txt
+                   _white_lum=Min(3.5f, _screen_max_lum); // first set default value (this value was obtained when using "HDR/SDR brightness balance" at 50% in Windows Settings, on Samsung Odyssey G7 HDR Monitor)
+            #if WINDOWS_NEW // on UWP we can get a precise value
+               if(auto display_info=Windows::Graphics::Display::DisplayInformation::GetForCurrentView())
+                  if(auto color_info=display_info->GetAdvancedColorInfo())
+                    _white_lum=color_info->SdrWhiteLevelInNits/80.0f;
+            #endif
+            }else
+            {
+              _screen_max_lum=_white_lum=1;
+            }
          }
          output6->Release();
       }

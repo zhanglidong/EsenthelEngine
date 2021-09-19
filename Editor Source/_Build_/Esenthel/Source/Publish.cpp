@@ -968,7 +968,10 @@ bool UpdatePublish()
       App.stateProgress(UpdateProgress());
    }
    int sleep=1000/30;
-   if(!App.maximized())REPA(MT)if(MT.b(i))if(!MT.guiObj(i) || MT.guiObj(i)==Gui.desktop()){App.window().move(MT.pixelDelta(i).x, MT.pixelDelta(i).y); sleep=1;}
+   if(!App.maximized())REPA(MT)if(MT.b(i))
+   {
+      GuiObj *go=MT.guiObj(i); if(!go || go==Gui.desktop() || go->type()==GO_WINDOW && !(go->asWindow().flag&WIN_MOVABLE)){App.window().move(MT.pixelDelta(i).x, MT.pixelDelta(i).y); sleep=1;}
+   }
    Time.wait(sleep);
        Gui.update();
     Server.update(null, true); // it's very important to set 'busy' so no commands are processed during publishing

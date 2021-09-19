@@ -467,8 +467,23 @@ Application& Application::icon(C Image &icon)
    return T;
 }
 /******************************************************************************/
+#if WINDOWS
+HMONITOR Application::hmonitor()C
+{
 #if WINDOWS_OLD
-HMONITOR Application::hmonitor()C {return MonitorFromWindow(window(), MONITOR_DEFAULTTONULL);}
+   return MonitorFromWindow(window(), MONITOR_DEFAULTTONULL);
+#else
+   HMONITOR monitor=null; if(SwapChain)
+   {
+      IDXGIOutput *output=null; SwapChain->GetContainingOutput(&output); if(output)
+      {
+         DXGI_OUTPUT_DESC desc; if(OK(output->GetDesc(&desc)))monitor=desc.Monitor;
+         output->Release();
+      }
+   }
+   return monitor;
+#endif
+}
 #endif
 /******************************************************************************/
 Application& Application::lang(LANG_TYPE lang)

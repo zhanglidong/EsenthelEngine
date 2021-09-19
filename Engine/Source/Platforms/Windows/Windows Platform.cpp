@@ -133,12 +133,15 @@ ref struct FrameworkView sealed : IFrameworkView
       ScreenScale=display_info->RawPixelsPerViewPixel;
 
       window->SizeChanged       += ref new TypedEventHandler<CoreWindow^, WindowSizeChangedEventArgs^>(this, &FrameworkView::OnWindowSizeChanged);
+      window->ResizeCompleted   += ref new TypedEventHandler<CoreWindow^,                     Object^>(this, &FrameworkView::OnResizeCompleted  );
       window->VisibilityChanged += ref new TypedEventHandler<CoreWindow^, VisibilityChangedEventArgs^>(this, &FrameworkView::OnVisibilityChanged);
       window->Closed            += ref new TypedEventHandler<CoreWindow^,        CoreWindowEventArgs^>(this, &FrameworkView::OnWindowClosed     );
       window->Activated         += ref new TypedEventHandler<CoreWindow^,   WindowActivatedEventArgs^>(this, &FrameworkView::OnWindowActivated  );
 
             display_info->                DpiChanged += ref new TypedEventHandler<DisplayInformation^, Object^>(this, &FrameworkView::OnDpiChanged                );
             display_info->        OrientationChanged += ref new TypedEventHandler<DisplayInformation^, Object^>(this, &FrameworkView::OnOrientationChanged        );
+            display_info->       ColorProfileChanged += ref new TypedEventHandler<DisplayInformation^, Object^>(this, &FrameworkView::OnColorProfileChanged       );
+            display_info->  AdvancedColorInfoChanged += ref new TypedEventHandler<DisplayInformation^, Object^>(this, &FrameworkView::OnAdvancedColorInfoChanged  );
       DisplayInformation::DisplayContentsInvalidated += ref new TypedEventHandler<DisplayInformation^, Object^>(this, &FrameworkView::OnDisplayContentsInvalidated);
 
       MouseToken = (MouseDevice::GetForCurrentView()->MouseMoved += ref new TypedEventHandler<MouseDevice^, MouseEventArgs^>(this, &FrameworkView::OnMouseMoved));
@@ -261,6 +264,10 @@ ref struct FrameworkView sealed : IFrameworkView
    {
       setMode();
    }
+   void OnResizeCompleted(CoreWindow^ sender, Object^ args)
+   {
+      setMode();
+   }
    void OnVisibilityChanged(CoreWindow^ sender, VisibilityChangedEventArgs^ args)
    {
       App._minimized=!args->Visible;
@@ -281,6 +288,14 @@ ref struct FrameworkView sealed : IFrameworkView
    {
       setOrientation(sender->CurrentOrientation, sender->NativeOrientation);
       setMode();
+   }
+   void OnColorProfileChanged(DisplayInformation^ sender, Object^ args)
+   {
+      D.getScreenInfo(); D.setColorLUT();
+   }
+   void OnAdvancedColorInfoChanged(DisplayInformation^ sender, Object^ args)
+   {
+      D.getScreenInfo(); D.setColorLUT();
    }
    void OnDisplayContentsInvalidated(DisplayInformation^ sender, Object^ args)
    {
@@ -730,6 +745,7 @@ ref struct FrameworkView sealed : IFrameworkView
       if(App._closed)return; // do nothing if app called 'Exit'
       VecI2 mode(DipsToPixelsI(App.window()->Bounds.Width), DipsToPixelsI(App.window()->Bounds.Height));
       D.modeSet(mode.x, mode.y, -1);
+      D.getScreenInfo(); D.setColorLUT();
    }
 };
 ref struct FrameworkViewSource sealed : IFrameworkViewSource
