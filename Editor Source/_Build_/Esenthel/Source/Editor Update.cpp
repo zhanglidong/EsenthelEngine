@@ -143,9 +143,7 @@ Str InstallPath()
       path=Replace(NormalizePath(path), '/', '\\');
    }
    if(path.tailSlash(false).is())
-   {
-      Str end=GetBase(path); if(!Contains(end, "Esenthel"))path.tailSlash(true)+="Esenthel";
-   }
+      if(!Contains(path, "Esenthel"))path.tailSlash(true)+="Esenthel";
    return path;
 }
 void SelectInstall(C Str &path, ptr)
@@ -196,6 +194,10 @@ bool UpdateInstall()
    if(!InstallIO.visible())App.stateProgress(Updater.progress());
    UpdateProgress.set(Updater.progress());
    if(Ms.bp(MS_MAXIMIZE))App.window().toggle();
+   if(!App.maximized())REPA(MT)if(MT.b(i))
+   {
+      GuiObj *go=MT.guiObj(i); if(!go || go==Gui.desktop() || go->type()==GO_WINDOW && !(go->asWindow().flag&WIN_MOVABLE))App.window().move(MT.pixelDelta(i).x, MT.pixelDelta(i).y);
+   }
    return true;
 }
 void DrawInstall()
