@@ -163,7 +163,8 @@ struct DisplayClass : DisplayState, DisplayDraw // Display Control
    Int             freq           ()C {return _freq_got      ;} // get               Display Screen     Frequency (refresh rate)
    Bool            hdr            ()C {return _hdr           ;} // get            if Display Screen is in HDR mode, to enable HDR rendering - see 'outputPrecision' and 'litColRTPrecision'
    IMAGE_PRECISION colorPrecision ()C {return _color_prec    ;} // get               Display Screen Color   Precision (bits per color, default=IMAGE_PRECISION_8 which is 8-bits per color)
-   Flt             screenMaxLum   ()C {return _screen_max_lum;} // get               Display Screen Maximum Luminance (default=1)
+   Flt             screenMaxLum   ()C {return _screen_max_lum;} // get               Display Screen Maximum Luminance in Color values (default=1), this will always be 1 when not in HDR mode, in HDR this can be higher
+   Flt             screenNits     ()C {return _screen_nits   ;} // get               Display Screen Maximum Luminance in Nits         (default=0=unknown)
    SHADER_MODEL    shaderModel    ()C {return _shader_model  ;} // get available Shader Model
    Str8            shaderModelName()C;                          // get available Shader Model in text format
    Str8            apiName        ()C;                          // get Rendering API          in text format
@@ -599,7 +600,7 @@ private:
                      _fade_alpha, _fade_speed,
                      _sharpen_intensity,
                      _smaa_threshold,
-                     _screen_max_lum,
+                     _screen_max_lum, _screen_nits,
                      _tone_map_max_lum, _tone_map_top_range, _tone_map_dark_range, _tone_map_dark_exp;
    Vec2              _unscaled_size, _size2, _pixel_size, _pixel_size_2, _pixel_size_inv,
                      _window_pixel_to_screen_mul, _window_pixel_to_screen_add, _window_pixel_to_screen_scale,
