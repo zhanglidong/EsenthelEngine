@@ -5,7 +5,7 @@
    RCAS can be done in either but in gamma space it produces sharper results, so use that.
 
 /******************************************************************************
-ALPHA, DITHER, IN_GAMMA, OUT_GAMMA, GATHER
+ALPHA, DITHER, IN_GAMMA, OUT_GAMMA, GATHER, HALF
 /******************************************************************************/
 #define GAMMA_FAST (IN_GAMMA && OUT_GAMMA) // can use fast gamma only if we do both conversions in the shader
 /******************************************************************************/
@@ -13,7 +13,9 @@ ALPHA, DITHER, IN_GAMMA, OUT_GAMMA, GATHER
 #define Quart _Quart // "ffx_a.h" has its own 'Quart'
 #define A_GPU  1
 #define A_HLSL 1
-#define A_HALF 1
+#if HALF // workaround for Nvidia GeForce Half FIXME: TODO: check again in the future if this is still needed, if Nvidia bug is fixed then ALWAYS do "#define A_HALF 1" #NvidiaGeForceFidelityFXHalf
+   #define A_HALF 1
+#endif
 #include "ffx_a.h"
 /******************************************************************************/
 VecH4 GetChannel(VecH4 c)
@@ -55,10 +57,11 @@ Vec4  FsrEasuBF(Vec2 p) {return GetChannel(TexGatherB(Img, p));}
 VecH4 FsrEasuH(Vec2 p, VecI2 ofs) {return GetColor(TexPointOfs(Img, p, ofs));}
 Vec4  FsrEasuF(Vec2 p, VecI2 ofs) {return GetColor(TexPointOfs(Img, p, ofs));}
 
+#if A_HALF
 VecH4 FsrRcasLoadH(ASW2 p) {return GetColor(Img[p]);}
-Vec4  FsrRcasLoadF(ASU2 p) {return GetColor(Img[p]);}
-
 void FsrRcasInputH(inout AH1 r, inout AH1 g, inout AH1 b) {}
+#endif
+Vec4  FsrRcasLoadF(ASU2 p) {return GetColor(Img[p]);}
 void FsrRcasInputF(inout AF1 r, inout AF1 g, inout AF1 b) {}
 /******************************************************************************/
 #define FSR_EASU_H 1
@@ -82,9 +85,9 @@ VecH4 EASU_PS(NOPERSP PIXEL):TARGET
 {
    VecI2 pix=pixel.xy;
    VecH4 col;
-#if GATHER
+#if A_HALF && GATHER // use Half only for Gather version, because Half non-gather fails to compile
    FsrEasuH(col.rgb, pix, Easu.c0, Easu.c1, Easu.c2, Easu.c3);
-#else // for non-gather version use float because half fails to compile
+#else
    FsrEasuF(col.rgb, pix, Easu.c0, Easu.c1, Easu.c2, Easu.c3);
 #endif
 
@@ -133,13 +136,13 @@ VecH4 RCAS_PS(NOPERSP PIXEL):TARGET
    VecI2 pix=pixel.xy;
 #endif
    VecH4 col;
-#if GATHER
+#if A_HALF && GATHER // use Half only for Gather version, because Half non-gather fails to compile
    #if ALPHA
       FsrRcasH(col.r, col.g, col.b, col.a, pix, Rcas.c0);
    #else
       FsrRcasH(col.r, col.g, col.b, pix, Rcas.c0); col.a=1;
    #endif
-#else // for non-gather version use float because half fails to compile
+#else
    #if ALPHA
       FsrRcasF(col.r, col.g, col.b, col.a, pix, Rcas.c0);
    #else

@@ -573,6 +573,7 @@ private:
                      _temp_anti_alias, _temp_super_res, _temp_dual,
                      _glow_allow, _dither, _bend_leafs, _eye_adapt, _dof_foc_mode, _color_palette_allow, _gamma_all, _fade_get, _fade_auto_draw, _mtrl_blend, _draw_null_mtrl, _view_square_pixel, _allow_stereo, _max_lights_soft, _sharpen,
                      _initialized, _resetting, _no_gpu;
+  SByte              _half_supported;
    Byte              _density, _samples, _max_tex_filter, _max_rt,
                      _amb_soft, _amb_res,
                      _shd_soft, _shd_map_num,

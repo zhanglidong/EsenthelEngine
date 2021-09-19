@@ -261,10 +261,12 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
    }
    { // FIDELITY_FX
       ShaderCompiler::Source &src=compiler.New(src_path+"FidelityFX/Fidelity FX.cpp");
+      REPD(half, 2) // workaround for Nvidia GeForce Half FIXME: TODO: check again in the future if this is still needed #NvidiaGeForceFidelityFXHalf
+      {
       REPD(color , 2)
       REPD(gather, 2)
       {
-         src.New("EASUScreen", "DrawScreen_VS", "EASU_PS")("COLORS", color, "GATHER", gather).extra("ALPHA", true, "DITHER", false, "IN_GAMMA", true, "OUT_GAMMA", true).gatherChannel(gather);
+         src.New("EASUScreen", "DrawScreen_VS", "EASU_PS")("COLORS", color, "GATHER", gather, "HALF", half).extra("ALPHA", true, "DITHER", false, "IN_GAMMA", true, "OUT_GAMMA", true).gatherChannel(gather);
       }
       REPD(alpha   , 2)
       REPD(dither  , 2)
@@ -272,11 +274,12 @@ static void Compile(API api, SC_FLAG flag=SC_NONE)
       REPD(   gamma, 2)
       REPD(gather  , 2)
       {
-         src.New("EASU", "Draw_VS", "EASU_PS")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", gamma, "OUT_GAMMA", gamma, "GATHER", gather).gatherChannel(gather);
-         src.New("RCAS", "Draw_VS", "RCAS_PS")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", gamma, "OUT_GAMMA", gamma, "GATHER", gather).gatherChannel(gather); // even though this doesn't use gather, it's used to force Shader Model 5 because lower than that fails to compile halfs (DX Shader Compiler error)
-       //src.New( "CAS", "Draw_VS",  "CAS_PS")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", gamma, "OUT_GAMMA", gamma);
-                      //src.computeNew("EASU")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", gamma, "OUT_GAMMA", gamma);
-                      //src.computeNew("RCAS")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", gamma, "OUT_GAMMA", gamma);
+         src.New("EASU", "Draw_VS", "EASU_PS")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", gamma, "OUT_GAMMA", gamma, "GATHER", gather)("HALF", half).gatherChannel(gather);
+         src.New("RCAS", "Draw_VS", "RCAS_PS")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", gamma, "OUT_GAMMA", gamma, "GATHER", gather)("HALF", half).gatherChannel(gather); // even though this doesn't use gather, it's used to force Shader Model 5 because lower than that fails to compile halfs (DX Shader Compiler error)
+       //src.New( "CAS", "Draw_VS",  "CAS_PS")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", gamma, "OUT_GAMMA", gamma, "HALF", half);
+                      //src.computeNew("EASU")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", gamma, "OUT_GAMMA", gamma, "HALF", half);
+                      //src.computeNew("RCAS")("ALPHA", alpha, "DITHER", dither, "IN_GAMMA", gamma, "OUT_GAMMA", gamma, "HALF", half);
+      }
       }
    }
    { // FOG

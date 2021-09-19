@@ -899,6 +899,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _tex_filter      =(MOBILE ? 4 : 16);
   _tex_mip_filter  =true;
   _tex_detail      =(MOBILE ? TEX_USE_DISABLE : TEX_USE_MULTI);
+  _half_supported  =-1; // unknown
   _density_filter  =FILTER_EASU;
 //_sharpen         =false;
 //_tex_mip_min     =0;
@@ -2169,10 +2170,10 @@ void DisplayClass::getCaps()
    }
    ImageTypeInfo::_usage_known=true;
 
- /*D3D11_FEATURE_DATA_SHADER_MIN_PRECISION_SUPPORT min_prec;
+   D3D11_FEATURE_DATA_SHADER_MIN_PRECISION_SUPPORT min_prec;
    if(OK(D3D->CheckFeatureSupport(D3D11_FEATURE_SHADER_MIN_PRECISION_SUPPORT, &min_prec, SIZE(min_prec)))) // check for hlsl half support
-   {
-   }*/
+        _half_supported=FlagTest(min_prec.PixelShaderMinPrecision, D3D11_SHADER_MIN_PRECISION_16_BIT);
+   else _half_supported=-1; // unknown
 
    /*IDXGISwapChain4 *swap_chain4=null; SwapChain->QueryInterface(__uuidof(IDXGISwapChain4), (Ptr*)&swap_chain4); if(swap_chain4)
    {
