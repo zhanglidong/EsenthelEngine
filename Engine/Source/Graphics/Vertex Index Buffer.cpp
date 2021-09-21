@@ -1725,6 +1725,7 @@ void VtxIndBuf::imageConditional(C Image *image, ShaderImage &shader_image)
 }
 void VtxIndBuf::color (C Vec4  &color) {Sh.Color[0]->set(color);} // don't do any caching here "if(T._color!=color).." because 'Sh.Color' can be changed freely across the engine
 void VtxIndBuf::color (C Color &color) {Sh.Color[0]->set(color);} // don't do any caching here "if(T._color!=color).." because 'Sh.Color' can be changed freely across the engine
+void VtxIndBuf::color1(C Vec4  &color) {Sh.Color[1]->set(color);}
 void VtxIndBuf::color1(C Color &color) {Sh.Color[1]->set(color);}
 
 void VtxIndBuf::cull      (Bool cull) {FlagSet(VI._user_flag, VI_CULL      , cull);}

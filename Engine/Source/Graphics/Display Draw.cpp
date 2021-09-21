@@ -102,6 +102,25 @@ void Image::draw(C Color &color, C Color &color_add, C Rect &rect)C
    }
    VI.end(); // always call 'VI.end' in case 'VI.shader' was overriden before calling current method
 }
+void Image::draw(C Vec4 &color, C Vec4 &color_add, C Rect &rect)C
+{
+   VI.color  (color    );
+   VI.color1 (color_add);
+   VI.image  (this);
+   VI.setType(VI_2D_TEX, VI_STRIP|VI_SP_COL);
+   if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
+   {
+      v[0].pos.set(rect.min.x, rect.max.y);
+      v[1].pos.set(rect.max.x, rect.max.y);
+      v[2].pos.set(rect.min.x, rect.min.y);
+      v[3].pos.set(rect.max.x, rect.min.y);
+      v[0].tex.set(      0,       0);
+      v[1].tex.set(_part.x,       0);
+      v[2].tex.set(      0, _part.y);
+      v[3].tex.set(_part.x, _part.y);
+   }
+   VI.end(); // always call 'VI.end' in case 'VI.shader' was overriden before calling current method
+}
 void Image::drawVertical(C Rect &rect)C
 {
    VI.image  (this);
@@ -306,6 +325,34 @@ void Image::drawPart(C Color &color, C Color &color_add, C Rect &screen_rect, C 
    }
    VI.end(); // always call 'VI.end' in case 'VI.shader' was overriden before calling current method
 }
+void Image::drawPart(C Vec4 &color, C Vec4 &color_add, C Rect &screen_rect, C Rect &tex_rect)C
+{
+   VI.color  (color    );
+   VI.color1 (color_add);
+   VI.image  (this     );
+   VI.setType(VI_2D_TEX, VI_STRIP|VI_SP_COL);
+   if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
+   {
+      v[0].pos.set(screen_rect.min.x, screen_rect.max.y);
+      v[1].pos.set(screen_rect.max.x, screen_rect.max.y);
+      v[2].pos.set(screen_rect.min.x, screen_rect.min.y);
+      v[3].pos.set(screen_rect.max.x, screen_rect.min.y);
+      if(partial())
+      {
+         v[0].tex.x=v[2].tex.x=tex_rect.min.x*_part.x;
+         v[1].tex.x=v[3].tex.x=tex_rect.max.x*_part.x;
+         v[0].tex.y=v[1].tex.y=tex_rect.min.y*_part.y;
+         v[2].tex.y=v[3].tex.y=tex_rect.max.y*_part.y;
+      }else
+      {
+         v[0].tex.set(tex_rect.min.x, tex_rect.min.y);
+         v[1].tex.set(tex_rect.max.x, tex_rect.min.y);
+         v[2].tex.set(tex_rect.min.x, tex_rect.max.y);
+         v[3].tex.set(tex_rect.max.x, tex_rect.max.y);
+      }
+   }
+   VI.end(); // always call 'VI.end' in case 'VI.shader' was overriden before calling current method
+}
 void Image::drawPartVertical(C Rect &screen_rect, C Rect &tex_rect)C
 {
    VI.image  (this);
@@ -361,16 +408,16 @@ void Image::drawPartVertical(C Color &color, C Color &color_add, C Rect &screen_
    VI.end(); // always call 'VI.end' in case 'VI.shader' was overriden before calling current method
 }
 /******************************************************************************/
-void Image::drawRotate(C Vec2 &center, C Vec2 &size, Flt angle, C Vec2 *rotation_center)C
+void Image::drawRotate(C Vec2 &center, C Vec2 &size, Flt angle, C Vec2 *rotation_center_uv)C
 {
    VI.image  (this);
    VI.setType(VI_2D_TEX, VI_STRIP);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
    {
-      Vec2   c=(rotation_center ? *rotation_center : 0.5f);
-             c.x*= size.x;
-             c.y*=-size.y;
-      Matrix m; m.orn().setRotateZ(angle); m.pos.set(center.x, center.y, 0).xy-=c*m.orn();
+      Vec2 c=(rotation_center_uv ? *rotation_center_uv : 0.5f);
+           c.x*= size.x;
+           c.y*=-size.y;
+      Matrix2P m; m.orn().setRotate(angle); m.pos=center-c*m.orn();
       v[0].pos.set(     0,       0)*=m;
       v[1].pos.set(size.x,       0)*=m;
       v[2].pos.set(     0, -size.y)*=m;
@@ -382,7 +429,7 @@ void Image::drawRotate(C Vec2 &center, C Vec2 &size, Flt angle, C Vec2 *rotation
    }
    VI.end();
 }
-void Image::drawRotate(C Color &color, C Color &color_add, C Vec2 &center, C Vec2 &size, Flt angle, C Vec2 *rotation_center)C
+void Image::drawRotate(C Color &color, C Color &color_add, C Vec2 &center, C Vec2 &size, Flt angle, C Vec2 *rotation_center_uv)C
 {
    VI.color  (color    );
    VI.color1 (color_add);
@@ -390,10 +437,10 @@ void Image::drawRotate(C Color &color, C Color &color_add, C Vec2 &center, C Vec
    VI.setType(VI_2D_TEX, VI_STRIP|VI_SP_COL);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
    {
-      Vec2   c=(rotation_center ? *rotation_center : 0.5f);
-             c.x*= size.x;
-             c.y*=-size.y;
-      Matrix m; m.orn().setRotateZ(angle); m.pos.set(center.x, center.y, 0).xy-=c*m.orn();
+      Vec2 c=(rotation_center_uv ? *rotation_center_uv : 0.5f);
+           c.x*= size.x;
+           c.y*=-size.y;
+      Matrix2P m; m.orn().setRotate(angle); m.pos=center-c*m.orn();
       v[0].pos.set(     0,       0)*=m;
       v[1].pos.set(size.x,       0)*=m;
       v[2].pos.set(     0, -size.y)*=m;

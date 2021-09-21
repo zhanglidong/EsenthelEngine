@@ -552,6 +552,7 @@ struct Image // Image (Texture)
    // draw
    void draw        (                                    C Rect &rect)C;
    void draw        (C Color &color, C Color &color_add, C Rect &rect)C;
+   void draw        (C Vec4  &color, C Vec4  &color_add, C Rect &rect)C;
    void drawVertical(                                    C Rect &rect)C; // draw with texture coordinates in vertical mode
    void drawVertical(C Color &color, C Color &color_add, C Rect &rect)C; // draw with texture coordinates in vertical mode
 
@@ -567,12 +568,13 @@ struct Image // Image (Texture)
    // draw only part of the image
    void drawPart        (                                    C Rect &screen_rect, C Rect &tex_rect)C;
    void drawPart        (C Color &color, C Color &color_add, C Rect &screen_rect, C Rect &tex_rect)C;
+   void drawPart        (C Vec4  &color, C Vec4  &color_add, C Rect &screen_rect, C Rect &tex_rect)C;
    void drawPartVertical(                                    C Rect &screen_rect, C Rect &tex_rect)C; // draw with texture coordinates in vertical mode
    void drawPartVertical(C Color &color, C Color &color_add, C Rect &screen_rect, C Rect &tex_rect)C; // draw with texture coordinates in vertical mode
 
    // draw rotated
-   void drawRotate(                                    C Vec2 &center, C Vec2 &size, Flt angle, C Vec2 *rotation_center=null)C;
-   void drawRotate(C Color &color, C Color &color_add, C Vec2 &center, C Vec2 &size, Flt angle, C Vec2 *rotation_center=null)C;
+   void drawRotate(                                    C Vec2 &center, C Vec2 &size, Flt angle, C Vec2 *rotation_center_uv=null)C; // 'rotation_center_uv'=optional rotation center in range 0..1
+   void drawRotate(C Color &color, C Color &color_add, C Vec2 &center, C Vec2 &size, Flt angle, C Vec2 *rotation_center_uv=null)C; // 'rotation_center_uv'=optional rotation center in range 0..1
 
    // draw masked
    void drawMask         (C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C; // draw image using 'mask', final result is calculated as: this*           mask   *color+color_add
