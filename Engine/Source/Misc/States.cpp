@@ -141,7 +141,7 @@ Bool DrawState()
       #endif
          Gui.dragDraw();
          Ms .    draw();
-         VR .    draw();
+         VR .    draw(); // !! THIS WILL AUTOMATICALLY APPLY HDR BOOST #AutoHdrBoost !!
 
          // flip
          if(Renderer._t_measure){D.finish(); flip_time=Time.curTime();}

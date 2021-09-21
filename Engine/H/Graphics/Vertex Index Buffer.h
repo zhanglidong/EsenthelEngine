@@ -147,6 +147,7 @@ struct VtxIndBuf // Vertex Index Buffer - used for buffered drawing
 #if EE_PRIVATE
    static void imageConditional(C Image *image, ShaderImage &shader_image); // set texture for custom shader image, but only if different
    static void color     (C Vec4   &color ); // set color
+   static void color1    (C Vec4   &color ); // set color
 #endif
    static void color     (C Color  &color ); // set color
    static void color1    (C Color  &color ); // set color1

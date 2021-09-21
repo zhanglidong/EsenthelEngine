@@ -173,7 +173,10 @@ Matrix VirtualReality::matrixCur()C {return _api->matrixCur();}
 void   VirtualReality::recenter ()  {       _api->recenter ();}
 void   VirtualReality::update   ()  {       _api->update   ();}
 void   VirtualReality::draw     ()
-{
+{ // #AutoHdrBoost
+   Bool boost=(D.outputPrecision()>IMAGE_PRECISION_8 && D.whiteLum()!=1);
+   Vec4 boost_col; if(boost)boost_col.set(D.whiteLum(), D.whiteLum(), D.whiteLum(), 1);
+
    // !! it's very important to clear '_render' and '_ui' !!
    if(active())
    {
@@ -196,7 +199,8 @@ void   VirtualReality::draw     ()
          #if DEBUG && 1
             if(Kb.b(KB_NPMUL)){D.clearCol(); _render->drawFs(FIT_FULL, FILTER_LINEAR);}else
          #endif
-           _render->drawPart(Fit(_left_eye_tex_aspect, D.rect(), FIT_FILL), _left_eye_tex_rect);
+            if(boost)_render->drawPart(boost_col, Vec4Zero, Fit(_left_eye_tex_aspect, D.rect(), FIT_FILL), _left_eye_tex_rect);
+            else     _render->drawPart(                     Fit(_left_eye_tex_aspect, D.rect(), FIT_FILL), _left_eye_tex_rect);
             D.alpha(alpha);
            _render.clear(); // !! clear because we no longer need it, this is very important because it allows to select the new RT in the VR swapchain !!
          }else D.clearCol(); // clear because UI may not cover the entire window
@@ -206,7 +210,8 @@ void   VirtualReality::draw     ()
             if(draw_2d)
             {
                Rect screen=_ui->fit(D.rect(), FIT_FULL);
-              _ui->draw(screen);
+               if(boost)_ui->draw(boost_col, Vec4Zero, screen);
+               else     _ui->draw(                     screen);
             }
            _ui.clear(); // !! clear because we no longer need it, this is very important because it allows to select the new RT in the VR swapchain !!
          }
@@ -214,6 +219,12 @@ void   VirtualReality::draw     ()
 
       Renderer.setMain(); // restore the main RT (that includes advancing to the next VR texture) after discarding '_cur_main_ds'
       D._allow_stereo=true; D.aspectRatioEx(true, true); Frustum.set(); // !! call in this order !!
+   }else
+   if(boost)
+   {
+      ALPHA_MODE alpha=D.alpha(ALPHA_MUL);
+      D.rect().draw(boost_col);
+      D.alpha(alpha);
    }
 }
 /******************************************************************************/

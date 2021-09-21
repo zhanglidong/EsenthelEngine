@@ -1724,7 +1724,7 @@ _linear_gamma^=1; linearGamma(!_linear_gamma); // set after loading shaders
    {auto v=temporalSuperRes (); _temp_super_res   =false           ; temporalSuperRes (v);} // resetting will load shaders
    {auto v=grassRange       (); _grass_range      =-1              ; grassRange       (v);}
    {auto v=sharpenIntensity (); _sharpen_intensity=-1;             ; sharpenIntensity (v);}
-   SPSet("ToneMapMonitorMaxLum", D.toneMapMonitorMaxLum());
+  _tone_map_max_lum=0; toneMapMonitorMaxLumAuto(); //SPSet("ToneMapMonitorMaxLum", D.toneMapMonitorMaxLum());
    SPSet("ToneMapTopRange"     , D.toneMapTopRange     ());
    SPSet("ToneMapDarkenRange"  , D.toneMapDarkenRange  ());
    SPSet("ToneMapDarkenExp"    , D.toneMapDarkenExp    ());
@@ -2507,7 +2507,7 @@ DisplayClass& DisplayClass::outputPrecision(IMAGE_PRECISION precision)
 {
    Clamp(precision, IMAGE_PRECISION_8, IMAGE_PRECISION(IMAGE_PRECISION_NUM-1));
    if(!created())_output_prec=precision;else
-   if(outputPrecision()!=precision){_output_prec=precision; if(findMode())Reset();}
+   if(outputPrecision()!=precision){_output_prec=precision; if(findMode())Reset(); toneMapMonitorMaxLumAuto();}
    return T;
 }
 Bool DisplayClass::exclusiveFull()C
@@ -2593,6 +2593,7 @@ void DisplayClass::getScreenInfo()
       output->Release();
    }
 #endif
+   toneMapMonitorMaxLumAuto();
 }
 static COLOR_SPACE LastSrcColorSpace;
 static Str         LastDestColorSpace;
@@ -3327,6 +3328,7 @@ DisplayClass& DisplayClass::toneMapMonitorMaxLum(Flt        max_lum) {MAX  (max_
 DisplayClass& DisplayClass::toneMapTopRange     (Flt          range) {Clamp(range  , HALF_MIN, 1); if(_tone_map_top_range !=range  ){_tone_map_top_range =range  ; SPSet("ToneMapTopRange"     , range  );} return T;}
 DisplayClass& DisplayClass::toneMapDarkenRange  (Flt          range) {Clamp(range  , HALF_MIN, 1); if(_tone_map_dark_range!=range  ){_tone_map_dark_range=range  ; SPSet("ToneMapDarkenRange"  , range  );} return T;}
 DisplayClass& DisplayClass::toneMapDarkenExp    (Flt            exp) {Clamp(exp    ,        1, 2); if(_tone_map_dark_exp  !=exp    ){_tone_map_dark_exp  =exp    ; SPSet("ToneMapDarkenExp"    , exp    );} return T;}
+void          DisplayClass::toneMapMonitorMaxLumAuto() {D.toneMapMonitorMaxLum((D.outputPrecision()>IMAGE_PRECISION_8) ? D.screenMaxLum()/D.whiteLum() : 1);} // divide by 'whiteLum' because we're going to multiply entire screen by it later in #AutoHdrBoost
 /******************************************************************************/
 DisplayClass& DisplayClass::grassDensity(Flt  density) {_grass_density=Sat(density); return T;}
 DisplayClass& DisplayClass::grassShadow (Bool on     ) {_grass_shadow =    on      ; return T;}

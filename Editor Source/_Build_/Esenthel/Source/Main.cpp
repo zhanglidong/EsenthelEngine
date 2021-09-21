@@ -322,15 +322,7 @@ void Shut()
 }
 /******************************************************************************/
 bool Update() {return false;}
-void Draw  ()
-{
-   if(D.outputPrecision()>IMAGE_PRECISION_8 && D.whiteLum()!=1)
-   {
-      ALPHA_MODE alpha=D.alpha(ALPHA_MUL);
-      D.rect().draw(Vec4(D.whiteLum(), D.whiteLum(), D.whiteLum(), 1));
-      D.alpha(alpha);
-   }
-}
+void Draw  () {}
 /******************************************************************************/
 
 /******************************************************************************/
