@@ -3693,6 +3693,7 @@ Rect ImgClamp(C Rect &screen, C VecI2 &res)
 // FADE
 /******************************************************************************/
 static inline Flt FadeSpeed(Flt seconds) {return (seconds<FLT_MAX) ? 1/seconds : 0;} // assumes "seconds>0", if FLT_MAX was specified, then force 0 speed, to make sure it won't be changed
+static inline ImageRTDesc FadeDesc() {return ImageRTDesc(Renderer._main.w(), Renderer._main.h(), Renderer._main.highPrecision() ? IMAGERT_SRGB_H : IMAGERT_SRGB);} // doesn't use Alpha
 Bool DisplayClass::fading()C {return Renderer._fade || _fade_get;}
 void DisplayClass::setFade(Flt seconds, Bool previous_frame, Bool auto_draw)
 {
@@ -3708,7 +3709,7 @@ void DisplayClass::setFade(Flt seconds, Bool previous_frame, Bool auto_draw)
          if(Renderer._main.is())
          {
             SyncLocker locker(_lock);
-            Renderer._fade.get(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha
+            Renderer._fade.get(FadeDesc());
             Renderer._ptr_main->copyHw(*Renderer._fade, true);
            _fade_get  =false;
            _fade_alpha=1;
@@ -3722,7 +3723,7 @@ void DisplayClass::setFade(Flt seconds, Bool previous_frame, Bool auto_draw)
             SyncLocker locker(_lock);
             ImageRTC *cur_main=Renderer._cur_main, *cur_main_ds=Renderer._cur_main_ds, *ui=Renderer._ui, *ui_ds=Renderer._ui_ds;
             {
-               ImageRTPtr temp(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha, use a temporary instead of 'Renderer._fade' because we might still need it
+               ImageRTPtr temp(FadeDesc()); // use a temporary instead of 'Renderer._fade' because we might still need it
                ImageRTPtr ds; ds.getDS(temp->w(), temp->h(), temp->samples()); // this will call 'discard', this is needed to hold ref count until DS is no longer needed
                Renderer._ui   =Renderer._cur_main   =temp;
                Renderer._ui_ds=Renderer._cur_main_ds=ds;
@@ -3780,7 +3781,7 @@ void DisplayClass::fadeDraw()
    {
      _fade_get  =false;
      _fade_alpha=1    ;
-      Renderer._fade.get(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha
+      Renderer._fade.get(FadeDesc());
       Renderer._ptr_main->copyHw(*Renderer._fade, true);
    }
 }
