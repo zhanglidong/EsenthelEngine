@@ -161,8 +161,7 @@ VecH4 Bloom_PS
       Flt eps=256;
    #endif
       //Flt eps=1/pos.y*128;//pos.x;
-      //pos/=1.0/16;
-      //eps*=4;
+      pos*=16; eps/=16;
       DrawLine(col.rgb, VecH(1,1,1), pos, eps, pos.x);
     /*DrawLine(col.rgb, VecH(0.5,0,0), pos, eps, TonemapLog(pos.x));
       DrawLine(col.rgb, VecH(0.5,0,0), pos, eps, TonemapLogML4(pos.x));
@@ -173,6 +172,7 @@ VecH4 Bloom_PS
       DrawLine(col.rgb, VecH(0.5,0.5,0), pos, eps, TonemapRcp(pos.x));*/
       DrawLine(col.rgb, VecH(1,0,0), pos, eps, TonemapEsenthel(pos.x));
       DrawLine(col.rgb, VecH(0,1,0), pos, eps, TonemapACES_LDR_Narkowicz(pos.x));
+      DrawLine(col.rgb, VecH(0,0,1), pos, eps, TonemapACES_HDR_Narkowicz(pos.x));
    #endif
 #endif
 
