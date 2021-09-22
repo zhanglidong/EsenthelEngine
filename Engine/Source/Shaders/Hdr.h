@@ -409,7 +409,7 @@ VecH TonemapACES_LDR_Narkowicz(VecH x) // returns 0..1 (0..80 nits), Krzysztof N
 }
 VecH TonemapACES_HDR_Narkowicz(VecH x) // returns 0 .. 12.5 (0..1000 nits), Krzysztof Narkowicz - https://knarkowicz.wordpress.com/2016/08/31/hdr-display-first-steps/
 {
-   x*=0.65; // 0.7 matches preserving mid tone with TonemapACES_LDR_Narkowicz, 0.6 matches original ACES. In tests 0.6 looked too dark compared to no tonemapping, 0.7 looked too bright, so use in the middle=0.65
+   x*=0.7; // 0.7 matches preserving mid tone with TonemapACES_LDR_Narkowicz, 0.6 matches original ACES
    x=Min(x, 64); // for Half, values bigger than 64 will result in Infinity
 
    Half a=15.8;
