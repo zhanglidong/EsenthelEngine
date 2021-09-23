@@ -40,7 +40,7 @@ Edit::BUILD_MODE     PublishBuildMode=Edit::BUILD_BUILD;
 PublishResult       PublishRes;
 WindowIO            PublishEsProjIO;
 /******************************************************************************/
-bool PublishDataNeedOptimized() {return PublishBuildMode==Edit::BUILD_PUBLISH;}
+bool PublishDataNeedOptimized() {return false /*PublishBuildMode==Edit.BUILD_PUBLISH*/;} // never optimize automatically, because for large games with many GB that would require potentially rewriting all data, if user wants to manually optimize, he would have to delete the publish project before publishing
 bool PublishDataNeeded(Edit::EXE_TYPE exe) {return exe==Edit::EXE_UWP || exe==Edit::EXE_APK || exe==Edit::EXE_IOS || exe==Edit::EXE_NS;}
 bool PublishDataReady() // if desired project data is already availalble
 {
