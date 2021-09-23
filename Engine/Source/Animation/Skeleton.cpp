@@ -894,6 +894,8 @@ Skeleton& Skeleton::setBoneTypes()
       BONE_TYPE type=BONE_UNKNOWN;
 
       // leave not unique names (such as "arm", "leg", "eye" and "head") at the end
+      if(BoneName(bone, "Wing") || BoneName(bone, "Wings"))type=BONE_WING;else // "Wings" used by "Bat", check this at the start because there are many wings that have hand/finger, but we want the type to be Wing
+
       if(BoneName(bone, "Spine") || BoneName(bone, "Pelvis") || BoneName(bone, "Hips") || BoneName(bone, "Chest") || BoneName(bone, "Torso") || BoneName(bone, "Body") || BoneName(bone, "Ribs") || BoneName(bone, "RibCage") || BoneName(bone, "Rib Cage") || BoneName(bone, "Rib_Cage"))type=BONE_SPINE;else
 
       if(BoneName(bone, "Shoulder") || BoneName(bone, "Clavicle") || BoneName(bone, "CollarBone"))type=BONE_SHOULDER;else
@@ -919,7 +921,6 @@ Skeleton& Skeleton::setBoneTypes()
       if(BoneName(bone, "Butt") || BoneName(bone, "Buttock") || BoneName(bone, "Buttocks"))type=BONE_BUTT;else
 
       if(BoneName(bone, "Tail") && !BoneName(bone, "PonyTail") && !BoneName(bone, "Pony Tail") && !BoneName(bone, "Pony_Tail"))type=BONE_TAIL;else
-      if(BoneName(bone, "Wing") || BoneName(bone, "Wings"))type=BONE_WING;else // "Wings" used by "Bat"
       if(BoneName(bone, "Cape") || BoneName(bone, "Cloak"))type=BONE_CAPE;else
 
       // not unique names
