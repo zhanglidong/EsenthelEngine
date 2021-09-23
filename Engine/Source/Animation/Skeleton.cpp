@@ -847,8 +847,10 @@ static Bool BoneName(C SkelBone &bone, CChar8 *name) // this works as 'Contains'
    if(Int length=Length(name))
       for(CChar8 *start=bone.name; start=TextPos(start, name); )
    {
+      Bool all_upper=true; REP(length)if(!Upper(start[i])){all_upper=false; break;} // check if name is all uppercase character
       if(start!=bone.name) // check previous character (if there's any)
       {
+         if(all_upper && Upper(start[-1]))goto next; // bone name is all uppercase and previous character is also uppercase then fail, to reject "WHIP" as "Hip"
          if(Lower(*start)) // if found text starts from a lowercase character
          {
             Char8 p=start[-1]; // get previous character
@@ -861,7 +863,8 @@ static Bool BoneName(C SkelBone &bone, CChar8 *name) // this works as 'Contains'
                && Lower(name [i])) // but the requested character is lowercase (uppercase not allowed) then fail, this is for things like "HipSHJnt" to be detected as "Hip" instead of "Hips"
                   goto next;
       }
-      if(Lower(start[length]))goto next; // if next character is lowercase then fail
+      if(             Lower(start[length]))goto next; // if next character is lowercase then fail
+      if(all_upper && Upper(start[length]))goto next; // bone name is all uppercase and next character is also uppercase then fail, to reject "HANDLE" as "Hand"
 
       return true;
    next:
