@@ -2,6 +2,7 @@
 /******************************************************************************/
 class AnimEditor : Viewport4Region
 {
+   static const bool always_draw_events;
    enum ANIM_OP
    {
       OP_ORN  ,
@@ -41,7 +42,9 @@ class AnimEditor : Viewport4Region
    class Track : GuiCustom
    {
       bool events;
+      int  event_lit, event_sel;
 
+      void removedEvent(int index);
       flt screenToTime(flt x)C;
       Track& create(bool events);
       static flt ElmPosX(C Rect &rect, flt time);
@@ -51,6 +54,9 @@ class AnimEditor : Viewport4Region
       static void DrawKey(flt time, C Rect &rect, flt y, flt r);
       static void DrawKeys(AnimKeys &keys, C Rect &rect, C Color &color, flt y, flt r, int row, bool lit=false);
       virtual void draw(C GuiPC &gpc)override;
+
+public:
+   Track();
    };
 
    class Preview : PropWin
@@ -60,7 +66,6 @@ class AnimEditor : Viewport4Region
       Tabs         event_op;
       Track        track;
       bool         draw_bones, draw_slots, draw_axis, draw_plane;
-      int          event_lit, event_sel;
       flt          time_speed, prop_max_x,
                    cam_yaw, cam_pitch, cam_zoom;
       Camera       cam;
@@ -84,7 +89,6 @@ class AnimEditor : Viewport4Region
       Animation* anim()C;
       void create();
       void toGui();
-      void removedEvent(int index);
 
       virtual Preview& hide     (            )  override;
       virtual Rect     sizeLimit(            )C override;
