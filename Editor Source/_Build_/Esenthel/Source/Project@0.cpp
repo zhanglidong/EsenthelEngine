@@ -2885,7 +2885,7 @@ void DrawProject()
                   anim->bones.remove(i, true);
                }else // have to perform full adjustment
                {
-                  anim->adjustForSameTransformWithDifferentSkeleton(old_skel, new_skel, old_bone_as_root, bone_weights, anim_data->rootFlags()|(old_edit_skel.boneRootZero(old_bone_as_root) ? 0 : ROOT_BONE_POSITION|ROOT_START_IDENTITY));
+                  anim->adjustForSameTransformWithDifferentSkeleton(old_skel, new_skel, old_bone_as_root, bone_weights, old_bone_as_root>=0 ? (anim_data->rootFlags()|(old_edit_skel.boneRootZero(old_bone_as_root) ? 0 : ROOT_BONE_POSITION|ROOT_START_IDENTITY)) : 0); // here we've modified skeleton and adjust animations based on skel changes, modify root only if we've potentially selected bone as root, in other cases preserve existing anim root keys, because for example if root was manually modified to start at non-identity (for reversed animations), and we would request ROOT_START_IDENTITY then root would get changed breaking custom setup
                   anim->optimize(); // 'optimize' after 'adjustForSameTransformWithDifferentSkeleton' because it may generate lot of keyframes
                }
 
