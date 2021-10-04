@@ -847,8 +847,10 @@ static Bool BoneName(C SkelBone &bone, CChar8 *name) // this works as 'Contains'
    if(Int length=Length(name))
       for(CChar8 *start=bone.name; start=TextPos(start, name); )
    {
+      Bool all_upper=true; REP(length)if(!Upper(start[i])){all_upper=false; break;} // check if name is all uppercase character
       if(start!=bone.name) // check previous character (if there's any)
       {
+         if(all_upper && Upper(start[-1]))goto next; // bone name is all uppercase and previous character is also uppercase then fail, to reject "WHIP" as "Hip"
          if(Lower(*start)) // if found text starts from a lowercase character
          {
             Char8 p=start[-1]; // get previous character
@@ -861,7 +863,8 @@ static Bool BoneName(C SkelBone &bone, CChar8 *name) // this works as 'Contains'
                && Lower(name [i])) // but the requested character is lowercase (uppercase not allowed) then fail, this is for things like "HipSHJnt" to be detected as "Hip" instead of "Hips"
                   goto next;
       }
-      if(Lower(start[length]))goto next; // if next character is lowercase then fail
+      if(             Lower(start[length]))goto next; // if next character is lowercase then fail
+      if(all_upper && Upper(start[length]))goto next; // bone name is all uppercase and next character is also uppercase then fail, to reject "HANDLE" as "Hand"
 
       return true;
    next:
@@ -894,6 +897,8 @@ Skeleton& Skeleton::setBoneTypes()
       BONE_TYPE type=BONE_UNKNOWN;
 
       // leave not unique names (such as "arm", "leg", "eye" and "head") at the end
+      if(BoneName(bone, "Wing") || BoneName(bone, "Wings"))type=BONE_WING;else // "Wings" used by "Bat", check this at the start because there are many wings that have hand/finger, but we want the type to be Wing
+
       if(BoneName(bone, "Spine") || BoneName(bone, "Pelvis") || BoneName(bone, "Hips") || BoneName(bone, "Chest") || BoneName(bone, "Torso") || BoneName(bone, "Body") || BoneName(bone, "Ribs") || BoneName(bone, "RibCage") || BoneName(bone, "Rib Cage") || BoneName(bone, "Rib_Cage"))type=BONE_SPINE;else
 
       if(BoneName(bone, "Shoulder") || BoneName(bone, "Clavicle") || BoneName(bone, "CollarBone"))type=BONE_SHOULDER;else
@@ -919,7 +924,6 @@ Skeleton& Skeleton::setBoneTypes()
       if(BoneName(bone, "Butt") || BoneName(bone, "Buttock") || BoneName(bone, "Buttocks"))type=BONE_BUTT;else
 
       if(BoneName(bone, "Tail") && !BoneName(bone, "PonyTail") && !BoneName(bone, "Pony Tail") && !BoneName(bone, "Pony_Tail"))type=BONE_TAIL;else
-      if(BoneName(bone, "Wing") || BoneName(bone, "Wings"))type=BONE_WING;else // "Wings" used by "Bat"
       if(BoneName(bone, "Cape") || BoneName(bone, "Cloak"))type=BONE_CAPE;else
 
       // not unique names
