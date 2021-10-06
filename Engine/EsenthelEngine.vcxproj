@@ -875,7 +875,7 @@
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;misleading-indentation;</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MsExtensions>true</MsExtensions>
@@ -967,7 +967,7 @@
       <UseFullPaths>true</UseFullPaths>
       <SmallerTypeCheck>false</SmallerTypeCheck>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;misleading-indentation;</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MsExtensions>true</MsExtensions>
       <OptimizationLevel>O0</OptimizationLevel>
@@ -1349,7 +1349,7 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;misleading-indentation;</DisableSpecificWarnings>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <SDLCheck>
       </SDLCheck>
@@ -1463,7 +1463,7 @@
       <CompileAsWinRT>true</CompileAsWinRT>
       <SDLCheck>
       </SDLCheck>
-      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;misleading-indentation;</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <OmitFramePointer>true</OmitFramePointer>
       <FastMath>true</FastMath>
@@ -1740,7 +1740,7 @@
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;misleading-indentation;</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MsExtensions>true</MsExtensions>
@@ -1976,7 +1976,7 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;misleading-indentation;</DisableSpecificWarnings>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <SDLCheck>
       </SDLCheck>
