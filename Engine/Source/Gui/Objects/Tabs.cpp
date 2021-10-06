@@ -47,7 +47,7 @@ Tab& Tab::text(C Str &text)
    if(!Equal(super::text, text, true))
    {
       super::text=text;
-      if(parent()->is(GO_TABS)) // Tab rect may depend on text width
+      if(parent() && parent()->isTabs()) // Tab rect may depend on text width
       {
          Tabs &tabs=parent()->asTabs();
          if(tabs.autoSize() && tabs.actualLayout()==TABS_HORIZONTAL)tabs.setRect();

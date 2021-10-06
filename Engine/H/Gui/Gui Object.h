@@ -131,7 +131,8 @@ const_mem_addr struct GuiObj // Gui Object interface inherited by all Gui Object
    virtual GuiObj& setText              (       );                                                              // set text, this is called automatically when application language changes due to 'App.lang', you can override this method and set new text for this object (or its children) based on new 'App.lang', don't forget to call 'super.setText'
 
    // set / get
-                                                 Bool         is         ()C {return  _type!=GO_NONE;} //     get if created
+                                                 Bool         is         (                 )C {return _type!=GO_NONE;} // get if created
+                                                 Bool         is         (GUI_OBJ_TYPE type)C {return _type==type   ;} // get if object is of specified 'type'
                                                  GUI_OBJ_TYPE type       ()C {return  _type         ;} //     get object type
                                                  CChar *      typeName   ()C;                          //     get object type name
                                                  GuiObj*      parent     ()C {return  _parent       ;} //     get object parent
@@ -166,6 +167,27 @@ const_mem_addr struct GuiObj // Gui Object interface inherited by all Gui Object
    Int  compareLevel(C GuiObj &obj  )C; // compare level between this object and 'obj' in parent's children hierarchy, <0 value is returned if this object is below 'obj', 0 value is returned if they share the same level or have different parents, >0 value is returned if this object is above 'obj'
    Bool above       (C GuiObj &obj  )C {return compareLevel(obj)>0;} // if this object is above 'obj'
    Bool below       (C GuiObj &obj  )C {return compareLevel(obj)<0;} // if this object is below 'obj'
+
+   Bool isButton  ()C {return is(GO_BUTTON  );}
+   Bool isCheckBox()C {return is(GO_CHECKBOX);}
+   Bool isComboBox()C {return is(GO_COMBOBOX);}
+   Bool isCustom  ()C {return is(GO_CUSTOM  );}
+   Bool isDesktop ()C {return is(GO_DESKTOP );}
+   Bool isImage   ()C {return is(GO_IMAGE   );}
+   Bool isList    ()C {return is(GO_LIST    );}
+   Bool isMenu    ()C {return is(GO_MENU    );}
+   Bool isMenuBar ()C {return is(GO_MENU_BAR);}
+   Bool isProgress()C {return is(GO_PROGRESS);}
+   Bool isRegion  ()C {return is(GO_REGION  );}
+   Bool isSlideBar()C {return is(GO_SLIDEBAR);}
+   Bool isSlider  ()C {return is(GO_SLIDER  );}
+   Bool isTab     ()C {return is(GO_TAB     );}
+   Bool isTabs    ()C {return is(GO_TABS    );}
+   Bool isText    ()C {return is(GO_TEXT    );}
+   Bool isTextBox ()C {return is(GO_TEXTBOX );}
+   Bool isTextLine()C {return is(GO_TEXTLINE);}
+   Bool isViewport()C {return is(GO_VIEWPORT);}
+   Bool isWindow  ()C {return is(GO_WINDOW  );}
 
    // convert
    Button   & asButton  () {return ( Button   &)T;}   C Button   & asButton  ()C {return ( Button   &)T;} // return as Button   (you may use this only if type()==GO_BUTTON  )
@@ -204,7 +226,6 @@ const_mem_addr struct GuiObj // Gui Object interface inherited by all Gui Object
 
    void copyParams(C GuiObj &src); // copy common parameters
 
-   Bool    is                   (GUI_OBJ_TYPE type)C; // if  object is of 'type' type, this method is "null safe"
    GuiObj* last                 (GUI_OBJ_TYPE type) ; // get last  parent of     'type'
    GuiObj* first                (GUI_OBJ_TYPE type) ; // get first parent of     'type'
    GuiObj* firstNon             (GUI_OBJ_TYPE type) ; // get first parent of non 'type'

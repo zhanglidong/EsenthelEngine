@@ -136,7 +136,7 @@ void MenuElm::push()
 void Menu::push(Int abs)
 {
    if(Ptr data=list.absToData(abs)) // if index valid
-      for(GuiObj *go=this; go->is(GO_MENU); go=go->parent()) // iterate all menu parents (including this)
+      for(GuiObj *go=this; go && go->isMenu(); go=go->parent()) // iterate all menu parents (including this)
          if(go->asMenu()._func) // if any has a callback
    {
       Memc<MenuPush> mps;
@@ -148,7 +148,7 @@ void Menu::push(Int abs)
 
       GuiObj *menu  =this,
              *parent=menu->parent();
-      for(; parent->is(GO_MENU); )
+      for(;   parent && parent->isMenu(); )
       {
          Menu &parent_menu=parent->asMenu();
          FREP( parent_menu.elms())if(parent_menu.elm(i).menu()==menu)
@@ -703,7 +703,7 @@ void Menu::update(C GuiPC &gpc)
                if(parent())
                {
                   parent()->activate();
-                  if(parent()->type()==GO_MENU)
+                  if(parent()->isMenu())
                   {
                      Menu &menu=parent()->asMenu();
                      menu.list.lit=menu.list.cur=-1; // immediatelly clear lit/cur to avoid 1 frame delay
@@ -742,7 +742,7 @@ void Menu::update(C GuiPC &gpc)
 
       // check shortcuts
       if(Kb.k.any()) // shortcuts are detected based on char or key press, so check them only if there's something pressed
-         if(!parent()->is(GO_MENU)) // don't check Menu's that are children of other Menu's, check only root Menu's, and if it's accessible, then it will check its children
+         if(!parent() || !parent()->isMenu()) // don't check Menu's that are children of other Menu's, check only root Menu's, and if it's accessible, then it will check its children
             if(GuiObj *owner=Owner())
       {
          GuiObj *owner_window=owner->first(GO_WINDOW); // get owner Window (first Window that contains the owner)

@@ -15,9 +15,9 @@ GuiPC::GuiPC(C GuiPC &old, Bool visible, Bool enabled)
 /******************************************************************************/
 static Int CompareLevel(C GuiObj &a, C GuiObj &b)
 {
-                                                 if(Int c=Compare(a.         baseLevel(), b.         baseLevel()))return c;
-   if(a.type()==GO_WINDOW && b.type()==GO_WINDOW)if(Int c=Compare(a.asWindow().  level(), b.asWindow().  level()))return c;
-   if(a.type()==GO_MENU   && b.type()==GO_MENU  )if(Int c=Compare(b.asMenu  ().parents(), a.asMenu  ().parents()))return c; // order swapped, sort Menu by parents, so Menus attached to Windows are processed before those attached to Desktop, so Window Menu's process keyboard shortcuts first, and unprocessed shortcuts are checked later by Desktop Menu's.
+                                   if(Int c=Compare(a.         baseLevel(), b.         baseLevel()))return c;
+   if(a.isWindow() && b.isWindow())if(Int c=Compare(a.asWindow().  level(), b.asWindow().  level()))return c;
+   if(a.isMenu  () && b.isMenu  ())if(Int c=Compare(b.asMenu  ().parents(), a.asMenu  ().parents()))return c; // order swapped, sort Menu by parents, so Menus attached to Windows are processed before those attached to Desktop, so Window Menu's process keyboard shortcuts first, and unprocessed shortcuts are checked later by Desktop Menu's.
    return 0;
 }
 /******************************************************************************/
@@ -155,14 +155,14 @@ GuiObj* GuiObj::child(Int i)
       if(InRange(i, *children))
          return (*children)[i];
 
-   if(type()==GO_TABS && InRange(i, asTabs()))return &asTabs().tab(i);
+   if(isTabs() && InRange(i, asTabs()))return &asTabs().tab(i);
 
    return null;
 }
 Int GuiObj::childNum()
 {
    if(GuiObjChildren *children=T.children())return children->children.elms();
-   if(type()==GO_TABS)return asTabs().tabs();
+   if(isTabs())return asTabs().tabs();
    return 0;
 }
 void GuiObj::notifyChildrenOfClientRectChange(C Rect *old_client, C Rect *new_client)
@@ -176,7 +176,6 @@ void GuiObj::notifyParentOfRectChange(C Rect &old_rect, Bool old_visible)
    if(parent())parent()->childRectChanged(old_visible ? &old_rect : null, visible() ? &rect() : null, T);
 }
 /******************************************************************************/
-Bool GuiObj::is      (GUI_OBJ_TYPE type)C {return this && T.type()==type;}
 Bool GuiObj::contains(C GuiObj *child)C // !! this method is safe to work with "this==null" upon changing that, fix all calls to this !!
 {
    for(; child; child=child->owner())if(child==this)return true;
@@ -210,7 +209,7 @@ GuiObj* GuiObj::firstKbParent()
 }
 Region* GuiObj::firstScrollableRegion()
 {
-   for(GuiObj *go=this; go; go=go->parent())if(go->type()==GO_REGION)
+   for(GuiObj *go=this; go; go=go->parent())if(go->isRegion())
    {
       Region &region=go->asRegion();
       if(region.slidebar[0]._usable || region.slidebar[1]._usable)return &region;
@@ -261,7 +260,7 @@ GuiObj& GuiObj::kbSet() // this means setting keyboard focus to this element
       DEBUG_BYTE_LOCK(_used);
 
       if(MOBILE // do this for all types on Mobile platforms, because of the soft keyboard overlay, which could keep popping up annoyingly and occlude big portion of the screen
-      || type()==GO_DESKTOP || type()==GO_LIST) // if this is a 'Desktop' or a 'List' then clear the sub kb focus so children won't have it, and only this object will
+      || isDesktop() || isList()) // if this is a 'Desktop' or a 'List' then clear the sub kb focus so children won't have it, and only this object will
          if(GuiObjChildren *children=T.children())children->kb=null;
 
       // set kb from 'this' to parents
@@ -274,7 +273,7 @@ GuiObj& GuiObj::kbSet() // this means setting keyboard focus to this element
             for(;;)
             {
                if(cur->kbCatch()){kb=cur; break;}
-               if(cur->type()==GO_TAB && cur->asTab()._children.kb){kb=cur; break;} // force setting tab when it owns a child with keyboard focus, do not set 'kb' to child directly, because kb pointers must be only 1 level !!
+               if(cur->isTab() && cur->asTab()._children.kb){kb=cur; break;} // force setting tab when it owns a child with keyboard focus, do not set 'kb' to child directly, because kb pointers must be only 1 level !!
                cur=cur->parent();
                if(cur==parent || !cur){kb=null; break;} // if reached the parent, or for some reason null, then stop
             }
@@ -345,7 +344,7 @@ Int GuiObj::compareLevel(C GuiObj &obj)C
       if(GuiObjChildren *children=parent()->children())return children->compareLevel(T, obj);
 
       // check for single 'Tab's in 'Tabs' (this is required for correct order when saving gui objects)
-      if(parent()->type()==GO_TABS && type()==GO_TAB && obj.type()==GO_TAB)
+      if(parent()->isTabs() && isTab() && obj.isTab())
          return parent()->asTabs()._tabs.validIndex(&asTab()) - parent()->asTabs()._tabs.validIndex(&obj.asTab());
    }
    return 0;
@@ -376,9 +375,9 @@ Bool GuiObj::visibleFull()C
    if(hidden())return false; // if we're starting from 'Tab' then check this, because 'Tab' visibility is ignored below
    for(C GuiObj *go=this; ; )
    {
-      if(go->type()==GO_TAB)
+      if(go->isTab())
       {
-         if(go->parent() && go->parent()->type()==GO_TABS) // check if parent is 'Tabs' and it's set to that tab
+         if(go->parent() && go->parent()->isTabs()) // check if parent is 'Tabs' and it's set to that tab
          {
             Tabs &tabs    =go->parent()->asTabs();
             Tab  *tabs_tab=tabs._tabs.addr(tabs()); // get active 'Tab' in 'Tabs'
@@ -396,9 +395,9 @@ Bool GuiObj::visibleOnActiveDesktop()C
    if(hidden())return false; // if we're starting from 'Tab' then check this, because 'Tab' visibility is ignored below
    for(C GuiObj *go=this; ; )
    {
-      if(go->type()==GO_TAB)
+      if(go->isTab())
       {
-         if(go->parent() && go->parent()->type()==GO_TABS) // check if parent is 'Tabs' and it's set to that tab
+         if(go->parent() && go->parent()->isTabs()) // check if parent is 'Tabs' and it's set to that tab
          {
             Tabs &tabs    =go->parent()->asTabs();
             Tab  *tabs_tab=tabs._tabs.addr(tabs()); // get active 'Tab' in 'Tabs'
@@ -449,12 +448,12 @@ GuiObj& GuiObj::activate()
    DEBUG_BYTE_LOCK(_used);
 
    // hide all menus (from child to parent) until we reach any that belongs to 'this'
-   for(GuiObj *menu=Gui.menu(); menu->is(GO_MENU); menu=menu->parent())if(!menu->contains(this))menu->hide();else break;
+   for(GuiObj *menu=Gui.menu(); menu && menu->isMenu(); menu=menu->parent())if(!menu->contains(this))menu->hide();else break;
 
-   if(type()==GO_DESKTOP)Gui._desktop=&asDesktop();
+   if(isDesktop())Gui._desktop=&asDesktop();
 
    // show
-   if(type()==GO_WINDOW) // treat window as a special case because it supports fading
+   if(isWindow()) // treat window as a special case because it supports fading
    {
       Window &window=asWindow(); switch(window._fade_type)
       {
@@ -482,7 +481,7 @@ GuiObj& GuiObj::deactivate()
    kbClear();
 
    // hide all menus that belong to 'this'
-   for(GuiObj *menu=Gui.menu(); menu->is(GO_MENU); menu=menu->parent())if(contains(menu))menu->hide();else break;
+   for(GuiObj *menu=Gui.menu(); menu && menu->isMenu(); menu=menu->parent())if(contains(menu))menu->hide();else break;
 
    if(contains(Gui.menu           ()))Gui._menu            =&_parent->first(GO_MENU  )->asMenu  ();
    if(contains(Gui.windowLit      ()))Gui._window_lit      =&_parent->first(GO_WINDOW)->asWindow();
@@ -604,8 +603,8 @@ Rect GuiObj::localClientRect()C
  C GuiObj *go=this;
    for(; go; )
    {
-      if(go->type()==GO_TAB )go=go->parent();else
-      if(go->type()==GO_TABS)go=go->parent();else break;
+      if(go->isTab ())go=go->parent();else
+      if(go->isTabs())go=go->parent();else break;
    }
    if(go)switch(go->type())
    {
@@ -954,7 +953,7 @@ Bool GuiObjChildren::Switch(C GuiObj &go, Bool next)
          GuiObj *go=T[j%children.elms()]; if(ValidForSwitch(go))
          {
             go->activate();
-            if(go->type()==GO_TEXTLINE && go->enabled())go->asTextLine().selectAll();
+            if(go->isTextLine() && go->enabled())go->asTextLine().selectAll();
             return true;
          }
       }

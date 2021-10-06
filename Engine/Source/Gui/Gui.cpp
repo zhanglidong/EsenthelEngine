@@ -79,7 +79,7 @@ void GUI::screenChanged(Flt old_width, Flt old_height)
 
    if(Menu *menu=Gui.menu())
       if(GuiObj *owner=menu->Owner())
-         if(owner->type()==GO_MENU_BAR && owner->parent()->is(GO_DESKTOP))
+         if(owner->isMenuBar() && owner->parent() && owner->parent()->isDesktop())
             menu->move(Vec2(old_width-D.w(), 0));
 }
 /******************************************************************************/
@@ -103,8 +103,8 @@ Bool GUI::Switch()
             case GO_REGION  :
             case GO_TEXTBOX :
             case GO_WINDOW  : return false;
-            case GO_LIST    : if(p->type()==GO_MENU    )return false; c=p; p=c->parent(); if(!p)return false;  break;
-            case GO_TEXTLINE: if(p->type()==GO_COMBOBOX){             c=p; p=c->parent(); if(!p)return false;} break;
+            case GO_LIST    : if(p->isMenu    ())return false; c=p; p=c->parent(); if(!p)return false;  break;
+            case GO_TEXTLINE: if(p->isComboBox()){             c=p; p=c->parent(); if(!p)return false;} break;
          }
          Bool next=!Kb.k.shift();
          switch(p->type())
@@ -180,7 +180,7 @@ Color GUI::    borderColor()C {if(GuiSkin *skin=Gui.skin())return skin->    bord
 /******************************************************************************/
 TextLine* GUI::overlayTextLine(Vec2 &offset)
 {
-   Rect kb_rect; if(Kb.rect(kb_rect) && kb()->is(GO_TEXTLINE))
+   Rect kb_rect; if(Kb.rect(kb_rect) && kb() && kb()->isTextLine())
    {
       TextLine &tl=kb()->asTextLine();
       Rect_LU   tl_rect(tl.screenPos(), tl.size());
@@ -239,7 +239,7 @@ C Str& GUI::passTemp(Int length) // Warning: this is not thread-safe
 /******************************************************************************/
 static void SetWindowButtons(GuiObj &go)
 {
-   if(go.type()==GO_WINDOW)go.asWindow().setButtons();
+   if (go.isWindow())go.asWindow().setButtons();
    REP(go.childNum())if(GuiObj *child=go.child(i))SetWindowButtons(*child);
 }
 GUI& GUI::windowButtonsRight(Bool right)
@@ -468,7 +468,7 @@ void DrawDescription(GuiObj *obj, C Vec2 &pos, CChar *text, Bool mouse)
 }
 void DrawIMM(GuiObj *obj)
 {
-   if((Kb.immBuffer().is() || Kb.immCandidate().elms()) && obj && obj->type()==GO_TEXTLINE)
+   if((Kb.immBuffer().is() || Kb.immCandidate().elms()) && obj && obj->isTextLine())
       if(Gui.skin)
          if(TextStyle *text_style=Gui.skin->imm.text_style())
    {
@@ -497,7 +497,7 @@ void GUI::draw()
       }
 
       // show imm
-      if(draw_imm && kb()->is(GO_TEXTLINE))draw_imm(kb());
+      if(draw_imm && kb() && kb()->isTextLine())draw_imm(kb());
    }
 }
 /******************************************************************************/
