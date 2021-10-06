@@ -27,9 +27,16 @@ Bool LogInit=false;
    static int (*OldErrorHandler)(::Display *d, XErrorEvent *e);
    static int      ErrorHandler (::Display *d, XErrorEvent *e)
    {
+   #if 1 // just always ignore errors in case 'glXQueryExtension' fails, or 'GLXBadFBConfig' is not 9 anymore
+      return 0;
+   #else
       if(e->error_code==BadWindow)return 0;
-      if(e->error_code==167 && e->request_code==152 /*&& e->minor_code==34*/)return 0; // can happen when trying to create OpenGL context using 'glXCreateContextAttribsARB' with unsupported version, with message "Error of failed request:  GLXBadFBConfig", ignore 'minor_code' because it was 34 before, but now it's also 0
+      int errorBase, eventBase; if(glXQueryExtension(d, &errorBase, &eventBase))
+      {
+         const int GLXBadFBConfig=9; if(e->error_code==errorBase+GLXBadFBConfig)return 0; // can happen when trying to create OpenGL context using 'glXCreateContextAttribsARB' with unsupported version, with message "Error of failed request:  GLXBadFBConfig"
+      }
       return OldErrorHandler ? OldErrorHandler(d, e) : 0;
+   #endif
    }
 #endif
 /******************************************************************************/

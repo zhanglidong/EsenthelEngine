@@ -6,7 +6,7 @@ namespace EE{
 static void WindowButtonCheck(Button &button)
 {
    if(GuiObj *parent=button.parent())
-      if(parent->type()==GO_WINDOW)
+      if(parent->isWindow())
    {
       Window &window= parent->asWindow();
       IntPtr  index =&button-window.button;

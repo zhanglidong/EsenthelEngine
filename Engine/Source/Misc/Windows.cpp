@@ -1573,7 +1573,7 @@ void Application::windowCreate()
       GLX_DEPTH_SIZE   , 24,
       GLX_STENCIL_SIZE , 8,
       GLX_DOUBLEBUFFER , true,
-   #if LINEAR_GAMMA
+   #if LINEAR_GAMMA && 0 // disable because this fails on Ubuntu 21.04
       GLX_FRAMEBUFFER_SRGB_CAPABLE_EXT, LINEAR_GAMMA,
    #endif
       NULL // end of list

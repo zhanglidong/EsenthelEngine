@@ -1492,7 +1492,7 @@ Bool ScreenKeyboard::Set(Int cur, Int sel)
 }
 void KeyboardClass::setVisible()
 {
-   Bool visible=(Gui.kb() && (Gui.kb()->type()==GO_TEXTLINE || Gui.kb()->type()==GO_TEXTBOX));
+   Bool visible=(Gui.kb() && (Gui.kb()->isTextLine() || Gui.kb()->isTextBox()));
 #if WINDOWS_OLD
    imm(visible); // here ignore 'hwAvailable'
 #endif

@@ -22,7 +22,7 @@ void Line::setGui(Int i, GuiObj &parent)
 void Source::setOffset    () {lc_offset.set(slidebar[0].wantedOffset()/CE.ts.colWidth(), slidebar[1].wantedOffset()/CE.ts.lineHeight());}
 void Source::setRegionSize()
 {
-   Vec2 size=0; REP(childNum())if(GuiObj *c=child(i))if(c->visible() && c->type()==GO_TEXT){MAX(size.x, GuiMaxX(c->rect())); MAX(size.y, GuiMaxY(c->rect()));}
+   Vec2 size=0; REP(childNum())if(GuiObj *c=child(i))if(c->visible() && c->isText()){MAX(size.x, GuiMaxX(c->rect())); MAX(size.y, GuiMaxY(c->rect()));}
    size.x+=CE.ts.colWidth()+CE.lineNumberSize(); size.y+=clientHeight()/2;
    virtualSize(&size);
    slidebar[0].offset(lc_offset.x*CE.ts. colWidth ());

@@ -51,7 +51,7 @@ GuiPC::GuiPC(C GuiPC &old, _List &list) // this is to be used for columns only
    visible&=(list.visible() && list.columnsVisible());
    enabled&= list.enabled();
 #if 0
-   if(list.parent() && list.parent()->type()==GO_REGION)offset.y-=list.parent()->asRegion().slidebar[1].offset(); // this can't be used due to pixel align (when scrolling list, the column buttons shake)
+   if(list.parent() && list.parent()->isRegion())offset.y-=list.parent()->asRegion().slidebar[1].offset(); // this can't be used due to pixel align (when scrolling list, the column buttons shake)
 #else
    offset.y=client_rect.max.y;
 #endif
@@ -152,7 +152,7 @@ void ListColumn::update(C GuiPC &gpc)
 {
    if(Gui.ms()==this)
    {
-     _List *list=((parent() && parent()->type()==GO_LIST) ? &parent()->asList() : null);
+     _List *list=((parent() && parent()->isList()) ? &parent()->asList() : null);
 
       if(Ms.b(0) || Ms.br(0)) // resize
       {
@@ -185,13 +185,13 @@ Flt _List::parentWidth()C
 {
    if(GuiObj *parent=T.parent())
    {
-      if(parent->type()==GO_MENU)
+      if(parent->isMenu())
       {
-         if(GuiObj *owner=parent->asMenu().Owner())if(owner->type()==GO_COMBOBOX)return owner->clientSize().x;
+         if(GuiObj *owner=parent->asMenu().Owner())if(owner->isComboBox())return owner->clientSize().x;
       }
 
-      if(parent->type()==GO_REGION)return parent->size().x-parent->asRegion().slidebarSize();
-      else                         return parent->clientSize().x;
+      if(parent->isRegion())return parent->size().x-parent->asRegion().slidebarSize();
+      else                  return parent->clientSize().x;
    }
    return 0;
 }
@@ -692,7 +692,7 @@ void _List::setRects()
       Dbl  x=0, y=0; // use double precision to improve precision for a lot of elements (this gets increased for every element, so errors get accumulated)
       Flt  W=0, H=0;
       Vec2 max_size=size;
-      if(parent() && parent()->type()==GO_REGION)
+      if(parent() && parent()->isRegion())
       {
          Region &region=parent()->asRegion();
          MAX(max_size.x, region.rect().w()-region.slidebarSize());
@@ -1085,7 +1085,7 @@ Int _List::pageElms(C GuiPC *gpc)C
 /******************************************************************************/
 Bool _List::scrollingMain()C
 {
-   if(_parent && _parent->type()==GO_REGION)
+   if(_parent && _parent->isRegion())
    {
       Region &region=_parent->asRegion();
       switch(drawMode())
@@ -1098,13 +1098,13 @@ Bool _List::scrollingMain()C
 }
 Vec2 _List::scrollDelta()C
 {
-   if(_parent && _parent->type()==GO_REGION)return _parent->asRegion().scrollDelta();
+   if(_parent && _parent->isRegion())return _parent->asRegion().scrollDelta();
    return 0;
 }
 _List& _List::scrollTo(Int i, Bool immediate, Flt center)
 {
    Clamp(i, 0, elms()-1);
-   if(InRange(i, T) && _parent && _parent->type()==GO_REGION)
+   if(InRange(i, T) && _parent && _parent->isRegion())
    {
       Region &region=_parent->asRegion();
       Flt     add   =(columnsVisible() ? columnHeight() : 0), h=region.clientHeight()-add, e;
@@ -1130,7 +1130,7 @@ _List& _List::scrollTo(Int i, Bool immediate, Flt center)
 }
 _List& _List::scrollY(Flt delta, Bool immediate)
 {
-   if(_parent && _parent->type()==GO_REGION)_parent->asRegion().scrollY(delta, immediate);
+   if(_parent && _parent->isRegion())_parent->asRegion().scrollY(delta, immediate);
    return T;
 }
 /******************************************************************************/
@@ -1615,7 +1615,7 @@ void _List::update(C GuiPC &gpc)
          {
             Touch &touch=Touches[i]; if(touch.guiObj()==this && (touch.state()&(BS_PUSHED|BS_ON|BS_RELEASED))) // process cursor for (pushed to set) and (on+released to skip from mouse), release needed so 'Menu' detection can work
             {
-               GuiObj *container=this; if(parent()->is(GO_MENU))container=parent(); if(container->contains(Gui.objAtPos(touch.pos())))
+               GuiObj *container=this; if(parent() && parent()->isMenu())container=parent(); if(container->contains(Gui.objAtPos(touch.pos())))
                {
                   if( touch.pd() // set cursor only when pushed
                   || !touch.scrolling() // or not scrolling, to avoid situations when scrolling could possibly change the cursor, but allow for 'Menu'
@@ -1700,7 +1700,7 @@ void _List::update(C GuiPC &gpc)
             }
 
             // smooth scroll
-            if(Kb.ctrlCmd() && _parent && _parent->type()==GO_REGION)
+            if(Kb.ctrlCmd() && _parent && _parent->isRegion())
             {
                Region &region=_parent->asRegion();
                if(Kb.b(KB_UP   )){Kb.eat(KB_UP   ); region.slidebar[1].button[1].push();}
