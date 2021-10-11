@@ -129,7 +129,7 @@ struct Line : Str, Text, LineMode
    Str textTokens()C;
    Str textCode  () ;
 
-   virtual void draw(C GuiPC &gpc);
+   virtual void draw(C GuiPC &gpc)override;
 
    Bool saveData(File &f)C;
    Bool loadData(File &f);
@@ -162,8 +162,8 @@ const_mem_addr struct Source : Region
       VecI2    cur, sel;
       DateTime modify_time;
 
-      virtual void create(Ptr source);
-      virtual void apply (Ptr source);
+      virtual void create(Ptr source)override;
+      virtual void apply (Ptr source)override;
    };
 
    struct Suggestion
@@ -204,7 +204,7 @@ const_mem_addr struct Source : Region
 
       Str textCode();
 
-      virtual void draw(C GuiPC &gpc);
+      virtual void draw(C GuiPC &gpc)override;
    };
 
    SourceLoc        loc; // how this source is stored
@@ -431,14 +431,14 @@ const_mem_addr struct Source : Region
    void validateView  ();
    void setView       (Bool comments, Bool funcs, Bool func_bodies, Bool private_members);
 
-   virtual GuiObj& hide  (            ) {clearSuggestions(); return super::hide();}
-   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel);
-   virtual void    update(C GuiPC &gpc);
+   virtual GuiObj& hide  (            )override {clearSuggestions(); return super::hide();}
+   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override;
+   virtual void    update(C GuiPC &gpc)override;
 
    // draw
            void drawSelection(C Color &color, Int y, Int min_x, Int max_x);
            void drawSelection(C Color &color, C VecI2 &a, C VecI2 &b, Bool including=false);
-   virtual void draw         (C GuiPC &gpc);
+   virtual void draw         (C GuiPC &gpc)override;
 
    // parse
    Symbol* getFullSymbol(Int &i, Str &temp, Symbol *set_parent, Memc<Symbol::Modif> &templates, Symbol* *symbol_parent=null, Int *symbol_index=null) {return GetFullSymbol(tokens, i, temp, set_parent, templates, symbol_parent, symbol_index);}

@@ -403,7 +403,7 @@ void WorldManager::areaUnload(Area &area)
          {
             File f; if(area.data()->save(f.writeMem()))
             {
-               Str path=dataPath()+"Area/"; if(!FExistSystem(path))FCreateDirs(path);
+               Str path=dataPath()+"Area/"; FCreateDirs(path);
                f.pos(0); SafeOverwrite(f, path+area.xz(), null, area_cipher);
             }
          }

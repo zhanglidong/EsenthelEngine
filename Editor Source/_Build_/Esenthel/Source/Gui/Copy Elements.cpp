@@ -182,18 +182,17 @@ void ShutCopyElms()
 
    Proj.resume();
    CompareProjs.changed(CopyElms.target.id);
-   WindowSetNormal();
-   WindowFlash();
+   App.stateNormal().flash();
 }
 bool UpdateCopyElms()
 {
    if(Kb.bp(KB_ESC)){SetProjectState(); Gui.msgBox(S, "Copying elements breaked on user request");}
    if(!UpdateThread.active())SetProjectState();
-   WindowSetProgress(UpdateProgress());
+   App.stateProgress(UpdateProgress());
    Time.wait(1000/30);
       Gui.update();
    Server.update(null, true);
-   if(Ms.bp(MS_MAXIMIZE))WindowToggle();
+   if(Ms.bp(MS_MAXIMIZE))App.window().toggle();
    return true;
 }
 void DrawCopyElms()
@@ -202,11 +201,12 @@ void DrawCopyElms()
    D.text(0, 0.05f, CopyElms.esenthel_project_pak.totalFiles() ? "Importing Elements" : "Copying Elements");
    GuiPC gpc;
    gpc.visible=gpc.enabled=true; 
-   gpc.client_rect=gpc.clip.set(-D.w(), -D.h(), D.w(), D.h());
+   gpc.client_rect=gpc.clip=D.rect();
    gpc.offset.zero();
    UpdateProgress.draw(gpc);
    D.clip();
    Gui.draw();
+   Draw();
 }
 /******************************************************************************/
 
@@ -381,14 +381,24 @@ void DrawCopyElms()
             if(include_dependencies()){includeDep(Proj.meshToObj(data->body_id)); includeDep(data->draw_group_id); FREPA(data->mtrl_ids)includeDep(data->mtrl_ids[i]);}
          }break;
 
+         case ELM_SKEL: if(ElmSkel *data=elm->skelData())
+         {
+            includeDep(data->mesh_id); // always include
+         }break;
+
          case ELM_PHYS: if(ElmPhys *data=elm->physData())
          {
             if(include_dependencies())includeDep(data->mtrl_id);
          }break;
 
+         case ELM_ANIM: if(ElmAnim *data=elm->animData())
+         {
+            if(include_dependencies())includeDep(data->skel_id);
+         }break;
+
          case ELM_MTRL: if(ElmMaterial *data=elm->mtrlData())
          {
-            includeTex(data->base_0_tex); includeTex(data->base_1_tex); includeTex(data->base_2_tex); includeTex(data->detail_tex); includeTex(data->macro_tex); includeTex(data->light_tex); // always include
+            includeTex(data->base_0_tex); includeTex(data->base_1_tex); includeTex(data->base_2_tex); includeTex(data->detail_tex); includeTex(data->macro_tex); includeTex(data->emissive_tex); // always include
          }break;
 
          case ELM_WATER_MTRL: if(ElmWaterMtrl *data=elm->waterMtrlData())

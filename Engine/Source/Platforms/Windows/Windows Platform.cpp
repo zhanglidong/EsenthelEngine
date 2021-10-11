@@ -78,6 +78,24 @@ void Application::ExecuteRecordedEvents()
    Events.clear();
 }
 /******************************************************************************/
+static Bool MouseButton[5]; // keep own mouse button state, because 'Ms.b' may not be most recent, because it can have a queue
+static void UpdateMouseButton(Windows::UI::Input::PointerPointProperties ^properties)
+{
+   Bool state[]=
+   {
+      properties->  IsLeftButtonPressed,
+      properties-> IsRightButtonPressed,
+      properties->IsMiddleButtonPressed,
+      properties->    IsXButton1Pressed,
+      properties->    IsXButton2Pressed,
+   }; ASSERT(Elms(state)==Elms(MouseButton));
+   FREPA(MouseButton)if(MouseButton[i]!=state[i])
+   {
+      if(MouseButton[i]^=1)Ms.push   (i);
+      else                 Ms.release(i);
+   }
+}
+/******************************************************************************/
 Bool Application::Fullscreen() {return Windows::UI::ViewManagement::ApplicationView::GetForCurrentView()->IsFullScreenMode;}
 
 void SetMagnetometerRefresh(Flt interval)
@@ -109,18 +127,21 @@ ref struct FrameworkView sealed : IFrameworkView
    }
    virtual void SetWindow(CoreWindow^ window) // called before 'Load'
    {
-      App._hwnd=reinterpret_cast<Ptr>(window);
+      App.window().set(window);
 
       DisplayInformation^ display_info = DisplayInformation::GetForCurrentView();
       ScreenScale=display_info->RawPixelsPerViewPixel;
 
       window->SizeChanged       += ref new TypedEventHandler<CoreWindow^, WindowSizeChangedEventArgs^>(this, &FrameworkView::OnWindowSizeChanged);
+      window->ResizeCompleted   += ref new TypedEventHandler<CoreWindow^,                     Object^>(this, &FrameworkView::OnResizeCompleted  );
       window->VisibilityChanged += ref new TypedEventHandler<CoreWindow^, VisibilityChangedEventArgs^>(this, &FrameworkView::OnVisibilityChanged);
       window->Closed            += ref new TypedEventHandler<CoreWindow^,        CoreWindowEventArgs^>(this, &FrameworkView::OnWindowClosed     );
       window->Activated         += ref new TypedEventHandler<CoreWindow^,   WindowActivatedEventArgs^>(this, &FrameworkView::OnWindowActivated  );
 
             display_info->                DpiChanged += ref new TypedEventHandler<DisplayInformation^, Object^>(this, &FrameworkView::OnDpiChanged                );
             display_info->        OrientationChanged += ref new TypedEventHandler<DisplayInformation^, Object^>(this, &FrameworkView::OnOrientationChanged        );
+            display_info->       ColorProfileChanged += ref new TypedEventHandler<DisplayInformation^, Object^>(this, &FrameworkView::OnColorProfileChanged       );
+            display_info->  AdvancedColorInfoChanged += ref new TypedEventHandler<DisplayInformation^, Object^>(this, &FrameworkView::OnAdvancedColorInfoChanged  );
       DisplayInformation::DisplayContentsInvalidated += ref new TypedEventHandler<DisplayInformation^, Object^>(this, &FrameworkView::OnDisplayContentsInvalidated);
 
       MouseToken = (MouseDevice::GetForCurrentView()->MouseMoved += ref new TypedEventHandler<MouseDevice^, MouseEventArgs^>(this, &FrameworkView::OnMouseMoved));
@@ -243,6 +264,10 @@ ref struct FrameworkView sealed : IFrameworkView
    {
       setMode();
    }
+   void OnResizeCompleted(CoreWindow^ sender, Object^ args)
+   {
+      setMode();
+   }
    void OnVisibilityChanged(CoreWindow^ sender, VisibilityChangedEventArgs^ args)
    {
       App._minimized=!args->Visible;
@@ -263,6 +288,14 @@ ref struct FrameworkView sealed : IFrameworkView
    {
       setOrientation(sender->CurrentOrientation, sender->NativeOrientation);
       setMode();
+   }
+   void OnColorProfileChanged(DisplayInformation^ sender, Object^ args)
+   {
+      D.getScreenInfo(); D.setColorLUT();
+   }
+   void OnAdvancedColorInfoChanged(DisplayInformation^ sender, Object^ args)
+   {
+      D.getScreenInfo(); D.setColorLUT();
    }
    void OnDisplayContentsInvalidated(DisplayInformation^ sender, Object^ args)
    {
@@ -315,8 +348,8 @@ ref struct FrameworkView sealed : IFrameworkView
    }
    void OnMouseMoved(MouseDevice^ mouseDevice, MouseEventArgs^ args) // this is not clipped by desktop (if mouse is moved but the cursor remains in the same position, it will still generate move events). WINDOWS_NEW BUG: this will not be called if mouse hovers over title bar or border, but if mouse is moved quickly outside without touching the borders, then it will continue to receive data
    {
-      Ms._delta_relative.x+=args->MouseDelta.X;
-      Ms._delta_relative.y-=args->MouseDelta.Y;
+      Ms._delta_rel.x+=args->MouseDelta.X;
+      Ms._delta_rel.y-=args->MouseDelta.Y;
    }
    void OnPointerMoved(CoreWindow^ sender, PointerEventArgs^ args)
    {
@@ -325,7 +358,8 @@ ref struct FrameworkView sealed : IFrameworkView
       {
          case PointerDeviceType::Mouse:
          {
-            // this is handled in 'Ms.update' because this is not called when mouse is outside the window
+            // position is handled in 'Ms.update' because this is not called when mouse is outside the window
+            UpdateMouseButton(pointer->Properties); // need to update buttons, because this is the only place where button states are reported if there already other buttons pressed
          }break;
 
          default: // pen, touch
@@ -333,9 +367,9 @@ ref struct FrameworkView sealed : IFrameworkView
             if(Touch *touch=FindTouchByHandle(CPtr(pointer->PointerId)))
             {
                VecI2 pixeli(DipsToPixelsI(pointer->Position.X), DipsToPixelsI(pointer->Position.Y));
-               touch->_deltai+=pixeli-touch->_pixeli;
-               touch->_pixeli =pixeli;
-               touch->_pos    =D.windowPixelToScreen(pixeli);
+               touch->_delta_pixeli_clp+=pixeli-touch->_pixeli;
+               touch->_pixeli           =pixeli;
+               touch->_pos              =D.windowPixelToScreen(pixeli);
             }
          }break;
       }
@@ -348,8 +382,8 @@ ref struct FrameworkView sealed : IFrameworkView
          case PointerDeviceType::Mouse:
          {
             Ms._on_client=true;
-          //Ms._deltai=Ms._window_posi-pixeli; don't calculate delta here to avoid big jumps
-          //Ms._window_posi=pixeli; this is handled in 'Ms.update'
+          //Ms._delta_pixeli_clp=Ms._window_pixeli-pixeli; don't calculate delta here to avoid big jumps
+          //Ms._window_pixeli=pixeli; this is handled in 'Ms.update'
          }break;
 
          default: // pen, touch
@@ -375,8 +409,8 @@ ref struct FrameworkView sealed : IFrameworkView
          case PointerDeviceType::Mouse:
          {
             Ms._on_client=false;
-          //Ms._deltai=Ms._window_posi-pixeli; this is handled in 'Ms.update'
-          //Ms._window_posi=pixeli; this is handled in 'Ms.update'
+          //Ms._delta_pixeli_clp=Ms._window_pixeli-pixeli; this is handled in 'Ms.update'
+          //Ms._window_pixeli=pixeli; this is handled in 'Ms.update'
          }break;
 
          default: // pen, touch
@@ -384,10 +418,10 @@ ref struct FrameworkView sealed : IFrameworkView
             if(Touch *touch=FindTouchByHandle(CPtr(pointer->PointerId)))
             {
                VecI2 pixeli(DipsToPixelsI(pointer->Position.X), DipsToPixelsI(pointer->Position.Y));
-               touch->_deltai+=pixeli-touch->_pixeli;
-               touch->_pixeli =pixeli;
-               touch->_pos    =D.windowPixelToScreen(pixeli);
-               touch->_remove =true;
+               touch->_delta_pixeli_clp+=pixeli-touch->_pixeli;
+               touch->_pixeli           =pixeli;
+               touch->_pos              =D.windowPixelToScreen(pixeli);
+               touch->_remove           =true;
                if(touch->_state&BS_ON) // check for state in case it was manually eaten
                {
                   touch->_state|= BS_RELEASED;
@@ -404,12 +438,7 @@ ref struct FrameworkView sealed : IFrameworkView
       {
          case PointerDeviceType::Mouse:
          {
-         /* Handled in 'Ms.update' because this won't be called if there's already one button pressed
-            if(pointer->Properties->  IsLeftButtonPressed)Ms.push(0);
-            if(pointer->Properties-> IsRightButtonPressed)Ms.push(1);
-            if(pointer->Properties->IsMiddleButtonPressed)Ms.push(2);
-            if(pointer->Properties->    IsXButton1Pressed)Ms.push(3);
-            if(pointer->Properties->    IsXButton2Pressed)Ms.push(4);*/
+            UpdateMouseButton(pointer->Properties); // this will get called only if no other mouse button is currently pressed, for simultaneous presses 'OnPointerMoved' has to be checked
          }break;
 
          default: // pen, touch
@@ -428,12 +457,7 @@ ref struct FrameworkView sealed : IFrameworkView
       {
          case PointerDeviceType::Mouse:
          {
-         /* Handled in 'Ms.update' because this won't be called if there's already one button pressed
-            if(!pointer->Properties->  IsLeftButtonPressed)Ms.release(0);
-            if(!pointer->Properties-> IsRightButtonPressed)Ms.release(1);
-            if(!pointer->Properties->IsMiddleButtonPressed)Ms.release(2);
-            if(!pointer->Properties->    IsXButton1Pressed)Ms.release(3);
-            if(!pointer->Properties->    IsXButton2Pressed)Ms.release(4);*/
+            UpdateMouseButton(pointer->Properties); // this will get called only after all mouse buttons have been released, for individual button releases 'OnPointerMoved' has to be checked
          }break;
 
          default: // pen, touch
@@ -546,7 +570,8 @@ ref struct FrameworkView sealed : IFrameworkView
    }
    void OnKeyUp(CoreWindow^ sender, KeyEventArgs^ args) // mouse buttons are not passed here
    {
-      KB_KEY key=KB_KEY(args->VirtualKey);
+      Int    scan_code=args->KeyStatus.ScanCode;
+      KB_KEY key      =KB_KEY(args->VirtualKey);
       //LogN(S+"OnKeyUp: scan_code:"+(args->KeyStatus.ScanCode)+' '+key+'('+Kb.keyName(key)+"), ext:"+args->KeyStatus.IsExtendedKey+", released:"+args->KeyStatus.IsKeyReleased+", wasDown:"+args->KeyStatus.WasKeyDown+", repeat:"+args->KeyStatus.RepeatCount);
       switch(key)
       {
@@ -718,8 +743,9 @@ ref struct FrameworkView sealed : IFrameworkView
    void setMode()
    {
       if(App._closed)return; // do nothing if app called 'Exit'
-      VecI2 mode(DipsToPixelsI(App.Hwnd()->Bounds.Width), DipsToPixelsI(App.Hwnd()->Bounds.Height));
+      VecI2 mode(DipsToPixelsI(App.window()->Bounds.Width), DipsToPixelsI(App.window()->Bounds.Height));
       D.modeSet(mode.x, mode.y, -1);
+      D.getScreenInfo(); D.setColorLUT();
    }
 };
 ref struct FrameworkViewSource sealed : IFrameworkViewSource

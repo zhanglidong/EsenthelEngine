@@ -435,25 +435,27 @@ struct FBX
             if(FbxSurfacePhong *phong=FbxCast<FbxSurfacePhong>(mtrl))
             {
                xm=&materials.New(); ee_mtrl_to_fbx_mtrl.add(mtrl);
-               FbxDouble3 amb  =phong->Ambient           ; //xm->ambient   .set(amb[0], amb[1], amb[2]);
+            /* Don't set anything because artists never set those parameters, and they usually should be tweaked in-engine anyway
+               FbxDouble3 amb  =phong->Ambient           ; //xm->emissive  .set(amb[0], amb[1], amb[2]);
                FbxDouble3 dif  =phong->Diffuse           ; xm->color.xyz.set(dif[0], dif[1], dif[2]);
                FbxDouble  alpha=phong->TransparencyFactor; xm->color.w=1-alpha;
-               FbxDouble3 spec =phong->Specular          ; //xm->color.xyz.set(dif[0], dif[1], dif[2]);
-               FbxDouble  shin =phong->Shininess         ; //xm->color.w=alpha;
-               FbxDouble3 glow =phong->Emissive          ; //xm->glow=Max(glow[0], glow[1], glow[2]);
-               FbxDouble  refl =phong->ReflectionFactor  ; //xm->reflection=refl;
-               FbxDouble  bump =phong->DisplacementFactor; //xm->bump=bump;
-               FbxDouble  rough=phong->BumpFactor        ; //xm->roughness=rough;
+               FbxDouble3 spec =phong->Specular          ;
+               FbxDouble  shin =phong->Shininess         ;
+               FbxDouble3 glow =phong->Emissive          ; xm->emissive.set(glow[0], glow[1], glow[2]);
+               FbxDouble  refl =phong->ReflectionFactor  ;
+               FbxDouble  bump =phong->DisplacementFactor;
+               FbxDouble  rough=phong->BumpFactor        ;*/
             }else
             if(FbxSurfaceLambert *lambert=FbxCast<FbxSurfaceLambert>(mtrl))
             {
                xm=&materials.New(); ee_mtrl_to_fbx_mtrl.add(mtrl);
-               FbxDouble3 amb  =lambert->Ambient           ; //xm->ambient   .set(amb[0], amb[1], amb[2]);
+            /* Don't set anything because artists never set those parameters, and they usually should be tweaked in-engine anyway
+               FbxDouble3 amb  =lambert->Ambient           ; //xm->emissive  .set(amb[0], amb[1], amb[2]);
                FbxDouble3 dif  =lambert->Diffuse           ; xm->color.xyz.set(dif[0], dif[1], dif[2]);
                FbxDouble  alpha=lambert->TransparencyFactor; xm->color.w=1-alpha;
-               FbxDouble3 glow =lambert->Emissive          ; //xm->glow=Max(glow[0], glow[1], glow[2]);
+               FbxDouble3 glow =lambert->Emissive          ; xm->emissive.set(glow[0], glow[1], glow[2]);
                FbxDouble  bump =lambert->DisplacementFactor; //xm->bump=bump;
-               FbxDouble  rough=lambert->BumpFactor        ; //xm->roughness=rough;
+               FbxDouble  rough=lambert->BumpFactor        ; //xm->roughness=rough;*/
             }else continue;
 
             // name & props
@@ -469,24 +471,24 @@ struct FBX
             // textures
          #if 1
             Str tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sDiffuseFactor     ); if(tex.is())xm->  color_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sDiffuse           ); if(tex.is())xm->  color_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sTransparencyFactor); if(tex.is())xm->  alpha_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sTransparentColor  ); if(tex.is())xm->  alpha_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sShininess         ); if(tex.is())xm-> smooth_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sSpecularFactor    ); if(tex.is())xm-> smooth_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sSpecular          ); if(tex.is())xm-> smooth_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sAmbientFactor     ); if(tex.is())xm->  light_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sAmbient           ); if(tex.is())xm->  light_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sReflectionFactor  ); if(tex.is())xm->reflect_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sReflection        ); if(tex.is())xm->reflect_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sDisplacementFactor); if(tex.is())xm->   bump_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sDisplacementColor ); if(tex.is())xm->   bump_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sBumpFactor        ); if(tex.is())xm-> normal_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sBump              ); if(tex.is())xm-> normal_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sNormalMap         ); if(tex.is())xm-> normal_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sEmissive          ); if(tex.is())xm->   glow_map=tex;
-            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sEmissiveFactor    ); if(tex.is())xm->   glow_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sDiffuseFactor     ); if(tex.is())xm-> color_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sDiffuse           ); if(tex.is())xm-> color_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sTransparencyFactor); if(tex.is())xm-> alpha_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sTransparentColor  ); if(tex.is())xm-> alpha_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sShininess         ); if(tex.is())xm->smooth_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sSpecularFactor    ); if(tex.is())xm->smooth_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sSpecular          ); if(tex.is())xm->smooth_map=tex;
+          //tex=TextureFile(*mtrl, FbxSurfaceMaterial::sAmbientFactor     ); if(tex.is())xm-> light_map=tex;
+          //tex=TextureFile(*mtrl, FbxSurfaceMaterial::sAmbient           ); if(tex.is())xm-> light_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sReflectionFactor  ); if(tex.is())xm-> metal_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sReflection        ); if(tex.is())xm-> metal_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sDisplacementFactor); if(tex.is())xm->  bump_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sDisplacementColor ); if(tex.is())xm->  bump_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sBumpFactor        ); if(tex.is())xm->normal_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sBump              ); if(tex.is())xm->normal_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sNormalMap         ); if(tex.is())xm->normal_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sEmissive          ); if(tex.is())xm->  glow_map=tex;
+            tex=TextureFile(*mtrl, FbxSurfaceMaterial::sEmissiveFactor    ); if(tex.is())xm->  glow_map=tex;
          #else
             Int TextureIndex;
             FOR_EACH_TEXTURE(TextureIndex)

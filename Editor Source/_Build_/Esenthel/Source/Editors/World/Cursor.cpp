@@ -1,12 +1,12 @@
 ﻿/******************************************************************************/
 #include "stdafx.h"
 /******************************************************************************/
-void UpdateButtonState(byte *dest, byte *on, int num)
+void UpdateButtonState(BS_FLAG *dest, byte *on, int num)
 {
    REP(num)
    {
       bool last=FlagTest(*dest, BS_ON);
-      *dest++=(*on++ ? (BS_ON|(last?0:BS_PUSHED)) : (last?BS_RELEASED:0));
+     *dest++=(*on++ ? (BS_ON|(last?BS_NONE:BS_PUSHED)) : (last?BS_RELEASED:BS_NONE));
    }
 }
 /******************************************************************************/
@@ -211,6 +211,6 @@ RayTest::RayTest() : hit(false), on_heightmap(false), heightmaps(true), objects(
 
 RayTest::Area::Area() : area(null), dist(0) {}
 
-Cursor::Cursor() : _valid(false), _on_heightmap(false), _state(0), _touch_id(0), _brush_height(0), _brush_height_help(0), _screen_pos(0), _pos(0), _pos_prev(0), _area(0), _xz(0), _edge(0), _obj(null), _view(null) {}
+Cursor::Cursor() : _valid(false), _on_heightmap(false), _state(BS_NONE), _touch_id(0), _brush_height(0), _brush_height_help(0), _screen_pos(0), _pos(0), _pos_prev(0), _area(0), _xz(0), _edge(0), _obj(null), _view(null) {}
 
 /******************************************************************************/

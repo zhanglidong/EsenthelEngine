@@ -1,12 +1,12 @@
 /******************************************************************************
 
-   Use 'MeshOverlay' for rendering semi transparent images on solid surfaces (like bullet holes).
+   Use 'MeshOverlay' for rendering semi transparent images on opaque surfaces (like bullet holes).
 
 /******************************************************************************/
-struct MeshOverlay // Mesh Overlay - used for rendering semi transparent images on solid surfaces (like bullet holes), this is an alternative to 'Decal' which affects also nearby objects
+struct MeshOverlay // Mesh Overlay - used for rendering semi transparent images on opaque surfaces (like bullet holes), this is an alternative to 'Decal' which affects also nearby objects
 {
-   Bool createStatic  (C Mesh &mesh, C MaterialPtr &material, C Matrix &overlay_matrix, C Matrix *mesh_matrix=null); // create from source 'mesh', 'material'=overlay material, 'overlay_matrix'=matrix of the overlay in world space (with 'overlay_matrix.x overlay_matrix.y' being the surface vectors and 'overlay_matrix.z' being the direction vector, length of all the vectors determines overlay size), 'mesh_matrix'=source mesh matrix at the moment of applying the overlay (if null 'MatrixIdentity' will be used), returns false when no mesh has been created
-   Bool createAnimated(C Mesh &mesh, C MaterialPtr &material, C Matrix &overlay_matrix, C Matrix *mesh_matrix=null); // create from source 'mesh', 'material'=overlay material, 'overlay_matrix'=matrix of the overlay in world space (with 'overlay_matrix.x overlay_matrix.y' being the surface vectors and 'overlay_matrix.z' being the direction vector, length of all the vectors determines overlay size), 'mesh_matrix'=source mesh matrix at the moment of applying the overlay (if null 'MatrixIdentity' will be used), returns false when no mesh has been created
+   Bool createStatic  (C Mesh &mesh, C MaterialPtr &material, C Matrix &overlay_matrix, C Matrix *mesh_matrix=null); // create from source 'mesh', 'material'=overlay material, 'overlay_matrix'=matrix of the overlay in world space (with 'overlay_matrix.x overlay_matrix.y' being the surface vectors and 'overlay_matrix.z' being the direction vector, length of all the vectors determines overlay size), 'mesh_matrix'=source mesh matrix at the moment of applying the overlay (if null then 'MatrixIdentity' will be used), returns false when no mesh has been created
+   Bool createAnimated(C Mesh &mesh, C MaterialPtr &material, C Matrix &overlay_matrix, C Matrix *mesh_matrix=null); // create from source 'mesh', 'material'=overlay material, 'overlay_matrix'=matrix of the overlay in world space (with 'overlay_matrix.x overlay_matrix.y' being the surface vectors and 'overlay_matrix.z' being the direction vector, length of all the vectors determines overlay size), 'mesh_matrix'=source mesh matrix at the moment of applying the overlay (if null then 'MatrixIdentity' will be used), returns false when no mesh has been created
 
 #if EE_PRIVATE
    void zero     ();

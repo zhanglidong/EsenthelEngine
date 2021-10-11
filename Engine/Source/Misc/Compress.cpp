@@ -108,6 +108,17 @@ static void MemFinished(File &f, Ptr mem, Long wrote, Int cipher_offset)
 static Ptr  CompressAlloc(Ptr p, size_t size) {return Alloc(size);}
 static void CompressFree (Ptr p, Ptr    data) {       Free (data);}
 /******************************************************************************/
+Int CmpUIntVSize(UInt u)
+{
+   Int    i=1; for(; u>=128; u>>=7)i++;
+   return i; // minimize with 'MaxCmpUIntVSize' not needed here
+}
+Int CmpULongVSize(ULong u)
+{
+   Int    i=1; for(; u>=128; u>>=7)i++;
+   return Min(i, MaxCmpULongVSize); // minimize with 'MaxCmpULongVSize' because the last byte is stored as 8 bits, so we can use it fully instead of just 7 bits
+}
+/******************************************************************************/
 // ZLIB
 /******************************************************************************/
 #if SUPPORT_ZLIB
@@ -594,11 +605,6 @@ static Bool SNAPPYDecompress(File &src, File &dest, Long compressed_size, Long d
 // RLE
 /******************************************************************************/
 #if SUPPORT_RLE
-Int CmpUIntVSize(UInt u)
-{
-   Int    i=1; for(; u>=128; u>>=7)i++;
-   return i;
-}
 /******************************************************************************
 static void CmpUIntV(UInt u, Byte *data, UIntPtr &pos)
 {
@@ -1852,6 +1858,28 @@ CChar8* CompressionName(COMPRESS_TYPE type)
       case COMPRESS_ZSTD  : return "Zstd";
       case COMPRESS_BROTLI: return "Brotli";
       default             : return null;
+   }
+}
+Int CompressionDefault(COMPRESS_TYPE type)
+{
+   switch(type)
+   {
+      default             : return 0; // single compression level
+      case COMPRESS_ZLIB  : return 6; // taken from headers, "Z_DEFAULT_COMPRESSION requests a default compromise between speed and compression (currently equivalent to level 6)"
+      case COMPRESS_LZMA  : return 6; // taken from internet
+   #if SUPPORT_LZHAM
+      case COMPRESS_LZHAM : return LZHAM_COMP_LEVEL_DEFAULT;
+   #endif
+   #if SUPPORT_LZ4
+      case COMPRESS_LZ4   : return LZ4HC_CLEVEL_OPT_MIN;
+   #endif
+   #if SUPPORT_LIZARD
+      case COMPRESS_LIZARD: return LIZARD_DEFAULT_CLEVEL;
+   #endif
+   #if SUPPORT_ZSTD
+      case COMPRESS_ZSTD  : return ZSTD_CLEVEL_DEFAULT;
+   #endif
+      case COMPRESS_BROTLI: return 5;
    }
 }
 VecI2 CompressionLevels(COMPRESS_TYPE type)

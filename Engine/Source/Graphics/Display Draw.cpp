@@ -102,6 +102,25 @@ void Image::draw(C Color &color, C Color &color_add, C Rect &rect)C
    }
    VI.end(); // always call 'VI.end' in case 'VI.shader' was overriden before calling current method
 }
+void Image::draw(C Vec4 &color, C Vec4 &color_add, C Rect &rect)C
+{
+   VI.color  (color    );
+   VI.color1 (color_add);
+   VI.image  (this);
+   VI.setType(VI_2D_TEX, VI_STRIP|VI_SP_COL);
+   if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
+   {
+      v[0].pos.set(rect.min.x, rect.max.y);
+      v[1].pos.set(rect.max.x, rect.max.y);
+      v[2].pos.set(rect.min.x, rect.min.y);
+      v[3].pos.set(rect.max.x, rect.min.y);
+      v[0].tex.set(      0,       0);
+      v[1].tex.set(_part.x,       0);
+      v[2].tex.set(      0, _part.y);
+      v[3].tex.set(_part.x, _part.y);
+   }
+   VI.end(); // always call 'VI.end' in case 'VI.shader' was overriden before calling current method
+}
 void Image::drawVertical(C Rect &rect)C
 {
    VI.image  (this);
@@ -140,29 +159,28 @@ void Image::drawVertical(C Color &color, C Color &color_add, C Rect &rect)C
 }
 void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
 {
-   VecI2 pixel=Round(Renderer.screenToPixelSize(rect.size())).abs(); // get target pixel size
+   Vec2  pixelf=Renderer.screenToPixelSize(rect.size());
+   VecI2 pixel =Round(pixelf).abs(); // get target pixel size
    if(pixel.x>w() || pixel.y>h())switch(filter) // if that size is bigger than the image resolution
    {
     //case FILTER_LINEAR: VI.shader(null); break;
 
-      case FILTER_NONE:
-      #if GL // in GL 'ShaderImage.Sampler' does not affect filtering, so modify it manually
-         D.texBind(GL_TEXTURE_2D, _txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      #else
-         VI.shader(Sh.DrawTexPoint);
-       //SamplerPoint.setPS(SSI_DEFAULT);
-      #endif
-      break;
+      case FILTER_NONE: VI.shader(Sh.DrawTexPoint); break; // or SamplerPoint.setPS(SSI_DEFAULT_2D);
 
       case FILTER_CUBIC_FAST       :
       case FILTER_CUBIC_FAST_SMOOTH:
-      case FILTER_CUBIC_FAST_SHARP : Sh.imgSize(T); VI.shader(Sh.DrawTexCubicFast[0]); break;
-
-      case FILTER_BEST            :
-      case FILTER_WAIFU           : // fall back to best available shaders
+      case FILTER_CUBIC_FAST_SHARP : Sh.imgSize(T); VI.shader(Sh.DrawTexCubicFast[false]); break;
 
       case FILTER_CUBIC_PLUS      :
-      case FILTER_CUBIC_PLUS_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.DrawTexCubic[0]); break;
+      case FILTER_CUBIC_PLUS_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.DrawTexCubicPlus[false]); break;
+
+      case FILTER_BEST :
+      case FILTER_WAIFU: // fall back to best available shaders
+      case FILTER_EASU :
+      {
+         VI.shader(Sh.EASUScreen[false]);
+         SetEASU(T, pixelf, rect.lu());
+      }break;
    }
    VI.image  (this);
    VI.setType(VI_2D_TEX, VI_STRIP);
@@ -178,40 +196,32 @@ void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
       v[3].tex.set(_part.x, _part.y);
    }
    VI.end();
-   if(filter==FILTER_NONE)
-   {
-   #if DX11
-    //SamplerLinearClamp.setPS(SSI_DEFAULT);
-   #elif GL
-      if(filterable()){D.texBind(GL_TEXTURE_2D, _txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);}
-   #endif
-   }
+ //if(filter==FILTER_NONE)SamplerLinearClamp.setPS(SSI_DEFAULT_2D);
 }
 void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_TYPE filter)C
 {
-   VecI2 pixel=Round(Renderer.screenToPixelSize(rect.size())).abs(); // get target pixel size
+   Vec2  pixelf=Renderer.screenToPixelSize(rect.size());
+   VecI2 pixel =Round(pixelf).abs(); // get target pixel size
    if(pixel.x>w() || pixel.y>h())switch(filter) // if that size is bigger than the image resolution
    {
     //case FILTER_LINEAR: VI.shader(null); break;
 
-      case FILTER_NONE:
-      #if GL // in GL 'ShaderImage.Sampler' does not affect filtering, so modify it manually
-         D.texBind(GL_TEXTURE_2D, _txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      #else
-         VI.shader(Sh.DrawTexPointC);
-       //SamplerPoint.setPS(SSI_DEFAULT);
-      #endif
-      break;
+      case FILTER_NONE: VI.shader(Sh.DrawTexPointC); break; // or SamplerPoint.setPS(SSI_DEFAULT_2D);
 
       case FILTER_CUBIC_FAST       :
       case FILTER_CUBIC_FAST_SMOOTH:
-      case FILTER_CUBIC_FAST_SHARP : Sh.imgSize(T); VI.shader(Sh.DrawTexCubicFast[1]); break;
-
-      case FILTER_BEST            :
-      case FILTER_WAIFU           : // fall back to best available shaders
+      case FILTER_CUBIC_FAST_SHARP : Sh.imgSize(T); VI.shader(Sh.DrawTexCubicFast[true]); break;
 
       case FILTER_CUBIC_PLUS      :
-      case FILTER_CUBIC_PLUS_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.DrawTexCubic[1]); break;
+      case FILTER_CUBIC_PLUS_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.DrawTexCubicPlus[true]); break;
+
+      case FILTER_BEST :
+      case FILTER_WAIFU: // fall back to best available shaders
+      case FILTER_EASU :
+      {
+         VI.shader(Sh.EASUScreen[true]);
+         SetEASU(T, pixelf, rect.lu());
+      }break;
    }
    VI.color  (color    );
    VI.color1 (color_add);
@@ -229,14 +239,7 @@ void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_
       v[3].tex.set(_part.x, _part.y);
    }
    VI.end();
-   if(filter==FILTER_NONE)
-   {
-   #if DX11
-    //SamplerLinearClamp.setPS(SSI_DEFAULT);
-   #elif GL
-      if(filterable()){D.texBind(GL_TEXTURE_2D, _txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);}
-   #endif
-   }
+ //if(filter==FILTER_NONE)SamplerLinearClamp.setPS(SSI_DEFAULT_2D);
 }
 /******************************************************************************
 void Image::drawOutline(C Color &color, C Rect &rect, Flt tex_range)
@@ -322,6 +325,34 @@ void Image::drawPart(C Color &color, C Color &color_add, C Rect &screen_rect, C 
    }
    VI.end(); // always call 'VI.end' in case 'VI.shader' was overriden before calling current method
 }
+void Image::drawPart(C Vec4 &color, C Vec4 &color_add, C Rect &screen_rect, C Rect &tex_rect)C
+{
+   VI.color  (color    );
+   VI.color1 (color_add);
+   VI.image  (this     );
+   VI.setType(VI_2D_TEX, VI_STRIP|VI_SP_COL);
+   if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
+   {
+      v[0].pos.set(screen_rect.min.x, screen_rect.max.y);
+      v[1].pos.set(screen_rect.max.x, screen_rect.max.y);
+      v[2].pos.set(screen_rect.min.x, screen_rect.min.y);
+      v[3].pos.set(screen_rect.max.x, screen_rect.min.y);
+      if(partial())
+      {
+         v[0].tex.x=v[2].tex.x=tex_rect.min.x*_part.x;
+         v[1].tex.x=v[3].tex.x=tex_rect.max.x*_part.x;
+         v[0].tex.y=v[1].tex.y=tex_rect.min.y*_part.y;
+         v[2].tex.y=v[3].tex.y=tex_rect.max.y*_part.y;
+      }else
+      {
+         v[0].tex.set(tex_rect.min.x, tex_rect.min.y);
+         v[1].tex.set(tex_rect.max.x, tex_rect.min.y);
+         v[2].tex.set(tex_rect.min.x, tex_rect.max.y);
+         v[3].tex.set(tex_rect.max.x, tex_rect.max.y);
+      }
+   }
+   VI.end(); // always call 'VI.end' in case 'VI.shader' was overriden before calling current method
+}
 void Image::drawPartVertical(C Rect &screen_rect, C Rect &tex_rect)C
 {
    VI.image  (this);
@@ -377,16 +408,16 @@ void Image::drawPartVertical(C Color &color, C Color &color_add, C Rect &screen_
    VI.end(); // always call 'VI.end' in case 'VI.shader' was overriden before calling current method
 }
 /******************************************************************************/
-void Image::drawRotate(C Vec2 &center, C Vec2 &size, Flt angle, C Vec2 *rotation_center)C
+void Image::drawRotate(C Vec2 &center, C Vec2 &size, Flt angle, C Vec2 *rotation_center_uv)C
 {
    VI.image  (this);
    VI.setType(VI_2D_TEX, VI_STRIP);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
    {
-      Vec2   c=(rotation_center ? *rotation_center : 0.5f);
-             c.x*= size.x;
-             c.y*=-size.y;
-      Matrix m; m.orn().setRotateZ(angle); m.pos.set(center.x, center.y, 0).xy-=c*m.orn();
+      Vec2 c=(rotation_center_uv ? *rotation_center_uv : 0.5f);
+           c.x*= size.x;
+           c.y*=-size.y;
+      Matrix2P m; m.orn().setRotate(angle); m.pos=center-c*m.orn();
       v[0].pos.set(     0,       0)*=m;
       v[1].pos.set(size.x,       0)*=m;
       v[2].pos.set(     0, -size.y)*=m;
@@ -398,7 +429,7 @@ void Image::drawRotate(C Vec2 &center, C Vec2 &size, Flt angle, C Vec2 *rotation
    }
    VI.end();
 }
-void Image::drawRotate(C Color &color, C Color &color_add, C Vec2 &center, C Vec2 &size, Flt angle, C Vec2 *rotation_center)C
+void Image::drawRotate(C Color &color, C Color &color_add, C Vec2 &center, C Vec2 &size, Flt angle, C Vec2 *rotation_center_uv)C
 {
    VI.color  (color    );
    VI.color1 (color_add);
@@ -406,10 +437,10 @@ void Image::drawRotate(C Color &color, C Color &color_add, C Vec2 &center, C Vec
    VI.setType(VI_2D_TEX, VI_STRIP|VI_SP_COL);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
    {
-      Vec2   c=(rotation_center ? *rotation_center : 0.5f);
-             c.x*= size.x;
-             c.y*=-size.y;
-      Matrix m; m.orn().setRotateZ(angle); m.pos.set(center.x, center.y, 0).xy-=c*m.orn();
+      Vec2 c=(rotation_center_uv ? *rotation_center_uv : 0.5f);
+           c.x*= size.x;
+           c.y*=-size.y;
+      Matrix2P m; m.orn().setRotate(angle); m.pos=center-c*m.orn();
       v[0].pos.set(     0,       0)*=m;
       v[1].pos.set(size.x,       0)*=m;
       v[2].pos.set(     0, -size.y)*=m;
@@ -422,39 +453,42 @@ void Image::drawRotate(C Color &color, C Color &color_add, C Vec2 &center, C Vec
    VI.end();
 }
 /******************************************************************************/
-void Image::drawMask(C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C
+static void DrawMask(C Image &image, C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect, C Shader *shader)
 {
-   Rect r=rect&mask_rect;
-   if(  r.valid())
+   Rect r; r.from(     rect.min,      rect.max); // needed in case      'rect' is flipped
+   Rect m; m.from(mask_rect.min, mask_rect.max); // needed in case 'mask_rect' is flipped
+   Rect rm=r&m;
+   if(  rm.valid())
    {
       VI.color (color    );
       VI.color1(color_add);
-      VI.image (this     );
-      Sh.Img[1]->set(mask);
+      Sh.Img[0]->set(image);
+      Sh.Img[1]->set(mask );
       VI.setType(VI_2D_TEX2, VI_STRIP);
+      VI.shader (shader);
       if(Vtx2DTex2 *v=(Vtx2DTex2*)VI.addVtx(4))
       {
-         v[0].pos.set(r.min.x, r.max.y);
-         v[1].pos.set(r.max.x, r.max.y);
-         v[2].pos.set(r.min.x, r.min.y);
-         v[3].pos.set(r.max.x, r.min.y);
+         v[0].pos.set(rm.min.x, rm.max.y);
+         v[1].pos.set(rm.max.x, rm.max.y);
+         v[2].pos.set(rm.min.x, rm.min.y);
+         v[3].pos.set(rm.max.x, rm.min.y);
 
-         v[0].tex[0].x=v[2].tex[0].x=LerpR(rect.min.x, rect.max.x, r.min.x); // min x
-         v[1].tex[0].x=v[3].tex[0].x=LerpR(rect.min.x, rect.max.x, r.max.x); // max x
-         v[0].tex[0].y=v[1].tex[0].y=LerpR(rect.max.y, rect.min.y, r.max.y); // min y
-         v[2].tex[0].y=v[3].tex[0].y=LerpR(rect.max.y, rect.min.y, r.min.y); // max y
+         v[0].tex[0].x=v[2].tex[0].x=LerpR(rect.min.x, rect.max.x, rm.min.x); // min x
+         v[1].tex[0].x=v[3].tex[0].x=LerpR(rect.min.x, rect.max.x, rm.max.x); // max x
+         v[0].tex[0].y=v[1].tex[0].y=LerpR(rect.max.y, rect.min.y, rm.max.y); // min y
+         v[2].tex[0].y=v[3].tex[0].y=LerpR(rect.max.y, rect.min.y, rm.min.y); // max y
 
-         v[0].tex[1].x=v[2].tex[1].x=LerpR(mask_rect.min.x, mask_rect.max.x, r.min.x); // min x
-         v[1].tex[1].x=v[3].tex[1].x=LerpR(mask_rect.min.x, mask_rect.max.x, r.max.x); // max x
-         v[0].tex[1].y=v[1].tex[1].y=LerpR(mask_rect.max.y, mask_rect.min.y, r.max.y); // min y
-         v[2].tex[1].y=v[3].tex[1].y=LerpR(mask_rect.max.y, mask_rect.min.y, r.min.y); // max y
+         v[0].tex[1].x=v[2].tex[1].x=LerpR(mask_rect.min.x, mask_rect.max.x, rm.min.x); // min x
+         v[1].tex[1].x=v[3].tex[1].x=LerpR(mask_rect.min.x, mask_rect.max.x, rm.max.x); // max x
+         v[0].tex[1].y=v[1].tex[1].y=LerpR(mask_rect.max.y, mask_rect.min.y, rm.max.y); // min y
+         v[2].tex[1].y=v[3].tex[1].y=LerpR(mask_rect.max.y, mask_rect.min.y, rm.min.y); // max y
 
-         if(partial())
+         if(image.partial())
          {
-            v[0].tex[0]*=_part.xy;
-            v[1].tex[0]*=_part.xy;
-            v[2].tex[0]*=_part.xy;
-            v[3].tex[0]*=_part.xy;
+            v[0].tex[0]*=image._part.xy;
+            v[1].tex[0]*=image._part.xy;
+            v[2].tex[0]*=image._part.xy;
+            v[3].tex[0]*=image._part.xy;
          }
          if(mask.partial())
          {
@@ -467,6 +501,10 @@ void Image::drawMask(C Color &color, C Color &color_add, C Rect &rect, C Image &
       VI.end();
    }
 }
+void Image::drawMask         (C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C {DrawMask(T, color, color_add, rect, mask, mask_rect, Sh.DrawMask[0][0]);}
+void Image::drawMaskNoFilter (C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C {DrawMask(T, color, color_add, rect, mask, mask_rect, Sh.DrawMask[0][1]);}
+void Image::drawMaskA        (C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C {DrawMask(T, color, color_add, rect, mask, mask_rect, Sh.DrawMask[1][0]);}
+void Image::drawMaskANoFilter(C Color &color, C Color &color_add, C Rect &rect, C Image &mask, C Rect &mask_rect)C {DrawMask(T, color, color_add, rect, mask, mask_rect, Sh.DrawMask[1][1]);}
 /******************************************************************************/
 void Image::drawTile(C Rect &rect, Flt tex_scale)C
 {
@@ -511,71 +549,71 @@ void Image::drawTile(C Color &color, C Color &color_add, C Rect &rect, Flt tex_s
    VI.end();
 }
 /******************************************************************************/
-void Image::drawBorder(C Rect &rect, Flt b, Flt tex_scale, Flt tex_offset, Bool wrap_mode)C
+void Image::drawBorder(C Rect &rect, Flt border, Flt tex_scale, Flt tex_offset, Bool wrap_mode)C
 {
    VI.image  (this);
    VI.wrapX  (    );
    VI.setType(VI_2D_TEX, wrap_mode ? VI_STRIP : 0);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(10))
    {
-      Flt x0=rect.min.x, x1=rect.min.x+b, x2=rect.max.x-b, x3=rect.max.x,
-          y0=rect.max.y, y1=rect.max.y-b, y2=rect.min.y+b, y3=rect.min.y;
+      Flt x1=rect.min.x, x2=rect.max.x, x0=x1-border, x3=x2+border,
+          y1=rect.min.y, y2=rect.max.y, y0=y1-border, y3=y2+border;
 
-      Flt scale=b*aspect(),
+      Flt scale=border*aspect(),
           w    =rect.w()/scale,
-          h    =rect.h()/scale;
-          b   /=         scale;
+          h    =rect.h()/scale,
+          b    =border  /scale;
 
       if(wrap_mode)
       {
-         v[0].pos.set(x0, y0);
-         v[1].pos.set(x1, y1);
+         v[0].pos.set(x1, y2);
+         v[1].pos.set(x0, y3);
 
-         v[2].pos.set(x3, y0);
-         v[3].pos.set(x2, y1);
+         v[2].pos.set(x2, y2);
+         v[3].pos.set(x3, y3);
 
-         v[4].pos.set(x3, y3);
-         v[5].pos.set(x2, y2);
+         v[4].pos.set(x2, y1);
+         v[5].pos.set(x3, y0);
 
-         v[6].pos.set(x0, y3);
-         v[7].pos.set(x1, y2);
+         v[6].pos.set(x1, y1);
+         v[7].pos.set(x0, y0);
 
-         v[8].pos.set(x0, y0);
-         v[9].pos.set(x1, y1);
+         v[8].pos.set(x1, y2);
+         v[9].pos.set(x0, y3);
 
-         v[0].tex.set(      0,       0);
-         v[1].tex.set(      0, _part.y);
-         v[2].tex.set(w      ,       0);
-         v[3].tex.set(w      , _part.y);
-         v[4].tex.set(w+h    ,       0);
-         v[5].tex.set(w+h    , _part.y);
-         v[6].tex.set(w+h+w  ,       0);
-         v[7].tex.set(w+h+w  , _part.y);
-         v[8].tex.set(w+h+w+h,       0);
-         v[9].tex.set(w+h+w+h, _part.y);
+         v[0].tex.set(      0, _part.y);
+         v[1].tex.set(      0,       0);
+         v[2].tex.set(w      , _part.y);
+         v[3].tex.set(w      ,       0);
+         v[4].tex.set(w+h    , _part.y);
+         v[5].tex.set(w+h    ,       0);
+         v[6].tex.set(w+h+w  , _part.y);
+         v[7].tex.set(w+h+w  ,       0);
+         v[8].tex.set(w+h+w+h, _part.y);
+         v[9].tex.set(w+h+w+h,       0);
       }else
       {
-         v[0].pos.set(x0, y0);
-         v[1].pos.set(x3, y0);
-         v[2].pos.set(x3, y3);
-         v[3].pos.set(x0, y3);
-         v[4].pos.set(x1, y1);
-         v[5].pos.set(x2, y1);
-         v[6].pos.set(x2, y2);
-         v[7].pos.set(x1, y2);
-         v[8].pos.set(x3, y3);
-         v[9].pos.set(x2, y2);
+         v[0].pos.set(x1, y2);
+         v[1].pos.set(x2, y2);
+         v[2].pos.set(x2, y1);
+         v[3].pos.set(x1, y1);
+         v[4].pos.set(x0, y3);
+         v[5].pos.set(x3, y3);
+         v[6].pos.set(x3, y0);
+         v[7].pos.set(x0, y0);
+         v[8].pos.set(x2, y1);
+         v[9].pos.set(x3, y0);
 
-         v[0].tex.set(    0,       0);
-         v[1].tex.set(w    ,       0);
-         v[2].tex.set(w-h  ,       0);
-         v[3].tex.set(  h  ,       0);
-         v[4].tex.set(    b, _part.y);
-         v[5].tex.set(w  -b, _part.y);
-         v[6].tex.set(w-h+b, _part.y);
-         v[7].tex.set(  h-b, _part.y);
-         v[8].tex.set(h-w  ,       0);
-         v[9].tex.set(h-w+b, _part.y);
+         v[0].tex.set(    0, _part.y);
+         v[1].tex.set(w    , _part.y);
+         v[2].tex.set(w-h  , _part.y);
+         v[3].tex.set(  h  , _part.y);
+         v[4].tex.set(   -b,       0);
+         v[5].tex.set(w  +b,       0);
+         v[6].tex.set(w-h-b,       0);
+         v[7].tex.set(  h+b,       0);
+         v[8].tex.set(h-w  , _part.y);
+         v[9].tex.set(h-w-b,       0);
       }
 
       if(tex_scale!=1 || tex_offset!=0)REP(10)v[i].tex.x=v[i].tex.x*tex_scale+tex_offset;
@@ -584,7 +622,7 @@ void Image::drawBorder(C Rect &rect, Flt b, Flt tex_scale, Flt tex_offset, Bool 
    }
    VI.clear();
 }
-void Image::drawBorder(C Color &color, C Color &color_add, C Rect &rect, Flt b, Flt tex_scale, Flt tex_offset, Bool wrap_mode)C
+void Image::drawBorder(C Color &color, C Color &color_add, C Rect &rect, Flt border, Flt tex_scale, Flt tex_offset, Bool wrap_mode)C
 {
    VI.color  (color    );
    VI.color1 (color_add);
@@ -593,69 +631,148 @@ void Image::drawBorder(C Color &color, C Color &color_add, C Rect &rect, Flt b, 
    VI.setType(VI_2D_TEX, (wrap_mode ? VI_STRIP : 0)|VI_SP_COL);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(10))
    {
-      Flt x0=rect.min.x, x1=rect.min.x+b, x2=rect.max.x-b, x3=rect.max.x,
-          y0=rect.max.y, y1=rect.max.y-b, y2=rect.min.y+b, y3=rect.min.y;
+      Flt x1=rect.min.x, x2=rect.max.x, x0=x1-border, x3=x2+border,
+          y1=rect.min.y, y2=rect.max.y, y0=y1-border, y3=y2+border;
 
-      Flt scale=b*aspect(),
+      Flt scale=border*aspect(),
           w    =rect.w()/scale,
-          h    =rect.h()/scale;
-          b   /=         scale;
+          h    =rect.h()/scale,
+          b    =border  /scale;
 
       if(wrap_mode)
       {
-         v[0].pos.set(x0, y0);
-         v[1].pos.set(x1, y1);
+         v[0].pos.set(x1, y2);
+         v[1].pos.set(x0, y3);
 
-         v[2].pos.set(x3, y0);
-         v[3].pos.set(x2, y1);
+         v[2].pos.set(x2, y2);
+         v[3].pos.set(x3, y3);
 
-         v[4].pos.set(x3, y3);
-         v[5].pos.set(x2, y2);
+         v[4].pos.set(x2, y1);
+         v[5].pos.set(x3, y0);
 
-         v[6].pos.set(x0, y3);
-         v[7].pos.set(x1, y2);
+         v[6].pos.set(x1, y1);
+         v[7].pos.set(x0, y0);
 
-         v[8].pos.set(x0, y0);
-         v[9].pos.set(x1, y1);
+         v[8].pos.set(x1, y2);
+         v[9].pos.set(x0, y3);
 
-         v[0].tex.set(      0,       0);
-         v[1].tex.set(      0, _part.y);
-         v[2].tex.set(w      ,       0);
-         v[3].tex.set(w      , _part.y);
-         v[4].tex.set(w+h    ,       0);
-         v[5].tex.set(w+h    , _part.y);
-         v[6].tex.set(w+h+w  ,       0);
-         v[7].tex.set(w+h+w  , _part.y);
-         v[8].tex.set(w+h+w+h,       0);
-         v[9].tex.set(w+h+w+h, _part.y);
+         v[0].tex.set(      0, _part.y);
+         v[1].tex.set(      0,       0);
+         v[2].tex.set(w      , _part.y);
+         v[3].tex.set(w      ,       0);
+         v[4].tex.set(w+h    , _part.y);
+         v[5].tex.set(w+h    ,       0);
+         v[6].tex.set(w+h+w  , _part.y);
+         v[7].tex.set(w+h+w  ,       0);
+         v[8].tex.set(w+h+w+h, _part.y);
+         v[9].tex.set(w+h+w+h,       0);
       }else
       {
-         v[0].pos.set(x0, y0);
-         v[1].pos.set(x3, y0);
-         v[2].pos.set(x3, y3);
-         v[3].pos.set(x0, y3);
-         v[4].pos.set(x1, y1);
-         v[5].pos.set(x2, y1);
-         v[6].pos.set(x2, y2);
-         v[7].pos.set(x1, y2);
-         v[8].pos.set(x3, y3);
-         v[9].pos.set(x2, y2);
+         v[0].pos.set(x1, y2);
+         v[1].pos.set(x2, y2);
+         v[2].pos.set(x2, y1);
+         v[3].pos.set(x1, y1);
+         v[4].pos.set(x0, y3);
+         v[5].pos.set(x3, y3);
+         v[6].pos.set(x3, y0);
+         v[7].pos.set(x0, y0);
+         v[8].pos.set(x2, y1);
+         v[9].pos.set(x3, y0);
 
-         v[0].tex.set(    0,       0);
-         v[1].tex.set(w    ,       0);
-         v[2].tex.set(w-h  ,       0);
-         v[3].tex.set(  h  ,       0);
-         v[4].tex.set(    b, _part.y);
-         v[5].tex.set(w  -b, _part.y);
-         v[6].tex.set(w-h+b, _part.y);
-         v[7].tex.set(  h-b, _part.y);
-         v[8].tex.set(h-w  ,       0);
-         v[9].tex.set(h-w+b, _part.y);
+         v[0].tex.set(    0, _part.y);
+         v[1].tex.set(w    , _part.y);
+         v[2].tex.set(w-h  , _part.y);
+         v[3].tex.set(  h  , _part.y);
+         v[4].tex.set(   -b,       0);
+         v[5].tex.set(w  +b,       0);
+         v[6].tex.set(w-h-b,       0);
+         v[7].tex.set(  h+b,       0);
+         v[8].tex.set(h-w  , _part.y);
+         v[9].tex.set(h-w-b,       0);
       }
 
       if(tex_scale!=1 || tex_offset!=0)REP(10)v[i].tex.x=v[i].tex.x*tex_scale+tex_offset;
 
       if(wrap_mode)VI.end();else VI.flushIndexed(IndBufBorder, 4*2*3);
+   }
+   VI.clear();
+}
+/******************************************************************************/
+void Image::drawFadeLR(C Color &color, C Rect &rect, Flt trans_l, Flt opaque_l, Flt opaque_r, Flt trans_r)C
+{
+   VI.image  (this);
+   VI.setType(VI_2D_TEX_COL);
+   if(Vtx2DTexCol *v=(Vtx2DTexCol*)VI.addVtx(16))
+   {
+      Flt min, max; MinMax(rect.min.x, rect.max.x, min, max); // this is needed in case 'rect' is flipped
+      Flt x0=Mid(trans_l, min, max), x3=Mid(trans_r, min, max), x1=Mid(opaque_l, x0, x3), x2=Mid(opaque_r, x0, x3),
+          y0=rect.min.y, y1=rect.min.y, y2=rect.max.y, y3=rect.max.y;
+
+      Flt u0=LerpR(rect.min.x, rect.max.x, x0),
+          u1=LerpR(rect.min.x, rect.max.x, x1),
+          u2=LerpR(rect.min.x, rect.max.x, x2),
+          u3=LerpR(rect.min.x, rect.max.x, x3),
+          v0=0,
+          v1=0,
+          v2=1,
+          v3=1;
+
+      Color trans=color; trans.a=0;
+
+      v[ 0].pos.set(x0, y3);
+      v[ 1].pos.set(x1, y3);
+      v[ 2].pos.set(x2, y3);
+      v[ 3].pos.set(x3, y3);
+      v[ 4].pos.set(x0, y2);
+      v[ 5].pos.set(x1, y2);
+      v[ 6].pos.set(x2, y2);
+      v[ 7].pos.set(x3, y2);
+      v[ 8].pos.set(x0, y1);
+      v[ 9].pos.set(x1, y1);
+      v[10].pos.set(x2, y1);
+      v[11].pos.set(x3, y1);
+      v[12].pos.set(x0, y0);
+      v[13].pos.set(x1, y0);
+      v[14].pos.set(x2, y0);
+      v[15].pos.set(x3, y0);
+
+      v[ 0].tex.set(u0, v0);
+      v[ 1].tex.set(u1, v0);
+      v[ 2].tex.set(u2, v0);
+      v[ 3].tex.set(u3, v0);
+      v[ 4].tex.set(u0, v1);
+      v[ 5].tex.set(u1, v1);
+      v[ 6].tex.set(u2, v1);
+      v[ 7].tex.set(u3, v1);
+      v[ 8].tex.set(u0, v2);
+      v[ 9].tex.set(u1, v2);
+      v[10].tex.set(u2, v2);
+      v[11].tex.set(u3, v2);
+      v[12].tex.set(u0, v3);
+      v[13].tex.set(u1, v3);
+      v[14].tex.set(u2, v3);
+      v[15].tex.set(u3, v3);
+
+      v[ 0].color=trans;
+      v[ 1].color=trans;
+      v[ 2].color=trans;
+      v[ 3].color=trans;
+      v[ 4].color=trans;
+      v[ 5].color=color;
+      v[ 6].color=color;
+      v[ 7].color=trans;
+      v[ 8].color=trans;
+      v[ 9].color=color;
+      v[10].color=color;
+      v[11].color=trans;
+      v[12].color=trans;
+      v[13].color=trans;
+      v[14].color=trans;
+      v[15].color=trans;
+
+      if(partial())REP(16)v[i].tex*=_part.xy;
+
+      VI.flushIndexed(IndBufPanel, 3*3*2*3);
    }
    VI.clear();
 }
@@ -930,10 +1047,10 @@ void Image::drawCubeFace(C Color &color, C Color &color_add, C Rect &rect, DIR_E
    }
 }
 /******************************************************************************/
-void Image::draw3D(C Color &color, Flt size, Flt angle, C Vec &pos, ALPHA_MODE alpha)C
+void Image::draw3D(C Color &color, Flt size, Flt angle, C Vec &pos)C
 {
-   D .alpha  (alpha);
-   VI.image  (this );
+   D .alpha  (ALPHA_RENDER_BLEND);
+   VI.image  (this);
    VI.setType(VI_3D_BILB, VI_STRIP);
    if(Vtx3DBilb *v=(Vtx3DBilb*)VI.addVtx(4))
    {
@@ -1003,13 +1120,13 @@ void Image::drawVolume(C Color &color, C Color &color_add, C OBox &obox, Flt vox
 
       D .alphaFactor(TRANSPARENT); MaterialClear(); // 'MaterialClear' must be called when changing 'D.alphaFactor'
       ShaderImage &si=(LA ? *Sh.VolXY[0] : *Sh.Vol);
-      si          .set(T        ); si._sampler=&SamplerLinearClamp;
+      si          .set(T        );
       Sh.Color[0]->set(color    );
       Sh.Color[1]->set(color_add);
       Sh.Volume  ->set(v);
 
       D.cull (true);
-      D.alpha(ALPHA_BLEND_DEC);
+      D.alpha(ALPHA_RENDER_BLEND);
       Renderer.needDepthRead();
 
       Flt e=Frustum.view_quad_max_dist;
@@ -1026,12 +1143,8 @@ void Image::drawVolume(C Color &color, C Color &color_add, C OBox &obox, Flt vox
          MshrBoxR.set().draw();
       }else
       {
-         D .depth     (true );
-         D .depthWrite(false);
-         Sh.DrawVolume[0][LA]->begin(); MshrBox.set().draw();
+         D.depthOnWrite(true, false); Sh.DrawVolume[0][LA]->begin(); MshrBox.set().draw();
       }
-
-      si._sampler=null;
    }
 }
 /******************************************************************************/

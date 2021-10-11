@@ -253,10 +253,6 @@ Font& Font::freeOpenGLESData()
    REPAO(_images).freeOpenGLESData();
    return T;
 }
-void Font::setGLFont() // #GLSampler
-{
-   REPAO(_images).setGLFont();
-}
 /******************************************************************************/
 Bool Font::imageType(IMAGE_TYPE type)
 {
@@ -284,7 +280,6 @@ Bool Font::imageType(IMAGE_TYPE type)
       if(image.type()!=type || image.w()!=w || image.h()!=h || image.mipMaps()!=mip_maps) // if change is needed
          if(image.copyTry(image, w, h, -1, type, -1, mip_maps))changed=true;
    }
-   if(changed)setGLFont();
    return changed;
 }
 void Font::toSoft()
@@ -466,7 +461,6 @@ Bool Font::load(File &f)
          if(f.ok())
          {
             setRemap();
-            setGLFont();
             return true;
          }
       }break;
@@ -479,7 +473,6 @@ Bool Font::load(File &f)
          if(f.ok() && Adjust(T, 1))
          {
             setRemap();
-            setGLFont();
             return true;
          }
       }break;
@@ -493,7 +486,6 @@ Bool Font::load(File &f)
          if(f.ok() && Adjust(T, 1))
          {
             setRemap();
-            setGLFont();
             return true;
          }
       }break;
@@ -507,7 +499,6 @@ Bool Font::load(File &f)
          if(f.ok() && Adjust(T, 0))
          {
             setRemap();
-            setGLFont();
             return true;
          }
       }break;
@@ -521,7 +512,6 @@ Bool Font::load(File &f)
          if(f.ok() && Adjust(T, 0))
          {
             setRemap();
-            setGLFont();
             return true;
          }
       }break;
@@ -535,7 +525,6 @@ Bool Font::load(File &f)
          if(f.ok() && Adjust(T, 0))
          {
             setRemap();
-            setGLFont();
             return true;
          }
       }break;
@@ -549,7 +538,6 @@ Bool Font::load(File &f)
          if(f.ok() && Adjust(T, 0))
          {
             setRemap();
-            setGLFont();
             return true;
          }
       }break;
@@ -744,7 +732,7 @@ struct SystemFontDrawContext
    #if USE_FREE_TYPE
       if(!image.is())
       {
-         image.createSoft(w, h, 1, IMAGE_R8G8B8A8);
+         image.mustCreateSoft(w, h, 1, IMAGE_R8G8B8A8);
          if(!FT_Init_FreeType(&library))
          {
             FT_Library_SetLcdFilter(library, FT_LCD_FILTER_DEFAULT);
@@ -767,7 +755,7 @@ struct SystemFontDrawContext
    #elif WINDOWS_OLD
       if(!bitmap)
       {
-         image.createSoft(w, h, 1, IMAGE_R8G8B8A8);
+         image.mustCreateSoft(w, h, 1, IMAGE_R8G8B8A8);
 
          BITMAPV5HEADER bi; Zero(bi);
          bi.bV5Size    =SIZE(bi);
@@ -791,8 +779,8 @@ struct SystemFontDrawContext
    #elif MAC
       if(!context)
       {
-         if(!image       .is())       image.createSoft(w, h, 1, IMAGE_R8G8B8A8);
-         if(!bitmap_image.is())bitmap_image.createSoft(w, h, 1, IMAGE_R8G8B8A8);
+         if(!image       .is())       image.mustCreateSoft(w, h, 1, IMAGE_R8G8B8A8);
+         if(!bitmap_image.is())bitmap_image.mustCreateSoft(w, h, 1, IMAGE_R8G8B8A8);
          if(!bitmap)
          {
             unsigned char *image_data=bitmap_image.data();
@@ -1195,7 +1183,7 @@ struct FontCreate : Font::Params
    {
       // set font image
       Int    image_index=font._images.elms();
-      Image &image      =font._images.New ().createSoft(w, h, 1, imageTypeTemp()).clear(); // create as soft
+      Image &image      =font._images.New ().mustCreateSoft(w, h, 1, imageTypeTemp()).clear(); // create as soft
 
       Int x=1, y=1, max_h=0;
       const Flt eps=0.5f*0; // don't add this epsilon because it disables per pixel font, and when enabled it's rarely even visible (only when font is very small but magnified)
@@ -1230,7 +1218,7 @@ struct FontCreate : Font::Params
 static void CompressTextures(Image &image, FontCreate &fc, Int thread_index)
 {
    ThreadMayUseGPUData();
-   image.copy(image, -1, -1, -1, fc.image_type, fc.software ? IMAGE_SOFT : IMAGE_2D, fc.mip_maps);
+   image.mustCopy(image, -1, -1, -1, fc.image_type, fc.software ? IMAGE_SOFT : IMAGE_2D, fc.mip_maps);
 }
 Bool Font::create(C Params &params)
 {
@@ -1261,8 +1249,7 @@ Bool Font::create(C Params &params)
    #endif
 
       MultiThreadedCall(_images, CompressTextures, fc);
-      setRemap ();
-      setGLFont();
+      setRemap();
       return true;
    }
    del(); return false;

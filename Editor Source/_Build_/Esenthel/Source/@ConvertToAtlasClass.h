@@ -11,14 +11,14 @@ class ConvertToAtlasClass : PropWin
       VecI2        original_size, scaled_size, pos;
       RectI        packed_rect; // not inclusive
       bool         rotated;
-      flt          scale;
+      Vec2         scale;
       Property     prop;
       ImagePtr     base_0;
       EditMaterial edit;
 
       void setScaleText(C VecI2 &size);
       void setScale    (             );
-      void setScale    (flt scale    );
+      void setScale    (C Vec2 &scale);
       void posY        (flt y        );
 
 public:
@@ -76,6 +76,7 @@ public:
 
    static Str  TexSize(C VecI2 &size);           
    static void Scale(Mtrl &mtrl, C Str &text);   
+   static Str  Scale(C Mtrl &mtrl);              
    static void Del(Mtrl &mtrl);                  
    static void Refresh(C Property &prop);        
    static void ChangedScale(C Property &prop);   
@@ -86,7 +87,9 @@ public:
    void setErrors(Mesh &mesh, C Memc<UID> &mtrl_ids, C UID &mesh_id);
    static bool Create(int &occurence, C UID &id, ptr user);        
    void convertMeshes(C UID &atlas_id);
-   static bool AddMap(bool &forced, Str &dest, C Str &src, bool force, C Mtrl &mtrl, bool normal=false, C Vec &mul=1);
+   static bool AddMap(bool &forced, Str &dest, C Str &src, bool force, C Mtrl &mtrl, TEX_FLAG tex_flag,
+                    C Vec &src_mul=1, C Vec &src_add=0, // transformation of the source map
+                      flt dest_mul=1,   flt dest_add=0); // transformation of the dest   map
    void checkSide(Str &dest, bool filled);
    void convertPerform();
    void convertDo();
@@ -101,7 +104,7 @@ public:
    /*virtual void update(C GuiPC &gpc)override
    {
       super.update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
       }
    }*/

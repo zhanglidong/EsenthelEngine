@@ -13,14 +13,6 @@ enum FILE_TYPE : Byte // File Type
    FILE_MEMB     , // Memb  , always readable+writable
 };
 #endif
-enum FILE_PATH : Byte // File Path Type
-{
-   FILE_CUR , // relative to 'CurDir'
-   FILE_DATA, // relative to 'DataPath'
-#if EE_PRIVATE
-   FILE_ANDROID_ASSET, // Android Asset, can be accessed by memory ('_aasset' is "AAsset*") or by stdio ('_handle' is a system handle)
-#endif
-};
 struct File
 {
    // manage
@@ -33,19 +25,9 @@ struct File
 #endif
    File& del(); // manually delete the file object (this does not delete the file on the disk, it only closes the handle of the C++ file object and releases used memory)
 
-   File& append     (C Str     &name, const_mem_addr Cipher *cipher=null); // append      stdio file, reading is     allowed in this mode, Exit on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), if a file doesn't exist then a new file is created, if a file already exists then that file is opened, its contents are preserved, position           is set to the end
-   File& write      (C Str     &name, const_mem_addr Cipher *cipher=null); // write to    stdio file, reading is     allowed in this mode, Exit on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), if a file doesn't exist then a new file is created, if a file already exists then that file is opened, its contents are destroyed, position and size are set to 0
-   File& readStd    (C Str     &name, const_mem_addr Cipher *cipher=null); // read        stdio file, writing is not allowed in this mode, Exit on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
-   File& read       (C Str     &name, const_mem_addr Cipher *cipher=null); // read Pak or stdio file, writing is not allowed in this mode, Exit on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
-   File& read       (C UID     &id  , const_mem_addr Cipher *cipher=null); // read Pak or stdio file, writing is not allowed in this mode, Exit on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
-   File& read       (C Str     &name, C Pak    &pak                     ); // read Pak          file, writing is not allowed in this mode, Exit on fail
-   File& read       (C UID     &id  , C Pak    &pak                     ); // read Pak          file, writing is not allowed in this mode, Exit on fail
-   File& read       (C Str     &name, C PakSet &paks                    ); // read Pak          file, writing is not allowed in this mode, Exit on fail
-   File& read       (C UID     &id  , C PakSet &paks                    ); // read Pak          file, writing is not allowed in this mode, Exit on fail
-   File& read       (C PakFile &file, C Pak    &pak                     ); // read Pak          file, writing is not allowed in this mode, Exit on fail
-
-   Bool appendTry   (C Str     &name, const_mem_addr Cipher *cipher=null); // try to append      stdio file, reading is     allowed in this mode, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), if a file doesn't exist then a new file is created, if a file already exists then that file is opened, its contents are preserved, position           is set to the end
-   Bool  writeTry   (C Str     &name, const_mem_addr Cipher *cipher=null); // try to write to    stdio file, reading is     allowed in this mode, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), if a file doesn't exist then a new file is created, if a file already exists then that file is opened, its contents are destroyed, position and size are set to 0
+   Bool   editTry   (C Str     &name, const_mem_addr Cipher *cipher=null); // try to edit        stdio file, reading is     allowed in this mode, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), if a file doesn't exist then a new file is created, if a file already exists then that file is opened, its contents are preserved, position is set to the start
+   Bool appendTry   (C Str     &name, const_mem_addr Cipher *cipher=null); // try to append      stdio file, reading is     allowed in this mode, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), if a file doesn't exist then a new file is created, if a file already exists then that file is opened, its contents are preserved, position is set to the end
+   Bool  writeTry   (C Str     &name, const_mem_addr Cipher *cipher=null); // try to write to    stdio file, reading is     allowed in this mode, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), if a file doesn't exist then a new file is created, if a file already exists then that file is opened, its contents are destroyed, position is set to the start, size is reset to 0
    Bool   readStdTry(C Str     &name, const_mem_addr Cipher *cipher=null); // try to read        stdio file, writing is not allowed in this mode, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
    Bool   readTry   (C Str     &name, const_mem_addr Cipher *cipher=null); // try to read Pak or stdio file, writing is not allowed in this mode, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
    Bool   readTry   (C UID     &id  , const_mem_addr Cipher *cipher=null); // try to read Pak or stdio file, writing is not allowed in this mode, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
@@ -72,18 +54,32 @@ struct File
    File& writeMem     (UInt block_elms=64*1024, const_mem_addr Cipher *cipher=null); // start writing to   resizable memory file   , reading is     allowed in this mode, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
    File&  readMem     (CPtr data, Int size    , const_mem_addr Cipher *cipher=null); // start reading from fixed     memory address, writing is not allowed in this mode, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
 
+   File& mustEdit   (C Str     &name, const_mem_addr Cipher *cipher=null); // edit        stdio file, reading is     allowed in this mode, Exit on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), if a file doesn't exist then a new file is created, if a file already exists then that file is opened, its contents are preserved, position is set to the start
+   File& mustAppend (C Str     &name, const_mem_addr Cipher *cipher=null); // append      stdio file, reading is     allowed in this mode, Exit on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), if a file doesn't exist then a new file is created, if a file already exists then that file is opened, its contents are preserved, position is set to the end
+   File& mustWrite  (C Str     &name, const_mem_addr Cipher *cipher=null); // write to    stdio file, reading is     allowed in this mode, Exit on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), if a file doesn't exist then a new file is created, if a file already exists then that file is opened, its contents are destroyed, position is set to the start, size is reset to 0
+   File& mustReadStd(C Str     &name, const_mem_addr Cipher *cipher=null); // read        stdio file, writing is not allowed in this mode, Exit on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
+   File& mustRead   (C Str     &name, const_mem_addr Cipher *cipher=null); // read Pak or stdio file, writing is not allowed in this mode, Exit on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
+   File& mustRead   (C UID     &id  , const_mem_addr Cipher *cipher=null); // read Pak or stdio file, writing is not allowed in this mode, Exit on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
+   File& mustRead   (C Str     &name, C Pak    &pak                     ); // read Pak          file, writing is not allowed in this mode, Exit on fail
+   File& mustRead   (C UID     &id  , C Pak    &pak                     ); // read Pak          file, writing is not allowed in this mode, Exit on fail
+   File& mustRead   (C Str     &name, C PakSet &paks                    ); // read Pak          file, writing is not allowed in this mode, Exit on fail
+   File& mustRead   (C UID     &id  , C PakSet &paks                    ); // read Pak          file, writing is not allowed in this mode, Exit on fail
+   File& mustRead   (C PakFile &file, C Pak    &pak                     ); // read Pak          file, writing is not allowed in this mode, Exit on fail
+
    // get / set
 #if EE_PRIVATE
-   Long posFile  ()C;                                   // get actual   position in file (takes into account buffering)
-   Long posAbs   ()C {return     _pos +       _offset;} // get absolute position in file
-   Int  posCipher()C {return Int(_pos)+_cipher_offset;} // get offset to be used in cipher, can be Int (instead Long) because Cipher operates on Int offset only
-   Ptr  memFast  ()  {return (Byte*)_mem+posAbs();}
-   Ptr  mem      () ; // get raw memory pointer for FILE_MEM
-   UInt memUsage ()C; // get memory usage
-   void cipher           (Cipher *cipher);                             // adjust file cipher
-   void cipherOffset     (Int     offset);                             // adjust file cipher offset
-   void cipherOffset     (Long    offset) {cipherOffset((Int)offset);} // adjust file cipher offset, can be Int (instead Long) because Cipher operates on Int offset only
-   void cipherOffsetClear(              ) {cipherOffset(-pos()     );} // adjust file cipher offset so that "posCipher()==0 -> pos+cipher_offset==0 -> cipher_offset=-pos", this will result in encryption being always the same, regardless of current location
+   Long      posFile  (        )C;                                    // get actual   position in file (takes into account buffering)
+   Bool      posAbs   (Long abs)  {return pos( abs -       _offset);} // set absolute position, false on fail
+   Long      posAbs   (        )C {return     _pos +       _offset ;} // get absolute position in file
+   Int       posCipher(        )C {return Int(_pos)+_cipher_offset ;} // get offset to be used in cipher, can be Int (instead Long) because Cipher operates on Int offset only
+   Ptr       memFast  (        )  {return (Byte*)_mem+posAbs();} // can be used only if type is known to be FILE_MEM
+   Ptr       mem      (        ) ; // get raw memory pointer for FILE_MEM
+   UInt      memUsage (        )C; // get memory usage
+   FSTD_TYPE stdType  (        )C; // get FSTD_TYPE
+   void      cipher           (Cipher *cipher);                             // adjust file cipher
+   void      cipherOffset     (Int     offset);                             // adjust file cipher offset
+   void      cipherOffset     (Long    offset) {cipherOffset((Int)offset);} // adjust file cipher offset, can be Int (instead Long) because Cipher operates on Int offset only
+   void      cipherOffsetClear(              ) {cipherOffset(-pos()     );} // adjust file cipher offset so that "posCipher()==0 -> pos+cipher_offset==0 -> cipher_offset=-pos", this will result in encryption being always the same, regardless of current location
 #endif
    Bool  is     (        )C {return _type!=0    ;} // if  file is opened
    Bool  pos    (Long pos);                        // set position, false on fail

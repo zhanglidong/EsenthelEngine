@@ -78,11 +78,11 @@ struct KeyboardClass // Keyboard Input
    KB_KEY qwerty(KB_KEY qwerty)C; // convert key from QWERTY layout to layout of current keyboard
 
    // operations
-   void eat(          ); // eat all    input from this frame so it will not be processed by the remaining codes in frame
-   void eat(Char   c  ); // eat 'c'    input from this frame so it will not be processed by the remaining codes in frame
-   void eat(Char8  c  ); // eat 'c'    input from this frame so it will not be processed by the remaining codes in frame
-   void eat(KB_KEY key); // eat 'key'  input from this frame so it will not be processed by the remaining codes in frame
-   void eatKey(       ); // eat 'Kb.k' input from this frame so it will not be processed by the remaining codes in frame
+   void eat(          ); // eat all    input from this frame so it will not be processed by the remaining codes in frame, this disables all BS_FLAG states (BS_PUSHED, BS_RELEASED, etc.) except BS_ON
+   void eat(Char   c  ); // eat 'c'    input from this frame so it will not be processed by the remaining codes in frame, this disables all BS_FLAG states (BS_PUSHED, BS_RELEASED, etc.) except BS_ON
+   void eat(Char8  c  ); // eat 'c'    input from this frame so it will not be processed by the remaining codes in frame, this disables all BS_FLAG states (BS_PUSHED, BS_RELEASED, etc.) except BS_ON
+   void eat(KB_KEY key); // eat 'key'  input from this frame so it will not be processed by the remaining codes in frame, this disables all BS_FLAG states (BS_PUSHED, BS_RELEASED, etc.) except BS_ON
+   void eatKey(       ); // eat 'Kb.k' input from this frame so it will not be processed by the remaining codes in frame, this disables all BS_FLAG states (BS_PUSHED, BS_RELEASED, etc.) except BS_ON
 
 #if EE_PRIVATE
    void         nextInQueue(); // proceed to next key from the buffer, same like 'nextKey' but without 'eatKey'
@@ -127,7 +127,7 @@ struct KeyboardClass // Keyboard Input
    void update ();
    void setModifiers();
 
-   void swappedCtrlCmd(Bool swapped);   Bool swappedCtrlCmd()C {return _swapped_ctrl_cmd;} // set/get if Ctrl is swapped with Cmd key under Mac OS, enable this method if you have swapped Ctrl with Cmd key under System Preferences but you wish to get their original mapping under the engine, this method is used only under Mac, default=false
+   void swapCtrlCmd(Bool swapped);   Bool swapCtrlCmd()C {return _swap_ctrl_cmd;} // set/get swap Ctrl with Cmd key on Mac, enable this method if you want to swap Ctrl with Cmd key input, this method is used only on Mac, default=false
 #endif
 
    Bool    ctrlCmd    ()C {return APPLE ? _win  : _ctrl ;} // if any Ctrl is on (on platforms other than Apple), and if any Command is on (on Apple platforms)
@@ -138,8 +138,9 @@ struct KeyboardClass // Keyboard Input
 #if !EE_PRIVATE
 private:
 #endif
-   Bool        _ctrl, _shift, _alt, _win, _cur_hidden, _swapped_ctrl_cmd, _visible, _imm, _imm_candidate_hidden, _exclusive;
-   Byte        _button[256], _key_buffer_pos, _key_buffer_len;
+   Bool        _ctrl, _shift, _alt, _win, _cur_hidden, _swap_ctrl_cmd, _visible, _imm, _imm_candidate_hidden, _exclusive;
+   Byte        _key_buffer_pos, _key_buffer_len;
+   BS_FLAG     _button[256];
    Char8       _key_char[256];
    KeyboardKey _key_buffer[256];
    KB_KEY      _qwerty[256];

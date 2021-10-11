@@ -11,64 +11,48 @@ namespace EE{
 /******************************************************************************/
 // XMATERIAL
 /******************************************************************************/
+// !! IF CHANGING THIS IN ANY WAY THEN RECOMPILE FBX DLL'S !!
 XMaterial::XMaterial()
 {
    cull         =true;
    flip_normal_y=false;
-   technique    =MTECH_DEFAULT;
+   technique    =MTECH_OPAQUE;
    color        =1;
-   ambient      =0;
-   smooth       =0;
-   reflect      =MATERIAL_REFLECT;
+   emissive     =0;
+   emissive_glow=0;
+   rough_mul    =0; rough_add=1;
+   reflect      (MATERIAL_REFLECT);
    glow         =0;
-   normal       =1;
-   bump         =0.03f;
-   sss          =0;
+   normal       =0;
+   bump         =0;
    det_power    =0.3f;
-   det_scale    =4;
-   tex_scale    =1.0f;
+   det_uv_scale =4;
+       uv_scale =1;
 }
 void XMaterial::del()
 {
    T=XMaterial();
 }
-void XMaterial::createFrom(C Material &src)
+void XMaterial::create(C Material &src)
 {
-   cull     =src.cull;
-   technique=src.technique;
-   color    =src.colorS();
-   ambient  =src.ambient;
-   smooth   =src.smooth;
-   reflect  =src.reflect;
-   glow     =src.glow;
-   normal   =src.normal;
-   bump     =src.bump;
- //sss      =src.sss;
-   det_power=src.det_power;
-   det_scale=src.det_scale;
-   tex_scale=src.tex_scale;
+     cull         =src.cull;
+     technique    =src.technique;
+     color        =src.   colorS();
+     emissive     =src.emissiveS();
+     emissive_glow=src.emissive_glow;
+     rough_mul    =src.  rough_mul;   rough_add=src.  rough_add;
+   reflect_mul    =src.reflect_mul; reflect_add=src.reflect_add;
+     glow         =src.glow;
+     normal       =src.normal;
+     bump         =src.bump;
+     det_power    =src.det_power;
+     det_uv_scale =src.det_uv_scale;
+         uv_scale =src.    uv_scale;
 
-          color_map=src.    base_0.name();
-         normal_map=src.    base_1.name();
-   detail_color_map=src.detail_map.name();
-          light_map=src. light_map.name();
-}
-void XMaterial::copyParamsTo(Material &mtrl)C
-{
-   mtrl.cull     =cull;
-   mtrl.technique=technique;
-   mtrl.colorS   (color);
-   mtrl.ambient  =ambient;
-   mtrl.smooth   =smooth;
-   mtrl.reflect  =reflect;
-   mtrl.glow     =glow;
-   mtrl.normal   =normal;
-   mtrl.bump     =bump;
- //mtrl.sss      =sss;
-   mtrl.det_power=det_power;
-   mtrl.det_scale=det_scale;
-   mtrl.tex_scale=tex_scale;
-   mtrl.validate();
+          color_map=src.      base_0.name();
+         normal_map=src.      base_1.name();
+   detail_color_map=src.  detail_map.name();
+       emissive_map=src.emissive_map.name();
 }
 static void FixPath(Str &name, Str &path)
 {
@@ -92,21 +76,21 @@ void XMaterial::fixPath(Str path)
    path.tailSlash(true);
    FixPath(        color_map, path);
    FixPath(        alpha_map, path);
-   FixPath(        light_map, path);
+   FixPath(     emissive_map, path);
    FixPath(         bump_map, path);
    FixPath(       normal_map, path);
    FixPath(       smooth_map, path);
-   FixPath(      reflect_map, path);
+   FixPath(        metal_map, path);
    FixPath( detail_color_map, path);
    FixPath(  detail_bump_map, path);
    FixPath(detail_normal_map, path);
    FixPath(detail_smooth_map, path);
 }
 Bool XMaterial::save(File &f)C
-{
+{  // !! IF CHANGING THIS IN ANY WAY THEN RECOMPILE FBX DLL'S !!
    f.cmpUIntV(0); // version
-   f<<cull<<flip_normal_y<<technique<<color<<ambient<<smooth<<reflect<<glow<<normal<<bump<<sss<<det_power<<det_scale<<tex_scale
-    <<color_map<<alpha_map<<bump_map<<glow_map<<light_map<<normal_map<<smooth_map<<reflect_map<<detail_color_map<<detail_bump_map<<detail_normal_map<<detail_smooth_map
+   f<<cull<<flip_normal_y<<technique<<color<<emissive<<emissive_glow<<rough_mul<<rough_add<<reflect_mul<<reflect_add<<glow<<normal<<bump<<det_power<<det_uv_scale<<uv_scale
+    <<color_map<<alpha_map<<bump_map<<glow_map<<emissive_map<<normal_map<<smooth_map<<metal_map<<detail_color_map<<detail_bump_map<<detail_normal_map<<detail_smooth_map
     <<name;
    return f.ok();
 }
@@ -116,8 +100,8 @@ Bool XMaterial::load(File &f)
    {
       case 0:
       {
-         f>>cull>>flip_normal_y>>technique>>color>>ambient>>smooth>>reflect>>glow>>normal>>bump>>sss>>det_power>>det_scale>>tex_scale
-          >>color_map>>alpha_map>>bump_map>>glow_map>>light_map>>normal_map>>smooth_map>>reflect_map>>detail_color_map>>detail_bump_map>>detail_normal_map>>detail_smooth_map
+         f>>cull>>flip_normal_y>>technique>>color>>emissive>>emissive_glow>>rough_mul>>rough_add>>reflect_mul>>reflect_add>>glow>>normal>>bump>>det_power>>det_uv_scale>>uv_scale
+          >>color_map>>alpha_map>>bump_map>>glow_map>>emissive_map>>normal_map>>smooth_map>>metal_map>>detail_color_map>>detail_bump_map>>detail_normal_map>>detail_smooth_map
           >>name;
          if(f.ok())return true;
       }break;
@@ -1531,7 +1515,7 @@ Bool Import(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XAnimation> anim
             if(materials)FREPA(mesh_mtrls) // create 'XMaterial's
             {
                XMaterial &xm=materials.New();
-               xm.createFrom(*mesh_mtrls[i]);
+               xm.create(*mesh_mtrls[i]);
                xm.name=GetBaseNoExt(Materials.name(mesh_mtrls[i]));
             }
             if(part_material_index)FREPD(l, mesh->lods()) // set 'part_material_index'
@@ -1550,7 +1534,7 @@ Bool Import(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XAnimation> anim
       Material mtrl; if(materials)if(mtrl.load(name))
       {
          XMaterial &m=materials.New();
-         m.createFrom(mtrl);
+         m.create(mtrl);
          m.name=GetBaseNoExt(name);
          return true;
       }

@@ -49,6 +49,8 @@ public:
       class AppCheck : CheckBox
       {
          UID app_id;
+         
+         void setRect();
 
 public:
    AppCheck();
@@ -65,14 +67,13 @@ public:
                             show_only_anim  ,
                             show_only_sound ,
                             file_size,
-                            tex_sharpness,
                             include_texture_size_in_object,
                             include_unpublished_elm_size,
                             flat_is,
                             flat_want,
                             list_all_children,
                             tapped_open;
-      int                   tapped_vis, icon_col, name_col, size_col, tex_sharp_col;
+      int                   tapped_vis, icon_col, name_col, size_col;
       flt                   tapped_time;
       UID                   lit_elm_id;
       Memc<ListElm>         data;
@@ -95,6 +96,7 @@ public:
 
       bool identitySort()C; // if list is sorted in identity mode
       virtual void update(C GuiPC &gpc)override;
+      virtual GuiObj& rect(C Rect &rect)override;
 
 public:
    ElmList();
@@ -155,6 +157,7 @@ public:
    Skeleton             slot_skel_mem; // skeleton used for copying slots only
    flt                  save_time;
    Edit::Undo<ElmChange> elm_undos;
+   bool                 texture_changed;
    bool                 file_size_getter_step; // 0=game files, 1=textures
    FileSizeGetter       file_size_getter;
 
@@ -244,12 +247,14 @@ public:
    static void MtrlSetBumpTexCur       (ProjectEx &proj);
    static void MtrlSetNormalTexCur     (ProjectEx &proj);
    static void MtrlSetSmoothTexCur     (ProjectEx &proj);
-   static void MtrlSetReflectTexCur    (ProjectEx &proj);
+   static void MtrlSetMetalTexCur      (ProjectEx &proj);
    static void MtrlSetGlowTexCur       (ProjectEx &proj);
 
    static void MtrlMulTexCol           (ProjectEx &proj);
    static void MtrlMulTexNormal        (ProjectEx &proj);
    static void MtrlMulTexSmooth        (ProjectEx &proj);
+   static void MtrlMulTexGlow          (ProjectEx &proj);
+   static void MtrlMulTexEmissive      (ProjectEx &proj);
    static void MtrlMoveToObj           (ProjectEx &proj);
    static void MtrlMerge               (ProjectEx &proj);
    static void MtrlConvertToAtlas      (ProjectEx &proj);
@@ -289,8 +294,6 @@ public:
 
    static void ShowFileSize(ProjectEx &proj);
           void showFileSize();
-   static void ShowTexSharp(ProjectEx &proj);
-          void showTexSharp();
    static void IncludeUnpublishedElmSize(ProjectEx &proj);
           void includeUnpublishedElmSize(bool on);
    static void IncludeTextureSizeInObject(ProjectEx &proj);
@@ -338,8 +341,8 @@ public:
    void newElm(ELM_TYPE type);
    Elm* newElm(ELM_TYPE type, C UID &parent_id, C Str *name=null, bool refresh_elm_list=true);
    Elm* newWorld(C Str &name, int area_size, int hm_res, C UID &parent_id, bool set_cur);
-   void setMtrl(Elm &mtrl, ImporterClass::Import::MaterialEx &src, C Str &src_file=S);
-   Elm& newMtrl(ImporterClass::Import::MaterialEx &src, C UID parent_id=UIDZero, C Str &src_file=S); // create new material from 'src' !! this doesn't set elm list and doesn't send to the server !!
+   void setMtrl(Elm &mtrl, XMaterialEx &src, C Str &src_file=S);
+   Elm& newMtrl(XMaterialEx &src, C UID parent_id=UIDZero, C Str &src_file=S); // create new material from 'src' !! this doesn't set elm list and doesn't send to the server !!
 
    void setElmName(Elm &elm, C Str &name, C TimeStamp &time=TimeStamp().getUTC());
    void setElmNames(Memc<Edit::IDParam<Str>> &elms, bool adjust_elms=false); // 'adjust_elms'=if this is performed because of undo, and in that case we need to remember current names, so we can undo this change later
@@ -373,31 +376,34 @@ public:
    bool mtrlSetBump(C MemPtr<UID> &elm_ids, flt bump, bool mul=false);
    bool mtrlSetNormal(C MemPtr<UID> &elm_ids, flt normal, bool mul=false);
    bool mtrlSetSmooth(C MemPtr<UID> &elm_ids, flt smooth, bool mul=false);
-   bool mtrlSetReflect(C MemPtr<UID> &elm_ids, flt reflect, bool mul=false);
+   bool mtrlSetReflect(C MemPtr<UID> &elm_ids, flt reflect_min, flt reflect_max);
    bool mtrlSetGlow(C MemPtr<UID> &elm_ids, flt glow, bool mul=false);
    bool mtrlSetTexColor(C MemPtr<UID> &elm_ids, C Str &color_map);
    bool mtrlSetTexBump(C MemPtr<UID> &elm_ids, C Str &bump_map);
-   bool mtrlSetTexNormal(C MemPtr<UID> &elm_ids, C Str &normal_map);
-   bool mtrlSetTexSmooth(C MemPtr<UID> &elm_ids, C Str &smooth_map);
-   bool mtrlSetTexReflect(C MemPtr<UID> &elm_ids, C Str &reflect_map);
+   bool mtrlSetTexNormal(C MemPtr<UID> &elm_ids, C Str &normal_map, bool flip_normal_y);
+   bool mtrlSetTexSmooth(C MemPtr<UID> &elm_ids, C Str &smooth_map, bool smooth_is_rough);
+   bool mtrlSetTexMetal(C MemPtr<UID> &elm_ids, C Str &metal_map);
    bool mtrlSetTexGlow(C MemPtr<UID> &elm_ids, C Str &glow_map);
    void mtrlCull(C MemPtr<UID> &elm_ids, bool on);
    void mtrlFlipNrmY(C MemPtr<UID> &elm_ids, bool on);
+   void mtrlSmoothIsRough(C MemPtr<UID> &elm_ids, bool on);
    void mtrlDownsizeTexMobile(C MemPtr<UID> &elm_ids, byte downsize, C UID &base_0=UIDZero, C UID &base_1=UIDZero, C UID &base_2=UIDZero);
    bool mtrlTexQuality(C MemPtr<UID> &elm_ids, Edit::Material::TEX_QUALITY quality, C UID &base_0=UIDZero, C UID &base_1=UIDZero, C UID &base_2=UIDZero); // !! this is not perfect !!
    bool mtrlMulTexCol(C MemPtr<UID> &elm_ids);
    bool mtrlMulTexNormal(C MemPtr<UID> &elm_ids);
    bool mtrlMulTexSmooth(C MemPtr<UID> &elm_ids);
+   bool mtrlMulTexGlow(C MemPtr<UID> &elm_ids);
+   bool mtrlMulTexEmissive(C MemPtr<UID> &elm_ids);
    void mtrlMoveToObj(C MemPtr<UID> &elm_ids);
    bool mtrlGet(C UID &elm_id, EditMaterial &mtrl);
    bool mtrlGet(C UID &elm_id, EditWaterMtrl &mtrl);
    bool mtrlSync(C UID &elm_id, C EditMaterial &mtrl, bool reload_textures, bool adjust_params, cptr undo_change_type="sync");
    bool mtrlSync(C UID &elm_id, C EditWaterMtrl &mtrl, bool reload_textures, bool adjust_params, cptr undo_change_type="sync");
    bool mtrlSync(C UID &elm_id, C Edit::Material &mtrl, bool reload_textures, bool adjust_params);
-   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditMaterial &material, bool changed_flip_normal_y=false);
-   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditWaterMtrl &material, bool changed_flip_normal_y=false);
-   uint mtrlCreateBaseTextures(EditMaterial &material, bool changed_flip_normal_y=false);
-   uint mtrlCreateBaseTextures(EditWaterMtrl &material, bool changed_flip_normal_y=false);
+   TEX_FLAG createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditMaterial &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
+   TEX_FLAG createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditWaterMtrl &material, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
+   TEX_FLAG mtrlCreateBaseTextures(EditMaterial &material, uint changed=0); // 'changed'=only CHANGED_FLIP_NRM_Y or CHANGED_SMOOTH_IS_ROUGH are valid
+   TEX_FLAG mtrlCreateBaseTextures(EditWaterMtrl &material, uint changed=0); // 'changed'=only CHANGED_FLIP_NRM_Y or CHANGED_SMOOTH_IS_ROUGH are valid
    /*bool mtrlCreateReflectionTexture(Image &reflection, C EditMaterial &material)
    {
       bool loaded=false;
@@ -457,11 +463,11 @@ public:
          }
       }
    }*/
-   void mtrlCreateDetailTexture(EditMaterial &material);
-   void mtrlCreateMacroTexture(EditMaterial &material);
-   void mtrlCreateLightTexture(EditMaterial &material);
-   bool mtrlReloadTextures(C UID &elm_id, bool base, bool detail, bool macro, bool light);
-   void mtrlReloadTextures(C MemPtr<UID> &elm_ids, bool base, bool detail, bool macro, bool light);
+   TEX_FLAG mtrlCreateDetailTexture(EditMaterial &material);
+   TEX_FLAG mtrlCreateMacroTexture(EditMaterial &material);
+   TEX_FLAG mtrlCreateEmissiveTexture(EditMaterial &material);
+   bool mtrlReloadTextures(C UID &elm_id, bool base, bool detail, bool macro, bool emissive);
+   void mtrlReloadTextures(C MemPtr<UID> &elm_ids, bool base, bool detail, bool macro, bool emissive);
    bool skelGet(C UID &elm_id, Skeleton &skel)C;
    Animation* getAnim(C UID &elm_id, Animation &temp)C;
    bool animGet(C UID &elm_id, Animation &anim)C;
@@ -512,7 +518,7 @@ public:
    virtual void eraseElm(C UID &elm_id)override;
    virtual bool eraseTex(C UID &tex_id)override;
    virtual void eraseWorldAreaObjs(C UID &world_id, C VecI2 &area_xy)override;
-   virtual void eraseRemoved()override;
+   virtual void eraseRemoved(bool full)override;
 
    void setElmParent(Memc<Edit::IDParam<UID>> &elms, bool adjust_elms=false, bool as_undo=false); // 'adjust_elms'=if this is performed because of undo, and in that case we need to remember current parents, so we can undo this change later
    void drag(Memc<UID> &elms, GuiObj *focus_obj, C Vec2 &screen_pos);

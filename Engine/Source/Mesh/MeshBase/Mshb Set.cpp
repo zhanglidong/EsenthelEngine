@@ -164,7 +164,6 @@ MeshBase& MeshBase::setNormals()
       vtx.nrm(f.c[2])+=nrm;
       vtx.nrm(f.c[3])+=nrm;
    }
-   Normalize(vtx.nrm(), vtxs());
 /* Calculate using Quadrics (this is only for testing)
    Memt<QuadricMatrix> vtx_qm; vtx_qm.setNumZero(vtxs());
    REPA(tri)
@@ -203,6 +202,7 @@ MeshBase& MeshBase::setNormals()
    REPA(vtx)vtx.nrm(i)=vtx_qm[i].normal(vtx.pos(i)+offset); // <- here we would have to use some offset because normal at the surface is not precise, best offset is vtx.nrm which we're trying to calculate
 */
 
+   REPA(vtx){Vec &nrm=vtx.nrm(i); if(!nrm.normalize())nrm.set(DEFAULT_VTX_NRM);} // !! valid non-zero normal must be set because otherwise NaN might get generated in the shader due to normalization of zero vectors !!
    if(vtx.dup())REPA(vtx)vtx.nrm(i)=vtx.nrm(vtx.dup(i));
    return T;
 }
@@ -256,7 +256,7 @@ MeshBase& MeshBase::setNormalsAuto(Flt angle, Flt pos_eps)
       }
    } // <- releases temp memory
 
-   Normalize(vtx.nrm(), vtxs());
+   REPA(vtx){Vec &nrm=vtx.nrm(i); if(!nrm.normalize())nrm.set(DEFAULT_VTX_NRM);} // !! valid non-zero normal must be set because otherwise NaN might get generated in the shader due to normalization of zero vectors !!
 
    return T;
 }
@@ -369,21 +369,24 @@ MeshBase& MeshBase::setTanBin()
          if(set_tan)
          {
             Vec &tan=vtx.tan(i);
-            if(vtx.nrm())tan=PointOnPlane(tan, vtx.nrm(i)); // put on normal plane, this is needed for some models that have smooth vtx normals, but achieve flat surfaces due to normal maps
-            if(!tan.normalize()) // !! valid non-zero tangent must be set because otherwise triangles can become black !!
+            if(vtx.nrm()) // if have normals
             {
-               if(vtx.nrm())tan=PerpN(vtx.nrm(i));
-               else         tan.set(1, 0, 0);
-            }
+             C Vec &nrm=vtx.nrm(i);
+               tan=PointOnPlane(tan, nrm); // put on normal plane, this is needed for some models that have smooth vtx normals, but achieve flat surfaces due to normal maps. This is also needed to make tan perpendicular to nrm, so valid non-zero 'bin' can be generated out of the pair (in order to avoid zero which might generate NaN in the shader)
+               if(!tan.normalize() // if tan is zero
+               || Abs(Dot(nrm, tan))>=SQRT2_2) // or after normalization it's close to normal (this can happen due to numerical precision issues)
+                  tan=PerpN(nrm); // set as any perpendicular vector to normal
+            }else
+            if(!tan.normalize())tan.set(DEFAULT_VTX_TAN); // !! valid non-zero tangent must be set because otherwise NaN might get generated in the shader due to normalization of zero vectors !!
          }
          if(set_bin)
          {
-            Vec &bin=vtx.bin(i); if(!bin.normalize()) // !! valid non-zero binormal must be set because otherwise triangles can become black !!
+            Vec &bin=vtx.bin(i); if(!bin.normalize()) // !! valid non-zero binormal must be set because otherwise NaN might get generated in the shader due to normalization of zero vectors !!
             {
                if(vtx.nrm() && vtx.tan())bin=CrossN(vtx.nrm(i), vtx.tan(i));else
                if(vtx.nrm()             )bin= PerpN(vtx.nrm(i)            );else
                if(             vtx.tan())bin= PerpN(            vtx.tan(i));else
-                                         bin.set(0, 0, -1); // Cross(Vec(0,1,0), Vec(1,0,0))
+                                         bin.set(DEFAULT_VTX_BIN);
             }
          }
       }
@@ -426,7 +429,7 @@ MeshBase& MeshBase::setAutoTanBin()
    return T;
 }
 /******************************************************************************
-MeshBase& setSolid      (                            ); // fill 'edge.flag' EDGE_FLAG with solid info
+MeshBase& setSolid(); // fill 'edge.flag' EDGE_FLAG with solid info
 
 MeshBase& MeshBase::setSolid()
 {
@@ -505,16 +508,22 @@ struct MeshAO
           void set(Int    vtx)
    {
     C Vec &pos=T.pos[vtx], &nrm=T.nrm[vtx];
-      Flt light=0;
+      Dbl  light=0;
       REPA(ray_dir)
       {
        C Vec &ray=ray_dir[i];
-         Flt d=Dot(nrm, ray); if(d>0)
+         Flt  d=Dot(nrm, ray); if(d>0)
          {
             Flt frac; if(sweep(pos+ray*pos_eps, ray, &frac))light+=func(frac)*d;else light+=d;
          }
       }
-      Color &c=col[vtx]; c.r=c.g=c.b=Mid(RoundPos(light*mul+add), max, 255); // keep alpha
+      light=light*mul+add;
+   #if LINEAR_GAMMA
+      Byte light_b=Max(LinearToByteSRGB(light), max);
+   #else
+      Byte light_b=Mid(RoundPos(light*255), max, 255);
+   #endif
+      Color &c=col[vtx]; c.r=c.g=c.b=light_b; // keep alpha
    }
    void process(Int vtxs, Threads *threads)
    {
@@ -565,14 +574,14 @@ struct MeshAO
                }
                ray*=T.ray_length; // pre-multiply so we don't have to do this for each vertex*ray
                ray_dir[r++]=ray;
-               if(ray.x>0){r_pos++; ray_sum+=ray.x;} // Dot(ray, Vec(1, 0, 0))
+               if(ray.x>0){r_pos++; ray_sum+=ray.x;} // Dot(ray, Vec(1, 0, 0)), calculate total amount in one hemisphere (X+)
             }
          }
       }
 
-      add=255*(1-strength + strength*bias);
-      mul=255*   strength/ray_sum;
-    //mul=255*   strength/r_pos  ; // this is for light independent on the Dot product
+      add=(1-strength + strength*bias);
+      mul=   strength/ray_sum;
+    //mul=   strength/r_pos  ; // this is for light independent on the Dot product
    }
 };
 /******************************************************************************/

@@ -87,9 +87,8 @@ struct Font
    Int charWidth(Char  c0, Char  c1, SPACING_MODE spacing)C;
    Int charWidth(Char8 c0, Char8 c1, SPACING_MODE spacing)C;
 
-   void setRemap ();
-   void setGLFont();
-   void zero     ();
+   void setRemap();
+   void zero    ();
 #endif
 
    Font& del(); // delete manually

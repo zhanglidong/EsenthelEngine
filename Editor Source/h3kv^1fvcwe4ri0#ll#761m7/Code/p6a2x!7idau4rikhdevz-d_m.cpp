@@ -14,7 +14,7 @@ class Rotator : GuiCustom
    }
    virtual void draw(C GuiPC &gpc)override
    {
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          D.clip(gpc.clip);
          Circle circle(rect().h()*0.5, rect().center()+gpc.offset);
@@ -32,7 +32,7 @@ Button               ExitButton;
 /******************************************************************************/
 void InitGameButtons()
 {
-   if(SupportedTouches())
+   if(0) //SupportedTouches())
    {
       Gui+=ExitButton.create(Rect_LU(-D.w(), D.h(), 0.15, 0.07), "Exit").func(ExitGame).focusable(false);
       flt y=Lerp(-D.h(), D.h(), 0.4);

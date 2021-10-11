@@ -104,13 +104,13 @@ class BrushClass : Window // Brush (Size + Speed + Soft + Image)
       skin(&NoShadowSkin);
 
 parent+=slope_window.create(Rect_RD(rect().ld()-Vec2(0.03, 0), 0.22, 0.13), "Slope").barVisible(false).hide(); slope_window.skin(skin()); FlagDisable(slope_window.flag, WIN_MOVABLE);
-        slope_window+=slope.create(Rect_LU(0.02, -0.02, 0.18, 0.09)).desc(MLTC(u"Slope limiter\nEdit with LMB and RMB", PL, u"Granica krzywizny terenu\nEdytuj przy pomocy LMB oraz RMB", DE, u"Hang Limiter\nMit LMB und RMB ändern", RU, u"Наклонный ограничитель\nРедактирование с помощью LMB и RMB кнопками мыши", PO, u"Limitar o declive\nEditar com Botăo Direito do Rato e Botăo Esquerdo do Rato", CN, u"斜率控制\n用鼠标左右键编辑"));
+        slope_window+=slope.create(Rect_LU(0.02, -0.02, 0.18, 0.09)).desc(MLTC(u"Slope limiter\nEdit with LMB and RMB", PL, u"Granica krzywizny terenu\nEdytuj przy pomocy LMB oraz RMB", DE, u"Hang Limiter\nMit LMB und RMB ändern", RU, u"Наклонный ограничитель\nРедактирование с помощью LMB и RMB кнопками мыши", PO, u"Limitar o declive\nEditar com Botão Direito do Rato e Botão Esquerdo do Rato", CN, u"斜率控制\n用鼠标左右键编辑"));
       if(SupportedTouches())slope_window+=slope.side_b.create(Rect_LU(slope.rect().lu(), 0.04, 0.04), ">").func(Slope.PushedSide, slope).focusable(false).desc("Change side of the slop limit");
 
             parent+=image_window.create(Rect_RD(rect().ru()+Vec2(0, 0.03), 0.3, 0.415), MLTC(u"Image", PL, u"Obraz", DE, u"Bild", RU, u"Изобращение", PO, u"Imagem", CN, u"图片")).barVisible(false).hide(); image_window.skin(skin()); FlagDisable(image_window.flag, WIN_MOVABLE);
       image_window+=image_image .create(Rect_LU(0, 0, 0.3, 0.3).extend(-0.02), &image_hw).desc(MLTC(u"Drag and Drop image here to use it", PL, u"Przeciągnij i upuść tutaj obrazek aby go użyć", DE, u"Legen Sie ein Bild mit Drag und Drop hier ab um es zu verwenden", RU, u"Перетащите изображение сюда, чтобыиспользовать его", PO, u"Agarrar e Largar a imagem aqui para a usar", CN, u"拖动图片到这里使用"));
-      image_window+=tangle      .create(Vec2   (0.07, -0.32             ), MLTC(u"Angle"  , PL, u"Kąt" , DE, u"Winkel", RU, u"Угол"  , PO, u"Ângulo", CN, u"角度")); image_window+=sangle  .create(Rect_L(0.14, tangle .rect().centerY(), 0.14, 0.05), 0).desc(MLTC(u"Image rotation angle\nChange with: Alt+RMB", PL, u"Kąt obrotu obrazka\nZmień przy pomocy: Alt+RMB", DE, u"Bild Rotationswinkel\nÄndern mit: Alt + RMB", RU, u"Угол вращения изображения\nЧтобы изменить угол вращения нажмите: Alt+RMB", PO, u"Ângulo de rotaçăo da Imagem\nMuda com: Alt+Botăo Direito do Rato", CN, u"图片旋转:Alt键+鼠标右键"));
-      image_window+=pattern     .create(Rect_C (0.07, -0.38, 0.11, 0.038), MLTC(u"Pattern", PL, u"Wzór", DE, u"Muster", RU, u"Шаблон", PO, u"Padrăo", CN, u"样式")); image_window+=cpattern.create(Rect_L(0.14, pattern.rect().centerY(), 0.14, 0.05), PatternText, Elms(PatternText)).set(0).desc(MLTC(u"Pattern Scale", PL, u"Skala wzoru", DE, u"Muster Skalierung", RU, u"Масштаб шаблона", PO, u"Escala Padrăo", CN, u"模板样式缩放")); pattern.mode=BUTTON_TOGGLE; pattern.desc(MLTC(u"Apply image using a repeating pattern", PL, u"Nałóż obrazek jako powtarzający się wzorzec"));
+      image_window+=tangle      .create(Vec2   (0.07, -0.32             ), MLTC(u"Angle"  , PL, u"Kąt" , DE, u"Winkel", RU, u"Угол"  , PO, u"Ângulo", CN, u"角度")); image_window+=sangle  .create(Rect_L(0.14, tangle .rect().centerY(), 0.14, 0.05), 0).desc(MLTC(u"Image rotation angle\nChange with: Alt+RMB", PL, u"Kąt obrotu obrazka\nZmień przy pomocy: Alt+RMB", DE, u"Bild Rotationswinkel\nÄndern mit: Alt + RMB", RU, u"Угол вращения изображения\nЧтобы изменить угол вращения нажмите: Alt+RMB", PO, u"Ângulo de rotação da Imagem\nMuda com: Alt+Botão Direito do Rato", CN, u"图片旋转:Alt键+鼠标右键"));
+      image_window+=pattern     .create(Rect_C (0.07, -0.38, 0.11, 0.038), MLTC(u"Pattern", PL, u"Wzór", DE, u"Muster", RU, u"Шаблон", PO, u"Padrão", CN, u"样式")); image_window+=cpattern.create(Rect_L(0.14, pattern.rect().centerY(), 0.14, 0.05), PatternText, Elms(PatternText)).set(0).desc(MLTC(u"Pattern Scale", PL, u"Skala wzoru", DE, u"Muster Skalierung", RU, u"Масштаб шаблона", PO, u"Escala Padrão", CN, u"模板样式缩放")); pattern.mode=BUTTON_TOGGLE; pattern.desc(MLTC(u"Apply image using a repeating pattern", PL, u"Nałóż obrazek jako powtarzający się wzorzec"));
 
       image_io.create(S, S, S, SetImage, SetImage, T).ext(SUPPORTED_IMAGE_EXT, "image");
 
@@ -140,7 +140,7 @@ parent+=slope_window.create(Rect_RD(rect().ld()-Vec2(0.03, 0), 0.22, 0.13), "Slo
    virtual void update(C GuiPC &gpc)override
    {
       super.update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          setChildWindows();
          if(Ms.wheel() && (Gui.wheel()==Gui.desktop() || !Gui.wheel() || hasMsWheelFocus()))

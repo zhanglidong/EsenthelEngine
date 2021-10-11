@@ -52,7 +52,7 @@ bool Update()
    if(Kb.bp(KB_ESC))return false;
 
    // move window on mouse button
-   if(Ms.b(0))WindowMove(Ms.pixelDelta().x, Ms.pixelDelta().y);
+   if(Ms.b(0))App.window().move(Ms.pixelDelta().x, Ms.pixelDelta().y);
 
    // check if received any data
    if(connection.receive(0))

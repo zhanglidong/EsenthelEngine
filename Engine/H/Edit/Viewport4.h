@@ -30,7 +30,7 @@ const_mem_addr struct Viewport4
 
    struct ViewportEx : Viewport
    {
-      virtual void draw(C GuiPC &gpc);
+      virtual void draw(C GuiPC &gpc)override;
    };
 
    struct View
@@ -53,9 +53,9 @@ const_mem_addr struct Viewport4
 
       DPad& create(Viewport4 *v4, View *view);
 
-      virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel);
-      virtual void    update(C GuiPC &gpc);
-      virtual void    draw  (C GuiPC &gpc);
+      virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override;
+      virtual void    update(C GuiPC &gpc)override;
+      virtual void    draw  (C GuiPC &gpc)override;
    };
 
    struct DPadY : GuiCustom
@@ -68,8 +68,8 @@ const_mem_addr struct Viewport4
 
       DPadY& create(Viewport4 *v4, View *view);
 
-      virtual void update(C GuiPC &gpc);
-      virtual void draw  (C GuiPC &gpc);
+      virtual void update(C GuiPC &gpc)override;
+      virtual void draw  (C GuiPC &gpc)override;
    };
 
    struct Zoom : GuiCustom
@@ -82,8 +82,8 @@ const_mem_addr struct Viewport4
 
       Zoom& create(Viewport4 *v4, View *view);
 
-      virtual void update(C GuiPC &gpc);
-      virtual void draw  (C GuiPC &gpc);
+      virtual void update(C GuiPC &gpc)override;
+      virtual void draw  (C GuiPC &gpc)override;
    };
 
    // manage
@@ -156,9 +156,9 @@ private:
       void  resetView(            C DisplayClass::ViewportSettings &view, C Camera &camera);
 #endif
 
-      virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel);
-      virtual void    update(C GuiPC &gpc);
-      virtual void    draw  (C GuiPC &gpc);
+      virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override;
+      virtual void    update(C GuiPC &gpc)override;
+      virtual void    draw  (C GuiPC &gpc)override;
    };
 
    struct APad : GuiCustom
@@ -172,9 +172,9 @@ private:
 
       APad& create(Viewport4 &v4, View &view);
 
-      virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel);
-      virtual void    update(C GuiPC &gpc);
-      virtual void    draw  (C GuiPC &gpc);
+      virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override;
+      virtual void    update(C GuiPC &gpc)override;
+      virtual void    draw  (C GuiPC &gpc)override;
    };
 
    struct APadY : GuiCustom
@@ -188,8 +188,8 @@ private:
 
       APadY& create(Viewport4 &v4, View &view);
 
-      virtual void update(C GuiPC &gpc);
-      virtual void draw  (C GuiPC &gpc);
+      virtual void update(C GuiPC &gpc)override;
+      virtual void draw  (C GuiPC &gpc)override;
    };
 
    struct Drag : GuiCustom
@@ -201,9 +201,9 @@ private:
 
       Drag& create(Viewport4 &v4, View &view);
 
-      virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel);
-      virtual void    update(C GuiPC &gpc);
-      virtual void    draw  (C GuiPC &gpc);
+      virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override;
+      virtual void    update(C GuiPC &gpc)override;
+      virtual void    draw  (C GuiPC &gpc)override;
    };
 
    struct DragY : GuiCustom
@@ -215,8 +215,8 @@ private:
 
       DragY& create(Viewport4 &v4, View &view);
 
-      virtual void update(C GuiPC &gpc);
-      virtual void draw  (C GuiPC &gpc);
+      virtual void update(C GuiPC &gpc)override;
+      virtual void draw  (C GuiPC &gpc)override;
    };
 
    struct Arrows : GuiCustom
@@ -230,9 +230,9 @@ private:
 
       Arrows& create(Viewport4 &v4, View &view);
 
-      virtual GuiObj& rect  (C Rect  &rect);
-      virtual void    update(C GuiPC &gpc );
-      virtual void    draw  (C GuiPC &gpc );
+      virtual GuiObj& rect  (C Rect  &rect)override;
+      virtual void    update(C GuiPC &gpc )override;
+      virtual void    draw  (C GuiPC &gpc )override;
    };
 
    Bool        _perspective, _horizontal, _keyboard, _fpp, _lock, _draw_zoom;

@@ -501,21 +501,12 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
       {
          Flt xsize_2=xsize*0.5f;
 
-         // texture bias
-         {
-         #if DX11
-            // bias is set using 'SamplerFont' which is accessed in 'Font' shader
-         #elif GL
-            // bias is set using 'Font.setGLFont' and 'Image.setGLFont'
-         #endif
-         }
-
          // sub-pixel rendering
          ALPHA_MODE   alpha;
          Bool         sub_pixel=font->_sub_pixel;
          ShaderImage &shader_image=(sub_pixel ? *Sh.Img[0] : *Sh.ImgXY[0]);
          if(sub_pixel){alpha=D.alpha(Renderer.inside() ? ALPHA_FONT_DEC : ALPHA_FONT); VI.shader(Sh.FontCurSP); MaterialClear();}else // if drawing text while rendering, then decrease the alpha channel (glow), for sub-pixel we will be changing 'D.alphaFactor' for which we have to call 'MaterialClear'
-         if(Renderer.inside())D.alpha(ALPHA_BLEND_DEC); // if drawing text while rendering, then decrease the alpha channel (glow), but don't bother to restore it, as in Rendering, alpha blending is always set for each call
+         if(Renderer.inside())D.alpha(ALPHA_RENDER_BLEND); // if drawing text while rendering, then decrease the alpha channel (glow), but don't bother to restore it, as in Rendering, alpha blending is always set for each call
 
          VI._image=null; // clear to make sure 'VI.imageConditional' below will work properly
 
@@ -637,15 +628,6 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
             c=n;
          }
          VI.end();
-
-         // texture bias
-         {
-         #if DX11
-            // bias is set using 'SamplerFont' which is accessed in 'Font' shader
-         #elif GL
-            // bias is set using 'Font.setGLFont' and 'Image.setGLFont'
-         #endif
-         }
 
          // sub-pixel
          if(sub_pixel)D.alpha(alpha); // restore alpha

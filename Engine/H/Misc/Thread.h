@@ -741,11 +741,15 @@ Int AtomicDisable(Int &x, Int y); // and value of 'x' by '~y' in an atomic opera
 Int AtomicOr     (Int &x, Int y); // or  value of 'x' by  'y' in an atomic operation and return its previous value, this is a thread-safe version of function "Int old=x; x|= y; return old;" (this allows to modify the value across multiple threads without usage of Synchronization Locks)
 Int AtomicXor    (Int &x, Int y); // xor value of 'x' by  'y' in an atomic operation and return its previous value, this is a thread-safe version of function "Int old=x; x^= y; return old;" (this allows to modify the value across multiple threads without usage of Synchronization Locks)
 
-Int   AtomicGet(C Int   &x         ); // get value of 'x'        in an atomic operation, this is a thread-safe version of function "return x;" (this allows to access the value across multiple threads without usage of Synchronization Locks), this method
-UInt  AtomicGet(C UInt  &x         ); // get value of 'x'        in an atomic operation, this is a thread-safe version of function "return x;" (this allows to access the value across multiple threads without usage of Synchronization Locks), this method
-Long  AtomicGet(C Long  &x         ); // get value of 'x'        in an atomic operation, this is a thread-safe version of function "return x;" (this allows to access the value across multiple threads without usage of Synchronization Locks), this method
-ULong AtomicGet(C ULong &x         ); // get value of 'x'        in an atomic operation, this is a thread-safe version of function "return x;" (this allows to access the value across multiple threads without usage of Synchronization Locks), this method
+Bool  AtomicGet(C Bool  &x         ); // get value of 'x'        in an atomic operation, this is a thread-safe version of function "return x;" (this allows to access the value across multiple threads without usage of Synchronization Locks)
+Byte  AtomicGet(C Byte  &x         ); // get value of 'x'        in an atomic operation, this is a thread-safe version of function "return x;" (this allows to access the value across multiple threads without usage of Synchronization Locks)
+Int   AtomicGet(C Int   &x         ); // get value of 'x'        in an atomic operation, this is a thread-safe version of function "return x;" (this allows to access the value across multiple threads without usage of Synchronization Locks)
+UInt  AtomicGet(C UInt  &x         ); // get value of 'x'        in an atomic operation, this is a thread-safe version of function "return x;" (this allows to access the value across multiple threads without usage of Synchronization Locks)
+Long  AtomicGet(C Long  &x         ); // get value of 'x'        in an atomic operation, this is a thread-safe version of function "return x;" (this allows to access the value across multiple threads without usage of Synchronization Locks)
+ULong AtomicGet(C ULong &x         ); // get value of 'x'        in an atomic operation, this is a thread-safe version of function "return x;" (this allows to access the value across multiple threads without usage of Synchronization Locks)
 Flt   AtomicGet(C Flt   &x         ); // get value of 'x'        in an atomic operation, this is a thread-safe version of function "return x;" (this allows to access the value across multiple threads without usage of Synchronization Locks)
+void  AtomicSet(  Bool  &x, Bool  y); // set value of 'x' to 'y' in an atomic operation, this is a thread-safe version of function "x=y;     " (this allows to modify the value across multiple threads without usage of Synchronization Locks)
+void  AtomicSet(  Byte  &x, Byte  y); // set value of 'x' to 'y' in an atomic operation, this is a thread-safe version of function "x=y;     " (this allows to modify the value across multiple threads without usage of Synchronization Locks)
 void  AtomicSet(  Int   &x, Int   y); // set value of 'x' to 'y' in an atomic operation, this is a thread-safe version of function "x=y;     " (this allows to modify the value across multiple threads without usage of Synchronization Locks)
 void  AtomicSet(  UInt  &x, UInt  y); // set value of 'x' to 'y' in an atomic operation, this is a thread-safe version of function "x=y;     " (this allows to modify the value across multiple threads without usage of Synchronization Locks)
 void  AtomicSet(  Long  &x, Long  y); // set value of 'x' to 'y' in an atomic operation, this is a thread-safe version of function "x=y;     " (this allows to modify the value across multiple threads without usage of Synchronization Locks)
@@ -762,9 +766,8 @@ Bool AtomicCAS(Flt   &x, Flt   compare, Flt   new_value); // set value of 'x' to
 T1(TYPE) Bool AtomicCAS(TYPE *&x, TYPE *compare, TYPE *new_value) {return AtomicCAS((UIntPtr&)x, UIntPtr(compare), UIntPtr(new_value));}
 
 // Thread functions
-UIntPtr GetThreadId          (                                             ); // get current thread id
-UIntPtr GetThreadIdFromWindow(Ptr hwnd                                     ); // get id of the thread which owns the OS window handle
-void    SetThreadName        (C Str8 &name, UIntPtr thread_id=GetThreadId()); // set custom thread name for debugging purpose
+UIntPtr GetThreadId  (                                             ); // get current thread ID
+void    SetThreadName(C Str8 &name, UIntPtr thread_id=GetThreadId()); // set custom thread name for debugging purpose
 
 void ThreadMayUseGPUData       (); // call    this from a secondary thread if you expect the thread to perform any operations on GPU data (like Mesh, Material, Image, Shaders, ..., this includes any operation like creating, editing, loading, saving, deleting, ...). This function is best called at the start of the thread, it needs to be called at least once, further calls are ignored. Once the function is called, the thread locks a secondary OpenGL context (if no context is available, then the function waits until other threads finish processing and release their context lock, amount of OpenGL contexts is specified in 'D.secondaryOpenGLContexts'). Context lock is automatically released once the thread exits. This call is required only for OpenGL renderer.
 void ThreadFinishedUsingGPUData(); // calling this function is optional (it does not need to be called manually), call it if you wish to manually release a thread from locking an OpenGL context. Threads automatically call this function at end of their life, which means that they automatically release any locked contexts, however in some scenarios you may want to manually release any locked context if you wish to provide more contexts for background processing on other threads. This call is used only for OpenGL renderer.
@@ -813,17 +816,17 @@ void ThreadFinishedUsingGPUData(); // calling this function is optional (it does
    T2(DATA, USER_DATA)   void MultiThreadedCall(Memx<DATA*> &data, void func(DATA &data, USER_DATA &user, Int thread_index), USER_DATA &user     , Int threads=Cpu.threads()) {_MultiThreadedCall(data                                    , (void (*)(Ptr data, Ptr user, Int thread_index))func, &user, threads, true );}
 
 // Process functions
-void ProcPriority(  Int  priority               ); // set   process priority (-2..2)
-void ProcClose   ( UInt  id                     ); // close process
-void ProcClose   (C Str &name                   ); // close process
-Bool ProcKill    ( UInt  id                     ); // kill  process, false on fail
-Bool ProcKill    (C Str &name                   ); // kill  process, false on fail
-Bool ProcWait    ( UInt  id, Int milliseconds=-1); // wait  for process to exit (<0 = infinite wait), false on timeout
-Ptr  ProcWindow  ( UInt  id                     ); // get   OS window handle of process
-Str  ProcName    ( UInt  id                     ); // get   process name
-UInt ProcFind    (C Str &name                   ); // find  process ID based on its executable name, name can be either a full path or just the base name
-void ProcList    (         MemPtr<UInt> id      ); // get   list of process ID's   , after calling this function the 'id'      will contain a list of process ID's
-void ProcModules (UInt id, MemPtr<Str > modules ); // get   list of process modules, after calling this function the 'modules' will contain a list of process modules
+void      ProcPriority(  Int  priority               ); // set   process priority (-2..2)
+void      ProcClose   ( UInt  id                     ); // close process
+void      ProcClose   (C Str &name                   ); // close process
+Bool      ProcKill    ( UInt  id                     ); // kill  process, false on fail
+Bool      ProcKill    (C Str &name                   ); // kill  process, false on fail
+Bool      ProcWait    ( UInt  id, Int milliseconds=-1); // wait  for process to exit (<0 = infinite wait), false on timeout
+SysWindow ProcWindow  ( UInt  id                     ); // get   system window of process
+Str       ProcName    ( UInt  id                     ); // get   process name
+UInt      ProcFind    (C Str &name                   ); // find  process ID based on its executable name, name can be either a full path or just the base name
+void      ProcList    (         MemPtr<UInt> id      ); // get   list of process ID's   , after calling this function the 'id'      will contain a list of process ID's
+void      ProcModules (UInt id, MemPtr<Str > modules ); // get   list of process modules, after calling this function the 'modules' will contain a list of process modules
 
 struct ProcessAccess
 {

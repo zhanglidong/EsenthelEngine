@@ -251,6 +251,7 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
                if(options.draw_axis)m.scaleOrn(options.axis_size).draw();
             }break;
 
+            case ELM_ICON :
             case ELM_IMAGE: if(ImagePtr image=Proj.gamePath(elm->id))
             {
                Rect image_rect=image->fit(rect);
@@ -352,7 +353,7 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
                 this_contains_name=(FlagTest(child.flag, ELM_CONTAINS_NAME) || parent_contains_name); // for performance reasons, merge 'this_contains_name' with 'parent_contains_name'
                child_contains_name= FlagTest(child.flag, ELM_CONTAINS_NAME_CHILD);
             }
-            if(elm.type==elm_type && this_contains_name)
+            if(ElmCompatible(elm.type, elm_type) && this_contains_name)
             {
                switch(options.show)
                {
@@ -421,7 +422,7 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
    void TheaterClass::update(C GuiPC &gpc)
 {
       // process mouse wheel before super.update so it's not handled by the region slidebars
-      if(visible() && gpc.visible && Gui.ms()==&list && Ms.wheel())
+      if(gpc.visible && visible() && Gui.ms()==&list && Ms.wheel())
          if(Kb.ctrl() || Kb.shift() || Kb.alt())
       {
             if(Kb.ctrl ())options. rowsDelta (-Ms.wheel()    );else
@@ -435,7 +436,7 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
       super::update(gpc);
       ElmMatrixes.update();
 
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          bool rotate=options.rotate, can_transform=false;
          if(Gui.ms()==&list)

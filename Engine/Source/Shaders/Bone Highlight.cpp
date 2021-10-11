@@ -9,10 +9,10 @@ BUFFER_END
 /******************************************************************************
 SKIN, BUMP_MODE
 /******************************************************************************/
-struct VS_PS
+struct Data
 {
 #if BUMP_MODE>=SBUMP_FLAT
-   VecH nrm:NORMAL;
+   centroid VecH nrm:NORMAL; // !! may not be Normalized !! have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
 #endif
    VecH col:COLOR;
 };
@@ -21,8 +21,8 @@ void VS
 (
    VtxInput vtx,
 
-   out VS_PS O,
-   out Vec4  O_vtx:POSITION
+   out Data O,
+   out Vec4 vpos:POSITION
 )
 {
 #if BUMP_MODE>=SBUMP_FLAT
@@ -38,10 +38,10 @@ void VS
    }
    O.col=((b>EPS) ? VecH(b, 0, 1-b) : VecH(1, 1, 1));
 
-   O_vtx=Project(TransformPos(vtx.pos()));
+   vpos=Project(TransformPos(vtx.pos()));
 }
 /******************************************************************************/
-VecH4 PS(VS_PS I, IS_FRONT):TARGET
+VecH4 PS(Data I, IS_FRONT):TARGET
 {
    if(LINEAR_GAMMA)I.col.rgb=SRGBToLinear(I.col.rgb);
    I.col.rgb+=Highlight.rgb;

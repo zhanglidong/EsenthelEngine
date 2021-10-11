@@ -83,6 +83,18 @@ Str DataSource::srcName()C
    }
    return S;
 }
+FSTD_TYPE DataSource::fstdType()C
+{
+   switch(type)
+   {
+      default      : return FSTD_NONE;
+      case FILE    : return     file ?     file->stdType() : FSTD_NONE;
+      case PAK_FILE: return pak_file ? pak_file->   type() : FSTD_NONE;
+      case NAME    : return FileInfo      (name).type;
+      case STD     : return FileInfoSystem(name).type;
+    //case MEM     : return FSTD_NONE;
+   }
+}
 /******************************************************************************/
 Bool PakProgress::wantStop(Str *error_message)C
 {
@@ -216,12 +228,27 @@ Byte GetOldFlag(Byte flag)
         | (FlagTest(flag, 1<<4) ? PF_STD_LINK    : 0);
 }
 /******************************************************************************/
-Bool Pak::saveHeader(File &f)C
+static Bool CipherPerFile() {return true;} // '_cipher_per_file' value in latest Pak file format version
+Bool Pak::savePreHeader(File &f, Long header_data_pos)C
 {
-   Memt<PakFile4> filei; filei.setNum(totalFiles());
-   FREPA(filei)
+   // !! IF MAKING ANY CHANGE HERE THEN ADJUST 'PreHeaderSize' !!
+   f.putUInt (CC4_PAK); // CC4
+   f.cmpUIntV(      5); // version
+   Long offset; if(header_data_pos==LONG_MIN)offset=0;else{offset=header_data_pos-f.pos()-SIZE(Long); if(offset<0)return false;}
+   f<<offset;
+   return f.ok();
+}
+static Int PreHeaderSize()
+{
+   return SIZE(UInt)+CmpUIntVSize(5)+SIZE(Long);
+}
+Bool Pak::saveHeaderData(File &f)C
+{
+   // !! IF MAKING ANY CHANGE HERE, OR CHANGING TYPE OF 'files' THEN ADJUST 'headerDataSize' !!
+   Memt<PakFile4> files; files.setNum(totalFiles());
+   FREPA(files)
    {
-      PakFile4 &dest=filei[i];
+      PakFile4 &dest=files[i];
     C PakFile  &src =file (i);
 
      _Unaligned(dest.name_offset         , src.name-_names.data()    );
@@ -241,25 +268,83 @@ Bool Pak::saveHeader(File &f)C
       Unaligned(dest.month               , src.modify_time_utc.month );
      _Unaligned(dest.year                , src.modify_time_utc.year  );
    }
-
-   f.putUInt (CC4_PAK); // CC4
-   f.cmpUIntV(      4); // version
+   // !! IF MAKING ANY CHANGE HERE, OR CHANGING TYPE OF 'files' THEN ADJUST 'headerDataSize' !!
    f.cmpUIntV(_root_files);
    if(_names.saveRaw(f))
-   if( filei.saveRaw(f))
+   if( files.saveRaw(f))
       return f.ok();
    return false;
 }
-PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
+Int Pak::headerDataSize()C
+{
+   return
+      CmpUIntVSize(_root_files)
+     +_names.saveRawSize()
+     +CmpUIntVSize(totalFiles())+SIZE(PakFile4)*totalFiles();
+}
+Bool Pak::saveHeader(File &f)C
+{
+   return savePreHeader(f) && saveHeaderData(f);
+}
+static void AddAbs(MemPtr<DataRangeAbs> &ranges, Long start, Long end)
+{
+   if(end>start)
+   {
+      if(ranges.elms())
+      {
+         auto &last=ranges.last(); if(last.end==start){last.end=end; return;}
+      }
+      ranges.New().set(start, end);
+   }
+}
+static void AddAbs(Memt<DataRangeAbs> &ranges, Long start, Long end)
+{
+   if(end>start)
+   {
+      if(ranges.elms())
+      {
+         auto &last=ranges.last(); if(last.end==start){last.end=end; return;}
+      }
+      ranges.New().set(start, end);
+   }
+}
+static inline void AddRel(Memt<DataRangeAbs> &ranges, Long start, Long size) {AddAbs(ranges, start, start+size);}
+
+static Bool FixCompressed(Pak &pak, File &f) // old versions stored compressed files with an extra header per file
+{
+   auto data_offset_local=pak._data_offset-f._offset;
+   Long pos=f.pos(); FREPA(pak._files)
+   {
+      PakFile &pf=pak._files[i]; if(pf.data_size!=pf.data_size_compressed)
+      {
+         Long pos=data_offset_local+pf.data_offset;
+         COMPRESS_TYPE compress; ULong compressed_size, decompressed_size;
+         if((f._cipher && pak._cipher_per_file) // this can't work
+         || !f.pos(pos)
+         || !_OldDecompressHeader(f, compress, compressed_size, decompressed_size)){pak.del(); return false;}
+         pf.compression         =  compress       ;
+         pf.data_size_compressed=  compressed_size;
+         pf.data_size           =decompressed_size;
+         pf.data_offset        +=f.pos()-pos;
+      }
+   }
+   f.pos(pos);
+   return true;
+}
+PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size, MemPtr<DataRangeAbs> used_file_ranges)
 {
    if(expected_size)*expected_size=0;
    if(  actual_size)*  actual_size=0;
+   used_file_ranges.clear();
 
    del();
 
-   PAK_LOAD result=PAK_LOAD_INCOMPLETE_HEADER;
-   ULong    data_size=0;
-   Bool     fix_compressed=false;
+   PAK_LOAD           result=PAK_LOAD_INCOMPLETE_HEADER;
+   ULong              data_size=0;
+   Memt<DataRangeAbs> used_file_ranges_temp;
+
+  _data_offset       =f.posAbs   ();
+  _file_cipher_offset=f.posCipher();
 
    UInt cc4=f.getUInt();
    if(  cc4==CC4_PAK
@@ -267,6 +352,55 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
      )switch(f.decUIntV()) // version
    {
       default: result=PAK_LOAD_UNSUPPORTED_VERSION; break;
+
+      case 5:
+      {
+         ULong header_offset; f>>header_offset; // this is needed because of 'PakUpdateInPlace'
+         AddAbs(used_file_ranges_temp, 0, f.pos()); // range for pre-header
+         if(f.skip(header_offset))
+         {
+            Long header_data_pos=f.pos();
+
+            // main
+            f.decUIntV(_root_files);
+
+            // names
+            if(_names.loadRaw(f))
+            {
+               // files
+               Memt<PakFile4> files; if(files.loadRaw(f))
+               {
+                 _files.setNum(files.elms()); REPA(_files)
+                  {
+                     PakFile  &dest=_files[i];
+                   C PakFile4 &src = files[i];
+                               dest.name                  =_names.data()+Unaligned(src.name_offset);
+                     Unaligned(dest.flag                  , src.flag                );
+                     Unaligned(dest.compression           , src.compression         );
+                     Unaligned(dest.parent                , src.parent              );
+                     Unaligned(dest.children_offset       , src.children_offset     );
+                     Unaligned(dest.children_num          , src.children_num        );
+                     Unaligned(dest.data_offset           , src.data_offset         );
+                     Unaligned(dest.data_size             , src.data_size           );
+                     Unaligned(dest.data_size_compressed  , src.data_size_compressed);
+                     Unaligned(dest.data_xxHash64_32      , src.data_xxHash64_32    );
+                     Unaligned(dest.modify_time_utc.second, src.second              );
+                     Unaligned(dest.modify_time_utc.minute, src.minute              );
+                     Unaligned(dest.modify_time_utc.hour  , src.hour                );
+                     Unaligned(dest.modify_time_utc.day   , src.day                 );
+                     Unaligned(dest.modify_time_utc.month , src.month               );
+                    _Unaligned(dest.modify_time_utc.year  , src.year                );
+
+                     MAX(data_size, dest.data_offset+dest.data_size_compressed);
+                  }
+
+                 _cipher_per_file=true;
+                  AddAbs(used_file_ranges_temp, header_data_pos, f.pos()); // range for header data
+                  goto ok;
+               }
+            }
+         }
+      }break;
 
       case 4:
       {
@@ -277,12 +411,12 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
          if(_names.loadRaw(f))
          {
             // files
-            Memt<PakFile4> filei; if(filei.loadRaw(f))
+            Memt<PakFile4> files; if(files.loadRaw(f))
             {
-              _files.setNum(filei.elms()); REPA(_files)
+              _files.setNum(files.elms()); REPA(_files)
                {
                   PakFile  &dest=_files[i];
-                C PakFile4 &src = filei[i];
+                C PakFile4 &src = files[i];
                             dest.name                  =_names.data()+Unaligned(src.name_offset);
                   Unaligned(dest.flag                  , src.flag                );
                   Unaligned(dest.compression           , src.compression         );
@@ -303,7 +437,10 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
                   MAX(data_size, dest.data_offset+dest.data_size_compressed);
                }
 
-              _cipher_per_file=true;
+              _cipher_per_file   =true;
+              _data_offset       =f.posAbs   ();
+              _file_cipher_offset=f.posCipher();
+               AddAbs(used_file_ranges_temp, 0, f.pos());
                goto ok;
             }
          }
@@ -318,12 +455,12 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
          if(_names._loadRaw(f))
          {
             // files
-            Memt<PakFile3> filei; if(filei._loadRaw(f))
+            Memt<PakFile3> files; if(files._loadRaw(f))
             {
-              _files.setNum(filei.elms()); REPA(_files)
+              _files.setNum(files.elms()); REPA(_files)
                {
                   PakFile  &dest=_files[i];
-                C PakFile3 &src = filei[i];
+                C PakFile3 &src = files[i];
                             dest.name                =_names.data()+Unaligned(src.name_offset);
                   Unaligned(dest.flag                , GetOldFlag(src.flag)    );
                   Unaligned(dest.compression         , COMPRESS_NONE           );
@@ -339,8 +476,11 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
                   MAX(data_size, dest.data_offset+dest.data_size_compressed);
                }
 
-              _cipher_per_file=true;
-               fix_compressed=true;
+              _cipher_per_file   =true;
+              _data_offset       =f.posAbs   ();
+              _file_cipher_offset=f.posCipher();
+               AddAbs(used_file_ranges_temp, 0, f.pos());
+               if(!FixCompressed(T, f))return PAK_LOAD_UNSUPPORTED_VERSION;
                goto ok;
             }
          }
@@ -355,12 +495,12 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
          if(_names._loadRaw(f))
          {
             // files
-            Memt<PakFile2> filei; if(filei._loadRaw(f))
+            Memt<PakFile2> files; if(files._loadRaw(f))
             {
-              _files.setNum(filei.elms()); REPA(_files)
+              _files.setNum(files.elms()); REPA(_files)
                {
                   PakFile  &dest=_files[i];
-                C PakFile2 &src = filei[i];
+                C PakFile2 &src = files[i];
                   dest.name                =_names.data()+src.name_offset         ;
                   dest.flag                =   GetOldFlag(src.flag               );
                   dest.compression         =                         COMPRESS_NONE;
@@ -376,8 +516,11 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
                   MAX(data_size, dest.data_offset+dest.data_size_compressed);
                }
 
-              _cipher_per_file=false;
-               fix_compressed=true;
+              _cipher_per_file   =false;
+              _data_offset       =f.posAbs   ();
+              _file_cipher_offset=f.posCipher();
+               AddAbs(used_file_ranges_temp, 0, f.pos());
+               if(!FixCompressed(T, f))return PAK_LOAD_UNSUPPORTED_VERSION;
                goto ok;
             }
          }
@@ -386,20 +529,20 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
       case 1:
       {
          // main
-         Int files=0;
-         f>>_root_files>>files;
+         Int total_files=0;
+         f>>_root_files>>total_files;
 
          // names
          if(_names._loadRaw(f))
          {
             // files
-                                 _files.setNum(files);
-            Memt<PakFile1> filei; filei.setNum(files); if(f.getN(filei.data(), filei.elms()))
+                                 _files.setNum(total_files);
+            Memt<PakFile1> files; files.setNum(total_files); if(f.getN(files.data(), files.elms()))
             {
                REPA(_files)
                {
                   PakFile  &dest=_files[i];
-                  PakFile1 &src = filei[i];
+                  PakFile1 &src = files[i];
                   dest.name                =_names.data()+src.name_offset    ;
                   dest.flag                =   GetOldFlag(src.flag          );
                   dest.compression         =                    COMPRESS_NONE;
@@ -415,8 +558,11 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
                   MAX(data_size, dest.data_offset+dest.data_size_compressed);
                }
 
-              _cipher_per_file=false;
-               fix_compressed=true;
+              _cipher_per_file   =false;
+              _data_offset       =f.posAbs   ();
+              _file_cipher_offset=f.posCipher();
+               AddAbs(used_file_ranges_temp, 0, f.pos());
+               if(!FixCompressed(T, f))return PAK_LOAD_UNSUPPORTED_VERSION;
                goto ok;
             }
          }
@@ -425,20 +571,20 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
       case 0:
       {
          // main
-         Int files=0;
-         f>>_root_files>>files; UInt dat_ofs=f.getUInt(); f.skip(4); // 4=data_size
+         Int total_files=0;
+         f>>_root_files>>total_files; UInt dat_ofs=f.getUInt(); f.skip(4); // 4=data_size
 
          // names
          if(_names._loadRaw(f))
          {
             // files
-                                 _files.setNum(files);
-            Memt<PakFile0> filei; filei.setNum(files); if(f.getN(filei.data(), filei.elms()))
+                                 _files.setNum(total_files);
+            Memt<PakFile0> files; files.setNum(total_files); if(f.getN(files.data(), files.elms()))
             {
                REPA(_files)
                {
                   PakFile  &dest=_files[i];
-                  PakFile0 &src = filei[i];
+                  PakFile0 &src = files[i];
                   dest.name                =_names.data()+src.name_offset    ;
                   dest.flag                =                                0;
                   dest.compression         =                    COMPRESS_NONE;
@@ -454,8 +600,11 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
                   MAX(data_size, dest.data_offset+dest.data_size_compressed);
                }
 
-              _cipher_per_file=false;
-               fix_compressed=true;
+              _cipher_per_file   =false;
+              _data_offset       =f.posAbs   ();
+              _file_cipher_offset=f.posCipher();
+               AddAbs(used_file_ranges_temp, 0, f.pos());
+               if(!FixCompressed(T, f))return PAK_LOAD_UNSUPPORTED_VERSION;
                goto ok;
             }
          }
@@ -465,40 +614,25 @@ PAK_LOAD Pak::loadHeader(File &f, Long *expected_size, Long *actual_size)
    del(); return result;
 
 ok:
-  _file_type         =f._type;
-  _file_cipher_offset=f._cipher_offset+f.pos(); // use existing cipher offset adjusted by current position where data starts ('pos' and not 'posAbs')
-  _file_cipher       =f._cipher; if(!_file_cipher)_cipher_per_file=true; // if there's no cipher at all, then force '_cipher_per_file' because it speeds up '_cipher_offset' calculations in files, it's not going to be needed anyway
-  _data_offset       =f.posAbs();
-   data_size        +=f.pos   (); // this needs to be 'pos' and not 'posAbs'
+  _file_type  =f._type;
+  _file_cipher=f._cipher; if(!_file_cipher)_cipher_per_file=true; // if there's no cipher at all, then force '_cipher_per_file' because it speeds up '_cipher_offset' calculations in files, it's not going to be needed anyway
 
-   if(fix_compressed) // old versions stored compressed files with an extra header per file
-   {
-      Long pos=f.pos(); FREPA(_files)
-      {
-         PakFile &pf=_files[i]; if(pf.data_size!=pf.data_size_compressed)
-         {
-            Long p=_data_offset+pf.data_offset;
-            COMPRESS_TYPE compress; ULong compressed_size, decompressed_size;
-            if((f._cipher && _cipher_per_file) // this can't work
-            || !f.pos(p)
-            || !_OldDecompressHeader(f, compress, compressed_size, decompressed_size)){del(); return PAK_LOAD_UNSUPPORTED_VERSION;}
-            pf.compression         =  compress       ;
-            pf.data_size_compressed=  compressed_size;
-            pf.data_size           =decompressed_size;
-            pf.data_offset        +=f.pos()-p;
-         }
-      }
-      f.pos(pos);
-   }
+   auto data_offset_local=_data_offset-f._offset;
+   data_size+=data_offset_local;
 
    if(expected_size)*expected_size=data_size;
    if(  actual_size)*  actual_size= f.size();
+   if(used_file_ranges) // do this here, instead of when loading data, because most likely this is not used, so we can avoid overhead by checking it just once outside the loop
+   {
+      FREPA(_files){C PakFile &file=_files[i]; AddRel(used_file_ranges_temp, data_offset_local+file.data_offset, file.data_size_compressed);} // process in order
+      used_file_ranges_temp.sort(); FREPA(used_file_ranges_temp){C DataRangeAbs &dr=used_file_ranges_temp[i]; AddAbs(used_file_ranges, dr.start, dr.end);} // process in order
+   }
    return (data_size>f.size()) ? PAK_LOAD_INCOMPLETE_DATA : PAK_LOAD_OK;
 }
-PAK_LOAD Pak::loadMemEx(CPtr data, Int size, Cipher *cipher, Long *expected_size, Long *actual_size)
+PAK_LOAD Pak::loadMemEx(CPtr data, Int size, Cipher *cipher, Long *expected_size, Long *actual_size, MemPtr<DataRangeAbs> used_file_ranges)
 {
    File f; f.readMem(data, size, cipher);
-   PAK_LOAD result=loadHeader(f, expected_size, actual_size);
+   PAK_LOAD result=loadHeader(f, expected_size, actual_size, used_file_ranges);
    switch(  result)
    {
       case PAK_LOAD_INCOMPLETE_DATA:
@@ -507,7 +641,7 @@ PAK_LOAD Pak::loadMemEx(CPtr data, Int size, Cipher *cipher, Long *expected_size
  //del(); no need to call because 'loadHeader' does that already
    return result;
 }
-PAK_LOAD Pak::loadEx(C Str &name, Cipher *cipher, Long pak_offset, Long *expected_size, Long *actual_size)
+PAK_LOAD Pak::loadEx(C Str &name, Cipher *cipher, Long pak_offset, Long *expected_size, Long *actual_size, MemPtr<DataRangeAbs> used_file_ranges)
 {
    if(expected_size)*expected_size=0;
    if(  actual_size)*  actual_size=0;
@@ -520,7 +654,7 @@ PAK_LOAD Pak::loadEx(C Str &name, Cipher *cipher, Long pak_offset, Long *expecte
          f.cipher(null); // we have to disable file cipher, because Pak may have cipher_per_file, in which case we need to handle cipher for each file separately
          Mems<Byte> data; // must use temporary memory, because in 'loadMem->loadHeader' first is called 'del' which would delete '_data_decompressed'
          if(!f.copyToAndDiscard(data))result=PAK_LOAD_NOT_PAK;else
-         switch(result=loadMemEx(data.data(), data.elms(), cipher, expected_size, actual_size)) // have to use 'cipher' here, because it was disabled earlier
+         switch(result=loadMemEx(data.data(), data.elms(), cipher, expected_size, actual_size, used_file_ranges)) // have to use 'cipher' here, because it was disabled earlier
          {
             case PAK_LOAD_INCOMPLETE_DATA:
             case PAK_LOAD_OK             : Swap(_data_decompressed, data); return result; // remember this data, because it will be used when reading files from this Pak (do not copy it, but just swap it, because 'loadMem' keeps pointer to existing data, and also swapping is faster than copying)
@@ -532,7 +666,7 @@ PAK_LOAD Pak::loadEx(C Str &name, Cipher *cipher, Long pak_offset, Long *expecte
             if(!f.pos(pak_offset))goto error;
             f.cipherOffsetClear();
          }
-         switch(result=loadHeader(f, expected_size, actual_size))
+         switch(result=loadHeader(f, expected_size, actual_size, used_file_ranges))
          {
             case PAK_LOAD_INCOMPLETE_DATA:
             case PAK_LOAD_OK             :
@@ -987,7 +1121,7 @@ struct PakCreator
       void sort()
       {
          files.sort(ComparePath);
-         REPA(files)if(i && EqualPath(files[i].name, files[i-1].name))files.remove(i, true); // remove files with same names (in case someone provides incorrect input)
+         REP(files.elms()-1)if(EqualPath(files[i].name, files[i+1].name))files.remove(i+1, true); // remove files with same names (in case someone provides incorrect input)
       }
    };
 
@@ -1002,10 +1136,14 @@ struct PakCreator
       // !! clear values in 'set' instead of constructor !!
 
       Bool needHash      ()C {return data_xxHash64_32==0                      && data_size>                     0;} // we need hash only if it wasn't set yet, if hash is already set, then we don't need it
-      Bool needCompress  ()C {return    compress_mode==COMPRESS_ENABLE        && data_size>=MIN_COMPRESSABLE_SIZE;} // if file wants to be compressed or doesn't want to be
+      Bool needCompress  ()C {return    compress_mode==COMPRESS_ENABLE        && data_size>=MIN_COMPRESSABLE_SIZE;} // if file wants to be compressed and compressing may reduce its size
       Bool needDecompress()C {return    compress_mode!=COMPRESS_KEEP_ORIGINAL && compression                     ;} // if file wants to be decompressed (we don't keep original and it's compressed)
       Str  srcFullName   ()C {return data ? data->srcName() : data_name;} // don't return 'name' because that's only 1 element without the path, but for this method we need the full version for debug purposes
 
+      Bool kept(C PakInPlace *in_place)C
+      {
+         return in_place && !processed.is() && data && data->type==DataSource::PAK_FILE && data->pak==&in_place->src_pak; // if file was processed (de/compressed) then we're not using original
+      }
       File* get(Cipher *src_cipher, File &temp) // this is called only if file has data (size!=0)
       {
          File *f=null;
@@ -1018,7 +1156,7 @@ struct PakCreator
       Bool set(C FileTemp &ft, Int parent_index, PakCreator &pc)
       {
          reset(); ready=false; compress_mode=COMPRESS_ENABLE; data=null;
-         T.parent=parent_index;
+         T.parent=parent_index; if(parent<0)pc.root_files++;
          switch(ft.type)
          {
             default: return pc.setError("Invalid FileTemp.type");
@@ -1045,59 +1183,88 @@ struct PakCreator
                   compress_mode   = ft.node->compress_mode;
                   data            =&ft.node->data; // here we leave 'data_name' as empty, because that's for STD
                   data_xxHash64_32= ft.node->xxHash64_32;
+
+                  // operate on temporaries in case member is unsigned, but here we need to have ability to store -1
+                  Long data_size           =ft.node->decompressed_size,
+                       data_size_compressed=-1;
+
+                  if(!compression)
+                  { // if one size is known and other isn't, then copy
+                     if(data_size           >=0 && data_size_compressed<0)data_size_compressed=data_size           ;else
+                     if(data_size_compressed>=0 && data_size           <0)data_size           =data_size_compressed;
+                  }
+
+                  // get values in case user didn't specify them
+                  Bool get_type=!ft.node->type,
+                       get_size=(data_size_compressed<0),
+                       get_time=!modify_time_utc.valid();
                   switch(data->type)
                   {
                      case DataSource::NAME: if(data->name.is()) // ignore empty names to avoid errors in 'FileInfo.get' (treat them as empty data)
+                        if(get_type || get_size || get_time)
                      {
                         FileInfo fi; if(!fi.get(data->name))return pc.setErrorAccess(data->name);
-                        type                (fi.type          ); // this is optional
-                        data_size_compressed=fi.size           ; // this is required
-                        modify_time_utc     =fi.modify_time_utc; // alternatively this could be performed if(!modify_time_utc.valid())
+                        if(data_size_compressed>=0 && data_size_compressed!=fi.size)return pc.setError(S+"File \""+ft.name+"\" has invalid data size");
+                        if(get_type)type                (fi.type          );
+                        if(get_size)data_size_compressed=fi.size           ;
+                        if(get_time)modify_time_utc     =fi.modify_time_utc;
                      }break;
 
                      case DataSource::STD: if(data->name.is()) // ignore empty names to avoid errors in 'FileInfo.getSystem' (treat them as empty data)
+                        if(get_type || get_size || get_time)
                      {
                         FileInfo fi; if(!fi.getSystem(data->name))return pc.setErrorAccess(data->name);
-                        type                (fi.type          ); // this is optional
-                        data_size_compressed=fi.size           ; // this is required
-                        modify_time_utc     =fi.modify_time_utc; // alternatively this could be performed if(!modify_time_utc.valid())
+                        if(data_size_compressed>=0 && data_size_compressed!=fi.size)return pc.setError(S+"File \""+ft.name+"\" has invalid data size");
+                        if(get_type)type                (fi.type          );
+                        if(get_size)data_size_compressed=fi.size           ;
+                        if(get_time)modify_time_utc     =fi.modify_time_utc;
                      }break;
 
                      case DataSource::PAK_FILE: if(C PakFile *pf=data->pak_file)
-                     {
-                        // override values in case user didn't specify them
-                                             FlagCopy(flag       ,pf->flag, PF_STD_DIR|PF_STD_LINK); // this is optional
-                                             compression         =pf->compression                  ; // this is required
-                                             data_size           =pf->data_size                    ; // this is required
-                                             data_size_compressed=pf->data_size_compressed         ; // this is required
-                                             modify_time_utc     =pf->modify_time_utc              ; // alternatively this could be performed if(!modify_time_utc.valid())
-                        if(!data_xxHash64_32)data_xxHash64_32    =pf->data_xxHash64_32             ; // override only if user didn't calculate it (because it's possible that 'data_xxHash64_32' is calculated but 'pf->data_xxHash64_32' left at 0)
-                        goto size_ok; // we have to skip checking size, because if the user didn't provide 'decompressed_size', but the file is compressed then error will be returned
+                     { // here don't do any size checks, size check will be done later below (because if user didn't specify correct 'compression' then there could be mismatch between data_size/data_size_compressed)
+                        if(get_type            )FlagCopy(flag       ,pf->flag, PF_STD_DIR|PF_STD_LINK);
+                                                compression         =pf->compression                  ; // always override
+                                                data_size           =pf->data_size                    ; // always override
+                                                data_size_compressed=pf->data_size_compressed         ; // always override
+                        if(get_time            )modify_time_utc     =pf->modify_time_utc              ;
+                        if(pf->data_xxHash64_32)data_xxHash64_32    =pf->data_xxHash64_32             ; // override only if available, in case "ft.node->xxHash64_32" is calculated, but "pf->data_xxHash64_32" isn't
                      }break;
 
                      default:
                      {
-                        Long size_compressed=data->sizeCompressed();
-                        if(  size_compressed<0)return pc.setErrorAccess(srcFullName());
-                        data_size_compressed=size_compressed;
+                        if(get_size)
+                        {
+                              data_size_compressed=data->sizeCompressed();
+                           if(data_size_compressed<0)return pc.setErrorAccess(srcFullName());
+                        }
                      }break;
                   }
 
-                  if(compression)
-                  {
-                               if(ft.node->decompressed_size<0)return pc.setError(S+"File \""+ft.name+"\" was marked as compressed, however its 'decompressed_size' is unspecified");
-                        data_size=ft.node->decompressed_size;
-                  }else data_size=      data_size_compressed;
-                  if(!data_size != !data_size_compressed)return pc.setError(S+"File \""+ft.name+"\" has invalid data size"); // both have to be zeros or not zeros
-               size_ok:;
+                  if(!compression)
+                  { // if one size is known and other isn't, then copy
+                     if(data_size           >=0 && data_size_compressed<0)data_size_compressed=data_size           ;else
+                     if(data_size_compressed>=0 && data_size           <0)data_size           =data_size_compressed;
 
-                  if(ft.node->decompressed_size>=0 && ft.node->decompressed_size!=data_size)return pc.setError(S+"File \""+ft.name+"\" has specified 'decompressed_size' but it doesn't match source data");
+                     if(data_size!=data_size_compressed)return pc.setError(S+"File \""+ft.name+"\" has invalid data size"); // no compression needs same values
+                  }
+
+                  if(data_size           <0)return pc.setError(S+"File \""+ft.name+"\" has unknown uncompressed data size");
+                  if(data_size_compressed<0)return pc.setError(S+"File \""+ft.name+"\" has unknown compressed data size");
+
+                  if(!data_size != !data_size_compressed)return pc.setError(S+"File \""+ft.name+"\" has invalid data size"); // both have to be zeros or not zeros
+
+                  if(ft.node->decompressed_size>=0 && ft.node->decompressed_size!=data_size       )return pc.setError(S+"File \""+ft.name+"\" has specified 'decompressed_size' but it doesn't match source data");
+                  if(ft.node->xxHash64_32          && ft.node->xxHash64_32      !=data_xxHash64_32)return pc.setError(S+"File \""+ft.name+"\" has specified 'xxHash64_32' but it doesn't match source data");
+
+                  T.data_size           =data_size           ;
+                  T.data_size_compressed=data_size_compressed;
                }else
                {
                   flag|=PF_REMOVED;
                }
             }break;
          }
+         pc.names_elms+=name.length()+1;
          return true;
       }
    };
@@ -1111,12 +1278,16 @@ struct PakCreator
    };
 
    Bool                  error_occurred, header_changed, data_size_changed;
-   Int                   file_being_processed;
+   Int                   root_files, names_elms, file_being_processed;
    UInt                  pak_flag;
    Long                  mem_available;
+   Long                  write_pos; // used for in_place to append data at the end of the file
+   Long                  updated_size; // size after in_place update
    PakProgress          *progress;
+   PakInPlace           *in_place;
    Str                  *error_message;
    Memc<PakFileEx>       files;
+   Memc<DataRangeRel>    holes;
    Pak                  &pak;
    Cipher               *src_cipher;
    COMPRESS_TYPE         compress;
@@ -1125,12 +1296,14 @@ struct PakCreator
    Threads               threads;
    MemtN<Compressor, 16> compressors;
 
-   PakCreator(Pak &pak, UInt pak_flag, Cipher *src_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress) : pak(pak)
+   PakCreator(Pak &pak, UInt pak_flag, Cipher *src_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress, PakInPlace *in_place) : pak(pak)
    {
       if(pak_flag&PAK_NO_FILE)pak_flag|=PAK_NO_DATA;  // if we're not creating any file, then we can't save data either
       if(pak_flag&PAK_NO_DATA)compress=COMPRESS_NONE; // if we're not saving data, then disable compression (because it's not needed, however we still may want to process files for calculating hash)
 
       T.error_occurred      =header_changed=data_size_changed=false;
+      T.root_files          =0;
+      T.names_elms          =0;
       T.file_being_processed=0;
       T.pak_flag            =pak_flag;
       T.src_cipher          =src_cipher;
@@ -1138,6 +1311,23 @@ struct PakCreator
       T.compression_level   =compression_level;
       T.error_message       =error_message; if(error_message)error_message->clear();
       T.progress            =progress     ; if(progress     )progress     ->progress=0;
+      T.in_place            =in_place;
+      T.write_pos           =T.updated_size=0;
+      if(in_place)
+      {
+         Int pre_header_size=PreHeaderSize();
+         if(in_place->used_file_ranges.elms())
+         {
+            holes.setNum(in_place->used_file_ranges.elms()-1);
+             REPAO(holes).setAbs(in_place->used_file_ranges[i].end, in_place->used_file_ranges[i+1].start);
+            FREPA (holes)
+            {
+               auto &hole=holes[i]; if(hole.start<pre_header_size)hole.moveStartTo(pre_header_size);else break; // make sure we have room for pre-header, this is needed in case pre-header is now bigger than in the past
+            }
+            write_pos=in_place->used_file_ranges.last().end;
+         }
+         MAX(write_pos, pre_header_size); // make sure we have room for pre-header, this is needed in case loading 'src_pak' failed
+      }
    }
 
    Bool setErrorAccess(C Str &name ) {return setError(S+"Can't access \""+name+'"');}
@@ -1299,6 +1489,29 @@ struct PakCreator
    void wakeUp() {REPAO(compressors).waiting.on();}
    void stopThreads() {error_occurred=true; wakeUp(); threads.del();} // set error first, then wake up threads and finally delete them
 
+   Long posForWrite(Long size) // get position for writing 'size' amount of data
+   {
+      // find smallest hole possible
+      DataRangeRel best_hole_t, *best_hole=&best_hole_t; best_hole_t.set(0, LONG_MAX);
+      FREPA(holes)
+      {
+         DataRangeRel &hole=holes[i];
+         if(hole.size>=size // if hole is big enough to store data
+         && CompareSize(hole, *best_hole)<0)best_hole=&hole; // and smaller than best hole
+      }
+      if(best_hole!=&best_hole_t)
+      {
+         Long pos=best_hole->start;
+         if(size>=best_hole->size)holes.removeData(best_hole); // if size filled entire hole, remove it
+         else     best_hole->moveStart(size); // reduce hole size
+         MAX(updated_size, pos+size);
+         return pos;
+      }
+      Long pos=write_pos;
+      updated_size=(write_pos+=size); // no need for "MAX" because this will always be biggest
+      return pos;
+   }
+
    Bool create(C Str &pak_name, Cipher *cipher)
    {
       // !! these are needed before any "goto error" !!
@@ -1310,23 +1523,24 @@ struct PakCreator
 
       {
          // create !! must set all members because we could be operating on Pak that's already created !!
-         Int  names_elms=0; REPA(files)names_elms+=files[i].name.length()+1;
          pak._names.setNum(names_elms  );
          pak._files.setNum(files.elms());
-         pak._cipher_per_file   =true; // if changing then please remember that currently '_cipher_per_file' is set based on the Pak file format version
+         pak._cipher_per_file   =CipherPerFile(); // if changing then please remember that currently '_cipher_per_file' is set based on the Pak file format version
          pak._file_type         =FILE_STD_READ;
          pak._file_cipher_offset=0;
          pak._file_cipher       =cipher;
-         pak._root_files        =0;
+         pak._root_files        =root_files;
          pak._data_offset       =0;
          pak._data_decompressed.del();
          pak._data              =null;
 
-              names_elms              =0;
-         Int  files_to_process        =0;
-         UInt max_data_size_compress  =0;
-         Long thread_mem_usage        =0,
-              total_data_size_compressed=0, total_data_size_decompressed=0, decompressed_processed=0;
+              names_elms                =0; if(DEBUG)root_files=0;
+         Int  files_to_process          =0;
+         UInt max_data_size_compress    =0;
+         Long thread_mem_usage          =0,
+              data_offset               =PreHeaderSize()+pak.headerDataSize(), // !! THIS RELIES ON PAK MEMBERS: '_root_files', '_names', '_files', etc. !!
+              total_data_size_compressed=0, total_data_size_decompressed=0,
+              decompressed_processed=0;
          FREPA(files)
          {
           C PakFileEx &src =     files[i];
@@ -1334,19 +1548,22 @@ struct PakCreator
 
             // !! must set all members because we could be operating on PakFile that's already created !!
             Int src_name_chars=src.name.length()+1;
-            dest.name                =Set(pak._names.data()+names_elms, src.name, src_name_chars); names_elms+=src_name_chars;
-            dest.flag                =  src.flag                ;
-            dest.compression         =  src.compression         ;
-            dest.parent              =  src.parent              ; if(dest.parent<0)pak._root_files++;
-            dest.children_offset     =  src.children_offset     ;
-            dest.children_num        =  src.children_num        ;
-            dest.modify_time_utc     =  src.modify_time_utc     ;
-            dest.data_xxHash64_32    =  src.data_xxHash64_32    ;
-            dest.data_size           =  src.data_size           ;
-            dest.data_size_compressed=  src.data_size_compressed;
-            dest.data_offset         =total_data_size_compressed;
-                                      total_data_size_compressed  +=src.data_size_compressed;
-                                      total_data_size_decompressed+=src.data_size;
+            dest.name                = Set(pak._names.data()+names_elms, src.name, src_name_chars); names_elms+=src_name_chars;
+            dest.flag                = src.flag                ;
+            dest.compression         = src.compression         ;
+            dest.parent              = src.parent              ; if(DEBUG && src.parent<0)root_files++;
+            dest.children_offset     = src.children_offset     ;
+            dest.children_num        = src.children_num        ;
+            dest.modify_time_utc     = src.modify_time_utc     ;
+            dest.data_xxHash64_32    = src.data_xxHash64_32    ;
+            dest.data_size           = src.data_size           ;
+            dest.data_size_compressed= src.data_size_compressed;
+            dest.data_offset         =(src.data_size ? data_offset : 0); 
+
+                  data_offset           +=src.data_size_compressed;
+            total_data_size_compressed  +=src.data_size_compressed;
+            total_data_size_decompressed+=src.data_size;
+
             Bool file_decompress=(                                    src.needDecompress()),
                  file_compress  =(compress                         && src.needCompress  ()),
                  file_hash      =(FlagTest(pak_flag, PAK_SET_HASH) && src.needHash      ());
@@ -1360,17 +1577,19 @@ struct PakCreator
             if(file_compress)MAX(max_data_size_compress, src.data_size);
             if(file_decompress || file_compress || file_hash)files_to_process++;
          }
+         DEBUG_ASSERT(names_elms==pak._names.elms(), "Pak names elms");
+         DEBUG_ASSERT(root_files==pak._root_files  , "Pak root files");
 
          if(progress && progress->wantStop(error_message))goto error;
 
          // save header
          if(!FlagTest(pak_flag, PAK_NO_FILE)) // create file
          {
-            if(!pak.pakFileName().is()                    ){if(error_message)*error_message="Pak name was not specified"; goto error;}
-            if(!f_dest.writeTry(pak.pakFileName(), cipher)){if(error_message)*error_message=CantWrite(pak.pakFileName()); goto error;}
-            if(!pak.saveHeader(f_dest)                    ){if(error_message)*error_message=CantFlush(pak.pakFileName()); goto error;}
-            pak._file_cipher_offset=f_dest._cipher_offset+f_dest.pos();
-            pak._data_offset       =f_dest.posAbs();
+            if(!pak.pakFileName().is()){if(error_message)*error_message="Pak name was not specified"; goto error;}
+            if(!(in_place ? f_dest.editTry(pak.pakFileName(), cipher) : f_dest.writeTry(pak.pakFileName(), cipher))){if(error_message)*error_message=CantWrite(pak.pakFileName()); goto error;}
+            pak._data_offset       =f_dest.posAbs   ();
+            pak._file_cipher_offset=f_dest.posCipher();
+            if(!in_place && !pak.saveHeader(f_dest)){if(error_message)*error_message=CantFlush(pak.pakFileName()); goto error;}
          }
          auto f_dest_cipher_offset=f_dest._cipher_offset;
 
@@ -1405,18 +1624,11 @@ struct PakCreator
             {
                if(progress && progress->wantStop(error_message))goto error;
 
-               PakFileEx &src =     files[i];
-               PakFile   &dest=pak._files[i];
-
-               if(data_size_changed) // if data size of at least one file was changed due to compression, then
-               {
-                  dest.data_offset=f_dest.posAbs()-pak._data_offset; // all files after it need to have their data offset adjusted (set this even for empty files with no data, so there are no files with 'data_offset' outside of the Pak file size)
-                //header_changed=true; we don't need to set this because it's already set along with 'data_size_changed'
-               }
-               if(dest.data_size)
+               PakFile &dest=pak._files[i]; if(dest.data_size)
                {
                   // wait until file is processed
                   file_being_processed=i;
+                  PakFileEx &src=files[i];
                   if(threads.threads())
                   {
                      if(!src.ready){wakeUp(); do ready.wait();while(!src.ready);}
@@ -1439,26 +1651,47 @@ struct PakCreator
                   {
                      if(progress && progress->wantStop(error_message))goto error;
 
-                     // get source file
-                     File *f_src=src.get(src_cipher, f_std);
-                     if(  !f_src){if(error_message)*error_message=CantOpen(src, dest, pak); goto error;}
-
-                     // check for invalid data
-                     if(!dest.compression && dest.data_size!=dest.data_size_compressed)
+                     if(src.kept(in_place)) // this file is kept from source pak without changes
                      {
-                        if(error_message)*error_message=S+"File is not compressed but its 'data_size' != 'data_size_compressed':\n\""+SrcName(src, dest, pak)+'"';
-                        goto error;
-                     }
-                     if(f_src->size()!=dest.data_size_compressed)
+                        Long data_offset=src.data->pak->_data_offset+src.data->pak_file->data_offset;
+                        dest.data_offset=data_offset-pak._data_offset;
+                        MAX(updated_size, data_offset+dest.data_size_compressed);
+                     }else
                      {
-                        if(error_message)*error_message=S+"'data_size_compressed' doesn't match file size:\n\""+SrcName(src, dest, pak)+'"';
-                        goto error;
-                     }
+                        // get source file
+                        File *f_src=src.get(src_cipher, f_std);
+                        if(  !f_src){if(error_message)*error_message=CantOpen(src, dest, pak); goto error;}
 
-                     // save data
-                     if(pak._cipher_per_file)f_dest.cipherOffsetClear(); // make encryption result always the same regardless of position in Pak file
-                     if(!f_src->copy(f_dest))
-                        {if(error_message)*error_message=CantCopy(src, dest, pak); goto error;} // don't flush here, flush only one time at the end
+                        // check for invalid data
+                        if(!dest.compression && dest.data_size!=dest.data_size_compressed)
+                        {
+                           if(error_message)*error_message=S+"File is not compressed but its 'data_size' != 'data_size_compressed':\n\""+SrcName(src, dest, pak)+'"';
+                           goto error;
+                        }
+                        if(f_src->size()!=dest.data_size_compressed)
+                        {
+                           if(error_message)*error_message=S+"'data_size_compressed' doesn't match file size:\n\""+SrcName(src, dest, pak)+'"';
+                           goto error;
+                        }
+
+                        if(in_place)
+                        {
+                           // find place to store the new file
+                           if(!f_dest.pos(posForWrite(dest.data_size_compressed))){if(error_message)*error_message=CantFlush(pak.pakFileName()); goto error;}
+                           dest.data_offset=f_dest.posAbs()-pak._data_offset;
+                         //header_changed=true; we don't need to set this because header is always saved for 'in_place'
+                        }else
+                        if(data_size_changed) // if data size of at least one file was changed due to compression, then
+                        {
+                           dest.data_offset=f_dest.posAbs()-pak._data_offset; // all files after it need to have their data offset adjusted (set this even for empty files with no data, so there are no files with 'data_offset' outside of the Pak file size)
+                         //header_changed=true; we don't need to set this because it's already set along with 'data_size_changed'
+                        }
+
+                        // save data
+                        if(pak._cipher_per_file)f_dest.cipherOffsetClear(); // make encryption result always the same regardless of position in Pak file
+                        if(!f_src->copy(f_dest))
+                           {if(error_message)*error_message=CantCopy(src, dest, pak); goto error;} // don't flush here, flush only one time at the end
+                     }
 
                      // release memory
                      Long size=src.processed.size(); src.processed.del(); AtomicAdd(mem_available, size); // release memory first, then increase the counter
@@ -1474,13 +1707,19 @@ struct PakCreator
             // flush and update header
             if(f_dest.is())
             {
-               if(!f_dest.flush()){if(error_message)*error_message=CantFlush(pak.pakFileName()); goto error;} // check for correct flush before eventual adjusting the Pak header on start of the file
+               if(!f_dest.flushOK()){if(error_message)*error_message=CantFlush(pak.pakFileName()); goto error;} // check for correct flush before eventual adjusting the Pak header on start of the file
+               if(in_place)
+               {
+                  if(pak._cipher_per_file)f_dest.cipherOffset(f_dest_cipher_offset); // reset the cipher offset here so that saving file header will use it
+                  Long header_data_pos=posForWrite(pak.headerDataSize());
+                  if(!f_dest.pos(header_data_pos) || !pak.saveHeaderData(f_dest                 ) || !f_dest.flush()){if(error_message)*error_message=CantFlush(pak.pakFileName()); goto error;}
+                  if(!f_dest.pos(              0) || !pak.savePreHeader (f_dest, header_data_pos) || !f_dest.flush()){if(error_message)*error_message=CantFlush(pak.pakFileName()); goto error;} // no need to adjust 'updated_size' for pre-header, as header data will always be after
+                      f_dest.size(updated_size); // trim to used data only, this can ignore checking for errors, as Pak will work with or without this call
+               }else
                if(header_changed) // if during file processing, the header was changed, then we need to resave it
                {
-                  Long pos=f_dest.pos();
                   if(pak._cipher_per_file)f_dest.cipherOffset(f_dest_cipher_offset); // reset the cipher offset here so that saving file header will use it
-                  if(!f_dest.pos(  0) || !pak.saveHeader(f_dest)
-                  || !f_dest.pos(pos)){if(error_message)*error_message=CantFlush(pak.pakFileName()); goto error;}
+                  if(!f_dest.pos(0) || !pak.saveHeader(f_dest) || !f_dest.flush()){if(error_message)*error_message=CantFlush(pak.pakFileName()); goto error;}
                }
             }
          }
@@ -1490,7 +1729,7 @@ struct PakCreator
 
    error:
       stopThreads();
-      f_dest.del(); FDelFile(pak.pakFileName()); pak.del(); // release the file handle first, then delete Pak file, then delete Pak object, this is important to avoid having partial incomplete Pak files (which headers could be OK, but the data is missing), we delete Pak object last because we need its file name to delete the file
+      f_dest.del(); if(!in_place)FDelFile(pak.pakFileName()); pak.del(); // release the file handle first, then delete Pak file, then delete Pak object, this is important to avoid having partial incomplete Pak files (which headers could be OK, but the data is missing), we delete Pak object last because we need its file name to delete the file
       return false;
    }
 };
@@ -1504,7 +1743,7 @@ Bool Pak::create(C CMemPtr<Str> &files, C Str &pak_name, UInt flag, Cipher *dest
 {
    if(progress && progress->wantStop(error_message))return false;
    // !! don't delete Pak anywhere here because we still need 'pak_name' which can be a Pak member !!
-   PakCreator pc(T, flag, src_cipher, compress, compression_level, error_message, progress);
+   PakCreator pc(T, flag, src_cipher, compress, compression_level, error_message, progress, null);
 
    // get files
    PakCreator::FileTempContainer ftc; FREPA(files)ftc.add(files[i], filter, pc); ftc.sort();
@@ -1541,11 +1780,12 @@ Bool Pak::create(C CMemPtr<Str> &files, C Str &pak_name, UInt flag, Cipher *dest
    // create
    return pc.create(pn, dest_cipher);
 }
-Bool Pak::create(C CMemPtr<PakNode> &files, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress)
+Bool Pak::create(C CMemPtr<PakNode> &files, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress) {return create(files, pak_name, flag, dest_cipher, compress, compression_level, error_message, progress, null);}
+Bool Pak::create(C CMemPtr<PakNode> &files, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress, PakInPlace *in_place)
 {
    if(progress && progress->wantStop(error_message))return false;
    // !! don't delete Pak anywhere here because we still need 'pak_name' which can be a Pak member !!
-   PakCreator pc(T, flag, null, compress, compression_level, error_message, progress);
+   PakCreator pc(T, flag, null, compress, compression_level, error_message, progress, in_place);
 
    // get files
    PakCreator::FileTempContainer ftc; FREPA(files)ftc.add(files[i]); ftc.sort();
@@ -1589,7 +1829,7 @@ static Memb<PakNode>& GetNodeChildren(Memb<PakNode> &nodes, C Str &path, DateTim
 
    return GetNodeChildren(node->children, GetStartNot(path), date_time_utc);
 }
-Bool Pak::create(C Mems<C PakFileData*> &files, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress)
+Bool Pak::create(C Mems<C PakFileData*> &files, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress, PakInPlace *in_place)
 {
    DateTime      date_time_utc; date_time_utc.getUTC();
    Memb<PakNode> nodes;
@@ -1631,12 +1871,13 @@ Bool Pak::create(C Mems<C PakFileData*> &files, C Str &pak_name, UInt flag, Ciph
    }
 
    // create according to created nodes
-   return create(nodes, pak_name, flag, dest_cipher, compress, compression_level, error_message, progress);
+   return create(nodes, pak_name, flag, dest_cipher, compress, compression_level, error_message, progress, in_place);
 }
-Bool Pak::create(C CMemPtr<PakFileData> &files, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress)
+Bool Pak::create(C CMemPtr<PakFileData> &files, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress) {return create(files, pak_name, flag, dest_cipher, compress, compression_level, error_message, progress, null);}
+Bool Pak::create(C CMemPtr<PakFileData> &files, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress, PakInPlace *in_place)
 {
    Mems<C PakFileData*> f; f.setNum(files.elms()); REPAO(f)=&files[i];
-   return create(f, pak_name, flag, dest_cipher, compress, compression_level, error_message, progress);
+   return create(f, pak_name, flag, dest_cipher, compress, compression_level, error_message, progress, in_place);
 }
 /******************************************************************************/
 // MAIN
@@ -1650,29 +1891,36 @@ static void ExcludeChildren(Pak &pak, C PakFile &pf, Memt<Bool> &is)
       ExcludeChildren(pak, pak.file(child_i), is); // exclude all  children of that child too
    }
 }
-Bool PakUpdate(Pak &src_pak, C CMemPtr<PakFileData> &update_files, C Str &pak_name, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress)
+static Bool CheckInPlaceSettings(C Pak &src_pak, Cipher *dest_cipher, Str *error_message)
+{
+   if(src_pak._file_cipher    !=dest_cipher                                             ){if(error_message)*error_message="Can't update Pak in-place because Ciphers don't match"        ; return false;}
+   if(src_pak._cipher_per_file!=CipherPerFile() && (src_pak._file_cipher || dest_cipher)){if(error_message)*error_message="Can't update Pak in-place because CipherPerFile doesn't match"; return false;}
+   return true;
+}
+static Bool _PakUpdate(Pak &src_pak, C CMemPtr<PakFileData> &changes, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress, PakInPlace *in_place)
 {
    if(error_message)error_message->clear();
+   // !! Here don't try to skip update if 'changes' are empty, because even if 'src_pak' file name is the same as 'pak_name' we may still want to recreate it, to optimize it (if it's unoptimized, has holes), or to just update to latest Pak file format !!
 
    // set 'src_pak' files as 'PakFileData'
-   Memc<PakFileData> src_files; // this container will include all files from 'src_pak' that weren't excluded (weren't replaced by newer versions from 'update_files')
+   Mems<PakFileData> src_files; // this container will include all files from 'src_pak' that weren't excluded (weren't replaced by newer versions from 'changes')
    {
       Memt<Bool> is; is.setNum(src_pak.totalFiles()); SetMem(is.data(), true, is.elms()); // set 'is' array specifying which files from 'src_pak' should be placed in target file
-      REPA(update_files) // check all new elements (order is not important as we're comparing them to 'src_pak' files only)
+      REPA(changes) // check all new elements (order is not important as we're comparing them to 'src_pak' files only)
       {
-            C PakFileData &pfd=update_files[i]; // take new element
+            C PakFileData &pfd=changes[i]; // take new element
          if(C PakFile     *pf =src_pak.find(pfd.name, true)) // if there exists an original version (file in 'src_pak')
          {
             Int i=src_pak.files().index(pf); // take the index of file in 'src_pak'
-            is[i]=false; // exclude that file from 'src_pak' (instead of it, we'll use 'pfd' - the newer version from 'update_files')
+            is[i]=false; // exclude that file from 'src_pak' (instead of it, we'll use 'pfd' - the newer version from 'changes')
             if(pfd.mode!=PakFileData::REPLACE)ExcludeChildren(src_pak, *pf, is); // if the newer version removes old file then we need to exclude also all children of 'pf' in 'src_pak'
          }
       }
-
-      FREPA(src_pak)if(is[i])
+      src_files.setNum(CountIs(is));
+      Int j=0; FREPA(src_pak)if(is[i])
       {
-       C PakFile     &pf =src_pak  .file(i);
-         PakFileData &pfd=src_files.New ( );
+       C PakFile     &pf =src_pak.file(i);
+         PakFileData &pfd=src_files[j++];
          pfd.mode             =(FlagTest(pf.flag, PF_REMOVED) ? PakFileData::MARK_REMOVED : PakFileData::REPLACE);
          pfd.type             =pf.type();
          pfd.compress_mode    =COMPRESS_KEEP_ORIGINAL; // keep source files in original compression (for example if a Sound file was requested to have no compression before, to speed up streaming playback, then let's keep it)
@@ -1688,14 +1936,14 @@ Bool PakUpdate(Pak &src_pak, C CMemPtr<PakFileData> &update_files, C Str &pak_na
    }
 
    // move everything to one container, order is important
-   Mems<C PakFileData*> all_files; all_files.setNum(src_files.elms()+update_files.elms());
-   FREPA(   src_files)all_files[i                 ]=&   src_files[i]; // first the src    files
-   FREPA(update_files)all_files[i+src_files.elms()]=&update_files[i]; // now   the update files, in order in which they were given (in case there are multiple files of same full name)
+   Mems<C PakFileData*> all_files; all_files.setNum(src_files.elms()+changes.elms());
+   FREPA(src_files)all_files[i                 ]=&src_files[i]; // first the src    files
+   FREPA(  changes)all_files[i+src_files.elms()]=&  changes[i]; // now   the update files, in order in which they were given (in case there are multiple files of same full name)
 
    // create Pak basing on all files
    Pak  temp; temp.pakFileName(pak_name); // this will normalize and make full path, we need the full name to make the comparison
-   Bool temp_file=(EqualPath(src_pak.pakFileName(), temp.pakFileName()) && temp.pakFileName().is()); // if dest name is the same as source name, then we have to write to a temporary file (but ignore if the name is empty, perhaps it wants to update Pak object only without operating on files)
-   if(  temp.create(all_files, temp_file ? temp.pakFileName()+"@new" : temp.pakFileName(), 0, dest_cipher, compress, compression_level, error_message, progress)) // have to work on a temporary Pak, because during creation we may access files from the old Pak
+   Bool temp_file=(!in_place && EqualPath(src_pak.pakFileName(), temp.pakFileName()) && temp.pakFileName().is()); // if dest name is the same as source name, then we have to write to a temporary file (but ignore if the name is empty, perhaps it wants to update Pak object only without operating on files)
+   if(  temp.create(all_files, temp_file ? temp.pakFileName()+"@new" : temp.pakFileName(), flag, dest_cipher, compress, compression_level, error_message, progress, in_place)) // have to work on a temporary Pak, because during creation we may access files from the old Pak
    {
       if(temp_file) // if we've created a temp file, we need to rename it first
       {
@@ -1710,6 +1958,76 @@ Bool PakUpdate(Pak &src_pak, C CMemPtr<PakFileData> &update_files, C Str &pak_na
    } // no need to do anything because 'Pak.create' will delete the file on failure
    return false;
 }
+Bool PakUpdate(Pak &src_pak, C CMemPtr<PakFileData> &changes, C Str &pak_name, UInt flag, Cipher *dest_cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress)
+{
+   return _PakUpdate(src_pak, changes, pak_name, flag, dest_cipher, compress, compression_level, error_message, progress, null);
+}
+Bool PakUpdateInPlace(C CMemPtr<PakFileData> &changes, C Str &pak_name, UInt flag, Cipher *cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress)
+{
+   if(error_message)error_message->clear();
+   if(!changes.elms())return true; // if nothing to update then succeed
+
+   Pak                 src_pak;
+   PakInPlace in_place(src_pak);
+   switch(src_pak.loadEx(pak_name, cipher, 0, null, null, in_place.used_file_ranges))
+   {
+      default                : if(error_message)*error_message="Failed to load Pak"; return false;
+      case PAK_LOAD_NOT_FOUND:                                                                        return src_pak.create(         changes, pak_name, flag, cipher, compress, compression_level, error_message, progress           ); // create as new
+      case PAK_LOAD_OK       : if(!CheckInPlaceSettings(src_pak, cipher, error_message))return false; return     _PakUpdate(src_pak, changes, pak_name, flag, cipher, compress, compression_level, error_message, progress, &in_place); // update in place
+   }
+}
+Bool PakReplaceInPlace(C CMemPtr<PakFileData> &new_files, C Str &pak_name, UInt flag, Cipher *cipher, COMPRESS_TYPE compress, Int compression_level, Str *error_message, PakProgress *progress)
+{
+   if(error_message)error_message->clear();
+
+   Pak                 src_pak;
+   PakInPlace in_place(src_pak);
+   switch(src_pak.loadEx(pak_name, cipher, 0, null, null, in_place.used_file_ranges))
+   {
+      default                : if(error_message)*error_message="Failed to load Pak"; return false;
+      case PAK_LOAD_NOT_FOUND: return src_pak.create(new_files, pak_name, flag, cipher, compress, compression_level, error_message, progress); // create as new
+      case PAK_LOAD_OK       :
+      {
+         if(!CheckInPlaceSettings(src_pak, cipher, error_message))return false;
+         Mems<PakFileData> files; files=new_files;
+
+         Bool changed=false;
+         REPA(files)
+         {
+            PakFileData &    file=    files[i];
+          C PakFileData &new_file=new_files[i];
+            if(file.mode==PakFileData::REPLACE && file.data.type) // if want to store some data
+               if(C PakFile *src_file=src_pak.find(file.name, false))
+                  if(Equal(&file, src_file)) // if data is the same
+            { // reuse from src
+                                              file.compress_mode    =COMPRESS_KEEP_ORIGINAL; // keep source files in original compression (for example if a Sound file was requested to have no compression before, to speed up streaming playback, then let's keep it)
+                                              file.compressed       =src_file->compression;
+                                              file.decompressed_size=src_file->data_size;
+               if(!    file.      xxHash64_32)file.xxHash64_32      =src_file->data_xxHash64_32;else // only if not specified
+               if(!src_file->data_xxHash64_32)changed                =true; // if user specified hash that wasn't available in the source, then it means we have to write it
+                                              file.modify_time_utc  =src_file->modify_time_utc;
+                                              file.data.set(*src_file, src_pak);
+            }
+         }
+
+         // check if we have anything to update
+         if(!changed) // we can potentially skip only if we're sure nothing was changed
+         {
+            if(flag&PAK_SET_HASH) // if want hash
+               REPA(files){PakFileData &file=files[i]; if(!file.xxHash64_32 && file.mode==PakFileData::REPLACE && file.data.type)goto skip_equal_check;} // at least one file doesn't have hash
+            if(PakEqual(files, src_pak))return true; // if nothing to update then succeed
+         skip_equal_check:;
+         }
+
+         Pak temp; if(temp.create(files, pak_name, flag, cipher, compress, compression_level, error_message, progress, &in_place)) // update in place
+         {
+            Swap(temp, src_pak);
+            return true;
+         }
+      }
+   }
+   return false;
+}
 /******************************************************************************/
 Bool Equal(C PakFile *a, C PakFile *b)
 {
@@ -1720,8 +2038,8 @@ Bool Equal(C PakFile *a, C PakFile *b)
    {
       return  a->type()   ==b->type()    // same type
          &&   a->data_size==b->data_size // same size
-         && ((a->data_size                                              ) ? !Compare(a->modify_time_utc , b->modify_time_utc, 1) : true)  // if they have data                                      then their modification time must match (1 second tolerance due to Fat32)
-         && ((a->data_size && a->data_xxHash64_32 && b->data_xxHash64_32) ?          a->data_xxHash64_32==b->data_xxHash64_32    : true); // if they have data and both have information about hash then it                      must match
+         && ((a->data_size                                              ) ? !CompareFile(a->modify_time_utc , b->modify_time_utc) : true)  // if they have data                                      then their modification time must match
+         && ((a->data_size && a->data_xxHash64_32 && b->data_xxHash64_32) ?              a->data_xxHash64_32==b->data_xxHash64_32 : true); // if they have data and both have information about hash then it                      must match
    }
    return !a && !b; // true only if both don't exist (one exists and other doesn't -> they're different)
 }
@@ -1732,28 +2050,32 @@ Bool Equal(C PakFileData *pfd, C PakFile *pf)
 
    if(pfd && pf) // both exist
    {
-      if(pfd->type!=pf->type())return false; // different type
+      FSTD_TYPE pfd_type=pfd->type;
+      Long      pfd_size=pfd->decompressed_size;
+      DateTime  pfd_time=pfd->modify_time_utc;
+      UInt      pfd_hash=pfd->xxHash64_32;
 
-      Long     pfd_size=pfd->decompressed_size;
-      DateTime pfd_time=pfd->modify_time_utc;
-      UInt     pfd_hash=pfd->xxHash64_32;
+      Bool get_time=!pfd_time.valid();
 
-      // always override values from PAK_FILE to keep consistency with 'Pak.create'
       if(pfd->data.type==DataSource::PAK_FILE)if(C PakFile *pf=pfd->data.pak_file) // from PAK_FILE we can always extract the size, even if it's compressed
       {
-                      pfd_size=pf->data_size;
-                      pfd_time=pf->modify_time_utc;
-         if(!pfd_hash)pfd_hash=pf->data_xxHash64_32; // override only if user didn't calculate it (because it's possible that 'pfd_hash' is calculated but 'pf->data_xxHash64_32' left at 0)
+         if(!pfd_type  )                 pfd_type=pf->type();
+         if( pfd_size<0)                 pfd_size=pf->data_size;
+         if( get_time  ){get_time=false; pfd_time=pf->modify_time_utc;}
+         if(!pfd_hash  )                 pfd_hash=pf->data_xxHash64_32; // override only if user didn't calculate it (because it's possible that 'pfd_hash' is calculated but 'pf->data_xxHash64_32' left at 0)
       }
 
-      if(pfd_size<0 && !pfd->compressed)switch(pfd->data.type) // if size is unknown and source is not compressed
+      Bool get_size=(pfd_size<0 && !pfd->compressed); // if size is unknown and source is not compressed
+
+      if(!pfd_type || get_size)switch(pfd->data.type)
       {
          case DataSource::NAME:
          {
             FileInfo fi; if(fi.get(pfd->data.name))
             {
-               pfd_size=fi.size;
-               pfd_time=fi.modify_time_utc;
+               if(!pfd_type)                 pfd_type=fi.type;
+               if( get_size){get_size=false; pfd_size=fi.size           ;}
+               if( get_time){get_time=false; pfd_time=fi.modify_time_utc;}
             }
          }break;
 
@@ -1761,34 +2083,133 @@ Bool Equal(C PakFileData *pfd, C PakFile *pf)
          {
             FileInfo fi; if(fi.getSystem(pfd->data.name))
             {
-               pfd_size=fi.size;
-               pfd_time=fi.modify_time_utc;
+               if(!pfd_type)                 pfd_type=fi.type;
+               if( get_size){get_size=false; pfd_size=fi.size           ;}
+               if( get_time){get_time=false; pfd_time=fi.modify_time_utc;}
             }
          }break;
 
-         default: pfd_size=pfd->data.size(); break;
+         default:
+         {
+            if(!pfd_type)                 pfd_type=pfd->data.fstdType();
+            if( get_size){get_size=false; pfd_size=pfd->data.    size();}
+         }break;
       }
-      if(pfd_size!=pf->data_size)return false; // different size
+
+      if(pfd_type && pfd_type!=pf->type()   )return false; // if known and different, can ignore FSTD_NONE
+      if(            pfd_size!=pf->data_size)return false; // different size
 
       if(pfd_size) // check time and hash only if have data (to skip empty files)
       {
          if(pfd_hash && pf->data_xxHash64_32 && pfd_hash!=pf->data_xxHash64_32)return false; // both hashes known and different
 
-         if(!pfd_time.valid())switch(pfd->data.type) // if time is unknown
+         if(get_time)switch(pfd->data.type) // if time is unknown
          {
-            case DataSource::NAME: {FileInfo fi; if(fi.get      (pfd->data.name))pfd_time=fi.modify_time_utc;} break;
-            case DataSource::STD : {FileInfo fi; if(fi.getSystem(pfd->data.name))pfd_time=fi.modify_time_utc;} break;
+            case DataSource::NAME: {FileInfo fi; if(fi.get      (pfd->data.name)){get_time=false; pfd_time=fi.modify_time_utc;}} break;
+            case DataSource::STD : {FileInfo fi; if(fi.getSystem(pfd->data.name)){get_time=false; pfd_time=fi.modify_time_utc;}} break;
          }
-         if(Compare(pfd_time, pf->modify_time_utc, 1))return false; // different time (1 second tolerance due to Fat32)
+         if(CompareFile(pfd_time, pf->modify_time_utc))return false; // different time
+      }
+   }
+   return !pfd == !pf; // true only if both exist or both don't exist
+}
+Bool Equal(PakFileData *pfd, C PakFile *pf)
+{
+   if(pfd && (pfd->mode==PakFileData::REMOVE || pfd->mode==PakFileData::MARK_REMOVED))pfd=null; // treat as if doesn't exist
+   if(pf  && (pf ->flag&PF_REMOVED                                                  ))pf =null; // treat as if doesn't exist
+
+   if(pfd && pf) // both exist
+   {
+      FSTD_TYPE &pfd_type=pfd->type;
+      Long      &pfd_size=pfd->decompressed_size;
+      DateTime  &pfd_time=pfd->modify_time_utc;
+      UInt      &pfd_hash=pfd->xxHash64_32;
+
+      Bool get_time=!pfd_time.valid();
+
+      if(pfd->data.type==DataSource::PAK_FILE)if(C PakFile *pf=pfd->data.pak_file) // from PAK_FILE we can always extract the size, even if it's compressed
+      {
+         if(!pfd_type  )                 pfd_type=pf->type();
+         if( pfd_size<0)                 pfd_size=pf->data_size;
+         if( get_time  ){get_time=false; pfd_time=pf->modify_time_utc;}
+         if(!pfd_hash  )                 pfd_hash=pf->data_xxHash64_32; // override only if user didn't calculate it (because it's possible that 'pfd_hash' is calculated but 'pf->data_xxHash64_32' left at 0)
+      }
+
+      Bool get_size=(pfd_size<0 && !pfd->compressed); // if size is unknown and source is not compressed
+
+      if(!pfd_type || get_size)switch(pfd->data.type)
+      {
+         case DataSource::NAME:
+         {
+            FileInfo fi; if(fi.get(pfd->data.name))
+            {
+               if(!pfd_type)                 pfd_type=fi.type;
+               if( get_size){get_size=false; pfd_size=fi.size           ;}
+               if( get_time){get_time=false; pfd_time=fi.modify_time_utc;}
+            }
+         }break;
+
+         case DataSource::STD:
+         {
+            FileInfo fi; if(fi.getSystem(pfd->data.name))
+            {
+               if(!pfd_type)                 pfd_type=fi.type;
+               if( get_size){get_size=false; pfd_size=fi.size           ;}
+               if( get_time){get_time=false; pfd_time=fi.modify_time_utc;}
+            }
+         }break;
+
+         default:
+         {
+            if(!pfd_type)                 pfd_type=pfd->data.fstdType();
+            if( get_size){get_size=false; pfd_size=pfd->data.    size();}
+         }break;
+      }
+
+      if(pfd_type && pfd_type!=pf->type()   )return false; // if known and different, can ignore FSTD_NONE
+      if(            pfd_size!=pf->data_size)return false; // different size
+
+      if(pfd_size) // check time and hash only if have data (to skip empty files)
+      {
+         if(pfd_hash && pf->data_xxHash64_32 && pfd_hash!=pf->data_xxHash64_32)return false; // both hashes known and different
+
+         if(get_time)switch(pfd->data.type) // if time is unknown
+         {
+            case DataSource::NAME: {FileInfo fi; if(fi.get      (pfd->data.name)){get_time=false; pfd_time=fi.modify_time_utc;}} break;
+            case DataSource::STD : {FileInfo fi; if(fi.getSystem(pfd->data.name)){get_time=false; pfd_time=fi.modify_time_utc;}} break;
+         }
+         if(CompareFile(pfd_time, pf->modify_time_utc))return false; // different time
       }
    }
    return !pfd == !pf; // true only if both exist or both don't exist
 }
 /******************************************************************************/
+static Int ComparePF(  PakFileData*C &a,   PakFileData*C &b) {return ComparePath(a->name, b->name);}
 static Int ComparePF(C PakFileData*C &a, C PakFileData*C &b) {return ComparePath(a->name, b->name);}
+static Int ComparePF(  PakFileData*C &a, C Str           &b) {return ComparePath(a->name, b      );}
 static Int ComparePF(C PakFileData*C &a, C Str           &b) {return ComparePath(a->name, b      );}
 
-Bool PakEqual(C CMemPtr<PakFileData> &files, C Pak &pak)
+Bool PakEqual(MemPtr<PakFileData> files, C Pak &pak)
+{
+   Memt<PakFileData*> files_sorted; files_sorted.setNum(files.elms()); REPAO(files_sorted)=&files[i];
+   files_sorted.sort(ComparePF);
+   REPA(files)
+   {
+      PakFileData &pfd=files[i];
+      if(!Equal(&pfd, pak.find(pfd.name)))return false;
+   }
+   REPA(pak)
+   {
+    C PakFile &pf=pak.file(i);
+      if(!FlagTest(pf.flag, PF_STD_DIR)) // skip folders because they're not required to be in the 'PakFileData' list
+      {
+         PakFileData **files_pfd=files_sorted.binaryFind(pak.fullName(pf), ComparePF);
+         if(!Equal(files_pfd ? *files_pfd : null, &pf))return false;
+      }
+   }
+   return true;
+}
+Bool CPakEqual(C CMemPtr<PakFileData> &files, C Pak &pak)
 {
    Memt<C PakFileData*> files_sorted; files_sorted.setNum(files.elms()); REPAO(files_sorted)=&files[i];
    files_sorted.sort(ComparePF);
@@ -1808,14 +2229,8 @@ Bool PakEqual(C CMemPtr<PakFileData> &files, C Pak &pak)
    }
    return true;
 }
-Bool PakEqual(C CMemPtr<PakFileData> &files, C Str &name, Cipher *cipher)
-{
-   if(name.is())
-   {
-      Pak pak; if(pak.load(name, cipher))return PakEqual(files, pak);
-   }
-   return false;
-}
+Bool  PakEqual(   MemPtr<PakFileData>  files, C Str &pak_name, Cipher *pak_cipher) {if(pak_name.is()){Pak pak; if(pak.load(pak_name, pak_cipher))return  PakEqual(files, pak);} return false;}
+Bool CPakEqual(C CMemPtr<PakFileData> &files, C Str &pak_name, Cipher *pak_cipher) {if(pak_name.is()){Pak pak; if(pak.load(pak_name, pak_cipher))return CPakEqual(files, pak);} return false;}
 /******************************************************************************/
 }
 /******************************************************************************/

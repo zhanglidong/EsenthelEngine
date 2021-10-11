@@ -7,10 +7,10 @@
 /******************************************************************************/
 enum SUN_RAYS_MODE : Byte
 {
-   SUN_RAYS_OFF , // disabled
-   SUN_RAYS_LOW , // enabled with object        occlusion detection
-   SUN_RAYS_HIGH, // enabled with object+clouds occlusion detection
-   SUN_RAYS_NUM , // number of sun ray modes
+   SUN_RAYS_OFF         , // disabled
+   SUN_RAYS_OPAQUE      , // enabled with opaque       occlusion detection
+   SUN_RAYS_OPAQUE_BLEND, // enabled with opaque+blend occlusion detection
+   SUN_RAYS_NUM         , // number of sun ray modes
 };
 /******************************************************************************/
 struct Astro // Astronomical Object (Star/Planet/Moon)
@@ -47,7 +47,7 @@ struct SunClass : Astro // Sun objects have default member values: 'glow'=128, '
 
    Vec           rays_color ; // rays color , (0,0,0)..(1,1,1), default=(0.12, 0.12, 0.12)
    SByte         rays_jitter; // rays jitter,   -1/false/true , default=-1, false=always disabled, true=always enabled, -1=auto
-   SUN_RAYS_MODE rays_mode  ; // rays mode  ,   SUN_RAYS_MODE , default=SUN_RAYS_HIGH
+   SUN_RAYS_MODE rays_mode  ; // rays mode  ,   SUN_RAYS_MODE , default=SUN_RAYS_OPAQUE_BLEND
 
    SunClass& raysRes    (Flt scale);   Flt raysRes    ()C; // set/get rays      resolution (0..1, default=1/4), this determines the size of the buffers used for calculating the Sun Rays      effect, 1=full size, 0.5=half size, 0.25=quarter size, .., smaller sizes offer faster performance but worse quality, the change is NOT instant, avoid calling real-time
    SunClass& raysMaskRes(Flt scale);   Flt raysMaskRes()C; // set/get rays mask resolution (0..1, default=1  ), this determines the size of the buffers used for calculating the Sun Rays Mask effect, 1=full size, 0.5=half size, 0.25=quarter size, .., smaller sizes offer faster performance but worse quality, the change is NOT instant, avoid calling real-time
@@ -57,7 +57,7 @@ struct SunClass : Astro // Sun objects have default member values: 'glow'=128, '
 #if EE_PRIVATE
    Bool wantRays ()C;
    Bool wantDepth()C {return wantRays();}
-   void drawRays(Image *coverage, Vec &color);
+   void drawRays(Vec &color);
 #endif
 
 #if !EE_PRIVATE
@@ -75,6 +75,6 @@ extern Memc<Astro> Astros    ; // container of astronomical objects
 #if EE_PRIVATE
 void AstroPrepare ();
 void AstroDraw    ();
-Bool AstroDrawRays();
+void AstroDrawRays();
 #endif
 /******************************************************************************/

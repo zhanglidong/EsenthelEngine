@@ -4,10 +4,10 @@ const_mem_addr struct CheckBox : GuiObj // Gui CheckBox !! must be stored in con
    GuiSkinPtr skin; // skin override, default=null (if set to null then current value of 'Gui.skin' is used)
 
    // manage
-   CheckBox& del   (                               );                                   // delete
-   CheckBox& create(                  Bool on=false);                                   // create
-   CheckBox& create(C Rect     &rect, Bool on=false) {create(on).rect(rect); return T;} // create and set rectangle
-   CheckBox& create(C CheckBox &src                );                                   // create from 'src'
+   virtual CheckBox& del   (                               )override;                           // delete
+           CheckBox& create(                  Bool on=false);                                   // create
+           CheckBox& create(C Rect     &rect, Bool on=false) {create(on).rect(rect); return T;} // create and set rectangle
+           CheckBox& create(C CheckBox &src                );                                   // create from 'src'
 
    // get / set
    CheckBox& set      (Bool on, SET_MODE mode=SET_DEFAULT);   Bool operator()()C {return _on;}                        // set/get if on
@@ -26,8 +26,8 @@ const_mem_addr struct CheckBox : GuiObj // Gui CheckBox !! must be stored in con
             CheckBox& funcImmediate(Bool immediate) {       _func_immediate=immediate; return T;} // set immediate parameter for function called when checkbox state has changed
 
    // main
-   virtual void update(C GuiPC &gpc); // update object
-   virtual void draw  (C GuiPC &gpc); // draw   object
+   virtual void update(C GuiPC &gpc)override; // update object
+   virtual void draw  (C GuiPC &gpc)override; // draw   object
 
 #if EE_PRIVATE
    void zero();
@@ -46,7 +46,7 @@ private:
    void (*_func)(Ptr user);
 
 protected:
-   virtual Bool save(File &f, CChar *path=null)C;
-   virtual Bool load(File &f, CChar *path=null) ;
+   virtual Bool save(File &f, CChar *path=null)C override;
+   virtual Bool load(File &f, CChar *path=null)  override;
 };
 /******************************************************************************/

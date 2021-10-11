@@ -209,18 +209,18 @@ struct Material
    };
    MATERIAL_TECHNIQUE technique;
    TEX_QUALITY        tex_quality;
-   Bool               cull, flip_normal_y;
+   Bool               cull, detail_all_lod, flip_normal_y, smooth_is_rough;
    Byte               downsize_tex_mobile; // how much to downsize textures for Mobile platforms, 0=full size, 1=half size, 2=quarter size, ..
-   Vec4               color_s; // sRGB Gamma
-   Vec                ambient;
-   Flt                smooth, reflect, glow, normal, bump, tex_scale;
+   Vec4                  color_s; // sRGB Gamma
+   Vec                emissive_s; // sRGB Gamma
+   Flt                emissive_glow, smooth, reflect_min, reflect_max, glow, normal, bump, uv_scale;
    Mems<FileParams>   color_map, alpha_map,
                       bump_map, normal_map,
-                      smooth_map, reflect_map,
+                      smooth_map, metal_map,
                       glow_map,
                       detail_color, detail_bump, detail_normal, detail_smooth,
                       macro_map,
-                      light_map;
+                      emissive_map;
 
    Bool hasColorMap ()C {return  color_map  .elms()>0;}
    Bool hasBumpMap  ()C {return   bump_map  .elms()>0;}
@@ -259,6 +259,9 @@ struct EditorInterface
    Bool    connected(                            ); // if connected
    void disconnect  (                            ); // disconnect
    Bool    connect  (Str &message, Int timeout=-1); //    connect to a running instance of Esenthel Editor, 'timeout'=time in milliseconds (-1=default) to wait for a connection, false on fail
+
+   // editor
+   Str editorPath(); // get path where the Esenthel Editor folder is located
 
    // projects
    Str  projectsPath(           ); // get path where your projects are located
@@ -359,7 +362,7 @@ struct EditorInterface
       Bool    curMaterial              (C UID &elm_id                                                                ); // open     material editor            of 'elm_id' ELM_MTRL                element in the project, if 'UIDZero' is passed then editor will close the material editor, false on fail
       Bool    getMaterial              (C UID &elm_id,   Material &material                                          ); // get      material parameters        of 'elm_id' ELM_MTRL ELM_WATER_MTRL element in the project, false on fail
       Bool    setMaterial              (C UID &elm_id, C Material &material, Bool reload_textures, Bool adjust_params); // set      material parameters        of 'elm_id' ELM_MTRL ELM_WATER_MTRL element in the project, false on fail, 'reload_textures'=if reload the textures that were changed during this update (if this is set to false, then texture files names will get updated, however the texture images will remain the same), 'adjust_params'=if automatically adjust some parameters based on detected texture change (for example default specular value is 0, however if a specular map was added to the material in this change, then specular intensity value should be set to value >0 so the specular effect is visible, in this case 'adjust_params'=will automatically adjust specular intensity to 1 if a specular map was added and the intensity was 0. 'adjust_params' may adjust some other parameters as well)
-      Bool reloadMaterialTextures      (C UID &elm_id, bool base, bool detail, bool macro, bool light                ); // reload   material textures          of 'elm_id' ELM_MTRL ELM_WATER_MTRL element in the project, false on fail
+      Bool reloadMaterialTextures      (C UID &elm_id, bool base, bool detail, bool macro, bool emissive             ); // reload   material textures          of 'elm_id' ELM_MTRL ELM_WATER_MTRL element in the project, false on fail
       Bool    mulMaterialTextureByColor(C UID &elm_id                                                                ); // multiply material textures by color of 'elm_id' ELM_MTRL ELM_WATER_MTRL element in the project, false on fail
 
       // mesh
@@ -517,6 +520,8 @@ enum EDITOR_INTERFACE_COMMANDS
    EI_BUILD_API  ,
    EI_BUILD_EXE  ,
    EI_BUILD_PATHS,
+
+   EI_GET_EDITOR_PATH,
 
    EI_NUM,
 #if EE_PRIVATE

@@ -1,18 +1,16 @@
 /******************************************************************************/
 #include "!Header.h"
 #include "Hdr.h"
-
-// shader expects linear gamma
-
+/******************************************************************************/
 #define BRIGHT    1 // if apply adjustment for scenes where half pixels are bright, and other half are dark, in that case prefer focus on brighter, to avoid making already bright pixels too bright
 #define GEOMETRIC 0 // don't use geometric mean, because of cases when bright sky is mostly occluded by dark objects, then entire scene will get brighter, making the sky look too bright and un-realistic
 /******************************************************************************/
 // HDR
 /******************************************************************************/
-Flt HdrDS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+Flt HdrDS_PS(NOPERSP Vec2 uv:UV):TARGET
 {
-   Vec2 tex_min=inTex-ImgSize.xy,
-        tex_max=inTex+ImgSize.xy;
+   Vec2 tex_min=uv-ImgSize.xy,
+        tex_max=uv+ImgSize.xy;
 
 #if STEP==0
    // use linear filtering because we're downsampling, for the first step use half precision for high performance, because there's a lot of data
@@ -45,9 +43,9 @@ Flt HdrDS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 #endif
 }
 /******************************************************************************/
-Flt HdrUpdate_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // here use full precision
+Flt HdrUpdate_PS():TARGET // here use full precision
 {
-   Flt lum=TexPoint(ImgXF, Vec2(0, 0)).x; // new luminance
+   Flt lum=ImgXF[VecI2(0, 0)].x; // new luminance
 
    // adjustment restore
 #if GEOMETRIC
@@ -62,24 +60,39 @@ Flt HdrUpdate_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // here use full precision
    lum=HdrBrightness/Max(lum, EPS_COL); // desired scale
 
    lum=Mid(lum, HdrMaxDark, HdrMaxBright);
-   return Lerp(lum, TexPoint(ImgXF1, Vec2(0, 0)).x, Step); // lerp new with old
+   return Lerp(lum, ImgXF1[VecI2(0, 0)].x, Step); // lerp new with old
 }
 /******************************************************************************/
-VecH4 Hdr_PS(NOPERSP Vec2 inTex:TEXCOORD,
-             NOPERSP PIXEL              ):TARGET
+void AdaptEye_VS(VtxInput vtx,
+   NOPERSP  out Vec2 uv  :UV ,
+   NOINTERP out Half lum :LUM,
+   NOPERSP  out Vec4 vpos:POSITION)
 {
-   VecH4 col=TexLod  (Img , inTex); // can't use 'TexPoint' because 'Img' can be supersampled
-   Half  lum=TexPoint(ImgX, Vec2(0, 0)).x;
-
-   /* full formula
-   if(gamma)col.rgb=SRGBToLinearFast(col.rgb);
+   uv=vtx.uv();
+   lum=ImgX[VecI2(0, 0)];
+   vpos=vtx.pos4();
+}
+VecH4 AdaptEye_PS(NOPERSP  Vec2 uv :UV ,
+                  NOINTERP Half lum:LUM,
+                  NOPERSP  PIXEL       ):TARGET
+{
+   VecH4 col=TexLod(Img, uv); // can't use 'TexPoint' because 'Img' can be supersampled
    col.rgb*=lum;
-   if(gamma)col.rgb=LinearToSRGBFast(col.rgb); */
-
-#if !LINEAR_GAMMA
-   lum=LinearToSRGBFast(lum);
+#if DITHER
+   ApplyDither(col.rgb, pixel.xy);
 #endif
-   col.rgb*=lum;
+   return col;
+}
+/******************************************************************************
+VecH4 ToneMap_PS(NOPERSP Vec2 uv:UV,
+                 NOPERSP PIXEL     ):TARGET
+{
+   VecH4 col=TexLod(Img, uv); // can't use 'TexPoint' because 'Img' can be supersampled
+#if !ALPHA
+   col.a=1; // force full alpha so back buffer effects can work ok
+#endif
+
+   // here do tone mapping
 
 #if DITHER
    ApplyDither(col.rgb, pixel.xy);

@@ -27,6 +27,8 @@ enum APP_FLAG // Application Flags
    APP_CALLSTACK_ON_ERROR             =1<<19, // if program encounters an error and 'Exit' function is called, then current call stack will be included in the error message [Supported Platforms: Windows]
    APP_WEB_DISABLE_AUTO_RESIZE        =1<<20, // Web applications by default will auto resize the canvas to cover the entire browser window client area, to disable this behavior you can enable this option [Supported Platforms: Web]
    APP_FADE_OUT                       =1<<21, // if enabled then application window and all sounds will smoothly fade out at application close, available only on Desktop platforms
+   APP_IGNORE_PRECOMPILED_SHADER_CACHE=1<<22, // if ignore loading shaders from Precompiled Shader Cache
+   APP_SHADER_CACHE_MAX_COMPRESS      =1<<23, // if enable maximum compression for the Shader Cache, this slows down generation of the Shader Cache, but reduces its size
 
    APP_AUTO_FREE_OPEN_GL_ES_DATA=APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA|APP_AUTO_FREE_MESH_OPEN_GL_ES_DATA,
 };
@@ -59,7 +61,7 @@ struct Application // Application Settings
        background_wait; // amount of milliseconds the application should wait before making 'Update' calls when in background mode and with APP_WORK_IN_BACKGROUND enabled, -1=unlimited (app will wait until it's activated), 0=instant (app will keep calling 'Update' continuously), >0=wait (app will wait specified time until activated    before making 'Update' calls), default=0. It's recommended to use this instead of manually waiting with 'Time.wait', because this method allows app to resume instantly when it gets activated, unlike 'Time.wait' which waits without stopping.
    Mems<Str>  cmd_line; // command line arguments
 
-   void (*receive_data       )(CPtr data, Int size, Ptr hwnd_sender                   ); // pointer to custom function called when the application has received binary data sent using 'WindowSendData' function, the application may not access 'data' memory after the callback function returns, 'hwnd_sender'=hwnd window identifier of the sender, default=null
+   void (*receive_data       )(CPtr data, Int size, C SysWindow &sender_window        ); // pointer to custom function called when application has received binary data sent using 'SysWindow.sendData' function, application may not access 'data' memory after the callback function returns, 'sender_window'=system window of the sender, default=null
    void (*save_state         )(                                                       ); // pointer to custom function called when application is being put into background or will be terminated, in this function you should save current state of data which you may want to restore at next application startup, this function is used only on mobile platforms where the Operating System may close the application for any reason, default=null
    void (* paused            )(                                                       ); // pointer to custom function called when application is being  paused (lost   focus), default=null
    void (*resumed            )(                                                       ); // pointer to custom function called when application is being resumed (gained focus), default=null
@@ -81,7 +83,7 @@ struct Application // Application Settings
    UInt   parentProcessID     (               )C;                          // get application parent process ID
    UInt         processID     (               )C {return _process_id    ;} // get application        process ID
    UIntPtr       threadID     (               )C {return _thread_id     ;} // get application main   thread  ID
-   Ptr          hwnd          (               )C {return _hwnd          ;} // get application window handle in the OS (this can be casted to HWND object)
+ C SysWindow&   window        (               )C {return _window        ;} // get application system window
  C RectI&       desktopArea   (               )C {return _desktop_area  ;} // get available desktop area (not covered by windows taskbar or other desktop toolbars)
  C VecI2&       desktop       (               )C {return _desktop_size  ;} // get screen size   at the moment of application start (desktop size  )
    Int          desktopW      (               )C {return _desktop_size.x;} // get screen width  at the moment of application start (desktop width )
@@ -90,6 +92,17 @@ struct Application // Application Settings
    Bool         minimized     (               )C;                          // if  application is minimized
    Bool         maximized     (               )C;                          // if  application is maximized
    Bool         closed        (               )C {return _closed        ;} // if  application has finished closing, this is enabled at the very end of application life cycle, right before all global C++ destructors being called
+   Flt          opacity       (               )C;                          // get application window opacity, 0..1
+   Application& opacity       (Flt opacity    );                           // set application window opacity, 0..1
+   Application& flash         (               );                           // set application window to flash
+   Application& stateNormal   (               );                           // set application window to be displayed as normal                             (this will work only on Window 7 or newer)
+   Application& stateWorking  (               );                           // set application window to be displayed as working with unknown progress      (this will work only on Window 7 or newer)
+   Application& stateProgress (Flt progress   );                           // set application window to be displayed as working with 'progress' 0..1 value (this will work only on Window 7 or newer)
+   Application& statePaused   (Flt progress   );                           // set application window to be displayed as paused  with 'progress' 0..1 value (this will work only on Window 7 or newer)
+   Application& stateError    (Flt progress   );                           // set application window to be displayed as error   with 'progress' 0..1 value (this will work only on Window 7 or newer)
+   Bool         hidden        (               )C;                          // if  application window is hidden
+   Application& hide          (               );                           // set application window to be hidden
+   Application& show          (Bool activate  );                           // set application window to be visible, 'activate'=if also activate
    DIR_ENUM     orientation   (               )C;                          // get device orientation, this is valid for mobile devices which support accelerometers, for those devices the method will return one of the following orientation: DIR_UP (default), DIR_DOWN (rotated down), DIR_LEFT (rotated left), DIR_RIGHT (rotated right), if the device doesn't support accelerometers then DIR_UP is returned
    Bool         mainThread    (               )C;                          // if  current thread is the main thread
    Application& icon          (C Image   &icon);                           // set custom application icon
@@ -115,9 +128,6 @@ struct Application // Application Settings
    T1(TYPE) void addFuncCall(void func(TYPE *user), TYPE *user) {addFuncCall((void(*)(Ptr))func,  user);} // add custom function to the Application callback list to be automatically called during Application Update on the main thread
    T1(TYPE) void addFuncCall(void func(TYPE &user), TYPE &user) {addFuncCall((void(*)(Ptr))func, &user);} // add custom function to the Application callback list to be automatically called during Application Update on the main thread
 
-   // advanced
-   void coInitialize(UInt dwCoInit); // this method is for Windows only, it allows to change initialization of the Windows COM library. By default the engine already initializes the COM library using "CoInitialize(null)" system function (which is called before 'InitPre' function), however if you require to initialize the COM library using 'CoInitializeEx' system function with custom settings, then you must call this method ('coInitialize') with 'dwCoInit' parameter which you would normally use for 'CoInitializeEx'. The engine will reinitialize the COM library and any interfaces it previously obtained. You should not attempt to manually uninitialize the COM library by using 'CoUninitialize' on the main thread, as the engine already manages initialization and uninitialization of the library. 'CoUninitialize' will be automatically called by the engine at the end of the application, after 'Shut' function.
-
 #if EE_PRIVATE
    static Bool Fullscreen();
 
@@ -127,16 +137,13 @@ struct Application // Application Settings
    Bool create ();
    void update ();
    void loop   ();
-#if WINDOWS_OLD
-   HWND Hwnd()C {return HWND(_hwnd);}
-#elif WINDOWS_NEW
-   Windows::UI::Core::CoreWindow^& Hwnd() {return reinterpret_cast<Windows::UI::Core::CoreWindow^&>(_hwnd);}
+#if WINDOWS
+   HMONITOR hmonitor()C;
+#endif
+#if WINDOWS_NEW
    void wait(SyncEvent &event); // wait for async operation to complete
    static void ExecuteRecordedEvents();
-#elif MAC
-   NSWindow* Hwnd()C {return (NSWindow*)_hwnd ;}
 #elif LINUX
-   XWindow Hwnd()C {return XWindow(_hwnd);}
    void setWindowFlags(Bool force_resizable=false);
 #endif
    Bool activeOrBackFull       ()C {return _active || _back_full;}
@@ -147,6 +154,7 @@ struct Application // Application Settings
    void windowCreate  ();
    void windowDel     ();
    void windowMsg     ();
+   void windowAdjust  (Bool set=false);
    void deleteSelf    ();
    void detectMemLeaks();
    void showError     (CChar *error);
@@ -167,7 +175,7 @@ private:
    mutable UInt        _parent_process_id;
    UInt                _process_id;
    UIntPtr             _thread_id;
-   Ptr                 _hwnd;
+   SysWindow           _window;
    VecI2               _window_pos, _window_size, _window_resized, _desktop_size;
    RectI               _desktop_area, _bound, _bound_maximized;
    Str                 _exe, _name, _back_text;
@@ -187,6 +195,9 @@ private:
 #endif
 #else
    Image               _icon;
+#endif
+#if MAC
+   UInt                _style_window;
 #endif
    ThreadSafeCallbacks _callbacks;
 
@@ -221,5 +232,8 @@ inline CChar* MLTC(CChar* english, LANG_TYPE l0, CChar* t0, LANG_TYPE l1, CChar*
 /******************************************************************************/
 #if EE_PRIVATE
 extern Bool LogInit;
+#if LINUX
+extern Atom _NET_WM_STATE, _NET_WM_NAME, UTF8_STRING;
+#endif
 #endif
 /******************************************************************************/

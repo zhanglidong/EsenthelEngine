@@ -15,7 +15,7 @@ ConvertToDeAtlasClass ConvertToDeAtlas;
 /******************************************************************************/
       void ConvertToDeAtlasClass::Preview::draw(C GuiPC &gpc)
 {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             D.clip(gpc.clip);
             Rect r=rect()+gpc.offset;
@@ -160,7 +160,7 @@ ConvertToDeAtlasClass ConvertToDeAtlas;
                   files.last().params.New().set("crop", S+r.min.x+','+r.min.y+','+r.w()+','+r.h());
                }
             }
-            if(resize)files.last().params.New().set("resizeClamp", VecI2AsText(*resize)); // then resize
+            if(resize)files.last().params.New().set("resizeClamp", TextVecI2Ex(*resize)); // then resize
             return FileParams::Encode(files);
          }
       }
@@ -182,13 +182,13 @@ ConvertToDeAtlasClass ConvertToDeAtlas;
        C Rect  *crop  =((source_rect.min.any() || source_rect.max!=tex_size) ? &frac       : null);
        C VecI2 *resize=((dest_size.x>0         || dest_size.y>0            ) ? &final_size : null);
 
-         first.  color_map=Process(first.  color_map, crop, resize);
-         first.  alpha_map=Process(first.  alpha_map, crop, resize);
-         first.   bump_map=Process(first.   bump_map, crop, resize);
-         first. normal_map=Process(first. normal_map, crop, resize);
-         first. smooth_map=Process(first. smooth_map, crop, resize);
-         first.reflect_map=Process(first.reflect_map, crop, resize);
-         first.   glow_map=Process(first.   glow_map, crop, resize);
+         first. color_map=Process(first. color_map, crop, resize);
+         first. alpha_map=Process(first. alpha_map, crop, resize);
+         first.  bump_map=Process(first.  bump_map, crop, resize);
+         first.normal_map=Process(first.normal_map, crop, resize);
+         first.smooth_map=Process(first.smooth_map, crop, resize);
+         first. metal_map=Process(first. metal_map, crop, resize);
+         first.  glow_map=Process(first.  glow_map, crop, resize);
 
          // create textures
          Image base_0, base_1, base_2; Proj.createBaseTextures(base_0, base_1, base_2, first);
@@ -205,13 +205,13 @@ ConvertToDeAtlasClass ConvertToDeAtlas;
             de_atlas.copyParams(*elm_mtrl).setName(elm_mtrl->name+" (De-Atlas)").setRemoved(false); // call 'setName' after 'copyParams'
 
             EditMaterial edit; edit.load(Proj.editPath(elm_mtrl->id));
-            edit.  color_map=first.  color_map; edit.  color_map_time=time;
-            edit.  alpha_map=first.  alpha_map; edit.  alpha_map_time=time;
-            edit.   bump_map=first.   bump_map; edit.   bump_map_time=time;
-            edit. normal_map=first. normal_map; edit. normal_map_time=time;
-            edit. smooth_map=first. smooth_map; edit. smooth_map_time=time;
-            edit.reflect_map=first.reflect_map; edit.reflect_map_time=time;
-            edit.   glow_map=first.   glow_map; edit.   glow_map_time=time;
+            edit. color_map=first. color_map; edit. color_map_time=time;
+            edit. alpha_map=first. alpha_map; edit. alpha_map_time=time;
+            edit.  bump_map=first.  bump_map; edit.  bump_map_time=time;
+            edit.normal_map=first.normal_map; edit.normal_map_time=time;
+            edit.smooth_map=first.smooth_map; edit.smooth_map_time=time;
+            edit. metal_map=first. metal_map; edit. metal_map_time=time;
+            edit.  glow_map=first.  glow_map; edit.  glow_map_time=time;
             edit.base_0_tex=first.base_0_tex;
             edit.base_1_tex=first.base_1_tex;
             edit.base_2_tex=first.base_2_tex;
@@ -345,7 +345,7 @@ Property &mode=add("De-Atlased Objects", MEMBER(ConvertToDeAtlasClass, mode)).se
    void ConvertToDeAtlasClass::update(C GuiPC &gpc)
 {
       super::update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          VecI2 size=finalSize();
          if(sw)sw->name.set(S+"Source Width: " +source_rect.w());

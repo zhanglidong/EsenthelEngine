@@ -148,7 +148,7 @@ StoreClass AppStore;
          {
             if(temp.icon=="keep" || !temp.icon.is())
             {
-               if(icon_path)icon=IC.getImage(icon_path);
+               if(icon_path.is())icon=IC.getImage(icon_path);
             }else
             {
                if(temp.icon!="null")icon=IC.getImage(ItemRes(id, temp.icon, "icon_temp."));
@@ -433,7 +433,7 @@ StoreClass AppStore;
       }
       void StoreClass::ItemList::draw(C GuiPC &gpc)
 {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             Rect  clip=gpc.clip; if(!columnsHidden())clip.max.y-=columnHeight();
             VecI2 visible_elms=visibleElmsOnScreen(&gpc);
@@ -1519,7 +1519,7 @@ StoreClass AppStore;
    void StoreClass::update(C GuiPC &gpc)
 {
       super::update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          if((Ms.tapped(1) && Gui.window()==this) || (Ms.bp(MS_BACK) && Gui.window()==this && !(Gui.kb() && Gui.kb()->type()==GO_TEXTLINE)))back.push();
          REPA(MT)if(MT.tapped(i) && MT.guiObj(i)==&items_list)if(Item *item=items_list())openItem(item->id);
@@ -1769,13 +1769,13 @@ StoreClass AppStore;
    void StoreClass::draw(C GuiPC &gpc)
 {
       super::draw(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          if(image_preview && image_preview_step>EPS_COL)
          {
             D.clip();
             D.fxBegin();
-            ALPHA_MODE alpha=D.alpha(ALPHA_NONE); Rect(-D.w(), -D.h(), D.w(), D.h()).draw(ColorAlpha(BLACK, 0.7f)); D.alpha(alpha);
+            ALPHA_MODE alpha=D.alpha(ALPHA_NONE); D.rect().draw(ColorAlpha(BLACK, 0.7f)); D.alpha(alpha);
             Rect rect=image_preview->fit(Gui.desktop()->rect())*0.9f;
             D.drawShadow(128, rect, 0.07f);
             image_preview->drawFilter(rect);

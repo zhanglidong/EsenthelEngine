@@ -394,7 +394,7 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
    {
       if(thread.wantStop())return false;
       UpdateProgress.set(i, ImportFiles.elms());
-      WindowSetProgress(UpdateProgress());
+      App.stateProgress(UpdateProgress());
       if(ImportFiles[i].type==FSTD_FILE)
       {
        C Str &file=ImportFiles[i].name; Str name=GetBaseNoExt(file), ext=GetExt(file), path=GetPath(file);
@@ -475,59 +475,51 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
             Material game; if(game.load(file))
             {
                Elm &elm=Proj.Project.newElm(name, Proj.getPathID(path), ELM_MTRL);
-               EditMaterial edit; edit.create(game); // create from material
+               XMaterialEx mtrl_ex; mtrl_ex.create(game);
+               EditMaterial edit; edit.create(mtrl_ex); // create from material
 
                // set textures
-               if(game.    base_0)ImageProps(*game.    base_0, &edit.base_0_tex, null, MTRL_BASE_0);else edit.base_0_tex.zero();
-               if(game.    base_1)ImageProps(*game.    base_1, &edit.base_1_tex, null, MTRL_BASE_1);else edit.base_1_tex.zero();
-               if(game.    base_2)ImageProps(*game.    base_2, &edit.base_2_tex, null, MTRL_BASE_2);else edit.base_2_tex.zero();
-               if(game.detail_map)ImageProps(*game.detail_map, &edit.detail_tex, null, MTRL_DETAIL);else edit.detail_tex.zero();
-               if(game. macro_map)ImageProps(*game. macro_map, &edit. macro_tex, null, MTRL_MACRO );else edit. macro_tex.zero();
-               if(game. light_map)ImageProps(*game. light_map, &edit. light_tex, null, MTRL_LIGHT );else edit. light_tex.zero();
-               if(edit.base_0_tex.valid())if(Proj.includeTex(edit.base_0_tex))game.    base_0->save(Proj.texPath(edit.base_0_tex));
-               if(edit.base_1_tex.valid())if(Proj.includeTex(edit.base_1_tex))game.    base_1->save(Proj.texPath(edit.base_1_tex));
-               if(edit.base_2_tex.valid())if(Proj.includeTex(edit.base_2_tex))game.    base_2->save(Proj.texPath(edit.base_2_tex));
-               if(edit.detail_tex.valid())if(Proj.includeTex(edit.detail_tex))game.detail_map->save(Proj.texPath(edit.detail_tex));
-               if(edit. macro_tex.valid())if(Proj.includeTex(edit. macro_tex))game. macro_map->save(Proj.texPath(edit. macro_tex));
-               if(edit. light_tex.valid())if(Proj.includeTex(edit. light_tex))game. light_map->save(Proj.texPath(edit. light_tex));
+               if(game.      base_0)ImageProps(*game.      base_0, &edit.  base_0_tex, null, MTRL_BASE_0  );else edit.  base_0_tex.zero();
+               if(game.      base_1)ImageProps(*game.      base_1, &edit.  base_1_tex, null, MTRL_BASE_1  );else edit.  base_1_tex.zero();
+               if(game.      base_2)ImageProps(*game.      base_2, &edit.  base_2_tex, null, MTRL_BASE_2  );else edit.  base_2_tex.zero();
+               if(game.  detail_map)ImageProps(*game.  detail_map, &edit.  detail_tex, null, MTRL_DETAIL  );else edit.  detail_tex.zero();
+               if(game.   macro_map)ImageProps(*game.   macro_map, &edit.   macro_tex, null, MTRL_MACRO   );else edit.   macro_tex.zero();
+               if(game.emissive_map)ImageProps(*game.emissive_map, &edit.emissive_tex, null, MTRL_EMISSIVE);else edit.emissive_tex.zero();
+               if(edit.  base_0_tex.valid())if(Proj.includeTex(edit.  base_0_tex))game.      base_0->save(Proj.texPath(edit.  base_0_tex));
+               if(edit.  base_1_tex.valid())if(Proj.includeTex(edit.  base_1_tex))game.      base_1->save(Proj.texPath(edit.  base_1_tex));
+               if(edit.  base_2_tex.valid())if(Proj.includeTex(edit.  base_2_tex))game.      base_2->save(Proj.texPath(edit.  base_2_tex));
+               if(edit.  detail_tex.valid())if(Proj.includeTex(edit.  detail_tex))game.  detail_map->save(Proj.texPath(edit.  detail_tex));
+               if(edit.   macro_tex.valid())if(Proj.includeTex(edit.   macro_tex))game.   macro_map->save(Proj.texPath(edit.   macro_tex));
+               if(edit.emissive_tex.valid())if(Proj.includeTex(edit.emissive_tex))game.emissive_map->save(Proj.texPath(edit.emissive_tex));
 
-               Str b0=MakeFullPath(game.    base_0.name(), FILE_DATA),
-                   b1=MakeFullPath(game.    base_1.name(), FILE_DATA),
-                   b2=MakeFullPath(game.    base_2.name(), FILE_DATA),
-                    d=MakeFullPath(game.detail_map.name(), FILE_DATA),
-                    m=MakeFullPath(game. macro_map.name(), FILE_DATA),
-                    l=MakeFullPath(game. light_map.name(), FILE_DATA);
-               ImportMtrlImages.binaryInclude(SkipStartPath(b0, ImportSrc), ImportComparePath);
-               ImportMtrlImages.binaryInclude(SkipStartPath(b1, ImportSrc), ImportComparePath);
-               ImportMtrlImages.binaryInclude(SkipStartPath(b2, ImportSrc), ImportComparePath);
-               ImportMtrlImages.binaryInclude(SkipStartPath(d , ImportSrc), ImportComparePath);
-               ImportMtrlImages.binaryInclude(SkipStartPath(m , ImportSrc), ImportComparePath);
-               ImportMtrlImages.binaryInclude(SkipStartPath(l , ImportSrc), ImportComparePath);
+               Str base0_path=MakeFullPath(game.      base_0.name(), FILE_DATA),
+                   base1_path=MakeFullPath(game.      base_1.name(), FILE_DATA),
+                   base2_path=MakeFullPath(game.      base_2.name(), FILE_DATA),
+                  detail_path=MakeFullPath(game.  detail_map.name(), FILE_DATA),
+                   macro_path=MakeFullPath(game.   macro_map.name(), FILE_DATA),
+                emissive_path=MakeFullPath(game.emissive_map.name(), FILE_DATA);
+               ImportMtrlImages.binaryInclude(SkipStartPath(   base0_path, ImportSrc), ImportComparePath);
+               ImportMtrlImages.binaryInclude(SkipStartPath(   base1_path, ImportSrc), ImportComparePath);
+               ImportMtrlImages.binaryInclude(SkipStartPath(   base2_path, ImportSrc), ImportComparePath);
+               ImportMtrlImages.binaryInclude(SkipStartPath(  detail_path, ImportSrc), ImportComparePath);
+               ImportMtrlImages.binaryInclude(SkipStartPath(   macro_path, ImportSrc), ImportComparePath);
+               ImportMtrlImages.binaryInclude(SkipStartPath(emissive_path , ImportSrc), ImportComparePath);
 
-               edit.  color_map_time.getUTC(); edit.  color_map=b0; SetTransform(edit.color_map, "channel", "xyz");
-               edit.  alpha_map_time.getUTC(); edit.  alpha_map.clear();
-               edit.   bump_map_time.getUTC(); edit.   bump_map.clear();
-               edit.   glow_map_time.getUTC(); edit.   glow_map.clear();
-               edit. normal_map_time.getUTC(); edit. normal_map=b1; SetTransform(edit.normal_map, "channel", "xy");
-               edit. smooth_map_time.getUTC(); edit. smooth_map.clear();
-               edit.reflect_map_time.getUTC(); edit.reflect_map.clear();
-               edit. detail_map_time.getUTC(); edit.detail_color =d; SetTransform(edit.detail_color , "channel", "z" );
-                                               edit.detail_smooth=d; SetTransform(edit.detail_smooth, "channel", "w" );
-                                               edit.detail_normal=d; SetTransform(edit.detail_normal, "channel", "xy");
-                                               edit.detail_bump.clear();
-               edit.  macro_map_time.getUTC(); edit. macro_map   =m;
-               edit.  light_map_time.getUTC(); edit. light_map   =l;
-               if(b2.is())
-               {
-                  edit. smooth_map=b2; SetTransform(edit. smooth_map, "channel", "x");
-                  edit.reflect_map=b2; SetTransform(edit.reflect_map, "channel", "y");
-                  edit.   bump_map=b2; SetTransform(edit.   bump_map, "channel", "z");
-                  edit.  alpha_map=b2; SetTransform(edit.  alpha_map, "channel", "w");
-                  edit.   glow_map=b0; SetTransform(edit.   glow_map, "channel", "w");
-               }else
-               {
-                  edit.alpha_map=b0; SetTransform(edit.alpha_map, "channel", "w");
-               }
+               // #MaterialTextureLayout
+               edit.   color_map_time.getUTC(); edit. color_map=base0_path; //AddTransform(edit.color_map, "channel", "xyz"); don't set because we might need alpha
+               edit.   alpha_map_time.getUTC(); edit. alpha_map.clear(); // just use from 'color_map'
+               edit.  normal_map_time.getUTC(); edit.normal_map=base1_path; AddTransform(edit.normal_map, "channel", "xy");
+               edit.    bump_map_time.getUTC(); edit.  bump_map=base2_path; AddTransform(edit.  bump_map, "channel", "z");
+               edit.    glow_map_time.getUTC(); edit.  glow_map=base2_path; AddTransform(edit.  glow_map, "channel", "w");
+               edit.  smooth_map_time.getUTC(); edit.smooth_map=base2_path; AddTransform(edit.smooth_map, "channel", "y"); AddTransform(edit.smooth_map, "inverseRGB");
+               edit.   metal_map_time.getUTC(); edit. metal_map=base2_path; AddTransform(edit. metal_map, "channel", "x");
+               // #MaterialTextureLayoutDetail
+               edit.  detail_map_time.getUTC(); edit.  detail_color =detail_path; AddTransform(edit.detail_color , "channel", "w" );
+                                                edit.  detail_smooth=detail_path; AddTransform(edit.detail_smooth, "channel", "z" ); AddTransform(edit.detail_smooth, "inverseRGB");
+                                                edit.  detail_normal=detail_path; AddTransform(edit.detail_normal, "channel", "xy");
+                                                edit.  detail_bump.clear();
+               edit.   macro_map_time.getUTC(); edit.   macro_map   =macro_path;
+               edit.emissive_map_time.getUTC(); edit.emissive_map   =emissive_path;
 
                // save
                Save(edit, Proj.editPath(elm));
@@ -559,7 +551,7 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
    {
       if(thread.wantStop())return false;
       UpdateProgress.set(i, ImportFiles.elms());
-      WindowSetProgress(UpdateProgress());
+      App.stateProgress(UpdateProgress());
       if(ImportFiles[i].type==FSTD_FILE)
       {
          C Str &file=ImportFiles[i].name; Str name=GetBaseNoExt(file), ext=GetExt(file), path=GetPath(file);
@@ -682,7 +674,7 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
    {
       if(thread.wantStop())return false;
       UpdateProgress.set(i, ImportFiles.elms());
-      WindowSetProgress(UpdateProgress());
+      App.stateProgress(UpdateProgress());
       if(ImportFiles[i].type==FSTD_FILE)
       {
          C Str &file=ImportFiles[i].name; Str name=GetBaseNoExt(file), ext=GetExt(file), path=GetPath(file);
@@ -693,6 +685,7 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
                Elm &elm=Proj.Project.newElm(name, Proj.getPathID(path), ELM_PANEL);
                EditPanel edit;
                edit.create(game, ImportFindID(game.       center_image.name(), ELM_IMAGE),
+                                 ImportFindID(game.          bar_image.name(), ELM_IMAGE),
                                  ImportFindID(game.       border_image.name(), ELM_IMAGE),
                                  ImportFindID(game.          top_image.name(), ELM_IMAGE),
                                  ImportFindID(game.       bottom_image.name(), ELM_IMAGE),
@@ -823,7 +816,7 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
    {
       if(thread.wantStop())return false;
       UpdateProgress.set(i, ImportFiles.elms());
-      WindowSetProgress(UpdateProgress());
+      App.stateProgress(UpdateProgress());
       C Str &file=ImportFiles[i].name; Str name=GetBaseNoExt(file), ext=GetExt(file), path=GetPath(file);
       if(ImportFiles[i].type==FSTD_FILE)
       {
@@ -1024,7 +1017,7 @@ void ShutImport()
    ImportObjMeshes .del();
    ImportObjMatrix .del();
    DataPath(S);
-   WindowSetNormal();
+   App.stateNormal();
 }
 /******************************************************************************/
 bool UpdateImport()
@@ -1044,14 +1037,14 @@ bool UpdateImport()
    }
    if(ImportPhase==IMPORT_FINISHED)
    {
-      WindowFlash();
+      App.flash();
       Proj.save();
       Str error; Proj.open(Proj.id, Proj.name, Proj.path, error); // reopen using 'ProjectEx' method
       SetProjectState();
    }
    Time.wait(1000/30); // limit to 30 fps
    Server.update(null, true);
-   if(Ms.bp(MS_MAXIMIZE))WindowToggle();
+   if(Ms.bp(MS_MAXIMIZE))App.window().toggle();
    return true;
 }
 /******************************************************************************/
@@ -1075,11 +1068,12 @@ void DrawImport()
 
          GuiPC gpc;
          gpc.visible=gpc.enabled=true; 
-         gpc.client_rect=gpc.clip.set(-D.w(), -D.h(), D.w(), D.h());
+         gpc.client_rect=gpc.clip=D.rect();
          gpc.offset.zero();
          UpdateProgress.draw(gpc);
          D.clip();
       }break;
    }
+   Draw();
 }
 /******************************************************************************/

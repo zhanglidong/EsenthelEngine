@@ -11,8 +11,8 @@ namespace EE{
   _ds_1s     : D.renderW, D.renderW,                                                                                            IMAGERT_DS   , 1        , if '_ds' is Multi-Sampled then this is created as a standalone 1-sampled depth buffer, otherwise it's a duplicate of '_ds'
   _col       : D.renderW, D.renderH,                                                        D.highPrecColRT ? IMAGERT_SRGBA_P : IMAGERT_SRGBA, D.samples, COLOR RGB, GLOW
   _nrm       : D.renderW, D.renderH,                D.highPrecNrmRT ? IMAGERT_RGB_A1_H : (D.signedNrmRT ? IMAGERT_RGB_A1_S : IMAGERT_RGB_A1) , D.samples, NRM   XYZ, TRANSLUCENCY (used for double sided lighting for plants)
-  _ext       : D.renderW, D.renderH,                                                                                            IMAGERT_TWO  , D.samples, SMOOTH   , REFLECT
-  _vel       : D.renderW, D.renderH,                                                                                            IMAGERT_TWO_H, D.samples, 2D VELOCITY (TEXCOORD delta from CUR_POS to PREV_FRAME_POS)
+  _ext       : D.renderW, D.renderH,                                                                                            IMAGERT_TWO  , D.samples, ROUGH    , REFLECT
+  _vel       : D.renderW, D.renderH,                                                                                            IMAGERT_TWO_H, D.samples, 2D MOTION (UV delta from CUR_POS to PREV_FRAME_POS)
   _alpha     : D.renderW, D.renderH,                                                                                            IMAGERT_ONE  , D.samples, OPACITY
   _lum       : D.renderW, D.renderH,                                                         D.highPrecLumRT ? IMAGERT_SRGB_H : IMAGERT_SRGB , D.samples, LIGHT RGB
   _lum_1s    : D.renderW, D.renderH,                                                         D.highPrecLumRT ? IMAGERT_SRGB_H : IMAGERT_SRGB , 1        , LIGHT RGB. if '_lum' is Multi-Sampled then this is created as a standalone 1-sampled depth buffer, otherwise it's a duplicate of '_lum'
@@ -28,9 +28,9 @@ namespace EE{
 
    '_gui' is set to '_main', unless stereoscopic rendering is enabled then it's set to VR RT
 
-   If using Renderer.combine (Renderer.slowCombine && D.independentBlendAvailable) #RTOutput.Blend then after all non-blended meshes are drawn:
-     -'_alpha' RT is created and set as RT2
-     -ALPHA_MODE states such as ALPHA_BLEND_DEC ALPHA_BLEND_FACTOR are set to Increase RT2
+   If using Renderer.combine or Renderer.alpha (Renderer.processAlpha && D.independentBlendAvailable) #RTOutput.Blend then after all opaque meshes are drawn:
+     -'_alpha' RT is created and set as RT1
+     -ALPHA_MODE states such as ALPHA_RENDER_BLEND ALPHA_RENDER_BLEND_FACTOR are set to Increase RT1
      -all alpha-blended effects output alpha into RT2:
          -Mesh 3D Shaders (Blend, BlendLight)
          -Particles
@@ -42,8 +42,8 @@ namespace EE{
          -'_ds_1s' is set to down-sampled copy of '_ds'
          -both '_ds' and '_ds_1s' have STENCIL_REF_MSAA set
       In Non-Deferred Renderer:
-         -if "slowCombine || ms_samples_color.a"       then '_ds_1s' has STENCIL_REF_MSAA set
-         -if "Fog.draw || Sky.isActual || slowCombine" then '_ds'    has STENCIL_REF_MSAA set
+         -if "processAlpha || ms_samples_color.a"       then '_ds_1s' has STENCIL_REF_MSAA set
+         -if "Fog.draw || Sky.isActual || processAlpha" then '_ds'    has STENCIL_REF_MSAA set
 
    In OpenGL (except iOS):
       '_main' and '_main_ds' don't have '_rb' and '_txtr' set, because they're provided by the system and not created by the engine.
@@ -79,35 +79,34 @@ void RendererClass::createShadowMap()
 }
 void RendererClass::rtClear()
 {
-  _h0          .clear();
-  _h1          .clear();
-  _q0          .clear();
-  _q1          .clear();
-  _col         .clear();
-  _nrm         .clear();
-  _ext         .clear();
-  _vel         .clear();
-  _alpha       .clear();
-  _lum         .clear();
-  _lum_1s      .clear();
-  _spec        .clear();
-  _spec_1s     .clear();
-  _shd_1s      .clear();
-  _shd_ms      .clear();
-  _ds          .clear();
-  _ds_1s       .clear();
-  _water_col   .clear();
-  _water_nrm   .clear();
-  _water_ds    .clear();
-  _water_lum   .clear();
-  _water_spec  .clear();
-  _vol         .clear();
-  _ao          .clear();
-  _mirror_rt   .clear();
-  _outline_rt  .clear();
-  _sky_coverage.clear();
-  _final       =null;
-   D.tAAReset();
+  _h0        .clear();
+  _h1        .clear();
+  _q0        .clear();
+  _q1        .clear();
+  _col       .clear();
+  _nrm       .clear();
+  _ext       .clear();
+  _vel       .clear();
+  _alpha     .clear();
+  _lum       .clear();
+  _lum_1s    .clear();
+  _spec      .clear();
+  _spec_1s   .clear();
+  _shd_1s    .clear();
+  _shd_ms    .clear();
+  _ds        .clear();
+  _ds_1s     .clear();
+  _water_col .clear();
+  _water_nrm .clear();
+  _water_ds  .clear();
+  _water_lum .clear();
+  _water_spec.clear();
+  _vol       .clear();
+  _ao        .clear();
+  _mirror_rt .clear();
+  _outline_rt.clear();
+  _final     =null;
+   D.temporalReset();
    // don't clear '_back' and '_back_ds' here in case they are used
 }
 void RendererClass::rtClean()
@@ -160,7 +159,9 @@ void RendererClass::rtDel()
 }
 Bool RendererClass::rtCreateMain() // !! call only under lock !!
 {
-   ImageRT *old=_ptr_main, *old_ds=_ptr_main_ds;
+   ImageRT *old=_ptr_main, *old_ds=_ptr_main_ds,
+           *cur_ds=Renderer._cur_ds, *cur[ELMS(Renderer._cur)]; REPAO(cur)=Renderer._cur[i]; // remember these before creating/deleting RT's because when doing that, 'Renderer._cur', 'Renderer._cur_ds' might get cleared to null
+
    Bool secondary=(D.colorManaged() || WEB), ok=true; // need to create secondary main if we perform color management, or for WEB sRGB conversion #WebSRGB
    if(  secondary)
    {
@@ -180,16 +181,16 @@ Bool RendererClass::rtCreateMain() // !! call only under lock !!
      _ptr_main_ds=&_main_ds;
       D._color_lut.del(); // can't color manage without temp's
    }
-   if(old!=_ptr_main || old_ds!=_ptr_main_ds) // if changed something
+   if(secondary // if created new RT's
+   || old!=_ptr_main || old_ds!=_ptr_main_ds) // or changed something
    {
       // remap from old to new
-      if(_ui         ==old    )_ui         =_ptr_main;
-      if(_ui_ds      ==old_ds )_ui_ds      =_ptr_main_ds;
-      if(_cur_main   ==old    )_cur_main   =_ptr_main;
-      if(_cur_main_ds==old_ds )_cur_main_ds=_ptr_main_ds;
-      ImageRT *cur[ELMS(Renderer._cur)], *cur_ds;
-      REPA(cur){cur[i]=Renderer._cur[i]; if(cur[i]==old   )cur[i]=_ptr_main   ;}
-                cur_ds=Renderer._cur_ds; if(cur_ds==old_ds)cur_ds=_ptr_main_ds;
+               if(_ui         ==old   )_ui         =_ptr_main;
+               if(_ui_ds      ==old_ds)_ui_ds      =_ptr_main_ds;
+               if(_cur_main   ==old   )_cur_main   =_ptr_main;
+               if(_cur_main_ds==old_ds)_cur_main_ds=_ptr_main_ds;
+      REPA(cur)if( cur[i]     ==old   ) cur[i]     =_ptr_main;
+               if( cur_ds     ==old_ds) cur_ds     =_ptr_main_ds;
       Renderer.set(cur[0], cur[1], cur[2], cur[3], cur_ds, true);
    }
    return ok;
@@ -251,17 +252,18 @@ void RendererClass::update()
 
         _t_reflection  [0]=_t_reflection  [1]*mul;            _t_reflection  [1]=0;
         _t_prepare     [0]=_t_prepare     [1]*mul;            _t_prepare     [1]=0;
-        _t_solid       [0]=_t_solid       [1]*mul;            _t_solid       [1]=0;
+        _t_opaque      [0]=_t_opaque      [1]*mul;            _t_opaque      [1]=0;
         _t_overlay     [0]=_t_overlay     [1]*mul;            _t_overlay     [1]=0;
         _t_water       [0]=_t_water       [1]*mul;            _t_water       [1]=0;
         _t_light       [0]=_t_light       [1]*mul;            _t_light       [1]=0;
+        _t_emissive    [0]=_t_emissive    [1]*mul;            _t_emissive    [1]=0;
         _t_sky         [0]=_t_sky         [1]*mul;            _t_sky         [1]=0;
+        _t_water_under [0]=_t_water_under [1]*mul;            _t_water_under [1]=0;
         _t_edge_detect [0]=_t_edge_detect [1]*mul;            _t_edge_detect [1]=0;
         _t_blend       [0]=_t_blend       [1]*mul;            _t_blend       [1]=0;
         _t_palette     [0]=_t_palette     [1]*mul;            _t_palette     [1]=0;
         _t_behind      [0]=_t_behind      [1]*mul;            _t_behind      [1]=0;
         _t_rays        [0]=_t_rays        [1]*mul;            _t_rays        [1]=0;
-        _t_refract     [0]=_t_refract     [1]*mul;            _t_refract     [1]=0;
         _t_volumetric  [0]=_t_volumetric  [1]*mul;            _t_volumetric  [1]=0;
         _t_post_process[0]=_t_post_process[1]*mul;            _t_post_process[1]=0;
         _t_gpu_wait    [0]=_t_gpu_wait    [1]/_t_measures[1]; _t_gpu_wait    [1]=0; // '_t_gpu_wait' has it's own counter (_t_measures[1]) because it's called once per frame, while others can be called multiple times per frame
@@ -398,7 +400,7 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
                                    || depth_read_mode==WANT_DEPTH_READ && ds->_rdsv) ? ds->_rdsv : ds->_dsv : null);
 
    if(_cur_id[0]!=id0 || _cur_id[1]!=id1 || _cur_id[2]!=id2 || _cur_id[3]!=id3 || _cur_ds_id!=ids)
-   {
+   { // on DX11 when setting RT, it automatically unbinds it from SRVs, so have to clear it manually (UAVs are unbound too, however engine always resets them)
       if(id0 &&                  _cur_id[0]!=id0)D.texClear(t0->_srv);
       if(id1 &&                  _cur_id[1]!=id1)D.texClear(t1->_srv);
       if(id2 &&                  _cur_id[2]!=id2)D.texClear(t2->_srv);
@@ -634,7 +636,7 @@ Rect* RendererClass::setEyeParams()
 void RendererClass::     hasGlow() {_has_glow=true;}
 void RendererClass::finalizeGlow()
 {
-   if(!_col->typeInfo().a || !D.glowAllow() || !D.bloomAllow() || fastCombine())_has_glow=false; // glow can be done only if we have Alpha Channel in the RT, if we're allowing bloom processing (because it'd done together in the same shader), if we're allowing glow, and if 'fastCombine' is not active
+   if(!_col->typeInfo().a || !D.glowAllow() || !D.bloomAllow() || D.bloomGlow()<=EPS_COL8_NATIVE || fastCombine())_has_glow=false; // glow can be done only if we have Alpha Channel in the RT, if we're allowing bloom processing (because it's done together in the same shader), if we're allowing glow, and if 'fastCombine' is not active
 }
 /******************************************************************************/
 Bool RendererClass::capture(Image &image, Int w, Int h, Int type, Int mode, Int mip_maps, Bool alpha)

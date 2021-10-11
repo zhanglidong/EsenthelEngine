@@ -122,7 +122,7 @@
    void Viewport4Region::camCenter(bool zoom) {}
    void Viewport4Region::update(C GuiPC &gpc)
 {
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          v4.update(); // this sets D.viewRect
          if(fpp_speed.visible() && Ms.wheel() && v4.focus() && !Kb.ctrlCmd() && !Kb.shift())fpp_speed.set(fpp_speed()+Ms.wheel()*0.1f); // ctrl and shift are reserved for terrain brush params

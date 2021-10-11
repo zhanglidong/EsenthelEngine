@@ -324,7 +324,7 @@ static void SetRandomBend(MeshBase &mesh)
 // MANAGE
 /******************************************************************************/
      MeshPart::Variation::Variation() {zero();}
-void MeshPart::Variation::zero     () {last_solid_instance=last_shadow_instance=-1; REPAO(shader)=null; frst=null; blst=null;}
+void MeshPart::Variation::zero     () {last_opaque_instance=last_shadow_instance=-1; REPAO(shader)=null; frst=null; blst=null;}
 void MeshPart::Variation::del      () {material.clear(); zero();}
 Bool MeshPart::Variation::save     (File &f, CChar *path)C {f.putAsset(material.id());              return f.ok();}
 Bool MeshPart::Variation::load     (File &f, CChar *path)  {material.require(f.getAssetID(), path); return f.ok();}
@@ -721,24 +721,24 @@ MeshPart& MeshPart::move         (              C Vec &move) {base.     move(   
 MeshPart& MeshPart::scale        (C Vec &scale             ) {base.scale    (scale      ); render.scaleMove(scale       ); scaleParams(Abs(scale).max()); return T;}
 MeshPart& MeshPart::scaleMove    (C Vec &scale, C Vec &move) {base.scaleMove(scale, move); render.scaleMove(scale , move); scaleParams(Abs(scale).max()); return T;}
 MeshPart& MeshPart::scaleMoveBase(C Vec &scale, C Vec &move) {base.scaleMove(scale, move);                                 scaleParams(Abs(scale).max()); return T;}
-MeshPart& MeshPart::transform    (C Matrix3 &matrix        )
+MeshPart& MeshPart::transform    (C Matrix3 &matrix, Bool scale_normals)
 {
    Bool base_is=base.is();
    if(! base_is)base.create(render);
 
-   base.transform(matrix);
+   base.transform(matrix, scale_normals);
    scaleParams   (matrix.maxScale());
 
    if(render.is())render.create(base);
    if(! base_is  )delBase();
    return T;
 }
-MeshPart& MeshPart::transform(C Matrix &matrix)
+MeshPart& MeshPart::transform(C Matrix &matrix, Bool scale_normals)
 {
    Bool base_is=base.is();
    if(! base_is)base.create(render);
 
-   base.transform(matrix);
+   base.transform(matrix, scale_normals);
    scaleParams   (matrix.maxScale());
 
    if(render.is())render.create(base);
@@ -879,7 +879,7 @@ MeshPart& MeshPart::operator+=(C MeshPart &src)
    return T;
 }
 /******************************************************************************/
-void MeshPart::unlinkSolid ()C {_variation.unlinkSolid (); REPAO(_variations).unlinkSolid ();}
+void MeshPart::unlinkOpaque()C {_variation.unlinkOpaque(); REPAO(_variations).unlinkOpaque();}
 void MeshPart::unlinkShadow()C {_variation.unlinkShadow(); REPAO(_variations).unlinkShadow();}
 void MeshPart::unlink      ()C {_variation.unlink      (); REPAO(_variations).unlink      ();}
 /******************************************************************************/

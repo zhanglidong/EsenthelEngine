@@ -54,7 +54,7 @@
 
    #define GL_ES (GL && (IOS || ANDROID || WEB))
 
-   #define GL_LOCK (GL && 0) // if surround all GL calls with a lock
+   #define GPU_LOCK 0 // if force using a lock around GPU API calls (this shouldn't be needed)
 
    #define SLOW_SHADER_LOAD GL // Only OpenGL has slow shader loads because it compiles on the fly from text instead of binary
 
@@ -65,7 +65,6 @@
    #endif
 
    #define LINEAR_GAMMA 1
-   #define CAN_SWAP_SRGB DX11
    #define GPU_HALF_SUPPORTED   (!GL_ES) // depends on "GL_OES_vertex_half_float" GLES extension
    #define DEPTH_CLIP_SUPPORTED (!GL_ES)
 
@@ -439,7 +438,6 @@
          #include <EGL/egl.h>
          #include <EGL/eglext.h>
          #include <GLES3/gl3.h>
-         #include <GLES3/gl3ext.h>
       #endif
       #if OPEN_SL
          #include <SLES/OpenSLES.h>
@@ -469,6 +467,7 @@
       #include <nn/fs.h>
       #include <nn/os.h>
       #include <nn/oe.h>
+      #include <nn/oe/oe_DisableAutoSleepApi.h>
       #include <nn/hid.h>
       #include <nn/swkbd/swkbd_InlineKeyboardApi.h>
       #include <nn/vi.h>

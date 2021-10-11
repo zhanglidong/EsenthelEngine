@@ -93,7 +93,7 @@ Slider& Slider::rect(C Rect &rect)
 /******************************************************************************/
 GuiObj* Slider::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       Rect r=rect();
       if(GuiSkin *skin=getSkin())
@@ -137,7 +137,7 @@ void Slider::update(C GuiPC &gpc)
             if(Kb.b(KB_RIGHT))set(_value+Time.d()*0.2f);
          }
       }
-    C Vec2 *pos=null; if(Gui.ms()==this && Ms.b(0))pos=&Ms.pos(); if(!pos)REPA(Touches)if(Touches[i].guiObj()==this && Touches[i].on())pos=&Touches[i].pos();
+    C Vec2 *pos=null; if(Gui.ms()==this && (Ms.state(0)&(BS_PUSHED|BS_ON)))pos=&Ms.pos(); if(!pos)REPA(Touches)if(Touches[i].guiObj()==this && Touches[i].on())pos=&Touches[i].pos();
       if(   pos)set(_vertical ? (pos->y-(rect().min.y+gpc.offset.y))/rect().h() : (pos->x-(rect().min.x+gpc.offset.x))/rect().w());
 
     //AdjustValBool(_lit, Gui.ms()==this && enabled, Gui._time_d_fade_in, Gui._time_d_fade_out);
@@ -146,7 +146,7 @@ void Slider::update(C GuiPC &gpc)
 }
 void Slider::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
       if(GuiSkin *skin=getSkin())
    {
       Rect rect=T.rect()+gpc.offset, ext_rect;

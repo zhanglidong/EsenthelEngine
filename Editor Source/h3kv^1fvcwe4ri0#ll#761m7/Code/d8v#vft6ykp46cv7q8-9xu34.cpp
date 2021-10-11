@@ -64,12 +64,8 @@ class EnvEditor : ClosableWindow
    static Str  BloomScale   (C EditEnv &env             ) {return env.bloom.scale;}
    static void BloomCut     (  EditEnv &env, C Str &text) {env.bloom.cut=TextFlt(text); env.bloom_cut_time.getUTC();}
    static Str  BloomCut     (C EditEnv &env             ) {return env.bloom.cut;}
-   static void BloomMaximum (  EditEnv &env, C Str &text) {env.bloom.maximum=TextBool(text); env.bloom_maximum_time.getUTC();}
-   static Str  BloomMaximum (C EditEnv &env             ) {return env.bloom.maximum;}
-   static void BloomHalf    (  EditEnv &env, C Str &text) {env.bloom.half=TextBool(text); env.bloom_half_time.getUTC();}
-   static Str  BloomHalf    (C EditEnv &env             ) {return env.bloom.half;}
-   static void BloomBlurs   (  EditEnv &env, C Str &text) {env.bloom.blurs=TextInt(text); env.bloom_blurs_time.getUTC();}
-   static Str  BloomBlurs   (C EditEnv &env             ) {return env.bloom.blurs;}
+   static void BloomGlow    (  EditEnv &env, C Str &text) {env.bloom.glow=TextFlt(text); env.bloom_glow_time.getUTC();}
+   static Str  BloomGlow    (C EditEnv &env             ) {return env.bloom.glow;}
 
    static void CloudsScaleY(  EditEnv &env, C Str &text) {env.clouds.vertical_scale=TextFlt(text); env.clouds_vertical_scale_time.getUTC();}
    static Str  CloudsScaleY(C EditEnv &env             ) {return env.clouds.vertical_scale;}
@@ -195,9 +191,7 @@ class EnvEditor : ClosableWindow
       bloom.add("Original", MemberDesc(DATA_REAL).setFunc(BloomOriginal, BloomOriginal)).range(0, 2).mouseEditSpeed(0.5);
       bloom.add("Scale"   , MemberDesc(DATA_REAL).setFunc(BloomScale   , BloomScale   )).range(0, 2).mouseEditSpeed(0.5);
       bloom.add("Cut"     , MemberDesc(DATA_REAL).setFunc(BloomCut     , BloomCut     )).range(0, 1).mouseEditSpeed(0.4);
-      bloom.add("Maximum" , MemberDesc(DATA_BOOL).setFunc(BloomMaximum , BloomMaximum ));
-      bloom.add("Half Res", MemberDesc(DATA_BOOL).setFunc(BloomHalf    , BloomHalf    ));
-      bloom.add("Blurs"   , MemberDesc(DATA_INT ).setFunc(BloomBlurs   , BloomBlurs   )).range(0, 4).mouseEditSpeed(3);
+      bloom.add("Glow"    , MemberDesc(DATA_REAL).setFunc(BloomGlow    , BloomGlow    )).range(0, 2).mouseEditSpeed(0.5);
       bloom.autoData(&edit); bloom.create("Bloom", 0.14);
 
       clouds.add("Vertical Scale", MemberDesc(DATA_REAL).setFunc(CloudsScaleY, CloudsScaleY)).range(1, 2);

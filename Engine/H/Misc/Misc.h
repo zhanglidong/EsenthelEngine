@@ -127,22 +127,22 @@ Bool FullPath (CChar *path);   Bool FullPath (CChar8 *path); // if path is a ful
 
 T3(TA,TB,TC) inline TA& Clamp(TA &x, TB min, TC max) {if(x<min)x=min;else if(x>max)x=max; return x;} // clamp 'x' to "min..max" range
 
-inline Int   DivFloor(Int   x, Int   y) {return (x>=0) ?  x     /y : (x-y+1)/y;} // integer divide with floor
-inline Long  DivFloor(Long  x, Long  y) {return (x>=0) ?  x     /y : (x-y+1)/y;} // integer divide with floor
-inline UInt  DivFloor(UInt  x, UInt  y) {return           x     /y            ;} // integer divide with floor
-inline ULong DivFloor(ULong x, ULong y) {return           x     /y            ;} // integer divide with floor
-inline Int   DivCeil (Int   x, Int   y) {return (x<=0) ?  x     /y : (x+y-1)/y;} // integer divide with ceil
-inline Long  DivCeil (Long  x, Long  y) {return (x<=0) ?  x     /y : (x+y-1)/y;} // integer divide with ceil
-inline UInt  DivCeil (UInt  x, UInt  y) {return                      (x+y-1)/y;} // integer divide with ceil
-inline ULong DivCeil (ULong x, ULong y) {return                      (x+y-1)/y;} // integer divide with ceil
-inline Int   DivRound(Int   x, Int   y) {return (x>=0) ? (x+y/2)/y : (x-y/2)/y;} // integer divide with round
-inline Long  DivRound(Long  x, Long  y) {return (x>=0) ? (x+y/2)/y : (x-y/2)/y;} // integer divide with round
-inline UInt  DivRound(UInt  x, UInt  y) {return          (x+y/2)/y            ;} // integer divide with round
-inline ULong DivRound(ULong x, ULong y) {return          (x+y/2)/y            ;} // integer divide with round
+constexpr Int   DivFloor(Int   x, Int   y) {return (x>=0) ?  x     /y : (x-y+1)/y;} // integer divide with floor
+constexpr Long  DivFloor(Long  x, Long  y) {return (x>=0) ?  x     /y : (x-y+1)/y;} // integer divide with floor
+constexpr UInt  DivFloor(UInt  x, UInt  y) {return           x     /y            ;} // integer divide with floor
+constexpr ULong DivFloor(ULong x, ULong y) {return           x     /y            ;} // integer divide with floor
+constexpr Int   DivCeil (Int   x, Int   y) {return (x<=0) ?  x     /y : (x+y-1)/y;} // integer divide with ceil
+constexpr Long  DivCeil (Long  x, Long  y) {return (x<=0) ?  x     /y : (x+y-1)/y;} // integer divide with ceil
+constexpr UInt  DivCeil (UInt  x, UInt  y) {return                      (x+y-1)/y;} // integer divide with ceil
+constexpr ULong DivCeil (ULong x, ULong y) {return                      (x+y-1)/y;} // integer divide with ceil
+constexpr Int   DivRound(Int   x, Int   y) {return (x>=0) ? (x+y/2)/y : (x-y/2)/y;} // integer divide with round
+constexpr Long  DivRound(Long  x, Long  y) {return (x>=0) ? (x+y/2)/y : (x-y/2)/y;} // integer divide with round
+constexpr UInt  DivRound(UInt  x, UInt  y) {return          (x+y/2)/y            ;} // integer divide with round
+constexpr ULong DivRound(ULong x, ULong y) {return          (x+y/2)/y            ;} // integer divide with round
 
-inline Int     Mod(Int  x, Int  y          ) {if(!y)return 0; Int  z=x%y; return (z>=0) ? z : z+y;} // safe modulo "x%y" , returns always a positive number between   "0..y-1"
-inline Long    Mod(Long x, Long y          ) {if(!y)return 0; Long z=x%y; return (z>=0) ? z : z+y;} // safe modulo "x%y" , returns always a positive number between   "0..y-1"
-       Int  MidMod(Int  x, Int min, Int max);                                                       // safe middle modulo, returns always a          number between "min..max"
+constexpr Int     Mod(Int  x, Int  y          ) {if(!y)return 0; Int  z=x%y; return (z>=0) ? z : z+y;} // safe modulo "x%y" , returns always a positive number between   "0..y-1"
+constexpr Long    Mod(Long x, Long y          ) {if(!y)return 0; Long z=x%y; return (z>=0) ? z : z+y;} // safe modulo "x%y" , returns always a positive number between   "0..y-1"
+          Int  MidMod(Int  x, Int min, Int max);                                                       // safe middle modulo, returns always a          number between "min..max"
 
 UInt Ceil2      (UInt   x); // rounds 'x' to the nearest multiple of 2  , which is equal or greater than 'x'
 UInt Ceil4      (UInt   x); // rounds 'x' to the nearest multiple of 4  , which is equal or greater than 'x'
@@ -166,11 +166,14 @@ Int  BitHi      (ULong  x); // get index of highest non-zero bit  in 'x' ( 0 if 
 Int  ByteHi     (UInt   x); // get index of highest non-zero byte in 'x' ( 0 if none)
 Int  ByteHi     (ULong  x); // get index of highest non-zero byte in 'x' ( 0 if none)
 #if EE_PRIVATE
-       Int Log2Ceil(UInt  x); // returns Ceil(Log2(x))
-       Int Log2Ceil(ULong x); // returns Ceil(Log2(x))
-inline Int DivCeil2(UInt  x) {return DivCeil(x, 2u);}
-inline Int DivCeil4(UInt  x) {return DivCeil(x, 4u);}
-inline Int DivCeil8(UInt  x) {return DivCeil(x, 8u);}
+       Int Log2Ceil (UInt  x); // returns Ceil (Log2(x))
+       Int Log2Ceil (ULong x); // returns Ceil (Log2(x))
+       Int Log2Round(UInt  x); // returns Round(Log2(x))
+       Int Log2Round(ULong x); // returns Round(Log2(x))
+inline Int DivCeil2 (UInt  x) {return DivCeil(x,  2u);}
+inline Int DivCeil4 (UInt  x) {return DivCeil(x,  4u);}
+inline Int DivCeil8 (UInt  x) {return DivCeil(x,  8u);}
+inline Int DivCeil16(UInt  x) {return DivCeil(x, 16u);}
 
 inline UInt CeilGL(UInt x) {return Ceil128(x);} // use 'Ceil128' because of crash when setting/getting data due to internal system memmove which reads ahead
 
@@ -246,6 +249,8 @@ inline Bool    OSNintendoSwitch(OS_VER ver=OSVer()) {return ver==OS_NINTENDO_SWI
 Str  OSUserName (Bool short_name=false); // get the user name  of currently logged in user in the Operating System, on Android this requires PERMISSION_USER_NAME
 Str  OSUserEmail(                     ); // get the user email of currently logged in user in the Operating System, on Android this requires PERMISSION_USER_NAME, supported only on Android
 Bool OSUserIcon (Image &image         ); // get the user icon  of currently logged in user in the Operating System, supported only on Nintendo Switch
+
+void OSMsgBox(C Str &title, C Str &text, Bool error=false); // show OS message box, 'error'=if display as error or message
 
 Bool Explore(C Str &name, Bool select=false                                      ); // explore selected 'name' location, 'select'=if explore the parent location instead, and inside it select desired element. This function will only open folders, drives, URL links using the System File Explorer or Browser, it will never run any programs. If 'name' points to a file, then its parent folder will be opened and the file will always be selected regardless of 'select', false on fail.
 Bool Run    (C Str &name, C Str &params=S, Bool hidden=false, Bool as_admin=false); // run     selected 'name' command/application/file/folder/drive/URL link, 'as_admin'=if run as administrator, Sample Usage: Run("C:/esenthel.exe"), Run("http://www.esenthel.com"), false on fail
@@ -380,6 +385,7 @@ enum SYSTEM_PATH // System Path Type
    SP_SAVED_GAMES    , // User/Saved Games    (typically "C:/Users/*/Saved Games"    , for Mobile platforms this is the Application's public  folder, or if it's not available, then private folder is selected)
    SP_APP_DATA       , // User/App Data       (typically "C:/Users/*/AppData/Roaming", for Mobile platforms this is the Application's private folder, where it can save its data that no other App  can access)
    SP_APP_DATA_PUBLIC, // User/App Data       (typically "C:/Users/*/AppData/Roaming", for Mobile platforms this is the Application's public  folder, where it can save its data that    other Apps can access)
+   SP_APP_CACHE      , // User/App Cache
    SP_ALL_APP_DATA   , // All Users/App Data  (typically "C:/ProgramData")
    SP_PUBLIC         , // for Android this is the path to the public folder which is visible when connected to a computer
    SP_SD_CARD        , // for Android this is the path to SD Card
@@ -538,8 +544,8 @@ Str Merge(C Str &base, C Str &a, C Str &b, MemPtr<TextPatch> patches=null, Int t
 
 Int Difference(C Str &a, C Str &b); // get number of characters that need to be added/removed to make both strings equal
 /******************************************************************************/
-T2(BASE, EXTENDED)   void ASSERT_BASE_EXTENDED_EX(BASE&, EXTENDED&)   {DYNAMIC_ASSERT(static_cast<BASE*>((EXTENDED*)256)==(BASE*)256, "Selected class is not the base class of extended one");}
-T2(BASE, EXTENDED)   void ASSERT_BASE_EXTENDED_EX(BASE*, EXTENDED*)   {DYNAMIC_ASSERT(static_cast<BASE*>((EXTENDED*)256)==(BASE*)256, "Selected class is not the base class of extended one");}
+T2(BASE, EXTENDED)   void ASSERT_BASE_EXTENDED_EX(BASE&, EXTENDED&)   {BASE *t=(EXTENDED*)null; (void)t; DYNAMIC_ASSERT(static_cast<BASE*>((EXTENDED*)256)==(BASE*)256, "Selected class is not the base class of extended one");} // "BASE *t=(EXTENDED*)null;" needed for "ASSERT_BASE_EXTENDED<EXTENDED, BASE>();"
+T2(BASE, EXTENDED)   void ASSERT_BASE_EXTENDED_EX(BASE*, EXTENDED*)   {BASE *t=(EXTENDED*)null; (void)t; DYNAMIC_ASSERT(static_cast<BASE*>((EXTENDED*)256)==(BASE*)256, "Selected class is not the base class of extended one");} // "BASE *t=(EXTENDED*)null;" needed for "ASSERT_BASE_EXTENDED<EXTENDED, BASE>();"
 
 T2(BASE, EXTENDED)   void ASSERT_BASE_EXTENDED   (                )   {int i=0; ASSERT_BASE_EXTENDED_EX((BASE&)i, (EXTENDED&)i);} // asserts that 'BASE' class is the main base class of 'EXTENDED', this also works for pointers
 
@@ -578,6 +584,30 @@ extern Memx<Notification> Notifications; // list of active notifications
 #if EE_PRIVATE
 void HideNotifications();
 #endif
+/******************************************************************************/
+struct DataRangeRel
+{
+   Long start, size;
+
+   Long end()C {return start+size;}
+
+   void set   (Long start, Long size) {T.start=start; T.size=size     ;}
+   void setAbs(Long start, Long end ) {T.start=start; T.size=end-start;}
+
+   void moveStart  (Long delta) {start+=delta; size-=delta;}
+   void moveStartTo(Long pos  ) {size+=start-pos; start=pos;}
+};
+struct DataRangeAbs
+{
+   Long start, end;
+
+   Long size()C {return end-start;}
+
+   void set(Long start, Long end) {T.start=start; T.end=end;}
+};
+Int Compare    (C DataRangeRel &a, C DataRangeRel &b);
+Int Compare    (C DataRangeAbs &a, C DataRangeAbs &b);
+Int CompareSize(C DataRangeRel &a, C DataRangeRel &b);
 /******************************************************************************/
 enum LANG_TYPE : Byte
 {

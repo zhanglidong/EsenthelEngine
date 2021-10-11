@@ -69,10 +69,11 @@ template<const_mem_addr typename TYPE, Int size> struct Memt // Temporary Memory
    TYPE pop     (Int i, Bool keep_order=true); // get i-th  element and remove it from the container, if 'keep_order'=true then moves all elements after i-th to the left (keeping order)
    TYPE pop     (                           ); // get last  element and remove it from the container
 
-   Memt& setNum    (Int num); // set number of elements to 'num'                                                                              , this method may change the memory address of all elements
-   Memt& setNumZero(Int num); // set number of elements to 'num', memory of new elements will be first zeroed before calling their constructor, this method may change the memory address of all elements
-   Int   addNum    (Int num); // add 'num' elements, return index of first added element                                                      , this method may change the memory address of all elements
-   Memt& reserve   (Int num); // pre-allocate memory for 'num' elements
+   Memt& setNum       (Int num); // set number of elements to 'num'                                                                              , this method may change the memory address of all elements
+   Memt& setNumZero   (Int num); // set number of elements to 'num', memory of new elements will be first zeroed before calling their constructor, this method may change the memory address of all elements
+   Memt& setNumDiscard(Int num); // set number of elements to 'num', if reallocating then discard previous elements                              , this method may change the memory address of all elements
+   Int   addNum       (Int num); // add 'num' elements, return index of first added element                                                      , this method may change the memory address of all elements
+   Memt& reserve      (Int num); // pre-allocate memory for 'num' elements
 
    Memt& setNum    (Int num, Int keep); // set number of elements to 'num' keeping only up to 'keep' old elements,                                                                               this method may change the memory address of all elements
    Memt& setNumZero(Int num, Int keep); // set number of elements to 'num' keeping only up to 'keep' old elements, memory of new elements will be first zeroed before calling their constructor, this method may change the memory address of all elements
@@ -117,7 +118,6 @@ template<const_mem_addr typename TYPE, Int size> struct Memt // Temporary Memory
 #if EE_PRIVATE
    void  copyTo  (  TYPE *dest)C {CopyN(dest  , data(), elms());          } // copy raw memory of all elements to   'dest'
    Memt& copyFrom(C TYPE *src )  {CopyN(data(), src   , elms()); return T;} // copy raw memory of all elements from 'src '
-   void  setNumDiscard(Int num); // set          'num' elements, if reallocating then discard previous elements
    void  minNumDiscard(Int num); // set at least 'num' elements, if reallocating then discard previous elements
 #endif
 

@@ -23,27 +23,43 @@ inline Flt SoundSpeed(Flt speed) {return Mid(speed, 0.0f, (Flt)MAX_SOUND_SPEED);
 
 #define SOUND_SAMPLES(freq) ((freq)*SOUND_TIME/1000) // total number of samples needed for full buffer (2 halfs) for a sound to be played using SOUND_TIMER
 /******************************************************************************/
+struct Stereo
+{
+   I16 l, r;
+};
+struct ResampleBuffer // buffer used for resampling, holds few last samples, and sample offset
+{
+   Flt offset ; // sample offset carried over from previous buffers
+   Int samples; // number of samples in the buffer
+   union // 3 previous samples needed for cubic interpolation, +1 used from current buffer = 4 in total
+   {
+      I16    mono  [3];
+      Stereo stereo[3];
+   };
+
+   void init() {offset=0; samples=0;}
+};
 const_mem_addr struct AudioBuffer
 {
    Byte data[SOUND_SAMPLES(48000)/2*SIZE(I16)]; // /2 to get size for half buffer (instead of full), "*SIZE(I16)" for 16-bit samples, here only 1-channel mono is used, to use more channels and higher frequency, multiple buffers will need to be used
 };
 const_mem_addr struct AudioVoice
 {
-   Bool         play, remove;
-   Byte         channels     ,
-                block        ,
-                buffers      , // how many buffers available
-                queued       , // how many buffers queued for processing
-                buffer_i     ; // index of the buffer for processing
-   Int          samples      , // how many samples in a single buffer
-                buffer_size  , // size in bytes of a single buffer
-                buffer_raw   , // bytes already processed in the current 'buffer_i' buffer for processing
-                 total_raw   ; // bytes already processed for all buffers
-   Flt          sample_offset, // used when resampling, offset carried over from previous buffers
-                speed        ,
-                volume[2]    ; // volume for 2 channels
-   AudioBuffer *buffer[2*2*2]; // 2halfs * 2channels * 2freq (to support 96kHz), because base is 1half * 1channel * 48kHz
-   AudioVoice  *next; // next voice in list
+   Bool           play, remove ;
+   Byte           channels     ,
+                  block        ,
+                  buffers      , // how many buffers available
+                  queued       , // how many buffers queued for processing
+                  buffer_i     ; // index of the buffer for processing
+   Int            samples      , // how many samples in a single buffer
+                  buffer_size  , // size in bytes of a single buffer
+                  buffer_raw   , // bytes already processed in the current 'buffer_i' buffer for processing
+                   total_raw   ; // bytes already processed for all buffers
+   Flt            speed        ,
+                  volume[2]    ; // volume for 2 channels
+   ResampleBuffer resample_buf ;
+   AudioBuffer   *buffer[2*2*2]; // 2halfs * 2channels * 2freq (to support 96kHz), because base is 1half * 1channel * 48kHz
+   AudioVoice    *next; // next voice in list
 
    void update();
 

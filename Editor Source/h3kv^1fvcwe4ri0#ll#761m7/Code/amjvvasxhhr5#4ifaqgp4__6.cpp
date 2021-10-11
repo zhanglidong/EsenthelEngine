@@ -13,6 +13,7 @@ class Obj : ObjData
    PhysBodyPtr   phys;
    ImagePtr      icon;
    Particles     particles;
+   Matrix        matrix_prev(0);
    Vec           light_col=1;
    flt           light_angle=1, light_falloff=0.5;
    bool          light_cast_shadows=true;
@@ -103,7 +104,11 @@ class Obj : ObjData
       }
       if(a!=area)
       {
-         if(!area && &world==&WorldEdit)removeChanged();
+         if(!area)
+         {
+            matrix_prev=matrix;
+            if(&world==&WorldEdit)removeChanged();
+         }
          detach();
          a.load();
          area=a; area.objs.add(this);
@@ -120,7 +125,7 @@ class Obj : ObjData
 
    void setUpdatability()
    {
-      if(visible && particles.is())
+      if(visible && (true || particles.is())) // always update visible objects because have to set previous matrix for motion/temporal
       {
          WorldEdit.obj_update.binaryInclude(this, ComparePtr);
       }else
@@ -285,7 +290,7 @@ class Obj : ObjData
    // update
    void update()
    {
-      particles.matrix=drawMatrix();
+      matrix_prev=particles.matrix=drawMatrix();
       if(!particles.update())particles.resetFull();
    }
 
@@ -310,7 +315,7 @@ class Obj : ObjData
             SetHighlight(col_lit);
          }
          SetVariation(mesh_variation);
-         mesh->draw(m);
+         mesh->draw(m, matrix_prev);
          SetHighlight();
          SetVariation();
       }

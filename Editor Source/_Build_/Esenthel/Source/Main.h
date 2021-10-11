@@ -11,7 +11,7 @@ bool SaveChanges(void (*after_save_close)(bool all_saved, ptr user), ptr user=nu
 void SetExit(bool all_saved=true, ptr=null);
 void Quit();
 void Resumed();
-void ReceiveData(cptr data, int size, ptr hwnd_sender);
+void ReceiveData(cptr data, int size, C SysWindow &sender_window);
 void SetTitle();
 void SetKbExclusive();
 void SetProjectState();

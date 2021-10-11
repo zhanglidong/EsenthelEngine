@@ -29,6 +29,7 @@ Bool PreventResizing;
 }
 -(void)windowDidMiniaturize  :(NSNotification*)notification {App._minimized=true ; SetActive();}
 -(void)windowDidDeminiaturize:(NSNotification*)notification {App._minimized=false; SetActive();}
+-(void)windowDidMove         :(NSNotification*)notification {if(!App.window().minimized() && !App.window().maximized() && !D.full())App._window_pos=App.window().pos();}
 @end
 /******************************************************************************/
 // WINDOW
@@ -50,5 +51,7 @@ Bool PreventResizing;
    MyWindowDelegate *window_delegate=[[MyWindowDelegate alloc] init]; [self setDelegate:window_delegate]; //[window_delegate release]; we can't release the delegate here, because it will stop working, instead we need to release it in 'dealloc'
    return self;
 }
+-(BOOL)canBecomeKeyWindow  {return YES;}
+-(BOOL)canBecomeMainWindow {return YES;}
 @end
 /******************************************************************************/

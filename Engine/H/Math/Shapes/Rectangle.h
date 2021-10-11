@@ -112,30 +112,33 @@ struct Rect // Rectangle Shape
    Bool valid    (            )C {return       validX() && validY()      ;} // if is  valid
    Bool vertical (            )C {return             h()>w()             ;} // if rectangle is vertical (height greater than width)
    Flt  area     (            )C {return             w()*h()             ;} // get surface area
-   Flt  aspect   (            )C {return             w()/h()             ;} // get aspect  ratio
+   Flt     aspect(            )C {return             w()/h()             ;} // get          aspect ratio
+   Flt  invAspect(            )C {return             h()/w()             ;} // get inversed aspect ratio
 
    Str asText()C {return S+"Min: "+min+", Max: "+max;} // get text description
 
    // operations
-   Rect& extendX   (  Flt   e                ); // extend rectangle X's
-   Rect& extendY   (  Flt   e                ); // extend rectangle Y's
-   Rect& extend    (  Flt   e                ); // extend rectangle
-   Rect& extend    (C Vec2 &v                ); // extend rectangle
-   Rect& extend    (  Flt   x  , Flt y       ); // extend rectangle
-   Rect& includeX  (  Flt   x                ); // extend rectangle to include 'x'
-   Rect& includeY  (  Flt   y                ); // extend rectangle to include 'y'
-   Rect& includeX  (  Flt   min, Flt max     ); // extend rectangle to include min..max X range
-   Rect& includeY  (  Flt   min, Flt max     ); // extend rectangle to include min..max Y range
-   Rect& include   (C Vec2 &v                ); // extend rectangle to include vector
-   Rect& include   (C Rect &r                ); // extend rectangle to include rectangle
-   Rect& clampX    (  Flt   min, Flt max     ); // clamp  rectangle to intersect min..max X range
-   Rect& clampY    (  Flt   min, Flt max     ); // clamp  rectangle to intersect min..max Y range
-   Rect& moveX     (  Flt   dx               ); // move   rectangle X's by 'dx'
-   Rect& moveY     (  Flt   dy               ); // move   rectangle Y's by 'dy'
+   Rect& extendX   (  Flt   e                ); // extend   rectangle X's
+   Rect& extendY   (  Flt   e                ); // extend   rectangle Y's
+   Rect& extend    (  Flt   e                ); // extend   rectangle
+   Rect& extend    (C Vec2 &v                ); // extend   rectangle
+   Rect& extend    (  Flt   x  , Flt y       ); // extend   rectangle
+   Rect& includeX  (  Flt   x                ); // extend   rectangle to include 'x'
+   Rect& includeY  (  Flt   y                ); // extend   rectangle to include 'y'
+   Rect& includeX  (  Flt   min, Flt max     ); // extend   rectangle to include min..max X range
+   Rect& includeY  (  Flt   min, Flt max     ); // extend   rectangle to include min..max Y range
+   Rect& include   (C Vec2 &v                ); // extend   rectangle to include vector
+   Rect& include   (C Rect &r                ); // extend   rectangle to include rectangle
+   Rect& clampX    (  Flt   min, Flt max     ); // clamp    rectangle to intersect min..max X range
+   Rect& clampY    (  Flt   min, Flt max     ); // clamp    rectangle to intersect min..max Y range
+   Rect& moveX     (  Flt   dx               ); // move     rectangle X's by 'dx'
+   Rect& moveY     (  Flt   dy               ); // move     rectangle Y's by 'dy'
+   Rect& mulX      (  Flt   x                ); // multiply rectangle X's by 'x'
+   Rect& mulY      (  Flt   y                ); // multiply rectangle Y's by 'y'
    Rect& from      (C Vec2 &a, C Vec2 &b     ); // create from 2 points
    Bool  from      (C Vec2 *point, Int points); // set from an array of points, false on fail (if there are no points)
-   Rect& swapX     (                         ); // swap 'min.x' with 'max.x'
-   Rect& swapY     (                         ); // swap 'min.y' with 'max.y'
+   Rect& swapX     (                         ) {Swap(min.x, max.x); return T;} // swap 'min.x' with 'max.x'
+   Rect& swapY     (                         ) {Swap(min.y, max.y); return T;} // swap 'min.y' with 'max.y'
    Rect& rotatePI_2(  Int rotations          ); // rotate rectangle by "rotations*PI_2" angle
 
    Rect& validIncludeX(  Flt   x); // extend rectangle to include 'x'   , this method is faster than 'includeX' but assumes rectangle is valid
@@ -144,11 +147,10 @@ struct Rect // Rectangle Shape
 
    // draw
    void draw            (C Color &color , Bool fill=true                 )C; // draw
+   void draw            (C Vec4  &color , Bool fill=true                 )C; // draw
    void drawBorder      (C Color &color ,                    Flt   border)C; // draw border
    void drawBorder      (C Color &color ,                  C Vec2 &border)C; // draw border
-#if EE_PRIVATE
    void drawBorder      (C Vec4  &color ,                  C Vec2 &border)C; // draw border
-#endif
    void drawShadedX     (C Color &color0, C Color &color1                )C; // draw        shaded horizontally
    void drawShadedY     (C Color &color0, C Color &color1                )C; // draw        shaded   vertically
    void drawShaded      (C Color &color0, C Color &color1,   Flt   border)C; // draw        shaded inside<->outside
@@ -249,29 +251,32 @@ struct RectD // Rectangle Shape (double precision)
    Bool  valid    (            )C {return       validX() && validY()      ;} // if is  valid
    Bool  vertical (            )C {return             h()>w()             ;} // if rectangle is vertical (height greater than width)
    Dbl   area     (            )C {return             w()*h()             ;} // get surface area
-   Dbl   aspect   (            )C {return             w()/h()             ;} // get aspect  ratio
+   Dbl     aspect (            )C {return             w()/h()             ;} // get          aspect ratio
+   Dbl  invAspect (            )C {return             h()/w()             ;} // get inversed aspect ratio
 
    Str asText()C {return S+"Min: "+min+", Max: "+max;} // get text description
 
    // operations
-   RectD& extendX   (  Dbl    e            ); // extend rectangle X's
-   RectD& extendY   (  Dbl    e            ); // extend rectangle Y's
-   RectD& extend    (  Dbl    e            ); // extend rectangle
-   RectD& extend    (C VecD2 &v            ); // extend rectangle
-   RectD& extend    (  Dbl    x  , Dbl y   ); // extend rectangle
-   RectD& includeX  (  Dbl    x            ); // extend rectangle to include x
-   RectD& includeY  (  Dbl    y            ); // extend rectangle to include y
-   RectD& includeX  (  Dbl    min, Dbl max ); // extend rectangle to include min..max X range
-   RectD& includeY  (  Dbl    min, Dbl max ); // extend rectangle to include min..max Y range
-   RectD& include   (C VecD2 &v            ); // extend rectangle to include vector
-   RectD& include   (C RectD &r            ); // extend rectangle to include rectangle
-   RectD& clampX    (  Dbl    min, Dbl max ); // clamp  rectangle to intersect min..max X range
-   RectD& clampY    (  Dbl    min, Dbl max ); // clamp  rectangle to intersect min..max Y range
-   RectD& moveX     (  Dbl    dx           ); // move   rectangle X's by 'dx'
-   RectD& moveY     (  Dbl    dy           ); // move   rectangle Y's by 'dy'
+   RectD& extendX   (  Dbl    e            ); // extend   rectangle X's
+   RectD& extendY   (  Dbl    e            ); // extend   rectangle Y's
+   RectD& extend    (  Dbl    e            ); // extend   rectangle
+   RectD& extend    (C VecD2 &v            ); // extend   rectangle
+   RectD& extend    (  Dbl    x  , Dbl y   ); // extend   rectangle
+   RectD& includeX  (  Dbl    x            ); // extend   rectangle to include x
+   RectD& includeY  (  Dbl    y            ); // extend   rectangle to include y
+   RectD& includeX  (  Dbl    min, Dbl max ); // extend   rectangle to include min..max X range
+   RectD& includeY  (  Dbl    min, Dbl max ); // extend   rectangle to include min..max Y range
+   RectD& include   (C VecD2 &v            ); // extend   rectangle to include vector
+   RectD& include   (C RectD &r            ); // extend   rectangle to include rectangle
+   RectD& clampX    (  Dbl    min, Dbl max ); // clamp    rectangle to intersect min..max X range
+   RectD& clampY    (  Dbl    min, Dbl max ); // clamp    rectangle to intersect min..max Y range
+   RectD& moveX     (  Dbl    dx           ); // move     rectangle X's by 'dx'
+   RectD& moveY     (  Dbl    dy           ); // move     rectangle Y's by 'dy'
+   RectD& mulX      (  Dbl    x            ); // multiply rectangle X's by 'x'
+   RectD& mulY      (  Dbl    y            ); // multiply rectangle Y's by 'y'
    RectD& from      (C VecD2 &a, C VecD2 &b); // create from 2 points
-   RectD& swapX     (                      ); // swap 'min.x' with 'max.x'
-   RectD& swapY     (                      ); // swap 'min.y' with 'max.y'
+   RectD& swapX     (                      ) {Swap(min.x, max.x); return T;} // swap 'min.x' with 'max.x'
+   RectD& swapY     (                      ) {Swap(min.y, max.y); return T;} // swap 'min.y' with 'max.y'
    RectD& rotatePI_2(  Int rotations       ); // rotate rectangle by "rotations*PI_2" angle
 
    RectD& validIncludeX(  Dbl    x); // extend rectangle to include 'x'   , this method is faster than 'includeX' but assumes rectangle is valid
@@ -357,7 +362,8 @@ struct RectI // Rectangle Shape (integer)
    Bool  validY  (            )C {return       min.y    <= max.y      ;} // if has valid Y's
    Bool  valid   (            )C {return       validX() && validY()   ;} // if is  valid
    Int   area    (            )C {return            w() *h()          ;} // get surface area
-   Flt   aspect  (            )C {return        Flt(w())/h()          ;} // get aspect  ratio
+   Flt     aspect(            )C {return        Flt(w())/h()          ;} // get          aspect ratio
+   Flt  invAspect(            )C {return        Flt(h())/w()          ;} // get inversed aspect ratio
 
    Bool includesX(  Int    x)C {return       x>=min.x && x<=max.x      ;} // if rectangle includes 'x'
    Bool includesY(  Int    y)C {return       y>=min.y && y<=max.y      ;} // if rectangle includes 'y'
@@ -386,6 +392,8 @@ struct RectI // Rectangle Shape (integer)
    RectI& clampX    (  Int    min, Int max ); // clamp  rectangle to intersect min..max X range
    RectI& clampY    (  Int    min, Int max ); // clamp  rectangle to intersect min..max Y range
    RectI& from      (C VecI2 &a, C VecI2 &b); // create from 2 points
+   RectI& swapX     (                      ) {Swap(min.x, max.x); return T;} // swap 'min.x' with 'max.x'
+   RectI& swapY     (                      ) {Swap(min.y, max.y); return T;} // swap 'min.y' with 'max.y'
    RectI& rotatePI_2(  Int rotations       ); // rotate rectangle by "rotations*PI_2" angle
 
    RectI& validIncludeX(  Int    x); // extend rectangle to include 'x'   , this method is faster than 'includeX' but assumes rectangle is valid
@@ -434,15 +442,18 @@ inline RectI RoundGPU(C Rect &r) {return RectI(RoundGPU(r.min.x), RoundGPU(r.min
 #endif
 
 // distance
-Flt Dist (C Vec2  &point, C Rect  &rect); //         distance between point     and a rectangle
-Flt Dist (C Vec2  &point, C RectI &rect); //         distance between point     and a rectangle
-Dbl Dist (C VecD2 &point, C RectD &rect); //         distance between point     and a rectangle
-Dbl Dist (C VecD2 &point, C RectI &rect); //         distance between point     and a rectangle
-Flt Dist2(C Vec2  &point, C Rect  &rect); // squared distance between point     and a rectangle
-Flt Dist2(C Vec2  &point, C RectI &rect); // squared distance between point     and a rectangle
-Dbl Dist2(C VecD2 &point, C RectD &rect); // squared distance between point     and a rectangle
-Dbl Dist2(C VecD2 &point, C RectI &rect); // squared distance between point     and a rectangle
-Flt Dist (C Rect  &a    , C Rect  &b   ); //         distance between rectangle and a rectangle
+Flt Dist (C Vec2  &point, C Rect   &rect ); //         distance between point     and a rectangle
+Flt Dist (C Vec2  &point, C RectI  &rect ); //         distance between point     and a rectangle
+Dbl Dist (C VecD2 &point, C RectD  &rect ); //         distance between point     and a rectangle
+Dbl Dist (C VecD2 &point, C RectI  &rect ); //         distance between point     and a rectangle
+Flt Dist2(C Vec2  &point, C Rect   &rect ); // squared distance between point     and a rectangle
+Flt Dist2(C Vec2  &point, C RectI  &rect ); // squared distance between point     and a rectangle
+Dbl Dist2(C VecD2 &point, C RectD  &rect ); // squared distance between point     and a rectangle
+Dbl Dist2(C VecD2 &point, C RectI  &rect ); // squared distance between point     and a rectangle
+Flt Dist (C Rect  &a    , C Rect   &b    ); //         distance between rectangle and a rectangle
+Flt Dist (C Rect  &rect , C Plane2 &plane); //         distance between rectangle and a plane
+
+Flt MaxDist(C Rect &rect, C Plane2 &plane); // maximum distance between rectangle and a plane
 
 Flt Dist2PointSquare(C Vec2  &pos, C Vec2  &square_center, Flt square_radius);
 Flt Dist2PointSquare(C Vec2  &pos, C VecI2 &square_center, Flt square_radius);
@@ -456,10 +467,25 @@ inline Bool Cuts   (C VecI2 &point, C RectI &rect) {return rect.includes(point);
        Bool Cuts   (C Rect  &a    , C Rect  &b   );                               // if rectangle cuts rectangle
        Bool Cuts   (C RectI &a    , C RectI &b   );                               // if rectangle cuts rectangle
        Bool CutsEps(C Vec2  &point, C Rect  &rect);                               // if point     cuts rectangle, with EPS epsilon tolerance
+#if EE_PRIVATE
+       Bool CutsX  (C Rect  &a    , C Rect  &b   );                               // if rectangle cuts rectangle in X coordinates
+       Bool CutsY  (C Rect  &a    , C Rect  &b   );                               // if rectangle cuts rectangle in Y coordinates
+       Bool CoverX (C Rect  &a    , C Rect  &b   );                               // if rectangles cover each other (at least partially) in X coordinates, returns false if only borders are touching
+       Bool CoverY (C Rect  &a    , C Rect  &b   );                               // if rectangles cover each other (at least partially) in Y coordinates, returns false if only borders are touching
+#endif
 
 Bool Inside   (C Rect  &a, C Rect  &b); // if 'a' is fully inside 'b'
 Bool Inside   (C RectI &a, C RectI &b); // if 'a' is fully inside 'b'
 Bool InsideEps(C Rect  &a, C Rect  &b); // if 'a' is fully inside 'b', with EPS epsilon tolerance
+
+Bool Cover(C Rect &a, C Rect &b); // if rectangles cover each other (at least partially), returns false if only borders are touching
+
+// delta
+Vec2 Delta(C Rect &a, C Rect &b); // get delta from 'a' to 'b' rectangle (shortest vector that connects the rectangles)
+#if EE_PRIVATE
+Flt DeltaX(C Rect &a, C Rect &b); // get delta.x from 'a' to 'b' rectangle (shortest vector that connects the rectangles)
+Flt DeltaY(C Rect &a, C Rect &b); // get delta.y from 'a' to 'b' rectangle (shortest vector that connects the rectangles)
+#endif
 
 // fit
 Rect Fit(Flt src_aspect, C Rect &dest_rect, FIT_MODE fit=FIT_FULL); // get a rectangle that will fit in the 'dest_rect' while preserving the 'src_aspect' source aspect ratio using the 'fit' mode

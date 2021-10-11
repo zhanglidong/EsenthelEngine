@@ -352,10 +352,13 @@ MeshBase& MeshBase::explodeVtxs()
 static INLINE Flt Crease(C Vec &n) {Flt l=n.length2(); return l ? 1/Sqrt(l) : 0;} // this function will make the formula work as if 'n' is normalized and then final value scaled by original length, scale is performed to avoid cases where both normal vectors are similar and its cross product has very small length (direction could be incorrect due to precision issues)
 struct TriHull
 {
-   Vec P0, P1, P2,   B210, B120, B021, B012, B102, B201, B111,
-       N0, N1, N2,   N110, N011, N101;
+   Vec P0, P1, P2,
+       N0, N1, N2;
 
 #if 0 // unoptimized original version
+   Vec B210, B120, B021, B012, B102, B201, B111,
+       N110, N011, N101;
+
    void set01()
    {
 		B210=(2*P0 + P1 - Dot(P1-P0, N0)*N0)/3;
@@ -418,77 +421,92 @@ struct TriHull
       nrm=N0   *  WW
         + N1   *  UU
         + N2   *  VV
-        + N110 * (W * U)
-        + N011 * (U * V)
-        + N101 * (W * V);
+        + N110 * (W * U * 2)  // *2 makes sure that sum of all weights is 1 and that normals from tesselated triangles will match normals from tesselated quads (original version didn't have this)
+        + N011 * (U * V * 2)  // *2 makes sure that sum of all weights is 1 and that normals from tesselated triangles will match normals from tesselated quads (original version didn't have this)
+        + N101 * (W * V * 2); // *2 makes sure that sum of all weights is 1 and that normals from tesselated triangles will match normals from tesselated quads (original version didn't have this)
       nrm.normalize();
    }
-#else // optimized, where all B* are 3x bigger, except 'B111' which is 6x bigger
+#else // optimized, where all B* are 3x bigger, except 'B111' which is 6x bigger, and N*** are 2x bigger
+   Vec B210_3, B120_3, B021_3, B012_3, B102_3, B201_3, B111_6,
+       N110_2, N011_2, N101_2;
+
    void set01()
    {
-		B210=2*P0 + P1 - Dot(P1-P0, N0)*N0;
-		B120=2*P1 + P0 - Dot(P0-P1, N1)*N1;
+		B210_3=2*P0 + P1 - Dot(P1-P0, N0)*N0;
+		B120_3=2*P1 + P0 - Dot(P0-P1, N1)*N1;
    }
    void set12()
    {
-		B021=2*P1 + P2 - Dot(P2-P1, N1)*N1;
-		B012=2*P2 + P1 - Dot(P1-P2, N2)*N2;
+		B021_3=2*P1 + P2 - Dot(P2-P1, N1)*N1;
+		B012_3=2*P2 + P1 - Dot(P1-P2, N2)*N2;
    }
    void set20()
    {
-		B102=2*P2 + P0 - Dot(P0-P2, N2)*N2;
-		B201=2*P0 + P2 - Dot(P2-P0, N0)*N0;
+		B102_3=2*P2 + P0 - Dot(P0-P2, N2)*N2;
+		B201_3=2*P0 + P2 - Dot(P2-P0, N0)*N0;
    }
    void set01(C Vec &NA, C Vec &NB)
    {
-      Vec N=Cross(N0, NA); B210=P0*3+(Dot(P1-P0, N)*Crease(N))*N;
-          N=Cross(N1, NB); B120=P1*3+(Dot(P0-P1, N)*Crease(N))*N;
+      Vec N=Cross(N0, NA); B210_3=P0*3+(Dot(P1-P0, N)*Crease(N))*N;
+          N=Cross(N1, NB); B120_3=P1*3+(Dot(P0-P1, N)*Crease(N))*N;
    }
    void set12(C Vec &NA, C Vec &NB)
    {
-      Vec N=Cross(N1, NA); B021=P1*3+(Dot(P2-P1, N)*Crease(N))*N;
-          N=Cross(N2, NB); B012=P2*3+(Dot(P1-P2, N)*Crease(N))*N;
+      Vec N=Cross(N1, NA); B021_3=P1*3+(Dot(P2-P1, N)*Crease(N))*N;
+          N=Cross(N2, NB); B012_3=P2*3+(Dot(P1-P2, N)*Crease(N))*N;
    }
    void set20(C Vec &NA, C Vec &NB)
    {
-      Vec N=Cross(N2, NA); B102=P2*3+(Dot(P0-P2, N)*Crease(N))*N;
-          N=Cross(N0, NB); B201=P0*3+(Dot(P2-P0, N)*Crease(N))*N;
+      Vec N=Cross(N2, NA); B102_3=P2*3+(Dot(P0-P2, N)*Crease(N))*N;
+          N=Cross(N0, NB); B201_3=P0*3+(Dot(P2-P0, N)*Crease(N))*N;
    }
    void finalize()
    {
-		Vec E=B210+B120+B021+B012+B102+B201,
+		Vec E=B210_3+B120_3+B021_3+B012_3+B102_3+B201_3,
 		    V=P0+P1+P2;
-      B111=E*0.5f-V;
+      B111_6=E*0.5f-V;
 
-		Flt V01=2 * Dot(P1-P0, N0+N1) / Dot(P1-P0, P1-P0); N110=N0 + N1 - V01*(P1-P0); N110.normalize();
-		Flt V12=2 * Dot(P2-P1, N1+N2) / Dot(P2-P1, P2-P1); N011=N1 + N2 - V12*(P2-P1); N011.normalize();
-		Flt V20=2 * Dot(P0-P2, N2+N0) / Dot(P0-P2, P0-P2); N101=N2 + N0 - V20*(P0-P2); N101.normalize();
+		Flt V01=2 * Dot(P1-P0, N0+N1) / Dot(P1-P0, P1-P0); N110_2=N0 + N1 - V01*(P1-P0); N110_2.setLength(2);
+		Flt V12=2 * Dot(P2-P1, N1+N2) / Dot(P2-P1, P2-P1); N011_2=N1 + N2 - V12*(P2-P1); N011_2.setLength(2);
+		Flt V20=2 * Dot(P0-P2, N2+N0) / Dot(P0-P2, P0-P2); N101_2=N2 + N0 - V20*(P0-P2); N101_2.setLength(2);
    }
    void set(Vec &pos, Vec &nrm, Flt U, Flt V)
    {
       Flt W=1-U-V,
           UU=Sqr(U), VV=Sqr(V), WW=Sqr(W);
 
-      pos=P0   * (WW * W)
-        + P1   * (UU * U)
-        + P2   * (VV * V)
-        + B210 * (WW * U)
-        + B120 * (W * UU)
-        + B201 * (WW * V)
-        + B021 * (UU * V)
-        + B102 * (W * VV)
-        + B012 * (U * VV)
-        + B111 * (W * U * V);
+      pos=P0     * (WW * W)
+        + P1     * (UU * U)
+        + P2     * (VV * V)
+        + B210_3 * (WW * U)
+        + B120_3 * (W * UU)
+        + B201_3 * (WW * V)
+        + B021_3 * (UU * V)
+        + B102_3 * (W * VV)
+        + B012_3 * (U * VV)
+        + B111_6 * (W * U * V);
     
-      nrm=N0   *  WW
-        + N1   *  UU
-        + N2   *  VV
-        + N110 * (W * U)
-        + N011 * (U * V)
-        + N101 * (W * V);
+      nrm=N0     *  WW
+        + N1     *  UU
+        + N2     *  VV
+        + N110_2 * (W * U)
+        + N011_2 * (U * V)
+        + N101_2 * (W * V);
       nrm.normalize();
    }
 #endif
+   inline void set(Vec &pos, Vec &nrm, C Vec2 &uv) {set(    pos,     nrm, uv.x, uv.y);}
+   inline void set(VtxFull &vtx      , C Vec2 &uv) {set(vtx.pos, vtx.nrm, uv.x, uv.y);}
+
+   Vec2 uv(Int edge)C // get UV based on edge index in triangle in clockwise order
+   {
+      switch(edge)
+      {
+         default: return Vec2(0.5f, 0   ); // 0
+         case  1: return Vec2(0.5f, 0.5f);
+         case  2: return Vec2(0   , 0.5f);
+      }
+   }
 };
 struct QuadHull
 {
@@ -561,22 +579,37 @@ struct QuadHull
           BV2=3 * V * V * (1-V),
           BV3=V * V * V;
 
-      pos=BV0*(BU0*P0 + BU1*B01 + BU2*B10 + BU3*P1)
+      pos=BV0*(BU0*P0  + BU1*B01 + BU2*B10 + BU3*P1 )
         + BV1*(BU0*B03 + BU1*B02 + BU2*B13 + BU3*B12)
         + BV2*(BU0*B30 + BU1*B31 + BU2*B20 + BU3*B21)
-        + BV3*(BU0*P3 + BU1*B32 + BU2*B23 + BU3*P2);
+        + BV3*(BU0*P3  + BU1*B32 + BU2*B23 + BU3*P2 );
     
-      Flt NU0=(1-U) * (1-U),
-          NU1=2 * U * (1-U),
-          NU2=U * U,
-          NV0=(1-V) * (1-V),
-          NV1=2 * V * (1-V),
-          NV2=V * V;
+      Flt NU0=Sqr(1-U),
+          NU2=Sqr(  U),
+          NU1=2*U*(1-U), // 1-NU0-NU2
+          NV0=Sqr(1-V),
+          NV2=Sqr(  V),
+          NV1=2*V*(1-V); // 1-NV0-NV2
 
-      nrm=NV0*(NU0*N0 + NU1*N01 + NU2*N1)
+      nrm=NV0*(NU0*N0  + NU1*N01   + NU2*N1 )
         + NV1*(NU0*N30 + NU1*N0123 + NU2*N12)
-        + NV2*(NU0*N3 + NU1*N23 + NU2*N2);
+        + NV2*(NU0*N3  + NU1*N23   + NU2*N2 );
+
       nrm.normalize();
+   }
+   inline void set(Vec &pos, Vec &nrm, C Vec2 &uv) {set(    pos,     nrm, uv.x, uv.y);}
+   inline void set(VtxFull &vtx      , C Vec2 &uv) {set(vtx.pos, vtx.nrm, uv.x, uv.y);}
+
+   Vec2 uvCenter(        )C {return Vec2(0.5f, 0.5f);} // get UV for quad center
+   Vec2 uv      (Int edge)C // get UV based on edge index in quad in clockwise order
+   {
+      switch(edge)
+      {
+         default: return Vec2(0.5f, 0   ); // 0
+         case  1: return Vec2(1   , 0.5f);
+         case  2: return Vec2(0.5f, 1   );
+         case  3: return Vec2(0   , 0.5f);
+      }
    }
 };
 static Bool SameNrm(C MeshBase &mesh, Int face, Int v0, Int v1, C Vec &test_n0, C Vec &test_n1, Vec &out_n0, Vec &out_n1) // check if the neighboring 'face' face has the same vtx normals for 'v0,v1' vertexes
@@ -608,11 +641,11 @@ static Bool SameNrm(C MeshBase &mesh, Int face, Int v0, Int v1, C Vec &test_n0, 
    }
    return true;
 }
-MeshBase& MeshBase::tesselate()
+MeshBase& MeshBase::tesselate(Flt weld_pos_eps)
 {
    if(vtx.pos())
    {
-      setVtxDup().setAdjacencies(true);
+      setVtxDup(MESH_NONE, weld_pos_eps).setAdjacencies(true);
 
       // vtxs are created in following order [original_vtxs, tri edges, quad edges & centers]
       Int vtxs=T.vtxs (),
@@ -641,18 +674,18 @@ MeshBase& MeshBase::tesselate()
            *tex3_src=temp.vtx.tex3(),
            *tex3_dst=temp.vtx.tex3();
 
-      VecB4 * mt_src=temp.vtx.matrix  (),
-            * mt_dst=temp.vtx.matrix  ();
-      VecB4 *bln_src=temp.vtx.blend   (),
-            *bln_dst=temp.vtx.blend   ();
-      Flt   *siz_src=temp.vtx.size    (),
-            *siz_dst=temp.vtx.size    ();
-      VecB4 *mtl_src=temp.vtx.material(),
-            *mtl_dst=temp.vtx.material();
-      Color *col_src=temp.vtx.color   (),
-            *col_dst=temp.vtx.color   ();
-      Byte  *flg_src=temp.vtx.flag    (),
-            *flg_dst=temp.vtx.flag    ();
+      VecB4 *mtrx_src=temp.vtx.matrix  (),
+            *mtrx_dst=temp.vtx.matrix  ();
+      VecB4 *blnd_src=temp.vtx.blend   (),
+            *blnd_dst=temp.vtx.blend   ();
+      Flt   *size_src=temp.vtx.size    (),
+            *size_dst=temp.vtx.size    ();
+      VecB4 *mtrl_src=temp.vtx.material(),
+            *mtrl_dst=temp.vtx.material();
+      Color * col_src=temp.vtx.color   (),
+            * col_dst=temp.vtx.color   ();
+      Byte  *flag_src=temp.vtx.flag    (),
+            *flag_dst=temp.vtx.flag    ();
 
       VecI  *tri_src   =     tri .ind    (),
             *tri_dst   =temp.tri .ind    (),
@@ -679,12 +712,12 @@ MeshBase& MeshBase::tesselate()
       if(tex1_dst){CopyN(tex1_dst, vtx.tex1    (), vtxs); tex1_dst+=vtxs;}
       if(tex2_dst){CopyN(tex2_dst, vtx.tex2    (), vtxs); tex2_dst+=vtxs;}
       if(tex3_dst){CopyN(tex3_dst, vtx.tex3    (), vtxs); tex3_dst+=vtxs;}
-      if(  mt_dst){CopyN(  mt_dst, vtx.matrix  (), vtxs);   mt_dst+=vtxs;}
-      if( bln_dst){CopyN( bln_dst, vtx.blend   (), vtxs);  bln_dst+=vtxs;}
-      if( siz_dst){CopyN( siz_dst, vtx.size    (), vtxs);  siz_dst+=vtxs;}
-      if( mtl_dst){CopyN( mtl_dst, vtx.material(), vtxs);  mtl_dst+=vtxs;}
+      if(mtrx_dst){CopyN(mtrx_dst, vtx.matrix  (), vtxs); mtrx_dst+=vtxs;}
+      if(blnd_dst){CopyN(blnd_dst, vtx.blend   (), vtxs); blnd_dst+=vtxs;}
+      if(size_dst){CopyN(size_dst, vtx.size    (), vtxs); size_dst+=vtxs;}
+      if(mtrl_dst){CopyN(mtrl_dst, vtx.material(), vtxs); mtrl_dst+=vtxs;}
       if( col_dst){CopyN( col_dst, vtx.color   (), vtxs);  col_dst+=vtxs;}
-      if( flg_dst){CopyN( flg_dst, vtx.flag    (), vtxs);  flg_dst+=vtxs;}
+      if(flag_dst){CopyN(flag_dst, vtx.flag    (), vtxs); flag_dst+=vtxs;}
 
       // set faces
       FREP(tris)
@@ -725,9 +758,9 @@ MeshBase& MeshBase::tesselate()
 
             hull.finalize();
 
-            hull.set(pos_dst[0], nrm_dst[0], 0.5f, 0);
+            hull.set(pos_dst[0], nrm_dst[0], 0.5f,    0);
             hull.set(pos_dst[1], nrm_dst[1], 0.5f, 0.5f);
-            hull.set(pos_dst[2], nrm_dst[2], 0, 0.5f);
+            hull.set(pos_dst[2], nrm_dst[2],    0, 0.5f);
             pos_dst+=3;
             nrm_dst+=3;
          }else
@@ -794,21 +827,21 @@ MeshBase& MeshBase::tesselate()
             tex3_dst[2]=Avg(t2, t0);
             tex3_dst+=3;
          }
-         if(siz_dst)
+         if(size_dst)
          {
-            Flt s0=siz_src[ind.x], s1=siz_src[ind.y], s2=siz_src[ind.z];
-            siz_dst[0]=Avg(s0, s1);
-            siz_dst[1]=Avg(s1, s2);
-            siz_dst[2]=Avg(s2, s0);
-            siz_dst+=3;
+            Flt s0=size_src[ind.x], s1=size_src[ind.y], s2=size_src[ind.z];
+            size_dst[0]=Avg(s0, s1);
+            size_dst[1]=Avg(s1, s2);
+            size_dst[2]=Avg(s2, s0);
+            size_dst+=3;
          }
-         if(mtl_dst)
+         if(mtrl_dst)
          {
-            VecB4 m0=mtl_src[ind.x], m1=mtl_src[ind.y], m2=mtl_src[ind.z];
-            mtl_dst[0]=AvgI(m0, m1);
-            mtl_dst[1]=AvgI(m1, m2);
-            mtl_dst[2]=AvgI(m2, m0);
-            mtl_dst+=3;
+            VecB4 m0=mtrl_src[ind.x], m1=mtrl_src[ind.y], m2=mtrl_src[ind.z];
+            mtrl_dst[0]=AvgI(m0, m1);
+            mtrl_dst[1]=AvgI(m1, m2);
+            mtrl_dst[2]=AvgI(m2, m0);
+            mtrl_dst+=3;
          }
          if(col_dst)
          {
@@ -818,45 +851,45 @@ MeshBase& MeshBase::tesselate()
             col_dst[2]=Avg(c2, c0);
             col_dst+=3;
          }
-         if(flg_dst)
+         if(flag_dst)
          {
-            Byte f0=flg_src[ind.x], f1=flg_src[ind.y], f2=flg_src[ind.z];
-            flg_dst[0]=(f0|f1);
-            flg_dst[1]=(f1|f2);
-            flg_dst[2]=(f2|f0);
-            flg_dst+=3;
+            Byte f0=flag_src[ind.x], f1=flag_src[ind.y], f2=flag_src[ind.z];
+            flag_dst[0]=(f0|f1);
+            flag_dst[1]=(f1|f2);
+            flag_dst[2]=(f2|f0);
+            flag_dst+=3;
          }
-         if(mt_dst && bln_dst)
+         if(mtrx_dst && blnd_dst)
          {
-            VecB4 m0= mt_src[ind.x], m1= mt_src[ind.y], m2= mt_src[ind.z];
-            VecB4 b0=bln_src[ind.x], b1=bln_src[ind.y], b2=bln_src[ind.z];
+            VecB4 m0=mtrx_src[ind.x], m1=mtrx_src[ind.y], m2=mtrx_src[ind.z];
+            VecB4 b0=blnd_src[ind.x], b1=blnd_src[ind.y], b2=blnd_src[ind.z];
 
             REP(4)skin.New().set(m0.c[i], b0.c[i]);
             REP(4)skin.New().set(m1.c[i], b1.c[i]);
-            SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+            SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
 
             REP(4)skin.New().set(m1.c[i], b1.c[i]);
             REP(4)skin.New().set(m2.c[i], b2.c[i]);
-            SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+            SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
 
             REP(4)skin.New().set(m2.c[i], b2.c[i]);
             REP(4)skin.New().set(m0.c[i], b0.c[i]);
-            SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+            SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
          }else
          {
-            if(mt_dst)
+            if(mtrx_dst)
             {
-               mt_dst[0]=mt_src[ind.x]; // just copy from first point, because we need correct data and blending with sum of 255
-               mt_dst[1]=mt_src[ind.y];
-               mt_dst[2]=mt_src[ind.z];
-               mt_dst+=3;
+               mtrx_dst[0]=mtrx_src[ind.x]; // just copy from first point, because we need correct data and blending with sum of 255
+               mtrx_dst[1]=mtrx_src[ind.y];
+               mtrx_dst[2]=mtrx_src[ind.z];
+               mtrx_dst+=3;
             }
-            if(bln_dst)
+            if(blnd_dst)
             {
-               bln_dst[0]=bln_src[ind.x]; // just copy from first point, because we need correct data and blending with sum of 255
-               bln_dst[1]=bln_src[ind.y];
-               bln_dst[2]=bln_src[ind.z];
-               bln_dst+=3;
+               blnd_dst[0]=blnd_src[ind.x]; // just copy from first point, because we need correct data and blending with sum of 255
+               blnd_dst[1]=blnd_src[ind.y];
+               blnd_dst[2]=blnd_src[ind.z];
+               blnd_dst+=3;
             }
          }
          vtxs+=3;
@@ -902,10 +935,10 @@ MeshBase& MeshBase::tesselate()
 
             hull.finalize();
 
-            hull.set(pos_dst[0], nrm_dst[0], 0.5f, 0);
-            hull.set(pos_dst[1], nrm_dst[1], 1, 0.5f);
-            hull.set(pos_dst[2], nrm_dst[2], 0.5f, 1);
-            hull.set(pos_dst[3], nrm_dst[3], 0, 0.5f);
+            hull.set(pos_dst[0], nrm_dst[0], 0.5f, 0   );
+            hull.set(pos_dst[1], nrm_dst[1], 1   , 0.5f);
+            hull.set(pos_dst[2], nrm_dst[2], 0.5f, 1   );
+            hull.set(pos_dst[3], nrm_dst[3], 0   , 0.5f);
             hull.set(pos_dst[4], nrm_dst[4], 0.5f, 0.5f);
             pos_dst+=5;
             nrm_dst+=5;
@@ -989,25 +1022,25 @@ MeshBase& MeshBase::tesselate()
             tex3_dst[4]=Avg(t0, t1, t2, t3);
             tex3_dst+=5;
          }
-         if(siz_dst)
+         if(size_dst)
          {
-            Flt s0=siz_src[ind.x], s1=siz_src[ind.y], s2=siz_src[ind.z], s3=siz_src[ind.w];
-            siz_dst[0]=Avg(s0, s1);
-            siz_dst[1]=Avg(s1, s2);
-            siz_dst[2]=Avg(s2, s3);
-            siz_dst[3]=Avg(s3, s0);
-            siz_dst[4]=Avg(s0, s1, s2, s3);
-            siz_dst+=5;
+            Flt s0=size_src[ind.x], s1=size_src[ind.y], s2=size_src[ind.z], s3=size_src[ind.w];
+            size_dst[0]=Avg(s0, s1);
+            size_dst[1]=Avg(s1, s2);
+            size_dst[2]=Avg(s2, s3);
+            size_dst[3]=Avg(s3, s0);
+            size_dst[4]=Avg(s0, s1, s2, s3);
+            size_dst+=5;
          }
-         if(mtl_dst)
+         if(mtrl_dst)
          {
-            VecB4 m0=mtl_src[ind.x], m1=mtl_src[ind.y], m2=mtl_src[ind.z], m3=mtl_src[ind.w];
-            mtl_dst[0]=AvgI(m0, m1);
-            mtl_dst[1]=AvgI(m1, m2);
-            mtl_dst[2]=AvgI(m2, m3);
-            mtl_dst[3]=AvgI(m3, m0);
-            mtl_dst[4]=AvgI(m0, m1, m2, m3);
-            mtl_dst+=5;
+            VecB4 m0=mtrl_src[ind.x], m1=mtrl_src[ind.y], m2=mtrl_src[ind.z], m3=mtrl_src[ind.w];
+            mtrl_dst[0]=AvgI(m0, m1);
+            mtrl_dst[1]=AvgI(m1, m2);
+            mtrl_dst[2]=AvgI(m2, m3);
+            mtrl_dst[3]=AvgI(m3, m0);
+            mtrl_dst[4]=AvgI(m0, m1, m2, m3);
+            mtrl_dst+=5;
          }
          if(col_dst)
          {
@@ -1019,68 +1052,261 @@ MeshBase& MeshBase::tesselate()
             col_dst[4]=Avg(c0, c1, c2, c3);
             col_dst+=5;
          }
-         if(flg_dst)
+         if(flag_dst)
          {
-            Byte f0=flg_src[ind.x], f1=flg_src[ind.y], f2=flg_src[ind.z], f3=flg_src[ind.w];
-            flg_dst[0]=(f0|f1);
-            flg_dst[1]=(f1|f2);
-            flg_dst[2]=(f2|f3);
-            flg_dst[3]=(f3|f0);
-            flg_dst[4]=(f0|f1|f2|f3);
-            flg_dst+=5;
+            Byte f0=flag_src[ind.x], f1=flag_src[ind.y], f2=flag_src[ind.z], f3=flag_src[ind.w];
+            flag_dst[0]=(f0|f1);
+            flag_dst[1]=(f1|f2);
+            flag_dst[2]=(f2|f3);
+            flag_dst[3]=(f3|f0);
+            flag_dst[4]=(f0|f1|f2|f3);
+            flag_dst+=5;
          }
-         if(mt_dst && bln_dst)
+         if(mtrx_dst && blnd_dst)
          {
-            VecB4 m0= mt_src[ind.x], m1= mt_src[ind.y], m2= mt_src[ind.z], m3= mt_src[ind.w];
-            VecB4 b0=bln_src[ind.x], b1=bln_src[ind.y], b2=bln_src[ind.z], b3=bln_src[ind.w];
+            VecB4 m0=mtrx_src[ind.x], m1=mtrx_src[ind.y], m2=mtrx_src[ind.z], m3=mtrx_src[ind.w];
+            VecB4 b0=blnd_src[ind.x], b1=blnd_src[ind.y], b2=blnd_src[ind.z], b3=blnd_src[ind.w];
 
             REP(4)skin.New().set(m0.c[i], b0.c[i]);
             REP(4)skin.New().set(m1.c[i], b1.c[i]);
-            SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+            SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
 
             REP(4)skin.New().set(m1.c[i], b1.c[i]);
             REP(4)skin.New().set(m2.c[i], b2.c[i]);
-            SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+            SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
 
             REP(4)skin.New().set(m2.c[i], b2.c[i]);
             REP(4)skin.New().set(m3.c[i], b3.c[i]);
-            SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+            SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
 
             REP(4)skin.New().set(m3.c[i], b3.c[i]);
             REP(4)skin.New().set(m0.c[i], b0.c[i]);
-            SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+            SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
 
             REP(4)skin.New().set(m0.c[i], b0.c[i]);
             REP(4)skin.New().set(m1.c[i], b1.c[i]);
             REP(4)skin.New().set(m2.c[i], b2.c[i]);
             REP(4)skin.New().set(m3.c[i], b3.c[i]);
-            SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+            SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
          }else
          {
-            if(mt_dst)
+            if(mtrx_dst)
             {
-               mt_dst[0]=mt_src[ind.x]; // just copy from first point, because we need correct data and blending with sum of 255
-               mt_dst[1]=mt_src[ind.y];
-               mt_dst[2]=mt_src[ind.z];
-               mt_dst[3]=mt_src[ind.w];
-               mt_dst[4]=mt_src[ind.x];
-               mt_dst+=5;
+               mtrx_dst[0]=mtrx_src[ind.x]; // just copy from first point, because we need correct data and blending with sum of 255
+               mtrx_dst[1]=mtrx_src[ind.y];
+               mtrx_dst[2]=mtrx_src[ind.z];
+               mtrx_dst[3]=mtrx_src[ind.w];
+               mtrx_dst[4]=mtrx_src[ind.x];
+               mtrx_dst+=5;
             }
-            if(bln_dst)
+            if(blnd_dst)
             {
-               bln_dst[0]=bln_src[ind.x]; // just copy from first point, because we need correct data and blending with sum of 255
-               bln_dst[1]=bln_src[ind.y];
-               bln_dst[2]=bln_src[ind.z];
-               bln_dst[3]=bln_src[ind.w];
-               bln_dst[4]=bln_src[ind.x];
-               bln_dst+=5;
+               blnd_dst[0]=blnd_src[ind.x]; // just copy from first point, because we need correct data and blending with sum of 255
+               blnd_dst[1]=blnd_src[ind.y];
+               blnd_dst[2]=blnd_src[ind.z];
+               blnd_dst[3]=blnd_src[ind.w];
+               blnd_dst[4]=blnd_src[ind.x];
+               blnd_dst+=5;
             }
          }
          vtxs+=5;
       }
 
-      temp.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small pos epsilon in case mesh is scaled down
+      temp.weldVtx(VTX_ALL, weld_pos_eps, EPS_COL_COS, -1);
       Swap(temp, T);
+   }
+   return T;
+}
+MeshBase& MeshBase::tesselate(C CMemPtr<Int > &vtx_sel, Flt weld_pos_eps) {Memt<Bool> vtx_is; CreateIs(vtx_is, vtx_sel, vtxs()); return tesselate(vtx_is, weld_pos_eps);}
+MeshBase& MeshBase::tesselate(C CMemPtr<Bool> &vtx_sel, Flt weld_pos_eps)
+{
+   if(C Vec *vtx_pos=vtx.pos())
+   {
+      setVtxDup(MESH_NONE, weld_pos_eps).setAdjacencies(true);
+
+    C Vec   *vtx_nrm =vtx .nrm    ();
+    C Int   *vtx_dup =vtx .dup    ();
+    C VecI  *tri_adjf=tri .adjFace();
+    C VecI4 *qud_adjf=quad.adjFace();
+
+      Memc<VtxFull>  vtxs;
+      Memc<VecI   >  tris;
+      Memc<VecI4  > quads;
+      Bool vs[4]; // cached copy of selected vertexes in a face
+
+       vtxs.reserve(T. vtxs() + T.tris()*3 + T.quads()*5);
+       tris.reserve(T. tris()*4);
+      quads.reserve(T.quads()*4);
+
+      FREPA(tri)
+      {
+         VecI ind=tri.ind(i);
+         Int  tess_vtxs=0; REPA(ind)if(vs[i]=vtx_sel[ind.c[i]])tess_vtxs++; // how many vertexes want to be tesselated
+         Int  ofs=vtxs.elms(); // vertex offset - how many vtxs created so far
+         FREPA(ind)vtxs.New().from(T, ind.c[i]); // copy original vtxs
+         if(tess_vtxs<2)tris.New().set(ofs, ofs+1, ofs+2);else // set as original
+         {
+            TriHull hull;
+            if(vtx_nrm)
+            {
+               hull.P0=vtx_pos[ind.x];
+               hull.P1=vtx_pos[ind.y];
+               hull.P2=vtx_pos[ind.z];
+               hull.N0=vtx_nrm[ind.x];
+		         hull.N1=vtx_nrm[ind.y];
+		         hull.N2=vtx_nrm[ind.z];
+
+               VecI af=tri_adjf[i], ind_dup=ind; ind_dup.remap(vtx_dup); Vec NA, NB;
+               if(SameNrm(T, af.x, ind_dup.x, ind_dup.y, hull.N0, hull.N1, NA, NB))hull.set01();else hull.set01(NA, NB);
+               if(SameNrm(T, af.y, ind_dup.y, ind_dup.z, hull.N1, hull.N2, NA, NB))hull.set12();else hull.set12(NA, NB);
+               if(SameNrm(T, af.z, ind_dup.z, ind_dup.x, hull.N2, hull.N0, NA, NB))hull.set20();else hull.set20(NA, NB);
+
+               hull.finalize();
+            }
+            if(tess_vtxs==3) // if all want to be tesselated
+            {
+               vtxs.addNum(3); // make room for 3 vtxs at edges !! important to call this instead of "vtxs.New().avg(vtxs..)" because 'New' might change memory address !!
+               vtxs[ofs+3].avg(vtxs[ofs+0], vtxs[ofs+1]);
+               vtxs[ofs+4].avg(vtxs[ofs+1], vtxs[ofs+2]);
+               vtxs[ofs+5].avg(vtxs[ofs+2], vtxs[ofs+0]);
+               if(vtx_nrm)
+               {
+                  hull.set(vtxs[ofs+3], hull.uv(0));
+                  hull.set(vtxs[ofs+4], hull.uv(1));
+                  hull.set(vtxs[ofs+5], hull.uv(2));
+               }
+               tris.New().set(ofs+0, ofs+3, ofs+5);
+               tris.New().set(ofs+3, ofs+4, ofs+5);
+               tris.New().set(ofs+5, ofs+4, ofs+2);
+               tris.New().set(ofs+4, ofs+3, ofs+1);
+            }else
+            REPAD(v0, ind) // check which face vtxs want to be tesselated
+               if(vs[v0]) // if 'v0' wants
+            {
+               Int v1=(v0+1)%Elms(ind); if(vs[v1]) // and 'v1' wants
+               {
+                  Int v2=(v0+2)%Elms(ind);
+                  vtxs.addNum(1); // create 1 vtx at v0-v1 edge !! important to call this instead of "vtxs.New().avg(vtxs..)" because 'New' might change memory address !!
+                  vtxs[ofs+3].avg(vtxs[ofs+v0], vtxs[ofs+v1]);
+                  if(vtx_nrm)hull.set(vtxs[ofs+3], hull.uv(v0));
+                  tris.New().set(ofs+v0, ofs+3, ofs+v2);
+                  tris.New().set(ofs+v2, ofs+3, ofs+v1);
+                  break;
+               }
+            }
+         }
+      }
+
+      FREPA(quad)
+      {
+         VecI4 ind=quad.ind(i);
+         Int   tess_vtxs=0; REPA(ind)if(vs[i]=vtx_sel[ind.c[i]])tess_vtxs++; // how many vtxs want to be tesselated
+         Int   ofs=vtxs.elms(); // vertex offset - how many vtxs created so far
+         FREPA(ind)vtxs.New().from(T, ind.c[i]); // copy original vtxs
+         if(tess_vtxs<2)quads.New().set(ofs, ofs+1, ofs+2, ofs+3);else // set as original
+         {
+            QuadHull hull;
+            if(vtx_nrm)
+            {
+               hull.P0=vtx_pos[ind.x];
+               hull.P1=vtx_pos[ind.y];
+               hull.P2=vtx_pos[ind.z];
+               hull.P3=vtx_pos[ind.w];
+               hull.N0=vtx_nrm[ind.x];
+		         hull.N1=vtx_nrm[ind.y];
+		         hull.N2=vtx_nrm[ind.z];
+		         hull.N3=vtx_nrm[ind.w];
+
+               VecI4 af=qud_adjf[i], ind_dup=ind; ind_dup.remap(vtx_dup); Vec NA, NB;
+               if(SameNrm(T, af.x, ind_dup.x, ind_dup.y, hull.N0, hull.N1, NA, NB))hull.set01();else hull.set01(NA, NB);
+               if(SameNrm(T, af.y, ind_dup.y, ind_dup.z, hull.N1, hull.N2, NA, NB))hull.set12();else hull.set12(NA, NB);
+               if(SameNrm(T, af.z, ind_dup.z, ind_dup.w, hull.N2, hull.N3, NA, NB))hull.set23();else hull.set23(NA, NB);
+               if(SameNrm(T, af.w, ind_dup.w, ind_dup.x, hull.N3, hull.N0, NA, NB))hull.set30();else hull.set30(NA, NB);
+
+               hull.finalize();
+            }
+            if(tess_vtxs==4) // if all want to be tesselated
+            {
+               vtxs.addNum(5); // make room for 4 vtxs at edges and 1 at center !! important to call this instead of "vtxs.New().avg(vtxs..)" because 'New' might change memory address !!
+               vtxs[ofs+4].avg(vtxs[ofs+0], vtxs[ofs+1]);
+               vtxs[ofs+5].avg(vtxs[ofs+1], vtxs[ofs+2]);
+               vtxs[ofs+6].avg(vtxs[ofs+2], vtxs[ofs+3]);
+               vtxs[ofs+7].avg(vtxs[ofs+3], vtxs[ofs+0]);
+               vtxs[ofs+8].avg(vtxs[ofs+0], vtxs[ofs+1], vtxs[ofs+2], vtxs[ofs+3]);
+               if(vtx_nrm)
+               {
+                  hull.set(vtxs[ofs+4], hull.uv(0));
+                  hull.set(vtxs[ofs+5], hull.uv(1));
+                  hull.set(vtxs[ofs+6], hull.uv(2));
+                  hull.set(vtxs[ofs+7], hull.uv(3));
+                  hull.set(vtxs[ofs+8], hull.uvCenter());
+               }
+               quads.New().set(ofs+0, ofs+4, ofs+8, ofs+7);
+               quads.New().set(ofs+1, ofs+5, ofs+8, ofs+4);
+               quads.New().set(ofs+2, ofs+6, ofs+8, ofs+5);
+               quads.New().set(ofs+3, ofs+7, ofs+8, ofs+6);
+            }else
+            REPAD(v0, ind) // check which face vtxs want to be tesselated
+               if(vs[v0]) // if 'v0' wants
+            {
+               Int v1=(v0+1)%Elms(ind);
+               Int v2=(v0+2)%Elms(ind);
+               Int v3=(v0+3)%Elms(ind);
+               if(tess_vtxs==3)
+               {
+                  if(vs[v1] && vs[v2]) // and 'v1' 'v2' want
+                  {
+                     vtxs.addNum(3); // create vtx at v0-v1 edge, v1-v2 edge, center !! important to call this instead of "vtxs.New().avg(vtxs..)" because 'New' might change memory address !!
+                     vtxs[ofs+4].avg(vtxs[ofs+v0], vtxs[ofs+v1]); // v0-v1
+                     vtxs[ofs+5].avg(vtxs[ofs+v1], vtxs[ofs+v2]); // v1-v2
+                     vtxs[ofs+6].avg(vtxs[ofs+ 0], vtxs[ofs+ 1], vtxs[ofs+2], vtxs[ofs+3]); // center
+                     if(vtx_nrm)
+                     {
+                        hull.set(vtxs[ofs+4], hull.uv(v0));
+                        hull.set(vtxs[ofs+5], hull.uv(v1));
+                        hull.set(vtxs[ofs+6], hull.uvCenter());
+                     }
+                      tris.New().set(ofs+v3, ofs+v0, ofs+6); // big
+                      tris.New().set(ofs+v2, ofs+v3, ofs+6); // big
+                      tris.New().set(ofs+v0, ofs+ 4, ofs+6); // small
+                      tris.New().set(ofs+ 5, ofs+v2, ofs+6); // small
+                     quads.New().set(ofs+v1, ofs+ 5, ofs+6, ofs+4);
+                     break;
+                  }
+               }else
+             //if(tess_vtxs==2)
+               {
+                  if(vs[v1]) // and 'v1' wants
+                  {
+                     vtxs.addNum(1); // create vtx at v0-v1 edge !! important to call this instead of "vtxs.New().avg(vtxs..)" because 'New' might change memory address !!
+                     vtxs[ofs+4].avg(vtxs[ofs+v0], vtxs[ofs+v1]); // v0-v1
+                     if(vtx_nrm)hull.set(vtxs[ofs+4], hull.uv(v0));
+                     tris.New().set(ofs+v0, ofs+ 4, ofs+v3);
+                     tris.New().set(ofs+ 4, ofs+v1, ofs+v2);
+                     tris.New().set(ofs+v2, ofs+v3, ofs+ 4);
+                     break;
+                  }
+                  if(vs[v2]) // and 'v2' wants
+                  {
+                     vtxs.addNum(1); // create vtx at center !! important to call this instead of "vtxs.New().avg(vtxs..)" because 'New' might change memory address !!
+                     vtxs[ofs+4].avg(vtxs[ofs+0], vtxs[ofs+1], vtxs[ofs+2], vtxs[ofs+3]); // center
+                     if(vtx_nrm)hull.set(vtxs[ofs+4], hull.uvCenter());
+                     tris.New().set(ofs+v0, ofs+v1, ofs+4);
+                     tris.New().set(ofs+v1, ofs+v2, ofs+4);
+                     tris.New().set(ofs+v2, ofs+v3, ofs+4);
+                     tris.New().set(ofs+v3, ofs+v0, ofs+4);
+                     break;
+                  }
+               }
+            }
+         }
+      }
+
+      create(vtxs.elms(), 0, tris.elms(), quads.elms(), flag()&~(VTX_DUP|EDGE_ALL|ADJ_ALL|FACE_NRM));
+      REPA( vtxs)vtxs[i].to(T, i);
+      REPA( tris) tri.ind(i)= tris[i];
+      REPA(quads)quad.ind(i)=quads[i];
+      weldVtx(VTX_ALL, weld_pos_eps, EPS_COL_COS, -1);
    }
    return T;
 }
@@ -1159,18 +1385,18 @@ MeshBase& MeshBase::subdivide()
         *tex3_src=temp.vtx.tex3(),
         *tex3_dst=temp.vtx.tex3();
 
-   VecB4 * mt_src=temp.vtx.matrix  (),
-         * mt_dst=temp.vtx.matrix  ();
-   VecB4 *bln_src=temp.vtx.blend   (),
-         *bln_dst=temp.vtx.blend   ();
-   Flt   *siz_src=temp.vtx.size    (),
-         *siz_dst=temp.vtx.size    ();
-   VecB4 *mtl_src=temp.vtx.material(),
-         *mtl_dst=temp.vtx.material();
-   Color *col_src=temp.vtx.color   (),
-         *col_dst=temp.vtx.color   ();
-   Byte  *flg_src=temp.vtx.flag    (),
-         *flg_dst=temp.vtx.flag    ();
+   VecB4 *mtrx_src=temp.vtx.matrix  (),
+         *mtrx_dst=temp.vtx.matrix  ();
+   VecB4 *blnd_src=temp.vtx.blend   (),
+         *blnd_dst=temp.vtx.blend   ();
+   Flt   *size_src=temp.vtx.size    (),
+         *size_dst=temp.vtx.size    ();
+   VecB4 *mtrl_src=temp.vtx.material(),
+         *mtrl_dst=temp.vtx.material();
+   Color * col_src=temp.vtx.color   (),
+         * col_dst=temp.vtx.color   ();
+   Byte  *flag_src=temp.vtx.flag    (),
+         *flag_dst=temp.vtx.flag    ();
 
    VecI2 *edg_src=     edge.ind    (),
          *edg_adj=     edge.adjFace();
@@ -1189,12 +1415,12 @@ MeshBase& MeshBase::subdivide()
    if(tex1_dst){CopyN(tex1_dst, vtx.tex1    (), vtxs); tex1_dst+=vtxs;}
    if(tex2_dst){CopyN(tex2_dst, vtx.tex2    (), vtxs); tex2_dst+=vtxs;}
    if(tex3_dst){CopyN(tex3_dst, vtx.tex3    (), vtxs); tex3_dst+=vtxs;}
-   if(  mt_dst){CopyN(  mt_dst, vtx.matrix  (), vtxs);   mt_dst+=vtxs;}
-   if( bln_dst){CopyN( bln_dst, vtx.blend   (), vtxs);  bln_dst+=vtxs;}
-   if( siz_dst){CopyN( siz_dst, vtx.size    (), vtxs);  siz_dst+=vtxs;}
-   if( mtl_dst){CopyN( mtl_dst, vtx.material(), vtxs);  mtl_dst+=vtxs;}
+   if(mtrx_dst){CopyN(mtrx_dst, vtx.matrix  (), vtxs); mtrx_dst+=vtxs;}
+   if(blnd_dst){CopyN(blnd_dst, vtx.blend   (), vtxs); blnd_dst+=vtxs;}
+   if(size_dst){CopyN(size_dst, vtx.size    (), vtxs); size_dst+=vtxs;}
+   if(mtrl_dst){CopyN(mtrl_dst, vtx.material(), vtxs); mtrl_dst+=vtxs;}
    if( col_dst){CopyN( col_dst, vtx.color   (), vtxs);  col_dst+=vtxs;}
-   if( flg_dst){CopyN( flg_dst, vtx.flag    (), vtxs);  flg_dst+=vtxs;}
+   if(flag_dst){CopyN(flag_dst, vtx.flag    (), vtxs); flag_dst+=vtxs;}
 
    // reposition original points
    Int *vtx_edg_num  =AllocZero<Int>(vtxs),
@@ -1219,18 +1445,18 @@ MeshBase& MeshBase::subdivide()
       if(tex1_dst)*tex1_dst++=Avg (tex1_src[p0],tex1_src[p1],tex1_src[p2]);
       if(tex2_dst)*tex2_dst++=Avg (tex2_src[p0],tex2_src[p1],tex2_src[p2]);
       if(tex3_dst)*tex3_dst++=Avg (tex3_src[p0],tex3_src[p1],tex3_src[p2]);
-      if( siz_dst)* siz_dst++=Avg ( siz_src[p0], siz_src[p1], siz_src[p2]);
-      if( mtl_dst)* mtl_dst++=AvgI( mtl_src[p0], mtl_src[p1], mtl_src[p2]);
+      if(size_dst)*size_dst++=Avg (size_src[p0],size_src[p1],size_src[p2]);
+      if(mtrl_dst)*mtrl_dst++=AvgI(mtrl_src[p0],mtrl_src[p1],mtrl_src[p2]);
       if( col_dst)* col_dst++=Avg ( col_src[p0], col_src[p1], col_src[p2]);
-      if( flg_dst)* flg_dst++=    ( flg_src[p0]| flg_src[p1]| flg_src[p2]);
-      if(  mt_dst && bln_dst)
+      if(flag_dst)*flag_dst++=    (flag_src[p0]|flag_src[p1]|flag_src[p2]);
+      if(mtrx_dst && blnd_dst)
       {
-         REP(3){Int point=p[i]; REP(4)skin.New().set(mt_src[point].c[i], bln_src[point].c[i]);}
-         SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+         REP(3){Int point=p[i]; REP(4)skin.New().set(mtrx_src[point].c[i], blnd_src[point].c[i]);}
+         SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
       }else
       {
-         if( mt_dst)* mt_dst++= mt_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
-         if(bln_dst)*bln_dst++=bln_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
+         if(mtrx_dst)*mtrx_dst++=mtrx_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
+         if(blnd_dst)*blnd_dst++=blnd_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
       }
    }else FREP(tris)
    {
@@ -1250,18 +1476,18 @@ MeshBase& MeshBase::subdivide()
       if(tex1_dst)*tex1_dst++=Avg (tex1_src[p0],tex1_src[p1],tex1_src[p2],tex1_src[p3]);
       if(tex2_dst)*tex2_dst++=Avg (tex2_src[p0],tex2_src[p1],tex2_src[p2],tex2_src[p3]);
       if(tex3_dst)*tex3_dst++=Avg (tex3_src[p0],tex3_src[p1],tex3_src[p2],tex3_src[p3]);
-      if( siz_dst)* siz_dst++=Avg ( siz_src[p0], siz_src[p1], siz_src[p2], siz_src[p3]);
-      if( mtl_dst)* mtl_dst++=AvgI( mtl_src[p0], mtl_src[p1], mtl_src[p2], mtl_src[p3]);
+      if(size_dst)*size_dst++=Avg (size_src[p0],size_src[p1],size_src[p2],size_src[p3]);
+      if(mtrl_dst)*mtrl_dst++=AvgI(mtrl_src[p0],mtrl_src[p1],mtrl_src[p2],mtrl_src[p3]);
       if( col_dst)* col_dst++=Avg ( col_src[p0], col_src[p1], col_src[p2], col_src[p3]);
-      if( flg_dst)* flg_dst++=    ( flg_src[p0]| flg_src[p1]| flg_src[p2]| flg_src[p3]);
-      if(  mt_dst && bln_dst)
+      if(flag_dst)*flag_dst++=    (flag_src[p0]|flag_src[p1]|flag_src[p2]|flag_src[p3]);
+      if(mtrx_dst && blnd_dst)
       {
-         REP(4){Int point=p[i]; REP(4)skin.New().set(mt_src[point].c[i], bln_src[point].c[i]);}
-         SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+         REP(4){Int point=p[i]; REP(4)skin.New().set(mtrx_src[point].c[i], blnd_src[point].c[i]);}
+         SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
       }else
       {
-         if( mt_dst)* mt_dst++= mt_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
-         if(bln_dst)*bln_dst++=bln_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
+         if(mtrx_dst)*mtrx_dst++=mtrx_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
+         if(blnd_dst)*blnd_dst++=blnd_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
       }
    }
 
@@ -1278,18 +1504,18 @@ MeshBase& MeshBase::subdivide()
       if(tex1_dst)tex1_dst[i]=Avg (tex1_src[p0],tex1_src[p1]);
       if(tex2_dst)tex2_dst[i]=Avg (tex2_src[p0],tex2_src[p1]);
       if(tex3_dst)tex3_dst[i]=Avg (tex3_src[p0],tex3_src[p1]);
-      if( siz_dst) siz_dst[i]=Avg ( siz_src[p0], siz_src[p1]);
-      if( mtl_dst) mtl_dst[i]=AvgI( mtl_src[p0], mtl_src[p1]);
+      if(size_dst)size_dst[i]=Avg (size_src[p0],size_src[p1]);
+      if(mtrl_dst)mtrl_dst[i]=AvgI(mtrl_src[p0],mtrl_src[p1]);
       if( col_dst) col_dst[i]=Avg ( col_src[p0], col_src[p1]);
-      if( flg_dst) flg_dst[i]=    ( flg_src[p0]| flg_src[p1]);
-      if(  mt_dst && bln_dst)
+      if(flag_dst)flag_dst[i]=    (flag_src[p0]|flag_src[p1]);
+      if(mtrx_dst && blnd_dst)
       {
-         REP(2){Int point=p[i]; REP(4)skin.New().set(mt_src[point].c[i], bln_src[point].c[i]);}
-         SetSkin(skin, *mt_dst++, *bln_dst++, null); skin.clear();
+         REP(2){Int point=p[i]; REP(4)skin.New().set(mtrx_src[point].c[i], blnd_src[point].c[i]);}
+         SetSkin(skin, *mtrx_dst++, *blnd_dst++, null); skin.clear();
       }else
       {
-         if( mt_dst)* mt_dst++= mt_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
-         if(bln_dst)*bln_dst++=bln_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
+         if(mtrx_dst)*mtrx_dst++=mtrx_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
+         if(blnd_dst)*blnd_dst++=blnd_src[p0]; // just copy from first point, because we need correct data and blending with sum of 255
       }
 
       p=(dup_vtx ? dup_edge_adj[dup_edge_edg[i]] : edg_adj[i]).c; p0=p[0]; p1=p[1];

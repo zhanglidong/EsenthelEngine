@@ -163,6 +163,14 @@ enum FILE_OVERWRITE_MODE
    FILE_OVERWRITE_ALWAYS   , // always overwrite
    FILE_OVERWRITE_DIFFERENT, //        overwrite only if size or modification time (with 1 second tolerance) is different
 };
+enum FILE_PATH : Byte // File Path Type
+{
+   FILE_CUR , // relative to 'CurDir'
+   FILE_DATA, // relative to 'DataPath'
+#if EE_PRIVATE
+   FILE_ANDROID_ASSET, // Android Asset, can be accessed by memory ('_aasset' is "AAsset*") or by stdio ('_handle' is a system handle)
+#endif
+};
 /******************************************************************************/
 C Str& DataPath(           ); // get additional search path, used for opening files
   void DataPath(C Str &path); // set additional search path, used for opening files, given 'path' will have automatically added '/' character at the end if not present, and will be converted from relative to global (for example DataPath("../data") will set a complete path like "d:/game/data/" ending with '/' character - this is only an example)
@@ -172,6 +180,8 @@ Bool GetDriveSize(C Str &path, Long *free=null, Long *total=null); // get drive 
 
 Str  CurDir(          ); // get current working directory, by default it's always set to path of the application executable file (an exception is iOS platform, there the path is set inside the executable, since the executable is actually a folder)
 Bool CurDir(C Str &dir); // set current working directory, false on fail
+
+Bool MountHost(); // mount host computer file system to which this device is connected. This function is supported only on Nintendo Switch. After calling this function you can access the host computer file system using its original paths (example "C:\" on Windows) as long as this device is connected to that computer (for example with a USB cable). Returns false on fail
 
 Str MakeFullPath(C Str &path, FILE_PATH type=FILE_CUR, Bool keep_empty=true); // if the path is not 'FullPath', then full path is returned as if 'path' was relative to 'type', 'keep_empty'=if the 'path' is empty then don't make it a full path but return an empty path
 

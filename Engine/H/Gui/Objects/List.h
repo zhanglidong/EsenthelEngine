@@ -36,7 +36,7 @@ struct ListColumn : Button // List Column
    void     pushed();
 #endif
 
-   virtual void update(C GuiPC &gpc);
+   virtual void update(C GuiPC &gpc)override;
 
 private:
    Int _resize_edge;
@@ -89,19 +89,19 @@ const_mem_addr struct _List : GuiObj // Gui List !! must be stored in constant m
 
    // misc
    LIST_CUR_MODE cur_mode   ; // cursor    mode       , default=LCM_DEFAULT
-   LIST_SEL_MODE sel_mode   ; // selection mode       , default=LSM_SET  affects the default action for handling selection of an element upon its clicking for lists with LIST_MULTI_SEL option enabled
+   LIST_SEL_MODE sel_mode   ; // selection mode       , default=LSM_SET, affects the default action for handling selection of an element upon its clicking for lists with LIST_MULTI_SEL option enabled
    ALPHA_MODE    image_alpha; // images alpha blending, default=ALPHA_BLEND
    UInt          flag       ; // LIST_FLAG            , default=LIST_SORTABLE|LIST_SEARCHABLE
    Flt           zoom_min   , // minimum zoom         , default=0.58
                  zoom_max   ; // maximum zoom         , default=1.44
-   Vec2          padding    ; // list padding         , default=(0, 0)  amount of padding applied to the list size
+   Vec2          padding    ; // list padding         , default=(0, 0), amount of padding applied to the list size
 
    // manage
-  _List& del   (                                                            );                                                               // delete
-  _List& clear (SET_MODE mode=SET_DEFAULT                                   );                                                               // clear list elements, if 'mode'=QUIET then 'curChanged', 'selChanged' and 'selChanging' callbacks will not be called
-  _List& create(                                                            );                                                               // create
-  _List& create(C ListColumn *column, Int columns, Bool columns_hidden=false) {return create().setColumns(column, columns, columns_hidden);} // create and set columns, list columns are copied internally
-  _List& create(C _List &src                                                );                                                               // create from 'src'
+   virtual _List& del   (                                                            )override;                                                       // delete
+           _List& clear (SET_MODE mode=SET_DEFAULT                                   );                                                               // clear list elements, if 'mode'=QUIET then 'curChanged', 'selChanged' and 'selChanging' callbacks will not be called
+           _List& create(                                                            );                                                               // create
+           _List& create(C ListColumn *column, Int columns, Bool columns_hidden=false) {return create().setColumns(column, columns, columns_hidden);} // create and set columns, list columns are copied internally
+           _List& create(C _List &src                                                );                                                               // create from 'src'
 
    // set / get
   _List& setColumns(C ListColumn *column, Int columns, Bool columns_hidden=false); // set columns, list columns are copied internally
@@ -168,6 +168,8 @@ const_mem_addr struct _List : GuiObj // Gui List !! must be stored in constant m
            Vec2   visToLocalPos  (  Int   visible                   )C; // convert visible index      to top left corner position of the element in local space
            Rect   visToLocalRect (  Int   visible                   )C; // convert visible index      to rectangle                of the element in local space
 
+   Int nearest(C Vec2 &screen_pos, C Vec2 &dir)C; // get nearest visible index, starting from 'screen_pos' screen position towards 'dir' direction, -1 on fail
+
    Int         columns(     )C {return _columns.elms();} // number of columns
    ListColumn& column (Int i)  {return _columns[i]    ;} // get i-th  column
 
@@ -212,20 +214,23 @@ const_mem_addr struct _List : GuiObj // Gui List !! must be stored in constant m
   _List& offsetAllColumns(Bool on); // if apply per element offset to all columns, if set to false then only first column is offsetted, default=false
 
    // operations
-  _List& scrollTo  (Int i     , Bool immediate=false, Flt center=0.0f); // scroll to i-th visible element, 'center'=how much (0..1) to center on the element (0=no centering, 0.5=half centering, 1=full centering)
-  _List& scrollY   (Flt delta , Bool immediate=false                 ); // vertical scroll by delta
-  _List& sort      (Int column, Int  swap     =-1                    ); // sort according to 'column' column
-  _List& setCur    (Int i                                            ); // set     cursor    to specified index, and if list has 'LIST_MULTI_SEL' enabled then set 'sel' accordingly
-  _List& processSel(Int absolute, Int sel_mode=-1                    ); // process selection of specified 'absolute' element index, 'sel_mode'=selection mode (use -1 for 'selMode')
+   Bool  scrollingMain(                                                 )C; // if list is currently scrolling along its main direction
+   Vec2  scrollDelta  (                                                 )C; // get amount of scroll that's still left to be done
+  _List& scrollTo     (Int i     , Bool immediate=false, Flt center=0.0f) ; // scroll to i-th visible element, 'center'=how much (0..1) to center on the element (0=no centering, 0.5=half centering, 1=full centering)
+  _List& scrollY      (Flt delta , Bool immediate=false                 ) ; // vertical scroll by delta
+  _List& sort         (Int column, Int  swap     =-1                    ) ; // sort according to 'column' column
+  _List& setCur       (Int i                                            ) ; // set     cursor    to specified index, and if list has 'LIST_MULTI_SEL' enabled then set 'sel' accordingly
+  _List& processSel   (Int absolute, Int sel_mode=-1                    ) ; // process selection of specified 'absolute' element index, 'sel_mode'=selection mode (use -1 for 'selMode')
 
   _List& addChild(GuiObj &child, Int abs, Int column=0); // add 'child' to the list, 'abs'=absolute element index, 'column'=list column
 
    virtual Bool sorting() {return true;} // this is called when list is about to be sorted, you can override this method and perform custom processing, return true if you want to proceed with sorting, or false to abort it
 
    // main
-   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel); // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
-   virtual void    update(C GuiPC &gpc); // update object
-   virtual void    draw  (C GuiPC &gpc); // draw   object
+   virtual GuiObj* test   (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override; // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
+   virtual void    nearest(C GuiPC &gpc, GuiObjNearest &gon)override;
+   virtual void    update (C GuiPC &gpc)override; // update object
+   virtual void    draw   (C GuiPC &gpc)override; // draw   object
 
 #if EE_PRIVATE
    Bool columnsVisible   ()C {return !_columns_hidden && _columns.elms();}
@@ -241,6 +246,7 @@ const_mem_addr struct _List : GuiObj // Gui List !! must be stored in constant m
    Int  localToVisY      (  Flt   local_y  )C; // this is a visible index with    clamping to existing elements (  -1..elms()-1) -1 on fail
    Int  localToVis       (C Vec2 &local_pos)C; // this is a visible index with    clamping to existing elements (  -1..elms()-1) -1 on fail
    Int  localToColumnX   (  Flt   local_x  )C; // -1 on fail
+   Int screenToVirtualX  (Flt x, C GuiPC *gpc=null)C; // convert screen position X to virtual index, if you know the 'GuiPC' then pass it to 'gpc' which will speed up calculations (otherwise leave it to null)
    Int screenToVirtualY  (Flt y, C GuiPC *gpc=null)C; // convert screen position Y to virtual index, if you know the 'GuiPC' then pass it to 'gpc' which will speed up calculations (otherwise leave it to null)
    Flt screenToVirtualYF (Flt y, C GuiPC *gpc=null)C; // convert screen position Y to virtual index, if you know the 'GuiPC' then pass it to 'gpc' which will speed up calculations (otherwise leave it to null)
    void sort             ();
@@ -309,8 +315,8 @@ private:
   _List& _setData(_Memx &node, Int children_offset, C CMemPtr<Bool> &visible=null, Bool keep_cur=false);
 
 protected:
-   virtual void parentClientRectChanged(C Rect *old_client, C Rect *new_client);
-   virtual void        childRectChanged(C Rect *old_rect  , C Rect *new_rect  , GuiObj &child);
+   virtual void parentClientRectChanged(C Rect *old_client, C Rect *new_client)override;
+   virtual void        childRectChanged(C Rect *old_rect  , C Rect *new_rect  , GuiObj &child)override;
 
    NO_COPY_CONSTRUCTOR(_List);
 #if EE_PRIVATE

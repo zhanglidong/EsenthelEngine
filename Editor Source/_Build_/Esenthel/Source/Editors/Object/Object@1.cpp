@@ -52,7 +52,7 @@ ObjView ObjEdit;
       "Normal",
       "UV"    ,
       "All"   ,
-      "UV1"   ,
+    //"UV1"   ,
     //"UV2"   ,
     //"UV3"   ,
    };
@@ -63,8 +63,8 @@ ObjView ObjEdit;
       S+"This mode selects a group of face/vertexes that are connected to each other and have the same texture coordinates\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+3",
       S+"This mode selects a group of all face/vertexes that are connected to each other\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+4",
       S+"This mode selects a group of face/vertexes that are connected to each other and have the same texture coordinates #1\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+5",
-    //S+"This mode selects a group of face/vertexes that are connected to each other and have the same texture coordinates #2\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+6",
-    //S+"This mode selects a group of face/vertexes that are connected to each other and have the same texture coordinates #3\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+7",
+      S+"This mode selects a group of face/vertexes that are connected to each other and have the same texture coordinates #2\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+6",
+      S+"This mode selects a group of face/vertexes that are connected to each other and have the same texture coordinates #3\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+7",
    };
    cchar8 *ObjView::slot_desc[]=
    {
@@ -447,6 +447,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       int view_type=v4.getViewType(&view);
       mesh_matrix_prev_ptr=(InRange(view_type, mesh_matrix_prev) ? &mesh_matrix_prev[view_type] : null);
       view.camera.set();
+      D.dofFocus(ActiveCam.dist);
       if(mode()==BODY)
       {
          UID body_id=UIDZero; if(mesh_elm)if(ElmMesh *mesh_data=mesh_elm->meshData())body_id=mesh_data->body_id;
@@ -461,13 +462,13 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       if(lodEditDist())
       {
          //D.motionMode(MOTION_NONE);
-         Renderer.allow_taa=false;
+         Renderer.allow_temporal=false;
       }
 
       Renderer(ObjView::Render);
 
       D.motionMode(motion);
-      Renderer.allow_taa=true;
+      Renderer.allow_temporal=true;
       Renderer.wire=false;
       AstrosDraw=astros;
       Water.draw=ocean;
@@ -593,10 +594,10 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                       C VecI4 &v=part.base.quad.ind(f); // draw as 2 tris so that VI uses tris everywhere (mixed 'tri' and 'quad' calls at the same time may not be supported)
                         Tri a(pos[v.x], pos[v.y], pos[v.w]),
                             b(pos[v.y], pos[v.z], pos[v.w]);
-                        if(trans_mesh.trans_normal)if(C Vec *nrm=part.base.vtx.nrm())
+                        if(trans_mesh.move_along_normal)if(C Vec *nrm=part.base.vtx.nrm())
                         {
-                           a.p[0]+=nrm[v.x]*trans_mesh.trans_normal; a.p[1]+=nrm[v.y]*trans_mesh.trans_normal; a.p[2]+=nrm[v.w]*trans_mesh.trans_normal;
-                           b.p[1]+=nrm[v.z]*trans_mesh.trans_normal; b.p[0]=a.p[1]; b.p[2]=a.p[2];
+                           a.p[0]+=nrm[v.x]*trans_mesh.move_along_normal; a.p[1]+=nrm[v.y]*trans_mesh.move_along_normal; a.p[2]+=nrm[v.w]*trans_mesh.move_along_normal;
+                           b.p[1]+=nrm[v.z]*trans_mesh.move_along_normal; b.p[0]=a.p[1]; b.p[2]=a.p[2];
                         }
                         VI.tri(a);
                         VI.tri(b);
@@ -607,9 +608,9 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                      {
                       C VecI &v=part.base.tri.ind(f);
                         Tri a(pos[v.x], pos[v.y], pos[v.z]);
-                        if(trans_mesh.trans_normal)if(C Vec *nrm=part.base.vtx.nrm())
+                        if(trans_mesh.move_along_normal)if(C Vec *nrm=part.base.vtx.nrm())
                         {
-                           a.p[0]+=nrm[v.x]*trans_mesh.trans_normal; a.p[1]+=nrm[v.y]*trans_mesh.trans_normal; a.p[2]+=nrm[v.z]*trans_mesh.trans_normal;
+                           a.p[0]+=nrm[v.x]*trans_mesh.move_along_normal; a.p[1]+=nrm[v.y]*trans_mesh.move_along_normal; a.p[2]+=nrm[v.z]*trans_mesh.move_along_normal;
                         }
                         VI.tri(a);
                      }
@@ -629,7 +630,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                {
                 C Vec &pos=part.base.vtx.pos(v.y);
                   if(!vtxs_front() || frontFace(pos, part.base.vtx.nrm() ? &part.base.vtx.nrm(v.y) : null, cam))
-                     VI.dot((trans_mesh.trans_normal && part.base.vtx.nrm()) ? pos+trans_mesh.trans_normal*part.base.vtx.nrm(v.y) : pos, 0.005f);
+                     VI.dot((trans_mesh.move_along_normal && part.base.vtx.nrm()) ? pos+trans_mesh.move_along_normal*part.base.vtx.nrm(v.y) : pos, 0.005f);
                }
             }
          }
@@ -741,6 +742,17 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
 
       D.lineSmooth(line_smooth);
    }
+   void ObjView::setLodTabsPos()
+   {
+      if(mode()==GROUP     ){lod_tabs.move(goto_group.rect().down()-Vec2(0, 0.01f)-lod_tabs.rect().up());}
+      if(mode()==VARIATIONS
+      || mode()==REMOVE
+      || mode()==MESH  
+      || mode()==SKIN      ){lod_tabs.move(mode      .rect().down()-Vec2(0, 0.01f)-lod_tabs.rect().up());}
+      
+      if(mode()==MESH && lod_tabs.rect().min.x<mesh_ops.rect().max.x)lod_tabs.pos(mesh_ops.rect().ru());
+      if(mode()==SKIN && lod_tabs.rect().min.x<skin_ops.rect().max.x)lod_tabs.pos(skin_ops.rect().ru());
+   }
    void       ObjView::LodChanged(ObjView &editor) {editor.selLod      (editor.      lod_tabs());}
    void ObjView::VariationChanged(ObjView &editor) {editor.selVariation(editor.variation_tabs());}
    void      ObjView::ModeChanged(ObjView &editor)
@@ -764,17 +776,22 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       if(editor.mode()==MESH
       || editor.mode()==SKIN)editor.mode.tab(editor.mode())+=editor.mesh_parts;
 
+      if(editor.mode()==GROUP && OpObj==OP_OBJ_NONE && editor.group.getSetGroup()>=0)SetObjOp(OP_OBJ_SET_GROUP);
+
+      if(editor.mode()==REMOVE
+      || editor.mode()==MESH  
+      || editor.mode()==SKIN)SetObjOp(OP_OBJ_NONE);
+
+      // lod_tabs
       if(editor.mode()==GROUP 
       || editor.mode()==REMOVE
       || editor.mode()==MESH  
       || editor.mode()==VARIATIONS
-      || editor.mode()==SKIN  )editor.mode.tab(editor.mode())+=editor.lod_tabs;
-
-      if(editor.mode()==GROUP     ){editor.lod_tabs.move(editor.goto_group.rect().down()-Vec2(0, 0.01f)-editor.lod_tabs.rect().up()); if(OpObj==OP_OBJ_NONE && editor.group.getSetGroup()>=0)SetObjOp(OP_OBJ_SET_GROUP);}
-      if(editor.mode()==VARIATIONS){editor.lod_tabs.move(editor.mode      .rect().down()-Vec2(0, 0.01f)-editor.lod_tabs.rect().up());}
-      if(editor.mode()==REMOVE
-      || editor.mode()==MESH  
-      || editor.mode()==SKIN      ){editor.lod_tabs.move(editor.mode      .rect().down()-Vec2(0, 0.01f)-editor.lod_tabs.rect().up()); SetObjOp(OP_OBJ_NONE);}
+      || editor.mode()==SKIN)
+      {
+         editor.mode.tab(editor.mode())+=editor.lod_tabs;
+         editor.setLodTabsPos();
+      }
 
       if(editor.mode()==MESH
       || editor.mode()==VARIATIONS)
@@ -825,7 +842,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void ObjView::MeshSetNormalP(ObjView &editor) {editor.meshSetNrm     (VTX_POS  );}
    void ObjView::MeshSetNormalT(ObjView &editor) {editor.meshSetNrm     (VTX_TEX0 );}
    void ObjView::MeshSetNormal(ObjView &editor) {editor.meshSetNrm     (MESH_NONE);}
-   void ObjView::MeshSetNormalH(ObjView &editor) {editor.meshSetNrmH    (         );}
+   void ObjView::MeshCopyNormal(ObjView &editor) {editor.meshCopyNrm    (         );}
    void ObjView::MeshNormalY(ObjView &editor) {editor.meshNrmY       (         );}
    void ObjView::MeshSetVtxAO(ObjView &editor) {MeshAO.activate();}
    void ObjView::MeshCreateFace(ObjView &editor) {editor.meshCreateFace   ();}
@@ -833,6 +850,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void ObjView::MeshMergeCopFaces(ObjView &editor) {editor.meshMergeCoplanarFaces(false);}
    void ObjView::MeshRotQuads(ObjView &editor) {editor.meshRotQuads     ();}
    void ObjView::MeshQuadToTri(ObjView &editor) {editor.meshQuadToTri    ();}
+   void ObjView::MeshTriToQuad(ObjView &editor) {editor.meshTriToQuad    ();}
    void ObjView::MeshTesselate(ObjView &editor) {editor.meshTesselate    ();}
    void ObjView::MeshSubdivide(ObjView &editor) {editor.meshSubdivide    ();}
    void ObjView::MeshColorBrghtn(ObjView &editor) {editor.meshColorBrghtn  ();}
@@ -1429,8 +1447,8 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
 
       // keep to the left because LOD tabs may be visible
       mode.tab(MESH)+=vtx_face_sel_text.create(Rect(mesh_undo.rect().ld()-Vec2(0, 0.01f+ts.size.y/2)), "Vertex/Face Selection:", &ts).visible(mesh_parts.edit_selected());
-      mode.tab(MESH)+=vtx_face_sel_mode.create(Rect_L(vtx_face_sel_text.rect().ld()-Vec2(0, ts.size.y+0.005f), 0.47f, 0.055f), 0, vfs_modes, Elms(vfs_modes), true).valid(true).set(0).visible(vtx_face_sel_text.visible());
-      REP(Min(Elms(vfs_desc), Elms(vfs_modes)))vtx_face_sel_mode.tab(i).desc(vfs_desc[i]);
+      mode.tab(MESH)+=vtx_face_sel_mode.create(Rect_L(vtx_face_sel_text.rect().ld()-Vec2(0, ts.size.y+0.005f), 0.39f, 0.055f), 0, vfs_modes, Elms(vfs_modes), true).valid(true).set(0).visible(vtx_face_sel_text.visible());
+      REP(Min(Elms(vfs_desc), vtx_face_sel_mode.tabs()))vtx_face_sel_mode.tab(i).desc(vfs_desc[i]);
 
       {
          Node<MenuElm> n;
@@ -1445,7 +1463,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          n.New().create("Set Normals (Face Normal)"     , MeshSetNormalFa  , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_ALT           )).desc("This option will set normals of selected vertexes/faces\nNormals will be smoothened based on face normals");
          n.New().create("Set Normals (UV)"              , MeshSetNormalT   , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_WIN_CTRL      )).desc("This option will set normals of selected vertexes/faces\nNormals will be smoothened based on UV vertex connections");
          n.New().create("Set Normals (None)"            , MeshSetNormal    , T).kbsc(KbSc(KB_N, KBSC_WIN_CTRL                    )).desc("This option will set normals of selected vertexes/faces");
-         n.New().create("Set Normals (Highlight)"       , MeshSetNormalH   , T).kbsc(KbSc(KB_N, KBSC_WIN_CTRL|KBSC_ALT           )).desc("This option will set normals of selected vertexes/faces\nNormals will be taken from highlighted element.\nTo use:\n-Select parts\n-Highlight target part\n-Press Keyboard shortcut for this option");
+         n.New().create("Copy Normals"                  , MeshCopyNormal   , T).kbsc(KbSc(KB_N, KBSC_WIN_CTRL|KBSC_ALT           )).desc("This option will set normals of selected vertexes/faces\nNormals will be taken from highlighted element.\nTo use:\n-Select parts\n-Highlight target part\n-Press Keyboard shortcut for this option");
          n.New().create("Align Normals Up"              , MeshNormalY      , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_SHIFT|KBSC_ALT)).desc("This option will align normals towards up direction by a bit");
          n.New().create("Align To Vertex Round XZ"      , MeshAlignXZ      , T).kbsc(KbSc(KB_A, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will align the object so that the highlighted vertex XZ position will be an integer.");
          n.New().create("Align To Vertex Round"         , MeshAlign        , T).kbsc(KbSc(KB_A, KBSC_CTRL_CMD|KBSC_SHIFT|KBSC_ALT)).desc("This option will align the object so that the highlighted vertex position will be an integer.");
@@ -1455,6 +1473,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          n.New().create("Merge Coplanar Faces"          , MeshMergeCopFaces, T).kbsc(KbSc(KB_M, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will merge all coplanar faces");
          n.New().create("Rotate Quads"                  , MeshRotQuads     , T).kbsc(KbSc(KB_Q, KBSC_CTRL_CMD|KBSC_ALT           ));
          n.New().create("Convert Quads To Tris"         , MeshQuadToTri    , T);
+         n.New().create("Convert Tris To Quads"         , MeshTriToQuad    , T);
          n.New().create("Tesselate"                     , MeshTesselate    , T).kbsc(KbSc(KB_T, KBSC_CTRL_CMD|           KBSC_ALT)).desc("This option will smoothen the mesh, keeping original vertexes in place");
          n.New().create("Subdivide"                     , MeshSubdivide    , T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD|           KBSC_ALT)).desc("This option will smoothen the mesh, repositioning original vertexes");
          n.New().create("Delete Double Side Faces"      , MeshDelDblSide   , T).desc("This option will remove double sided faces");
@@ -2266,7 +2285,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       lit_phys=-1;
       selLod(sel_lod);
       super::update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          // get lit
          if(mode()==SLOTS)
@@ -2587,7 +2606,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          if( Kb.ctrl())
          {
             if(trans_mesh.move_p[0])multiplier=trans_mesh.move_p[0]->mouse_edit_speed;
-            trans_mesh.trans_normal+=Ms.d().sum()*multiplier*posScale()*0.5f;
+            trans_mesh.move_along_normal+=Ms.d().sum()*multiplier*posScale()*0.5f;
          }else
          switch(trans_tabs())
          {
@@ -2638,7 +2657,12 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       {
          if(Ms.b(0) && v4.getView(Gui.ms()))
          {
-            if(transMesh())trans_mesh.close.push();else switch(mesh_parts.list.selMode())
+            if(transMesh()) // if transforming
+            {
+               trans_mesh.close.push(); // apply
+               Gui.ms(null); // clear current mouse focus, to make sure that continued press of this button will not change selection as long as the button is pressed
+            }else
+            switch(mesh_parts.list.selMode())
             {
                case LSM_SET    : if(Ms.bp(0)){selUndo(); selVFDo();} break;
                case LSM_TOGGLE : if(Ms.bp(0)){selUndo(); selVFDo();} break;
@@ -2793,7 +2817,8 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       {
          for(; lod_tabs.tabs()>mesh.lods(); )lod_tabs.remove(lod_tabs.tabs()-1);
          for(; lod_tabs.tabs()<mesh.lods(); )lod_tabs.New(S+"Lod "+lod_tabs.tabs());
-         lod_tabs.rect(Rect_U(lod_tabs.rect().up(), lod_tabs.tabs()*0.13f, 0.055f));
+         lod_tabs.size(Vec2(lod_tabs.tabs()*0.13f, 0.055f));
+         setLodTabsPos();
          lod_tabs.set(selLod(), QUIET).visible(lod_tabs.tabs()>=2);
       }
 
@@ -3156,7 +3181,7 @@ cur_skel_to_saved_skel.removeBone(bone->name);
                      dest->add(src);
          editor.edit_skel.add(Proj.edit_skel_mem, true);
          editor.clearBones();
-         editor.mesh.skeleton(dest).skeleton(null);
+         editor.mesh.skeleton(dest, true).skeleton(null);
          editor.setChangedMesh(true, false);
          editor.setChangedSkel(true);
       }

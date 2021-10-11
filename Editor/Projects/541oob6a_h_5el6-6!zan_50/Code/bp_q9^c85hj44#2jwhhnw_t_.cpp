@@ -33,20 +33,20 @@ bool Init()
    {
       File f;
 
-      f.write  ("file.dat"); // start writing to file
-      f.putByte(     128);
-      f.putUInt(12345678);
-      f.putStr ("Test"  );
+      f.mustWrite("file.dat"); // start writing to file
+      f.putByte  (     128);
+      f.putUInt  (12345678);
+      f.putStr   ("Test"  );
    }
 
    // when the file is created we can now read it
    {
       File f;
       
-        f.read   ("file.dat"); // start reading file
-      b=f.getByte(); // read Byte (returns 128)
-      u=f.getUInt(); // read UInt (returns 12345678)
-      s=f.getStr (); // read Str  (returns "Test")
+        f.mustRead("file.dat"); // start reading file
+      b=f.getByte (); // read Byte (returns 128)
+      u=f.getUInt (); // read UInt (returns 12345678)
+      s=f.getStr  (); // read Str  (returns "Test")
    }
    return true;
 }

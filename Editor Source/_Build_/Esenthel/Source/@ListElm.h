@@ -20,17 +20,13 @@ class ListElm
    static int CompareIndex(C ListElm &a, C ListElm &b); // we can use memory address because we're using 'Memc'
    static int CompareName (C ListElm &a, C ListElm &b);
    static int CompareSize(C ListElm &a, C ListElm &b);
-   static int CompareTexSharp(C ListElm &a, C ListElm &b);
    static Str Size(C ListElm &data);
-   static Str TexSharp(C ListElm &data);
 
    static void IncludeTex(Memt<UID> &texs, C UID &tex_id);
    static void IncludeTex(Memt<UID> &texs, C Elm &elm);
    static void IncludeTex(Memt<UID> &texs, C ElmNode &node);
    void calcTexSize(); // because texture size calculation is slow, it is calculated only on demand, it is slow because first we need to get all unique texture ID's, and then sum sizes of those textures, if we would sum all encountered texture ID's then we would get bigger values because the same texture ID's could be encountered multiple times
    long fileSize()C;
-
-   flt texSharpness()C;
 
    void resetColor();              
    void highlight ();              

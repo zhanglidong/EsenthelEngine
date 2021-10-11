@@ -6,7 +6,7 @@
 #undef MatrixH
 #undef MatrixH4
 
-#if AMD // #ShaderAMD, this is treated as "32-bit float" on SM_4
+#if 0 // this is treated as "32-bit float" on SM_4
    #define Half     half
    #define VecH2    half2
    #define VecH     half3

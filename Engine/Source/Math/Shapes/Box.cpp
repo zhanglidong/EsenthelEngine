@@ -69,6 +69,7 @@ Box::Box(C Shape &shape)
 }
 Box::Box(C MeshBase &mesh    ) {from(mesh.vtx.pos(), mesh.vtxs());}
 Box::Box(C MeshPart &mesh    ) {mesh.getBox(T);}
+Box::Box(C MeshLod  &mesh    ) {mesh.getBox(T);}
 Box::Box(C Skeleton &skeleton)
 {
    if(!skeleton.bones.elms())zero();else
@@ -736,9 +737,23 @@ Flt Dist(C Edge &edge, C Box &box) {return SqrtFast(Dist2(edge, box));}
 /******************************************************************************/
 Flt Dist(C Box &a, C Box &b)
 {
+#if 0 // slower
    return Dist(Max(0, Abs(a.centerX()-b.centerX())-(a.w()+b.w())*0.5f),
                Max(0, Abs(a.centerY()-b.centerY())-(a.h()+b.h())*0.5f),
                Max(0, Abs(a.centerZ()-b.centerZ())-(a.d()+b.d())*0.5f));
+#else // faster
+   Vec delta;
+   if(b.min.x>a.max.x)delta.x=b.min.x-a.max.x;else
+   if(b.max.x<a.min.x)delta.x=a.min.x-b.max.x;else
+                      delta.x=0;
+   if(b.min.y>a.max.y)delta.y=b.min.y-a.max.y;else
+   if(b.max.y<a.min.y)delta.y=a.min.y-b.max.y;else
+                      delta.y=0;
+   if(b.min.z>a.max.z)delta.z=b.min.z-a.max.z;else
+   if(b.max.z<a.min.z)delta.z=a.min.z-b.max.z;else
+                      delta.z=0;
+   return delta.length();
+#endif
 }
 /******************************************************************************/
 Flt Dist(C Box &box, C Plane &plane)

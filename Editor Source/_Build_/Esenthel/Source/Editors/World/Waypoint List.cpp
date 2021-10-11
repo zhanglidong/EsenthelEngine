@@ -93,10 +93,10 @@ WaypointListClass WaypointList;
    void WaypointListClass::update(C GuiPC &gpc)
 {
       visible(Mode()==MODE_WORLD && WorldEdit.mode()==WorldView::WAYPOINT && WorldEdit.waypoint_list());
-      if(visible() && gpc.visible && _changed)set(); // first set data
+      if(gpc.visible && visible() && _changed)set(); // first set data
       int cur=list.cur;
       super::update(gpc); // now update list
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          REPA(MT)if(MT.guiObj(i)==&list && MT.bp(i))if(Elm *elm=list())
          {

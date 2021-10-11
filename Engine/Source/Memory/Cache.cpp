@@ -17,7 +17,7 @@ static Flt      DelayRemoveWaited;
       -inside 'Draw' during drawing we load an image (D._lock.on, Images._lock) -> deadlock
    Instead of it, during drawing it will be: D._lock.on, D._lock.off, Images.lock and unlocks...
 
-   We have to do this even if we're not going to perform and 'D' operations:
+   We have to do this even if we're not going to perform any 'D' operations:
       -background loading thread calls                                 (Images._lock, D._lock.on)
       -during 'Draw' drawing (where D is already locked) we use 'find' (D._lock.on, Images._lock) -> deadlock
 
@@ -39,7 +39,7 @@ static Flt      DelayRemoveWaited;
 C _Cache::Desc& _Cache::lockedDesc(Int i)C {return elmDesc(*_order[i]);}
    CPtr         _Cache::lockedData(Int i)C {return elmData(*_order[i]);}
 
-_Cache::_Cache(CChar8 *name, Int block_elms, Bool (*load)(Ptr data, C Str &file)) : _memx(block_elms)
+_Cache::_Cache(CChar8 *name, Int block_elms) : _memx(block_elms)
 {
   _d_lock=0;
   _case_sensitive=false;
@@ -49,14 +49,14 @@ _Cache::_Cache(CChar8 *name, Int block_elms, Bool (*load)(Ptr data, C Str &file)
   _debug_name=name;
   _order=null;
   _user =null;
-  _load =load;
+  _load =null;
   _load_user=null;
   _can_be_removed=null;
   _delay_remove_counter=0; _delay_remove_time=0; _delay_remove_check=0;
 }
 void _Cache::clear        (                                                            ) {SyncUnlocker unlocker(D._lock); SyncLocker locker(_lock); _elms=0; _memx.clear(); _delay_remove.clear();} // here can't Free '_order' because it assumes that its size is '_memx.maxElms()'
 void _Cache::del          (                                                            ) {SyncUnlocker unlocker(D._lock); SyncLocker locker(_lock); _elms=0; _memx.del  (); _delay_remove.del  (); Free(_order);}
-Byte _Cache::mode         (Byte mode                                                   ) {Byte old_mode=T._mode; T._mode=mode; return old_mode;}
+Byte _Cache::mode         (Byte mode                                                   ) {auto old_mode=T._mode; T._mode=mode; return old_mode;}
 void _Cache::caseSensitive(Bool sensitive                                              ) {T._case_sensitive=sensitive;}
 void _Cache::setLoadUser  (Bool (*load_user)(Ptr data, C Str &file, Ptr user), Ptr user) {T._user=user; T._load=null; T._load_user=load_user;}
 void _Cache::delayRemove  (Flt  time                                                   )
@@ -119,7 +119,7 @@ _Cache::Elm* _Cache::findExact(CChar *file, Int &stop)
    Int l=0, r=_elms; for(; l<r; )
    {
       Int mid    =UInt(l+r)/2,
-          compare=ComparePath(file, elmDesc(*_order[mid]).file(), _case_sensitive);
+          compare=ComparePath(file, elmDesc(*_order[mid]).file, _case_sensitive);
       if(!compare)
       {
          stop=mid;
@@ -159,13 +159,13 @@ Int _Cache::findDelayRemove(Elm &elm)
 /******************************************************************************/
 void _Cache::addToOrder(Elm &elm)
 {
-   Int stop; findExact(elmDesc(elm).file(), stop);
+   Int stop; findExact(elmDesc(elm).file, stop);
    MoveFastN(_order+stop+1, _order+stop, _elms-stop); // faster version of: for(Int i=_elms; i>stop; i--)_order[i]=_order[i-1];
   _order[stop]=&elm; _elms++;
 }
 void _Cache::removeFromOrder(Elm &elm)
 {
-   Int stop; if(findExact(elmDesc(elm).file(), stop))
+   Int stop; if(findExact(elmDesc(elm).file, stop))
    {
      _elms--; MoveFastN(_order+stop, _order+stop+1, _elms-stop); // faster version of: for(Int i=stop; i<_elms; i++)_order[i]=_order[i+1];
    }
@@ -358,6 +358,20 @@ Int _Cache::ptrCount(CPtr data)C
    }
    return -1;
 }
+C Str& _Cache::name(CPtr data)C
+{
+   if(C Elm *elm=dataElm(data))
+   {
+      SyncUnlocker unlocker(D._lock); // must be used even though we're not using GPU
+      SyncLocker     locker(  _lock);
+      if(lockedContains(elm))
+      {
+       C Desc &desc=elmDesc(*elm);
+         if(!(desc.flag&CACHE_ELM_LOADING))return desc.file; // name may change while loading
+      }
+   }
+   return S;
+}
 CChar* _Cache::name(CPtr data, CChar *path)C
 {
    if(C Elm *elm=dataElm(data))
@@ -369,8 +383,8 @@ CChar* _Cache::name(CPtr data, CChar *path)C
        C Desc &desc=elmDesc(*elm);
          if(!(desc.flag&CACHE_ELM_LOADING)) // name may change while loading
          {
-            if(Is(path))return _SkipStartPath(desc.file(), _SkipStartPath(path, DataPath())); // must be '_SkipStartPath' because we're returning CChar*
-                        return                desc.file();
+            if(Is(path))return _SkipStartPath(desc.file, _SkipStartPath(path, DataPath())); // must be '_SkipStartPath' because we're returning CChar*
+                        return                desc.file;
          }
       }
    }
@@ -382,56 +396,33 @@ UID _Cache::id(CPtr data)C
    {
       SyncUnlocker unlocker(D._lock); // must be used even though we're not using GPU
       SyncLocker     locker(  _lock);
-      if(lockedContains(elm))return FileNameID(elmDesc(*elm).file()); // ID does not change while loading, so ignore CACHE_ELM_LOADING
+      if(lockedContains(elm))return FileNameID(elmDesc(*elm).file); // ID does not change while loading, so ignore CACHE_ELM_LOADING
    }
    return UIDZero;
 }
 /******************************************************************************/
-void _Cache::removeData(CPtr data)
+INLINE void _Cache::removeData(CPtr data, Bool counted)
 {
    if(Elm *elm=dataElm(data))
+   #if !SYNC_LOCK_SAFE // if 'SyncLock' is not safe then crash may occur when trying to lock, to prevent that, check if we have any elements (this means cache was already initialized)
+      if(_elms)
+   #endif
    {
       SyncUnlocker unlocker(D._lock); // this must be used also since later 'D._lock' can be locked when deleting the resource
       SyncLocker     locker(  _lock);
       if(lockedContains(elm))
       {
          Desc &desc=elmDesc(*elm);
-         FlagDisable(desc.flag, CACHE_ELM_STD_PTR);
-         if(!desc.ptr_num) // if there are no more pointers accessing this element
+         if(counted)
          {
-            if(desc.flag&CACHE_ELM_DELAY_REMOVE)_delay_remove.remove(findDelayRemove(*elm)); // if was listed in the 'delay_remove' then remove it from it
-            removeFromOrder(*elm);
-           _memx.removeData( elm);
+            DEBUG_ASSERT(desc.ptr_num>0, "'_Cache.removeData' Decreasing 'ptr_num' when it's already zero");
+                         desc.ptr_num--;
+         }else
+         {
+            DEBUG_ASSERT(desc.flag& CACHE_ELM_STD_PTR, "'_Cache.removeData' Disabling CACHE_ELM_STD_PTR when it's already zero");
+             FlagDisable(desc.flag, CACHE_ELM_STD_PTR);
          }
-      }
-   }
-}
-/******************************************************************************/
-void _Cache::incRef(CPtr data)
-{
-   if(Elm *elm=dataElm(data))
-   #if !SYNC_LOCK_SAFE // if 'SyncLock' is not safe then crash may occur when trying to lock, to prevent that, check if we have any elements (this means cache was already initialized)
-      if(_elms)
-   #endif
-   {
-      SyncUnlocker unlocker(D._lock); // must be used even though we're not using GPU
-      SyncLocker     locker(  _lock);
-      if(lockedContains(elm))IncPtrNum(elmDesc(*elm).ptr_num);
-   }
-}
-void _Cache::decRef(CPtr data)
-{
-   if(Elm *elm=dataElm(data))
-   #if !SYNC_LOCK_SAFE // if 'SyncLock' is not safe then crash may occur when trying to lock, to prevent that, check if we have any elements (this means cache was already initialized)
-      if(_elms)
-   #endif
-   {
-      SyncUnlocker unlocker(D._lock); // this must be used also since later 'D._lock' can be locked when deleting the resource
-      SyncLocker     locker(  _lock);
-      if(lockedContains(elm))
-      {
-         Desc &desc=elmDesc(*elm); DEBUG_ASSERT(desc.ptr_num>0, "'_Cache.decRef' Decreasing 'ptr_num' when it's already zero");
-         if(!--desc.ptr_num && !(desc.flag&CACHE_ELM_STD_PTR)) // if there are no more pointers accessing this element
+         if(!desc.ptr_num && (!counted || !(desc.flag&CACHE_ELM_STD_PTR))) // if there are no more pointers accessing this element (in "!counted" we've already disabled CACHE_ELM_STD_PTR so don't have to check it anymore)
          {
             Flt delay_remove_time=_delay_remove_time;
             if( delay_remove_time   >0 && GetThreadId()==DelayRemoveThreadID)delay_remove_time-=DelayRemoveWaited; // if want to use delayed remove by time and we're unloading because of parent getting delay unloaded, then decrease the time which the parent already waited
@@ -462,6 +453,21 @@ void _Cache::decRef(CPtr data)
    }
 }
 /******************************************************************************/
+void _Cache::incRef(CPtr data)
+{
+   if(Elm *elm=dataElm(data))
+   #if !SYNC_LOCK_SAFE // if 'SyncLock' is not safe then crash may occur when trying to lock, to prevent that, check if we have any elements (this means cache was already initialized)
+      if(_elms)
+   #endif
+   {
+      SyncUnlocker unlocker(D._lock); // must be used even though we're not using GPU
+      SyncLocker     locker(  _lock);
+      if(lockedContains(elm))IncPtrNum(elmDesc(*elm).ptr_num);
+   }
+}
+void _Cache::decRef    (CPtr data) {removeData(data, true );}
+void _Cache::removeData(CPtr data) {removeData(data, false);}
+/******************************************************************************/
 void _Cache::processDelayRemove(Bool always)
 {
    if(_delay_remove.elms())
@@ -473,18 +479,25 @@ void _Cache::processDelayRemove(Bool always)
       REPA(_delay_remove)
       {
          DelayRemove &remove=_delay_remove[i];
-         if(always || Time.appTime()>=remove.time) // if always remove or enough time has passed (use >= so when having zero delay time then it will be processed immediately)
+         Flt          remove_time=remove.time;
+         if(always || Time.appTime()>=remove_time) // if always remove or enough time has passed (use >= so when having zero delay time then it will be processed immediately)
          {
-            Elm &elm=*remove.elm; Desc &desc=elmDesc(elm); _delay_remove.remove(i); // access before removal and remove afterwards
-            if(desc.ptr_num || (desc.flag&CACHE_ELM_STD_PTR)) // if there is something accessing this element now
+            Elm &elm=*remove.elm;
+            if(!_can_be_removed || _can_be_removed(elmData(elm))) // if can be removed right now
             {
-               FlagDisable(desc.flag, CACHE_ELM_DELAY_REMOVE); // keep the element but disable the 'CACHE_ELM_DELAY_REMOVE' flag since we've removed it from the '_delay_remove' container
-            }else // nothing accessing this element
-            {
-               // remove element from cache
-               DelayRemoveWaited=Max(0, Time.appTime()-remove.time+_delay_remove_time); // get how much time this element was waiting to be removed, set this before removing this element, so its children will be able to access it in the destructor
-               removeFromOrder( elm);
-              _memx.removeData(&elm);
+               Desc &desc=elmDesc(elm); _delay_remove.remove(i); // access before removal and remove afterwards
+               // !! CAN'T ACCESS 'remove' ANYMORE BECAUSE IT GOT DELETED !!
+               if(desc.ptr_num || (desc.flag&CACHE_ELM_STD_PTR)) // if there is something accessing this element now
+               {
+                  FlagDisable(desc.flag, CACHE_ELM_DELAY_REMOVE); // keep the element but disable the 'CACHE_ELM_DELAY_REMOVE' flag since we've removed it from the '_delay_remove' container
+               }else // nothing accessing this element
+               {
+                  // remove element from cache
+                  DelayRemoveWaited=Max(0, Time.appTime()-remove_time+_delay_remove_time); // get how much time this element was waiting to be removed, set this before removing this element, so its children will be able to access it in the destructor
+                  removeFromOrder( elm);
+                 _memx.removeData(&elm);
+                  MIN(i, _delay_remove.elms()); // since removing might internally remove some other '_delay_remove', we must adjust index to don't be out of range
+               }
             }
          }
       }

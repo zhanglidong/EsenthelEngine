@@ -63,18 +63,19 @@ class MiniMapEditor : PropWin
          if(!env_id.valid())CurrentEnvironment().set();else{env=Proj.gamePath(env_id); env->set();}
 
          // graphics settings
-         MOTION_MODE      motion     =D.   motionMode(); D. motionMode  (MOTION_NONE     );
-         AMBIENT_MODE     ambient    =D.  ambientMode(); D.ambientMode  (AMBIENT_ULTRA   );
-         int              ambient_res=D.   ambientRes(); D.ambientRes   (1               );
-         bool             bloom_half =D.    bloomHalf(); D.bloomHalf    (true            );
-         EDGE_SOFTEN_MODE edge       =D.   edgeSoften(); D.edgeSoften   (EDGE_SOFTEN_SMAA);
-         DOF_MODE         dof        =D.      dofMode(); D.    dofMode  (DOF_NONE        );
-         flt              lod_fac    =D.    lodFactor(); D.  lodFactor  (0               );
-         byte             shd_soft   =D.   shadowSoft(); D.shadowSoft   (1);
-         byte             shd_num    =D. shadowMapNum(); D.shadowMapNum (6);
-         bool             shd_jitter =D. shadowJitter(); D.shadowJitter (false);
-         bool             eye_adapt  =D.eyeAdaptation(); D.eyeAdaptation(false);
-         bool             ocean      =Water.draw       ; Water.draw     =false;
+         MOTION_MODE      motion     =D.   motionMode    (); D. motionMode  (MOTION_NONE     );
+         AMBIENT_MODE     ambient    =D.  ambientMode    (); D.ambientMode  (AMBIENT_ULTRA   );
+         flt              ambient_res=D.   ambientRes    (); if(final)D.ambientRes   (1);
+         flt              density    =D.      density    (); if(final)D.density      (1);
+         EDGE_SOFTEN_MODE edge       =D.   edgeSoften    (); D.edgeSoften   (EDGE_SOFTEN_SMAA);
+         DOF_MODE         dof        =D.      dofMode    (); D.    dofMode  (DOF_NONE        );
+         flt              lod_factor =D.    lodFactor    (); D.  lodFactor  (0               );
+         byte             shd_soft   =D.   shadowSoft    (); D.shadowSoft   (1);
+         byte             shd_num    =D. shadowMapNum    (); D.shadowMapNum (6);
+         bool             shd_jitter =D. shadowJitter    (); D.shadowJitter (false);
+         bool             eye_adapt  =D.eyeAdaptation    (); D.eyeAdaptation(false);
+         bool             null_mtrls =D.drawNullMaterials(); if(final)D.drawNullMaterials(false);
+         bool             ocean      =Water.draw           ; Water.draw     =false;
          flt              view_from  =D.viewFrom(), view_range=D.viewRange(), view_fov=D.viewFov();
          flt            (*shd_step)(int i, int num)=D.shadow_step; D.shadow_step=ShadowStep;
 
@@ -108,22 +109,23 @@ class MiniMapEditor : PropWin
          D.viewFrom (ActiveCam.dist*0.01)  // set high 'from' to reduce depth buffer precision issues
           .viewRange(ActiveCam.dist*2   ); // set viewport range to cover the range from sky to ground and ground to underground
 
-         Renderer.allow_taa=false;
+         Renderer.allow_temporal=false;
          Renderer(MiniMapEditor.Render);
-         Renderer.allow_taa=true;
+         Renderer.allow_temporal=true;
 
          if(!final)D.pixelToScreen(RectI(viewport.centerI()).extend(res/2)).draw(RED, false);
 
-         D.  lodFactor  (lod_fac);
-         D.    dofMode  (dof    );
-         D. motionMode  (motion );
-         D.ambientMode  (ambient).ambientRes(ambient_res);
-         D.bloomHalf    (bloom_half);
-         D.shadowSoft   (shd_soft).shadowMapNum(shd_num).shadowJitter(shd_jitter).shadow_step=shd_step;
-         D.edgeSoften   (edge   );
-         D.eyeAdaptation(eye_adapt);
+         D.  lodFactor         (lod_factor);
+         D.    dofMode         (dof       );
+         D. motionMode         (motion    );
+         D.ambientMode         (ambient   ).ambientRes(ambient_res);
+         D.density             (density   );
+         D.shadowSoft          (shd_soft  ).shadowMapNum(shd_num).shadowJitter(shd_jitter).shadow_step=shd_step;
+         D.edgeSoften          (edge      );
+         D.eyeAdaptation       (eye_adapt );
          D.viewForceSquarePixel(false).viewFrom(view_from).viewRange(view_range).viewFov(view_fov);
-         Water.draw      =ocean;
+         D.drawNullMaterials   (null_mtrls);
+         Water.draw            =ocean;
 
          if(final)
          {
@@ -356,8 +358,7 @@ void ShutMiniMap()
    UpdateProgress.del();
  //Proj.resume(); we're not resuming
    Proj.resumeServer(); // resume server
-   WindowSetNormal();
-   WindowFlash();
+   App.stateNormal().flash();
    MiniMapEdit.reloadAreas();
    /*if(MiniMapOk)if(MiniMapVer *ver=MiniMapEdit.ver()) // send new mini map to the server only after full completion (this is not needed since we're resuming the server above)
    {
@@ -399,10 +400,10 @@ bool UpdateMiniMap()
       Time.wait(1000/30);
    }
 
-   WindowSetProgress(UpdateProgress());
+   App.stateProgress(UpdateProgress());
      //Gui.update(); do not update gui as it's not hidden
     Server.update(null, true);
-   if(Ms.bp(MS_MAXIMIZE))WindowToggle();
+   if(Ms.bp(MS_MAXIMIZE))App.window().toggle();
    return true;
 }
 /******************************************************************************/
@@ -417,7 +418,7 @@ void DrawMiniMap()
       for(uint start=Time.curTimeMs(); ; )
       {
          UpdateProgress.set(MiniMapEdit.progress, MiniMapEdit.totalImages());
-         WindowSetProgress(UpdateProgress());
+         App.stateProgress(UpdateProgress());
 
          if(MiniMapEdit.step())
          {
@@ -437,10 +438,11 @@ void DrawMiniMap()
    }
    GuiPC gpc;
    gpc.visible=gpc.enabled=true; 
-   gpc.client_rect=gpc.clip.set(-D.w(), -D.h(), D.w(), D.h());
+   gpc.client_rect=gpc.clip=D.rect();
    gpc.offset.zero();
    UpdateProgress.draw(gpc);
    D.clip();
  //Gui.draw(); do not draw gui as it's not hidden
+   Draw();
 }
 /******************************************************************************/

@@ -28,7 +28,8 @@ class UpdaterClass
       ||  rel=="Esenthel Old"
       ||  EqualPath(rel, "Bin/Store.dat")
       ||  EqualPath(rel, "Bin/Code Editor.font")
-      ||  EqualPath(rel, "Bin/Update"))return FILE_LIST_SKIP; // skip these elements
+      ||  EqualPath(rel, "Bin/Update")
+      )return FILE_LIST_SKIP; // skip these elements
 
       if(StartsPath(rel, "Projects"))
       {
@@ -301,8 +302,8 @@ bool UpdateDo()
    }else // we won't run any app
    {
       Explore(Updater.path); // open folder so user can see what's happened there
-      WindowHide(); // hide window because 'WindowMsgBox' causes a pause
-      /*if(inside)*/WindowMsgBox("Success", InstallerMode ? "Esenthel has installed successfully." : "Esenthel has updated successfully."); // show confirmation using OS msg box
+      App.hide(); // hide window because 'OSMsgBox' causes a pause
+      /*if(inside)*/OSMsgBox("Success", InstallerMode ? "Esenthel has installed successfully." : "Esenthel has updated successfully."); // show confirmation using OS msg box
       //else        Gui.msgBox("Success", "Esenthel has updated properly.");
    }
    /*if(inside)*/return false; // close the application
@@ -314,7 +315,7 @@ Str   UpdateMessage;
 /******************************************************************************/
 bool InitUpdate()
 {
-   WindowSetWorking();
+   App.stateWorking();
    SetKbExclusive();
    Proj.close();
 
@@ -342,7 +343,7 @@ bool UpdateUpdate()
    Time.wait(1000/30);
    Gui.update();
    Server.update(null, true);
-   if(Ms.bp(MS_MAXIMIZE))WindowToggle();
+   if(Ms.bp(MS_MAXIMIZE))App.window().toggle();
 
    UpdateMessage.clear();
    Memc<uint> proc; ProcList(proc);
@@ -365,6 +366,7 @@ void DrawUpdate()
    D.clear(BackgroundColor());
    Gui.draw();
    D.text(D.rect(), UpdateMessage);
+   Draw();
 }
 /******************************************************************************/
 State    StateInstall(UpdateInstall, DrawInstall, InitInstall, ShutInstall);
@@ -380,9 +382,7 @@ Str InstallPath()
       path=Replace(NormalizePath(path), '/', '\\');
    }
    if(path.tailSlash(false).is())
-   {
-      Str end=GetBase(path); if(!Contains(end, "Esenthel"))path.tailSlash(true)+="Esenthel";
-   }
+      if(!Contains(path, "Esenthel"))path.tailSlash(true)+="Esenthel";
    return path;
 }
 void SelectInstall(C Str &path, ptr=null)
@@ -427,12 +427,16 @@ bool UpdateInstall()
       }else // failed
       {
          InstallIO.activate();
-         WindowSetError(Updater.progress());
+         App.stateError(Updater.progress());
       }
    }
-   if(!InstallIO.visible())WindowSetProgress(Updater.progress());
+   if(!InstallIO.visible())App.stateProgress(Updater.progress());
    UpdateProgress.set(Updater.progress());
-   if(Ms.bp(MS_MAXIMIZE))WindowToggle();
+   if(Ms.bp(MS_MAXIMIZE))App.window().toggle();
+   if(!App.maximized())REPA(MT)if(MT.b(i))
+   {
+      GuiObj *go=MT.guiObj(i); if(!go || go==Gui.desktop() || go.type()==GO_WINDOW && !(go.asWindow().flag&WIN_MOVABLE))App.window().move(MT.pixelDelta(i).x, MT.pixelDelta(i).y);
+   }
    return true;
 }
 void DrawInstall()
@@ -442,5 +446,6 @@ void DrawInstall()
    ts.size=0.055; D.text(ts, 0, D.h()-0.05, InstallIO.visible() ? "Please select path for Esenthel installation" : "Installing to");
    ts.size=0.045; D.text(ts, 0, D.h()-0.11, S+"\""+InstallPath()+'"');
    Gui.draw();
+   Draw();
 }
 /******************************************************************************/

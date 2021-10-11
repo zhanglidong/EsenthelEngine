@@ -284,6 +284,10 @@ Bool Cuts(C Edge &edge, C Ball &ball)
 {
    return Dist(ball.pos, edge)<=ball.r;
 }
+Bool Cuts(C Tri &tri, C Ball &ball)
+{
+   return Dist(ball.pos, tri)<=ball.r;
+}
 Bool Cuts(C TriN &tri, C Ball &ball)
 {
    return Dist(ball.pos, tri)<=ball.r;

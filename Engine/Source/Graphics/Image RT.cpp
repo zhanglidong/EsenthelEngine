@@ -13,8 +13,8 @@ static const ImageRTType ImageRTTypes[]=
 {
 #if LINEAR_GAMMA
    {IMAGE_R8G8B8A8_SRGB                                                    }, // 0 IMAGERT_SRGBA
-   {IMAGE_R8G8B8A8_SRGB                                                    }, // 1 IMAGERT_SRGB   (can't use IMAGE_R10G10B10A2 because it's not sRGB and will have low quality in dark colors, can't use IMAGE_R11G11B10F because it's broken, LitCol looks like no light, can't use IMAGE_R9G9B9E5F because it's not supported for RT)
-   {IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 2 IMAGERT_SRGB_P (can't use IMAGE_R10G10B10A2 because it's not sRGB and will have low quality in dark colors, can't use IMAGE_R11G11B10F because it's broken, LitCol looks like no light, can't use IMAGE_R9G9B9E5F because it's not supported for RT)
+   {IMAGE_R8G8B8A8_SRGB                                                    }, // 1 IMAGERT_SRGB   (can't use IMAGE_R10G10B10A2 because it's not sRGB and will have low quality in dark colors, can't use IMAGE_R11G11B10F because precision for 0..1 is very bad, with a max error of 0.0153656006, can't use IMAGE_R9G9B9E5F because it's not supported for RT)
+   {IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 2 IMAGERT_SRGB_P (can't use IMAGE_R10G10B10A2 because it's not sRGB and will have low quality in dark colors, can't use IMAGE_R11G11B10F because precision for 0..1 is very bad, with a max error of 0.0153656006, can't use IMAGE_R9G9B9E5F because it's not supported for RT)
    {IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                                       }, // 3 IMAGERT_SRGBA_H
    {IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 4 IMAGERT_SRGB_H
    {IMAGE_F32_4, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 5 IMAGERT_SRGBA_F
@@ -22,7 +22,7 @@ static const ImageRTType ImageRTTypes[]=
 #else
    {IMAGE_R8G8B8A8                                                                             }, // 0 IMAGERT_SRGBA
    {IMAGE_R10G10B10A2, IMAGE_R8G8B8A8                                                          }, // 1 IMAGERT_SRGB
-   {IMAGE_R10G10B10A2, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8                                }, // 2 IMAGERT_SRGB_P
+   {IMAGE_R10G10B10A2, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8                                }, // 2 IMAGERT_SRGB_P (can't use IMAGE_R11G11B10F because precision for 0..1 is very bad, with a max error of 0.0153656006)
    {IMAGE_F16_4      , IMAGE_R8G8B8A8                                                          }, // 3 IMAGERT_SRGBA_H
    {IMAGE_F16_3      , IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_R8G8B8A8                          }, // 4 IMAGERT_SRGB_H
    {IMAGE_F32_4      , IMAGE_F16_4, IMAGE_R8G8B8A8                                             }, // 5 IMAGERT_SRGBA_F
@@ -31,7 +31,7 @@ static const ImageRTType ImageRTTypes[]=
 
    {IMAGE_R8G8B8A8                                                                             }, //  7 IMAGERT_RGBA
    {IMAGE_R10G10B10A2, IMAGE_R8G8B8A8                                                          }, //  8 IMAGERT_RGB
-   {IMAGE_R10G10B10A2, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8                                }, //  9 IMAGERT_RGB_P
+   {IMAGE_R10G10B10A2, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8                                }, //  9 IMAGERT_RGB_P (can't use IMAGE_R11G11B10F because precision for 0..1 is very bad, with a max error of 0.0153656006)
    {IMAGE_F16_4      , IMAGE_R8G8B8A8                                                          }, // 10 IMAGERT_RGBA_H
    {IMAGE_F16_3      , IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_R8G8B8A8                          }, // 11 IMAGERT_RGB_H
    {IMAGE_F32_4      , IMAGE_F16_4, IMAGE_R8G8B8A8                                             }, // 12 IMAGERT_RGBA_F
@@ -86,7 +86,6 @@ static IMAGE_TYPE  ImageRTTypesOK[2][IMAGERT_NUM]; // [MultiSample][IMAGERT_NUM]
 static ImageRTType ImageRTTypesOK[2][IMAGERT_NUM];
 #endif
 /******************************************************************************/
-// !! WARNING: The functions below are for SRGB ONLY !!
 static const IMAGERT_TYPE GetImageRTTypeLookup[IMAGE_PRECISION_NUM][2]= // [precision][alpha]
 {
    // no alpha   ,     alpha
@@ -97,8 +96,21 @@ static const IMAGERT_TYPE GetImageRTTypeLookup[IMAGE_PRECISION_NUM][2]= // [prec
    {IMAGERT_SRGB_F, IMAGERT_SRGBA_F}, // 4 IMAGE_PRECISION_32
    {IMAGERT_SRGB_F, IMAGERT_SRGBA_F}, // 5 IMAGE_PRECISION_64
 }; ASSERT(IMAGE_PRECISION_8==0 && IMAGE_PRECISION_10==1 && IMAGE_PRECISION_16==2 && IMAGE_PRECISION_24==3 && IMAGE_PRECISION_32==4 && IMAGE_PRECISION_64==5 && IMAGE_PRECISION_NUM==6);
-IMAGERT_TYPE GetImageRTType(                 Bool       alpha, IMAGE_PRECISION     precision) {return GetImageRTTypeLookup[precision][alpha];}
-IMAGERT_TYPE GetImageRTType(IMAGE_TYPE type, Bool allow_alpha, IMAGE_PRECISION max_precision)
+
+static const IMAGERT_TYPE GetImageRTTypeLookupLinear[IMAGE_PRECISION_NUM][2]= // [precision][alpha]
+{
+   // no alpha   ,     alpha
+   {IMAGERT_RGB  , IMAGERT_RGBA  }, // 0 IMAGE_PRECISION_8
+   {IMAGERT_RGB_P, IMAGERT_RGBA_P}, // 1 IMAGE_PRECISION_10
+   {IMAGERT_RGB_H, IMAGERT_RGBA_H}, // 2 IMAGE_PRECISION_16
+   {IMAGERT_RGB_F, IMAGERT_RGBA_F}, // 3 IMAGE_PRECISION_24
+   {IMAGERT_RGB_F, IMAGERT_RGBA_F}, // 4 IMAGE_PRECISION_32
+   {IMAGERT_RGB_F, IMAGERT_RGBA_F}, // 5 IMAGE_PRECISION_64
+}; ASSERT(IMAGE_PRECISION_8==0 && IMAGE_PRECISION_10==1 && IMAGE_PRECISION_16==2 && IMAGE_PRECISION_24==3 && IMAGE_PRECISION_32==4 && IMAGE_PRECISION_64==5 && IMAGE_PRECISION_NUM==6);
+
+IMAGERT_TYPE GetImageRTTypeLinear(                 Bool       alpha, IMAGE_PRECISION     precision) {return GetImageRTTypeLookupLinear[precision][alpha];}
+IMAGERT_TYPE GetImageRTType      (                 Bool       alpha, IMAGE_PRECISION     precision) {return GetImageRTTypeLookup      [precision][alpha];}
+IMAGERT_TYPE GetImageRTType      (IMAGE_TYPE type, Bool allow_alpha, IMAGE_PRECISION max_precision)
 {
  C ImageTypeInfo &ti=ImageTI[type]; return GetImageRTType(ti.a>=8 && allow_alpha, Min(ti.precision, max_precision)); // compare alpha as >=8 instead of >0 to treat types such as IMAGE_R10G10B10A2 as without alpha (this type is chosen for 10-bit color and ignoring alpha), because we could actually increase precision when operating on 'IMAGE_R10G10B10A2' with 'allow_alpha'=true
 }
@@ -219,6 +231,7 @@ void ImageRT::clearFull(C Vec4 &color, Bool restore_rt)
       restore_viewport=!D._view_active.full;
    }
 
+   discard();
    Renderer.set(this, null, false); 
    D.clearCol(color);
 
@@ -245,16 +258,27 @@ void ImageRT::clearViewport(C Vec4 &color, Bool restore_rt)
    }
 }
 /******************************************************************************/
-void ImageRT:: zero   () {_srv_srgb=null; _rtv=_rtv_srgb=null; _dsv=_rdsv=null;} // don't zero '_ptr_num' here, because this is called in 'delThis', however ref count should be kept
-     ImageRT:: ImageRT() {_ptr_num=0; zero();}
-     ImageRT::~ImageRT() {delThis();} // delete children first, 'super.del' already called automatically in '~Image'
-void ImageRT:: delThis() // delete only this class members without super and without '_ptr_num'
+void ImageRT::zero()
 {
 #if DX11
-   if(_srv_srgb || _rtv || _rtv_srgb || _dsv || _rdsv)
+  _srv_srgb=null; _rtv=_rtv_srgb=null; _dsv=_rdsv=null; _uav=null;
+#elif GL
+  _txtr_srgb=0;
+#endif
+}
+     ImageRT:: ImageRT() {zero();}
+     ImageRT::~ImageRT() {delThis();} // delete children first, 'super.del' already called automatically in '~Image'
+void ImageRT:: delThis() // delete only this class members without super
+{
+   D.rtClear(T);
+#if DX11
+   if(_srv_srgb || _rtv || _rtv_srgb || _dsv || _rdsv || _uav)
    {
-      D.texClear(_srv_srgb);
-    //SyncLocker locker(D._lock); lock not needed for DX11 'Release'
+      D.texClearAll(_srv_srgb);
+      D.uavClear   (_uav     );
+   #if GPU_LOCK // lock not needed for 'Release'
+      SyncLocker locker(D._lock);
+   #endif
       if(D.created())
       {
          RELEASE(_srv_srgb);
@@ -262,12 +286,27 @@ void ImageRT:: delThis() // delete only this class members without super and wit
          RELEASE(_rtv_srgb);
          RELEASE(_dsv     );
          RELEASE(_rdsv    );
+         RELEASE(_uav     );
+      }
+   }
+#elif GL
+   D.uavClear(_txtr);
+   if(_txtr_srgb)
+   {
+      D.uavClear   (_txtr_srgb);
+      D.texClearAll(_txtr_srgb);
+   #if GPU_LOCK
+      SyncLocker locker(D._lock);
+   #endif
+      if(D.created())
+      {
+         glDeleteTextures(1, &_txtr_srgb);
       }
    }
 #endif
    zero();
 }
-void ImageRT::del() // this keeps '_ptr_num'
+void ImageRT::del()
 {
    delThis(); // delete children first
    super::del();
@@ -279,10 +318,25 @@ Bool ImageRT::createViews()
       case IMAGE_RT: //case IMAGE_RT_CUBE:
       {
       #if DX11
+         if(_rtv)return true; // if already has a view then keep it, this is important and needed for #SwapImageRT
          D3D11_RENDER_TARGET_VIEW_DESC rtvd; Zero(rtvd); rtvd.Format=hwTypeInfo().format;
          rtvd.ViewDimension=(multiSample() ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D);
-         D3D->CreateRenderTargetView(_txtr, &rtvd, &_rtv); if(!_rtv)return false;
+      #if GPU_LOCK // lock not needed for 'D3D'
+         SyncLocker locker(D._lock);
       #endif
+         D3D->CreateRenderTargetView(_txtr, &rtvd, &_rtv); if(!_rtv)return false;
+         
+         if(D.computeAvailable())
+         {
+            D3D11_UNORDERED_ACCESS_VIEW_DESC uavd; Zero(uavd); uavd.Format=hwTypeInfo().format;
+            uavd.ViewDimension=D3D11_UAV_DIMENSION_TEXTURE2D;
+          //uavd.Texture2D.MipSlice=0;
+            D3D->CreateUnorderedAccessView(_txtr, &uavd, &_uav); //if(!_uav)return false; this might fail for map main
+         }
+      #elif GL
+         if(_txtr_srgb)return true; // if already has a view then keep it, this is important and needed for #SwapImageRT
+      #endif
+
          if(IMAGE_TYPE type_srgb=ImageTypeToggleSRGB(type()))if(type_srgb!=type()) // try creating toggled sRGB Resource Views
          {
          #if DX11
@@ -290,9 +344,21 @@ Bool ImageRT::createViews()
             if(multiSample()){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
             else             {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=mipMaps();}
             srvd.Format=rtvd.Format=ImageTI[type_srgb].format;
-            // lock not needed for DX11 'D3D'
             D3D->CreateShaderResourceView(_txtr, &srvd, &_srv_srgb);
             D3D->CreateRenderTargetView  (_txtr, &rtvd, &_rtv_srgb);
+         #elif GL
+            if(D.canSwapSRGB())
+            {
+            #if GPU_LOCK
+               SyncLocker locker(D._lock);
+            #endif
+               glGenTextures(1, &_txtr_srgb); if(_txtr_srgb)
+               {
+                  glGetError(); // clear any previous errors
+                  glTextureView(_txtr_srgb, GL_TEXTURE_2D, _txtr, ImageTI[type_srgb].format, 0, mipMaps(), 0, faces());
+                  if(glGetError()!=GL_NO_ERROR){glDeleteTextures(1, &_txtr_srgb); _txtr_srgb=0;} // delete on fail
+               }
+            }
          #endif
          }
       }break;
@@ -301,7 +367,11 @@ Bool ImageRT::createViews()
       case IMAGE_SHADOW_MAP:
       {
       #if DX11
+         if(_dsv)return true; // if already has a view then keep it, this is important and needed for #SwapImageRT
          D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=hwTypeInfo().format; dsvd.ViewDimension=(multiSample() ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
+      #if GPU_LOCK // lock not needed for 'D3D'
+         SyncLocker locker(D._lock);
+      #endif
                                                                                                           D3D->CreateDepthStencilView(_txtr, &dsvd, &_dsv ); if(!_dsv)return false;
          dsvd.Flags=D3D11_DSV_READ_ONLY_DEPTH; if(hwTypeInfo().s)dsvd.Flags|=D3D11_DSV_READ_ONLY_STENCIL; D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // this will work only on DX11.0 but not 10.0, 10.1
       #endif
@@ -311,22 +381,23 @@ Bool ImageRT::createViews()
 }
 Bool ImageRT::create(C VecI2 &size, IMAGE_TYPE type, IMAGE_MODE mode, Byte samples)
 {
-   if(T.size()==size && T.type()==type && T.mode()==mode && T.samples()==samples)return true; // do a fast check if we already have what we want, to avoid re-creating the same stuff
-   delThis(); // delete only this without super 'del', because that will already be done in 'createTryEx' below
-   if(super::createTryEx(size.x, size.y, 1, type, mode, 1, samples)
+   if(T.size()==size && T.type()==type && T.mode()==mode && T.samples()==samples // do a fast check if we already have what we want, to avoid re-creating the same stuff
+   && createViews())return true; // still have to check for views, in case this was swapped from 'Image' and views are null #SwapImageRT
+
+   delThis(); // delete only this without super 'del', because that will already be done in 'createEx' below
+   if(super::createEx(size.x, size.y, 1, type, mode, 1, samples)
 #if GL
-   || mode==IMAGE_DS && super::createTryEx(size.x, size.y, 1, type, IMAGE_GL_RB, 1, samples)
+   || mode==IMAGE_DS && super::createEx(size.x, size.y, 1, type, IMAGE_GL_RB, 1, samples)
 #endif
    )
-   if(createViews())
-   {
-   #if DX11
-      {SyncLocker locker(D._lock); clearHw();} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
-   #endif
-      Time.skipUpdate();
-      return true;
-   }
-   return false;
+      if(createViews())return true;
+
+   del(); return false;
+}
+ImageRT& ImageRT::mustCreate(C VecI2 &size, IMAGE_TYPE type, IMAGE_MODE mode, Byte samples)
+{
+   if(!create(size, type, mode, samples))Exit(S+"Can't create ImageRT "+size.x+'x'+size.y+", type "+ImageTI[type].name+", mode "+mode+", samples "+samples+'.');
+   return T;
 }
 /******************************************************************************/
 Bool ImageRT::map()
@@ -393,16 +464,29 @@ void ImageRT::unmap()
 void ImageRT::swapSRV()
 {
 #if DX11
-   Swap(_srv, _srv_srgb); D.texClear(_srv_srgb); // we have to remove from tex cache, because if we're going to try to bind this as Render Target later, then DX automatically unbinds its SRV's, engine already clears cache in that case, however only for current '_srv' and not the secondary '_srv_srgb'
+   Swap(_srv, _srv_srgb); D.texClear(_srv_srgb); // we have to remove from tex cache, because if we're going to try to bind this as Render Target later, then DX automatically unbinds its SRVs, engine already clears cache in that case, however only for current '_srv' and not the secondary '_srv_srgb'
+#elif GL
+   Swap(_txtr, _txtr_srgb);
 #endif
 }
 void ImageRT::swapRTV()
 {
 #if DX11
    Swap(_rtv, _rtv_srgb);
+#elif GL
+   Swap(_txtr, _txtr_srgb);
 #endif
 }
-static Int CompareDesc(C ImageRT &image, C ImageRTDesc &desc)
+void ImageRT::swapSRGB()
+{
+#if DX11
+   swapSRV(); swapRTV();
+#elif GL
+   Swap(_txtr, _txtr_srgb);
+#endif
+  _hw_type=ImageTypeToggleSRGB(hwType()); // !! have to toggle 'hwType' and not 'type' because 'CompareDesc' and 'Set' expect that !!
+}
+static Int CompareDesc(C ImageRTC &image, C ImageRTDesc &desc)
 {
    if(Int c=Compare(image.w      (), desc.size.x ))return c;
    if(Int c=Compare(image.h      (), desc.size.y ))return c;
@@ -410,17 +494,13 @@ static Int CompareDesc(C ImageRT &image, C ImageRTDesc &desc)
    if(Int c=Compare(image.samples(), desc.samples))return c;
    return 0;
 }
-void ImageRT::swapSRGB()
+static void Set(ImageRTPtr &p, ImageRTC &rt, IMAGE_TYPE want_type) // this is called only when "_ptr_num==0"
 {
-#if DX11
-   swapSRV(); swapRTV(); _hw_type=ImageTypeToggleSRGB(hwType()); // !! have to toggle 'hwType' and not 'type' because 'CompareDesc' and 'Set' expect that !!
-#endif
-}
-static void Set(ImageRTPtr &p, ImageRT &rt, Bool want_srgb) // this is called only when "_ptr_num==0"
-{
-#if CAN_SWAP_SRGB
-   if(want_srgb!=rt.sRGB())rt.swapSRGB();
-#endif
+   if(want_type!=rt.hwType()) // !! have to compare 'hwType' instead of 'type', because 'type' is always non-sRGB (same as 'desc._type') while 'hwType' can be sRGB-toggled in 'swapSRGB' !!
+   {
+      DYNAMIC_ASSERT(rt.canSwapSRGB(), "Can't swap RT sRGB");
+      rt.swapSRGB();
+   }
    rt._ptr_num++; p._data=&rt; rt.discard();
 }
 /******************************************************************************/
@@ -428,7 +508,7 @@ ImageRTPtr& ImageRTPtr::clearNoDiscard()
 {
    if(_data)
    {
-      DEBUG_ASSERT(_data->_ptr_num, "ImageRT._ptr_num should be >0");
+      DEBUG_ASSERT(_data->_ptr_num, "ImageRTC._ptr_num should be >0");
      _data->_ptr_num--;
      _data=null;
    }
@@ -438,7 +518,7 @@ ImageRTPtr& ImageRTPtr::clear()
 {
    if(_data)
    {
-      DEBUG_ASSERT(_data->_ptr_num, "ImageRT._ptr_num should be >0");
+      DEBUG_ASSERT(_data->_ptr_num, "ImageRTC._ptr_num should be >0");
           _data->_ptr_num--;
       if(!_data->_ptr_num)_data->discard();
           _data=null;
@@ -454,7 +534,7 @@ ImageRTPtr& ImageRTPtr::operator=(C ImageRTPtr &p)
    }
    return T;
 }
-ImageRTPtr& ImageRTPtr::operator=(ImageRT *p)
+ImageRTPtr& ImageRTPtr::operator=(ImageRTC *p)
 {
    if(T!=p)
    {
@@ -467,7 +547,7 @@ ImageRTPtr::ImageRTPtr(C ImageRTPtr &p)
 {
    if(T._data=p._data){T._data->_ptr_num++; T._last_index=p._last_index;}else T._last_index=-1;
 }
-ImageRTPtr::ImageRTPtr(ImageRT *p)
+ImageRTPtr::ImageRTPtr(ImageRTC *p)
 {
    if(T._data=p)T._data->_ptr_num++;else T._last_index=-1;
 }
@@ -485,14 +565,11 @@ again:
    ConstCast(desc._type)=types.types[0];
 #endif
 
-   Bool want_srgb=false;
-#if CAN_SWAP_SRGB // try to create non-sRGB, and later swap sRGB views, this allows to potentially reduce amount of needed Render Targets, since they can reuse each other memory (instead of using 1 RGB and 1 sRGB, we can just allocate 1 RGB, and swap its views if needed)
-   IMAGE_TYPE non_srgb=ImageTypeExcludeSRGB(desc._type); if(desc._type!=non_srgb) // if we're requesting sRGB
-   {
-      ConstCast(desc._type)=non_srgb; // request non-sRGB
-      want_srgb=true; // and remember that we want sRGB
+   IMAGE_TYPE want_type=desc._type;
+   if(D.canSwapSRGB()) // if can swap sRGB, then try to create non-sRGB, and later swap sRGB views
+   { // this allows to potentially reduce amount of needed Render Targets, since they can reuse each other memory (instead of using 1 RGB and 1 sRGB, we can just allocate 1 RGB, and swap its views if needed)
+      IMAGE_TYPE non_srgb=ImageTypeExcludeSRGB(desc._type); if(desc._type!=non_srgb)ConstCast(desc._type)=non_srgb; // if we're requesting sRGB, then request non-sRGB
    }
-#endif
 
    Bool found; if(InRange(_last_index, Renderer._rts) && !CompareDesc(Renderer._rts[_last_index], desc))found=true; // in range and matches ("!CompareDesc" -> match)
    else found=Renderer._rts.binarySearch(desc, _last_index, CompareDesc);
@@ -500,22 +577,22 @@ again:
    if(found)
    {
       // check '_last_index' first
-      ImageRT &rt=Renderer._rts[_last_index];
-      if(rt.available()){Set(T, rt, want_srgb); return true;}
+      ImageRTC &rt=Renderer._rts[_last_index];
+      if(rt.available()){Set(T, rt, want_type); return true;}
 
       // check all neighbors with the same desc
-      for(Int i=_last_index-1;         i>=0             ; i--) {ImageRT &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){T._last_index=i; Set(T, rt, want_srgb); return true;}}
-      for(Int i=_last_index+1; InRange(i, Renderer._rts); i++) {ImageRT &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){T._last_index=i; Set(T, rt, want_srgb); return true;}}
+      for(Int i=_last_index-1;         i>=0             ; i--) {ImageRTC &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){T._last_index=i; Set(T, rt, want_type); return true;}}
+      for(Int i=_last_index+1; InRange(i, Renderer._rts); i++) {ImageRTC &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){T._last_index=i; Set(T, rt, want_type); return true;}}
    }
 #if KNOWN_IMAGE_TYPE_USAGE
    if(desc._type) // check this after 'found' because in most cases we will already return from codes above
    { // since we have KNOWN_IMAGE_TYPE_USAGE, and a valid type, then we assume that this should always succeed
-      ImageRT &rt=Renderer._rts.NewAt(_last_index); if(rt.create(desc.size, desc._type, ImageTI[desc._type].d ? IMAGE_DS : IMAGE_RT, desc.samples)){Set(T, rt, want_srgb); return true;}
+      ImageRTC &rt=Renderer._rts.NewAt(_last_index); if(rt.create(desc.size, desc._type, ImageTI[desc._type].d ? IMAGE_DS : IMAGE_RT, desc.samples)){Set(T, rt, want_type); return true;}
       Exit(S+"Can't create Render Target "+desc.size.x+'x'+desc.size.y+' '+ImageRTName[desc.rt_type]+", samples:"+desc.samples);
    }
 #else
-   ImageRT temp; // try to create first as a standalone variable (not in 'Renderer._rts') in case it fails so we don't have to remove it
-   if(temp.create(desc.size, desc._type, ImageTI[desc._type].d ? IMAGE_DS : IMAGE_RT, desc.samples)){ImageRT &rt=Renderer._rts.NewAt(_last_index); Swap(rt, temp); Set(T, rt, want_srgb); return true;}
+   ImageRTC temp; // try to create first as a standalone variable (not in 'Renderer._rts') in case it fails so we don't have to remove it
+   if(temp.create(desc.size, desc._type, ImageTI[desc._type].d ? IMAGE_DS : IMAGE_RT, desc.samples)){ImageRTC &rt=Renderer._rts.NewAt(_last_index); Swap(rt, temp); Set(T, rt, want_type); return true;}
    // fail
    if(desc._type!=IMAGE_NONE) // try another type, and don't try this again
    {
@@ -537,7 +614,7 @@ ImageRTPtr& ImageRTPtr::getDS(Int w, Int h, Byte samples, Bool reuse_main)
    clear(); // clear first so we can find the same Image if possible
    if(reuse_main)
    {
-      ImageRT &ds=Renderer._main_ds, *cur_ds=Renderer._cur_main_ds;
+      ImageRTC &ds=Renderer._main_ds, *cur_ds=Renderer._cur_main_ds;
    #if !GL // can't reuse '_main_ds' on GL because it would trigger 'D.mainFBO' and different orientations
       if(                             /*ds .available() && */    ds .accessible() &&     ds .w()==w &&     ds .h()==h &&     ds .samples()==samples){T=   &ds; return T;} // if ds is not used (actually don't check this because an 'ImageRTPtr ds' handle can be set to it at the start of each frame), accessible and compatible then we can use it
    #endif

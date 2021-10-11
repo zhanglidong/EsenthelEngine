@@ -4,7 +4,7 @@ namespace EE{
 static Int Compare(C Edit::Elm &elm, C UID &id) {return Compare(elm.id, id);}
 namespace Edit{
 /******************************************************************************/
-#define EI_VER 43 // this needs to be increased every time a new command is added, existing one is changed, or some of engine class file formats get updated
+#define EI_VER 49 // this needs to be increased every time a new command is added, existing one is changed, or some of engine class file formats get updated
 #define EI_STR "Esenthel Editor Network Interface"
 #define CLIENT_WAIT_TIME         (   60*1000) //    60 seconds
 #define CLIENT_WAIT_TIME_LONG    (15*60*1000) // 15*60 seconds, some operations may take a long time to complete (reloading material textures with resizing, getting world objects, ..)
@@ -125,45 +125,49 @@ static void Decode(File &f, MemPtr<FileParams>  file_params) {file_params=FilePa
 /******************************************************************************/
 Material& Material::reset()
 {
-   technique=MTECH_DEFAULT;
+   technique=MTECH_OPAQUE;
    tex_quality=MEDIUM;
    cull=true;
+   detail_all_lod=false;
    flip_normal_y=false;
+   smooth_is_rough=false;
    downsize_tex_mobile=0;
-   color_s=1;
-   ambient=0;
+      color_s=1;
+   emissive_s=0;
+   emissive_glow=0;
    smooth=0;
-   reflect=0;
+   reflect_min=MATERIAL_REFLECT;
+   reflect_max=1;
    glow=0;
    normal=0;
    bump=0;
-   tex_scale=1;
-    color_map.clear();   alpha_map.clear();
-     bump_map.clear();  normal_map.clear();
-   smooth_map.clear(); reflect_map.clear();
-     glow_map.clear();
-   detail_color .clear();
-   detail_bump  .clear();
-   detail_normal.clear();
-   detail_smooth.clear();
-   macro_map.clear();
-   light_map.clear();
+   uv_scale=1;
+      color_map   .clear();  alpha_map.clear();
+       bump_map   .clear(); normal_map.clear();
+     smooth_map   .clear();  metal_map.clear();
+       glow_map   .clear();
+     detail_color .clear();
+     detail_bump  .clear();
+     detail_normal.clear();
+     detail_smooth.clear();
+      macro_map   .clear();
+   emissive_map   .clear();
    return T;
 }
 Bool Material::save(File &f)C
 {
    f.cmpUIntV(0);
-   f<<technique<<tex_quality<<cull<<flip_normal_y<<downsize_tex_mobile<<color_s<<ambient<<smooth<<reflect<<glow<<normal<<bump<<tex_scale
-    <<Encode( color_map)<<Encode(  alpha_map)
-    <<Encode(  bump_map)<<Encode( normal_map)
-    <<Encode(smooth_map)<<Encode(reflect_map)
-    <<Encode(  glow_map)
-    <<Encode(detail_color )
-    <<Encode(detail_bump  )
-    <<Encode(detail_normal)
-    <<Encode(detail_smooth)
-    <<Encode(macro_map)
-    <<Encode(light_map);
+   f<<technique<<tex_quality<<cull<<detail_all_lod<<flip_normal_y<<smooth_is_rough<<downsize_tex_mobile<<color_s<<emissive_s<<emissive_glow<<smooth<<reflect_min<<reflect_max<<glow<<normal<<bump<<uv_scale
+    <<Encode(   color_map   )<<Encode( alpha_map)
+    <<Encode(    bump_map   )<<Encode(normal_map)
+    <<Encode(  smooth_map   )<<Encode( metal_map)
+    <<Encode(    glow_map   )
+    <<Encode(  detail_color )
+    <<Encode(  detail_bump  )
+    <<Encode(  detail_normal)
+    <<Encode(  detail_smooth)
+    <<Encode(   macro_map   )
+    <<Encode(emissive_map   );
    return f.ok();
 }
 Bool Material::load(File &f)
@@ -172,17 +176,17 @@ Bool Material::load(File &f)
    {
       case 0:
       {
-         f>>technique>>tex_quality>>cull>>flip_normal_y>>downsize_tex_mobile>>color_s>>ambient>>smooth>>reflect>>glow>>normal>>bump>>tex_scale;
-         Decode(f,  color_map); Decode(f,   alpha_map);
-         Decode(f,   bump_map); Decode(f,  normal_map);
-         Decode(f, smooth_map); Decode(f, reflect_map);
-         Decode(f,   glow_map);
-         Decode(f, detail_color );
-         Decode(f, detail_bump  );
-         Decode(f, detail_normal);
-         Decode(f, detail_smooth);
-         Decode(f, macro_map);
-         Decode(f, light_map);
+         f>>technique>>tex_quality>>cull>>detail_all_lod>>flip_normal_y>>smooth_is_rough>>downsize_tex_mobile>>color_s>>emissive_s>>emissive_glow>>smooth>>reflect_min>>reflect_max>>glow>>normal>>bump>>uv_scale;
+         Decode(f,    color_map   ); Decode(f,  alpha_map);
+         Decode(f,     bump_map   ); Decode(f, normal_map);
+         Decode(f,   smooth_map   ); Decode(f,  metal_map);
+         Decode(f,     glow_map   );
+         Decode(f,   detail_color );
+         Decode(f,   detail_bump  );
+         Decode(f,   detail_normal);
+         Decode(f,   detail_smooth);
+         Decode(f,    macro_map   );
+         Decode(f, emissive_map   );
          if(f.ok())return true;
       }break;
    }
@@ -423,6 +427,18 @@ Str EditorInterface::dataPath()
       if(_conn.send(f))
       if(_conn.receive(CLIENT_WAIT_TIME))
       if(f.getByte()==EI_GET_DATA_PATH)return f.getStr();
+      disconnect();
+   }
+   return S;
+}
+Str EditorInterface::editorPath()
+{
+   if(connected())
+   {
+      File &f=_conn.data.reset(); f.putByte(EI_GET_EDITOR_PATH).pos(0);
+      if(_conn.send(f))
+      if(_conn.receive(CLIENT_WAIT_TIME))
+      if(f.getByte()==EI_GET_EDITOR_PATH)return f.getStr();
       disconnect();
    }
    return S;
@@ -856,6 +872,7 @@ Bool EditorInterface::worldTerrainSet(C UID &world_id, C VecI2 &area_xy, C Image
 /******************************************************************************/
 Bool EditorInterface::worldObjCreate(C UID &world_id, C CMemPtr<WorldObjParams> &objs)
 {
+   if(!objs.elms())return true;
    if(world_id.valid() && connected())
    {
       File &f=_conn.data.reset(); f.putByte(EI_NEW_WORLD_OBJ).putUID(world_id); objs.save(f); f.pos(0);
@@ -868,7 +885,7 @@ Bool EditorInterface::worldObjCreate(C UID &world_id, C CMemPtr<WorldObjParams> 
 }
 Bool EditorInterface::worldObjGetDesc(C UID &world_id, MemPtr<WorldObjDesc> objs, C CMemPtr<UID> &world_obj_instance_ids, C RectI *areas, Bool only_selected, Bool include_removed)
 {
-   if(world_id.valid() && connected())
+   if(world_id.valid() && world_obj_instance_ids.elms() && connected())
    {
       File &f=_conn.data.reset(); f.putByte(EI_GET_WORLD_OBJ_BASIC).putUID(world_id).putBool(areas!=null); if(areas)f<<*areas; f<<only_selected<<include_removed; world_obj_instance_ids.saveRaw(f); f.pos(0);
       if(_conn.send(f))
@@ -881,11 +898,11 @@ Bool EditorInterface::worldObjGetDesc(C UID &world_id, MemPtr<WorldObjDesc> objs
       disconnect();
    }
 fail:
-   objs.clear(); return !world_id.valid();
+   objs.clear(); return !(world_id.valid() && world_obj_instance_ids.elms());
 }
 Bool EditorInterface::worldObjGetData(C UID &world_id, MemPtr<WorldObjData> objs, C CMemPtr<UID> &world_obj_instance_ids, C RectI *areas, Bool only_selected, Bool include_removed, Bool include_removed_params)
 {
-   if(world_id.valid() && connected())
+   if(world_id.valid() && world_obj_instance_ids.elms() && connected())
    {
       File &f=_conn.data.reset(); f.putByte(EI_GET_WORLD_OBJ_FULL).putUID(world_id).putBool(areas!=null); if(areas)f<<*areas; f<<only_selected<<include_removed<<include_removed_params; world_obj_instance_ids.saveRaw(f); f.pos(0);
       if(_conn.send(f))
@@ -898,7 +915,7 @@ Bool EditorInterface::worldObjGetData(C UID &world_id, MemPtr<WorldObjData> objs
       disconnect();
    }
 fail:
-   objs.clear(); return !world_id.valid();
+   objs.clear(); return !(world_id.valid() && world_obj_instance_ids.elms());
 }
 // !! when sending object data - HANDLE CORRECT REL PATH FOR OBJ PARAM ENUMS !!
 /******************************************************************************/
@@ -1249,11 +1266,11 @@ Bool EditorInterface::setMaterial(C UID &elm_id, C Material &mtrl, Bool reload_t
    }
    return false;
 }
-Bool EditorInterface::reloadMaterialTextures(C UID &elm_id, bool base, bool detail, bool macro, bool light)
+Bool EditorInterface::reloadMaterialTextures(C UID &elm_id, bool base, bool detail, bool macro, bool emissive)
 {
    if(elm_id.valid() && connected())
    {
-      File &f=_conn.data.reset(); f.putByte(EI_RLD_MTRL_TEX).putUID(elm_id).putByte(base*1 | detail*2 | macro*4 | light*8); f.pos(0);
+      File &f=_conn.data.reset(); f.putByte(EI_RLD_MTRL_TEX).putUID(elm_id).putByte(base*1 | detail*2 | macro*4 | emissive*8); f.pos(0);
       if(_conn.send(f))
       if(_conn.receive(CLIENT_WAIT_TIME_LONG)) // reloading textures may take a long time
       if(f.getByte()==EI_RLD_MTRL_TEX)return f.getBool();
@@ -1387,6 +1404,7 @@ fail:
 }
 Bool EditorInterface::modifyObject(C UID &elm_id, C CMemPtr<ObjChange> &changes)
 {
+   if(!changes.elms())return true;
    if(elm_id.valid() && connected())
    {
       File &f=_conn.data.reset(); f.putByte(EI_MODIFY_OBJ).putUID(elm_id); changes.save(f); f.pos(0);

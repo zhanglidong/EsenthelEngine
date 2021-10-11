@@ -187,7 +187,7 @@ class CompareProjects : PropWin
    virtual void update(C GuiPC &gpc)override
    {
       super.update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          select_selected.visible(Proj.valid());
          select_all     .visible(Proj.valid());

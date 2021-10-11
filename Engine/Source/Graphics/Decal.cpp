@@ -9,6 +9,19 @@ namespace EE{
 inline Flt OpaqueFracMul(Flt frac=OPAQUE_FRAC) {return 1.0f/(frac-1);}
 inline Flt OpaqueFracAdd(Flt frac=OPAQUE_FRAC) {return frac/(1-frac)+1;}
 /******************************************************************************/
+static const ALPHA_MODE Alpha[]=
+{
+   ALPHA_OVERLAY            , // 0=overlay
+   ALPHA_RENDER_BLEND_FACTOR, // 1=blend
+   ALPHA_ADD                , // 2=palette
+};
+static Int GetMode()
+{
+   if( Renderer()==RM_OVERLAY)return 0; // overlay
+   if(!Renderer._palette_mode)return 1; // blend
+                              return 2; // palette
+}
+/******************************************************************************/
 void Decal::zero()
 {
    terrain_only=false;
@@ -24,19 +37,20 @@ void Decal::del()
 Decal::Decal() {zero();}
 void Decal::setShader()
 {
+   REPD(mode      , 3)
    REPD(fullscreen, 2)
-   REPD(palette   , 2)
    { // #MaterialTextureLayout
       if(_material && _material->base_0)
       {
-         Int layout=(_material->base_2!=null), mode=(palette ? 2 : _material->base_1 ? 1 : 0);
-         Shader* &src=Sh.Decal[fullscreen][layout][mode]; if(!src)
+         Int  layout=(mode==0 && _material->base_2);
+         Bool normal=(mode==0 && _material->base_1);
+         Shader* &src=Sh.Decal[mode][fullscreen][layout][normal]; if(!src)
          {
-            src=ShaderFiles("Effects 3D")->get(S8+"Decal"+fullscreen+(layout+1)+mode);
+            src=ShaderFiles("Effects 3D")->get(S8+"Decal"+mode+fullscreen+(layout+1)+normal);
             Sh.DecalParams=GetShaderParam("DecalParams");
          }
-            _shader[fullscreen][palette]=src;
-      }else _shader[fullscreen][palette]=null;
+            _shader[mode][fullscreen]=src;
+      }else _shader[mode][fullscreen]=null;
    }
 }
 Decal& Decal::material(C MaterialPtr &material)
@@ -63,7 +77,8 @@ void Decal::drawStatic()C
       if(Frustum(ball))
       {
          Bool inside=Cuts(CamMatrix.pos, ball.extend(Frustum.view_quad_max_dist));
-         if(Shader *shader=T._shader[inside][Renderer._palette_mode])
+         Int  mode=GetMode();
+         if(Shader *shader=T._shader[mode][inside])
          {
             SetOneMatrix(matrix);
 
@@ -72,19 +87,17 @@ void Decal::drawStatic()C
             Sh.Color[0]   ->set(color);
 
             if(terrain_only)D.stencil(STENCIL_TERRAIN_TEST);
-          //Bool cwrt; Byte cwrt_old; if(cwrt=(Renderer.cur[1] && tech!=Sh.DecalN)){cwrt_old=D._cwrt[1]; D.colWrite(0, 1);} it looks like if the shader doesn't write to RT then it's not applied
 
             Renderer.needDepthRead();
-            D.alpha(Renderer._palette_mode ? ALPHA_ADD : ALPHA_BLEND_FACTOR);
+            D.alpha(Alpha[mode]);
             if(inside)
             {
                shader->draw();
             }else
             {
-               shader->begin(); D.cull(true); D.depth(true); D.depthWrite(false); MshrBox.set().draw();
+               D.cull(true); D.depthOnWrite(true, false); shader->begin(); MshrBox.set().draw();
             }
 
-          //if(cwrt)D.colWrite(cwrt_old, 1);
             if(terrain_only)D.stencil(STENCIL_NONE);
          }
       }
@@ -99,7 +112,8 @@ void Decal::drawAnimated(C Matrix &object_world_matrix)C
       if(Frustum(ball))
       {
          Bool inside=Cuts(CamMatrix.pos, ball.extend(Frustum.view_quad_max_dist));
-         if(Shader *shader=T._shader[inside][Renderer._palette_mode])
+         Int  mode=GetMode();
+         if(Shader *shader=T._shader[mode][inside])
          {
             SetOneMatrix(m);
 
@@ -108,19 +122,17 @@ void Decal::drawAnimated(C Matrix &object_world_matrix)C
             Sh.Color[0]   ->set(color);
 
             if(terrain_only)D.stencil(STENCIL_TERRAIN_TEST);
-          //Bool cwrt; Byte cwrt_old; if(cwrt=(Renderer.cur[1] && tech!=Sh.DecalN)){cwrt_old=D._cwrt[1]; D.colWrite(0, 1);} it looks like if the shader doesn't write to RT then it's not applied
 
             Renderer.needDepthRead();
-            D.alpha(Renderer._palette_mode ? ALPHA_ADD : ALPHA_BLEND_FACTOR);
+            D.alpha(Alpha[mode]);
             if(inside)
             {
                shader->draw();
             }else
             {
-               shader->begin(); D.cull(true); D.depth(true); D.depthWrite(false); MshrBox.set().draw();
+               D.cull(true); D.depthOnWrite(true, false); shader->begin(); MshrBox.set().draw();
             }
 
-          //if(cwrt)D.colWrite(cwrt_old, 1);
             if(terrain_only)D.stencil(STENCIL_NONE);
          }
       }

@@ -1047,7 +1047,7 @@
     <ClInclude Include="Source\Shaders\Fur.h">
       <Filter>Source\Shaders\3D</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Shaders\Overlay.h">
+    <ClInclude Include="Source\Shaders\Mesh Overlay.h">
       <Filter>Source\Shaders\3D</Filter>
     </ClInclude>
     <ClInclude Include="H\Graphics\Shader Compiler.h">
@@ -1079,6 +1079,15 @@
     </ClInclude>
     <ClInclude Include="..\NintendoSwitch\Switch.h">
       <Filter>H\Platforms</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Shaders\Bloom.h">
+      <Filter>Source\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Shaders\Temporal.h">
+      <Filter>Source\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Shaders\Motion Blur.h">
+      <Filter>Source\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -2102,7 +2111,7 @@
     <ClCompile Include="Source\Shaders\Cubic.cpp">
       <Filter>Source\Shaders</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Shaders\Ambient.cpp">
+    <ClCompile Include="Source\Shaders\Emissive.cpp">
       <Filter>Source\Shaders\3D</Filter>
     </ClCompile>
     <ClCompile Include="Source\Shaders\Behind.cpp">
@@ -2126,13 +2135,13 @@
     <ClCompile Include="Source\Shaders\Fur.cpp">
       <Filter>Source\Shaders\3D</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Shaders\Overlay.cpp">
+    <ClCompile Include="Source\Shaders\Mesh Overlay.cpp">
       <Filter>Source\Shaders\3D</Filter>
     </ClCompile>
     <ClCompile Include="Source\Shaders\Position.cpp">
       <Filter>Source\Shaders\3D</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Shaders\Tattoo.cpp">
+    <ClCompile Include="Source\Shaders\Overlay.cpp">
       <Filter>Source\Shaders\3D</Filter>
     </ClCompile>
     <ClCompile Include="Source\Shaders\Set Color.cpp">
@@ -2165,7 +2174,7 @@
     <ClCompile Include="Source\Graphics\ImageFilterWaifu.cpp">
       <Filter>Source\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Shaders\TAA.cpp">
+    <ClCompile Include="Source\Shaders\Temporal.cpp">
       <Filter>Source\Shaders</Filter>
     </ClCompile>
     <ClCompile Include="Source\Graphics\Import\HEIF.cpp">
@@ -2179,6 +2188,12 @@
     </ClCompile>
     <ClCompile Include="..\NintendoSwitch\Switch.cpp">
       <Filter>Source\Platforms\Switch</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Sound\Sound Resample.cpp">
+      <Filter>Source\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Shaders\FidelityFX\Fidelity FX.cpp">
+      <Filter>Source\Shaders</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2701,6 +2716,9 @@
       <Filter>H\_\Libs\64</Filter>
     </Library>
     <Library Include="..\ThirdPartyLibs\Zlib\Windows\x64\Release\Zlib.lib">
+      <Filter>H\_\Libs\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\SampleRate\Windows\x64\Release\SampleRate\SampleRate.lib">
       <Filter>H\_\Libs\64</Filter>
     </Library>
   </ItemGroup>

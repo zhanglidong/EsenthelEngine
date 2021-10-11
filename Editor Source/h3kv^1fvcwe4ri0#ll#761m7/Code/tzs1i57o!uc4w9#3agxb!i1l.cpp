@@ -8,7 +8,7 @@ class LodView : GuiCustom
 
    virtual void draw(C GuiPC &gpc)override
    {
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          D.clip(gpc.clip);
          Rect r=rect()+gpc.offset;
@@ -362,7 +362,7 @@ draw_at_distance_prop=&props.New().create("Draw at Distance", MEMBER(NewLodClass
    virtual void update(C GuiPC &gpc)override
    {
       super.update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          if(needRebuild())startThread();
          if(processed_ready)

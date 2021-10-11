@@ -6,8 +6,6 @@
 #define MacroMax    0.70
 #define MacroScale (1.0/32)
 
-#define DEFAULT_TEX_SIZE 1024.0 // 1024x1024
-
 #define PARALLAX_MODE 1 // 1=best
 
 #define RELIEF_STEPS_MAX    32
@@ -18,7 +16,6 @@
 #define RELIEF_DEC_NRM      1 // if reduce relief bump intensity where there are big differences between vtx normals, tangents and binormals, default=1
 #define RELIEF_MODE         1 // 1=best
 #define RELIEF_Z_LIMIT      0.4 // smaller values may cause leaking (UV swimming), and higher reduce bump intensity at angles, default=0.4
-#define RELIEF_LOD_TEST     0 // close to camera (test enabled=4.76 fps, test disabled=4.99 fps), far from camera (test enabled=9.83 fps, test disabled=9.52 fps), conclusion: this test reduces performance when close to camera by a similar factor to when far away, however since more likely pixels will be close to camera (as for distant LODs other shaders are used) we prioritize close to camera performance, so this check should be disabled, default=0
 
 #define FAST_TPOS  ((BUMP_MODE>=SBUMP_PARALLAX_MIN && BUMP_MODE<=SBUMP_PARALLAX_MAX) || (BUMP_MODE==SBUMP_RELIEF && !RELIEF_TAN_POS))
 #define GRASS_FADE (FX==FX_GRASS_2D || FX==FX_GRASS_3D)
@@ -27,14 +24,14 @@
 #define TESSELATE_VEL (TESSELATE && USE_VEL && 0) // FIXME
 
 #define SET_POS (TESSELATE || MACRO || (!FAST_TPOS && BUMP_MODE>SBUMP_FLAT))
-#define SET_TEX (LAYOUT || DETAIL || MACRO || BUMP_MODE>SBUMP_FLAT)
+#define SET_UV  (LAYOUT || DETAIL || MACRO || BUMP_MODE>SBUMP_FLAT)
 /******************************************************************************
 SKIN, MATERIALS, LAYOUT, BUMP_MODE, ALPHA_TEST, DETAIL, MACRO, COLORS, MTRL_BLEND, HEIGHTMAP, FX, TESSELATE
 /******************************************************************************/
-struct VS_PS
+struct Data
 {
-#if SET_TEX
-   Vec2 tex:TEXCOORD;
+#if SET_UV
+   Vec2 uv:UV;
 #endif
 
 #if SET_POS
@@ -43,27 +40,6 @@ struct VS_PS
 
 #if USE_VEL
    Vec projected_prev_pos_xyw:PREV_POS;
-#endif
-#if TESSELATE_VEL
-   VecH nrm_prev:PREV_NORMAL;
-#endif
-
-#if   BUMP_MODE> SBUMP_FLAT
-   MatrixH3 mtrx:MATRIX; // !! may not be Normalized !!
-   VecH Nrm() {return mtrx[2];}
-#elif BUMP_MODE==SBUMP_FLAT
-   VecH nrm:NORMAL; // !! may not be Normalized !!
-   VecH Nrm() {return nrm;}
-#else
-   VecH Nrm() {return 0;}
-#endif
-
-#if MATERIALS>1
-   VecH4 material:MATERIAL;
-#endif
-
-#if COLORS
-   VecH col:COLOR;
 #endif
 
 #if FAST_TPOS
@@ -75,8 +51,34 @@ struct VS_PS
    Vec  tpos() {return 0;}
 #endif
 
+#if MATERIALS>1
+   centroid VecH4 material:MATERIAL; // have to use 'centroid' to prevent values from getting outside of 0..1 range, without centroid values can get MUCH different which might cause infinite loop in Relief=crash, and cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
+#endif
+
+#if COLORS
+   VecH col:COLOR;
+#endif
+
 #if GRASS_FADE
    Half fade_out:FADE_OUT;
+#endif
+
+#if   BUMP_MODE> SBUMP_FLAT
+   centroid MatrixH3 mtrx:MATRIX; // !! may not be Normalized !! have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
+   VecH Nrm() {return mtrx[2];}
+#elif BUMP_MODE==SBUMP_FLAT
+   centroid VecH nrm:NORMAL; // !! may not be Normalized !! have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
+   VecH Nrm() {return nrm;}
+#else
+   VecH Nrm() {return 0;}
+#endif
+
+#if TESSELATE_VEL
+   centroid VecH nrm_prev:PREV_NORMAL;
+#endif
+
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+   NOINTERP VecU2 face_id:FACE_ID;
 #endif
 };
 /******************************************************************************/
@@ -86,8 +88,8 @@ void VS
 (
    VtxInput vtx,
 
-   out VS_PS O,
-   out Vec4  O_vtx:POSITION,
+   out Data O,
+   out Vec4 vpos:POSITION,
 
    CLIP_DIST
 )
@@ -98,9 +100,13 @@ void VS
    // VEL
    Vec local_pos_prev, view_pos_prev; VecH nrm_prev; if(USE_VEL){local_pos_prev=local_pos; if(TESSELATE_VEL)nrm_prev=nrm;}
 
-#if SET_TEX
-   O.tex=vtx.tex(HEIGHTMAP);
-   if(HEIGHTMAP && MATERIALS==1)O.tex*=Material.tex_scale;
+#if SET_UV
+   O.uv=vtx.uv(HEIGHTMAP);
+   if(HEIGHTMAP && MATERIALS==1)O.uv*=Material.uv_scale;
+#endif
+
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+   O.face_id=vtx.faceID();
 #endif
 
 #if MATERIALS>1
@@ -229,7 +235,7 @@ void VS
 #if SET_POS
    O.pos=view_pos;
 #endif
-   O_vtx=Project(view_pos); CLIP_PLANE(view_pos);
+   vpos=Project(view_pos); CLIP_PLANE(view_pos);
 #if USE_VEL
    O.projected_prev_pos_xyw=ProjectPrevXYW(view_pos_prev);
 #endif
@@ -237,21 +243,23 @@ void VS
 /******************************************************************************/
 // PS
 /******************************************************************************/
+//Half Pixels(VecH2 uv, Vec2 ImgSize, Flt lod) {return  Length(uv*ImgSize) /exp2(lod);} // how many pixels, exp2(lod)=Pow(2, lod)
+  Half Pixels(VecH2 uv, Vec2 ImgSize, Flt lod) {return Max(Abs(uv*ImgSize))/exp2(lod);} // how many pixels, exp2(lod)=Pow(2, lod)
+
 void PS
 (
-   VS_PS I,
-#if USE_VEL
-   PIXEL,
+   Data I
+#if USE_VEL || ALPHA_TEST==ALPHA_TEST_DITHER
+ , PIXEL
 #endif
 #if FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
-   IS_FRONT,
+ , IS_FRONT
 #endif
-
-   out DeferredSolidOutput output
+ , out DeferredOutput output
 )
 {
    VecH col, nrm;
-   Half smooth, reflect, glow;
+   Half rough, reflect, glow;
 
 #if COLORS
    col=I.col;
@@ -260,7 +268,7 @@ void PS
 #endif
 
 #if MATERIALS==1
-   // apply tex coord bump offset
+   // apply uv coord bump offset
    #if BUMP_MODE>=SBUMP_PARALLAX_MIN && BUMP_MODE<=SBUMP_PARALLAX_MAX // Parallax
    {
       const Int steps=BUMP_MODE-SBUMP_PARALLAX0;
@@ -278,192 +286,203 @@ void PS
       Half scale=Material.bump/(steps*tpos.z);
    #endif
       tpos.xy*=scale; VecH2 add=-0.5*tpos.xy;
-      UNROLL for(Int i=0; i<steps; i++)I.tex+=Tex(BUMP_IMAGE, I.tex).BUMP_CHANNEL*tpos.xy+add; // (tex-0.5)*tpos.xy = tex*tpos.xy + -0.5*tpos.xy
+      UNROLL for(Int i=0; i<steps; i++)I.uv+=RTex(BUMP_IMAGE, I.uv).BASE_CHANNEL_BUMP*tpos.xy+add; // (tex-0.5)*tpos.xy = tex*tpos.xy + -0.5*tpos.xy
    }
    #elif BUMP_MODE==SBUMP_RELIEF // Relief
    {
-   #if RELIEF_LOD_TEST
-      BRANCH if(GetLod(I.tex, DEFAULT_TEX_SIZE)<=4)
+      VecH tpos=I.tpos();
+   #if   RELIEF_MODE==0
+      Half scale=Material.bump;
+   #elif RELIEF_MODE==1 // best
+      Half scale=Material.bump/Lerp(1, tpos.z, Sat(tpos.z/RELIEF_Z_LIMIT));
+   #elif RELIEF_MODE==2 // produces slight aliasing/artifacts on surfaces perpendicular to view direction
+      Half scale=Material.bump/Max(tpos.z, RELIEF_Z_LIMIT);
+   #else // correct however introduces way too much aliasing/artifacts on surfaces perpendicular to view direction
+      Half scale=Material.bump/tpos.z;
    #endif
+
+   #if RELIEF_DEC_NRM
+      scale*=Length2(I.mtrx[0])*Length2(I.mtrx[1])*Length2(I.mtrx[2]); // vtx matrix vectors are interpolated linearly, which means that if there are big differences between vtx vectors, then their length will be smaller and smaller, for example if #0 vtx normal is (1,0), and #1 vtx normal is (0,1), then interpolated value between them will be (0.5, 0.5)
+   #endif
+      tpos.xy*=-scale;
+
+      I.uv-=tpos.xy*0.5;
+
+      Vec2 TexSize; BUMP_IMAGE.GetDimensions(TexSize.x, TexSize.y);
+      Flt  lod=Max(0, GetLod(I.uv, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
+    //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
+
+      Half length=Pixels(tpos.xy, TexSize, lod);
+      if(RELIEF_STEPS_MUL!=1)if(lod>0)length*=RELIEF_STEPS_MUL; // don't use this for first LOD
+
+      Half steps  =Mid(length, 1, RELIEF_STEPS_MAX),
+           stp    =1.0/steps,
+           ray    =1;
+      Vec2 uv_step=tpos.xy*stp; // keep as HP to avoid conversions several times in the loop below
+
+   #if 1 // linear + interval search (faster)
+      // linear search
+      Half height_next, height_prev=0.5; // use 0.5 as approximate average value, we could do "RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP", however in tests that wasn't needed but only reduced performance
+      LOOP for(;;)
       {
-      #if !GL
-         Vec2 TexSize; BUMP_IMAGE.GetDimensions(TexSize.x, TexSize.y);
-      #else
-         Flt TexSize=DEFAULT_TEX_SIZE; // on GL using 'GetDimensions' would force create a secondary sampler for 'BUMP_IMAGE'
-      #endif
-         Flt lod=Max(0, GetLod(I.tex, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
-         //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
-
-         VecH tpos=I.tpos();
-      #if   RELIEF_MODE==0
-         Half scale=Material.bump;
-      #elif RELIEF_MODE==1 // best
-         Half scale=Material.bump/Lerp(1, tpos.z, Sat(tpos.z/RELIEF_Z_LIMIT));
-      #elif RELIEF_MODE==2 // produces slight aliasing/artifacts on surfaces perpendicular to view direction
-         Half scale=Material.bump/Max(tpos.z, RELIEF_Z_LIMIT);
-      #else // correct however introduces way too much aliasing/artifacts on surfaces perpendicular to view direction
-         Half scale=Material.bump/tpos.z;
-      #endif
-
-      #if RELIEF_DEC_NRM
-         scale*=Length2(I.mtrx[0])*Length2(I.mtrx[1])*Length2(I.mtrx[2]); // vtx matrix vectors are interpolated linearly, which means that if there are big differences between vtx vectors, then their length will be smaller and smaller, for example if #0 vtx normal is (1,0), and #1 vtx normal is (0,1), then interpolated value between them will be (0.5, 0.5)
-      #endif
-         tpos.xy*=-scale;
-
-         Flt length=Length(tpos.xy) * TexSize.x / exp2(lod); // how many pixels, Pow(2, lod)=exp2(lod)
-         if(RELIEF_STEPS_MUL!=1)if(lod>0)length*=RELIEF_STEPS_MUL; // don't use this for first LOD
-
-         I.tex-=tpos.xy*0.5;
-
-         Int  steps   =Mid(length, 0, RELIEF_STEPS_MAX);
-         Half stp     =1.0/(steps+1),
-              ray     =1;
-         Vec2 tex_step=tpos.xy*stp; // keep as HP to avoid conversions several times in the loop below
-
-      #if 1 // linear + interval search (faster)
-         // linear search
-         Half height_next, height_prev=0.5; // use 0.5 as approximate average value, we could do "TexLodI(BUMP_IMAGE, I.tex, lod).BUMP_CHANNEL", however in tests that wasn't needed but only reduced performance
-         LOOP for(Int i=0; ; i++)
-         {
-            ray  -=stp;
-            I.tex+=tex_step;
-            height_next=TexLodI(BUMP_IMAGE, I.tex, lod).BUMP_CHANNEL;
-            if(i>=steps || height_next>=ray)break;
+         ray -=stp;
+         I.uv+=uv_step;
+         height_next=RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP;
+         if(height_next>=ray)break;
             height_prev=height_next;
-         }
-
-         // interval search
-         if(1)
-         {
-            Half ray_prev=ray+stp;
-            // prev pos: I.tex-tex_step, height_prev-ray_prev
-            // next pos: I.tex         , height_next-ray
-            Half hn=height_next-ray,
-                 hp=height_prev-ray_prev,
-                 frac=Sat(hn/(hn-hp));
-            I.tex-=tex_step*frac;
-
-            BRANCH if(lod<=0) // extra step (needed only for closeup)
-            {
-               Half ray_cur=ray+stp*frac,
-                    height_cur=TexLodI(BUMP_IMAGE, I.tex, lod).BUMP_CHANNEL;
-               if(  height_cur>=ray_cur) // if still below, then have to go back more, lerp between this position and prev pos
-               {
-                  // prev pos: I.tex-tex_step (BUT I.tex before adjustment), height_prev-ray_prev
-                  // next pos: I.tex                                       , height_cur -ray_cur
-                  tex_step*=1-frac; // we've just travelled "tex_step*frac", so to go to the prev point, we need what's left, "tex_step*(1-frac)"
-               }else // we went back too far, go forward, lerp between next pos and this position
-               {
-                  // prev pos: I.tex                              , height_cur -ray_cur
-                  // next pos: I.tex (BUT I.tex before adjustment), height_next-ray
-                  hp=hn;
-                  tex_step*=-frac; // we've just travelled "tex_step*frac", so to go to the next point, we need the same way but other direction, "tex_step*-frac"
-               }
-               hn=height_cur-ray_cur;
-               frac=Sat(hn/(hn-hp));
-               I.tex-=tex_step*frac;
-            }
-         }
-      #else // linear + binary search (slower because requires 3 tex reads in binary to get the same results as with only 0-1 tex reads in interval)
-         // linear search
-         LOOP for(Int i=0; ; i++)
-         {
-            ray  -=stp;
-            I.tex+=tex_step;
-            if(i>=steps || TexLodI(BUMP_IMAGE, I.tex, lod).BUMP_CHANNEL>=ray)break;
-         }
-
-         // binary search
-         {
-            Half ray_prev=ray+stp,
-                 l=0, r=1, m=0.5;
-            UNROLL for(Int i=0; i<RELIEF_STEPS_BINARY; i++)
-            {
-               Half height=TexLodI(BUMP_IMAGE, I.tex-tex_step*m, lod).BUMP_CHANNEL;
-               if(  height>Lerp(ray, ray_prev, m))l=m;else r=m;
-               m=Avg(l, r);
-            }
-            I.tex-=tex_step*m;
-         }
-      #endif
       }
+
+      // interval search
+      if(1)
+      {
+         Half ray_prev=ray+stp;
+         // prev pos: I.uv-uv_step, height_prev-ray_prev
+         // next pos: I.uv        , height_next-ray
+         Half hn=height_next-ray,
+              hp=height_prev-ray_prev,
+              frac=Sat(hn/(hn-hp));
+         I.uv-=uv_step*frac;
+
+         BRANCH if(lod<=0) // extra step (needed only for closeup)
+         {
+            Half ray_cur=ray+stp*frac,
+                 height_cur=RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP;
+            if(  height_cur>=ray_cur) // if still below, then have to go back more, lerp between this position and prev pos
+            {
+               // prev pos: I.uv-uv_step (BUT I.uv before adjustment), height_prev-ray_prev
+               // next pos: I.uv                                     , height_cur -ray_cur
+               uv_step*=1-frac; // we've just travelled "uv_step*frac", so to go to the prev point, we need what's left, "uv_step*(1-frac)"
+            }else // we went back too far, go forward, lerp between next pos and this position
+            {
+               // prev pos: I.uv                             , height_cur -ray_cur
+               // next pos: I.uv (BUT I.uv before adjustment), height_next-ray
+               hp=hn;
+               uv_step*=-frac; // we've just travelled "uv_step*frac", so to go to the next point, we need the same way but other direction, "uv_step*-frac"
+            }
+            hn=height_cur-ray_cur;
+            frac=Sat(hn/(hn-hp));
+            I.uv-=uv_step*frac;
+         }
+      }
+   #else // linear + binary search (slower because requires 3 tex reads in binary to get the same results as with only 0-1 tex reads in interval)
+      // linear search
+      LOOP for(Int i=0; ; i++)
+      {
+         ray -=stp;
+         I.uv+=uv_step;
+         if(i>=steps || RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP>=ray)break;
+      }
+
+      // binary search
+      {
+         Half ray_prev=ray+stp,
+              l=0, r=1, m=0.5;
+         UNROLL for(Int i=0; i<RELIEF_STEPS_BINARY; i++)
+         {
+            Half height=RTexLodI(BUMP_IMAGE, I.uv-uv_step*m, lod).BASE_CHANNEL_BUMP;
+            if(  height>Lerp(ray, ray_prev, m))l=m;else r=m;
+            m=Avg(l, r);
+         }
+         I.uv-=uv_step*m;
+      }
+   #endif
    }
    #endif
 
    VecH4 det;
 #if DETAIL
-   det=GetDetail(I.tex);
+   det=GetDetail(I.uv);
 #endif
 
    // #MaterialTextureLayout
    #if LAYOUT==0
    {
-      smooth =Material.smooth;
-      reflect=Material.reflect;
+      rough  =Material.  rough_add;
+      reflect=Material.reflect_add;
       glow   =Material.glow;
-      if(DETAIL){col*=det.z; smooth*=det.w;}
+      if(DETAIL){col*=det.DETAIL_CHANNEL_COLOR; APPLY_DETAIL_ROUGH(rough, det.DETAIL_CHANNEL_ROUGH);} // #MaterialTextureLayoutDetail
    }
    #elif LAYOUT==1
    {
-      VecH4 tex_col=Tex(Col, I.tex);
+      VecH4 tex_col=RTex(Col, I.uv);
       if(ALPHA_TEST)
       {
       #if GRASS_FADE
          tex_col.a-=I.fade_out;
       #endif
-         AlphaTest(tex_col.a);
+      #if ALPHA_TEST==ALPHA_TEST_YES
+         MaterialAlphaTest(tex_col.a);
+      #elif ALPHA_TEST==ALPHA_TEST_DITHER
+         MaterialAlphaTestDither(tex_col.a, pixel.xy, I.face_id);
+      #endif
       }
       col   *=tex_col.rgb;
-      smooth =Material.smooth;
-      reflect=Material.reflect;
+      rough  =Material.  rough_add;
+      reflect=Material.reflect_add;
       glow   =Material.glow;
-      if(DETAIL){col*=det.z; smooth*=det.w;}
+      if(DETAIL){col*=det.DETAIL_CHANNEL_COLOR; APPLY_DETAIL_ROUGH(rough, det.DETAIL_CHANNEL_ROUGH);} // #MaterialTextureLayoutDetail
    }
    #elif LAYOUT==2
    {
-      VecH4 tex_col=Tex(Col, I.tex);
+      VecH4 tex_col=RTex(Col, I.uv);
       if(ALPHA_TEST)
       {
       #if GRASS_FADE
          tex_col.a-=I.fade_out;
       #endif
-         AlphaTest(tex_col.a);
+      #if ALPHA_TEST==ALPHA_TEST_YES
+         MaterialAlphaTest(tex_col.a);
+      #elif ALPHA_TEST==ALPHA_TEST_DITHER
+         MaterialAlphaTestDither(tex_col.a, pixel.xy, I.face_id);
+      #endif
       }
-      VecH4 tex_ext=Tex(Ext, I.tex);
+      VecH4 tex_ext=RTex(Ext, I.uv);
       col   *=tex_col.rgb;
-      smooth =Material.smooth *tex_ext.x;
-      reflect=Material.reflect*tex_ext.y;
-      glow   =Material.glow   *tex_ext.w;
-      if(DETAIL){col*=det.z; smooth*=det.w;}
+      rough  =tex_ext.BASE_CHANNEL_ROUGH*Material.  rough_mul+Material.  rough_add; // no need to saturate because we store this value in 0..1 RT
+      reflect=tex_ext.BASE_CHANNEL_METAL*Material.reflect_mul+Material.reflect_add;
+      glow   =tex_ext.BASE_CHANNEL_GLOW *Material.glow;
+      if(DETAIL){col*=det.DETAIL_CHANNEL_COLOR; APPLY_DETAIL_ROUGH(rough, det.DETAIL_CHANNEL_ROUGH);} // #MaterialTextureLayoutDetail
    }
    #endif
 
 #if MACRO
-   col=Lerp(col, Tex(Mac, I.tex*MacroScale).rgb, LerpRS(MacroFrom, MacroTo, Length(I.pos))*MacroMax);
+   col=Lerp(col, RTex(Mac, I.uv*MacroScale).rgb, LerpRS(MacroFrom, MacroTo, Length(I.pos))*MacroMax);
 #endif
 
    // normal
 #if   BUMP_MODE==SBUMP_ZERO
-   nrm=0;
+   nrm=VecH(0, 0, -1);
 #elif BUMP_MODE==SBUMP_FLAT
-   nrm=Normalize(I.Nrm()); // can't add DETAIL normal because it would need 'I.mtrx'
+   nrm=I.Nrm(); // can't add DETAIL normal because it would need 'I.mtrx'
 #else
-             nrm.xy =Tex(Nrm, I.tex).xy*Material.normal;
-   if(DETAIL)nrm.xy+=det.xy;
-             nrm.z  =CalcZ(nrm.xy);
-             nrm    =Normalize(Transform(nrm, I.mtrx));
-   // TODO: a better formula would be: nrm.xy=Tex(Nrm, I.tex).xy; nrm.z=CalcZ(nrm.xy); nrm.xy*=Material.normal; nrm=Normalize(Transform(nrm, I.mtrx)); however it gets more complicated/slower with DETAIL and multi-materials, we could do this if GPU's are super fast
+   #if 0 // lower quality, but compatible with multi-materials
+                nrm.xy =RTex(Nrm, I.uv).BASE_CHANNEL_NORMAL*Material.normal;
+      if(DETAIL)nrm.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
+                nrm.z  =CalcZ(nrm.xy);
+   #else // better quality
+                nrm.xy =RTex(Nrm, I.uv).BASE_CHANNEL_NORMAL;
+                nrm.z  =CalcZ(nrm.xy);
+                nrm.xy*=Material.normal; // alternatively this could be "nrm.z*=Material.normal_inv", with "normal_inv=1/Max(normal, HALF_EPS)" to avoid div by 0 and also big numbers which would be problematic for Halfs, however this would make detail nrm unproportional (too big/small compared to base nrm)
+      if(DETAIL)nrm.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
+   #endif
+      nrm=Transform(nrm, I.mtrx);
 #endif
 
 #else // MATERIALS>1
-   // assuming that in multi materials LAYOUT!=0
-   Vec2 tex0, tex1, tex2, tex3;
-                   tex0=I.tex*MultiMaterial0.tex_scale;
-                   tex1=I.tex*MultiMaterial1.tex_scale;
-   if(MATERIALS>=3)tex2=I.tex*MultiMaterial2.tex_scale;
-   if(MATERIALS>=4)tex3=I.tex*MultiMaterial3.tex_scale;
+   // on GeForce with Half support (GeForce 1150+) it was verified that these values can get outside of 0..1 range, which might cause infinite loop in Relief=crash and cause normals to be very big and after Normalization make them equal to 0,0,0 which later causes NaN on normalization in other shaders
+   if(MATERIALS==1)I.material.x   =Sat(I.material.x   );
+   if(MATERIALS==2)I.material.xy  =Sat(I.material.xy  );
+   if(MATERIALS==3)I.material.xyz =Sat(I.material.xyz );
+   if(MATERIALS==4)I.material.xyzw=Sat(I.material.xyzw);
 
-   // apply tex coord bump offset
+   // assuming that in multi materials LAYOUT!=0
+   Vec2 uv0, uv1, uv2, uv3;
+                   uv0=I.uv*MultiMaterial0.uv_scale;
+                   uv1=I.uv*MultiMaterial1.uv_scale;
+   if(MATERIALS>=3)uv2=I.uv*MultiMaterial2.uv_scale;
+   if(MATERIALS>=4)uv3=I.uv*MultiMaterial3.uv_scale;
+
+   // apply uv coord bump offset
    #if BUMP_MODE>=SBUMP_PARALLAX_MIN && BUMP_MODE<=SBUMP_PARALLAX_MAX // Parallax
    {
       const Int steps=BUMP_MODE-SBUMP_PARALLAX0;
@@ -488,176 +507,176 @@ void PS
       if(MATERIALS>=3)bump_mul.z=MultiMaterial2.bump; if(MATERIALS==3){bump_mul.xyz *=I.material.xyz ; bump_add.xyz =bump_mul.xyz *-0.5;}
       if(MATERIALS>=4)bump_mul.w=MultiMaterial3.bump; if(MATERIALS==4){bump_mul.xyzw*=I.material.xyzw; bump_add.xyzw=bump_mul.xyzw*-0.5;}
 
-      UNROLL for(Int i=0; i<steps; i++) // I.tex+=h*tpos.xy;
+      UNROLL for(Int i=0; i<steps; i++) // I.uv+=h*tpos.xy;
       {
-                    Half h =Tex(       BUMP_IMAGE    , tex0).BUMP_CHANNEL*bump_mul.x+bump_add.x;
-                         h+=Tex(CONCAT(BUMP_IMAGE, 1), tex1).BUMP_CHANNEL*bump_mul.y+bump_add.y;
-         if(MATERIALS>=3)h+=Tex(CONCAT(BUMP_IMAGE, 2), tex2).BUMP_CHANNEL*bump_mul.z+bump_add.z;
-         if(MATERIALS>=4)h+=Tex(CONCAT(BUMP_IMAGE, 3), tex3).BUMP_CHANNEL*bump_mul.w+bump_add.w;
+                    Half h =RTex(       BUMP_IMAGE    , uv0).BASE_CHANNEL_BUMP*bump_mul.x+bump_add.x;
+                         h+=RTex(CONCAT(BUMP_IMAGE, 1), uv1).BASE_CHANNEL_BUMP*bump_mul.y+bump_add.y;
+         if(MATERIALS>=3)h+=RTex(CONCAT(BUMP_IMAGE, 2), uv2).BASE_CHANNEL_BUMP*bump_mul.z+bump_add.z;
+         if(MATERIALS>=4)h+=RTex(CONCAT(BUMP_IMAGE, 3), uv3).BASE_CHANNEL_BUMP*bump_mul.w+bump_add.w;
 
          Vec2 offset=h*tpos.xy; // keep as HP to avoid multiple conversions below
 
-                         tex0+=offset;
-                         tex1+=offset;
-         if(MATERIALS>=3)tex2+=offset;
-         if(MATERIALS>=4)tex3+=offset;
+                         uv0+=offset;
+                         uv1+=offset;
+         if(MATERIALS>=3)uv2+=offset;
+         if(MATERIALS>=4)uv3+=offset;
       }
    }
    #elif BUMP_MODE==SBUMP_RELIEF // Relief
    {
-   #if RELIEF_LOD_TEST
-      BRANCH if(GetLod(I.tex, DEFAULT_TEX_SIZE)<=4)
+      VecH4 bump_mul; bump_mul.x=MultiMaterial0.bump; Half avg_bump;
+                      bump_mul.y=MultiMaterial1.bump; if(MATERIALS==2){bump_mul.xy  *=I.material.xy  ; avg_bump=Sum(bump_mul.xy  );} // use 'Sum' because they're premultipled by 'I.material'
+      if(MATERIALS>=3)bump_mul.z=MultiMaterial2.bump; if(MATERIALS==3){bump_mul.xyz *=I.material.xyz ; avg_bump=Sum(bump_mul.xyz );}
+      if(MATERIALS>=4)bump_mul.w=MultiMaterial3.bump; if(MATERIALS==4){bump_mul.xyzw*=I.material.xyzw; avg_bump=Sum(bump_mul.xyzw);}
+
+      VecH tpos=I.tpos();
+   #if   RELIEF_MODE==0
+      Half scale=avg_bump;
+   #elif RELIEF_MODE==1 // best
+      Half scale=avg_bump/Lerp(1, tpos.z, Sat(tpos.z/RELIEF_Z_LIMIT));
+   #elif RELIEF_MODE==2 // produces slight aliasing/artifacts on surfaces perpendicular to view direction
+      Half scale=avg_bump/Max(tpos.z, RELIEF_Z_LIMIT);
+   #else // correct however introduces way too much aliasing/artifacts on surfaces perpendicular to view direction
+      Half scale=avg_bump/tpos.z;
    #endif
+
+   #if RELIEF_DEC_NRM
+      scale*=Length2(I.mtrx[0])*Length2(I.mtrx[1])*Length2(I.mtrx[2]); // vtx matrix vectors are interpolated linearly, which means that if there are big differences between vtx vectors, then their length will be smaller and smaller, for example if #0 vtx normal is (1,0), and #1 vtx normal is (0,1), then interpolated value between them will be (0.5, 0.5)
+   #endif
+      tpos.xy*=-scale;
+
+      //I.uv-=tpos.xy*0.5;
+      Vec2 offset=tpos.xy*0.5; // keep as HP to avoid multiple conversions below
+                      uv0-=offset;
+                      uv1-=offset;
+      if(MATERIALS>=3)uv2-=offset;
+      if(MATERIALS>=4)uv3-=offset;
+
+      Vec2 TexSize0; Flt lod0;                 {       BUMP_IMAGE    .GetDimensions(TexSize0.x, TexSize0.y); lod0=Max(0, GetLod(uv0, TexSize0)+RELIEF_LOD_OFFSET);} // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
+      Vec2 TexSize1; Flt lod1;                 {CONCAT(BUMP_IMAGE, 1).GetDimensions(TexSize1.x, TexSize1.y); lod1=Max(0, GetLod(uv1, TexSize1)+RELIEF_LOD_OFFSET);}
+      Vec2 TexSize2; Flt lod2; if(MATERIALS>=3){CONCAT(BUMP_IMAGE, 2).GetDimensions(TexSize2.x, TexSize2.y); lod2=Max(0, GetLod(uv2, TexSize2)+RELIEF_LOD_OFFSET);}
+      Vec2 TexSize3; Flt lod3; if(MATERIALS>=4){CONCAT(BUMP_IMAGE, 3).GetDimensions(TexSize3.x, TexSize3.y); lod3=Max(0, GetLod(uv3, TexSize3)+RELIEF_LOD_OFFSET);}
+
+      Half length;
+                      {Half length0=Pixels(tpos.xy, TexSize0, lod0); if(RELIEF_STEPS_MUL!=1)if(lod0>0)length0*=RELIEF_STEPS_MUL; length =length0*I.material.x;} // don't use RELIEF_STEPS_MUL for first LOD
+                      {Half length1=Pixels(tpos.xy, TexSize1, lod1); if(RELIEF_STEPS_MUL!=1)if(lod1>0)length1*=RELIEF_STEPS_MUL; length+=length1*I.material.y;} // don't use RELIEF_STEPS_MUL for first LOD
+      if(MATERIALS>=3){Half length2=Pixels(tpos.xy, TexSize2, lod2); if(RELIEF_STEPS_MUL!=1)if(lod2>0)length2*=RELIEF_STEPS_MUL; length+=length2*I.material.z;} // don't use RELIEF_STEPS_MUL for first LOD
+      if(MATERIALS>=4){Half length3=Pixels(tpos.xy, TexSize3, lod3); if(RELIEF_STEPS_MUL!=1)if(lod3>0)length3*=RELIEF_STEPS_MUL; length+=length3*I.material.w;} // don't use RELIEF_STEPS_MUL for first LOD
+
+      Half steps  =Mid(length, 1, RELIEF_STEPS_MAX),
+           stp    =1.0/steps,
+           ray    =1;
+      Vec2 uv_step=tpos.xy*stp; // keep as HP to avoid conversions several times in the loop below
+
+   #if 1 // linear + interval search (faster)
+      // linear search
+      Half height_next, height_prev=0.5; // use 0.5 as approximate average value, we could do "RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP", however in tests that wasn't needed but only reduced performance
+      LOOP for(;;)
       {
-         VecH4 bump_mul; bump_mul.x=MultiMaterial0.bump; Half avg_bump;
-                         bump_mul.y=MultiMaterial1.bump; if(MATERIALS==2){bump_mul.xy  *=I.material.xy  ; avg_bump=Sum(bump_mul.xy  );} // use 'Sum' because they're premultipled by 'I.material'
-         if(MATERIALS>=3)bump_mul.z=MultiMaterial2.bump; if(MATERIALS==3){bump_mul.xyz *=I.material.xyz ; avg_bump=Sum(bump_mul.xyz );}
-         if(MATERIALS>=4)bump_mul.w=MultiMaterial3.bump; if(MATERIALS==4){bump_mul.xyzw*=I.material.xyzw; avg_bump=Sum(bump_mul.xyzw);}
+         ray-=stp;
 
-         Flt TexSize=DEFAULT_TEX_SIZE, // here we have 2..4 textures, so use a default value
-                 lod=Max(0, GetLod(I.tex, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
-         //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
+         //I.uv+=uv_step;
+                         uv0+=uv_step;
+                         uv1+=uv_step;
+         if(MATERIALS>=3)uv2+=uv_step;
+         if(MATERIALS>=4)uv3+=uv_step;
 
-         VecH tpos=I.tpos();
-      #if   RELIEF_MODE==0
-         Half scale=avg_bump;
-      #elif RELIEF_MODE==1 // best
-         Half scale=avg_bump/Lerp(1, tpos.z, Sat(tpos.z/RELIEF_Z_LIMIT));
-      #elif RELIEF_MODE==2 // produces slight aliasing/artifacts on surfaces perpendicular to view direction
-         Half scale=avg_bump/Max(tpos.z, RELIEF_Z_LIMIT);
-      #else // correct however introduces way too much aliasing/artifacts on surfaces perpendicular to view direction
-         Half scale=avg_bump/tpos.z;
-      #endif
+                       //height_next =RTexLodI(       BUMP_IMAGE  , I.uv , lod ).BASE_CHANNEL_BUMP;
+                         height_next =RTexLodI(       BUMP_IMAGE    , uv0, lod0).BASE_CHANNEL_BUMP*I.material.x;
+                         height_next+=RTexLodI(CONCAT(BUMP_IMAGE, 1), uv1, lod1).BASE_CHANNEL_BUMP*I.material.y;
+         if(MATERIALS>=3)height_next+=RTexLodI(CONCAT(BUMP_IMAGE, 2), uv2, lod2).BASE_CHANNEL_BUMP*I.material.z;
+         if(MATERIALS>=4)height_next+=RTexLodI(CONCAT(BUMP_IMAGE, 3), uv3, lod3).BASE_CHANNEL_BUMP*I.material.w;
 
-      #if RELIEF_DEC_NRM
-         scale*=Length2(I.mtrx[0])*Length2(I.mtrx[1])*Length2(I.mtrx[2]); // vtx matrix vectors are interpolated linearly, which means that if there are big differences between vtx vectors, then their length will be smaller and smaller, for example if #0 vtx normal is (1,0), and #1 vtx normal is (0,1), then interpolated value between them will be (0.5, 0.5)
-      #endif
-         tpos.xy*=-scale;
-
-         Flt length=Length(tpos.xy) * TexSize.x / exp2(lod); // how many pixels, Pow(2, lod)=exp2(lod)
-         if(RELIEF_STEPS_MUL!=1)if(lod>0)length*=RELIEF_STEPS_MUL; // don't use this for first LOD
-
-         //I.tex-=tpos.xy*0.5;
-         Vec2 offset=tpos.xy*0.5; // keep as HP to avoid multiple conversions below
-                         tex0-=offset;
-                         tex1-=offset;
-         if(MATERIALS>=3)tex2-=offset;
-         if(MATERIALS>=4)tex3-=offset;
-
-         Int  steps   =Mid(length, 0, RELIEF_STEPS_MAX);
-         Half stp     =1.0/(steps+1),
-              ray     =1;
-         Vec2 tex_step=tpos.xy*stp; // keep as HP to avoid conversions several times in the loop below
-
-      #if 1 // linear + interval search (faster)
-         // linear search
-         Half height_next, height_prev=0.5; // use 0.5 as approximate average value, we could do "TexLodI(BUMP_IMAGE, I.tex, lod).BUMP_CHANNEL", however in tests that wasn't needed but only reduced performance
-         LOOP for(Int i=0; ; i++)
-         {
-            ray-=stp;
-
-            //I.tex+=tex_step;
-                            tex0+=tex_step;
-                            tex1+=tex_step;
-            if(MATERIALS>=3)tex2+=tex_step;
-            if(MATERIALS>=4)tex3+=tex_step;
-
-            //height_next=TexLodI(BUMP_IMAGE, I.tex, lod).BUMP_CHANNEL;
-                            height_next =TexLodI(       BUMP_IMAGE    , tex0, lod).BUMP_CHANNEL*I.material.x;
-                            height_next+=TexLodI(CONCAT(BUMP_IMAGE, 1), tex1, lod).BUMP_CHANNEL*I.material.y;
-            if(MATERIALS>=3)height_next+=TexLodI(CONCAT(BUMP_IMAGE, 2), tex2, lod).BUMP_CHANNEL*I.material.z;
-            if(MATERIALS>=4)height_next+=TexLodI(CONCAT(BUMP_IMAGE, 3), tex3, lod).BUMP_CHANNEL*I.material.w;
-
-            if(i>=steps || height_next>=ray)break;
+         if(height_next>=ray)break;
             height_prev=height_next;
-         }
-
-         // interval search
-         if(1)
-         {
-            Half ray_prev=ray+stp;
-            // prev pos: I.tex-tex_step, height_prev-ray_prev
-            // next pos: I.tex         , height_next-ray
-            Half hn=height_next-ray, hp=height_prev-ray_prev,
-               frac=Sat(hn/(hn-hp));
-
-            //I.tex-=tex_step*frac;
-            offset=tex_step*frac;
-                            tex0-=offset;
-                            tex1-=offset;
-            if(MATERIALS>=3)tex2-=offset;
-            if(MATERIALS>=4)tex3-=offset;
-
-            BRANCH if(lod<=0) // extra step (needed only for closeup)
-            {
-               Half ray_cur=ray+stp*frac,
-                             //height_cur =TexLodI(       BUMP_IMAGE    ,I.tex, lod).BUMP_CHANNEL;
-                               height_cur =TexLodI(       BUMP_IMAGE    , tex0, lod).BUMP_CHANNEL*I.material.x;
-                               height_cur+=TexLodI(CONCAT(BUMP_IMAGE, 1), tex1, lod).BUMP_CHANNEL*I.material.y;
-               if(MATERIALS>=3)height_cur+=TexLodI(CONCAT(BUMP_IMAGE, 2), tex2, lod).BUMP_CHANNEL*I.material.z;
-               if(MATERIALS>=4)height_cur+=TexLodI(CONCAT(BUMP_IMAGE, 3), tex3, lod).BUMP_CHANNEL*I.material.w;
-
-               if(height_cur>=ray_cur) // if still below, then have to go back more, lerp between this position and prev pos
-               {
-                  // prev pos: I.tex-tex_step (BUT I.tex before adjustment), height_prev-ray_prev
-                  // next pos: I.tex                                       , height_cur -ray_cur
-                  tex_step*=1-frac; // we've just travelled "tex_step*frac", so to go to the prev point, we need what's left, "tex_step*(1-frac)"
-               }else // we went back too far, go forward, lerp between next pos and this position
-               {
-                  // prev pos: I.tex                              , height_cur -ray_cur
-                  // next pos: I.tex (BUT I.tex before adjustment), height_next-ray
-                  hp=hn;
-                  tex_step*=-frac; // we've just travelled "tex_step*frac", so to go to the next point, we need the same way but other direction, "tex_step*-frac"
-               }
-               hn=height_cur-ray_cur;
-               frac=Sat(hn/(hn-hp));
-
-             //I.tex-=tex_step*frac;
-               offset=tex_step*frac;
-                               tex0-=offset;
-                               tex1-=offset;
-               if(MATERIALS>=3)tex2-=offset;
-               if(MATERIALS>=4)tex3-=offset;
-            }
-         }
-      #else // linear + binary search (slower because requires 3 tex reads in binary to get the same results as with only 0-1 tex reads in interval)
-         this needs to be updated for 4 materials
-
-         // linear search
-         LOOP for(Int i=0; ; i++)
-         {
-            ray  -=stp;
-            I.tex+=tex_step;
-            if(i>=steps || TexLodI(BUMP_IMAGE, I.tex, lod).BUMP_CHANNEL>=ray)break;
-         }
-
-         // binary search
-         {
-            Half ray_prev=ray+stp,
-                 l=0, r=1, m=0.5;
-            UNROLL for(Int i=0; i<RELIEF_STEPS_BINARY; i++)
-            {
-               Half height=TexLodI(BUMP_IMAGE, I.tex-tex_step*m, lod).BUMP_CHANNEL;
-               if(  height>Lerp(ray, ray_prev, m))l=m;else r=m;
-               m=Avg(l, r);
-            }
-            I.tex-=tex_step*m;
-         }
-      #endif
       }
+
+      // interval search
+      if(1)
+      {
+         Half ray_prev=ray+stp;
+         // prev pos: I.uv-uv_step, height_prev-ray_prev
+         // next pos: I.uv        , height_next-ray
+         Half hn=height_next-ray, hp=height_prev-ray_prev,
+            frac=Sat(hn/(hn-hp));
+
+        //I.uv-=uv_step*frac;
+         offset=uv_step*frac;
+                         uv0-=offset;
+                         uv1-=offset;
+         if(MATERIALS>=3)uv2-=offset;
+         if(MATERIALS>=4)uv3-=offset;
+
+         Bool      extra=(lod0<=0 || lod1<=0); if(MATERIALS>=3 && lod2<=0)extra=true; if(MATERIALS>=4 && lod3<=0)extra=true; // extra step (needed only for closeup)
+         BRANCH if(extra)
+         {
+            Half ray_cur=ray+stp*frac,
+                          //height_cur =RTexLodI(       BUMP_IMAGE  , I.uv , lod ).BASE_CHANNEL_BUMP;
+                            height_cur =RTexLodI(       BUMP_IMAGE    , uv0, lod0).BASE_CHANNEL_BUMP*I.material.x;
+                            height_cur+=RTexLodI(CONCAT(BUMP_IMAGE, 1), uv1, lod1).BASE_CHANNEL_BUMP*I.material.y;
+            if(MATERIALS>=3)height_cur+=RTexLodI(CONCAT(BUMP_IMAGE, 2), uv2, lod2).BASE_CHANNEL_BUMP*I.material.z;
+            if(MATERIALS>=4)height_cur+=RTexLodI(CONCAT(BUMP_IMAGE, 3), uv3, lod3).BASE_CHANNEL_BUMP*I.material.w;
+
+            if(height_cur>=ray_cur) // if still below, then have to go back more, lerp between this position and prev pos
+            {
+               // prev pos: I.uv-uv_step (BUT I.uv before adjustment), height_prev-ray_prev
+               // next pos: I.uv                                     , height_cur -ray_cur
+               uv_step*=1-frac; // we've just travelled "uv_step*frac", so to go to the prev point, we need what's left, "uv_step*(1-frac)"
+            }else // we went back too far, go forward, lerp between next pos and this position
+            {
+               // prev pos: I.uv                             , height_cur -ray_cur
+               // next pos: I.uv (BUT I.uv before adjustment), height_next-ray
+               hp=hn;
+               uv_step*=-frac; // we've just travelled "uv_step*frac", so to go to the next point, we need the same way but other direction, "uv_step*-frac"
+            }
+            hn=height_cur-ray_cur;
+            frac=Sat(hn/(hn-hp));
+
+           //I.uv-=uv_step*frac;
+            offset=uv_step*frac;
+                            uv0-=offset;
+                            uv1-=offset;
+            if(MATERIALS>=3)uv2-=offset;
+            if(MATERIALS>=4)uv3-=offset;
+         }
+      }
+   #else // linear + binary search (slower because requires 3 tex reads in binary to get the same results as with only 0-1 tex reads in interval)
+      this needs to be updated for 4 materials
+
+      // linear search
+      LOOP for(Int i=0; ; i++)
+      {
+         ray -=stp;
+         I.uv+=uv_step;
+         if(i>=steps || RTexLodI(BUMP_IMAGE, I.uv, lod).BASE_CHANNEL_BUMP>=ray)break;
+      }
+
+      // binary search
+      {
+         Half ray_prev=ray+stp,
+              l=0, r=1, m=0.5;
+         UNROLL for(Int i=0; i<RELIEF_STEPS_BINARY; i++)
+         {
+            Half height=RTexLodI(BUMP_IMAGE, I.uv-uv_step*m, lod).BASE_CHANNEL_BUMP;
+            if(  height>Lerp(ray, ray_prev, m))l=m;else r=m;
+            m=Avg(l, r);
+         }
+         I.uv-=uv_step*m;
+      }
+   #endif
    }
    #endif // Relief
 
-   // #MaterialTextureLayout
+   // #MaterialTextureLayout #MaterialTextureLayoutDetail
 
    // detail texture
    VecH4 det0, det1, det2, det3;
    if(DETAIL)
    {
-                      det0=GetDetail0(tex0);
-                      det1=GetDetail1(tex1);
-      if(MATERIALS>=3)det2=GetDetail2(tex2);
-      if(MATERIALS>=4)det3=GetDetail3(tex3);
+                      det0=GetDetail0(uv0);
+                      det1=GetDetail1(uv1);
+      if(MATERIALS>=3)det2=GetDetail2(uv2);
+      if(MATERIALS>=4)det3=GetDetail3(uv3);
    }
 
    // macro texture
@@ -666,43 +685,43 @@ void PS
    mac_blend=LerpRS(MacroFrom, MacroTo, Length(I.pos))*MacroMax;
 #endif
 
-   // Smooth, Reflect, Bump, Glow !! DO THIS FIRST because it may modify 'I.material' which affects everything !!
-   VecH srg; // smooth_reflect_glow
+   // Reflect, Rough, Bump, Glow !! DO THIS FIRST because it may modify 'I.material' which affects everything !!
+   VecH refl_rogh_glow;
    if(LAYOUT==2)
    {
       VecH4 ext0, ext1, ext2, ext3;
-                      ext0=Tex(Ext , tex0);
-                      ext1=Tex(Ext1, tex1);
-      if(MATERIALS>=3)ext2=Tex(Ext2, tex2);
-      if(MATERIALS>=4)ext3=Tex(Ext3, tex3);
+                      ext0=RTex(Ext , uv0);
+                      ext1=RTex(Ext1, uv1);
+      if(MATERIALS>=3)ext2=RTex(Ext2, uv2);
+      if(MATERIALS>=4)ext3=RTex(Ext3, uv3);
       if(MTRL_BLEND)
       {
-                          I.material.x=MultiMaterialWeight(I.material.x, ext0.BUMP_CHANNEL);
-                          I.material.y=MultiMaterialWeight(I.material.y, ext1.BUMP_CHANNEL); if(MATERIALS==2)I.material.xy  /=I.material.x+I.material.y;
-         if(MATERIALS>=3){I.material.z=MultiMaterialWeight(I.material.z, ext2.BUMP_CHANNEL); if(MATERIALS==3)I.material.xyz /=I.material.x+I.material.y+I.material.z;}
-         if(MATERIALS>=4){I.material.w=MultiMaterialWeight(I.material.w, ext3.BUMP_CHANNEL); if(MATERIALS==4)I.material.xyzw/=I.material.x+I.material.y+I.material.z+I.material.w;}
+         VecH4 mtrl;      mtrl.x=MultiMaterialWeight(I.material.x, ext0.BASE_CHANNEL_BUMP);
+                          mtrl.y=MultiMaterialWeight(I.material.y, ext1.BASE_CHANNEL_BUMP); if(MATERIALS==2){Half sum=Sum(mtrl.xy  ); if(CanDiv(sum))I.material.xy  =mtrl.xy  /sum;}
+         if(MATERIALS>=3){mtrl.z=MultiMaterialWeight(I.material.z, ext2.BASE_CHANNEL_BUMP); if(MATERIALS==3){Half sum=Sum(mtrl.xyz ); if(CanDiv(sum))I.material.xyz =mtrl.xyz /sum;}}
+         if(MATERIALS>=4){mtrl.w=MultiMaterialWeight(I.material.w, ext3.BASE_CHANNEL_BUMP); if(MATERIALS==4){Half sum=Sum(mtrl.xyzw); if(CanDiv(sum))I.material.xyzw=mtrl.xyzw/sum;}}
       }
-                      {VecH srg0=ext0.xyw*MultiMaterial0.srg_mul+MultiMaterial0.srg_add; if(DETAIL)srg0.x*=det0.w; srg =srg0*I.material.x;}
-                      {VecH srg1=ext1.xyw*MultiMaterial1.srg_mul+MultiMaterial1.srg_add; if(DETAIL)srg1.x*=det1.w; srg+=srg1*I.material.y;}
-      if(MATERIALS>=3){VecH srg2=ext2.xyw*MultiMaterial2.srg_mul+MultiMaterial2.srg_add; if(DETAIL)srg2.x*=det2.w; srg+=srg2*I.material.z;}
-      if(MATERIALS>=4){VecH srg3=ext3.xyw*MultiMaterial3.srg_mul+MultiMaterial3.srg_add; if(DETAIL)srg3.x*=det3.w; srg+=srg3*I.material.w;}
+                      {VecH refl_rogh_glow0=ext0.xyw*MultiMaterial0.refl_rogh_glow_mul+MultiMaterial0.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow0.y, det0.DETAIL_CHANNEL_ROUGH); refl_rogh_glow =refl_rogh_glow0*I.material.x;} // #MaterialTextureLayoutDetail
+                      {VecH refl_rogh_glow1=ext1.xyw*MultiMaterial1.refl_rogh_glow_mul+MultiMaterial1.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow1.y, det1.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow1*I.material.y;}
+      if(MATERIALS>=3){VecH refl_rogh_glow2=ext2.xyw*MultiMaterial2.refl_rogh_glow_mul+MultiMaterial2.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow2.y, det2.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow2*I.material.z;}
+      if(MATERIALS>=4){VecH refl_rogh_glow3=ext3.xyw*MultiMaterial3.refl_rogh_glow_mul+MultiMaterial3.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow3.y, det3.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow3*I.material.w;}
    }else
    {
-                      {VecH srg0=MultiMaterial0.srg_add; if(DETAIL)srg0.x*=det0.w; srg =srg0*I.material.x;}
-                      {VecH srg1=MultiMaterial1.srg_add; if(DETAIL)srg1.x*=det1.w; srg+=srg1*I.material.y;}
-      if(MATERIALS>=3){VecH srg2=MultiMaterial2.srg_add; if(DETAIL)srg2.x*=det2.w; srg+=srg2*I.material.z;}
-      if(MATERIALS>=4){VecH srg3=MultiMaterial3.srg_add; if(DETAIL)srg3.x*=det3.w; srg+=srg3*I.material.w;}
+                      {VecH refl_rogh_glow0=MultiMaterial0.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow0.y, det0.DETAIL_CHANNEL_ROUGH); refl_rogh_glow =refl_rogh_glow0*I.material.x;} // #MaterialTextureLayoutDetail
+                      {VecH refl_rogh_glow1=MultiMaterial1.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow1.y, det1.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow1*I.material.y;}
+      if(MATERIALS>=3){VecH refl_rogh_glow2=MultiMaterial2.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow2.y, det2.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow2*I.material.z;}
+      if(MATERIALS>=4){VecH refl_rogh_glow3=MultiMaterial3.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow3.y, det3.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow3*I.material.w;}
    }
-   smooth =srg.x;
-   reflect=srg.y;
-   glow   =srg.z;
+   rough  =refl_rogh_glow.y;
+   reflect=refl_rogh_glow.x;
+   glow   =refl_rogh_glow.z;
 
    // Color + Detail + Macro !! do this second after modifying 'I.material' !! here Alpha is ignored for multi-materials
    VecH rgb;
-                   {VecH col0=Tex(Col , tex0).rgb; col0.rgb*=MultiMaterial0.color.rgb; if(DETAIL)col0.rgb*=det0.z; if(MACRO)col0.rgb=Lerp(col0.rgb, Tex(Mac , tex0*MacroScale).rgb, MultiMaterial0.macro*mac_blend); rgb =I.material.x*col0;}
-                   {VecH col1=Tex(Col1, tex1).rgb; col1.rgb*=MultiMaterial1.color.rgb; if(DETAIL)col1.rgb*=det1.z; if(MACRO)col1.rgb=Lerp(col1.rgb, Tex(Mac1, tex1*MacroScale).rgb, MultiMaterial1.macro*mac_blend); rgb+=I.material.y*col1;}
-   if(MATERIALS>=3){VecH col2=Tex(Col2, tex2).rgb; col2.rgb*=MultiMaterial2.color.rgb; if(DETAIL)col2.rgb*=det2.z; if(MACRO)col2.rgb=Lerp(col2.rgb, Tex(Mac2, tex2*MacroScale).rgb, MultiMaterial2.macro*mac_blend); rgb+=I.material.z*col2;}
-   if(MATERIALS>=4){VecH col3=Tex(Col3, tex3).rgb; col3.rgb*=MultiMaterial3.color.rgb; if(DETAIL)col3.rgb*=det3.z; if(MACRO)col3.rgb=Lerp(col3.rgb, Tex(Mac3, tex3*MacroScale).rgb, MultiMaterial3.macro*mac_blend); rgb+=I.material.w*col3;}
+                   {VecH col0=RTex(Col , uv0).rgb; col0.rgb*=MultiMaterial0.color.rgb; if(DETAIL)col0.rgb*=det0.DETAIL_CHANNEL_COLOR; if(MACRO)col0.rgb=Lerp(col0.rgb, RTex(Mac , uv0*MacroScale).rgb, MultiMaterial0.macro*mac_blend); rgb =I.material.x*col0;} // #MaterialTextureLayoutDetail
+                   {VecH col1=RTex(Col1, uv1).rgb; col1.rgb*=MultiMaterial1.color.rgb; if(DETAIL)col1.rgb*=det1.DETAIL_CHANNEL_COLOR; if(MACRO)col1.rgb=Lerp(col1.rgb, RTex(Mac1, uv1*MacroScale).rgb, MultiMaterial1.macro*mac_blend); rgb+=I.material.y*col1;}
+   if(MATERIALS>=3){VecH col2=RTex(Col2, uv2).rgb; col2.rgb*=MultiMaterial2.color.rgb; if(DETAIL)col2.rgb*=det2.DETAIL_CHANNEL_COLOR; if(MACRO)col2.rgb=Lerp(col2.rgb, RTex(Mac2, uv2*MacroScale).rgb, MultiMaterial2.macro*mac_blend); rgb+=I.material.z*col2;}
+   if(MATERIALS>=4){VecH col3=RTex(Col3, uv3).rgb; col3.rgb*=MultiMaterial3.color.rgb; if(DETAIL)col3.rgb*=det3.DETAIL_CHANNEL_COLOR; if(MACRO)col3.rgb=Lerp(col3.rgb, RTex(Mac3, uv3*MacroScale).rgb, MultiMaterial3.macro*mac_blend); rgb+=I.material.w*col3;}
 #if COLORS
    col*=rgb.rgb;
 #else
@@ -711,65 +730,69 @@ void PS
 
    // normal
 #if   BUMP_MODE==SBUMP_ZERO
-   nrm=0;
+   nrm=VecH(0, 0, -1);
 #elif BUMP_MODE==SBUMP_FLAT
-   nrm=Normalize(I.Nrm()); // can't add DETAIL normal because it would need 'I.mtrx'
+   nrm=I.Nrm(); // can't add DETAIL normal because it would need 'I.mtrx'
 #else
    if(DETAIL)
-   {
-                      nrm.xy =(Tex(Nrm , tex0).xy*MultiMaterial0.normal + det0.xy)*I.material.x;
-                      nrm.xy+=(Tex(Nrm1, tex1).xy*MultiMaterial1.normal + det1.xy)*I.material.y;
-      if(MATERIALS>=3)nrm.xy+=(Tex(Nrm2, tex2).xy*MultiMaterial2.normal + det2.xy)*I.material.z;
-      if(MATERIALS>=4)nrm.xy+=(Tex(Nrm3, tex3).xy*MultiMaterial3.normal + det3.xy)*I.material.w;
+   { // #MaterialTextureLayoutDetail
+                      nrm.xy =(RTex(Nrm , uv0).BASE_CHANNEL_NORMAL*MultiMaterial0.normal + det0.DETAIL_CHANNEL_NORMAL)*I.material.x;
+                      nrm.xy+=(RTex(Nrm1, uv1).BASE_CHANNEL_NORMAL*MultiMaterial1.normal + det1.DETAIL_CHANNEL_NORMAL)*I.material.y;
+      if(MATERIALS>=3)nrm.xy+=(RTex(Nrm2, uv2).BASE_CHANNEL_NORMAL*MultiMaterial2.normal + det2.DETAIL_CHANNEL_NORMAL)*I.material.z;
+      if(MATERIALS>=4)nrm.xy+=(RTex(Nrm3, uv3).BASE_CHANNEL_NORMAL*MultiMaterial3.normal + det3.DETAIL_CHANNEL_NORMAL)*I.material.w;
    }else
    {
-                      nrm.xy =Tex(Nrm , tex0).xy*(MultiMaterial0.normal*I.material.x);
-                      nrm.xy+=Tex(Nrm1, tex1).xy*(MultiMaterial1.normal*I.material.y);
-      if(MATERIALS>=3)nrm.xy+=Tex(Nrm2, tex2).xy*(MultiMaterial2.normal*I.material.z);
-      if(MATERIALS>=4)nrm.xy+=Tex(Nrm3, tex3).xy*(MultiMaterial3.normal*I.material.w);
+                      nrm.xy =RTex(Nrm , uv0).BASE_CHANNEL_NORMAL*(MultiMaterial0.normal*I.material.x);
+                      nrm.xy+=RTex(Nrm1, uv1).BASE_CHANNEL_NORMAL*(MultiMaterial1.normal*I.material.y);
+      if(MATERIALS>=3)nrm.xy+=RTex(Nrm2, uv2).BASE_CHANNEL_NORMAL*(MultiMaterial2.normal*I.material.z);
+      if(MATERIALS>=4)nrm.xy+=RTex(Nrm3, uv3).BASE_CHANNEL_NORMAL*(MultiMaterial3.normal*I.material.w);
    }
    nrm.z=CalcZ(nrm.xy);
-   nrm  =Normalize(Transform(nrm, I.mtrx));
+   nrm  =Transform(nrm, I.mtrx);
 #endif
 
 #endif // MATERIALS
 
    col+=Highlight.rgb;
 
+#if BUMP_MODE!=SBUMP_ZERO
+   nrm=Normalize(nrm); // transforming by matrix might scale normal in >SBUMP_FLAT, and in SBUMP_FLAT normal is interpolated linearly and normalization will push to full range, however we're storing to 0..1 range, so have to normalize
+#endif
+
 #if FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
    BackFlip(nrm, front);
 #endif
 
-   output.color       (col    );
-   output.glow        (glow   );
-   output.normal      (nrm    );
-   output.translucent (FX==FX_GRASS_3D || FX==FX_LEAF_3D || FX==FX_LEAFS_3D);
-   output.smooth      (smooth );
-   output.reflect     (reflect);
+   output.color      (col    );
+   output.glow       (glow   );
+   output.normal     (nrm    );
+   output.translucent(FX==FX_GRASS_3D || FX==FX_LEAF_3D || FX==FX_LEAFS_3D);
+   output.rough      (rough  );
+   output.reflect    (reflect);
 #if USE_VEL
-   output.velocity    (I.projected_prev_pos_xyw, pixel);
+   output.motion     (I.projected_prev_pos_xyw, pixel);
 #else
-   output.velocityZero();
+   output.motionZero ();
 #endif
 }
 /******************************************************************************/
 // HULL / DOMAIN
 /******************************************************************************/
 #if TESSELATE
-HSData HSConstant(InputPatch<VS_PS,3> I) {return GetHSData(I[0].pos, I[1].pos, I[2].pos, I[0].Nrm(), I[1].Nrm(), I[2].Nrm());}
+HSData HSConstant(InputPatch<Data,3> I) {return GetHSData(I[0].pos, I[1].pos, I[2].pos, I[0].Nrm(), I[1].Nrm(), I[2].Nrm());}
 [maxtessfactor(5.0)]
 [domain("tri")]
 [partitioning("fractional_odd")] // use 'odd' because it supports range from 1.0 ('even' supports range from 2.0)
 [outputtopology("triangle_cw")]
 [patchconstantfunc("HSConstant")]
 [outputcontrolpoints(3)]
-VS_PS HS
+Data HS
 (
-   InputPatch<VS_PS,3> I,
+   InputPatch<Data,3> I,
    UInt cp_id:SV_OutputControlPointID
 )
 {
-   VS_PS O;
+   Data O;
 
    O.pos=I[cp_id].pos;
 
@@ -781,8 +804,8 @@ VS_PS HS
    O.nrm_prev=I[cp_id].nrm_prev;
 #endif
 
-#if SET_TEX
-   O.tex=I[cp_id].tex;
+#if SET_UV
+   O.uv=I[cp_id].uv;
 #endif
 
 #if   BUMP_MODE> SBUMP_FLAT
@@ -807,16 +830,20 @@ VS_PS HS
    O.fade_out=I[cp_id].fade_out;
 #endif
 
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+   O.face_id=I[cp_id].face_id;
+#endif
+
    return O;
 }
 /******************************************************************************/
 [domain("tri")]
 void DS
 (
-   HSData hs_data, const OutputPatch<VS_PS,3> I, Vec B:SV_DomainLocation,
+   HSData hs_data, const OutputPatch<Data,3> I, Vec B:SV_DomainLocation,
 
-   out VS_PS O,
-   out Vec4  O_vtx:POSITION
+   out Data O,
+   out Vec4 pixel:POSITION
 )
 {
 #if   BUMP_MODE> SBUMP_FLAT
@@ -827,8 +854,8 @@ void DS
    SetDSPosNrm(O.pos, O.nrm    , I[0].pos, I[1].pos, I[2].pos, I[0].Nrm(), I[1].Nrm(), I[2].Nrm(), B, hs_data, false, 0);
 #endif
 
-#if SET_TEX
-   O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
+#if SET_UV
+   O.uv=I[0].uv*B.z + I[1].uv*B.x + I[2].uv*B.y;
 #endif
 
 #if MATERIALS>1
@@ -847,7 +874,11 @@ void DS
    O.fade_out=I[0].fade_out*B.z + I[1].fade_out*B.x + I[2].fade_out*B.y;
 #endif
 
-   O_vtx=Project(O.pos);
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+   O.face_id=I[0].face_id;
+#endif
+
+   pixel=Project(O.pos);
 
 #if USE_VEL
    #if TESSELATE_VEL
@@ -855,7 +886,7 @@ void DS
    #else // this is just an approximation
       Vec interpolated_pos    =I[0].pos                   *B.z + I[1].pos                   *B.x + I[2].pos                   *B.y;
       O.projected_prev_pos_xyw=I[0].projected_prev_pos_xyw*B.z + I[1].projected_prev_pos_xyw*B.x + I[2].projected_prev_pos_xyw*B.y
-                              +O_vtx.xyw-ProjectXYW(interpolated_pos); // + delta (tesselated pos - interpolated pos)
+                              +pixel.xyw-ProjectXYW(interpolated_pos); // + delta (tesselated pos - interpolated pos)
    #endif
 #endif
 }

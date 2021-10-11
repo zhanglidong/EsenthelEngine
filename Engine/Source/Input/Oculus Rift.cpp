@@ -33,8 +33,8 @@ static struct OculusRiftApi : VirtualRealityApi
    virtual Bool     createUIImage ()override;
    virtual Bool createRenderImage ()override;
 
-   virtual ImageRT* getNewRender()override;
-   virtual ImageRT* getNewUI    ()override;
+   virtual ImageRTC* getNewRender()override;
+   virtual ImageRTC* getNewUI    ()override;
 
    Bool    connect();
    void disconnect();
@@ -56,7 +56,7 @@ static struct OculusRiftApi : VirtualRealityApi
 #if SUPPORT_OCULUS
 static struct ovrTexture
 {
-   ImageRT            image;
+   ImageRTC           image;
    ovrSwapTextureSet *texture_set;
 #if DX11
    ID3D11RenderTargetView   *rtv[3];
@@ -113,7 +113,9 @@ static struct ovrTexture
       desc.SampleDesc.Count  =1;
       desc.SampleDesc.Quality=0;
       desc.ArraySize         =1;
-    //SyncLockerEx locker(D._lock); lock not needed for DX11 'D3D'
+   #if GPU_LOCK // lock not needed for 'D3D'
+      SyncLocker locker(D._lock);
+   #endif
       if(ovr_CreateSwapTextureSetD3D11(OculusRift._session, D3D, &desc, ovrSwapTextureSetD3D11_Typeless, &texture_set)==ovrSuccess)
       {
          if  (texture_set->TextureCount>Elms(rtv))Exit("Oculus Rift Swap Chain has too many textures");
@@ -139,7 +141,7 @@ static struct ovrTexture
    error:
       del(); return false;
    }
-   ImageRT* getImage()
+   ImageRTC* getImage()
    {
       if(texture_set)
       {
@@ -355,14 +357,14 @@ Bool OculusRiftApi::createRenderImage()
    return false;
 }
 /******************************************************************************/
-ImageRT* OculusRiftApi::getNewRender()
+ImageRTC* OculusRiftApi::getNewRender()
 {
 #if SUPPORT_OCULUS
    return RenderTexture.getImage();
 #endif
    return null;
 }
-ImageRT* OculusRiftApi::getNewUI()
+ImageRTC* OculusRiftApi::getNewUI()
 {
 #if SUPPORT_OCULUS
    return UITexture.getImage();

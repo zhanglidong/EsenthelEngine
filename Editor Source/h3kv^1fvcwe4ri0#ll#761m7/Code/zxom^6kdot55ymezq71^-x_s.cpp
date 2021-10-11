@@ -13,8 +13,9 @@ class IconSettings
                  ambient_occl  =1.2,
                  ambient_range =0.1,
                  bloom_original=1.0,
-                 bloom_scale   =0.5,
-                 bloom_cut     =0.3;
+                 bloom_scale   =0.8,
+                 bloom_cut     =0.3,
+                 bloom_glow    =1.0;
    Vec           cam_angle     =0,
                  cam_focus     =0,
                  ambient_col   =0.4,
@@ -25,7 +26,7 @@ class IconSettings
    TimeStamp     mip_maps_time, auto_center_time, light0_shadow_time, light1_shadow_time, type_time, width_time, height_time, scale_time, fov_time,
                  cam_angle_time, cam_focus_time,
                  ambient_col_time, ambient_occl_time, ambient_range_time,
-                 bloom_original_time, bloom_scale_time, bloom_cut_time,
+                 bloom_original_time, bloom_scale_time, bloom_cut_time, bloom_glow_time,
                  light0_col_time, light1_col_time, light0_angle_time, light1_angle_time;
 
    bool newer(C IconSettings &src)C
@@ -34,7 +35,7 @@ class IconSettings
           || width_time>src.width_time || height_time>src.height_time || scale_time>src.scale_time || fov_time>src.fov_time
           || cam_angle_time>src.cam_angle_time || cam_focus_time>src.cam_focus_time
           || ambient_col_time>src.ambient_col_time || ambient_occl_time>src.ambient_occl_time || ambient_range_time>src.ambient_range_time
-          || bloom_original_time>src.bloom_original_time || bloom_scale_time>src.bloom_scale_time || bloom_cut_time>src.bloom_cut_time
+          || bloom_original_time>src.bloom_original_time || bloom_scale_time>src.bloom_scale_time || bloom_cut_time>src.bloom_cut_time || bloom_glow_time>src.bloom_glow_time
           || light0_col_time>src.light0_col_time || light1_col_time>src.light1_col_time || light0_angle_time>src.light0_angle_time || light1_angle_time>src.light1_angle_time;
    }
    bool equal(C IconSettings &src)C
@@ -43,7 +44,7 @@ class IconSettings
           && width_time==src.width_time && height_time==src.height_time && scale_time==src.scale_time && fov_time==src.fov_time
           && cam_angle_time==src.cam_angle_time && cam_focus_time==src.cam_focus_time
           && ambient_col_time==src.ambient_col_time && ambient_occl_time==src.ambient_occl_time && ambient_range_time==src.ambient_range_time
-          && bloom_original_time==src.bloom_original_time && bloom_scale_time==src.bloom_scale_time && bloom_cut_time==src.bloom_cut_time
+          && bloom_original_time==src.bloom_original_time && bloom_scale_time==src.bloom_scale_time && bloom_cut_time==src.bloom_cut_time && bloom_glow_time==src.bloom_glow_time
           && light0_col_time==src.light0_col_time && light1_col_time==src.light1_col_time && light0_angle_time==src.light0_angle_time && light1_angle_time==src.light1_angle_time;
    }
 
@@ -70,6 +71,7 @@ class IconSettings
       changed|=Sync(bloom_original_time, src.bloom_original_time, bloom_original, src.bloom_original);
       changed|=Sync(   bloom_scale_time, src.   bloom_scale_time, bloom_scale   , src.bloom_scale);
       changed|=Sync(     bloom_cut_time, src.     bloom_cut_time, bloom_cut     , src.bloom_cut);
+      changed|=Sync(    bloom_glow_time, src.    bloom_glow_time, bloom_glow    , src.bloom_glow);
       changed|=Sync(    light0_col_time, src.    light0_col_time, light0_col    , src.light0_col);
       changed|=Sync(    light1_col_time, src.    light1_col_time, light1_col    , src.light1_col);
       changed|=Sync(  light0_angle_time, src.  light0_angle_time, light0_angle  , src.light0_angle);
@@ -96,6 +98,7 @@ class IconSettings
       changed|=Undo(bloom_original_time, src.bloom_original_time, bloom_original, src.bloom_original);
       changed|=Undo(   bloom_scale_time, src.   bloom_scale_time, bloom_scale   , src.bloom_scale);
       changed|=Undo(     bloom_cut_time, src.     bloom_cut_time, bloom_cut     , src.bloom_cut);
+      changed|=Undo(    bloom_glow_time, src.    bloom_glow_time, bloom_glow    , src.bloom_glow);
       changed|=Undo(    light0_col_time, src.    light0_col_time, light0_col    , src.light0_col);
       changed|=Undo(    light1_col_time, src.    light1_col_time, light1_col    , src.light1_col);
       changed|=Undo(  light0_angle_time, src.  light0_angle_time, light0_angle  , src.light0_angle);
@@ -104,21 +107,33 @@ class IconSettings
    }
    bool save(File &f)C
    {
-      f.cmpUIntV(3);
+      f.cmpUIntV(4);
       f<<mip_maps<<auto_center<<light0_shadow<<light1_shadow<<type<<width<<height<<scale<<fov<<ambient_occl<<ambient_range<<cam_angle<<cam_focus<<ambient_col
-       <<bloom_original<<bloom_scale<<bloom_cut
+       <<bloom_original<<bloom_scale<<bloom_cut<<bloom_glow
        <<light0_col<<light1_col<<light0_angle<<light1_angle
        <<mip_maps_time<<auto_center_time<<light0_shadow_time<<light1_shadow_time<<type_time<<width_time<<height_time<<scale_time<<fov_time
        <<cam_angle_time<<cam_focus_time<<ambient_col_time<<ambient_occl_time<<ambient_range_time
-       <<bloom_original_time<<bloom_scale_time<<bloom_cut_time
+       <<bloom_original_time<<bloom_scale_time<<bloom_cut_time<<bloom_glow_time
        <<light0_col_time<<light1_col_time<<light0_angle_time<<light1_angle_time;
       return f.ok();
    }
    bool load(File &f)
    {
       flt bloom_contrast; TimeStamp bloom_contrast_time;
-      switch(f.decUIntV())
+      reset(); switch(f.decUIntV())
       {
+         case 4:
+         {
+            f>>mip_maps>>auto_center>>light0_shadow>>light1_shadow>>type>>width>>height>>scale>>fov>>ambient_occl>>ambient_range>>cam_angle>>cam_focus>>ambient_col
+             >>bloom_original>>bloom_scale>>bloom_cut>>bloom_glow
+             >>light0_col>>light1_col>>light0_angle>>light1_angle
+             >>mip_maps_time>>auto_center_time>>light0_shadow_time>>light1_shadow_time>>type_time>>width_time>>height_time>>scale_time>>fov_time
+             >>cam_angle_time>>cam_focus_time>>ambient_col_time>>ambient_occl_time>>ambient_range_time
+             >>bloom_original_time>>bloom_scale_time>>bloom_cut_time>>bloom_glow_time
+             >>light0_col_time>>light1_col_time>>light0_angle_time>>light1_angle_time;
+            if(f.ok())return true;
+         }break;
+
          case 3:
          {
             f>>mip_maps>>auto_center>>light0_shadow>>light1_shadow>>type>>width>>height>>scale>>fov>>ambient_occl>>ambient_range>>cam_angle>>cam_focus>>ambient_col
@@ -128,6 +143,7 @@ class IconSettings
              >>cam_angle_time>>cam_focus_time>>ambient_col_time>>ambient_occl_time>>ambient_range_time
              >>bloom_original_time>>bloom_scale_time>>bloom_cut_time
              >>light0_col_time>>light1_col_time>>light0_angle_time>>light1_angle_time;
+            bloom_scale*=1.6;
             if(f.ok())return true;
          }break;
 
@@ -140,6 +156,7 @@ class IconSettings
              >>cam_angle_time>>cam_focus_time>>ambient_col_time>>ambient_occl_time>>ambient_range_time
              >>bloom_original_time>>bloom_scale_time>>bloom_cut_time>>bloom_contrast_time
              >>light0_col_time>>light1_col_time>>light0_angle_time>>light1_angle_time;
+            bloom_scale*=1.6;
             if(type>=1)type=ElmImage.TYPE(type+1); if(f.ok())return true;
          }break;
 
@@ -153,6 +170,7 @@ class IconSettings
              >>bloom_original_time>>bloom_scale_time>>bloom_cut_time>>bloom_contrast_time
              >>light0_col_time>>light1_col_time>>light0_angle_time>>light1_angle_time;
              light1_shadow=light0_shadow; light1_shadow_time=light0_shadow_time;
+            bloom_scale*=1.6;
             if(type>=1)type=ElmImage.TYPE(type+1); if(f.ok())return true;
          }break;
 

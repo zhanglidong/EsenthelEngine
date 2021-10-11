@@ -15,8 +15,7 @@ void ShutProjectUpdate()
    ProjUpdate.stop(WorkerThreads); // stop first
    UpdateProgress.del();
    Proj.refresh().resume(); // resume at the end
-   WindowSetNormal();
-   WindowFlash();
+   App.stateNormal().flash();
 }
 /******************************************************************************/
 bool UpdateProjectUpdate()
@@ -33,11 +32,11 @@ bool UpdateProjectUpdate()
    }
 
    UpdateProgress.set(ProjUpdate.total()-WorkerThreads.queued(), ProjUpdate.total());
-   WindowSetProgress(UpdateProgress());
+   App.stateProgress(UpdateProgress());
    Time.wait(1000/30);
      //Gui.update(); this may cause conflicts with 'Proj.elmChanged'
     Server.update(null, true);
-   if(Ms.bp(MS_MAXIMIZE))WindowToggle();
+   if(Ms.bp(MS_MAXIMIZE))App.window().toggle();
    return true;
 }
 /******************************************************************************/
@@ -47,9 +46,10 @@ void DrawProjectUpdate()
    D.text(0, 0.05, "Updating Project");
    GuiPC gpc;
    gpc.visible=gpc.enabled=true; 
-   gpc.client_rect=gpc.clip.set(-D.w(), -D.h(), D.w(), D.h());
+   gpc.client_rect=gpc.clip=D.rect();
    gpc.offset.zero();
    UpdateProgress.draw(gpc);
    D.clip();
+   Draw();
 }
 /******************************************************************************/

@@ -62,7 +62,7 @@ public:
                 force_uniform_stretch[2],
                 resolution, width, height,
                 round_corners, left_slope, right_slope,
-                max_side_stretch, extend, extend_inner_padd,
+                max_side_stretch, min_size, extend, extend_inner_padd,
                 border_size,
                 outer_glow_spread, outer_glow_radius, inner_glow_radius, outer_glow_color, inner_glow_color,
                 light_ambient,

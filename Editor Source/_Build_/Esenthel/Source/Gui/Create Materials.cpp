@@ -18,8 +18,7 @@ void ShutCreateMaterials()
    REPA(CreateMtrls.data)WorkerThreads.wait  (CreateMtrls.data[i], CreateMtrls.Process);
    UpdateProgress.del();
    Proj.refresh().resume();
-   WindowSetNormal();
-   WindowFlash();
+   App.stateNormal().flash();
 }
 /******************************************************************************/
 bool UpdateCreateMaterials()
@@ -28,11 +27,11 @@ bool UpdateCreateMaterials()
    if(!WorkerThreads.busy())SetProjectState();
 
    UpdateProgress.set(CreateMtrls.data.elms()-WorkerThreads.queued(), CreateMtrls.data.elms());
-   WindowSetProgress(UpdateProgress());
+   App.stateProgress(UpdateProgress());
    Time.wait(1000/30);
      //Gui.update(); this may cause conflicts with 'Proj.elmChanged'
     Server.update(null, true);
-   if(Ms.bp(MS_MAXIMIZE))WindowToggle();
+   if(Ms.bp(MS_MAXIMIZE))App.window().toggle();
    return true;
 }
 /******************************************************************************/
@@ -42,10 +41,11 @@ void DrawCreateMaterials()
    D.text(0, 0.05f, "Creating Materials");
    GuiPC gpc;
    gpc.visible=gpc.enabled=true; 
-   gpc.client_rect=gpc.clip.set(-D.w(), -D.h(), D.w(), D.h());
+   gpc.client_rect=gpc.clip=D.rect();
    gpc.offset.zero();
    UpdateProgress.draw(gpc);
    D.clip();
+   Draw();
 }
 /******************************************************************************/
 
@@ -94,12 +94,12 @@ void DrawCreateMaterials()
       edit.color_map_time.getUTC();
 
       SyncLockerEx locker(lock);
-      Image base_0, base_1, base_2;
-      uint  bt=Proj.createBaseTextures(base_0, base_1, base_2, edit);
+      Image    base_0, base_1, base_2;
+      TEX_FLAG textures=Proj.createBaseTextures(base_0, base_1, base_2, edit);
       locker.off();
       if(base_0.is() && !base_1.is() && !base_2.is()) // we should get only base0
       {
-         if(bt&BT_ALPHA) // if we ended up having an alpha texture, then set alpha-test params
+         if(textures&TEXF_ALPHA) // if we ended up having an alpha texture, then set alpha-test params
          {
             edit.tech=MTECH_ALPHA_TEST;
             edit.color_s.w=0.5f;
@@ -162,7 +162,7 @@ void DrawCreateMaterials()
    void CreateMaterials::update(C GuiPC &gpc)
 {
       super::update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          if(Ms.tappedFirst(0) && Gui.ms()==&list)if(Src *src=list())if(Elm *elm=Proj.findElm(src->id))ImageEdit.toggle(elm);
       }

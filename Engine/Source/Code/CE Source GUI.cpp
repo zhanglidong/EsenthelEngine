@@ -22,7 +22,7 @@ void Line::setGui(Int i, GuiObj &parent)
 void Source::setOffset    () {lc_offset.set(slidebar[0].wantedOffset()/CE.ts.colWidth(), slidebar[1].wantedOffset()/CE.ts.lineHeight());}
 void Source::setRegionSize()
 {
-   Vec2 size=0; REP(childNum())if(GuiObj *c=child(i))if(c->visible() && c->type()==GO_TEXT){MAX(size.x, GuiMaxX(c->rect())); MAX(size.y, GuiMaxY(c->rect()));}
+   Vec2 size=0; REP(childNum())if(GuiObj *c=child(i))if(c->visible() && c->isText()){MAX(size.x, GuiMaxX(c->rect())); MAX(size.y, GuiMaxY(c->rect()));}
    size.x+=CE.ts.colWidth()+CE.lineNumberSize(); size.y+=clientHeight()/2;
    virtualSize(&size);
    slidebar[0].offset(lc_offset.x*CE.ts. colWidth ());
@@ -857,7 +857,7 @@ static void ShowElmNames(C Str &str, C Rect &rect, C GuiPC &gpc, C Line *line, C
 /******************************************************************************/
 void Line::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
       if(rect().max.y+gpc.offset.y>=gpc.clip.min.y
       && rect().min.y+gpc.offset.y<=gpc.clip.max.y)
    {
@@ -896,7 +896,7 @@ void Line::draw(C GuiPC &gpc)
 }
 void Source::ViewLine::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
       if(rect().max.y+gpc.offset.y>=gpc.clip.min.y
       && rect().min.y+gpc.offset.y<=gpc.clip.max.y)
    {
@@ -933,7 +933,7 @@ void Source::drawSelection(C Color &color, C VecI2 &a, C VecI2 &b, Bool includin
 /******************************************************************************/
 void Source::draw(C GuiPC &gpc)
 {
-   if(gpc.visible && visible())
+   if(/*gpc.visible &&*/ visible())
    {
       D.clip(_crect);
 
@@ -972,7 +972,7 @@ void Source::draw(C GuiPC &gpc)
             Int  line=cur.y; if(CE.view_mode())line=realToView(line);
             Vec2 pos =offset+posVisual(VecI2(0, line));
             Rect rect(_crect.min.x, pos.y-CE.ts.lineHeight(), _crect.max.x, pos.y);
-            Flt  h=CE.ts.lineHeight()*-0.06f; if(h<=D.pixelToScreenSize().y)rect.draw(Theme.colors[TOKEN_LINE_HIGHLIGHT], false);else rect.drawBorder(Theme.colors[TOKEN_LINE_HIGHLIGHT], h);
+            Flt  h=CE.ts.lineHeight()*0.06f; if(h<=D.pixelToScreenSize().y)rect.draw(Theme.colors[TOKEN_LINE_HIGHLIGHT], false);else rect.drawBorder(Theme.colors[TOKEN_LINE_HIGHLIGHT], h);
          }
       }
 

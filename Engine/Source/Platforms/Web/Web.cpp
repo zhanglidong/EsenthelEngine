@@ -16,14 +16,14 @@ static void SetMaximized(Int window_width=0, Int window_height=0)
 /******************************************************************************/
 static EM_BOOL MouseMove(int eventType, const EmscriptenMouseEvent *e, void *userData)
 {
-   Ms._delta_relative.x+=e->movementX;
-   Ms._delta_relative.y-=e->movementY;
+   Ms._delta_rel.x+=e->movementX;
+   Ms._delta_rel.y-=e->movementY;
    VecI2 pixeli(RoundPos(e->screenX*ScreenScale),
                 RoundPos(e->screenY*ScreenScale));
-   Ms._deltai+=pixeli-Ms._desktop_posi;
-   Ms._desktop_posi=pixeli;
-   Ms. _window_posi.set(RoundPos(e->canvasX*ScreenScale), // have to use 'canvas' instead of 'client' because that one is the window client but not the canvas
-                        RoundPos(e->canvasY*ScreenScale));
+   Ms.  _delta_pixeli_clp+=pixeli-Ms._desktop_pixeli;
+   Ms._desktop_pixeli     =pixeli;
+   Ms. _window_pixeli.set(RoundPos(e->canvasX*ScreenScale), // have to use 'canvas' instead of 'client' because that one is the window client but not the canvas
+                          RoundPos(e->canvasY*ScreenScale));
    return 0;
 }
 static EM_BOOL MouseDown(int eventType, const EmscriptenMouseEvent *e, void *userData)
@@ -183,9 +183,9 @@ static EM_BOOL TouchMove(int eventType, const EmscriptenTouchEvent *e, void *use
       {
          VecI2 pixeli(RoundPos(s.screenX*ScreenScale),
                       RoundPos(s.screenY*ScreenScale));
-         touch->_deltai+=pixeli-touch->_pixeli;
-         touch->_pixeli =pixeli;
-         touch->_pos    =D.windowPixelToScreen(Vec2(s.canvasX, s.canvasY)*ScreenScale);
+         touch->_delta_pixeli_clp+=pixeli-touch->_pixeli;
+         touch->_pixeli           =pixeli;
+         touch->_pos              =D.windowPixelToScreen(Vec2(s.canvasX, s.canvasY)*ScreenScale);
       }
    }
    return 1;

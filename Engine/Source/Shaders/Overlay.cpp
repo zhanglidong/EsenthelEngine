@@ -1,106 +1,100 @@
+/******************************************************************************
+
+   This is used by 'MeshRender'
+
 /******************************************************************************/
 #include "!Header.h"
-#include "Overlay.h"
 /******************************************************************************
-SKIN, NORMALS, LAYOUT
+SKIN, TESSELATE
+/******************************************************************************/
+struct Data
+{
+   Vec2 uv:UV;
+#if TESSELATE
+   Vec  pos:POS;
+   VecH nrm:NORMAL;
+#endif
+};
+/******************************************************************************/
+// VS
 /******************************************************************************/
 void VS
 (
    VtxInput vtx,
 
-   out Vec      outTex   :TEXCOORD, // xy=uv, z=alpha
-#if NORMALS
-   out MatrixH3 outMatrix:MATRIX,
-#else
-   out VecH     outNrm   :NORMAL,
-#endif
-   out Vec4     outVtx   :POSITION
+   out Data O,
+   out Vec4 vpos:POSITION
 )
 {
-   Matrix3 m;
-   m[0]=OverlayParams.mtrx[0]/Length2(OverlayParams.mtrx[0]);
-   m[1]=OverlayParams.mtrx[1]/Length2(OverlayParams.mtrx[1]);
-   m[2]=OverlayParams.mtrx[2]/Length2(OverlayParams.mtrx[2]);
-   outTex   =TransformTP(vtx.pos()-OverlayParams.mtrx[3], m);
-   outTex.xy=outTex.xy*0.5+0.5;
-   outTex.z =1 - (Abs(outTex.z)-OverlayOpaqueFrac())/(1-OverlayOpaqueFrac()); // Abs(outTex.z)/-(1-OverlayOpaqueFrac()) + (OverlayOpaqueFrac()/(1-OverlayOpaqueFrac())+1)
+   O.uv=vtx.uv();
 
+   Vec pos;
    if(!SKIN)
    {
-   #if NORMALS
-      outMatrix[1]=Normalize(TransformDir(OverlayParams.mtrx[1]));
-      outMatrix[2]=Normalize(TransformDir(OverlayParams.mtrx[2]));
-   #else
-      outNrm=Normalize(TransformDir(OverlayParams.mtrx[2]));
+   #if TESSELATE
+      O.nrm=Normalize(TransformDir(vtx.nrm()));
    #endif
-
-      outVtx=Project(TransformPos(vtx.pos()));
+        pos=          TransformPos(vtx.pos());
    }else
    {
       VecU bone=vtx.bone();
-
-   #if NORMALS
-      outMatrix[1]=Normalize(TransformDir(OverlayParams.mtrx[1], bone, vtx.weight()));
-      outMatrix[2]=Normalize(TransformDir(OverlayParams.mtrx[2], bone, vtx.weight()));
-   #else
-      outNrm=Normalize(TransformDir(OverlayParams.mtrx[2], bone, vtx.weight()));
+   #if TESSELATE
+      O.nrm=Normalize(TransformDir(vtx.nrm(), bone, vtx.weight()));
    #endif
-
-      outVtx=Project(TransformPos(vtx.pos(), bone, vtx.weight()));
+        pos=          TransformPos(vtx.pos(), bone, vtx.weight());
    }
-#if NORMALS
-   outMatrix[0]=Cross(outMatrix[1], outMatrix[2]);
+#if TESSELATE
+   O.pos=pos;
 #endif
+   vpos=Project(pos);
 }
+/******************************************************************************/
+// PS
 /******************************************************************************/
 VecH4 PS
 (
-    Vec      inTex   :TEXCOORD,
-#if NORMALS
-    MatrixH3 inMatrix:MATRIX  ,
-#else
-    VecH     inNrm   :NORMAL  ,
-#endif
-out VecH4   outNrm   :TARGET1 ,
-out VecH4   outExt   :TARGET2
-):TARGET // #RTOutput
+   Data I
+):TARGET
 {
-   Half  smooth =Material.smooth ,
-         reflect=Material.reflect;
-   VecH4 col    =Tex(Col, inTex.xy);
-#if LAYOUT==2 // #MaterialTextureLayout
-   VecH2 ext    =Tex(Ext, inTex.xy).xy;
-   smooth *=ext.x;
-   reflect*=ext.y;
-#endif
-   col  *=Material.color;
-   col.a*=Sat(inTex.z)*OverlayAlpha();
-
-   VecH nrm;
-#if NORMALS
-                nrm.xy =Tex(Nrm, inTex.xy).xy*Material.normal; // #MaterialTextureLayout
-    //if(DETAIL)nrm.xy+=det.xy;
-                nrm.z  =CalcZ(nrm.xy);
-                nrm    =Normalize(Transform(nrm, inMatrix));
-
-#else
-   nrm=Normalize(inNrm);
-#endif
-
-   // Nrm
-#if SIGNED_NRM_RT
-   outNrm.xyz=nrm;
-#else
-   outNrm.xyz=nrm*0.5+0.5;
-#endif
-   outNrm.w=col.a; // alpha needed because of blending
-
-   // Ext
-   outExt.x=smooth;
-   outExt.y=reflect;
-   outExt.z=0;
-   outExt.w=col.a; // alpha needed because of blending
-
-   return col;
+   return RTex(Col, I.uv)*Color[0];
 }
+/******************************************************************************/
+// HULL / DOMAIN
+/******************************************************************************/
+#if TESSELATE
+HSData HSConstant(InputPatch<Data,3> I) {return GetHSData(I[0].pos, I[1].pos, I[2].pos, I[0].nrm, I[1].nrm, I[2].nrm);}
+[maxtessfactor(5.0)]
+[domain("tri")]
+[partitioning("fractional_odd")] // use 'odd' because it supports range from 1.0 ('even' supports range from 2.0)
+[outputtopology("triangle_cw")]
+[patchconstantfunc("HSConstant")]
+[outputcontrolpoints(3)]
+Data HS
+(
+   InputPatch<Data,3> I,
+   UInt cp_id:SV_OutputControlPointID
+)
+{
+   Data O;
+   O.pos=I[cp_id].pos;
+   O.nrm=I[cp_id].nrm;
+   O.uv =I[cp_id].uv;
+   return O;
+}
+/******************************************************************************/
+[domain("tri")]
+void DS
+(
+   HSData hs_data, const OutputPatch<Data,3> I, Vec B:SV_DomainLocation,
+
+   out Data O,
+   out Vec4 pixel:POSITION
+)
+{
+   O.uv=I[0].uv*B.z + I[1].uv*B.x + I[2].uv*B.y;
+
+   SetDSPosNrm(O.pos, O.nrm, I[0].pos, I[1].pos, I[2].pos, I[0].nrm, I[1].nrm, I[2].nrm, B, hs_data, false, 0);
+   pixel=Project(O.pos);
+}
+#endif
 /******************************************************************************/

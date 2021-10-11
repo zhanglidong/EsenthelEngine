@@ -10,38 +10,8 @@ class ImporterClass
    }
    class Import
    {
-      class MaterialEx : XMaterial
+      class MaterialEx : XMaterialEx
       {
-         Material mtrl;
-         Image    base_0, base_1, base_2, detail, macro, light;
-         UID      base_0_id=UIDZero, base_1_id=UIDZero, base_2_id=UIDZero, detail_id=UIDZero, macro_id=UIDZero, light_id=UIDZero;
-
-         void copyTo(EditMaterial &dest, C TimeStamp &time=TimeStamp().getUTC())C
-         {
-            dest.create(mtrl, time); // set from 'Material' instead of 'XMaterial' because it had '_adjustParams' called
-            dest.flip_normal_y=flip_normal_y; dest.flip_normal_y_time=time;
-
-            dest.  color_map  =        color_map; dest.  color_map_time=time;
-            dest.  alpha_map  =        alpha_map; dest.  alpha_map_time=time;
-            dest.   bump_map  =         bump_map; dest.   bump_map_time=time;
-            dest. normal_map  =       normal_map; dest. normal_map_time=time;
-            dest. smooth_map  =       smooth_map; dest. smooth_map_time=time;
-            dest.reflect_map  =      reflect_map; dest.reflect_map_time=time;
-            dest.   glow_map  =         glow_map; dest.   glow_map_time=time;
-            dest.  light_map  =        light_map; dest.  light_map_time=time;
-            dest.  macro_map  =                S; dest.  macro_map_time=time;
-            dest.detail_color = detail_color_map; dest. detail_map_time=time;
-            dest.detail_bump  =  detail_bump_map;
-            dest.detail_normal=detail_normal_map;
-            dest.detail_smooth=detail_smooth_map;
-
-            dest.base_0_tex=base_0_id;
-            dest.base_1_tex=base_1_id;
-            dest.base_2_tex=base_2_id;
-            dest.detail_tex=detail_id;
-            dest. macro_tex= macro_id;
-            dest. light_tex= light_id;
-         }
          void check(C Str &path, Str &tex)
          {
             Mems<FileParams> texs=FileParams.Decode(tex);
@@ -54,55 +24,60 @@ class ImporterClass
          }
          void process(C Str &path)
          {
-            copyParamsTo(mtrl);
-
             if(path.is())
             {
-               check(path,   color_map);
-               check(path,   alpha_map);
-               check(path,    bump_map);
-               check(path,    glow_map);
-               check(path,   light_map);
-               check(path,  normal_map);
-               check(path,  smooth_map);
-               check(path, reflect_map);
+               check(path,    color_map);
+               check(path,    alpha_map);
+               check(path,     bump_map);
+               check(path,     glow_map);
+               check(path, emissive_map);
+               check(path,   normal_map);
+               check(path,   smooth_map);
+               check(path,    metal_map);
             }
 
             if(GetExt(color_map)=="img" || GetExt(normal_map)=="img" || GetExt(smooth_map)=="img" || GetExt(detail_color_map)=="img") // this is 'EE.Material' ("mtrl" format) #MaterialTextureLayout
             {
-               Str b0=color_map, b1=normal_map, b2=smooth_map, d=detail_color_map, l=light_map, m;
-               base_0.load(b0); ImageProps(base_0, &base_0_id, null, MTRL_BASE_0);
-               base_1.load(b1); ImageProps(base_1, &base_1_id, null, MTRL_BASE_1);
-               base_2.load(b2); ImageProps(base_2, &base_2_id, null, MTRL_BASE_2);
-               detail.load(d ); ImageProps(detail, &detail_id, null, MTRL_DETAIL);
-               macro .load(m ); ImageProps(macro , & macro_id, null, MTRL_MACRO );
-               light .load(l ); ImageProps(light , & light_id, null, MTRL_LIGHT );
+               Str base0_path=color_map, base1_path=normal_map, base2_path=smooth_map, detail_path=detail_color_map, emissive_path=emissive_map, macro_path;
+               base_0      .load(   base0_path); ImageProps(base_0      , &  base_0_id, null, MTRL_BASE_0  );
+               base_1      .load(   base1_path); ImageProps(base_1      , &  base_1_id, null, MTRL_BASE_1  );
+               base_2      .load(   base2_path); ImageProps(base_2      , &  base_2_id, null, MTRL_BASE_2  );
+               detail      .load(  detail_path); ImageProps(detail      , &  detail_id, null, MTRL_DETAIL  );
+               macro       .load(   macro_path); ImageProps(macro       , &   macro_id, null, MTRL_MACRO   );
+               emissive_img.load(emissive_path); ImageProps(emissive_img, &emissive_id, null, MTRL_EMISSIVE);
 
                FileParams fp; 
-               color_map=b0;
+               color_map=base0_path;
                alpha_map.clear();
+               emissive_map=emissive_path;
 
-               fp=b1; if(fp.name.is())fp.getParam("channel").setValue("xy"); normal_map=fp.encode();
-
-               fp=b2; if(fp.name.is())
+               if(base1_path.is())
                {
-                  fp.getParam("channel").setValue("x");  smooth_map=fp.encode();
-                  fp.getParam("channel").setValue("y"); reflect_map=fp.encode();
-                  fp.getParam("channel").setValue("z");    bump_map=fp.encode();
-                  fp.getParam("channel").setValue("w");    glow_map=fp.encode();
+                  fp=base1_path; fp.params.New().set("channel", "xy"); normal_map=fp.encode();
                }else
                {
-                   smooth_map.clear();
-                  reflect_map.clear();
-                     bump_map.clear();
-                     glow_map.clear();
+                  normal_map.clear();
                }
 
-               fp=d; if(fp.name.is())
+               if(base2_path.is())
                {
-                  fp.getParam("channel").setValue("z" ); detail_color_map =fp.encode();
-                  fp.getParam("channel").setValue("w" ); detail_smooth_map=fp.encode();
-                  fp.getParam("channel").setValue("xy"); detail_normal_map=fp.encode();
+                  fp=base2_path; fp.params.New().set("channel", "y"); fp.params.New().setName("inverseRGB"); smooth_map=fp.encode();
+                  fp=base2_path; fp.params.New().set("channel", "x");                                         metal_map=fp.encode();
+                  fp=base2_path; fp.params.New().set("channel", "z");                                          bump_map=fp.encode();
+                  fp=base2_path; fp.params.New().set("channel", "w");                                          glow_map=fp.encode();
+               }else
+               {
+                  smooth_map.clear();
+                   metal_map.clear();
+                    bump_map.clear();
+                    glow_map.clear();
+               }
+
+               if(detail_path.is()) // #MaterialTextureLayoutDetail
+               {
+                  fp=detail_path; fp.params.New().set("channel", "w" );                                        detail_color_map =fp.encode();
+                  fp=detail_path; fp.params.New().set("channel", "z" ); fp.params.New().setName("inverseRGB"); detail_smooth_map=fp.encode();
+                  fp=detail_path; fp.params.New().set("channel", "xy");                                        detail_normal_map=fp.encode();
                }else
                {
                   detail_color_map .clear();
@@ -112,28 +87,25 @@ class ImporterClass
                detail_bump_map.clear();
             }else
             {
-               Image color, alpha, bump, normal, smooth, reflect, glow;
-               ImportImage(  color,   color_map);
-               ImportImage(  alpha,   alpha_map);
-               ImportImage(   bump,    bump_map);
-               ImportImage( normal,  normal_map);
-               ImportImage( smooth,  smooth_map);
-               ImportImage(reflect, reflect_map);
-               ImportImage(   glow,    glow_map);
-               ImportImage(  light,   light_map);
+               Image color, alpha, bump, normal, smooth, metal, glow;
+               ImportImage(   color    ,    color_map);
+               ImportImage(   alpha    ,    alpha_map);
+               ImportImage(    bump    ,     bump_map);
+               ImportImage(  normal    ,   normal_map);
+               ImportImage(  smooth    ,   smooth_map);
+               ImportImage(   metal    ,    metal_map);
+               ImportImage(    glow    ,     glow_map);
+               ImportImage(emissive_img, emissive_map);
+
+                                    has_textures =CreateBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, metal, glow, true, flip_normal_y);
+               if(emissive_img.is())has_textures|=TEXF_EMISSIVE;
+                                  known_textures =TEXF_BASE|TEXF_EMISSIVE;
 
                // process textures only if they're added for the first time, otherwise delete them so they won't be saved
-               uint bt=CreateBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, reflect, glow, true, flip_normal_y);
-               // enable if are specified but either failed to load or empty, because without it, for example normal value gets zero, and when reapplying correct image path, then when loading new image, normal value doesn't get changed
-               if(   bump_map.is())bt|=BT_BUMP|BT_NORMAL;
-               if( normal_map.is())bt|=BT_NORMAL;
-               if( smooth_map.is())bt|=BT_SMOOTH;
-               if(reflect_map.is())bt|=BT_REFLECT;
-               IMAGE_TYPE ct; ImageProps(base_0, &base_0_id, &ct, MTRL_BASE_0); if(Importer.includeTex(base_0_id))                          base_0.copyTry(base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_0.del();
-                              ImageProps(base_1, &base_1_id, &ct, MTRL_BASE_1); if(Importer.includeTex(base_1_id))                          base_1.copyTry(base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_1.del();
-                              ImageProps(base_2, &base_2_id, &ct, MTRL_BASE_2); if(Importer.includeTex(base_2_id))                          base_2.copyTry(base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_2.del();
-                              ImageProps( light, & light_id, &ct, MTRL_LIGHT ); if(Importer.includeTex( light_id)){SetFullAlpha(light, ct); light .copyTry(light , -1, -1, -1, ct, IMAGE_2D, 0                      );}else light .del();
-               mtrl._adjustParams(~bt, bt);
+               IMAGE_TYPE ct; ImageProps(      base_0, &  base_0_id, &ct, MTRL_BASE_0  ); if(Importer.includeTex(  base_0_id))                                 base_0      .copyTry(base_0      , -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else   base_0    .del();
+                              ImageProps(      base_1, &  base_1_id, &ct, MTRL_BASE_1  ); if(Importer.includeTex(  base_1_id))                                 base_1      .copyTry(base_1      , -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else   base_1    .del();
+                              ImageProps(      base_2, &  base_2_id, &ct, MTRL_BASE_2  ); if(Importer.includeTex(  base_2_id))                                 base_2      .copyTry(base_2      , -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else   base_2    .del();
+                              ImageProps(emissive_img, &emissive_id, &ct, MTRL_EMISSIVE); if(Importer.includeTex(emissive_id)){SetFullAlpha(emissive_img, ct); emissive_img.copyTry(emissive_img, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);}else emissive_img.del();
             }
          }
       }
@@ -260,14 +232,12 @@ class ImporterClass
          {
             case ELM_OBJ:
             {
-               MemPtr<XAnimation> anims; if(mode!=CLOTH && mode!=ADD && !ignore_anims)anims.point(T.anims);
-               MemPtr<XMaterial > mtrls; if(mode!=ANIM                               )mtrls.point(T.mtrls);
-               if(EE.Import(file, (mode!=ANIM) ? &mesh : null, &skel, anims, mtrls, part_mtrl_index, &xskel, all_nodes_as_bones))
+               if(EE.Import(file, (mode!=ANIM) ? &mesh : null, &skel, (mode!=CLOTH && mode!=ADD && !ignore_anims) ? &anims : null, (mode!=ANIM) ? &mtrls : null, part_mtrl_index, &xskel, all_nodes_as_bones))
                {
                   FixMesh(mesh);
                   mesh.keepOnly(EditMeshFlagAnd); // call after 'FixMesh' which may need/generate some of removed data
                   REPAO(anims).anim.linear(anims[i].fps>=LinearAnimFpsLimit).clip(0, anims[i].anim.length()); // set linear mode and remove any keyframes outside of anim range
-                  Str path=GetPath(file); FREPAO(T.mtrls).process(path);
+                  Str path=GetPath(file); FREPAO(mtrls).process(path);
                   return true;
                }
             }break;
@@ -553,10 +523,11 @@ class ImporterClass
             {
                if(GetExt(file)=="mtrl") // EE mtrl
                {
-                  MaterialEx &m=mtrls.New(); if(m.mtrl.load(file))
+                  Material mtrl; if(mtrl.load(file))
                   {
-                     m.createFrom(m.mtrl);
-                     m.process(S);
+                     MaterialEx &mtrl_ex=mtrls.New();
+                     mtrl_ex.create(mtrl);
+                     mtrl_ex.process(S);
                      return true;
                   }
                }else // mtrl inside mesh

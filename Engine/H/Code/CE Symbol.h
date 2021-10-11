@@ -116,13 +116,14 @@ struct Symbol : Str // C++ Symbol
       void operator=(C SymbolPtr &sp     ) {SymbolPtr &t=T; t=sp;}
       void clear    (Bool clear_templates);
 
-      Bool isConst  (); // test last pointer or array if it's const
-      Bool isObj    (); // test if it's not pointer and not array
-      Bool isPtr    (); // test if last pointer or array is pointer
-      Bool isArray  (); // test if last array is not a pointer
-      Bool anyPtr   (); // test if pointer or if any array has a pointer
-      Bool isVoidPtr(); // test if this object is exactly a 'Ptr' or 'CPtr'
-      Bool basicType(); // test if is a C++ native type or pointer of any kind
+      Bool isConst   ()C; // test last pointer or array if it's const
+      Bool isObj     ()C; // test if it's not pointer and not array
+      Bool isPtr     ()C; // test if last pointer or array is pointer
+      Bool isArray   ()C; // test if last array is not a pointer
+      Bool anyPtr    ()C; // test if pointer or if any array has a pointer
+      Bool isVoidPtr ()C; // test if this object is exactly a 'Ptr' or 'CPtr'
+      Bool basicType ()C; // test if is a C++ native type or pointer of any kind
+      Bool dependable()C; // not reference and not pointer
 
       Int  rawSize        (Bool ref_as_ptr_size, RecTest &rt=NoTemp(RecTest()));
       Int  firstMemberSize(                      RecTest &rt=NoTemp(RecTest())); // get size of first member in the class (or size of this if it's a var)
@@ -284,6 +285,7 @@ struct Symbol : Str // C++ Symbol
    Symbol* rootClass          ();
    Symbol*     Class          ();
    Symbol* Namespace          ();
+   Symbol*    nested          (); // if symbol is defined inside some class then this returns 'rootClass', and null otherwise
    Symbol*      func          ();
    Symbol*  rootFunc          ();
    Symbol* firstNonTransparent();
@@ -344,7 +346,7 @@ struct Symbol : Str // C++ Symbol
    void adjustIndex  (Memc<Token> &tokens, Int &i);
    void adjustIndexes(Memc<Token> &tokens        );
 
-   void addDependency        (Modif  &symbol);
+   Bool addDependency        (Modif  &symbol); // returns if added any dependency
    void addDependencyIfNested(Symbol *symbol);
    
    void clearBody(); // set token parents of the wholy body of the function to the function itself (to remove any references from symbols created inside the function)

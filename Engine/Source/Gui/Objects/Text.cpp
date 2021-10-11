@@ -98,7 +98,7 @@ Vec2 Text::textSize()C
 /******************************************************************************/
 void Text::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible && T().is())
+   if(/*gpc.visible &&*/ visible() && T().is())
       if(TextStyle *text_style=getTextStyle())
    {
       Rect rect=T.rect()+gpc.offset;

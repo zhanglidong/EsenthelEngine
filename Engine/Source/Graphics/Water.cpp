@@ -24,7 +24,7 @@ WaterMtrl::WaterMtrl()
    colorUnderwater0S(Vec(0.26f, 0.35f, 0.42f));
    colorUnderwater1S(Vec(0.10f, 0.20f, 0.30f));
 
-   smooth            =1;
+   rough             =0;
    reflect           =0.02f;
    normal            =1;
    wave_scale        =0;
@@ -38,7 +38,6 @@ WaterMtrl::WaterMtrl()
 
    refract           =0.10f;
    refract_reflection=0.06f;
-   refract_underwater=0.01f;
 }
 /******************************************************************************/
 WaterMtrl& WaterMtrl:: colorMap(C ImagePtr &image) {T. _color_map=image; return T;}
@@ -60,7 +59,7 @@ void WaterMtrl::set()C
    {
       WaterMtrlLast=this;
       WS.WaterMaterial->set<WaterMtrlParams>(T);
-      Sh.Col[0]->set( _color_map()); // #WaterMaterialTextureLayout
+      Sh.Col[0]->set( _color_map()); // #MaterialTextureLayoutWater
       Sh.Nrm[0]->set(_normal_map());
       Sh.Ext[0]->set(  _bump_map());
    }
@@ -68,8 +67,9 @@ void WaterMtrl::set()C
 /******************************************************************************/
 Bool WaterMtrl::save(File &f, CChar *path)C
 {
-   f.cmpUIntV(1); // version
+   f.cmpUIntV(2); // version
 
+   Flt refract_underwater=0.01f;
    f<<SCAST(C WaterMtrlParams, T)
     <<color_underwater0
     <<color_underwater1
@@ -85,12 +85,26 @@ Bool WaterMtrl::save(File &f, CChar *path)C
 Bool WaterMtrl::load(File &f, CChar *path)
 {
    Char temp[MAX_LONG_PATH];
+   Flt  refract_underwater;
    switch(f.decUIntV()) // version
    {
-      case 1:
+      case 2:
       {
          f>>SCAST(WaterMtrlParams, T)
           >>color_underwater0
+          >>color_underwater1
+          >>refract_underwater;
+         f.getStr(temp);  _color_map.require(temp, path);
+         f.getStr(temp); _normal_map.require(temp, path);
+         f.getStr(temp);   _bump_map.require(temp, path);
+         if(f.ok())return true;
+      }break;
+
+      case 1:
+      {
+         Flt smooth;
+         f>>color>>smooth>>reflect>>normal>>wave_scale>>scale_color>>scale_normal>>scale_bump>>density>>density_add>>refract>>refract_reflection; T.smooth(smooth);
+         f>>color_underwater0
           >>color_underwater1
           >>refract_underwater;
          f.getStr(temp);  _color_map.require(temp, path);
@@ -145,7 +159,7 @@ WaterClass::WaterClass()
   _use_secondary_rt     =false;
   _began                =false;
   _swapped_ds           =false;
-  _reflect_renderer     =(MOBILE ? RT_FORWARD : RT_DEFERRED);
+  _reflect_renderer     =RT_DEFERRED;
 }
 void WaterClass::del()
 {
@@ -260,13 +274,13 @@ void WaterClass::prepare() // this is called at the start
          #endif
 
             WS.load();
-            if(reflection_allow && reflect>EPS_COL8)Renderer.requestMirror(plane, 1, reflection_shadows, reflection_resolution);
+            if(reflection_allow && reflect>EPS_COL8_NATIVE)Renderer.requestMirror(plane, 1, reflection_shadows, reflection_resolution);
          }
       }
    }
 
    // test for lake reflections
-   if(reflection_allow && reflect>EPS_COL8 && !Renderer._mirror_want)
+   if(reflection_allow && reflect>EPS_COL8_NATIVE && !Renderer._mirror_want)
       if(!(_under_mtrl && _under_step>=1))
    {
      _mode=MODE_REFLECTION; Renderer.mode(RM_WATER); Renderer._render();
@@ -319,7 +333,7 @@ void WaterClass::begin()
          }
 
          // set RT's and depth buffer
-         if(Shader *shader=Sh.SetDepth) // if we can copy depth buffer from existing solid's, then do it, to prevent drawing water pixels if they're occluded
+         if(Shader *shader=Sh.SetDepth) // if we can copy depth buffer from existing opaque's, then do it, to prevent drawing water pixels if they're occluded
          {
             Renderer.set(null, Renderer._water_ds, true);
             D.depthLock  (true); D.depthFunc(FUNC_ALWAYS ); D.stencil(STENCIL_ALWAYS_SET, 0); shader->draw();
@@ -351,7 +365,6 @@ void WaterClass::begin()
       D.wire      (Renderer.wire);
       D.depth     (true);
       D.cull      (true);
-      D.sampler3D (    );
       D.stencil   (STENCIL_WATER_SET, STENCIL_REF_WATER);
       WS.WaterFlow   ->set(Time.time()*3);
       WS.WaterOfsCol ->set(_offset_col  );
@@ -375,9 +388,8 @@ void WaterClass::end()
    {
      _began=false;
 
-      D.wire     (false);
-      D.sampler2D();
-      D.stencil  (STENCIL_NONE);
+      D.wire   (false);
+      D.stencil(STENCIL_NONE);
 
       MaterialClear(); // clear Materials because we've potentially set WaterMaterials which share the same textures
 
@@ -409,14 +421,12 @@ void WaterClass::under(C PlaneM &plane, WaterMtrl &mtrl)
 void WaterClass::setImages(Image *src, Image *depth)
 {
    // these are used by both draw surface and apply water shaders
-   Sh.Img  [1]->set(Renderer._mirror_rt); Sh.Img[1]->_sampler=&SamplerLinearClamp; // reflection
-   Sh.Img  [2]->set(          src      ); Sh.Img[2]->_sampler=&SamplerLinearClamp; // background underwater
-   Sh.ImgXF[0]->set(          depth    );                                          // background depth
+   Sh.Img  [1]->set(Renderer._mirror_rt); // reflection
+   Sh.Img  [2]->set(          src      ); // background underwater
+   Sh.ImgXF[0]->set(          depth    ); // background depth
 }
 void WaterClass::endImages()
 {
-   Sh.Img[1]->_sampler=null;
-   Sh.Img[2]->_sampler=null;
 }
 /******************************************************************************/
 Bool WaterClass::ocean()
@@ -596,7 +606,7 @@ void WaterMesh::draw()C
 
       case WaterClass::MODE_REFLECTION:
       {
-         if(_box.h()<=0.01f /*&& mtrl->reflect>EPS_COL8*/) // for reflections accept only flat waters, 'reflect' is taken globally
+         if(_box.h()<=0.01f /*&& mtrl->reflect>EPS_COL8_NATIVE*/) // for reflections accept only flat waters, 'reflect' is taken globally
             if(CamMatrix.pos.y>=_box.min.y) // if camera is above surface
                if(Frustum(_box) && _mshr.is())
                   Renderer.requestMirror(PlaneM(VecD(0, _box.max.y, 0), Vec(0, 1, 0)), 0, Water.reflection_shadows, Water.reflection_resolution);

@@ -376,8 +376,8 @@ static Bool Equal(C PakFile *pf, C Patcher::LocalFile *lf)
             return false;
 
       return  pf->data_size==lf->file_size // files have same sizes
-         && ((pf->data_size                          ) ? !Compare(pf->modify_time_utc , lf->modify_time_utc, 1) : true)  // if they are files (have data)            then their modification time must match (1 second tolerance due to Fat32)
-         && ((pf->data_xxHash64_32 && lf->xxHash64_32) ?          pf->data_xxHash64_32==lf->xxHash64_32         : true); // if they both have information about hash then it                      must match
+         && ((pf->data_size                          ) ? !CompareFile(pf->modify_time_utc , lf->modify_time_utc) : true)  // if they are files (have data)            then their modification time must match
+         && ((pf->data_xxHash64_32 && lf->xxHash64_32) ?              pf->data_xxHash64_32==lf->xxHash64_32      : true); // if they both have information about hash then it                      must match
    }
    return false; // one exists and other doesn't = they're different
 }
@@ -391,8 +391,8 @@ static Bool Equal(C Patcher::LocalFile *a, C Patcher::LocalFile *b)
             return false; // they must match
 
       return  a->file_size==b->file_size // files have same sizes
-         && ((a->file_size                    ) ? !Compare(a->modify_time_utc, b->modify_time_utc, 1) : true)  // if they are files (have data)            then their modification time must match (1 second tolerance due to Fat32)
-         && ((a->xxHash64_32 && b->xxHash64_32) ?          a->xxHash64_32    ==b->xxHash64_32         : true); // if they both have information about hash then it                      must match
+         && ((a->file_size                    ) ? !CompareFile(a->modify_time_utc, b->modify_time_utc) : true)  // if they are files (have data)            then their modification time must match
+         && ((a->xxHash64_32 && b->xxHash64_32) ?              a->xxHash64_32    ==b->xxHash64_32      : true); // if they both have information about hash then it                      must match
    }
    return false; // one exists and other doesn't = they're different
 }

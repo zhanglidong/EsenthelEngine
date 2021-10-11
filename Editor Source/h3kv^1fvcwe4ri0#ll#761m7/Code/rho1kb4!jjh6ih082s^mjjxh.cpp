@@ -198,7 +198,7 @@ class WorldView : Viewport4Region, WorldData
    Tabs                      water_op, water_mode;
    Region                    water_props_region;
    Memx<Property>            water_props; 
-   Property                 *water_mtrl_p=null, *water_tex_scale=null, *water_smooth=null;
+   Property                 *water_mtrl_p=null, *water_uv_scale=null, *water_smooth=null;
    ThreadSafeMap<UID, Lake>   lakes(Compare);
    ThreadSafeMap<UID, River> rivers(Compare);
    Memc<Lake *>              visible_lakes , changed_lakes ;
@@ -330,6 +330,7 @@ class WorldView : Viewport4Region, WorldData
 
       Environment *env=EnvEdit.cur(); if(!env)env=environment(); if(!env)env=&DefaultEnvironment; env.set();
       view.camera.set();
+      D.dofFocus(ActiveCam.dist);
 
       // set shadowing distance
       Rect rect(areaToWorld(visible_area.min), areaToWorld(visible_area.max+1));
@@ -410,12 +411,12 @@ class WorldView : Viewport4Region, WorldData
       flt   unit=area_size, y=grid_plane_level;
       Rect  v=visibleArea(); v.max.x++; v.max.y++; v*=unit;
       SetMatrix();
-      ALPHA_MODE alpha=D.alpha(ALPHA_BLEND_DEC); bool line_smooth=D.lineSmooth(false      ), depth_write=D.depthWrite(false      ); Plane(Vec(0, y, 0), Vec(0, 1, 0)).drawInfiniteBySize(color, unit); Quad(Vec(v.min.x, y, v.min.y), Vec(v.min.x, y, v.max.y), Vec(v.max.x, y, v.max.y), Vec(v.max.x, y, v.min.y)).draw(color2, false); // disable line smoothing because it can be very slow for lots of full-screen lines
-                       D.alpha(alpha          );                  D.lineSmooth(line_smooth);             D.depthWrite(depth_write);
+      ALPHA_MODE alpha=D.alpha(ALPHA_RENDER_BLEND); bool line_smooth=D.lineSmooth(false      ), depth_write=D.depthWrite(false      ); Plane(Vec(0, y, 0), Vec(0, 1, 0)).drawInfiniteBySize(color, unit); Quad(Vec(v.min.x, y, v.min.y), Vec(v.min.x, y, v.max.y), Vec(v.max.x, y, v.max.y), Vec(v.max.x, y, v.min.y)).draw(color2, false); // disable line smoothing because it can be very slow for lots of full-screen lines
+                       D.alpha(alpha             );                  D.lineSmooth(line_smooth);             D.depthWrite(depth_write);
    }
    void drawAreaSelection()
    {
-      SetMatrix(); ALPHA_MODE alpha=D.alpha(ALPHA_BLEND_DEC);
+      SetMatrix(); ALPHA_MODE alpha=D.alpha(ALPHA_RENDER_BLEND);
       flt x0=(cur.area().x-hm_sel_size)*areaSize(), x1=x0+areaSize()*(hm_sel_size*2+1),
           z0=(cur.area().y-hm_sel_size)*areaSize(), z1=z0+areaSize()*(hm_sel_size*2+1), y=grid_plane_level;
       Quad(Vec(x0,y,z0), Vec(x0,y,z1), Vec(x1,y,z1), Vec(x1,y,z0)).draw(Color(255, 255, 255, 128), false);
@@ -425,7 +426,7 @@ class WorldView : Viewport4Region, WorldData
    {
       if(ImportTerrain.areaRectValid())
       {
-         SetMatrix(); ALPHA_MODE alpha=D.alpha(ALPHA_BLEND_DEC);
+         SetMatrix(); ALPHA_MODE alpha=D.alpha(ALPHA_RENDER_BLEND);
          flt  y=grid_plane_level;
          Rect r=ImportTerrain.areaRect(); if(!r.validX())Swap(r.min.x, r.max.x); if(!r.validY())Swap(r.min.y, r.max.y); r.max.x++; r.max.y++; r*=area_size;
          Vec2 h=ImportTerrain.heightRange();
@@ -796,10 +797,10 @@ class WorldView : Viewport4Region, WorldData
       mode.tab(WATER)+=water_mtrl_text.create(water_op.tab(WAO_LAKE_NUM-1).rect().right()+Vec2(0.05, 0), "Material", &ts);
       mode.tab(WATER)+=water_mtrl_img .create(Rect_L(water_mtrl_text.rect().right()+Vec2(0.12, 0), 0.055, 0.055)).desc("Material used when creating new water elements\nDrag and drop a material here"); water_mtrl_img.alpha_mode=ALPHA_NONE;
       mode.tab(WATER)+=water_props_region.create().skin(&TransparentSkin, false); water_props_region.kb_lit=false;
-      water_mtrl_p   =&water_props.New().create("Material" , MemberDesc(DATA_STR ).setFunc(WaterMaterial, WaterMaterial)).desc("Drag and drop water material here"); water_mtrl_p.textline.disabled(true);
-                       water_props.New().create("Depth"    , MemberDesc(DATA_REAL).setFunc(WaterDepth   , WaterDepth   )).min(0).mouseEditSpeed(1.5);
-      water_tex_scale=&water_props.New().create("Tex Scale", MemberDesc(DATA_VEC2).setFunc(WaterTexScale, WaterTexScale));
-      water_smooth   =&water_props.New().create("Smooth"   , MemberDesc(DATA_INT ).setFunc(WaterSmooth  , WaterSmooth  )).range(0, 4).mouseEditSpeed(2);
+      water_mtrl_p  =&water_props.New().create("Material", MemberDesc(DATA_STR ).setFunc(WaterMaterial, WaterMaterial)).desc("Drag and drop water material here"); water_mtrl_p.textline.disabled(true);
+                      water_props.New().create("Depth"   , MemberDesc(DATA_REAL).setFunc(WaterDepth   , WaterDepth   )).min(0).mouseEditSpeed(1.5);
+      water_uv_scale=&water_props.New().create("UV Scale", MemberDesc(DATA_VEC2).setFunc(WaterUVScale , WaterUVScale ));
+      water_smooth  =&water_props.New().create("Smooth"  , MemberDesc(DATA_INT ).setFunc(WaterSmooth  , WaterSmooth  )).range(0, 4).mouseEditSpeed(2);
       Rect r=AddProperties(water_props, water_props_region, Vec2(0.01, -0.01), h, 0.30, &ts); REPAO(water_props).autoData(this).changed(WaterChanged, WaterPreChanged);
       water_props_region.rect(Rect_LU(water_op.rect().ru()+Vec2(0.01, 0), r.size()+0.01*2));
       setWaterVis();
@@ -934,8 +935,8 @@ class WorldView : Viewport4Region, WorldData
    {
       bool vis=(/*(water_op()==WAO_NEW_POINT || water_op()==WAO_NEW_WATER) &&*/ !sel_lake && !sel_river); water_mode.visible(vis); water_mtrl_text.visible(vis); water_mtrl_img.visible(vis);
       water_props_region.visible(sel_lake || sel_river);
-      if(water_tex_scale)water_tex_scale.visible(sel_river!=null);
-      if(water_smooth   )water_smooth   .visible(sel_river!=null);
+      if(water_uv_scale)water_uv_scale.visible(sel_river!=null);
+      if(water_smooth  )water_smooth  .visible(sel_river!=null);
    }
 
    void reloadEnv()
@@ -1421,7 +1422,7 @@ class WorldView : Viewport4Region, WorldData
 
    virtual void draw(C GuiPC &gpc)override
    {
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          super.draw(gpc);
          Memt<Str> a;

@@ -27,7 +27,7 @@ class Cursor
 
 //private:
    bool                 _valid, _on_heightmap;
-   byte                 _state;
+   BS_FLAG              _state;
    uint                 _touch_id;
    flt                  _brush_height, _brush_height_help;
    Vec2                 _screen_pos;

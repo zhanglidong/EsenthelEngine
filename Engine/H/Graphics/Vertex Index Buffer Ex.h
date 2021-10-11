@@ -46,7 +46,8 @@ enum GL_VTX_SEMANTIC : Byte // !! must be in sync with all "ATTR*" mentions in t
    GL_VTX_WEIGHT  , // 10
    GL_VTX_MATERIAL, // 11
    GL_VTX_COLOR   , // 12
-   GL_VTX_NUM     , // 13
+   GL_VTX_FACE_ID , // 13
+   GL_VTX_NUM     , // 14
 };
 GL_VTX_SEMANTIC VtxSemanticToIndex(Int semantic);
 struct VtxFormatGL
@@ -82,11 +83,13 @@ struct VtxFormat // Vertex Format
 
 #if EE_PRIVATE
    #if DX11
-      Bool create(D3D11_INPUT_ELEMENT_DESC ve[], Int elms);
+      Bool createTry(D3D11_INPUT_ELEMENT_DESC ve[], Int elms);
+      void create   (D3D11_INPUT_ELEMENT_DESC ve[], Int elms);
    #elif GL
-      Bool create(C MemPtrN<VtxFormatGL::Elm, 32> &elms);
+      Bool createTry(C MemPtrN<VtxFormatGL::Elm, 32> &elms);
+      void create   (C MemPtrN<VtxFormatGL::Elm, 32> &elms);
    #endif
-   Bool create(MESH_FLAG flag, UInt compress); // 'compress'=VTX_COMPRESS_FLAG
+   void create(MESH_FLAG flag, UInt compress); // 'compress'=VTX_COMPRESS_FLAG
 #if GL
           void bind(C VtxBuf &vb);
 #else
@@ -163,7 +166,7 @@ private:
    Int       _vtx_size, _vtx_num, _lock_count;
    Byte     *_data;
 #if EE_PRIVATE
-   GPU_API(ID3D11Buffer *_buf, union{UInt _buf; Ptr buf_ptr;});
+   GPU_API(ID3D11Buffer *_buf, union{UInt _buf; Ptr _buf_ptr;});
 #else
    Ptr       _buf;
 #endif
@@ -221,7 +224,7 @@ private:
    Int       _ind_num, _lock_count;
    Byte     *_data;
 #if EE_PRIVATE
-   GPU_API(ID3D11Buffer *_buf, union{UInt _buf; Ptr buf_ptr;});
+   GPU_API(ID3D11Buffer *_buf, union{UInt _buf; Ptr _buf_ptr;});
 #else
    Ptr       _buf;
 #endif

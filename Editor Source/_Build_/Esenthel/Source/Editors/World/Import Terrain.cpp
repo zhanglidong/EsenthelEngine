@@ -27,7 +27,7 @@ Memx<ImportTerrainTask> ImportTerrainTasks;
       }
       void ImportTerrainClass::GuiImage2::draw(C GuiPC &gpc)
 {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             D.clip(gpc.clip);
             Rect rect=T.rect()+gpc.offset;

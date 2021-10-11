@@ -170,15 +170,13 @@ RectI& RectI::include(C RectI &r)
 /******************************************************************************/
 Rect& Rect::moveX(Flt dx) {min.x+=dx; max.x+=dx; return T;}
 Rect& Rect::moveY(Flt dy) {min.y+=dy; max.y+=dy; return T;}
+Rect& Rect:: mulX(Flt x ) {min.x*= x; max.x*= x; return T;}
+Rect& Rect:: mulY(Flt y ) {min.y*= y; max.y*= y; return T;}
 
 RectD& RectD::moveX(Dbl dx) {min.x+=dx; max.x+=dx; return T;}
 RectD& RectD::moveY(Dbl dy) {min.y+=dy; max.y+=dy; return T;}
-/******************************************************************************/
-Rect& Rect::swapX() {Swap(min.x, max.x); return T;}
-Rect& Rect::swapY() {Swap(min.y, max.y); return T;}
-
-RectD& RectD::swapX() {Swap(min.x, max.x); return T;}
-RectD& RectD::swapY() {Swap(min.y, max.y); return T;}
+RectD& RectD:: mulX(Dbl x ) {min.x*= x; max.x*= x; return T;}
+RectD& RectD:: mulY(Dbl y ) {min.y*= y; max.y*= y; return T;}
 /******************************************************************************/
 Rect& Rect::from(C Vec2 &a, C Vec2 &b)
 {
@@ -234,6 +232,32 @@ RectI& RectI::rotatePI_2(Int rotations)
    return T;
 }
 /******************************************************************************/
+void Rect::draw(C Vec4 &color, Bool fill)C
+{
+   VI.color  (color);
+   VI.setType(VI_2D_FLAT, fill ? VI_STRIP : VI_LINE|VI_STRIP);
+   if(Vtx2DFlat *v=(Vtx2DFlat*)VI.addVtx(fill ? 4 : 5))
+   {
+      if(fill)
+      {
+         v[0].pos.set(min.x, max.y);
+         v[1].pos.set(max.x, max.y);
+         v[2].pos.set(min.x, min.y);
+         v[3].pos.set(max.x, min.y);
+      }else
+      {
+         // drawing lines needs adjustments
+         Rect r(min.x+D._pixel_size_2.x, min.y+D._pixel_size_2.y,
+                max.x-D._pixel_size_2.x, max.y-D._pixel_size_2.y);
+         v[0].pos.set(r.min.x, r.min.y);
+         v[1].pos.set(r.min.x, r.max.y);
+         v[2].pos.set(r.max.x, r.max.y);
+         v[3].pos.set(r.max.x, r.min.y);
+         v[4].pos.set(r.min.x, r.min.y);
+      }
+   }
+   VI.end();
+}
 void Rect::draw(C Color &color, Bool fill)C
 {
    VI.color  (color);
@@ -266,8 +290,8 @@ void Rect::drawBorder(C Color &color, Flt border)C
    VI.setType(VI_2D_FLAT);
    if(Vtx2DFlat *v=(Vtx2DFlat*)VI.addVtx(8))
    {
-      Flt x0=min.x, y0=min.y, x1=x0+border, y1=y0+border,
-          x3=max.x, y3=max.y, x2=x3-border, y2=y3-border;
+      Flt x1=min.x, x2=max.x, x0=x1-border, x3=x2+border,
+          y1=min.y, y2=max.y, y0=y1-border, y3=y2+border;
       v[0].pos.set(x0, y0);
       v[1].pos.set(x0, y3);
       v[2].pos.set(x3, y3);
@@ -287,8 +311,8 @@ void Rect::drawBorder(C Color &color, C Vec2 &border)C
    VI.setType(VI_2D_FLAT);
    if(Vtx2DFlat *v=(Vtx2DFlat*)VI.addVtx(8))
    {
-      Flt x0=min.x, y0=min.y, x1=x0+border.x, y1=y0+border.y,
-          x3=max.x, y3=max.y, x2=x3-border.x, y2=y3-border.y;
+      Flt x1=min.x, x2=max.x, x0=x1-border.x, x3=x2+border.x,
+          y1=min.y, y2=max.y, y0=y1-border.y, y3=y2+border.y;
       v[0].pos.set(x0, y0);
       v[1].pos.set(x0, y3);
       v[2].pos.set(x3, y3);
@@ -308,8 +332,8 @@ void Rect::drawBorder(C Vec4 &color, C Vec2 &border)C
    VI.setType(VI_2D_FLAT);
    if(Vtx2DFlat *v=(Vtx2DFlat*)VI.addVtx(8))
    {
-      Flt x0=min.x, y0=min.y, x1=x0+border.x, y1=y0+border.y,
-          x3=max.x, y3=max.y, x2=x3-border.x, y2=y3-border.y;
+      Flt x1=min.x, x2=max.x, x0=x1-border.x, x3=x2+border.x,
+          y1=min.y, y2=max.y, y0=y1-border.y, y3=y2+border.y;
       v[0].pos.set(x0, y0);
       v[1].pos.set(x0, y3);
       v[2].pos.set(x3, y3);
@@ -619,8 +643,36 @@ Dbl Dist2(C VecD2 &point, C RectI &rect)
 /******************************************************************************/
 Flt Dist(C Rect &a, C Rect &b)
 {
+#if 0 // slower
    return Dist(Max(0, Abs(a.centerX()-b.centerX())-(a.w()+b.w())*0.5f),
                Max(0, Abs(a.centerY()-b.centerY())-(a.h()+b.h())*0.5f));
+#else // faster
+   Vec2 delta;
+   if(b.min.x>a.max.x)delta.x=b.min.x-a.max.x;else
+   if(b.max.x<a.min.x)delta.x=a.min.x-b.max.x;else
+   {               // delta.x=0
+      if(b.min.y>a.max.y)return b.min.y-a.max.y;
+      if(b.max.y<a.min.y)return a.min.y-b.max.y;
+                         return 0; // delta.y=0
+   }
+   if(b.min.y>a.max.y)delta.y=b.min.y-a.max.y;else
+   if(b.max.y<a.min.y)delta.y=a.min.y-b.max.y;else
+               return delta.x; // delta.y=0
+   return delta.length();
+#endif
+}
+/******************************************************************************/
+Flt Dist(C Rect &rect, C Plane2 &plane)
+{
+   Vec2 test((plane.normal.x<=0) ? rect.max.x : rect.min.x,
+             (plane.normal.y<=0) ? rect.max.y : rect.min.y);
+   return Dist(test, plane);
+}
+Flt MaxDist(C Rect &rect, C Plane2 &plane)
+{
+   Vec2 test((plane.normal.x>=0) ? rect.max.x : rect.min.x,
+             (plane.normal.y>=0) ? rect.max.y : rect.min.y);
+   return Dist(test, plane);
 }
 /******************************************************************************/
 Flt Dist2PointSquare(C Vec2 &pos, C Vec2 &square_center, Flt square_radius)
@@ -639,7 +691,9 @@ Dbl Dist2PointSquare(C VecD2 &pos, C VecI2 &square_center, Dbl square_radius)
          +Sqr(Max(Abs(pos.y-square_center.y)-square_radius, 0));
 }
 /******************************************************************************/
-Bool Cuts(C Rect &a, C Rect &b)
+Bool CutsX(C Rect &a, C Rect &b) {return b.max.x>=a.min.x && b.min.x<=a.max.x;}
+Bool CutsY(C Rect &a, C Rect &b) {return b.max.y>=a.min.y && b.min.y<=a.max.y;}
+Bool Cuts (C Rect &a, C Rect &b)
 {
    return b.max.x>=a.min.x && b.min.x<=a.max.x
        && b.max.y>=a.min.y && b.min.y<=a.max.y;
@@ -681,6 +735,38 @@ Bool InsideEps(C Rect &a, C Rect &b)
 {
    return a.min.x>=b.min.x-EPS && a.max.x<=b.max.x+EPS
        && a.min.y>=b.min.y-EPS && a.max.y<=b.max.y+EPS;
+}
+/******************************************************************************/
+Bool CoverX(C Rect &a, C Rect &b) {return b.max.x>a.min.x && b.min.x<a.max.x;}
+Bool CoverY(C Rect &a, C Rect &b) {return b.max.y>a.min.y && b.min.y<a.max.y;}
+Bool Cover (C Rect &a, C Rect &b)
+{
+   return b.max.x>a.min.x && b.min.x<a.max.x
+       && b.max.y>a.min.y && b.min.y<a.max.y;
+}
+/******************************************************************************/
+Vec2 Delta(C Rect &a, C Rect &b)
+{
+   Vec2 delta;
+   if(b.min.x>a.max.x)delta.x=b.min.x-a.max.x;else // +
+   if(b.max.x<a.min.x)delta.x=b.max.x-a.min.x;else // -
+                      delta.x=0;                   // 0
+   if(b.min.y>a.max.y)delta.y=b.min.y-a.max.y;else // +
+   if(b.max.y<a.min.y)delta.y=b.max.y-a.min.y;else // -
+                      delta.y=0;                   // 0
+   return delta;
+}
+Flt DeltaX(C Rect &a, C Rect &b)
+{
+   return (b.min.x>a.max.x) ? b.min.x-a.max.x : // +
+          (b.max.x<a.min.x) ? b.max.x-a.min.x : // -
+                              0;                // 0
+}
+Flt DeltaY(C Rect &a, C Rect &b)
+{
+   return (b.min.y>a.max.y) ? b.min.y-a.max.y : // +
+          (b.max.y<a.min.y) ? b.max.y-a.min.y : // -
+                              0;                // 0
 }
 /******************************************************************************/
 Rect Fit(Flt src_aspect, C Rect &dest_rect, FIT_MODE fit)

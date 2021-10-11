@@ -20,13 +20,23 @@ Bool LogInit=false;
 //ASSERT(SIZE(D3DXMATRIX )==SIZE(Matrix4)); // shaders
 
    static Bool ShutCOM=false;
+   static ITaskbarList3 *TaskbarList;
 #elif LINUX
-   static Atom _NET_WM_ICON;
+          Atom _NET_WM_STATE, _NET_WM_NAME, UTF8_STRING;
+   static Atom _NET_WM_STATE_FULLSCREEN, _NET_WM_STATE_DEMANDS_ATTENTION, _NET_WM_ICON;
    static int (*OldErrorHandler)(::Display *d, XErrorEvent *e);
    static int      ErrorHandler (::Display *d, XErrorEvent *e)
    {
+   #if 1 // just always ignore errors in case 'glXQueryExtension' fails, or 'GLXBadFBConfig' is not 9 anymore
+      return 0;
+   #else
       if(e->error_code==BadWindow)return 0;
+      int errorBase, eventBase; if(glXQueryExtension(d, &errorBase, &eventBase))
+      {
+         const int GLXBadFBConfig=9; if(e->error_code==errorBase+GLXBadFBConfig)return 0; // can happen when trying to create OpenGL context using 'glXCreateContextAttribsARB' with unsupported version, with message "Error of failed request:  GLXBadFBConfig"
+      }
       return OldErrorHandler ? OldErrorHandler(d, e) : 0;
+   #endif
    }
 #endif
 /******************************************************************************/
@@ -66,11 +76,35 @@ Application::Application()
 #if WINDOWS
   _icon=null;
 #endif
+#if MAC
+  _style_window=0;
+#endif
 #endif
   _thread_id=GetThreadId();
   _back_text="Running in background";
 }
-Application& Application::name(C Str &name) {T._name=name; return T;}
+Application& Application::name(C Str &name)
+{
+   T._name=name;
+#if WINDOWS_OLD
+   SetWindowText(window(), name);
+#elif WINDOWS_NEW
+   Windows::UI::ViewManagement::ApplicationView::GetForCurrentView()->Title=ref new Platform::String(name);
+#elif MAC
+   if(window())[window() setTitle:NSStringAuto(name)];
+#elif LINUX
+   if(XDisplay && window())
+   {
+      Str8 utf8=UTF8(name), name8=name;
+      XClassHint class_hint; Zero(class_hint); // this is needed to display name on the taskbar, without this, name can be displayed as "Unknown"
+      class_hint.res_name=class_hint.res_class=(char*)name8();
+      XSetClassHint(XDisplay, window(), &class_hint);
+                                     XStoreName     (XDisplay, window(), name8); // this is needed in case _NET_WM_NAME/UTF8_STRING are not available
+      if(_NET_WM_NAME && UTF8_STRING)XChangeProperty(XDisplay, window(), _NET_WM_NAME, UTF8_STRING, 8, PropModeReplace, (unsigned char*)utf8(), utf8.length());
+   }
+#endif
+   return T;
+}
 /******************************************************************************/
 Memx<Notification> Notifications;
 #if ANDROID
@@ -199,11 +233,11 @@ SYSTEM_BAR Application::   navBar()C {SYSTEM_BAR status, navigation; getSystemBa
 Bool Application::minimized()C {return _minimized;}
 Bool Application::maximized()C {return _maximized;}
 #elif LINUX
-Bool Application::minimized()C {return WindowMinimized(hwnd());}
+Bool Application::minimized()C {return window().minimized();}
 Bool Application::maximized()C {return _maximized;} // '_maximized' is obtained in 'ConfigureNotify' system message
 #elif MAC
 Bool Application::minimized()C {return _minimized;} // '_minimized' is obtained in 'windowDidMiniaturize, windowDidDeminiaturize'
-Bool Application::maximized()C {return WindowMaximized(hwnd());}
+Bool Application::maximized()C {return window().maximized();}
 #elif IOS
 Bool Application::minimized()C {return false;}
 Bool Application::maximized()C {return true ;}
@@ -253,18 +287,161 @@ DIR_ENUM Application::orientation()C
 #endif
 }
 /******************************************************************************/
+Flt Application::opacity()C
+{
+#if WINDOWS_OLD
+   BYTE alpha; if(GetLayeredWindowAttributes(window(), null, &alpha, null))return alpha/255.0f;
+#elif MAC
+   if(window())return window()().alphaValue;
+#endif
+   return 1;
+}
+Application& Application::opacity(Flt opacity)
+{
+#if WINDOWS_OLD
+   Byte alpha=FltToByte(opacity);
+   if(alpha==255)
+   {
+      SetWindowLong(window(), GWL_EXSTYLE, GetWindowLong(window(), GWL_EXSTYLE) & ~WS_EX_LAYERED);
+   }else
+   {
+      SetWindowLong(window(), GWL_EXSTYLE, GetWindowLong(window(), GWL_EXSTYLE) | WS_EX_LAYERED);
+      SetLayeredWindowAttributes(window(), 0, alpha, LWA_ALPHA);
+   }
+#elif MAC
+   if(window())[window() setAlphaValue:opacity];
+#endif
+   return T;
+}
+Application& Application::flash()
+{
+#if WINDOWS_OLD
+   FlashWindow(window(), true);
+#elif MAC
+   [NSApp requestUserAttention:NSInformationalRequest];
+#elif LINUX
+   if(XDisplay && window() && _NET_WM_STATE && _NET_WM_STATE_DEMANDS_ATTENTION)
+   {
+   #if 0 // this doesn't work at all
+      XClientMessageEvent event; Zero(event);
+      event.type        =ClientMessage;
+      event.message_type=_NET_WM_STATE;
+      event.display   =XDisplay;
+      event.serial    =0;
+      event.window    =window();
+      event.send_event=1;
+      event.format   =32;
+      event.data.l[0]=_NET_WM_STATE_ADD;
+      event.data.l[1]=_NET_WM_STATE_DEMANDS_ATTENTION;
+      XSendEvent(XDisplay, DefaultRootWindow(XDisplay), false, SubstructureRedirectMask|SubstructureNotifyMask, (XEvent*)&event);
+   #elif 0 // this doesn't work at all
+      XEvent e; Zero(e);
+      e.xclient.type        =ClientMessage;
+      e.xclient.window      =window();
+      e.xclient.message_type=_NET_WM_STATE;
+      e.xclient.format      =32;
+      e.xclient.data.l[0]=_NET_WM_STATE_ADD;
+      e.xclient.data.l[1]=_NET_WM_STATE_DEMANDS_ATTENTION;
+      e.xclient.data.l[2]=0;
+      e.xclient.data.l[3]=1;
+      XSendEvent(XDisplay, DefaultRootWindow(XDisplay), false, SubstructureRedirectMask|SubstructureNotifyMask, &e);
+   #else // more complex code but works
+      Atom           type=NULL;
+      int            format=0;
+      unsigned long  items=0, bytes_after=0;
+      unsigned char *data=null;
+      if(!XGetWindowProperty(XDisplay, window(), _NET_WM_STATE, 0, 1024, false, XA_ATOM, &type, &format, &items, &bytes_after, &data))
+      {
+         Atom *atoms=(Atom*)data, temp[1024];
+         if(items<Elms(temp)-1) // room for '_NET_WM_STATE_DEMANDS_ATTENTION'
+         {
+            bool has=false;
+            for(unsigned long i=0; i<items; i++)
+            {
+               temp[i]=atoms[i];
+               if(temp[i]==_NET_WM_STATE_DEMANDS_ATTENTION)has=true;
+            }
+            if(!has)
+            {
+               temp[items++]=_NET_WM_STATE_DEMANDS_ATTENTION;
+               XChangeProperty(XDisplay, window(), _NET_WM_STATE, XA_ATOM, 32, PropModeReplace, (unsigned char*)temp, items);
+            }
+         }
+      }
+      if(data)XFree(data);
+   #endif
+   }
+#endif
+   return T;
+}
+/******************************************************************************/
+#if WINDOWS_OLD
+Application& Application::stateNormal  (            ) {if(TaskbarList) TaskbarList->SetProgressState(window(), TBPF_NOPROGRESS   ); return T;}
+Application& Application::stateWorking (            ) {if(TaskbarList) TaskbarList->SetProgressState(window(), TBPF_INDETERMINATE); return T;}
+Application& Application::stateProgress(Flt progress) {if(TaskbarList){TaskbarList->SetProgressState(window(), TBPF_NORMAL       ); TaskbarList->SetProgressValue(window(), RoundU(Sat(progress)*65536), 65536);} return T;}
+Application& Application::statePaused  (Flt progress) {if(TaskbarList){TaskbarList->SetProgressState(window(), TBPF_PAUSED       ); TaskbarList->SetProgressValue(window(), RoundU(Sat(progress)*65536), 65536);} return T;}
+Application& Application::stateError   (Flt progress) {if(TaskbarList){TaskbarList->SetProgressState(window(), TBPF_ERROR        ); TaskbarList->SetProgressValue(window(), RoundU(Sat(progress)*65536), 65536);} return T;}
+#else
+// TODO: WINDOWS_NEW TaskBar Progress - check this in the future as right now this is not available in UWP
+Application& Application::stateNormal  (            ) {return T;}
+Application& Application::stateWorking (            ) {return T;}
+Application& Application::stateProgress(Flt progress) {return T;}
+Application& Application::statePaused  (Flt progress) {return T;}
+Application& Application::stateError   (Flt progress) {return T;}
+#endif
+/******************************************************************************/
+Bool Application::hidden()C
+{
+#if WINDOWS_OLD
+   return !IsWindowVisible(window());
+#elif MAC
+   return NSApp.hidden;
+#else
+   return false;
+#endif
+}
+Application& Application::hide()
+{
+#if WINDOWS_OLD
+   ShowWindow(window(), SW_HIDE);
+#elif MAC
+   [NSApp hide:NSApp];
+#elif LINUX
+   if(XDisplay && window())XUnmapWindow(XDisplay, window());
+#elif ANDROID
+   if(AndroidApp && AndroidApp->activity)ANativeActivity_finish(AndroidApp->activity);
+#endif
+   return T;
+}
+Application& Application::show(Bool activate)
+{
+#if WINDOWS_OLD
+   ShowWindow(window(), activate ? SW_SHOW : SW_SHOWNA);
+#elif MAC
+   if(activate)[NSApp unhide:NSApp];
+   else        [NSApp unhideWithoutActivation];
+#elif LINUX
+   if(XDisplay && window())
+   {
+      XMapWindow(XDisplay, window());
+      if(activate)window().activate();
+   }
+#endif
+   return T;
+}
+/******************************************************************************/
 Application& Application::icon(C Image &icon)
 {
 #if WINDOWS_OLD
    HICON hicon=CreateIcon(icon);
-   if(hwnd())
+   if(window())
    {
-      SendMessage(Hwnd(), WM_SETICON, ICON_BIG  , (LPARAM)hicon);
-      SendMessage(Hwnd(), WM_SETICON, ICON_SMALL, (LPARAM)hicon);
+      SendMessage(window(), WM_SETICON, ICON_BIG  , (LPARAM)hicon);
+      SendMessage(window(), WM_SETICON, ICON_SMALL, (LPARAM)hicon);
    }
    if(_icon)DestroyIcon(_icon); _icon=hicon;
 #elif LINUX
-   if(XDisplay && hwnd() && _NET_WM_ICON)
+   if(XDisplay && window() && _NET_WM_ICON)
    {
       Image temp; C Image *src=(icon.is() ? &icon : null);
       if(src && src->compressed())if(src->copyTry(temp, -1, -1, 1, IMAGE_B8G8R8A8_SRGB, IMAGE_SOFT, 1))src=&temp;else src=null;
@@ -280,11 +457,11 @@ Application& Application::icon(C Image &icon)
             VecB4 c(col.b, col.g, col.r, col.a);
             data[2+x+y*src->w()]=c.u;
          }
-         XChangeProperty(XDisplay, Hwnd(), _NET_WM_ICON, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)data.data(), data.elms());
+         XChangeProperty(XDisplay, window(), _NET_WM_ICON, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)data.data(), data.elms());
          src->unlock();
       }else
       {
-         XDeleteProperty(XDisplay, Hwnd(), _NET_WM_ICON);
+         XDeleteProperty(XDisplay, window(), _NET_WM_ICON);
       }
       XFlush(XDisplay);
      _icon.del(); // delete at end in case it's 'icon'
@@ -296,6 +473,25 @@ Application& Application::icon(C Image &icon)
 #endif
    return T;
 }
+/******************************************************************************/
+#if WINDOWS
+HMONITOR Application::hmonitor()C
+{
+#if WINDOWS_OLD
+   return MonitorFromWindow(window(), MONITOR_DEFAULTTONULL);
+#else
+   HMONITOR monitor=null; if(SwapChain)
+   {
+      IDXGIOutput *output=null; SwapChain->GetContainingOutput(&output); if(output)
+      {
+         DXGI_OUTPUT_DESC desc; if(OK(output->GetDesc(&desc)))monitor=desc.Monitor;
+         output->Release();
+      }
+   }
+   return monitor;
+#endif
+}
+#endif
 /******************************************************************************/
 Application& Application::lang(LANG_TYPE lang)
 {
@@ -311,6 +507,7 @@ Application& Application::lang(LANG_TYPE lang)
 static Bool            AssertionIDValid=false;
 static IOPMAssertionID AssertionID;
 #endif
+#if !SWITCH
 Application& Application::stayAwake(AWAKE_MODE mode)
 {
    if(_stay_awake!=mode)
@@ -345,6 +542,7 @@ Application& Application::stayAwake(AWAKE_MODE mode)
    }
    return T;
 }
+#endif
 /******************************************************************************/
 void Application::activeOrBackFullChanged()
 {
@@ -363,21 +561,21 @@ void Application::activeOrBackFullChanged()
                SwapChain->ResizeTarget(&SwapChainDesc.BufferDesc);
             }else
             {
-               WindowMinimize(true);
+               window().minimize(true);
                SwapChain->SetFullscreenState(false, null);
             }
          }
       #endif
       }else // non-exclusive
       {
-         if(activeOrBackFull()){SetDisplayMode(    ); WindowReset   (true );}
-         else                  {WindowMinimize(true); SetDisplayMode(     );}
+         if(activeOrBackFull()){SetDisplayMode(); window().reset(true);}
+         else                  {window().minimize(true); SetDisplayMode();}
       }
    #elif MAC
-      if(!activeOrBackFull())WindowHide();
+      if(!activeOrBackFull())hide();
       SetDisplayMode();
    #elif LINUX
-      if(!activeOrBackFull())WindowMinimize();
+      if(!activeOrBackFull())window().minimize();
       SetDisplayMode();
    #endif
    }
@@ -395,7 +593,7 @@ void Application::setActive(Bool active)
 
       if(_initialized)
       {
-         if(active){if(T.resumed)T.resumed(); D.setColorLUT();} // reset color LUT on activate in case it was changed in the system
+         if(active){if(T.resumed)T.resumed(); D.getScreenInfo(); D.setColorLUT();} // reset color LUT on activate in case it was changed in the system
          else      {if(T. paused)T. paused();}
       }
    #if DESKTOP || ANDROID // also on Android in case a new Activity/Window was created, call this after potential 'paused/resumed' in case user modifies APP_WORK_IN_BACKGROUND which affect 'stayAwake'
@@ -416,7 +614,7 @@ Application& Application::backgroundFull(Bool on)
       if(D.full() && _initialized)
       {
          if(active_or_back_full!=activeOrBackFull())activeOrBackFullChanged();
-         D.adjustWindow();
+         windowAdjust();
       }
    }
    return T;
@@ -437,7 +635,7 @@ Bool Application::testInstance()
       {
          if(flag&APP_ON_RUN_WAIT)ProcWait(id[i]);else
          {
-            if(Ptr hwnd=ProcWindow(id[i]))WindowActivate(hwnd);
+            if(auto window=ProcWindow(id[i]))window.activate();
             return false;
          }
       }
@@ -540,9 +738,9 @@ void Application::showError(CChar *error)
 {
    if(Is(error))
    {
-      if(D.full() && App.hwnd())
+      if(D.full() && App.window())
       {
-         WindowHide();
+         hide();
       #if DX11 // hiding window on DX10+ is not enough, try disabling Fullscreen
        //ChangeDisplaySettings(null, 0); this didn't help
          if(SwapChain
@@ -567,12 +765,12 @@ void Application::showError(CChar *error)
    #if WINDOWS_OLD
     //SetCursor(LoadCursor(null, IDC_ARROW)); // reset cursor first, in case app had it disabled, actually this didn't help
       ClipCursor(null); // disable cursor clipping first
-      MessageBox(null, WChar(error), WChar(title), MB_OK|MB_TOPMOST|MB_ICONERROR); // use OS 'MessageBox' instead of EE 'WindowMsgBox' to avoid memory allocation when creating Str objects, because this may be called when out of memory
+      MessageBox(null, WChar(error), WChar(title), MB_OK|MB_TOPMOST|MB_ICONERROR); // use OS 'MessageBox' instead of EE 'OSMsgBox' to avoid memory allocation when creating Str objects, because this may be called when out of memory
    #elif WINDOWS_NEW
       Exiter(ref new Platform::String(WChar(title)), ref new Platform::String(WChar(error)));
    #elif LINUX // on Linux additionally display the error in the console in case the OS doesn't support displaying messages boxes
       fputs(UTF8(error), stdout); fputs("\n", stdout); fflush(stdout); // without the flush, messages won't be displayed immediately
-      WindowMsgBox(title, error, true);
+      OSMsgBox(title, error, true);
    #elif ANDROID
       // first write to console, use '__android_log_write' with 'ANDROID_LOG_ERROR' instead of 'Log' which uses 'ANDROID_LOG_INFO'
       Memc<Str> lines; Split(lines, error, '\n'); // android has limit for too long messages
@@ -633,9 +831,9 @@ void Application::showError(CChar *error)
       [[NSRunLoop mainRunLoop] run];
    #elif WEB // on Web display the error as both console output and message box
       fputs(UTF8(error), stdout); // first write to console
-      WindowMsgBox(title, error, true);
+      OSMsgBox(title, error, true);
    #else
-      WindowMsgBox(title, error, true);
+      OSMsgBox(title, error, true);
    #endif
    }
 }
@@ -660,6 +858,104 @@ void Application::lowMemory()
    Fonts       .delayRemoveNow();
    ImageAtlases.delayRemoveNow();
    Images      .delayRemoveNow();
+}
+/******************************************************************************/
+void Application::windowAdjust(Bool set)
+{
+   RectI full, work; VecI2 max_normal_win_client_size, maximized_win_client_size;
+  D.getMonitor(full, work, max_normal_win_client_size, maximized_win_client_size);
+
+#if DEBUG && 0
+   LogN(S+"full:"+full.asText()+", work:"+work.asText()+", App._window_pos:"+_window_pos+", D.res:"+D.res());
+#endif
+
+#if WINDOWS_OLD
+   if(D.full()) // fullscreen
+   {
+      SetWindowLong(window(), GWL_STYLE, _style_full);
+      SetWindowPos (window(), (backgroundFull() && !D.exclusiveFull()) ? HWND_NOTOPMOST : HWND_TOPMOST, full.min.x, full.min.y, D.resW(), D.resH(), 0);
+   }else
+   if(D.resW()>=maximized_win_client_size.x && D.resH()>=maximized_win_client_size.y) // maximized
+   {
+      SetWindowLong(window(), GWL_STYLE, _style_window_maximized);
+   #if 0 // this doesn't work as expected
+      SetWindowPos (window(), HWND_TOP , work.min.x+_bound_maximized.min.x, work.min.y-_bound_maximized.max.y, D.resW()+_bound_maximized.w(), D.resH()+_bound_maximized.h(), SWP_NOACTIVATE); 
+   #else
+      SetWindowPos (window(), HWND_TOP , work.min.x+_bound_maximized.min.x, work.min.y-_bound_maximized.max.y, D.resW()+_bound_maximized.max.x, D.resH()-_bound_maximized.min.y, SWP_NOACTIVATE);
+   #endif
+   }else // normal window
+   {
+      Int w=D.resW()+_bound.w(),
+          h=D.resH()+_bound.h();
+
+      if(_window_pos.x==INT_MAX){if(x<=-1)_window_pos.x=work.min.x;else if(!x)_window_pos.x=work.centerXI()-w/2;else _window_pos.x=work.max.x-w+_bound.max.x-1;}
+      if(_window_pos.y==INT_MAX){if(y>= 1)_window_pos.y=work.min.y;else if(!y)_window_pos.y=work.centerYI()-h/2;else _window_pos.y=work.max.y-h+_bound.max.y-1;}
+
+      // make sure the window is not completely outside of working area
+      const Int b=32; Int r=b;
+      if(!(flag&APP_NO_TITLE_BAR)) // has bar
+      {
+         Int size=GetSystemMetrics(SM_CXSIZE); // TODO: this should be OK because we're DPI-Aware, however it doesn't work OK
+       /*if(HDC hdc=GetDC(window()))
+         {
+            size=DivCeil(size*GetDeviceCaps(hdc, LOGPIXELSX), 96);
+            ReleaseDC(window(), hdc);
+         }*/
+         if(!(flag& APP_NO_CLOSE                   ))r+=size  ; // has close                button
+         if(  flag&(APP_MINIMIZABLE|APP_MAXIMIZABLE))r+=size*2; // has minimize or maximize button (if any is enabled, then both will appear)
+      }
+
+      if(_window_pos.x+b>work.max.x)_window_pos.x=Max(work.min.x, work.max.x-b);else{Int p=_window_pos.x+w; if(p-r<work.min.x)_window_pos.x=Min(work.min.x+r, work.max.x)-w;}
+      if(_window_pos.y+b>work.max.y)_window_pos.y=Max(work.min.y, work.max.y-b);else{Int p=_window_pos.y+h; if(p-b<work.min.y)_window_pos.y=Min(work.min.y+b, work.max.y)-h;}
+
+      SetWindowLong(window(), GWL_STYLE     , _style_window);
+      SetWindowPos (window(), HWND_NOTOPMOST, _window_pos.x, _window_pos.y, w, h, SWP_NOACTIVATE);
+   }
+#elif MAC
+   if(D.full()) // fullscreen
+   {
+      if(!(flag&APP_NO_TITLE_BAR))[window() setStyleMask:NSWindowStyleMaskTitled|NSWindowStyleMaskFullSizeContentView]; // need to toggle this only if window wants to have title bar, if it doesn't then we don't need to change anything. But if window wants title bar, then we can't just disable it here and use NSBorderlessWindowMask, because that will make content view (OpenGLView) disappear (some bug in Mac OS?), so have to use NSWindowStyleMaskTitled|NSWindowStyleMaskFullSizeContentView which will make content overlap title bar, and in fullscreen title bar will be hidden
+      window().size(D.resW(), D.resH(), true);
+      window().pos (0, 0);
+   }else
+   {
+      if(_window_pos.x==INT_MAX){Int w=D.resW(); if(x<=-1)_window_pos.x=work.min.x;else if(!x)_window_pos.x=work.centerXI()-w/2;else _window_pos.x=work.max.x-w+_bound.max.x-1;}
+      if(_window_pos.y==INT_MAX){Int h=D.resH(); if(y>= 1)_window_pos.y=work.min.y;else if(!y)_window_pos.y=work.centerYI()-h/2;else _window_pos.y=work.max.y-h+_bound.max.y-1;}
+
+      if(!(flag&APP_NO_TITLE_BAR))[window() setStyleMask:_style_window];
+      window().size(D.resW(), D.resH(), true);
+      window().pos (_window_pos.x, _window_pos.y);
+   }
+#elif LINUX
+   if(window())
+   {
+      // set window fullscreen state
+      {
+         // setting fullscreen mode will fail if window is not resizable, so force it to be just for this operation
+         Bool set_resizable=(D.full() && !(flag&APP_RESIZABLE));
+         if(  set_resizable)setWindowFlags(true);
+
+         #define _NET_WM_STATE_REMOVE 0
+         #define _NET_WM_STATE_ADD    1
+         #define _NET_WM_STATE_TOGGLE 2
+         XEvent e; Zero(e);
+         e.xclient.type        =ClientMessage;
+         e.xclient.window      =window();
+         e.xclient.message_type=_NET_WM_STATE;
+         e.xclient.format      =32;
+         e.xclient.data.l[0]   =(D.full() ? _NET_WM_STATE_ADD : _NET_WM_STATE_REMOVE);
+         e.xclient.data.l[1]   =_NET_WM_STATE_FULLSCREEN;
+         e.xclient.data.l[2]   =0;
+         e.xclient.data.l[3]   =1;
+         XSendEvent(XDisplay, DefaultRootWindow(XDisplay), false, SubstructureRedirectMask|SubstructureNotifyMask, &e);
+         XSync(XDisplay, false);
+
+         if(set_resizable)setWindowFlags();
+      }
+      // set window size
+      if(!D.full() && !set)window().size(D.resW(), D.resH(), true); // don't resize Window on Linux when changing mode due to 'set' (when window got resized due to OS/User input instead of calling 'D.mode', because there the window is already resized and calling this would cause window jumping)
+   }
+#endif
 }
 /******************************************************************************/
 static RectI GetDesktopArea()
@@ -813,7 +1109,9 @@ void LoadEmbeddedPaks(Cipher *cipher)
 Bool Application::create0()
 {
 #if WINDOWS_OLD
-   ShutCOM=OK(CoInitialize(null)); // required by: creating shortctuts - IShellLink, Unicode IME support, ITaskbarList3, Visual Studio Installation detection - SetupConfiguration, SHOpenFolderAndSelectItems
+   ShutCOM=OK(CoInitialize(null)); // required by: creating shortctuts - IShellLink, Unicode IME support, ITaskbarList3, Visual Studio Installation detection - SetupConfiguration, SHOpenFolderAndSelectItems, anything that calls 'CoCreateInstance'
+   CoCreateInstance(CLSID_TaskbarList, null, CLSCTX_ALL, IID_ITaskbarList3, (Ptr*)&TaskbarList);
+   SetLastError(0); // clear error 2
    TouchesSupported=(GetSystemMetrics(SM_MAXIMUMTOUCHES)>0);
 #elif WINDOWS_NEW
    TouchesSupported=(Windows::Devices::Input::TouchCapabilities().TouchPresent>0);
@@ -826,7 +1124,15 @@ Bool Application::create0()
    XInitThreads();
    XDisplay=XOpenDisplay(null);
    OldErrorHandler=XSetErrorHandler(ErrorHandler); // set custom error handler, since I've noticed that occasionally BadWindow errors get generated, so just ignore them
-   if(XDisplay)FIND_ATOM(_NET_WM_ICON);
+   if(XDisplay)
+   {
+      FIND_ATOM(_NET_WM_STATE);
+      FIND_ATOM(_NET_WM_STATE_FULLSCREEN);
+      FIND_ATOM(_NET_WM_STATE_DEMANDS_ATTENTION);
+      FIND_ATOM(_NET_WM_ICON);
+      FIND_ATOM(_NET_WM_NAME);
+      FIND_ATOM(UTF8_STRING);
+   }
 #endif
 
    T._thread_id   =GetThreadId(); // !! adjust the thread ID here, because on WINDOWS_NEW it will be a different value !!
@@ -844,7 +1150,6 @@ Bool Application::create0()
    InitMesh  ();
    InitSRGB  ();
    InitSocket();
-   InitWindow();
    InitStream();
    InitState ();
       Kb.init();
@@ -868,13 +1173,14 @@ Bool Application::create1()
    if(!InputDevices.create())Exit(MLTC(u"Can't create DirectInput", PL,u"Nie można utworzyć DirectInput"));
    if(!D           .create())return false;
 #if WINDOWS_OLD
-   if(!(flag&APP_HIDDEN) && WindowHidden())WindowShow(true); // if we don't want window hidden, but it is (for example due to WS_EX_NOREDIRECTIONBITMAP) then show it
+   if(!(flag&APP_HIDDEN) && hidden())show(true); // if we don't want window hidden, but it is (for example due to WS_EX_NOREDIRECTIONBITMAP) then show it
+   window().activate(); // manually activate because on Windows if application is loading for a long time, then it might lose focus
 #endif
 #if ANDROID
    if(_stay_awake){AWAKE_MODE temp=_stay_awake; _stay_awake=AWAKE_OFF; stayAwake(temp);} // on Android we need to apply this after window was created
 #endif
    if(LogInit)LogN("Init");
-   if(!Init        ())return false;
+   if(!Init())return false;
    return true;
 }
 Bool Application::create()
@@ -887,13 +1193,13 @@ static void FadeOut()
    if(App.flag&APP_FADE_OUT)
    {
       Bool fade_sound=PlayingAnySound(), fade_window=!D.full();
-      Byte alpha=WindowGetAlpha();
+      Flt  alpha=App.opacity();
    #if WINDOWS_OLD
       ANIMATIONINFO ai; ai.cbSize=SIZE(ai); SystemParametersInfo(SPI_GETANIMATION, SIZE(ai), &ai, 0); if(ai.iMinAnimate)fade_window=false; // if Windows has animations enabled, then don't fade manually
-   #elif WINDOWS_NEW || LINUX // WindowsNew and Linux don't support 'WindowAlpha'
+   #elif WINDOWS_NEW || LINUX // WindowsNew and Linux don't support 'App.opacity'
       fade_window=false;
    #endif
-      if(!fade_window)WindowHide();
+      if(!fade_window)App.hide();
       if(fade_sound || fade_window)
       {
          const Int step=1;
@@ -903,8 +1209,8 @@ static void FadeOut()
          {
             Flt remaining=end_time-Time.curTime(), frac=Max(0, remaining/length);
             if(fade_sound ){SoundVolume.global(vol*frac); UpdateSound();}
-            if(fade_window)WindowAlpha(Round(alpha*frac));
-         #if MAC // on Mac we have to update events, otherwise 'WindowAlpha' won't do anything. We have to do it even when not fading window (when exiting from fullscreen mode) because without it, the window will be drawn as a restored window
+            if(fade_window)App.opacity(alpha*frac);
+         #if MAC // on Mac we have to update events, otherwise 'App.opacity' won't do anything. We have to do it even when not fading window (when exiting from fullscreen mode) because without it, the window will be drawn as a restored window
             for(; NSEvent *event=[NSApp nextEventMatchingMask:NSEventMaskAny untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES]; ) // 'distantPast' will not wait for any new events but return those that happened already
                [NSApp sendEvent:event];
          #endif
@@ -936,11 +1242,11 @@ void Application::del()
       ShutStream       ();
       ShutSocket       ();
       windowDel        ();
-      ShutWindow       ();
       Paks         .del(); // !! delete after deleting sound  !! because sound streaming can still use file data
       InputDevices .del(); // !! delete after deleting window !! because releasing some joypads may take some time and window would be left visible
       HideNotifications();
    #if WINDOWS_OLD
+      RELEASE(TaskbarList);
       if(ShutCOM){ShutCOM=false; CoUninitialize();} // required by 'CoInitialize'
    #elif LINUX
       if(XDisplay){XCloseDisplay(XDisplay); XDisplay=null;}
@@ -965,16 +1271,6 @@ void Application::update()
      _callbacks.update();
    if(!(UpdateState() && DrawState()))_close=true;
    InputDevices.clear();
-}
-/******************************************************************************/
-void Application::coInitialize(UInt dwCoInit)
-{
-#if WINDOWS_OLD
-   ShutWindow(); // close interfaces
-   if(ShutCOM)CoUninitialize(); // close COM
-   ShutCOM=OK(CoInitializeEx(null, dwCoInit)); // init COM
-   InitWindow(); // init interfaces
-#endif
 }
 /******************************************************************************/
 void Break()

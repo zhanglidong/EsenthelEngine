@@ -50,6 +50,7 @@ struct xxHash64Calc : DataCallback
 Bool Compressable(C Str &file_extension); // if 'file_extension' is compressable (compressing most likely would reduce the file size, this returns false for file types already compressed like "jpg", "mp3", "avi", "rar", .. and true for all other file types)
 
 CChar8* CompressionName    (COMPRESS_TYPE type); // get compression type name in text format
+Int     CompressionDefault (COMPRESS_TYPE type); // get default  compression level  for specified type, this level has a good balance between speed and size
 VecI2   CompressionLevels  (COMPRESS_TYPE type); // get range of compression levels for specified type, 'VecI2.x' will contain the minimum level, 'VecI2.y' will contain the maximum level, if both values are the same, then it means that this type does not support different compression levels
 UInt    CompressionMemUsage(COMPRESS_TYPE type, Int compression_level=9, Long uncompressed_size=-1); // get memory usage used for   compression, 'uncompressed_size'=size of the uncompressed data (use -1 if unknown)
 UInt  DecompressionMemUsage(COMPRESS_TYPE type, Int compression_level=9, Long uncompressed_size=-1); // get memory usage used for decompression, 'uncompressed_size'=size of the uncompressed data (use -1 if unknown)
@@ -61,6 +62,10 @@ Bool Decompress(File &src, File &dest, Bool memory=false                        
 // perform file->file raw (de)compression without storing any header
 Bool   CompressRaw(File &src, File &dest, COMPRESS_TYPE type, Int compression_level=9, Bool multi_threaded=true                , DataCallback *callback=null); //   compress data from 'src' file into 'dest' file, 'src' should be already opened for reading, 'dest' should be already opened for writing, 'compression_level'=0..CompressionLevels(type) (0=fastest/worst, ..=slowest/best), compression occurs from the current position of 'src' to the end of the file, 'callback'=optional callback which will be called for every uncompressed data chunk (you can use it for example to calculate uncompressed data hash), false on fail
 Bool DecompressRaw(File &src, File &dest, COMPRESS_TYPE type, ULong compressed_size, ULong decompressed_size, Bool memory=false, DataCallback *callback=null); // decompress data from 'src' file into 'dest' file, 'src' should be already opened for reading, 'dest' should be already opened for writing if 'memory' is set to false, if 'memory' is set to true then decompression will be faster, however 'dest' will be first reinitialized with 'writeMemFixed' before decompressing, which means that decompression result will not be stored into original 'dest' target, but instead into a dynamically allocated memory, 'compressed_size'=size of compressed data in 'src', 'decompressed_size'=precise size of decompressed data, 'callback'=optional callback which will be called for every uncompressed data chunk (you can use it for example to calculate uncompressed data hash), false on fail
+
+// compress variable length
+Int CmpUIntVSize (UInt  u); // get number of bytes needed for storing 'u' using 'cmpUIntV'  algorithm
+Int CmpULongVSize(ULong u); // get number of bytes needed for storing 'u' using 'cmpULongV' algorithm
 
 #if EE_PRIVATE
 
@@ -74,7 +79,6 @@ Bool _OldDecompress      (File &src, File &dest, Bool memory=false, DataCallback
 
 const Int MaxCmpUIntVSize =5,
           MaxCmpULongVSize=9;
-      Int     CmpUIntVSize(UInt u); // get number of bytes needed for storing 'u' using 'cmpUIntV' algorithm
 #endif
 /******************************************************************************/
 struct ZipFile

@@ -292,7 +292,7 @@ void ObjView.meshSetNrm(MESH_FLAG vtx_test)
    }
    if(changed)setChangedMesh(true, false);
 }
-void ObjView.meshSetNrmH()
+void ObjView.meshCopyNrm()
 {
    bool changed=false;
    MeshLod &lod=getLod();
@@ -577,6 +577,23 @@ void ObjView.meshQuadToTri()
       setChangedMesh(true, false);
    }
 }
+void ObjView.meshTriToQuad()
+{
+   bool changed=false;
+   mesh_undos.set("meshTriToQuad");
+   MeshLod &lod=getLod();
+   if(mesh_parts.edit_selected())
+   {
+   }else
+   {
+      REPA(lod)if(partOp(i)){MeshPart &part=lod.parts[i]; part.base.triToQuad(0.7); part.setRender(); changed=true;}
+   }
+   if(changed)
+   {
+      litSelVFClear();
+      setChangedMesh(true, false);
+   }
+}
 void ObjView.meshSubdivide()
 {
    bool changed=false;
@@ -601,14 +618,32 @@ void ObjView.meshSubdivide()
 void ObjView.meshTesselate()
 {
    bool changed=false;
+   flt pos_eps=T.posEps();
    MeshLod &lod=getLod();
    mesh_undos.set("meshTess");
+   if(mesh_parts.edit_selected())
+   {
+      Memt<VecI2> vtxs; getSelectedVtxs(vtxs);
+      if(!vtxs.elms())Gui.msgBox(S, "No vertexes selected");else
+      REPAD(p, lod)
+      {
+         Memt<int> part_vtxs; REPAD(v, vtxs)if(vtxs[v].x==p)part_vtxs.add(vtxs[v].y); // get vertexes for this part
+         if(       part_vtxs.elms()) // if have any vtx to tesselate
+         {
+            MeshPart &part=lod.parts[p];
+            part.base.tesselate(part_vtxs, pos_eps);
+            part.setRender();
+            changed=true;
+         }
+      }
+      litSelVFClear();
+   }else
    REPA(lod)if(partOp(i))
    {
       MeshPart &part=lod.parts[i];
       MeshBase &base=part.base;
     //base.setVtxDup();
-      base.tesselate();
+      base.tesselate(pos_eps);
     //base.exclude(VTX_DUP);
       part.setRender();
       changed=true;
@@ -751,7 +786,7 @@ void ObjView.meshSeparate1()
       }
       Elm        & obj_elm =Proj.Project.newElm(name, obj_id, ELM_OBJ); Proj.list_sel.add(obj_elm.id);
       EditObject   obj_edit; obj_edit.newData(); Save(obj_edit, Proj.editPath(obj_elm.id));
-      if(ElmObj  * obj_data=obj_elm.objData()){obj_data.newData(); obj_data.from(obj_edit);}
+      if(ElmObj  * obj_data=obj_elm.objData()){obj_data.newData(); obj_data.from(obj_edit); if(T.obj_elm)obj_data.setSrcFile(T.obj_elm.srcFile());}
       if(Elm     *mesh_elm =Proj.getObjMeshElm(obj_elm.id, false, false)) // don't send to server yet, it will be sent below
       if(ElmMesh *mesh_data=mesh_elm.meshData())
       {
@@ -805,7 +840,7 @@ void ObjView.meshSeparateN()
        C MeshPart   &     part=lod.parts[parts[p]];
          Elm        & obj_elm =Proj.Project.newElm(Is(part.name) ? Str(part.name) : T.obj_elm.name, obj_id, ELM_OBJ); Proj.list_sel.add(obj_elm.id);
          EditObject   obj_edit; obj_edit.newData(); Save(obj_edit, Proj.editPath(obj_elm.id));
-         if(ElmObj  * obj_data=obj_elm.objData()){obj_data.newData(); obj_data.from(obj_edit);}
+         if(ElmObj  * obj_data=obj_elm.objData()){obj_data.newData(); obj_data.from(obj_edit); obj_data.setSrcFile(T.obj_elm.srcFile());}
          if(Elm     *mesh_elm =Proj.getObjMeshElm(obj_elm.id, false, false)) // don't send to server yet, it will be sent below
          if(ElmMesh *mesh_data=mesh_elm.meshData())
          {

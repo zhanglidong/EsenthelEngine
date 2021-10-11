@@ -79,7 +79,7 @@ void GUI::screenChanged(Flt old_width, Flt old_height)
 
    if(Menu *menu=Gui.menu())
       if(GuiObj *owner=menu->Owner())
-         if(owner->type()==GO_MENU_BAR && owner->parent()->is(GO_DESKTOP))
+         if(owner->isMenuBar() && owner->parent() && owner->parent()->isDesktop())
             menu->move(Vec2(old_width-D.w(), 0));
 }
 /******************************************************************************/
@@ -103,8 +103,8 @@ Bool GUI::Switch()
             case GO_REGION  :
             case GO_TEXTBOX :
             case GO_WINDOW  : return false;
-            case GO_LIST    : if(p->type()==GO_MENU    )return false; c=p; p=c->parent(); if(!p)return false;  break;
-            case GO_TEXTLINE: if(p->type()==GO_COMBOBOX){             c=p; p=c->parent(); if(!p)return false;} break;
+            case GO_LIST    : if(p->isMenu    ())return false; c=p; p=c->parent(); if(!p)return false;  break;
+            case GO_TEXTLINE: if(p->isComboBox()){             c=p; p=c->parent(); if(!p)return false;} break;
          }
          Bool next=!Kb.k.shift();
          switch(p->type())
@@ -128,7 +128,51 @@ void GUI::setText()
 GuiObj* GUI::objAtPos(C Vec2 &pos)C
 {
    GuiObj *mouse_wheel=null;
-   return desktop() ? desktop()->asDesktop().test(pos, mouse_wheel) : null;
+   return desktop() ? desktop()->test(pos, mouse_wheel) : null;
+}
+GuiObj* GUI::objNearest(C Vec2 &pos, C Vec2 &dir, Vec2 &out_pos)C
+{
+   if(desktop())
+   {
+      GuiObjNearest gon; gon.plane.normal=dir; if(gon.plane.normal.normalize())
+      {
+            gon.state    =0;
+            gon.rect     =pos;
+            gon.plane.pos=pos;
+            gon.min_dist =D.pixelToScreenSize().max(); // use pixel size because this function may operate on mouse position which may be aligned to pixels
+         if(gon.obj      =objAtPos(pos))switch(gon.obj->type())
+         {
+            case GO_NONE   : // ignore for GO_NONE too, which is used for 'ModalWindow._background'
+            case GO_DESKTOP:
+            case GO_WINDOW :
+            case GO_REGION :
+               break;
+            default: gon.rect=gon.obj->screenRect().extend(-EPS); break;
+         }
+
+         desktop()->nearest(gon);
+
+         if(gon.nearest.elms())
+         {
+            if(gon.state==2) // if start rectangle is covered
+               REPA(gon.nearest)if(!gon.nearest[i].recalcDo(gon))gon.nearest.remove(i); // recalc all
+
+         again:
+            if(auto *nearest=gon.findNearest())
+            {
+               if(nearest->recalc) // if nearest has to be recalculated
+               {
+                  REPA(gon.nearest){auto &obj=gon.nearest[i]; if(obj.recalc)if(!obj.recalcDo(gon))gon.nearest.remove(i);} // recalc all
+                  goto again; // find again
+               }
+               out_pos=nearest->rect.center();
+               return  nearest->obj;
+            }
+         }
+      }
+   }
+   out_pos=pos;
+   return null;
 }
 /******************************************************************************/
 Color GUI::backgroundColor()C {if(GuiSkin *skin=Gui.skin())return skin->background_color; return         WHITE;}
@@ -136,7 +180,7 @@ Color GUI::    borderColor()C {if(GuiSkin *skin=Gui.skin())return skin->    bord
 /******************************************************************************/
 TextLine* GUI::overlayTextLine(Vec2 &offset)
 {
-   Rect kb_rect; if(Kb.rect(kb_rect) && kb()->is(GO_TEXTLINE))
+   Rect kb_rect; if(Kb.rect(kb_rect) && kb() && kb()->isTextLine())
    {
       TextLine &tl=kb()->asTextLine();
       Rect_LU   tl_rect(tl.screenPos(), tl.size());
@@ -195,7 +239,7 @@ C Str& GUI::passTemp(Int length) // Warning: this is not thread-safe
 /******************************************************************************/
 static void SetWindowButtons(GuiObj &go)
 {
-   if(go.type()==GO_WINDOW)go.asWindow().setButtons();
+   if (go.isWindow())go.asWindow().setButtons();
    REP(go.childNum())if(GuiObj *child=go.child(i))SetWindowButtons(*child);
 }
 GUI& GUI::windowButtonsRight(Bool right)
@@ -211,6 +255,11 @@ GUI& GUI::windowButtonsRight(Bool right)
 void GUI::playClickSound()C
 {
    SoundPlay(click_sound_id, 1, VOLUME_UI);
+}
+/******************************************************************************/
+void GUI::ms(GuiObj *obj)
+{
+  _ms=_ms_src=obj;
 }
 /******************************************************************************/
 Vec2 GUI::dragPos()C
@@ -232,7 +281,7 @@ void GUI::drag(C Str &name, Touch *touch)
    dragCancel();
    if(_drag_want=true) // previously this checked for "if(_drag_want=name.is())" however empty names are now allowed
    {
-      if(touch)touch->_scrolling=false; // when dragging is initiated, then unmark touch from scrolling
+      if(touch)touch->disableScroll(); // when dragging is initiated, then disable scrolling
      _drag_touch_id=(touch ? touch->id () :        0);
      _drag_pos     =(touch ? touch->pos() : Ms.pos());
      _drag_name    =name;
@@ -247,7 +296,7 @@ void GUI::drag(void finish(Ptr user, GuiObj *obj, C Vec2 &screen_pos), Ptr user,
    dragCancel();
    if(_drag_want=true) // previously this checked for "if(_drag_want=(finish!=null))" however empty functions are now allowed
    {
-      if(touch)touch->_scrolling=false; // when dragging is initiated, then unmark touch from scrolling
+      if(touch)touch->disableScroll(); // when dragging is initiated, then disable scrolling
      _drag_touch_id=(touch ? touch->id () :        0);
      _drag_pos     =(touch ? touch->pos() : Ms.pos());
      _drag_name    .clear();
@@ -270,11 +319,10 @@ void GUI::update()
    SyncLocker locker(_lock);
 
    // test
-  _ms_lit          =null;
-  _wheel           =null;
   _overlay_textline=overlayTextLine(_overlay_textline_offset);
-   if(Ms.detected() && Ms.visible() && Ms._on_client && desktop())_ms_lit=desktop()->asDesktop().test(Ms.pos(), _wheel); // don't set 'msLit' if mouse is not detected or hidden or on another window (do checks if mouse was focused on other window but now moves onto our window, and with buttons pressed in case for drag and drop detection and we would want to highlight the target gui object at which we're gonna drop the files)
-   Byte ms_button=0; REPA(Ms._button)ms_button|=Ms._button[i];
+  _wheel           =null;
+  _ms_lit          =((Ms.detected() && Ms.visible() && Ms._on_client && desktop()) ? desktop()->test(Ms.pos(), _wheel) : null); // don't set 'msLit' if mouse is not detected or hidden or on another window (do checks if mouse was focused on other window but now moves onto our window, and with buttons pressed in case for drag and drop detection and we would want to highlight the target gui object at which we're gonna drop the files)
+   BS_FLAG ms_button=BS_NONE; REPA(Ms._button)ms_button|=Ms._button[i];
    if(!(ms_button&(BS_ON|BS_RELEASED)))_ms=_ms_src=msLit();
    if(App.active())
    {
@@ -285,7 +333,11 @@ void GUI::update()
   _window_lit=&msLit()->first(GO_WINDOW)->asWindow();
 
    // update
+#if 1 // update all
    FREPAO(_desktops).update();
+#else // update active
+   if(desktop())desktop()->update();
+#endif
 
    // callbacks
   _callbacks.update();
@@ -312,7 +364,7 @@ void GUI::update()
    // mouse description
    if(_desc!=ms()) // if there is a new object under mouse than previous description
    {
-      if(!Ms.pixelDelta().any())_desc=null;else // set it only if we've moved the mouse (to eliminate showing description by elements activated with keyboard, touch or programatically)
+      if(Ms.pixelDelta().allZero())_desc=null;else // set it only if we've moved the mouse (to eliminate showing description by elements activated with keyboard, touch or programatically)
       {
         _desc     =ms();
         _desc_time=Time.appTime();
@@ -416,7 +468,7 @@ void DrawDescription(GuiObj *obj, C Vec2 &pos, CChar *text, Bool mouse)
 }
 void DrawIMM(GuiObj *obj)
 {
-   if((Kb.immBuffer().is() || Kb.immCandidate().elms()) && obj && obj->type()==GO_TEXTLINE)
+   if((Kb.immBuffer().is() || Kb.immCandidate().elms()) && obj && obj->isTextLine())
       if(Gui.skin)
          if(TextStyle *text_style=Gui.skin->imm.text_style())
    {
@@ -432,9 +484,9 @@ void GUI::draw()
 {
    SyncLocker locker(_lock);
 
-   if(_desktop)
+   if(desktop())
    {
-     _desktop->asDesktop().draw();
+      desktop()->draw();
       D.clip(); // reset clip after drawing all gui objects
 
       // show description
@@ -445,7 +497,7 @@ void GUI::draw()
       }
 
       // show imm
-      if(draw_imm && kb()->is(GO_TEXTLINE))draw_imm(kb());
+      if(draw_imm && kb() && kb()->isTextLine())draw_imm(kb());
    }
 }
 /******************************************************************************/

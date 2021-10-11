@@ -63,11 +63,20 @@ template<typename TYPE, Int Memt_size> struct CMemPtr // Const Memory Container 
                           CMemPtr& point(C         TYPE             *src, Int src_elms );
    template<Int src_elms> CMemPtr& point(C         TYPE            (&src)    [src_elms]);
                           CMemPtr& point(C  Mems  <TYPE           > &src               );
+                          CMemPtr& point(C  Mems  <TYPE           > *src               );
                           CMemPtr& point(C  Memc  <TYPE           > &src               );
+                          CMemPtr& point(C  Memc  <TYPE           > *src               );
+   T1(EXTENDED)           CMemPtr& point(C  Memc  <EXTENDED       > *src               );
                           CMemPtr& point(C  Memt  <TYPE, Memt_size> &src               );
+                          CMemPtr& point(C  Memt  <TYPE, Memt_size> *src               );
                           CMemPtr& point(C  Memb  <TYPE           > &src               );
+                          CMemPtr& point(C  Memb  <TYPE           > *src               );
+   T1(EXTENDED)           CMemPtr& point(C  Memb  <EXTENDED       > *src               );
                           CMemPtr& point(C  Memx  <TYPE           > &src               );
+                          CMemPtr& point(C  Memx  <TYPE           > *src               );
+   T1(EXTENDED)           CMemPtr& point(C  Memx  <EXTENDED       > *src               );
                           CMemPtr& point(C  Meml  <TYPE           > &src               );
+                          CMemPtr& point(C  Meml  <TYPE           > *src               );
                           CMemPtr& point(C CMemPtr<TYPE, Memt_size> &src               );
 
                           CMemPtr(          null_t=null                         ) {point(null         );}
@@ -75,14 +84,20 @@ template<typename TYPE, Int Memt_size> struct CMemPtr // Const Memory Container 
    template<Int src_elms> CMemPtr(C         TYPE            (&src)    [src_elms]) {point(src          );}
                           CMemPtr(C         TYPE             *src, Int src_elms ) {point(src, src_elms);}
                           CMemPtr(C  Mems  <TYPE           > &src               ) {point(src          );}
+                          CMemPtr(C  Mems  <TYPE           > *src               ) {point(src          );}
                           CMemPtr(C  Memc  <TYPE           > &src               ) {point(src          );}
- //T1(EXTENDED)           CMemPtr(C  Memc  <EXTENDED       > &src               ) {point(src          );} introduces compilation problems
+                          CMemPtr(C  Memc  <TYPE           > *src               ) {point(src          );}
+   T1(EXTENDED)           CMemPtr(C  Memc  <EXTENDED       > *src               ) {point(src          );}
                           CMemPtr(C  Memt  <TYPE, Memt_size> &src               ) {point(src          );}
+                          CMemPtr(C  Memt  <TYPE, Memt_size> *src               ) {point(src          );}
                           CMemPtr(C  Memb  <TYPE           > &src               ) {point(src          );}
- //T1(EXTENDED)           CMemPtr(C  Memb  <EXTENDED       > &src               ) {point(src          );} introduces compilation problems
+                          CMemPtr(C  Memb  <TYPE           > *src               ) {point(src          );}
+   T1(EXTENDED)           CMemPtr(C  Memb  <EXTENDED       > *src               ) {point(src          );}
                           CMemPtr(C  Memx  <TYPE           > &src               ) {point(src          );}
- //T1(EXTENDED)           CMemPtr(C  Memx  <EXTENDED       > &src               ) {point(src          );} introduces compilation problems
+                          CMemPtr(C  Memx  <TYPE           > *src               ) {point(src          );}
+   T1(EXTENDED)           CMemPtr(C  Memx  <EXTENDED       > *src               ) {point(src          );}
                           CMemPtr(C  Meml  <TYPE           > &src               ) {point(src          );}
+                          CMemPtr(C  Meml  <TYPE           > *src               ) {point(src          );}
                           CMemPtr(C CMemPtr<TYPE, Memt_size> &src               ) {point(src          );}
 
    enum MODE
@@ -129,7 +144,7 @@ private:
     C Meml<TYPE           > *_meml;
    };
    MODE _mode;
-   Int  _elms;
+   Int  _ptr_elms;
 
    friend struct Mems  <TYPE>;
    friend struct Memc  <TYPE>;
@@ -166,9 +181,10 @@ template<typename TYPE, Int Memt_size> struct MemPtr : CMemPtr<TYPE, Memt_size> 
    MemPtr& remove    (  Int   i  , Bool keep_order=false); // remove i-th element                        , if 'keep_order'=false then moves the last element to i-th, if 'keep_order'=true then moves all elements after i-th to the left (keeping order), this method may      change the memory address of some elements
    MemPtr& removeData(C TYPE *elm, Bool keep_order=false); // remove element by giving its memory address, if 'keep_order'=false then moves the last element to i-th, if 'keep_order'=true then moves all elements after i-th to the left (keeping order), this method may      change the memory address of some elements
 
-   MemPtr& setNum    (Int num); // set number of elements to 'num'                                                                              , this method changes the memory address of all elements
-   MemPtr& setNumZero(Int num); // set number of elements to 'num', memory of new elements will be first zeroed before calling their constructor, this method changes the memory address of all elements
-   Int     addNum    (Int num); // add 'num' elements, return index of first added element                                                      , this method changes the memory address of all elements
+   MemPtr& setNum       (Int num); // set number of elements to 'num'                                                                              , this method may change the memory address of all elements
+   MemPtr& setNumZero   (Int num); // set number of elements to 'num', memory of new elements will be first zeroed before calling their constructor, this method may change the memory address of all elements
+   MemPtr& setNumDiscard(Int num); // set number of elements to 'num', if reallocating then discard previous elements                              , this method may change the memory address of all elements
+   Int     addNum       (Int num); // add 'num' elements, return index of first added element                                                      , this method may change the memory address of all elements
 
    // values
    T1(VALUE) Int     find   (C VALUE &value                       )C {REPA(T)if(T[i]==value)return i; return -1;                                                 } // check if 'value' is present in container and return its index, -1 if not found
@@ -220,30 +236,44 @@ template<typename TYPE, Int Memt_size> struct MemPtr : CMemPtr<TYPE, Memt_size> 
                           MemPtr& point(       TYPE             *src, Int src_elms );
    template<Int src_elms> MemPtr& point(       TYPE            (&src)    [src_elms]);
                           MemPtr& point(Mems  <TYPE           > &src               );
+                          MemPtr& point(Mems  <TYPE           > *src               );
                           MemPtr& point(Memc  <TYPE           > &src               );
+                          MemPtr& point(Memc  <TYPE           > *src               );
+   T1(EXTENDED)           MemPtr& point(Memc  <EXTENDED       > *src               );
                           MemPtr& point(Memt  <TYPE, Memt_size> &src               );
+                          MemPtr& point(Memt  <TYPE, Memt_size> *src               );
                           MemPtr& point(Memb  <TYPE           > &src               );
+                          MemPtr& point(Memb  <TYPE           > *src               );
+   T1(EXTENDED)           MemPtr& point(Memb  <EXTENDED       > *src               );
                           MemPtr& point(Memx  <TYPE           > &src               );
+                          MemPtr& point(Memx  <TYPE           > *src               );
+   T1(EXTENDED)           MemPtr& point(Memx  <EXTENDED       > *src               );
                           MemPtr& point(Meml  <TYPE           > &src               );
+                          MemPtr& point(Meml  <TYPE           > *src               );
                           MemPtr& point(MemPtr<TYPE, Memt_size> &src               );
 
-                          MemPtr(         null_t=null                         ) {point(null         );}
-                          MemPtr(         TYPE             &src               ) {point(src          );}
-   template<Int src_elms> MemPtr(         TYPE            (&src)    [src_elms]) {point(src          );}
-                          MemPtr(         TYPE             *src, Int src_elms ) {point(src, src_elms);}
-                          MemPtr(  Mems  <TYPE           > &src               ) {point(src          );}
-                          MemPtr(  Memc  <TYPE           > &src               ) {point(src          );}
- //T1(EXTENDED)           MemPtr(  Memc  <EXTENDED       > &src               ) {point(src          );} introduces compilation problems
-                          MemPtr(  Memt  <TYPE, Memt_size> &src               ) {point(src          );}
-                          MemPtr(  Memb  <TYPE           > &src               ) {point(src          );}
- //T1(EXTENDED)           MemPtr(  Memb  <EXTENDED       > &src               ) {point(src          );} introduces compilation problems
-                          MemPtr(  Memx  <TYPE           > &src               ) {point(src          );}
- //T1(EXTENDED)           MemPtr(  Memx  <EXTENDED       > &src               ) {point(src          );} introduces compilation problems
-                          MemPtr(  Meml  <TYPE           > &src               ) {point(src          );}
-                       #if WINDOWS // this compiles only on Windows, on other platforms it fails to compile. The following only prevents from pointing to const pointers (normal constructor is not needed, because in it all we want is to copy all members)
-                          MemPtr(  MemPtr<TYPE, Memt_size> &src               ) {point(src          );}
-                          MemPtr(C MemPtr<TYPE, Memt_size> &src               )=delete;
-                       #endif
+                          MemPtr(         null_t=null                          ) : CMemPtr<TYPE, Memt_size>(             ) {}
+                          MemPtr(         TYPE              &src               ) : CMemPtr<TYPE, Memt_size>(src          ) {}
+   template<Int src_elms> MemPtr(         TYPE             (&src)    [src_elms]) : CMemPtr<TYPE, Memt_size>(src          ) {}
+                          MemPtr(         TYPE              *src, Int src_elms ) : CMemPtr<TYPE, Memt_size>(src, src_elms) {}
+                          MemPtr(  Mems  <TYPE           >  &src               ) : CMemPtr<TYPE, Memt_size>(src          ) {}
+                          MemPtr(  Mems  <TYPE           >  *src               ) : CMemPtr<TYPE, Memt_size>(src          ) {}
+                          MemPtr(  Memc  <TYPE           >  &src               ) : CMemPtr<TYPE, Memt_size>(src          ) {}
+                          MemPtr(  Memc  <TYPE           >  *src               ) : CMemPtr<TYPE, Memt_size>(src          ) {}
+   T1(EXTENDED)           MemPtr(  Memc  <EXTENDED       >  *src               ) : CMemPtr<TYPE, Memt_size>(src          ) {}
+                          MemPtr(  Memt  <TYPE, Memt_size>  &src               ) : CMemPtr<TYPE, Memt_size>(src          ) {}
+                          MemPtr(  Memt  <TYPE, Memt_size>  *src               ) : CMemPtr<TYPE, Memt_size>(src          ) {}
+                          MemPtr(  Memb  <TYPE           >  &src               ) : CMemPtr<TYPE, Memt_size>(src          ) {}
+                          MemPtr(  Memb  <TYPE           >  *src               ) : CMemPtr<TYPE, Memt_size>(src          ) {}
+   T1(EXTENDED)           MemPtr(  Memb  <EXTENDED       >  *src               ) : CMemPtr<TYPE, Memt_size>(src          ) {}
+                          MemPtr(  Memx  <TYPE           >  &src               ) : CMemPtr<TYPE, Memt_size>(src          ) {}
+                          MemPtr(  Memx  <TYPE           >  *src               ) : CMemPtr<TYPE, Memt_size>(src          ) {}
+   T1(EXTENDED)           MemPtr(  Memx  <EXTENDED       >  *src               ) : CMemPtr<TYPE, Memt_size>(src          ) {}
+                          MemPtr(  Meml  <TYPE           >  &src               ) : CMemPtr<TYPE, Memt_size>(src          ) {}
+                          MemPtr(  Meml  <TYPE           >  *src               ) : CMemPtr<TYPE, Memt_size>(src          ) {}
+                          MemPtr(  MemPtr<TYPE, Memt_size>  &src               ) : CMemPtr<TYPE, Memt_size>(src          ) {}
+                          MemPtr(  MemPtr<TYPE, Memt_size> &&src               ) : CMemPtr<TYPE, Memt_size>(src          ) {}
+                          MemPtr(C MemPtr<TYPE, Memt_size>  &src               )=delete; // prevent from pointing to const pointers
 
    Mems<TYPE           >* mems()  {return (T._mode==T.MEMS) ? ConstCast(T._mems) : null;}
  C Mems<TYPE           >* mems()C {return (T._mode==T.MEMS) ?           T._mems  : null;}
@@ -257,6 +287,18 @@ template<typename TYPE, Int Memt_size> struct MemPtr : CMemPtr<TYPE, Memt_size> 
  C Memx<TYPE           >* memx()C {return (T._mode==T.MEMX) ?           T._memx  : null;}
    Meml<TYPE           >* meml()  {return (T._mode==T.MEML) ? ConstCast(T._meml) : null;}
  C Meml<TYPE           >* meml()C {return (T._mode==T.MEML) ?           T._meml  : null;}
+
+   // prevent calling constructor through operator=
+                          MemPtr& operator=(       null_t              )=delete;
+                          MemPtr& operator=(C Mems<TYPE          > *src)=delete;
+                          MemPtr& operator=(C Memc<TYPE          > *src)=delete;
+   T1(EXTENDED)           MemPtr& operator=(C Memc<EXTENDED      > *src)=delete;
+   template<Int src_size> MemPtr& operator=(C Memt<TYPE, src_size> *src)=delete;
+                          MemPtr& operator=(C Memb<TYPE          > *src)=delete;
+   T1(EXTENDED)           MemPtr& operator=(C Memb<EXTENDED      > *src)=delete;
+                          MemPtr& operator=(C Memx<TYPE          > *src)=delete;
+   T1(EXTENDED)           MemPtr& operator=(C Memx<EXTENDED      > *src)=delete;
+                          MemPtr& operator=(C Meml<TYPE          > *src)=delete;
 };
 /******************************************************************************/
 template<const_mem_addr typename TYPE, Int Memt_elms> struct MemPtrN : MemPtr<TYPE, SIZE(TYPE)*Memt_elms> // Memory Container Pointer, 'Memt_elms'=number of elements of the 'Memt'
@@ -274,19 +316,37 @@ template<const_mem_addr typename TYPE, Int Memt_elms> struct MemPtrN : MemPtr<TY
                           MemPtrN& operator=(C  MemPtrN<TYPE, Memt_elms> &src           ); // copy elements using assignment operator (this must be specified even though method above should do the same, because without it compiler will try to use the built-in 'operator=' which will just do raw memory copy)
 
    // initialize 'MemPtrN' to point to source
-                          MemPtrN(       null_t=null                                    ) {}
+                          MemPtrN(       null_t=null                                    ) : MemPtr<TYPE, SIZE(TYPE)*Memt_elms>(             ) {}
                           MemPtrN(       TYPE                        &src               ) : MemPtr<TYPE, SIZE(TYPE)*Memt_elms>(src          ) {}
    template<Int src_elms> MemPtrN(       TYPE                       (&src)    [src_elms]) : MemPtr<TYPE, SIZE(TYPE)*Memt_elms>(src          ) {}
                           MemPtrN(       TYPE                        *src, Int src_elms ) : MemPtr<TYPE, SIZE(TYPE)*Memt_elms>(src, src_elms) {}
                           MemPtrN(Mems  <TYPE                      > &src               ) : MemPtr<TYPE, SIZE(TYPE)*Memt_elms>(src          ) {}
+                          MemPtrN(Mems  <TYPE                      > *src               ) : MemPtr<TYPE, SIZE(TYPE)*Memt_elms>(src          ) {}
                           MemPtrN(Memc  <TYPE                      > &src               ) : MemPtr<TYPE, SIZE(TYPE)*Memt_elms>(src          ) {}
+                          MemPtrN(Memc  <TYPE                      > *src               ) : MemPtr<TYPE, SIZE(TYPE)*Memt_elms>(src          ) {}
+   T1(EXTENDED)           MemPtrN(Memc  <EXTENDED                  > *src               ) : MemPtr<TYPE, SIZE(TYPE)*Memt_elms>(src          ) {}
                           MemPtrN(Memt  <TYPE, SIZE(TYPE)*Memt_elms> &src               ) : MemPtr<TYPE, SIZE(TYPE)*Memt_elms>(src          ) {}
                           MemPtrN(Memb  <TYPE                      > &src               ) : MemPtr<TYPE, SIZE(TYPE)*Memt_elms>(src          ) {}
+                          MemPtrN(Memb  <TYPE                      > *src               ) : MemPtr<TYPE, SIZE(TYPE)*Memt_elms>(src          ) {}
+   T1(EXTENDED)           MemPtrN(Memb  <EXTENDED                  > *src               ) : MemPtr<TYPE, SIZE(TYPE)*Memt_elms>(src          ) {}
                           MemPtrN(Memx  <TYPE                      > &src               ) : MemPtr<TYPE, SIZE(TYPE)*Memt_elms>(src          ) {}
+                          MemPtrN(Memx  <TYPE                      > *src               ) : MemPtr<TYPE, SIZE(TYPE)*Memt_elms>(src          ) {}
+   T1(EXTENDED)           MemPtrN(Memx  <EXTENDED                  > *src               ) : MemPtr<TYPE, SIZE(TYPE)*Memt_elms>(src          ) {}
                           MemPtrN(Meml  <TYPE                      > &src               ) : MemPtr<TYPE, SIZE(TYPE)*Memt_elms>(src          ) {}
+                          MemPtrN(Meml  <TYPE                      > *src               ) : MemPtr<TYPE, SIZE(TYPE)*Memt_elms>(src          ) {}
                           MemPtrN(MemPtr<TYPE, SIZE(TYPE)*Memt_elms> &src               ) : MemPtr<TYPE, SIZE(TYPE)*Memt_elms>(src          ) {}
 
-   MemPtrN& operator=(null_t)=delete;
+   // prevent calling constructor through operator=
+                          MemPtrN& operator=(       null_t                          )=delete;
+                          MemPtrN& operator=(C Mems<TYPE                      > *src)=delete;
+                          MemPtrN& operator=(C Memc<TYPE                      > *src)=delete;
+   T1(EXTENDED)           MemPtrN& operator=(C Memc<EXTENDED                  > *src)=delete;
+   template<Int src_elms> MemPtrN& operator=(C Memt<TYPE, SIZE(TYPE)*Memt_elms> *src)=delete;
+                          MemPtrN& operator=(C Memb<TYPE                      > *src)=delete;
+   T1(EXTENDED)           MemPtrN& operator=(C Memb<EXTENDED                  > *src)=delete;
+                          MemPtrN& operator=(C Memx<TYPE                      > *src)=delete;
+   T1(EXTENDED)           MemPtrN& operator=(C Memx<EXTENDED                  > *src)=delete;
+                          MemPtrN& operator=(C Meml<TYPE                      > *src)=delete;
 };
 /******************************************************************************/
 template<typename TYPE, Int size>   inline Int Elms(C CMemPtr<TYPE, size> &memp) {return memp.elms();}

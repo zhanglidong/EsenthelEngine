@@ -42,8 +42,8 @@ struct Obj // Game Object interface inherited by all Game Object classes (Game.S
    virtual void drawBlend   () {}    // in this method you should draw custom objects for the RM_BLEND    mode, this method will be called only if the 'drawPrepare' has requested RM_BLEND    mode
    virtual void drawPalette () {}    // in this method you should draw custom objects for the RM_PALETTE  mode, this method will be called only if the 'drawPrepare' has requested RM_PALETTE  mode
    virtual void drawPalette1() {}    // in this method you should draw custom objects for the RM_PALETTE1 mode, this method will be called only if the 'drawPrepare' has requested RM_PALETTE1 mode
-   virtual void drawSolid   () {}    // in this method you should draw custom objects for the RM_SOLID    mode, this method will be called only if the 'drawPrepare' has requested RM_SOLID    mode
-   virtual void drawAmbient () {}    // in this method you should draw custom objects for the RM_AMBIENT  mode, this method will be called only if the 'drawPrepare' has requested RM_AMBIENT  mode
+   virtual void drawOpaque  () {}    // in this method you should draw custom objects for the RM_OPAQUE   mode, this method will be called only if the 'drawPrepare' has requested RM_OPAQUE   mode
+   virtual void drawEmissive() {}    // in this method you should draw custom objects for the RM_EMISSIVE mode, this method will be called only if the 'drawPrepare' has requested RM_EMISSIVE mode
    virtual void drawOutline () {}    // in this method you should draw custom objects for the RM_OUTLINE  mode, this method will be called only if the 'drawPrepare' has requested RM_OUTLINE  mode
    virtual void drawBehind  () {}    // in this method you should draw custom objects for the RM_BEHIND   mode, this method will be called only if the 'drawPrepare' has requested RM_BEHIND   mode
 

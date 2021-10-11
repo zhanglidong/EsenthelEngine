@@ -1,3 +1,5 @@
+/******************************************************************************
+TODO: FIXME: all color/brightness calculations should be done in Linear Gamma, 255 scale should be removed, could the 65536 scale be changed to 16777216 and >>16 replaced with flt div?
 /******************************************************************************/
 #include "stdafx.h"
 namespace EE{

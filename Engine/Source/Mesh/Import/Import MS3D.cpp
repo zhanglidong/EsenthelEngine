@@ -235,9 +235,8 @@ Bool ImportMS3D(C Str &name, Mesh *mesh, Skeleton *skeleton, XAnimation *animati
          XMaterial       &xm =materials.New();
        C ms3d_material_t &mat=*ms3d.GetMaterial(i);
 
-         xm.ambient.set(mat.emissive[0], mat.emissive[1], mat.emissive[2]);
-         xm.color  .set(mat.diffuse [0], mat.diffuse [1], mat.diffuse [2], mat.transparency);
-         xm.smooth =Max(mat.specular[0], mat.specular[1], mat.specular[2]);
+       //xm.color   .set(mat.diffuse [0], mat.diffuse [1], mat.diffuse [2], mat.transparency);
+       //xm.emissive.set(mat.emissive[0], mat.emissive[1], mat.emissive[2]);
 
          xm.name     =mat.name    ;
          xm.color_map=mat.texture ;

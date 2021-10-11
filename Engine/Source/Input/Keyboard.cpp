@@ -32,19 +32,19 @@ namespace EE{
    struct DIK
    {
       KB_KEY key;
-      Byte   dik;
+      Byte   dik, scan_code;
    };
    static const DIK Keys[]= // only keys known to have the same physical location on all keyboard layouts can be listed here
    {
-      {KB_LCTRL , DIK_LCONTROL},
-    //{KB_RCTRL , DIK_RCONTROL}, processed using WM_*KEY*
-      {KB_LSHIFT, DIK_LSHIFT  }, // WM_*KEY* does not provide an option to check for left/right shift
-      {KB_RSHIFT, DIK_RSHIFT  }, // WM_*KEY* does not provide an option to check for left/right shift
-    //{KB_LALT  , DIK_LALT    }, processed using WM_*KEY*
-    //{KB_RALT  , DIK_RALT    }, processed using WM_*KEY*
-    //{KB_LWIN  , DIK_LWIN    }, processed using WM_*KEY*
-    //{KB_RWIN  , DIK_RWIN    }, processed using WM_*KEY*
-      {KB_PRINT , DIK_SYSRQ   }, // VK_PRINT is not processed because it's assigned as Screen Capture
+      {KB_LCTRL , DIK_LCONTROL, 29},
+      {KB_RCTRL , DIK_RCONTROL, 29},
+      {KB_LSHIFT, DIK_LSHIFT  , 42}, // WM_*KEY* does not provide an option to check for left/right shift
+      {KB_RSHIFT, DIK_RSHIFT  , 54}, // WM_*KEY* does not provide an option to check for left/right shift
+    //{KB_LALT  , DIK_LALT    , 56}, processed using WM_*KEY*
+    //{KB_RALT  , DIK_RALT    , 56}, processed using WM_*KEY*
+    //{KB_LWIN  , DIK_LWIN    , 91}, processed using WM_*KEY*
+    //{KB_RWIN  , DIK_RWIN    , 92}, processed using WM_*KEY*
+      {KB_PRINT , DIK_SYSRQ   ,  0}, // VK_PRINT is not processed because it's assigned as Screen Capture
    };
 #endif
 #elif WINDOWS_NEW
@@ -248,7 +248,7 @@ void KeyboardClass::del()
    rid[0].usUsagePage=0x01;
    rid[0].usUsage    =0x06; // keyboard
    rid[0].dwFlags    =RIDEV_REMOVE;
-   rid[0].hwndTarget =App.Hwnd();
+   rid[0].hwndTarget =App.window();
 
    RegisterRawInputDevices(rid, Elms(rid), SIZE(RAWINPUTDEVICE));
 #elif KB_DIRECT_INPUT
@@ -266,7 +266,7 @@ void KeyboardClass::create()
    rid[0].usUsagePage=0x01;
    rid[0].usUsage    =0x06; // keyboard
    rid[0].dwFlags    =((KEYBOARD_MODE==BACKGROUND) ? RIDEV_INPUTSINK : 0)|(_exclusive ? RIDEV_NOHOTKEYS : 0);
-   rid[0].hwndTarget =App.Hwnd();
+   rid[0].hwndTarget =App.window();
 
    RegisterRawInputDevices(rid, Elms(rid), SIZE(RAWINPUTDEVICE));
 #elif KB_DIRECT_INPUT
@@ -277,7 +277,7 @@ void KeyboardClass::create()
    if(OK(InputDevices.DI->CreateDevice(GUID_SysKeyboard, &_device, null)))
    {
       if(OK(_device->SetDataFormat(&c_dfDIKeyboard)))
-      if(OK(_device->SetCooperativeLevel(App.Hwnd(), (_exclusive ? DISCL_NOWINKEY : 0)|DISCL_NONEXCLUSIVE|((KEYBOARD_MODE==FOREGROUND) ? DISCL_FOREGROUND : DISCL_BACKGROUND))))
+      if(OK(_device->SetCooperativeLevel(App.window(), (_exclusive ? DISCL_NOWINKEY : 0)|DISCL_NONEXCLUSIVE|((KEYBOARD_MODE==FOREGROUND) ? DISCL_FOREGROUND : DISCL_BACKGROUND))))
       {
          DIPROPDWORD dipdw;
          dipdw.diph.dwSize      =SIZE(DIPROPDWORD );
@@ -961,11 +961,11 @@ void KeyboardClass::setLayout()
    REPAO(_qwerty)=KB_KEY(i); REPA(ScanCodeToKey)if(KB_KEY qwerty_key=ScanCodeToQwertyKey[i])if(KB_KEY key=ScanCodeToKey[i])_qwerty[qwerty_key]=key;
 #endif
 }
-void KeyboardClass::swappedCtrlCmd(Bool swapped) {T._swapped_ctrl_cmd=swapped;}
+void KeyboardClass::swapCtrlCmd(Bool swapped) {T._swap_ctrl_cmd=swapped;}
 /******************************************************************************/
 #if WINDOWS_OLD
-Bool KeyboardClass::imm      (           )C {                     HIMC imc=ImmGetContext      (App.Hwnd()); if(imc)ImmReleaseContext(App.Hwnd(), imc); return imc!=null;}
-void KeyboardClass::imm      (Bool enable)  {if(_imm!=enable){_imm=enable; ImmAssociateContext(App.Hwnd(), enable ? _imc : null);}}
+Bool KeyboardClass::imm      (           )C {                     HIMC imc=ImmGetContext      (App.window()); if(imc)ImmReleaseContext(App.window(), imc); return imc!=null;}
+void KeyboardClass::imm      (Bool enable)  {if(_imm!=enable){_imm=enable; ImmAssociateContext(App.window(), enable ? _imc : null);}}
 Bool KeyboardClass::immNative(           )C {return ImmGetOpenStatus(_imc)!=0;}
 void KeyboardClass::immNative(Bool native)
 {
@@ -1126,7 +1126,7 @@ void KeyboardClass::update()
          {
           C DIK &key=Keys[i]; if(key.dik==dik)
             {
-               if(d.dwData&0x80)push(key.key);else release(key.key);
+               if(d.dwData&0x80)push(key.key, key.scan_code);else release(key.key);
                break;
             }
          }
@@ -1141,29 +1141,31 @@ void KeyboardClass::update()
          REPA(Keys) // process only special keys
          {
           C DIK &key=Keys[i];
-            Bool on =(dik[key.dik] || ((key.key==KB_LCTRL) ? _special&1 : GetKeyState(key.key)<0)); // use a combination of both DirectInput and WinApi, because DirectInput loses state when changing exclusive mode (calling 'Unacquire' and 'Acquire'), however we can't use 'GetKeyState' for control (because it can be triggered by AltGr and may be disabled by Ctrl+Shift system shortcut)
+            Bool on =(dik[key.dik] || ((key.key==KB_LCTRL) ? _special&1 : GetKeyState(key.key)<0)); // use a combination of both DirectInput and WinApi, because DirectInput loses state when changing exclusive mode (calling 'Unacquire' and 'Acquire'), however we can't use 'GetKeyState' for LeftControl (because it can be triggered by AltGr and may be disabled by Ctrl+Shift system shortcut)
             if(  on!=FlagTest(_button[key.key], BS_ON))
             {
-               if(on)push(key.key);else release(key.key);
+               if(on)push(key.key, key.scan_code);else release(key.key);
             }
          }
       }else // if most recent state wasn't checked
-      if(_special&(2|4)) // if we're forcing Shifts, then check if any got released
+      if(_special) // if we're forcing keys, then check if any got released
       {
-         if((_special&2) && GetKeyState(VK_LSHIFT)>=0){release(KB_LSHIFT); FlagDisable(_special, 2);}
-         if((_special&4) && GetKeyState(VK_RSHIFT)>=0){release(KB_RSHIFT); FlagDisable(_special, 4);}
+         if((_special&  1) && GetKeyState(VK_LCONTROL)>=0){release(KB_LCTRL ); FlagDisable(_special,   1);}
+         if((_special&  2) && GetKeyState(VK_RCONTROL)>=0){release(KB_RCTRL ); FlagDisable(_special,   2);}
+         if((_special&  4) && GetKeyState(VK_LSHIFT  )>=0){release(KB_LSHIFT); FlagDisable(_special,   4);}
+         if((_special&  8) && GetKeyState(VK_RSHIFT  )>=0){release(KB_RSHIFT); FlagDisable(_special,   8);}
+         if((_special& 16) && GetKeyState(VK_LMENU   )>=0){release(KB_LALT  ); FlagDisable(_special,  16);}
+         if((_special& 32) && GetKeyState(VK_RMENU   )>=0){release(KB_RALT  ); FlagDisable(_special,  32);}
+         if((_special& 64) && GetKeyState(VK_LWIN    )>=0){release(KB_LWIN  ); FlagDisable(_special,  64);}
+         if((_special&128) && GetKeyState(VK_RWIN    )>=0){release(KB_RWIN  ); FlagDisable(_special, 128);}
       }
    }
 #endif
 #elif WINDOWS_NEW
    if(App.active()) // need to manually check for certain keys
    {
-      // Shifts may get stuck when 2 pressed at the same time
-      if(Kb.b(KB_LSHIFT) && !FlagTest((Int)App.Hwnd()->GetKeyState(Windows::System::VirtualKey:: LeftShift), (Int)Windows::UI::Core::CoreVirtualKeyStates::Down))Kb.release(KB_LSHIFT);
-      if(Kb.b(KB_RSHIFT) && !FlagTest((Int)App.Hwnd()->GetKeyState(Windows::System::VirtualKey::RightShift), (Int)Windows::UI::Core::CoreVirtualKeyStates::Down))Kb.release(KB_RSHIFT);
-
       // not detected through system events
-      Bool print=FlagTest((Int)App.Hwnd()->GetKeyState(Windows::System::VirtualKey::Snapshot), (Int)Windows::UI::Core::CoreVirtualKeyStates::Down);
+      Bool print=FlagTest((Int)App.window()->GetKeyState(Windows::System::VirtualKey::Snapshot), (Int)Windows::UI::Core::CoreVirtualKeyStates::Down);
       if(  print!=b(KB_PRINT))
       {
          if(print)push(KB_PRINT, 0);else release(KB_PRINT);
@@ -1266,8 +1268,11 @@ void KeyboardClass::eat(Char  c)
 }
 void KeyboardClass::eat(KB_KEY key)
 {
-   FlagDisable(_button[key&0xFF], BS_NOT_ON); // always disable even if "T.k!=key"
-   if(T.k(key) && key)k.clear();
+   if(InRange(key, _button))
+   {
+      FlagDisable(_button[key], BS_NOT_ON); // always disable even if "T.k!=key"
+      if(T.k(key) && key)k.clear();
+   }
 }
 void KeyboardClass::eatKey()
 {
@@ -1320,9 +1325,14 @@ void KeyboardClass::acquire(Bool on)
          {
            _device->Acquire();
             // upon activating the app, we need to check if some keys are pressed, for some reason 'GetDeviceState' will not return it until the next frame
-            if(GetKeyState(VK_LCONTROL)<0 && GetKeyState(VK_RMENU)>=0){push(KB_LCTRL ); _special|=1;} // we can enable LCTRL only if we know the right alt isn't pressed, because AltGr (Polish, Norwegian, .. keyboards) generates a false LCTRL
-            if(GetKeyState(VK_LSHIFT  )<0                            ){push(KB_LSHIFT); _special|=2;}
-            if(GetKeyState(VK_RSHIFT  )<0                            ){push(KB_RSHIFT); _special|=4;}
+            if(GetKeyState(VK_LCONTROL)<0 && GetKeyState(VK_RMENU)>=0){push(KB_LCTRL , 29); _special|=  1;} // we can enable LCTRL only if we know the right alt isn't pressed, because AltGr (Polish, Norwegian, .. keyboards) generates a false LCTRL
+            if(GetKeyState(VK_RCONTROL)<0                            ){push(KB_RCTRL , 29); _special|=  2;}
+            if(GetKeyState(VK_LSHIFT  )<0                            ){push(KB_LSHIFT, 42); _special|=  4;}
+            if(GetKeyState(VK_RSHIFT  )<0                            ){push(KB_RSHIFT, 54); _special|=  8;}
+            if(GetKeyState(VK_LMENU   )<0                            ){push(KB_LALT  , 56); _special|= 16;}
+            if(GetKeyState(VK_RMENU   )<0                            ){push(KB_RALT  , 56); _special|= 32;}
+            if(GetKeyState(VK_LWIN    )<0                            ){push(KB_LWIN  , 91); _special|= 64;}
+            if(GetKeyState(VK_RWIN    )<0                            ){push(KB_RWIN  , 92); _special|=128;}
          }else _device->Unacquire();
       }else
       {
@@ -1330,6 +1340,18 @@ void KeyboardClass::acquire(Bool on)
          DIDEVICEOBJECTDATA didod[BUF_KEYS];
          DWORD elms=BUF_KEYS, ret=_device->GetDeviceData(SIZE(DIDEVICEOBJECTDATA), didod, &elms, 0);
       }
+   }
+#elif KB_RAW_INPUT
+   if(KEYBOARD_MODE==FOREGROUND && on)
+   { // upon activating the app, we need to check if some keys are pressed, for some reason they will not be reported until the next frame
+      if(GetKeyState(VK_LCONTROL)<0 && GetKeyState(VK_RMENU)>=0)push(KB_LCTRL , 29); // we can enable LCTRL only if we know the right alt isn't pressed, because AltGr (Polish, Norwegian, .. keyboards) generates a false LCTRL
+      if(GetKeyState(VK_RCONTROL)<0                            )push(KB_RCTRL , 29);
+      if(GetKeyState(VK_LSHIFT  )<0                            )push(KB_LSHIFT, 42);
+      if(GetKeyState(VK_RSHIFT  )<0                            )push(KB_RSHIFT, 54);
+      if(GetKeyState(VK_LMENU   )<0                            )push(KB_LALT  , 56);
+      if(GetKeyState(VK_RMENU   )<0                            )push(KB_RALT  , 56);
+      if(GetKeyState(VK_LWIN    )<0                            )push(KB_LWIN  , 91);
+      if(GetKeyState(VK_RWIN    )<0                            )push(KB_RWIN  , 92);
    }
 #endif
 #endif
@@ -1344,14 +1366,14 @@ void KeyboardClass::exclusive(Bool on)
    {
      _exclusive=on; // set this first because it affects 'KEYBOARD_MODE'
    #if KB_RAW_INPUT
-      if(App.hwnd())
+      if(App.window())
       {
          RAWINPUTDEVICE rid[1];
 
          rid[0].usUsagePage=0x01;
          rid[0].usUsage    =0x06; // keyboard
          rid[0].dwFlags    =((KEYBOARD_MODE==BACKGROUND) ? RIDEV_INPUTSINK : 0)|(_exclusive ? RIDEV_NOHOTKEYS : 0);
-         rid[0].hwndTarget =App.Hwnd();
+         rid[0].hwndTarget =App.window();
 
          RegisterRawInputDevices(rid, Elms(rid), SIZE(RAWINPUTDEVICE));
       }
@@ -1359,12 +1381,17 @@ void KeyboardClass::exclusive(Bool on)
       if(_device)
       {
         _device->Unacquire(); // this also resets the 'GetDeviceState' of any currently pressed keys, they need to be pushed again to activate their state
-        _device->SetCooperativeLevel(App.Hwnd(), (_exclusive ? DISCL_NOWINKEY : 0)|DISCL_NONEXCLUSIVE|((KEYBOARD_MODE==FOREGROUND) ? DISCL_FOREGROUND : DISCL_BACKGROUND));
+        _device->SetCooperativeLevel(App.window(), (_exclusive ? DISCL_NOWINKEY : 0)|DISCL_NONEXCLUSIVE|((KEYBOARD_MODE==FOREGROUND) ? DISCL_FOREGROUND : DISCL_BACKGROUND));
          if(KEYBOARD_MODE==BACKGROUND || App.active())_device->Acquire(); // in background mode we always want the keyboard to be acquired, in foreground only if it's active
          // because calling 'Unacquire' resets the state, we need to remember if some keys are pressed, other keys don't have to be remembered because they are processed using WM_*KEY*
         _special=1*Kb.b(KB_LCTRL )
-                |2*Kb.b(KB_LSHIFT)
-                |4*Kb.b(KB_RSHIFT);
+              |  2*Kb.b(KB_RCTRL )
+              |  4*Kb.b(KB_LSHIFT)
+              |  8*Kb.b(KB_RSHIFT)
+              | 16*Kb.b(KB_LALT  )
+              | 32*Kb.b(KB_RALT  )
+              | 64*Kb.b(KB_LWIN  )
+              |128*Kb.b(KB_RWIN  );
       }
    #endif
    }
@@ -1465,7 +1492,7 @@ Bool ScreenKeyboard::Set(Int cur, Int sel)
 }
 void KeyboardClass::setVisible()
 {
-   Bool visible=(Gui.kb() && (Gui.kb()->type()==GO_TEXTLINE || Gui.kb()->type()==GO_TEXTBOX));
+   Bool visible=(Gui.kb() && (Gui.kb()->isTextLine() || Gui.kb()->isTextBox()));
 #if WINDOWS_OLD
    imm(visible); // here ignore 'hwAvailable'
 #endif

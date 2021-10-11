@@ -13,24 +13,24 @@ BUFFER_END
 #include "!Set Prec Default.h"
 /******************************************************************************/
 void Particle_VS(VtxInput vtx,
-             out Vec4  outVtx :POSITION ,
-             out VecH4 outCol :COLOR    ,
-             out Vec2  outTex :TEXCOORD0
+             out Vec4  vpos:POSITION,
+             out VecH4 col :COLOR,
+             out Vec2  uv  :UV
           #if SOFT
-           , out Vec2  outZS  :TEXCOORD1
+           , out Vec2  depth_size:DEPTH_SIZE
           #endif
           #if ANIM==ANIM_SMOOTH
-           , out Vec   outAnim:TEXCOORD2
+           , out Vec   anim:UV1
            #endif
                 )
 {
-   outTex=vtx.tex();
-   outCol=(PALETTE ? vtx.colorF() : vtx.colorFast()); // use linear color for palette
+   uv =vtx.uv();
+   col=(PALETTE ? vtx.colorF() : vtx.colorFast()); // use linear color for palette
 
    Half  size  =vtx.size(),
          angle =vtx._tan.w;
    Vec   pos   =TransformPos(vtx.pos());
-   VecH2 offset=VecH2(outTex)*VecH2(2, -2)+VecH2(-1, 1);
+   VecH2 offset=VecH2(uv)*VecH2(2, -2)+VecH2(-1, 1);
    VecH2 cos_sin; CosSin(cos_sin.x, cos_sin.y, angle); offset=Rotate(offset, cos_sin);
 
    if(MOTION_STRETCH)
@@ -49,8 +49,8 @@ void Particle_VS(VtxInput vtx,
          offset=VecH2(offset.x*(x.x+1) + offset.y*y.x, offset.x*x.y + offset.y*(y.y+1));
          if(MOTION_AFFECTS_ALPHA)
          {
-            if(PALETTE)outCol  /=1+len; // in RM_PALETTE each component
-            else       outCol.a/=1+len; // in RM_BLEND   only alpha
+            if(PALETTE)col  /=1+len; // in RM_PALETTE each component
+            else       col.a/=1+len; // in RM_BLEND   only alpha
          }
       }
    }
@@ -58,13 +58,13 @@ void Particle_VS(VtxInput vtx,
 
    // sky
    Flt d=Length(pos); Half opacity=Sat(d*SkyFracMulAdd.x + SkyFracMulAdd.y);
-   if(PALETTE)outCol  *=opacity; // in RM_PALETTE each component
-   else       outCol.a*=opacity; // in RM_BLEND   only alpha
+   if(PALETTE)col  *=opacity; // in RM_PALETTE each component
+   else       col.a*=opacity; // in RM_BLEND   only alpha
 
    #if SOFT
    {
-      outZS.x=pos.z;
-      outZS.y=size;
+      depth_size.x=pos.z;
+      depth_size.y=size;
 
       if(pos.z > -size)
       {
@@ -79,78 +79,78 @@ void Particle_VS(VtxInput vtx,
    #endif
    if(ANIM!=ANIM_NONE)
    {
-      Flt frame=vtx.tex1().x;
+      Flt frame=vtx.uv1().x;
    #if 0 // integer version
       UInt frames=UInt(Round(ParticleFrames.x*ParticleFrames.y));
       UInt f     =UInt(Trunc(frame))%frames;
       #if ANIM==ANIM_SMOOTH // frame blending
       {
          UInt f1=(f+1)%frames;
-         outAnim.xy =outTex;
-         outAnim.z  =Frac(frame);
-         outAnim.x +=f1%UInt(Round(ParticleFrames.x));
-         outAnim.y +=f1/UInt(Round(ParticleFrames.x));
-         outAnim.xy/=              ParticleFrames    ;
+         anim.xy =uv;
+         anim.z  =Frac(frame);
+         anim.x +=f1%UInt(Round(ParticleFrames.x));
+         anim.y +=f1/UInt(Round(ParticleFrames.x));
+         anim.xy/=              ParticleFrames    ;
       }
       #endif
-      outTex.x+=f%UInt(Round(ParticleFrames.x));
-      outTex.y+=f/UInt(Round(ParticleFrames.x));
-      outTex  /=             ParticleFrames    ;
+      uv.x+=f%UInt(Round(ParticleFrames.x));
+      uv.y+=f/UInt(Round(ParticleFrames.x));
+      uv  /=             ParticleFrames    ;
    #else // float version
       Flt frames=ParticleFrames.x*ParticleFrames.y; frame=Frac(frame/frames)*frames; // frame=[0..frames)
       Flt f; frame=modf(frame, f);
       #if ANIM==ANIM_SMOOTH // frame blending
       {
          Flt f1=f+1; if(f1+0.5>=frames)f1=0; // f1=(f+1)%frames;
-                outAnim.xy =outTex;
-                outAnim.z  =frame ; // frame step [0..1)
-         Flt y; outAnim.x +=ParticleFrames.x*modf(f1/ParticleFrames.x, y); // outAnim.x+=f1%Round(ParticleFrames.x);
-                outAnim.y +=y                                            ; // outAnim.y+=f1/Round(ParticleFrames.x);
-                outAnim.xy/=ParticleFrames                               ;
+                anim.xy =uv;
+                anim.z  =frame ; // frame step [0..1)
+         Flt y; anim.x +=ParticleFrames.x*modf(f1/ParticleFrames.x, y); // anim.x+=f1%Round(ParticleFrames.x);
+                anim.y +=y                                            ; // anim.y+=f1/Round(ParticleFrames.x);
+                anim.xy/=ParticleFrames                               ;
       }
       #endif
-      Flt y; outTex.x+=ParticleFrames.x*modf(f/ParticleFrames.x, y); // outTex.x+=f%Round(ParticleFrames.x);
-             outTex.y+=y                                           ; // outTex.y+=f/Round(ParticleFrames.x);
-             outTex  /=ParticleFrames                              ;
+      Flt y; uv.x+=ParticleFrames.x*modf(f/ParticleFrames.x, y); // uv.x+=f%Round(ParticleFrames.x);
+             uv.y+=y                                           ; // uv.y+=f/Round(ParticleFrames.x);
+             uv  /=ParticleFrames                              ;
    #endif
    }
 #if GL // needed for iOS PVRTC Pow2 #ParticleImgPart
-   outTex.xy*=ImgSize.xy;
+   uv.xy*=ImgSize.xy;
 #endif
-   outVtx=Project(pos);
+   vpos=Project(pos);
 }
 /******************************************************************************/
 VecH4 Particle_PS(PIXEL,
-                  VecH4 inCol :COLOR    ,
-                  Vec2  inTex :TEXCOORD0
+                  VecH4 col:COLOR,
+                  Vec2  uv :UV
                #if SOFT
-                , Vec2  inZS  :TEXCOORD1
+                , Vec2 depth_size:DEPTH_SIZE
                #endif
                #if ANIM==ANIM_SMOOTH
-                , Vec   inAnim:TEXCOORD2
+                , Vec anim:UV1
                #endif
                #if !PALETTE
-                , out Half outAlpha:TARGET2 // #RTOutput.Blend
+                , out Half alpha:TARGET1 // #RTOutput.Blend
                #endif
                  ):TARGET
 {
-   VecH4 tex=Tex(Img, inTex);
+   VecH4 tex=RTex(Img, uv);
    #if ANIM==ANIM_SMOOTH
-      tex=Lerp(tex, Tex(Img, inAnim.xy), inAnim.z);
+      tex=Lerp(tex, RTex(Img, anim.xy), anim.z);
    #endif
    #if SOFT
    {
-      Flt z0    =inZS.x-tex.a*inZS.y,
-          z1    =inZS.x+tex.a*inZS.y;
-          tex.a*=Sat((TexDepthPoint(PixelToUV(pixel))-z0)/inZS.y); // fade out at occluder
-          tex.a*=Sat(z1/(z1-z0+HALF_MIN));                         // smooth visibility fraction when particle near (or behind) camera, NaN
+      Flt z0    =depth_size.x-tex.a*depth_size.y,
+          z1    =depth_size.x+tex.a*depth_size.y;
+          tex.a*=Sat((TexDepthPix(pixel.xy)-z0)/depth_size.y); // fade out at occluder
+          tex.a*=Sat(z1/(z1-z0+HALF_MIN));                     // smooth visibility fraction when particle near (or behind) camera, NaN
    }
    #endif
-   if(PALETTE)inCol*=tex.a;
-   else       inCol*=tex  ;
+   if(PALETTE)col*=tex.a;
+   else       col*=tex  ;
 #if !PALETTE
-   outAlpha=inCol.a;
+   alpha=col.a;
 #endif
-   return inCol;
+   return col;
 }
 /******************************************************************************/

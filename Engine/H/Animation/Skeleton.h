@@ -271,11 +271,12 @@ struct  AnimatedSkeletonBone // Bone of an Animated Skeleton
             scale; // scale    factor
 
    // the following parameters are valid only after calling 'updateMatrix'
- C MatrixM& matrix()C {return _matrix;} // this is the transformation matrix, which transforms source bone 'SkelBone' and source 'Mesh' into their final positions (source_data * matrix = final_world_space_position), it's valid after animation and matrix updates (using 'updateMatrix' method)
+ C MatrixM& matrix    ()C {return _matrix     ;} // this is the transformation matrix, which transforms source bone 'SkelBone' and source 'Mesh' into their final positions (source_data * matrix = final_world_space_position), it's valid after animation and matrix updates (using 'updateMatrix' method)
+ C MatrixM& matrixPrev()C {return _matrix_prev;} // get matrix from previous frame
 
    // operations
    void clear(         ); //           clear 'orn rot pos scale'
-   void clear(Flt blend); // partially clear 'orn rot pos scale', this method is similar to 'clear()' however it does not perform full reset of the bone. Instead, smooth reset is applied depending on 'blend' value (0=no reset, 1=full reset)
+   void clear(Flt blend); // partially clear 'orn rot pos scale', this method is similar to 'clear()' however it does not perform full reset of the bone. Instead, smooth reset is applied depending on 'blend' value (0..1, 0=no reset, 1=full reset)
 
    void forceMatrix(C MatrixM &matrix); // force usage of custom transformation 'matrix' for this bone, if used then the bone will ignore its transformations from the animations
 
@@ -341,7 +342,7 @@ struct  AnimatedSkeleton // Animated Skeleton - used for animating meshes
 
       // prepare
       AnimatedSkeleton& clear(         ); //           clear 'AnimSkelBone' bones 'orn rot pos scale', call this method once before applying all animations to prepare for animating
-      AnimatedSkeleton& clear(Flt blend); // partially clear 'AnimSkelBone' bones 'orn rot pos scale',      this method is similar to 'clear()' however it does not perform full reset of the bones. Instead, smooth reset is applied depending on 'blend' value (0=no reset, 1=full reset)
+      AnimatedSkeleton& clear(Flt blend); // partially clear 'AnimSkelBone' bones 'orn rot pos scale',      this method is similar to 'clear()' however it does not perform full reset of the bones. Instead, smooth reset is applied depending on 'blend' value (0..1, 0=no reset, 1=full reset)
 
       // modify using animations
       AnimatedSkeleton& animate(C SkelAnim &skel_anim, Flt time, Flt blend=1); // modify 'AnimSkelBone' bones 'orn rot pos scale' according to animation object      , 'time'=time position of the animation, 'blend'=blending factor of animation (0..1)
@@ -400,8 +401,8 @@ private:
  C Skeleton *_skeleton;
    struct Instance
    {
-      Int solid, blend, shadow;
-      Instance() {solid=blend=shadow=-1;}
+      Int opaque, blend, shadow;
+      Instance() {opaque=blend=shadow=-1;}
    }mutable _instance;
 };
 /******************************************************************************/

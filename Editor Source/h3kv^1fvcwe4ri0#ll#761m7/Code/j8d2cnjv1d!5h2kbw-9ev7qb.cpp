@@ -29,7 +29,7 @@ class ImportTerrainClass : ClosableWindow
       }
       virtual void draw(C GuiPC &gpc)override
       {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             D.clip(gpc.clip);
             Rect rect=T.rect()+gpc.offset;

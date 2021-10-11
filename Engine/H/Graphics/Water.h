@@ -2,7 +2,7 @@
 struct WaterMtrlParams // Water Material Parameters
 {
    Vec color             ; // color Linear Gamma          , (0,0,0)..(1,1,1), default=(1,1,1)
-   Flt smooth            , // smoothness                  ,       0..1      , default=1
+   Flt rough             , // roughness                   ,       0..1      , default=0
        reflect           , // reflectivity                ,       0..1      , default=0.02
        normal            , // normal map sharpness        ,       0..1      , default=1
        wave_scale        , // vertical wave scale         ,       0..1      , default=0 (0 is the fastest)
@@ -16,14 +16,14 @@ struct WaterMtrlParams // Water Material Parameters
        refract           , // refraction power            ,       0..1      , default=0.10 (0 is the fastest)
        refract_reflection; // refraction of the reflection,       0..1      , default=0.06
 
- C Vec& colorL()C {return color;}   void colorL(C Vec &color_l) {T.color=color_l;} // get/set Linear Gamma color
-   Vec  colorS()C;                  void colorS(C Vec &color_s);                   // get/set sRGB   Gamma color
+ C Vec& colorL()C {return   color;}   void colorL(C Vec &color_l) {T.color= color_l;} // get/set Linear Gamma color
+   Vec  colorS()C;                    void colorS(C Vec &color_s);                    // get/set sRGB   Gamma color
+   Flt  smooth()C {return 1-rough;}   void smooth(  Flt  smooth ) {T.rough=1-smooth;} // get/set smoothness
 };
 struct WaterMtrl : WaterMtrlParams // Water Material
 {
-   Vec color_underwater0 , // color when viewed underwater on surface Linear Gamma, (0,0,0)..(1,1,1)
-       color_underwater1 ; // color when viewed underwater deep       Linear Gamma, (0,0,0)..(1,1,1)
-   Flt refract_underwater; // refraction when viewed underwater                   ,       0..1      , default=0.01 (0 is the fastest)
+   Vec color_underwater0, // color when viewed underwater on surface Linear Gamma, (0,0,0)..(1,1,1)
+       color_underwater1; // color when viewed underwater deep       Linear Gamma, (0,0,0)..(1,1,1)
 
  C Vec& colorUnderwater0L()C {return color_underwater0;}   void colorUnderwater0L(C Vec &color_l) {T.color_underwater0=color_l;} // get/set Linear Gamma color
    Vec  colorUnderwater0S()C;                              void colorUnderwater0S(C Vec &color_s);                               // get/set sRGB   Gamma color, default=(0.26, 0.35, 0.42)
@@ -74,7 +74,7 @@ struct WaterClass : WaterMtrl // Main water control
    Byte   reflection_resolution; // reflection resolution        ,    0..4   , default=1                      , the bigger value the worse quality but faster rendering
    PlaneM plane                ; // water plane                  ,           , default=(pos(0,0,0), normal(0,1,0))
 
-   WaterClass& reflectionRenderer(RENDER_TYPE type);   RENDER_TYPE reflectionRenderer()C {return _reflect_renderer;} // set/get Renderer used for rendering the reflaction , default=RT_DEFERRED (RT_FORWARD for Mobile)
+   WaterClass& reflectionRenderer(RENDER_TYPE type);   RENDER_TYPE reflectionRenderer()C {return _reflect_renderer;} // set/get Renderer used for rendering the reflaction , default=RT_DEFERRED
    WaterClass& max1Light         (Bool          on);   Bool        max1Light         ()C {return _max_1_light     ;} // set/get if use only up to 1 light for water surface, default=true (this greatly increases water rendering performance, however allows only 1 directional light affecting water surface), this affects only RT_DEFERRED renderer, all other renderers are always limited to only 1 directional light
 
    WaterClass& update(C Vec2 &vel); // update wave movement, 'vel'=velocity
@@ -107,13 +107,13 @@ private:
 #endif
    Bool         _max_1_light, _draw_plane_surface, _use_secondary_rt, _began, _swapped_ds;
    Byte         _mode, _shader_shadow, _shader_soft, _shader_reflect_env, _shader_reflect_mirror;
+   RENDER_TYPE  _reflect_renderer;
    Flt          _under_step, _offset_nrm, _offset_bump;
    Vec2         _offset_col, _y_mul_add;
    Quad         _quad;
    PlaneM       _under_plane;
    MeshRender   _mshr;
    WaterMtrlPtr _under_mtrl;
-   RENDER_TYPE  _reflect_renderer;
 
    WaterClass();
 }extern
@@ -159,5 +159,8 @@ private:
    WaterMtrlPtr _material;
 };
 /******************************************************************************/
-UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &reflect, C ImageSource &glow, Bool resize_to_pow2=true, Bool flip_normal_y=false); // create 'base_0', 'base_1' and 'base_2' base material textures from given images, textures will be created as IMAGE_R8G8B8A8_SRGB, IMAGE_R8G8_SIGN IMAGE_SOFT, 'flip_normal_y'=if flip normal map Y channel, returns bit combination of BASE_TEX enums of what the base textures have
+TEX_FLAG  CreateWaterBaseTextures(  Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &reflect, C ImageSource &glow, Bool resize_to_pow2=true, Bool flip_normal_y=false, Bool smooth_is_rough=false); // create 'base_0', 'base_1' and 'base_2' base material textures from given images, textures will be created as IMAGE_R8G8B8A8_SRGB, IMAGE_R8G8_SIGN IMAGE_SOFT, 'flip_normal_y'=if flip normal map Y channel, 'smooth_is_rough'=if smoothness map is actually roughness map, returns bit combination of used textures
+TEX_FLAG ExtractWaterBase0Texture(C Image &base_0, Image *color ); // returns bit combination of used textures
+TEX_FLAG ExtractWaterBase1Texture(C Image &base_1, Image *normal); // returns bit combination of used textures
+TEX_FLAG ExtractWaterBase2Texture(C Image &base_2, Image *bump  ); // returns bit combination of used textures
 /******************************************************************************/

@@ -18,6 +18,8 @@
 #define TouchDoubleClickTime 0.33f // amount of time to consider Touch                        press a double click
 #if EE_PRIVATE
 #define DragTime 0.15f
+#define FirstRepeatPressTime 0.21f // amount of time wait until triggering a first repeat press
+#define      RepeatPressTime 0.08f // amount of time wait until triggering a       repeat press
 #endif
 /******************************************************************************/
 // ACCELEROMETER, GYROSCOPE, LOCATION
@@ -97,7 +99,7 @@ private:
    Rect               _left_eye_tex_rect;
    Matrix             _matrix, _left, _right;
    U64                _adapter_id;
-   ImageRT            _ui_ds;
+   ImageRTC           _ui_ds;
    ImageRTPtr         _render, _ui;
    VirtualRealityApi *_api;
 
@@ -114,8 +116,8 @@ private:
    Bool     createUIImage ();
    Bool createRenderImage ();
 
-   ImageRT* getRender();
-   ImageRT* getUI    ();
+   ImageRTC* getRender();
+   ImageRTC* getUI    ();
 #endif
    VirtualReality();
    NO_COPY_CONSTRUCTOR(VirtualReality);
@@ -139,8 +141,8 @@ struct VirtualRealityApi
    virtual Bool     createUIImage () {return false;}
    virtual Bool createRenderImage () {return false;}
 
-   virtual ImageRT* getNewRender() {return null;}
-   virtual ImageRT* getNewUI    () {return null;}
+   virtual ImageRTC* getNewRender() {return null;}
+   virtual ImageRTC* getNewUI    () {return null;}
 
    virtual ~VirtualRealityApi() {shut();}
 }extern

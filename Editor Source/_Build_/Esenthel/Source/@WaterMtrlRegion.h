@@ -31,6 +31,8 @@ class WaterMtrlRegion : MaterialRegion
    static void NrmScale (  WaterMtrlRegion &mr, C Str &t);
    static Str  FNY      (C WaterMtrlRegion &mr          );
    static void FNY      (  WaterMtrlRegion &mr, C Str &t);
+   static Str  SmtIsRgh (C WaterMtrlRegion &mr          );
+   static void SmtIsRgh (  WaterMtrlRegion &mr, C Str &t);
    static Str  WaveScale(C WaterMtrlRegion &mr          );
    static void WaveScale(  WaterMtrlRegion &mr, C Str &t);
 
@@ -56,17 +58,14 @@ class WaterMtrlRegion : MaterialRegion
    static Str  ColorUnderwater1(C WaterMtrlRegion &mr          );
    static void ColorUnderwater1(  WaterMtrlRegion &mr, C Str &t);
 
-   static Str  RefractUnderwater(C WaterMtrlRegion &mr          );
-   static void RefractUnderwater(  WaterMtrlRegion &mr, C Str &t);
-
-   // #WaterMaterialTextureLayout
+   // #MaterialTextureLayoutWater
    virtual   EditMaterial& getEditMtrl()override; 
    virtual C ImagePtr    & getBase0   ()override; 
    virtual C ImagePtr    & getBase1   ()override; 
    virtual C ImagePtr    & getBase2   ()override; 
- //virtual C ImagePtr    & getDetail  ()override  {return game->detail_map  ;}
- //virtual C ImagePtr    & getMacro   ()override  {return game-> macro_map  ;}
- //virtual C ImagePtr    & getLight   ()override  {return game-> light_map  ;}
+ //virtual C ImagePtr    & getDetail  ()override  {return game->  detail_map  ;}
+ //virtual C ImagePtr    & getMacro   ()override  {return game->   macro_map  ;}
+ //virtual C ImagePtr    & getEmissive()override  {return game->emissive_map  ;}
    virtual   bool          water      ()C override;
 
    void create();
@@ -83,10 +82,10 @@ class WaterMtrlRegion : MaterialRegion
    virtual void resizeBase1(C VecI2 &size, bool relative=false)override;
    virtual void resizeBase2(C VecI2 &size, bool relative=false)override;
 
-   virtual void rebuildBase(uint old_base_tex, bool changed_flip_normal_y=false, bool adjust_params=true, bool always=false)override;
+   virtual void rebuildBase(TEX_FLAG old_textures, uint changed_in_mtrl=0, bool adjust_params=true, bool always=false)override;
    virtual void rebuildDetail()override;
    virtual void rebuildMacro()override;
-   virtual void rebuildLight(bool old_light_map, bool adjust_params=true)override;
+   virtual void rebuildEmissive(TEX_FLAG old_textures, bool adjust_params=true)override;
 
    virtual void elmChanged(C UID &mtrl_id)override;
 

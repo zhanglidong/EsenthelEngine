@@ -40,11 +40,22 @@ Edit::BUILD_MODE     PublishBuildMode=Edit::BUILD_BUILD;
 PublishResult       PublishRes;
 WindowIO            PublishEsProjIO;
 /******************************************************************************/
-bool PublishDataNeeded(Edit::EXE_TYPE exe, Edit::BUILD_MODE mode) {return exe==Edit::EXE_UWP || exe==Edit::EXE_APK || exe==Edit::EXE_IOS || exe==Edit::EXE_NS;}
+bool PublishDataNeedOptimized() {return false /*PublishBuildMode==Edit.BUILD_PUBLISH*/;} // never optimize automatically, because for large games with many GB that would require potentially rewriting all data, if user wants to manually optimize, he would have to delete the publish project before publishing
+bool PublishDataNeeded(Edit::EXE_TYPE exe) {return exe==Edit::EXE_UWP || exe==Edit::EXE_APK || exe==Edit::EXE_IOS || exe==Edit::EXE_NS;}
 bool PublishDataReady() // if desired project data is already availalble
 {
-   return !PublishProjectDataPath.is() // if we don't want to create project data pak (no file)
-        || FileInfoSystem(PublishProjectDataPath).modify_time_utc>CodeEdit.appEmbedSettingsTime() && PakEqual(PublishFiles, PublishProjectDataPath, Publish.cipher());
+   if(!PublishProjectDataPath.is())return true; // if we don't want to create project data pak (no file)
+   if(CompareFile(FileInfoSystem(PublishProjectDataPath).modify_time_utc, CodeEdit.appEmbedSettingsTime())>0) // if existing Pak time is newer than settings (compression/encryption)
+   {
+      bool need_optimized=PublishDataNeedOptimized(); // test if optimized 
+      Memt<DataRangeAbs> used_file_ranges;
+      Pak pak; if(pak.loadEx(PublishProjectDataPath, Publish.cipher(), 0, null, null, need_optimized ? &used_file_ranges : null)==PAK_LOAD_OK)
+      {
+         if(need_optimized && used_file_ranges.elms()!=1)return false; // needs to be optimized
+         return PakEqual(PublishFiles, pak);
+      }
+   }
+   return false;
 }
 /******************************************************************************/
 void PublishDo()
@@ -87,7 +98,7 @@ bool StartPublish(C Str &exe_name, Edit::EXE_TYPE exe_type, Edit::BUILD_MODE bui
       {
          PublishPath=ProjectsPath+ProjectsPublishPath+GetBase(CodeEdit.appPath(CodeEdit.appName())).tailSlash(true); if(!FDelInside(PublishPath)){Gui.msgBox(S, S+"Can't delete \""+PublishPath+'"'); return false;}
          PublishDataAsPak=CodeEdit.appPublishDataAsPak();
-         if(!FExistSystem(PublishPath) && !FCreateDirs(PublishPath)){Gui.msgBox(S, S+"Can't create \""+PublishPath+'"'); return false;}
+         if(!FCreateDirs(PublishPath)){Gui.msgBox(S, S+"Can't create \""+PublishPath+'"'); return false;}
          if(!CodeEdit.appEmbedEngineData() || CodeEdit.appPublishProjData() || physx_dll) // if want to store something in "Bin" folder
          {
             PublishBinPath=PublishPath+"Bin\\"; if(!FCreateDirs(PublishBinPath)){Gui.msgBox(S, S+"Can't create \""+PublishBinPath+'"'); return false;}
@@ -132,12 +143,12 @@ bool StartPublish(C Str &exe_name, Edit::EXE_TYPE exe_type, Edit::BUILD_MODE bui
          }else
          {
             PublishPath=ProjectsPath+ProjectsPublishPath+GetBase(CodeEdit.appPath(CodeEdit.appName())).tailSlash(true); if(!FDelInside(PublishPath)){Gui.msgBox(S, S+"Can't delete \""+PublishPath+'"'); return false;}
-            if(!FExistSystem(PublishPath) && !FCreateDirs(PublishPath)){Gui.msgBox(S, S+"Can't create \""+PublishPath+'"'); return false;}
+            if(!FCreateDirs(PublishPath)){Gui.msgBox(S, S+"Can't create \""+PublishPath+'"'); return false;}
          }
          PublishDataAsPak=CodeEdit.appPublishDataAsPak();
          if(1/*!CodeEdit.appEmbedEngineData()*/ || CodeEdit.appPublishProjData()) // if want to store something in "Bin" folder, embed engine data should be ignored (we always need engine.pak for web)
          {
-            PublishBinPath=PublishPath/*+"Bin\\"*/; if(!FExistSystem(PublishBinPath) && !FCreateDirs(PublishBinPath)){Gui.msgBox(S, S+"Can't create \""+PublishBinPath+'"'); return false;}
+            PublishBinPath=PublishPath/*+"Bin\\"*/; if(!FCreateDirs(PublishBinPath)){Gui.msgBox(S, S+"Can't create \""+PublishBinPath+'"'); return false;}
             if(CodeEdit.appPublishProjData() && PublishDataAsPak)PublishProjectDataPath=PublishBinPath+"Project.pak";
 
             Memt<Str> files;
@@ -155,7 +166,7 @@ bool StartPublish(C Str &exe_name, Edit::EXE_TYPE exe_type, Edit::BUILD_MODE bui
       {
          PublishPath=ProjectsPath+ProjectsPublishPath+GetBase(CodeEdit.appPath(CodeEdit.appName())).tailSlash(true); if(!FDelInside(PublishPath)){Gui.msgBox(S, S+"Can't delete \""+PublishPath+'"'); return false;}
          PublishDataAsPak=CodeEdit.appPublishDataAsPak();
-         if(!FExistSystem(PublishPath) && !FCreateDirs(PublishPath)){Gui.msgBox(S, S+"Can't create \""+PublishPath+'"'); return false;}
+         if(!FCreateDirs(PublishPath)){Gui.msgBox(S, S+"Can't create \""+PublishPath+'"'); return false;}
          if(!CodeEdit.appEmbedEngineData() || CodeEdit.appPublishProjData()) // if want to store something in "Bin" folder
          {
             PublishBinPath=PublishPath+"Bin\\"; if(!FCreateDirs(PublishBinPath)){Gui.msgBox(S, S+"Can't create \""+PublishBinPath+'"'); return false;}
@@ -171,7 +182,7 @@ bool StartPublish(C Str &exe_name, Edit::EXE_TYPE exe_type, Edit::BUILD_MODE bui
       {
          PublishPath=ProjectsPath+ProjectsPublishPath+GetBase(CodeEdit.appPath(CodeEdit.appName())).tailSlash(true); if(!FDelInside(PublishPath)){Gui.msgBox(S, S+"Can't delete \""+PublishPath+'"'); return false;}
          PublishDataAsPak=CodeEdit.appPublishDataAsPak();
-         if(!FExistSystem(PublishPath) && !FCreateDirs(PublishPath)){Gui.msgBox(S, S+"Can't create \""+PublishPath+'"'); return false;}
+         if(!FCreateDirs(PublishPath)){Gui.msgBox(S, S+"Can't create \""+PublishPath+'"'); return false;}
          if(!CodeEdit.appEmbedEngineData() || CodeEdit.appPublishProjData() || physx_dll || CodeEdit.appPublishSteamDll() || CodeEdit.appPublishOpenVRDll()) // if want to store something in "Bin" folder
          {
             PublishBinPath=PublishPath+"Bin\\"; if(!FCreateDirs(PublishBinPath)){Gui.msgBox(S, S+"Can't create \""+PublishBinPath+'"'); return false;}
@@ -243,8 +254,8 @@ bool StartPublish(C Str &exe_name, Edit::EXE_TYPE exe_type, Edit::BUILD_MODE bui
       SetPublishFiles(PublishFiles, PublishGenerate, PublishConvert, PublishFileData); // detect files for packing
       if(!PublishGenerate.elms() && !PublishConvert.elms()) // if there are no elements to generate and convert
          if(PublishDataAsPak) // if we're creating a pak
-            if(PublishDataReady()) // if already available
-               {PublishSuccess(); return true;} // or if pak is similar to what we want then exit already
+            if(PublishDataReady()) // if data already available
+               {PublishSuccess(); return true;} // exit already
    }
 
    StatePublish.set(StateFadeTime);
@@ -281,8 +292,12 @@ bool PublishFunc(Thread &thread)
    PublishStage=PUBLISH_PUBLISH; Publish.progress.progress=0;
    if(PublishDataAsPak)
    {
-      if(PublishDataReady())PublishOk=true;
-      else                  PublishOk=PakCreate(PublishFiles, PublishProjectDataPath, PAK_SET_HASH, Publish.cipher(), PublishEsProj ? EsenthelProjectCompression : Proj.compress_type, PublishEsProj ? EsenthelProjectCompressionLevel : Proj.compress_level, &PublishErrorMessage, &Publish.progress);
+      if(PublishDataReady())PublishOk=true;else
+      {
+         PublishOk=false;
+         if(!PublishDataNeedOptimized())PublishOk=PakReplaceInPlace(PublishFiles, PublishProjectDataPath, PAK_SET_HASH, Publish.cipher(), PublishEsProj ? EsenthelProjectCompression : Proj.compress_type, PublishEsProj ? EsenthelProjectCompressionLevel : Proj.compress_level, &PublishErrorMessage, &Publish.progress);
+         if(!PublishOk                 )PublishOk=PakCreate        (PublishFiles, PublishProjectDataPath, PAK_SET_HASH, Publish.cipher(), PublishEsProj ? EsenthelProjectCompression : Proj.compress_type, PublishEsProj ? EsenthelProjectCompressionLevel : Proj.compress_level, &PublishErrorMessage, &Publish.progress); // if 'PakReplaceInPlace' failed or need optimized then recreate
+      }
    }else
    {
       Memc<Str> dest_paths;
@@ -409,7 +424,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                             dest_name=mini_map_formats_path+ver->images[i];
                   pfd.data.set(dest_name); // adjust pak file path
                   FileInfo src_fi(src_name);
-                  if(Compare(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc, 1)) // if different (compare just modify time, because sizes will always be different due to different formats)
+                  if(CompareFile(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc)) // if different (compare just modify time, because sizes will always be different due to different formats)
                      convert.New().set(src_name, dest_name, src_fi.modify_time_utc, dest_type, true, true); // create new conversion
                }
             }
@@ -447,7 +462,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                   dest_name=Proj.formatPath(elm->id, FormatSuffixSimple());
                pfd.data.set(dest_name); // adjust pak file path
                FileInfo src_fi(src_name);
-               if(Compare(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc, 1)) // if different (compare just modify time, because sizes will always be different due to different formats)
+               if(CompareFile(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc)) // if different (compare just modify time, because sizes will always be different due to different formats)
                {
                   MaterialPtr mtrl=src_name; // use 'MaterialPtr' to access it from cache if available
                   Material    temp=*mtrl;
@@ -456,10 +471,12 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                   temp.base_2=null;
                   // adjust extra Base2 parameters
                   {
-                     flt  avg_smooth=0.5f, avg_reflect=0.5f;
-                     Vec4 avg; if(mtrl->base_2 && mtrl->base_2->stats(null, null, &avg)){avg_smooth=avg.x; avg_reflect=avg.y;} // #MaterialTextureLayout
-                     temp.smooth *=avg_smooth ;
-                     temp.reflect*=avg_reflect;
+                     Vec4 avg; if(mtrl->base_2 && mtrl->base_2->stats(null, null, &avg))
+                     {
+                        flt avg_rough=avg.y, avg_metal=avg.x; // #MaterialTextureLayout
+                        temp.rough_add=avg_rough*temp.  rough_mul+temp.  rough_add ; temp.rough_mul=0; // !! clear 'rough_mul' after calculating 'rough_add' !!
+                        temp.reflect  (avg_metal*temp.reflect_mul+temp.reflect_add);
+                     }
                   }
                   if(data->usesTexGlow())temp.glow=0; // disable glow if there was a glow map, because now it's removed
                   File f; temp.save(f.writeMem(), Proj.game_path); f.pos(0); SafeOverwrite(f, dest_name, &src_fi.modify_time_utc);
@@ -470,7 +487,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                FileInfo  src_base  (Proj.texPath       (data->base_0_tex.valid() ? data->base_0_tex : data->base_1_tex.valid() ? data->base_1_tex : data->base_2_tex)); // get modify time of first available original texture
                Str      dest_base_0=Proj.texDynamicPath(     base_0_tex); // get path where merged texture will be stored
                if((flags&Texture::REGENERATE) // if material was changed
-               || Compare(src_base.modify_time_utc, FileInfoSystem(dest_base_0).modify_time_utc, 1)) // or texture times are different (compare just modify time, because sizes will always be different due to different formats)
+               || CompareFile(src_base.modify_time_utc, FileInfoSystem(dest_base_0).modify_time_utc)) // or texture times are different (compare just modify time, because sizes will always be different due to different formats)
                {
                   flags|=Texture::REGENERATE; // make sure this is enabled
                   generate.New().set(src_name, dest_base_0, src_base.modify_time_utc);
@@ -479,12 +496,12 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
 
             // !! 'GetTexture' needs to be called always because it adds texture to publish list !!
             // #MaterialTextureLayout
-            Texture *t0; if(        t0=GetTexture(publish_texs,      base_0_tex)){t0->sRGB(true); t0->downSize(downsize); MAX(t0->quality, MinMtrlTexQualityBase0 ); MAX(t0->quality, data->tex_quality); t0->flags|=flags;}
-            Texture *t1; if(        t1=GetTexture(publish_texs,      base_1_tex)){               t1->downSize(downsize); MAX(t1->quality, MinMtrlTexQualityBase1 ); t1->normal();}
-            Texture *t2; if(        t2=GetTexture(publish_texs,      base_2_tex)){               t2->downSize(downsize); MAX(t2->quality, MinMtrlTexQualityBase2 );}
-                         if(Texture *t=GetTexture(publish_texs, data->detail_tex)){               t ->downSize(downsize); MAX(t ->quality, MinMtrlTexQualityDetail); t->usesAlpha();} // Detail uses Alpha for Smooth
-                         if(Texture *t=GetTexture(publish_texs, data-> macro_tex)){t ->sRGB(true); t ->downSize(downsize); MAX(t ->quality, MinMtrlTexQualityMacro ); MAX(t ->quality, data->tex_quality);} // doesn't use Alpha, 'GetTexture' needs to be called
-                         if(Texture *t=GetTexture(publish_texs, data-> light_tex)){t ->sRGB(true); t ->downSize(downsize); MAX(t ->quality, MinMtrlTexQualityLight );} // doesn't use Alpha, 'GetTexture' needs to be called
+            Texture *t0; if(        t0=GetTexture(publish_texs,        base_0_tex)){t0->sRGB(true); t0->downSize(downsize); MAX(t0->quality, MinMtrlTexQualityBase0 ); MAX(t0->quality, data->tex_quality); t0->flags|=flags;}
+            Texture *t1; if(        t1=GetTexture(publish_texs,        base_1_tex)){               t1->downSize(downsize); MAX(t1->quality, MinMtrlTexQualityBase1 ); t1->normal();}
+            Texture *t2; if(        t2=GetTexture(publish_texs,        base_2_tex)){               t2->downSize(downsize); MAX(t2->quality, MinMtrlTexQualityBase2 );}
+                         if(Texture *t=GetTexture(publish_texs, data->  detail_tex)){               t ->downSize(downsize); MAX(t ->quality, MinMtrlTexQualityDetail); t->usesAlpha();} // Detail uses Alpha for Color #MaterialTextureLayoutDetail
+                         if(Texture *t=GetTexture(publish_texs, data->   macro_tex)){t ->sRGB(true); t ->downSize(downsize); MAX(t ->quality, MinMtrlTexQualityMacro ); MAX(t->quality, data->tex_quality);} // doesn't use Alpha, 'GetTexture' needs to be called
+                         if(Texture *t=GetTexture(publish_texs, data->emissive_tex)){t ->sRGB(true); t ->downSize(downsize); MAX(t ->quality, MinMtrlTexQualityLight );} // doesn't use Alpha, 'GetTexture' needs to be called
 
             // check which base textures use Alpha Channel, #MaterialTextureLayout
             if(t0)
@@ -500,12 +517,12 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
          if(elm->type==ELM_WATER_MTRL)if(ElmWaterMtrl *data=elm->waterMtrlData()) // water material
          {
             // !! 'GetTexture' needs to be called always because it adds texture to publish list !!
-            // #WaterMaterialTextureLayout
+            // #MaterialTextureLayoutWater
             Texture *t0; if(t0=GetTexture(publish_texs, data->base_0_tex)){t0->sRGB(true); MAX(t0->quality, MinMtrlTexQualityBase0); MAX(t0->quality, data->tex_quality);}
             Texture *t1; if(t1=GetTexture(publish_texs, data->base_1_tex)){               MAX(t1->quality, MinMtrlTexQualityBase1); t1->normal();}
             Texture *t2; if(t2=GetTexture(publish_texs, data->base_2_tex)){               MAX(t2->quality, MinMtrlTexQualityBase2); t2->channels=1; t2->sign(true);}
 
-            // check which base textures use Alpha Channel, #WaterMaterialTextureLayout
+            // check which base textures use Alpha Channel, #MaterialTextureLayoutWater
          }
 
          // try optimizing images for target platform
@@ -518,7 +535,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                dest_name=Proj.formatPath(elm->id, FormatSuffix(dest_type));
             pfd.data.set(dest_name); // adjust pak file path
             FileInfo src_fi(src_name);
-            if(Compare(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc, 1)) // if different (compare just modify time, because sizes will always be different due to different formats)
+            if(CompareFile(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc)) // if different (compare just modify time, because sizes will always be different due to different formats)
                convert.New().set(Proj.editPath(elm->id), dest_name, src_fi.modify_time_utc, *data, dest_type); // create new conversion (set src from edit path to get better quality)
          }
 
@@ -532,7 +549,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                dest_name=Proj.formatPath(elm->id, FormatSuffix(dest_type));
             pfd.data.set(dest_name); // adjust pak file path
             FileInfo src_fi(src_name);
-            if(Compare(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc, 1)) // if different (compare just modify time, because sizes will always be different due to different formats)
+            if(CompareFile(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc)) // if different (compare just modify time, because sizes will always be different due to different formats)
                convert.New().set(Proj.gamePath(elm->id), dest_name, src_fi.modify_time_utc, *data, dest_type); // create new conversion (set src from game path because icons have only game version)
          }
 
@@ -547,7 +564,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                dest_name=Proj.formatPath(elm->id, FormatSuffix(dest_type));
             pfd.data.set(dest_name); // adjust pak file path
             FileInfo src_fi(src_name);
-            if(Compare(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc, 1)) // if different (compare just modify time, because sizes will always be different due to different formats)
+            if(CompareFile(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc)) // if different (compare just modify time, because sizes will always be different due to different formats)
                convert.New().set(Proj.gamePath(elm->id), dest_name, src_fi.modify_time_utc, *data, dest_type); // create new conversion (set src from game path because image atlases have only game version)
          }
 
@@ -561,7 +578,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                dest_name=Proj.formatPath(elm->id, FormatSuffix(dest_type));
             pfd.data.set(dest_name); // adjust pak file path
             FileInfo src_fi(src_name);
-            if(Compare(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc, 1)) // if different (compare just modify time, because sizes will always be different due to different formats)
+            if(CompareFile(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc)) // if different (compare just modify time, because sizes will always be different due to different formats)
                convert.New().set(Proj.gamePath(elm->id), dest_name, src_fi.modify_time_utc, *data, dest_type); // create new conversion (set src from game path because fonts have only game version)
          }
 
@@ -575,7 +592,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                dest_name=Proj.formatPath(elm->id, FormatSuffix(dest_type));
             pfd.data.set(dest_name); // adjust pak file path
             FileInfo src_fi(src_name);
-            if(Compare(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc, 1)) // if different (compare just modify time, because sizes will always be different due to different formats)
+            if(CompareFile(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc)) // if different (compare just modify time, because sizes will always be different due to different formats)
                convert.New().set(Proj.gamePath(elm->id), dest_name, src_fi.modify_time_utc, *data, dest_type); // create new conversion (set src from game path because image atlases have only game version)
          }
       }
@@ -627,7 +644,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                FileInfo src_fi(src_name);
                if(tex.regenerate() // if texture is going to be regenerated in this process, then always allow converting it
              //|| !src_fi.type // if source was not found (this can happen for dynamically generated textures), then always allow, this is not needed because we always set 'regenerate' in this case
-               || Compare(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc, 1)) // if different (compare just modify time, because sizes will always be different due to different formats)
+               || CompareFile(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc)) // if different (compare just modify time, because sizes will always be different due to different formats)
                   convert.New().set(src_name, dest_name, src_fi.modify_time_utc, change_type, tex.channels<4, false, tex.downsize, max_size); // create new conversion
             }
          }
@@ -873,7 +890,7 @@ bool InitPublish()
    Proj.pause(); // this will also flush all unsaved data which is crucial for publishing
    PublishAreasLeft=Proj.worldAreasToRebuild();
    UpdateProgress.create(Rect_C(0, -0.05f, 1, 0.045f));
-   Gui+=PublishSkipOptimize    .create(Rect_C(0, -0.20f, 0.45f, 0.08f), "Skip for now").focusable(false); PublishSkipOptimize.mode=BUTTON_TOGGLE;
+   Gui+=PublishSkipOptimize.create(Rect_C(0, -0.20f, 0.45f, 0.08f), "Skip for now").focusable(false); PublishSkipOptimize.mode=BUTTON_TOGGLE;
    return true;
 }
 void ShutPublish()
@@ -887,8 +904,7 @@ void ShutPublish()
    PublishFileData    .del();
    PublishSkipOptimize.del();
    Proj.resume();
-   WindowSetNormal();
-   WindowFlash();
+   App.stateNormal().flash();
    if(!PublishOk)Gui.msgBox("Publishing Failed", PublishErrorMessage);
 }
 /******************************************************************************/
@@ -903,7 +919,7 @@ void PublishSuccess()
    {
       CodeEdit.CodeEditorInterface::openIDE();
    }else
-   if(PublishDataNeeded(PublishExeType, PublishBuildMode) && !PublishNoCompile) // we've published data, now we need to compile the code
+   if(PublishDataNeeded(PublishExeType) && !PublishNoCompile) // we've published data, now we need to compile the code
    {
       CodeEdit.codeDo(PublishBuildMode);
    }else
@@ -918,7 +934,7 @@ void PublishSuccess()
       PublishSuccess(PublishPath, text);
    }
 }
-void PublishCancel() {UpdateThread.stop(); Publish.progress.stop=true; WindowSetWorking();}
+void PublishCancel() {UpdateThread.stop(); Publish.progress.stop=true; App.stateWorking();}
 /******************************************************************************/
 bool UpdatePublish()
 {
@@ -949,14 +965,17 @@ bool UpdatePublish()
          if(PublishOk)PublishSuccess();
       }else
       UpdateProgress.set(Publish.progress.progress);
-      WindowSetProgress(UpdateProgress());
+      App.stateProgress(UpdateProgress());
    }
    int sleep=1000/30;
-   if(!App.maximized())REPA(MT)if(MT.b(i))if(!MT.guiObj(i) || MT.guiObj(i)==Gui.desktop()){WindowMove(MT.pixelDelta(i).x, MT.pixelDelta(i).y); sleep=1;}
+   if(!App.maximized())REPA(MT)if(MT.b(i))
+   {
+      GuiObj *go=MT.guiObj(i); if(!go || go==Gui.desktop() || go->type()==GO_WINDOW && !(go->asWindow().flag&WIN_MOVABLE)){App.window().move(MT.pixelDelta(i).x, MT.pixelDelta(i).y); sleep=1;}
+   }
    Time.wait(sleep);
        Gui.update();
     Server.update(null, true); // it's very important to set 'busy' so no commands are processed during publishing
-   if(Ms.bp(MS_MAXIMIZE))WindowToggle();
+   if(Ms.bp(MS_MAXIMIZE))App.window().toggle();
    PublishSkipOptimize.visible(PublishStage==PUBLISH_TEX_OPTIMIZE && !Publish.progress.stop);
    return true;
 }
@@ -984,7 +1003,7 @@ void DrawPublish()
       }
       GuiPC gpc;
       gpc.visible=gpc.enabled=true; 
-      gpc.client_rect=gpc.clip.set(-D.w(), -D.h(), D.w(), D.h());
+      gpc.client_rect=gpc.clip=D.rect();
       gpc.offset.zero();
       UpdateProgress.draw(gpc);
       D.clip();
@@ -994,6 +1013,7 @@ void DrawPublish()
       TextStyleParams ts; ts.align.set(0, -1); ts.size=0.05f; D.text(ts, Gui.desktop()->rect(), "Compressing PVRTC (iOS Texture Format) - this may take a while.\nMaking sure textures look beautiful and use little space.");
    }
    Gui.draw();
+   Draw();
 }
 /******************************************************************************/
 

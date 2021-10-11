@@ -25,45 +25,145 @@ void SuggestionsUsed(C Str &t)
 // -if string part match starts with case up in suggesion part
 // -if string part match corresponds to the same index
 // -character equality (use distance in buttons on keyboard?)
-static Int EqualChars(CChar *t, CChar *s, Int &p, Bool start_case) // assumes that 't' and 's' != null
+#if 1
+static Int SameChars(CChar *t, CChar *s, Int &score) // assumes that 't' and 's' != null
 {
-        p=0; // priority
-   Int  e=0; // equal characters
-   Char start=*s;
+   Int sc=0, // score
+     same=0; // same characters
    for(;;)
    {
       Char ct=*t++,
            cs=*s++;
-      if(Compare(ct, cs))break;
-      if(!ct)break;
-      e++;
-      if(CaseUp(ct)==ct && ct==cs)p++; // if upper case and matches exactly then increase priority
+      if(!Equal(ct, cs) || !ct || ct==' ')break; // skip space to avoid situations where "123 456 789" has higher score for "ABC\456 789" than "123\456 789"
+      if(CharFlag(ct)&CHARF_UP)sc+=((cs==ct) ? 1 : -1); // check case only if was specified
+      same++;
    }
-   p+=e*2;
-   if(e && start_case && CaseUp(start)==start)p++; // if found any match and 's' starts with upper case, then increase priority
-   return e;
+   sc+=same*2;
+   sc*=sc; // make square, to make (1x4char match) more important than (2x2char matches)
+   score=sc; return same;
 }
 Int SuggestionsPriority(C Str &s, C Str &t, Bool all_up_case) // 's'=suggestion, 't'=text
 {
-   Int priority=0;
+   Int total_score=0;
    for(Int ti=0; ti<t.length(); ) // check every part of 't' text
    {
-      Int max_p=0, final_ec=0;
-      for(Int si=0; si<s.length(); si++) // find max number of continuous chars equal in self starting from 't+ti'
+      CChar *t1=t()+ti; if(*t1==' ')ti++;else // don't add score for separators
       {
-         Int p, ec=EqualChars(t()+ti, s()+si, p, ti!=0 && si!=0 && !all_up_case); // don't test case at start of 't' and 's'
-         if( p)
+         Int best_score=0, best_same_chars=1; // set 1 same char to always advance by at least 1 char
+         for(Int si=0; si<s.length(); si++) // find max number of continuous chars in 's' starting from 't1'
          {
-            p=p*p*(20+(si==ti)+(ti==0)*3); // boost priority when at the same place, or starting
-            if(p>max_p){max_p=p; final_ec=ec;}
+            Int score, same_chars=SameChars(t1, s()+si, score);
+            if(same_chars)
+            {
+               score*=(20+(si==ti)+(ti==0)*3); // boost score when at the same place, or starting
+               if(score>best_score)
+               {
+                  best_score     =score;
+                  best_same_chars=same_chars;
+               }
+            }
+         }
+         total_score+=best_score;
+         ti         +=best_same_chars;
+         if(best_same_chars==s.length() && s.length()==t.length() && Equal(s, t, true))total_score++; // if this is an exact match of entire strings, then boost priority
+      }
+   }
+   return total_score;
+}
+#else // more accurate but slower, this version first finds best match, then removes it from both strings, and continues to gather score from all remaining parts
+struct Match
+{
+   Int s_pos, t_pos, length, score;
+
+   void zero() {s_pos=t_pos=length=score=0;}
+};
+static void BestMatch(CChar *s, Int s_length, CChar *t, Int t_length, Match &match)
+{
+   Match m; m.zero();
+   FREPD(ti, t_length)
+   {
+      CChar *t1=t+ti; if(*t1!=' ') // skip checking spaces because they're typically used to seperate multiple words
+      {
+         Int t1_length=t_length-ti;
+         FREPD(si, s_length)
+         {
+            CChar *s1=s+si, *t2=t1;
+            Int    score=0, length=0, test_length=Min(t1_length, s_length-si);
+            for(;;)
+            {
+               Char s=*s1++, t=*t2++;
+               if(!Equal(s, t))break;
+               if(CharFlag(t)&CHARF_UP)score+=((s==t) ? 1 : -1); // check case only if was specified
+               length++; if(length>=test_length)break;
+            }
+            if(length)
+            {
+               score+=length*2;
+               score*=score; // make square, to make (1x4char match) more important than (2x2char matches)
+               if(score>m.score)
+               {
+                  m.s_pos =si;
+                  m.t_pos =ti;
+                  m.length=length;
+                  m.score =score;
+               }
+            }
          }
       }
-      priority+=max_p;
-      ti+=Max(1, final_ec);
-      if(final_ec==s.length() && s.length()==t.length() && Equal(s, t, true))priority++; // if this is an exact match then boost priority
    }
-   return priority;
+   match=m;
 }
+struct PosLength
+{
+   Int pos;
+   Int length;
+
+   void set(Int pos, Int length) {T.pos=pos; T.length=length;}
+};
+static Memc<PosLength> srcs, texts;
+Int SuggestionsPriority(C Str &s, C Str &t, Bool all_up_case) // 's'=suggestion, 't'=text !! Warning: this is not thread-safe because of one global 'srcs', 'texts' !!
+{
+   srcs .setNum(1).first().set(0, s.length());
+   texts.setNum(1).first().set(0, t.length());
+   Int score=0;
+   for(; srcs.elms() && texts.elms(); )
+   {
+      Int   best_match_si;
+      Int   best_match_ti;
+      Match best_match; best_match.score=0;
+      FREPAD(si, srcs)
+      {
+       C PosLength &src=srcs[si]; CChar *s1=s()+src.pos;
+         FREPAD(ti, texts)
+         {
+          C PosLength &text=texts[ti];
+            Match m; BestMatch(s1, src.length, t()+text.pos, text.length, m);
+            if(m.score>best_match.score)
+            {
+               best_match=m;
+               best_match_si=si;
+               best_match_ti=ti;
+            }
+         }
+      }
+      if(best_match.score>0)
+      {
+         score+=best_match.score;
+         PosLength &src = srcs[best_match_si],  src_copy=src;
+         PosLength &text=texts[best_match_ti], text_copy=text;
+         modify src to be before match, or remove if before is empty. then if have after match, then add new src based on src_copy
+         same for text
+            Int s_ofs=m.s_pos+m.length; CChar *s1=s+s_ofs; Int s1_length=s_length-s_ofs; // s after match
+            Int t_ofs=m.t_pos+m.length; CChar *t1=t+t_ofs; Int t1_length=t_length-t_ofs; // t after match
+            t , m.t_pos  
+            t1, t1_length
+            s , m.s_pos  
+            s1, s1_length
+      }
+   }
+   return score;
+}
+#endif
 /******************************************************************************/
 static Int CompareAlphabetical(C Source::Suggestion &a, C Source::Suggestion &b)
 {
@@ -77,7 +177,7 @@ static Int ComparePriority      (C Source::Suggestion &a, C Source::Suggestion &
    if(Int c=Compare(a.priority     , b.priority     ))return -c;
    if(Int c=Compare(a.order()      , b.order()      ))return -c;
    if(Int c=Compare(a.text.length(), b.text.length()))return  c; // prefer shorter first
-   return  -Compare(a.text         , b.text         , true    ); // use negative so small case will be on top of upper case
+   return   Compare(b.text         , a.text         , true    ); // reverse 'a' 'b' so small case will be on top of upper case
 }
 static Int CompareSuggPath(C Source::Suggestion &a, C Source::Suggestion &b) {return ComparePath(a.text, b.text);}
 /******************************************************************************/

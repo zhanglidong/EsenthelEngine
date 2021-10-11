@@ -1,49 +1,68 @@
 /******************************************************************************/
+#if EE_PRIVATE
+struct ShaderSampler
+{
+#if DX11
+   ID3D11SamplerState *state=null;
+
+   Bool is()C {return state!=null;}
+
+   Bool createTry(D3D11_SAMPLER_DESC &desc); // false on fail
+   void create   (D3D11_SAMPLER_DESC &desc); // Exit  on fail
+   void setVS    (Int index)C;
+   void setHS    (Int index)C;
+   void setDS    (Int index)C;
+   void setPS    (Int index)C;
+   void setCS    (Int index)C;
+#elif GL
+   UInt sampler=0;
+#if GL_ES
+   UInt sampler_no_filter=0; // GLES3 doesn't support filtering F32/Depth textures, so use a separate sampler with filtering disabled - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml   "depth textures are not filterable" - https://arm-software.github.io/opengl-es-sdk-for-android/occlusion_culling.html
+#endif
+   UInt filter_min, filter_mag;
+   UInt address[3];
+
+   Bool is()C {return sampler!=0;}
+
+          void create();
+   inline void setPS(Int index)C {set(index);}
+#endif
+   void             set(Int index)C;
+   void             del();
+  ~ShaderSampler() {del();}
+};
+#endif
 struct ShaderImage // Shader Image
 {
- C Image* get(                   )C {return   _image  ;}
-   void   set(C Image      *image)  {T._image= image  ;}
-   void   set(C Image      &image)  {T._image=&image  ;}
- //void   set(C ImagePtr   &image)  {T._image= image();} this is not safe, as 'ShaderImage' does not store 'ImagePtr' for performance reasons
-
-   ShaderImage() {_image=null; _sampler=null;}
+ C Image* get(                 )C {return   _image  ;}
+   void   set(C Image    *image)  {T._image= image  ;}
+   void   set(C Image    &image)  {T._image=&image  ;}
+ //void   set(C ImagePtr &image)  {T._image= image();} this is not safe, as 'ShaderImage' does not store 'ImagePtr' for performance reasons
 
 #if !EE_PRIVATE
 private:
 #endif
- C Image *_image;
+ C Image *_image=null;
 #if EE_PRIVATE
-   struct Sampler
-   {
-   #if DX11
-      ID3D11SamplerState *state=null;
-
-      Bool is()C {return state!=null;}
-
-      Bool createTry(D3D11_SAMPLER_DESC &desc);
-      void create   (D3D11_SAMPLER_DESC &desc);
-      void setVS    (Int index);
-      void setHS    (Int index);
-      void setDS    (Int index);
-      void setPS    (Int index);
-      void set      (Int index);
-   #elif GL
-      UInt sampler=0;
-      UInt filter_min, filter_mag;
-      UInt address[3];
-
-      void create();
-   #endif
-      void       del();
-     ~Sampler() {del();}
-   };
-   Sampler *_sampler;
-
    #if DX11
       INLINE ID3D11ShaderResourceView* getSRV()C {return _image ? _image->_srv  : null;}
    #endif
-#else
-   Ptr    _sampler;
+#endif
+};
+struct ShaderRWImage // Shader Read Write Image
+{
+ C ImageRT* get(                )C {return   _image;}
+   void     set(C ImageRT *image)  {T._image= image;}
+   void     set(C ImageRT &image)  {T._image=&image;}
+
+#if !EE_PRIVATE
+private:
+#endif
+ C ImageRT *_image=null;
+#if EE_PRIVATE
+   #if DX11
+      INLINE ID3D11UnorderedAccessView* getUAV()C {return _image ? _image->_uav  : null;}
+   #endif
 #endif
 };
 /******************************************************************************/
@@ -147,11 +166,36 @@ constexpr Bool canFit   (UInt size)C {return MIN_SHADER_PARAM_DATA_SIZE>=size ||
    NO_COPY_CONSTRUCTOR(ShaderParam);
 #endif
 };
-struct ShaderParamBool : ShaderParam // Shader Parameter
+struct ShaderParamBool : private ShaderParam // Shader Parameter
 {
    void set(Bool b); // set boolean value
 #if EE_PRIVATE
    void setConditional(Bool b); // set boolean value only if it's different
+
+   ASSERT(MIN_SHADER_PARAM_DATA_SIZE>=SIZE(Bool));
+ C Bool& getBool()C {return *(Bool*)_data;}
+#endif
+};
+struct ShaderParamInt : private ShaderParam // Shader Parameter
+{
+   void set(  Int    i); // set integer  value
+   void set(C VecI2 &v); // set vector2D value
+   void set(C VecI  &v); // set vector3D value
+   void set(C VecI4 &v); // set vector4D value
+   void set(C RectI &v); // set vector4D value
+#if EE_PRIVATE
+   void setConditional(  Int    i); // set integer  value only if it's different
+   void setConditional(C VecI2 &v); // set vector2D value only if it's different
+   void setConditional(C VecI  &v); // set vector3D value only if it's different
+   void setConditional(C VecI4 &v); // set vector4D value only if it's different
+   void setConditional(C RectI &v); // set vector4D value only if it's different
+
+   ASSERT(MIN_SHADER_PARAM_DATA_SIZE>=SIZE(VecI4));
+ C Int  & getInt  ()C {return *(Int  *)_data;}
+ C VecI2& getVecI2()C {return *(VecI2*)_data;}
+ C VecI & getVecI ()C {return *(VecI *)_data;}
+ C VecI4& getVecI4()C {return *(VecI4*)_data;}
+ C RectI& getRectI()C {return *(RectI*)_data;}
 #endif
 };
 /******************************************************************************/
@@ -160,12 +204,12 @@ struct ShaderParamChange // Shader Parameter Change
    ShaderParam *param; // parameter to change
    Vec4         value; // value     to change to
 
-   ShaderParamChange& set(  Bool  b) {value.x  =     b; return T;}
-   ShaderParamChange& set(  Int   i) {value.x  =(Flt)i; return T;}
-   ShaderParamChange& set(  Flt   f) {value.x  =     f; return T;}
-   ShaderParamChange& set(C Vec2 &v) {value.xy =     v; return T;}
-   ShaderParamChange& set(C Vec  &v) {value.xyz=     v; return T;}
-   ShaderParamChange& set(C Vec4 &v) {value    =     v; return T;}
+   ShaderParamChange& set(  Bool  b) {value.x  =b; return T;}
+   ShaderParamChange& set(  Int   i) {value.x  =i; return T;}
+   ShaderParamChange& set(  Flt   f) {value.x  =f; return T;}
+   ShaderParamChange& set(C Vec2 &v) {value.xy =v; return T;}
+   ShaderParamChange& set(C Vec  &v) {value.xyz=v; return T;}
+   ShaderParamChange& set(C Vec4 &v) {value    =v; return T;}
 
    ShaderParamChange& set(ShaderParam *param) {T.param=param; return T;}
 
@@ -242,7 +286,9 @@ enum SHADER_TYPE : Byte
    ST_HS,
    ST_DS,
    ST_PS,
+   ST_CS,
    ST_NUM,
+   ST_BASE=ST_CS, // first 4 shaders
 };
 #if WINDOWS
 struct ShaderVS11 : ShaderData
@@ -285,29 +331,28 @@ struct ShaderPS11 : ShaderData
    ShaderPS11() {}
    NO_COPY_CONSTRUCTOR(ShaderPS11);
 };
+struct ShaderCS11 : ShaderData
+{
+   ID3D11ComputeShader *cs=null;
+
+   ID3D11ComputeShader* create();
+
+  ~ShaderCS11();
+   ShaderCS11() {}
+   NO_COPY_CONSTRUCTOR(ShaderCS11);
+};
 #endif
 /******************************************************************************/
-struct ShaderVSGL : ShaderData
+struct ShaderSubGL : ShaderData
 {
-   UInt vs=0;
+   UInt shader=0;
 
-   UInt create(Bool clean, Str *messages);
+   UInt create(UInt gl_type, Str *messages);
    Str  source();
 
-  ~ShaderVSGL();
-   ShaderVSGL() {}
-   NO_COPY_CONSTRUCTOR(ShaderVSGL);
-};
-struct ShaderPSGL : ShaderData
-{
-   UInt ps=0;
-
-   UInt create(Bool clean, Str *messages);
-   Str  source();
-
-  ~ShaderPSGL();
-   ShaderPSGL() {}
-   NO_COPY_CONSTRUCTOR(ShaderPSGL);
+  ~ShaderSubGL();
+   ShaderSubGL() {}
+   NO_COPY_CONSTRUCTOR(ShaderSubGL);
 };
 /******************************************************************************/
 struct BufferLink
@@ -326,6 +371,15 @@ struct ImageLink
    void set(Int index, ShaderImage &image) {T.index=index; T.image=&image;}
    Bool load(File &f, C MemtN<ShaderImage*, 256> &images);
 };
+struct RWImageLink
+{
+   Int            index;
+   ShaderRWImage *image;
+
+   void set(Int index, ShaderRWImage &image) {T.index=index; T.image=&image;}
+   Bool load(File &f, C MemtN<ShaderRWImage*, 256> &images);
+};
+
 struct BufferLinkPtr
 {
  C BufferLink *data=null;
@@ -342,8 +396,19 @@ struct ImageLinkPtr
  C ImageLink& operator[](Int i)C {DEBUG_RANGE_ASSERT(i, elms); return data[i];}
    void operator=(C Mems<ImageLink> &links) {data=links.data(); elms=links.elms();}
 };
-inline Int Elms(C BufferLinkPtr &links) {return links.elms;}
-inline Int Elms(C  ImageLinkPtr &links) {return links.elms;}
+struct RWImageLinkPtr
+{
+ C RWImageLink *data=null;
+   Int          elms=0;
+
+ C RWImageLink& operator[](Int i)C {DEBUG_RANGE_ASSERT(i, elms); return data[i];}
+   void operator=(C Mems<RWImageLink> &links) {data=links.data(); elms=links.elms();}
+};
+
+inline Int Elms(C  BufferLinkPtr &links) {return links.elms;}
+inline Int Elms(C   ImageLinkPtr &links) {return links.elms;}
+inline Int Elms(C RWImageLinkPtr &links) {return links.elms;}
+
 #if WINDOWS
 struct Shader11
 {
@@ -352,54 +417,120 @@ struct Shader11
    ID3D11DomainShader *ds=null;
    ID3D11PixelShader  *ps=null;
    Mems<ShaderBuffer*> all_buffers; // shader buffers used by all shader stages (VS HS DS PS) combined into one array
-   BufferLinkPtr           buffers[ST_NUM];
-    ImageLinkPtr            images[ST_NUM];
-   Int                  data_index[ST_NUM]={-1, -1, -1, -1}; ASSERT(ST_NUM==4);
+   BufferLinkPtr           buffers[ST_BASE];
+    ImageLinkPtr            images[ST_BASE];
+   Int                  data_index[ST_BASE]={-1, -1, -1, -1}; ASSERT(ST_BASE==4);
    Str8                       name;
 
    Bool validate (ShaderFile &shader, Str *messages=null);
-   void commit   ();
-   void commitTex();
-   void start    ();
-   void startTex ();
-   void begin    ();
    Bool load     (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
 
-   void setVSBuffers();
-   void setHSBuffers();
-   void setDSBuffers();
-   void setPSBuffers();
+   void commit   ()C;
+   void commitTex()C;
+   void start    ()C;
+   void startTex ()C;
+   void begin    ()C;
 
-   void setVSImages();
-   void setHSImages();
-   void setDSImages();
-   void setPSImages();
+   void  setVSBuffers()C;
+   void  setHSBuffers()C;
+   void  setDSBuffers()C;
+   void  setPSBuffers()C;
+   void updateBuffers()C;
+
+   void setVSImages()C;
+   void setHSImages()C;
+   void setDSImages()C;
+   void setPSImages()C;
 
 //~Shader11(); no need to release 'vs,hs,ds,ps' or 'buffers,images' since they're just copies from 'Shader*11'
 };
-#endif
-/******************************************************************************/
-struct ShaderGL
+struct ComputeShader11
 {
-   UInt                     prog=0, vs=0, ps=0;
-   Int                 vs_index=-1, ps_index=-1;
-   Mems<ShaderBuffer*> all_buffers; // shader buffers used by all shader stages (VS HS DS PS) combined into one array
-   Mems<BufferLink>        buffers;
-   Mems< ImageLink>         images;
+   ID3D11ComputeShader *cs=null;
+   Mems<ShaderBuffer*> all_buffers; // shader buffers used by all shader stages (CS) combined into one array
+   BufferLinkPtr           buffers;
+    ImageLinkPtr            images;
+  RWImageLinkPtr         rw_images;
+   Int                  data_index=-1;
    Str8                       name;
 
-   Str  source   ();
-   UInt compileEx(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array, Bool clean, ShaderFile *shader, Str *messages);
-   void compile  (MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array, Str *messages);
-   Bool validate (ShaderFile &shader, Str *messages=null);
-   void commit   ();
-   void commitTex();
-   void start    ();
-   void startTex ();
-   void begin    ();
-   Bool load     (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
+   Bool validate(ShaderFile &shader, Str *messages=null);
+   Bool load    (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
+
+   void    setBuffers()C;
+   void updateBuffers()C;
+   void    setImages ()C;
+   void  clearImages ()C;
+
+   void begin()C;
+   void end  ()C;
+
+   void compute(C VecI2 &groups)C;
+   void compute(C VecI  &groups)C;
+
+//~ComputeShader11(); no need to release 'vs,hs,ds,ps' or 'buffers,images,rw_images' since they're just copies from 'Shader*11'
+};
+#endif
+/******************************************************************************/
+struct SamplerImageLink
+{
+   Int          index, sampler;
+   ShaderImage *image;
+
+   void set(Int index, Int sampler, ShaderImage &image) {T.index=index; T.sampler=sampler; T.image=&image;}
+};
+struct ShaderGL
+{
+   UInt                        prog=0, vs=0, ps=0;
+   Int                     vs_index=-1, ps_index=-1;
+   Mems<ShaderBuffer*   > all_buffers; // shader buffers used by all shader stages (VS HS DS PS) combined into one array
+   Mems<      BufferLink>     buffers;
+   Mems<SamplerImageLink>      images;
+   Str8                          name;
+
+   Str  source  ()C;
+   UInt compile (MemPtr<ShaderSubGL> vs_array, MemPtr<ShaderSubGL> ps_array, ShaderFile *shader, Str *messages);
+   Bool validate(ShaderFile &shader, Str *messages=null);
+   Bool load    (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
+
+   void   bindImages ()C;
+   void   bindBuffers()C;
+   void updateBuffers()C;
+
+   void commit   ()C;
+   void commitTex()C;
+   void start    ()C;
+   void startTex ()C;
+   void begin    ()C;
 
   ~ShaderGL();
+};
+struct ComputeShaderGL
+{
+   UInt                        prog=0, cs=0;
+   Int                     cs_index=-1;
+   Mems<ShaderBuffer*   > all_buffers; // shader buffers used by all shader stages (CS) combined into one array
+   Mems<      BufferLink>     buffers;
+   Mems<SamplerImageLink>      images;
+   Mems<     RWImageLink>   rw_images;
+   Str8                          name;
+
+   Str  source  ()C;
+   UInt compile (MemPtr<ShaderSubGL> cs_array, ShaderFile *shader, Str *messages);
+   Bool validate(ShaderFile &shader, Str *messages=null);
+   Bool load    (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
+
+   void   bindImages ()C;
+   void   bindBuffers()C;
+   void updateBuffers()C;
+
+   void begin()C;
+   void end  ()C;
+
+   void compute(C VecI2 &groups)C;
+   void compute(C VecI  &groups)C;
+
+  ~ComputeShaderGL();
 };
 /******************************************************************************/
 struct ShaderBase
@@ -431,22 +562,36 @@ struct Shader : ShaderBase, GPU_API(Shader11, ShaderGL)
 struct Shader
 {
 #endif
-   void draw(                     C Rect *rect=null        );                             // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Img' shader image, 'rect'=screen rectangle for the effect (set null for full viewport)
-   void draw(C Image      *image, C Rect *rect=null        );                             // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Img' shader image, 'rect'=screen rectangle for the effect (set null for full viewport)
-   void draw(C Image      &image, C Rect *rect=null        ) {draw(&image  , rect     );} // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Img' shader image, 'rect'=screen rectangle for the effect (set null for full viewport)
-   void draw(                     C Rect *rect, C Rect &tex);                             // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Img' shader image, 'rect'=screen rectangle for the effect (set null for full viewport), 'tex'=source image texture coordinates
-   void draw(C Image      *image, C Rect *rect, C Rect &tex);                             // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Img' shader image, 'rect'=screen rectangle for the effect (set null for full viewport), 'tex'=source image texture coordinates
-   void draw(C Image      &image, C Rect *rect, C Rect &tex) {draw(&image  , rect, tex);} // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Img' shader image, 'rect'=screen rectangle for the effect (set null for full viewport), 'tex'=source image texture coordinates*/
+   void draw(                C Rect *rect=null        )C;                             // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Img' shader image, 'rect'=screen rectangle for the effect (set null for full viewport)
+   void draw(C Image *image, C Rect *rect=null        )C;                             // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Img' shader image, 'rect'=screen rectangle for the effect (set null for full viewport)
+   void draw(C Image &image, C Rect *rect=null        )C {draw(&image  , rect     );} // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Img' shader image, 'rect'=screen rectangle for the effect (set null for full viewport)
+   void draw(                C Rect *rect, C Rect &tex)C;                             // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Img' shader image, 'rect'=screen rectangle for the effect (set null for full viewport), 'tex'=source image texture coordinates
+   void draw(C Image *image, C Rect *rect, C Rect &tex)C;                             // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Img' shader image, 'rect'=screen rectangle for the effect (set null for full viewport), 'tex'=source image texture coordinates
+   void draw(C Image &image, C Rect *rect, C Rect &tex)C {draw(&image  , rect, tex);} // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Img' shader image, 'rect'=screen rectangle for the effect (set null for full viewport), 'tex'=source image texture coordinates*/
+};
+#if EE_PRIVATE
+struct ComputeShader : GPU_API(ComputeShader11, ComputeShaderGL)
+{
+#else
+struct ComputeShader
+{
+#endif
 };
 /******************************************************************************/
 struct ShaderFile // Shader File
 {
    // get
-   Shader* first(            ); // first shader, null on fail
-   Shader*  find(C Str8 &name); // find  shader, null on fail
-   Shader*   get(C Str8 &name); //  get  shader, Exit on fail
+          Int            shaders(            )C {return         _shaders.elms();} // get number of         shaders in this file
+          Int     computeShaders(            )C {return _compute_shaders.elms();} // get number of compute shaders in this file
+          Shader*        shader (Int i       ); // get i-th         shader, null on fail
+   ComputeShader* computeShader (Int i       ); // get i-th compute shader, null on fail
+          Shader*        find   (C Str8 &name); // find             shader, null on fail
+   ComputeShader* computeFind   (C Str8 &name); // find     compute shader, null on fail
+          Shader*        get    (C Str8 &name); // get              shader, Exit on fail
+   ComputeShader* computeGet    (C Str8 &name); // get      compute shader, Exit on fail
 #if EE_PRIVATE
-   Shader*  find(C Str8 &name, Str *messages); // find shader, put error messages into 'messages', null on fail
+          Shader*        find   (C Str8 &name, Str *messages); // find         shader, put error messages into 'messages', null on fail
+   ComputeShader* computeFind   (C Str8 &name, Str *messages); // find compute shader, put error messages into 'messages', null on fail
 #endif
 
    // manage
@@ -467,25 +612,25 @@ private:
       Mems<ShaderHS11> _hs;
       Mems<ShaderDS11> _ds;
       Mems<ShaderPS11> _ps;
+      Mems<ShaderCS11> _cs;
    #elif GL
-      Mems<ShaderVSGL> _vs;
-      Mems<ShaderData> _hs;
-      Mems<ShaderData> _ds;
-      Mems<ShaderPSGL> _ps;
+      Mems<ShaderSubGL> _vs, _hs, _ds, _ps, _cs;
    #endif
-   Mems<Mems<BufferLink>> _buffer_links;
-   Mems<Mems< ImageLink>>  _image_links;
+   Mems<Mems< BufferLink>>   _buffer_links;
+   Mems<Mems<  ImageLink>>    _image_links;
+   Mems<Mems<RWImageLink>> _rw_image_links;
 #else
-   Mems<ShaderData> _vs, _hs, _ds, _ps, _buffer_links, _image_links;
+   Mems<ShaderData   > _vs, _hs, _ds, _ps, _cs, _buffer_links, _image_links, _rw_image_links;
 #endif
-   Mems<Shader    > _shaders;
+   Mems<       Shader>         _shaders;
+   Mems<ComputeShader> _compute_shaders;
    NO_COPY_CONSTRUCTOR(ShaderFile);
 };
 /******************************************************************************/
 #if EE_PRIVATE
 struct FRSTKey // Forward Rendering Shader Techniques Key
 {
-   Byte skin, materials, layout, bump_mode, alpha_test, reflect, light_map, detail, color, mtrl_blend, heightmap, fx, per_pixel, tesselate;
+   Byte skin, materials, layout, bump_mode, alpha_test, reflect, emissive_map, detail, color, mtrl_blend, heightmap, fx, per_pixel, tesselate;
 
    FRSTKey() {Zero(T);}
 };
@@ -493,7 +638,7 @@ struct FRST : ShaderBase // Forward Rendering Shader Techniques
 {
    Bool all_passes;
    Shader
-      *none  ,                 // no light
+      *none  ,                 // no          light
       *dir   , *   dir_shd[6], // directional light, [MapNum]
       *point , * point_shd   , // point       light
       *linear, *linear_shd   , // square      light
@@ -502,7 +647,7 @@ struct FRST : ShaderBase // Forward Rendering Shader Techniques
 /******************************************************************************/
 struct BLSTKey // Blend Light Shader Techniques
 {
-   Byte skin, color, layout, bump_mode, alpha_test, alpha, reflect, light_map, fx, per_pixel;
+   Byte skin, color, layout, bump_mode, alpha_test, alpha, reflect, emissive_map, fx, per_pixel;
 
    BLSTKey() {Zero(T);}
 };
@@ -511,11 +656,12 @@ struct BLST // Blend Light Shader Techniques
    Shader *dir[7];
 };
 /******************************************************************************/
-extern ThreadSafeMap<FRSTKey, FRST        > Frsts        ; // Forward Rendering Shader Techniques
-extern ThreadSafeMap<BLSTKey, BLST        > Blsts        ; // Blend   Light     Shader Techniques
-extern ThreadSafeMap<Str8   , ShaderImage > ShaderImages ; // Shader Images
-extern ThreadSafeMap<Str8   , ShaderParam > ShaderParams ; // Shader Parameters
-extern ThreadSafeMap<Str8   , ShaderBuffer> ShaderBuffers; // Shader Constant Buffers
+extern ThreadSafeMap<FRSTKey, FRST         > Frsts         ; // Forward Rendering Shader Techniques
+extern ThreadSafeMap<BLSTKey, BLST         > Blsts         ; // Blend   Light     Shader Techniques
+extern ThreadSafeMap<Str8   , ShaderImage  > ShaderImages  ; // Shader            Images
+extern ThreadSafeMap<Str8   , ShaderRWImage> ShaderRWImages; // Shader Read Write Images
+extern ThreadSafeMap<Str8   , ShaderParam  > ShaderParams  ; // Shader Parameters
+extern ThreadSafeMap<Str8   , ShaderBuffer > ShaderBuffers ; // Shader Constant Buffers
 #endif
 extern Cache<ShaderFile> ShaderFiles; // Shader File Cache
 /******************************************************************************/
@@ -541,11 +687,17 @@ struct ShaderGLSL
 ShaderImage* FindShaderImage(CChar8 *name); // find shader image, null on fail (shader image can be returned only after loading a shader which contains the image)
 ShaderImage*  GetShaderImage(CChar8 *name); // find shader image, Exit on fail (shader image can be returned only after loading a shader which contains the image)
 
+// shader read write image
+ShaderRWImage* FindShaderRWImage(CChar8 *name); // find shader read write image, null on fail (shader image can be returned only after loading a shader which contains the image)
+ShaderRWImage*  GetShaderRWImage(CChar8 *name); // find shader read write image, Exit on fail (shader image can be returned only after loading a shader which contains the image)
+
 // shader parameter
 ShaderParam* FindShaderParam(CChar8 *name); // find shader parameter, null on fail (shader parameter can be returned only after loading a shader which contains the parameter)
 ShaderParam*  GetShaderParam(CChar8 *name); // find shader parameter, Exit on fail (shader parameter can be returned only after loading a shader which contains the parameter)
 
-inline ShaderParamBool* GetShaderParamBool(CChar8 *name) {return (ShaderParamBool*)GetShaderParam(name);}
+inline ShaderParamInt * FindShaderParamInt (CChar8 *name) {return (ShaderParamInt *)FindShaderParam(name);}
+inline ShaderParamBool*  GetShaderParamBool(CChar8 *name) {return (ShaderParamBool*) GetShaderParam(name);}
+inline ShaderParamInt *  GetShaderParamInt (CChar8 *name) {return (ShaderParamInt *) GetShaderParam(name);}
 
          inline void SPSet(CChar8 *name,   Bool     b               ) {if(ShaderParam *sp=FindShaderParam(name))sp->set(b           );} // set boolean  value
          inline void SPSet(CChar8 *name,   Int      i               ) {if(ShaderParam *sp=FindShaderParam(name))sp->set(i           );} // set integer  value
@@ -571,8 +723,19 @@ inline ShaderParamBool* GetShaderParamBool(CChar8 *name) {return (ShaderParamBoo
          inline void SPSet(CChar8 *name,   CPtr     data  , Int size) {if(ShaderParam *sp=FindShaderParam(name))sp->set(data  , size);} // set memory
 T1(TYPE) inline void SPSet(CChar8 *name, C TYPE    &data            ) {if(ShaderParam *sp=FindShaderParam(name))sp->set(data        );} // set memory
 
+         inline void SPISet(CChar8 *name,   Int    i) {if(ShaderParamInt *sp=FindShaderParamInt(name))sp->set(i);} // set integer  value
+         inline void SPISet(CChar8 *name, C VecI2 &v) {if(ShaderParamInt *sp=FindShaderParamInt(name))sp->set(v);} // set vector2D value
+         inline void SPISet(CChar8 *name, C VecI  &v) {if(ShaderParamInt *sp=FindShaderParamInt(name))sp->set(v);} // set vector3D value
+         inline void SPISet(CChar8 *name, C VecI4 &v) {if(ShaderParamInt *sp=FindShaderParamInt(name))sp->set(v);} // set vector4D value
+
 #if EE_PRIVATE
 ShaderBuffer* FindShaderBuffer(CChar8 *name);
 ShaderBuffer*  GetShaderBuffer(CChar8 *name);
+
+#if GL_ES
+UInt GLNoFilter(UInt filter);
+#endif
+
+Bool VerifyPrecompiledShaderCache(C Str &name);
 #endif
 /******************************************************************************/

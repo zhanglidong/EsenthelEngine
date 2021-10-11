@@ -1187,6 +1187,16 @@ static Bool CPinch(CalcValue &x, CalcValue &y)
    x.r   =Pinch(step, pinch);
    x.type=CVAL_REAL; return true;
 }
+static Bool CPinchFactor(CalcValue &x, CalcValue &y)
+{
+   Dbl step, pinch;
+   if(x.type==CVAL_INT )step =x.i;else
+   if(x.type==CVAL_REAL)step =x.r;else return false;
+   if(y.type==CVAL_INT )pinch=y.i;else
+   if(y.type==CVAL_REAL)pinch=y.r;else return false;
+   x.r   =PinchFactor(step, pinch);
+   x.type=CVAL_REAL; return true;
+}
 
 static Bool CSmoothSqr(CalcValue &x)
 {
@@ -1446,6 +1456,13 @@ static Bool CSRGBToLinear(CalcValue &x)
    return true;
 }
 /******************************************************************************/
+static Bool CGaussian(CalcValue &x)
+{
+   if(x.type==CVAL_INT )x.r=Gaussian(Dbl(x.i));else
+   if(x.type==CVAL_REAL)x.r=Gaussian(    x.r );else return false;
+   x.type=CVAL_REAL; return true;
+}
+/******************************************************************************/
 static struct CalcOpInfo
 {
    Byte    priority, args;
@@ -1551,6 +1568,7 @@ static struct CalcFuncInfo
    {1, "Cbrt"            , (Ptr)CCbrt            },
    {2, "Pow"             , (Ptr)CPow             },
    {2, "Pinch"           , (Ptr)CPinch           },
+   {2, "PinchFactor"     , (Ptr)CPinchFactor     },
    {1, "SmoothSqr"       , (Ptr)CSmoothSqr       },
    {1, "SmoothCube"      , (Ptr)CSmoothCube      },
    {1, "SmoothCubeInv"   , (Ptr)CSmoothCubeInv   },
@@ -1585,6 +1603,7 @@ static struct CalcFuncInfo
    {2, "Ror"             , (Ptr)CRor             },
    {1, "LinearToSRGB"    , (Ptr)CLinearToSRGB    },
    {1, "SRGBToLinear"    , (Ptr)CSRGBToLinear    },
+   {1, "Gaussian"        , (Ptr)CGaussian        },
 };
 struct CalcFunc
 {

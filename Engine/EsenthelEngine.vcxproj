@@ -645,7 +645,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm512</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -686,7 +686,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm512</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -730,7 +730,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm512</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -771,7 +771,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm512</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -816,7 +816,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm512</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -875,7 +875,7 @@
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;misleading-indentation;</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MsExtensions>true</MsExtensions>
@@ -909,7 +909,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm512</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -967,7 +967,7 @@
       <UseFullPaths>true</UseFullPaths>
       <SmallerTypeCheck>false</SmallerTypeCheck>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;misleading-indentation;</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MsExtensions>true</MsExtensions>
       <OptimizationLevel>O0</OptimizationLevel>
@@ -1073,7 +1073,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">
     <ClCompile>
-      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm512</AdditionalOptions>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -1120,7 +1120,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">
     <ClCompile>
-      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm512</AdditionalOptions>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -1169,7 +1169,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">
     <ClCompile>
-      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm512</AdditionalOptions>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -1218,7 +1218,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">
     <ClCompile>
-      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm512</AdditionalOptions>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -1269,7 +1269,7 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm512</AdditionalOptions>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -1349,7 +1349,7 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;misleading-indentation;</DisableSpecificWarnings>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <SDLCheck>
       </SDLCheck>
@@ -1378,7 +1378,7 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm512</AdditionalOptions>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -1463,7 +1463,7 @@
       <CompileAsWinRT>true</CompileAsWinRT>
       <SDLCheck>
       </SDLCheck>
-      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;misleading-indentation;</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <OmitFramePointer>true</OmitFramePointer>
       <FastMath>true</FastMath>
@@ -1593,7 +1593,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm512</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -1634,7 +1634,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm512</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -1681,7 +1681,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm512</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -1740,7 +1740,7 @@
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;misleading-indentation;</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MsExtensions>true</MsExtensions>
@@ -1802,7 +1802,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">
     <ClCompile>
-      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm512</AdditionalOptions>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -1847,7 +1847,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">
     <ClCompile>
-      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm512</AdditionalOptions>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -1897,7 +1897,7 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalOptions>/J /permissive -Zm200</AdditionalOptions>
+      <AdditionalOptions>/J /permissive -Zm512</AdditionalOptions>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -1976,7 +1976,7 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;missing-braces;empty-body;undefined-bool-conversion;unused-const-variable;unused-function;unused-variable;misleading-indentation;</DisableSpecificWarnings>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <SDLCheck>
       </SDLCheck>
@@ -2178,9 +2178,12 @@
     <ClInclude Include="Source\Shaders\!Set Prec Image.h" />
     <ClInclude Include="Source\Shaders\!Set Prec Low.h" />
     <ClInclude Include="Source\Shaders\!Set Prec Struct.h" />
+    <ClInclude Include="Source\Shaders\Bloom.h" />
     <ClInclude Include="Source\Shaders\Cubic.h" />
     <ClInclude Include="Source\Shaders\FXAA.h" />
     <ClInclude Include="Source\Shaders\Light Apply.h" />
+    <ClInclude Include="Source\Shaders\Motion Blur.h" />
+    <ClInclude Include="Source\Shaders\Temporal.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="H\_\structs.h" />
     <ClInclude Include="H\_\types.h" />
@@ -2301,7 +2304,7 @@
     <ClInclude Include="Source\Shaders\Fur.h" />
     <ClInclude Include="Source\Shaders\Hdr.h" />
     <ClInclude Include="Source\Shaders\Layered Clouds.h" />
-    <ClInclude Include="Source\Shaders\Overlay.h" />
+    <ClInclude Include="Source\Shaders\Mesh Overlay.h" />
     <ClInclude Include="Source\Shaders\Sky.h" />
     <ClInclude Include="Source\Shaders\SMAA.h" />
     <ClInclude Include="Source\Shaders\Water.h" />
@@ -3345,6 +3348,38 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|NX64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Source\Shaders\FidelityFX\Fidelity FX.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|NX64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|NX64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|NX64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|NX64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|NX64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|NX64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Source\Shaders\Font.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
@@ -3761,7 +3796,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|NX64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Source\Shaders\TAA.cpp">
+    <ClCompile Include="Source\Shaders\Temporal.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
@@ -3825,6 +3860,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|NX64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Source\Sound\Sound Resample.cpp" />
     <ClCompile Include="Source\Sound\Spectrometer.cpp" />
     <ClCompile Include="Source\Sound\VorbisEncoder.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -3882,6 +3918,8 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|NX64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|NX64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Source\Misc\Application.cpp" />
     <ClCompile Include="Source\Misc\Callback.cpp" />
@@ -4056,7 +4094,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|NX64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Source\Shaders\Ambient.cpp">
+    <ClCompile Include="Source\Shaders\Emissive.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
@@ -4504,7 +4542,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|NX64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Source\Shaders\Overlay.cpp">
+    <ClCompile Include="Source\Shaders\Mesh Overlay.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
@@ -4600,7 +4638,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|NX64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Source\Shaders\Tattoo.cpp">
+    <ClCompile Include="Source\Shaders\Overlay.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
@@ -5074,6 +5112,32 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
       <FileType>Document</FileType>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\SampleRate\Windows\x64\Release\SampleRate\SampleRate.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|NX64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|NX64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|NX64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|NX64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|NX64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|NX64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GL|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GL|ARM'">true</ExcludedFromBuild>
     </Library>
     <Library Include="..\ThirdPartyLibs\Theora\Windows\Release\Theora.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>

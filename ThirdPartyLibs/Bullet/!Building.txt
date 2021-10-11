@@ -9,6 +9,8 @@
    C/C++
 	General
 		Debug Information Format - None
+	Code Generation
+		Security Check - Disable Security Check (/GS-)
 	Language
 		Enable Run-Time Type Info - Yes
 6) Create new Configuration: "Release Universal"

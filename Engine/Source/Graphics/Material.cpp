@@ -3,12 +3,17 @@
 namespace EE{
 /******************************************************************************
 
+   #MaterialTextureLayout
    base_0: RGB, Alpha
    base_1: NrmX, NrmY
-   base_2: Smooth, Reflect, Bump, Glow
-   detail: NrmX, NrmY, Col, Smooth
+   base_2: Metal, Rough, Bump, Glow
+   detail: NrmX, NrmY, Rough, Col   #MaterialTextureLayoutDetail
 
    When changing the above to a different order, then look for "#MaterialTextureLayout" text in Engine/Editor to update the codes.
+
+   In a lot of cases only Smooth is used without Metal, and if Smooth was stored in Red/X channel, then we could use BC4 texture with Metal in Green/Y channel as 0.
+      However when Smooth and Metal are used together, then they need 2 channels, and to reduce texture sizes, BC1 RGB is used (with only 4-bits per pixel), instead of BC5 RG (8-bits).
+      BC1 offers better quality for Green channel (6 bits) compared to Red (5 bits), and Smooth needs more precision, because Metal in most cases is 0.0 or 1.0, so it's better to put Smooth in Green and Metal to Red.
 
    https://seblagarde.wordpress.com/2011/08/17/feeding-a-physical-based-lighting-mode/
 
@@ -23,7 +28,7 @@ namespace EE{
       Rock, Bark       0.039
       Glass            0.04
       Plastic          0.04 .. 0.05
-      Fabric	        0.04 .. 0.056
+      Fabric           0.04 .. 0.056
       Sand             0.046
       Hair             0.047
       Asphalt          0.06
@@ -47,20 +52,11 @@ namespace EE{
 /******************************************************************************/
 #define CC4_MTRL CC4('M','T','R','L')
 
-#define BUMP_DEFAULT_TEX 0 // 0..255, normally this should be 128, but 0 will allow to use BC5 (for Mtrl.base_2 tex if there's no Glow) and always set Material.bump=0 when bump is not used #MaterialTextureLayout
-#define BUMP_DEFAULT_PAR 0.03f
+constexpr Byte TexSmooth(Byte tx) {return TEX_IS_ROUGH ? 255-tx : tx;} // convert between texture and smoothness
 
-// #MaterialTextureLayout
-// base_0
-#define   ALPHA_CHANNEL 3
-// base_1
-#define    NRMX_CHANNEL 0
-#define    NRMY_CHANNEL 1
-// base_2
-#define  SMOOTH_CHANNEL 0
-#define REFLECT_CHANNEL 1
-#define    BUMP_CHANNEL 2
-#define    GLOW_CHANNEL 3
+#define TEX_DEFAULT_SMOOTH 0 // 0..255
+#define TEX_DEFAULT_METAL  0 // 0..255
+#define TEX_DEFAULT_BUMP   0 // 0..255, normally this should be 128, but 0 will allow to use BC4/BC5 (for Mtrl.base_2 tex if there's no Glow) and always set Material.bump=0 when bump is not used #MaterialTextureLayout
 /******************************************************************************/
 static Int Compare(C UniqueMultiMaterialKey &a, C UniqueMultiMaterialKey &b)
 {
@@ -79,24 +75,155 @@ const Material        *MaterialLast,
 MaterialPtr            MaterialNull;
 ThreadSafeMap<UniqueMultiMaterialKey, UniqueMultiMaterialData> UniqueMultiMaterialMap(Compare);
 /******************************************************************************/
-Vec4 MaterialParams::colorS(               )C {return        LinearToSRGB(color_l) ;}
-void MaterialParams::colorS(C Vec4 &color_s)  {return colorL(SRGBToLinear(color_s));}
+Bool HasAlpha(MATERIAL_TECHNIQUE technique)
+{
+   switch(technique)
+   {
+      case MTECH_ALPHA_TEST:
+      case MTECH_ALPHA_TEST_DITHER:
+      case MTECH_GRASS:
+      case MTECH_GRASS_3D:
+      case MTECH_LEAF_2D:
+      case MTECH_LEAF:
+      case MTECH_BLEND:
+      case MTECH_BLEND_LIGHT:
+      case MTECH_BLEND_LIGHT_GRASS:
+      case MTECH_BLEND_LIGHT_LEAF:
+      case MTECH_TEST_BLEND_LIGHT:
+      case MTECH_TEST_BLEND_LIGHT_GRASS:
+      case MTECH_TEST_BLEND_LIGHT_LEAF:
+      case MTECH_DEPTH_BLEND:
+         return true;
+
+      default: return false;
+   }
+}
+Bool HasAlphaTest(MATERIAL_TECHNIQUE technique)
+{
+   switch(technique)
+   {
+      case MTECH_ALPHA_TEST            :
+      case MTECH_ALPHA_TEST_DITHER     :
+      case MTECH_GRASS                 :
+      case MTECH_GRASS_3D              :
+      case MTECH_LEAF_2D               :
+      case MTECH_LEAF                  :
+      case MTECH_TEST_BLEND_LIGHT      :
+      case MTECH_TEST_BLEND_LIGHT_GRASS:
+      case MTECH_TEST_BLEND_LIGHT_LEAF :
+         return true;
+
+      default: return false;
+   }
+}
+Bool HasAlphaTestNoBlend(MATERIAL_TECHNIQUE technique)
+{
+   switch(technique)
+   {
+      case MTECH_ALPHA_TEST       :
+      case MTECH_ALPHA_TEST_DITHER:
+      case MTECH_GRASS            :
+      case MTECH_GRASS_3D         :
+      case MTECH_LEAF_2D          :
+      case MTECH_LEAF             :
+         return true;
+
+      default: return false;
+   }
+}
+Bool HasAlphaBlend(MATERIAL_TECHNIQUE technique)
+{
+   switch(technique)
+   {
+      case MTECH_BLEND:
+      case MTECH_BLEND_LIGHT:
+      case MTECH_BLEND_LIGHT_GRASS:
+      case MTECH_BLEND_LIGHT_LEAF:
+      case MTECH_TEST_BLEND_LIGHT:
+      case MTECH_TEST_BLEND_LIGHT_GRASS:
+      case MTECH_TEST_BLEND_LIGHT_LEAF:
+      case MTECH_DEPTH_BLEND:
+         return true;
+
+      default: return false;
+   }
+}
+Bool HasAlphaBlendNoTest(MATERIAL_TECHNIQUE technique)
+{
+   switch(technique)
+   {
+      case MTECH_BLEND:
+      case MTECH_BLEND_LIGHT:
+      case MTECH_BLEND_LIGHT_GRASS:
+      case MTECH_BLEND_LIGHT_LEAF:
+      case MTECH_DEPTH_BLEND:
+         return true;
+
+      default: return false;
+   }
+}
+Bool HasLeaf(MATERIAL_TECHNIQUE technique)
+{
+   switch(technique)
+   {
+      case MTECH_LEAF_2D:
+      case MTECH_LEAF:
+      case MTECH_BLEND_LIGHT_LEAF:
+      case MTECH_TEST_BLEND_LIGHT_LEAF:
+         return true;
+
+      default: return false;
+   }
+}
+Bool HasDepthWrite(MATERIAL_TECHNIQUE technique)
+{
+   switch(technique)
+   {
+      case MTECH_OPAQUE                :
+      case MTECH_ALPHA_TEST            :
+      case MTECH_ALPHA_TEST_DITHER     :
+      case MTECH_FUR                   :
+      case MTECH_GRASS                 :
+      case MTECH_LEAF                  :
+      case MTECH_TEST_BLEND_LIGHT      :
+      case MTECH_TEST_BLEND_LIGHT_GRASS:
+      case MTECH_TEST_BLEND_LIGHT_LEAF :
+      case MTECH_GRASS_3D              :
+      case MTECH_LEAF_2D               :
+      case MTECH_DEPTH_BLEND           :
+         return true;
+      default: return false;
+   }
+}
+/******************************************************************************/
+Vec4  MaterialParams::colorS    (                  )C {return           LinearToSRGB(   color_l) ;}
+void  MaterialParams::colorS    (C Vec4 &color_s   )  {return    colorL(SRGBToLinear(   color_s));}
+Vec   MaterialParams::emissiveS (                  )C {return           LinearToSRGB(emissive_l) ;}
+void  MaterialParams::emissiveS (C Vec  &emissive_s)  {return emissiveL(SRGBToLinear(emissive_s));}
+void  MaterialParams::reflect   (  Flt   reflect   )  {reflect_add=reflect; reflect_mul= 1-reflect     ;}
+void XMaterial      ::reflect   (  Flt   reflect   )  {reflect_add=reflect; reflect_mul= 1-reflect     ;}
+void  MaterialParams::reflect   (  Flt min, Flt max)  {reflect_add=    min; reflect_mul=(1-min    )*max;}
+void XMaterial      ::reflect   (  Flt min, Flt max)  {reflect_add=    min; reflect_mul=(1-min    )*max;}
+Flt   MaterialParams::reflectMax(                  )C {Flt div=(1-reflect_add); return Equal(div, 0) ? 1 : reflect_mul/div;}
+Flt  XMaterial      ::reflectMax(                  )C {Flt div=(1-reflect_add); return Equal(div, 0) ? 1 : reflect_mul/div;}
 /******************************************************************************/
 Material::Material()
 {
-   color_l.set(1, 1, 1, 1);
-   ambient.set(0, 0, 0);
-   smooth   =0;
-   reflect  =MATERIAL_REFLECT;
-   glow     =0;
-   normal   =0;
-   bump     =0;
-   det_power=0.3f;
-   det_scale=4;
-   tex_scale=1.0f;
+      color_l.set(1, 1, 1, 1);
+   emissive_l.set(0, 0, 0);
+   emissive_glow=0;
+   rough_mul    =0; rough_add=1;
+   reflect      (MATERIAL_REFLECT);
+   glow         =0;
+   normal       =0;
+   bump         =0;
+   det_power    =0.3f;
+   det_uv_scale =4;
+       uv_scale =1.0f;
 
-   cull     =true;
-   technique=MTECH_DEFAULT;
+   cull          =true;
+   detail_all_lod=false;
+   technique     =MTECH_OPAQUE;
 
    clear();
    validate();
@@ -112,55 +239,12 @@ Material::~Material()
    }
 }
 /******************************************************************************/
-static Bool HasAlphaTest(MATERIAL_TECHNIQUE technique)
-{
-   switch(technique)
-   {
-      case MTECH_ALPHA_TEST            :
-      case MTECH_GRASS                 :
-      case MTECH_GRASS_3D              :
-      case MTECH_LEAF_2D               :
-      case MTECH_LEAF                  :
-      case MTECH_TEST_BLEND_LIGHT      :
-      case MTECH_TEST_BLEND_LIGHT_GRASS:
-      case MTECH_TEST_BLEND_LIGHT_LEAF :
-         return true;
-
-      default: return false;
-   }
-}
-Bool Material::hasAlpha()C
-{
-   switch(technique)
-   {
-      case MTECH_ALPHA_TEST:
-      case MTECH_GRASS:
-      case MTECH_GRASS_3D:
-      case MTECH_LEAF_2D:
-      case MTECH_LEAF:
-      case MTECH_BLEND:
-      case MTECH_BLEND_LIGHT:
-      case MTECH_BLEND_LIGHT_GRASS:
-      case MTECH_BLEND_LIGHT_LEAF:
-      case MTECH_TEST_BLEND_LIGHT:
-      case MTECH_TEST_BLEND_LIGHT_GRASS:
-      case MTECH_TEST_BLEND_LIGHT_LEAF:
-         return true;
-
-      default: return false;
-   }
-}
-Bool Material::hasAlphaBlend()C
+Bool Material::hasAlphaBlendNoLight()C
 {
    switch(technique)
    {
       case MTECH_BLEND:
-      case MTECH_BLEND_LIGHT:
-      case MTECH_BLEND_LIGHT_GRASS:
-      case MTECH_BLEND_LIGHT_LEAF:
-      case MTECH_TEST_BLEND_LIGHT:
-      case MTECH_TEST_BLEND_LIGHT_GRASS:
-      case MTECH_TEST_BLEND_LIGHT_LEAF:
+      case MTECH_DEPTH_BLEND:
          return true;
 
       default: return false;
@@ -216,19 +300,6 @@ Bool Material::hasGrass3D()C
       default: return false;
    }
 }
-Bool Material::hasLeaf()C
-{
-   switch(technique)
-   {
-      case MTECH_LEAF_2D:
-      case MTECH_LEAF:
-      case MTECH_BLEND_LIGHT_LEAF:
-      case MTECH_TEST_BLEND_LIGHT_LEAF:
-         return true;
-
-      default: return false;
-   }
-}
 Bool Material::hasLeaf2D()C
 {
    switch(technique)
@@ -257,7 +328,7 @@ Bool Material::needTanBin()C
    // #MaterialTextureLayout
    return (base_1     && normal   >EPS_COL8         )  // normal        is in base_1
        || (base_2     && bump     >EPS_MATERIAL_BUMP)  // bump          is in base_2
-       || (detail_map && det_power>EPS_COL8         ); // normal detail is in DetailMap
+       || (detail_map && det_power>EPS_COL8         ); // normal detail is in DetailMap #MaterialTextureLayoutDetail
 }
 /******************************************************************************/
 Material& Material::reset   () {T=MaterialDefault; return validate();}
@@ -266,16 +337,17 @@ Material& Material::validate() // #MaterialTextureLayout
                       if(this==MaterialLast    )MaterialLast    =null;
    REPA(MaterialLast4)if(this==MaterialLast4[i])MaterialLast4[i]=null;
 
-  _has_alpha_test=HasAlphaTest(technique); // !! set this first, because codes below rely on this !!
-  _depth_write   =!(hasAlphaBlend() && !hasAlphaTest ());
-//_coverage      = (hasAlphaTest () && !hasAlphaBlend());
+  _has_alpha_test=HasAlphaTest       (technique); // !! call 'HasAlphaTest'  instead of 'hasAlphaTest'  because that one just uses '_has_alpha_test' which we're setting here !!
+  _depth_write   =HasDepthWrite      (technique); // !! call 'HasDepthWrite' instead of 'hasDepthWrite' because that one just uses '_depth_write'    which we're setting here !!
+//_coverage      =HasAlphaTestNoBlend(technique);
   _alpha_factor.set(0, 0, 0, FltToByte(T.glow));
+  _has_glow      =(_alpha_factor.a || emissive_glow>EPS_COL8);
 
    // set multi
    {
-     _multi.color    =colorD();
-     _multi.tex_scale=tex_scale;
-     _multi.det_scale=det_scale;
+     _multi.color       =    colorD();
+     _multi.    uv_scale=    uv_scale;
+     _multi.det_uv_scale=det_uv_scale;
 
       // normal map
       if(base_1)
@@ -289,33 +361,39 @@ Material& Material::validate() // #MaterialTextureLayout
       // base2
       if(base_2)
       {
-        _multi.srg_mul.x=smooth;
-        _multi.srg_add.x=0;
+        _multi.refl_rogh_glow_mul.x=reflect_mul;
+        _multi.refl_rogh_glow_add.x=reflect_add;
 
-        _multi.srg_mul.y=reflect;
-        _multi.srg_add.y=0;
+        _multi.refl_rogh_glow_mul.y=rough_mul;
+        _multi.refl_rogh_glow_add.y=rough_add;
 
-        _multi.srg_mul.z=glow;
-        _multi.srg_add.z=0;
+        _multi.refl_rogh_glow_mul.z=glow;
+        _multi.refl_rogh_glow_add.z=0;
 
         _multi.bump=bump;
       }else
       {
-        _multi.srg_mul=0;
-        _multi.srg_add.x=smooth;
-        _multi.srg_add.y=reflect;
-        _multi.srg_add.z=glow;
+        _multi.refl_rogh_glow_mul=0;
+        _multi.refl_rogh_glow_add.x=reflect_add;
+        _multi.refl_rogh_glow_add.y=  rough_add;
+        _multi.refl_rogh_glow_add.z=glow;
 
         _multi.bump=0;
       }
 
+      // #MaterialTextureLayoutDetail
+      // XY=nrm.xy -1..1 delta, Z=rough -1..1 delta, W=color 0..2 scale
+      // SINGLE: det.xyz=det.xyz*(Material.det_power*2)+( -Material.det_power); -1..1
+      // SINGLE: det.w  =det.w  *(Material.det_power*2)+(1-Material.det_power);  0..2
+      // MULTI : det.xyz=det.xyz*MultiMaterial0.det_mul+MultiMaterial0.det_add; -1..1
+      // MULTI : det.w  =det.w  *MultiMaterial0.det_mul+MultiMaterial0.det_inv;  0..2
       if(detail_map)
       {
-        _multi.det_mul=  det_power;
-        _multi.det_add=  det_power*-0.5f; // used for normal      : (tex-0.5)*det_power     == tex*det_power - det_power*0.5                                    == tex*det_mul + det_add
-        _multi.det_inv=1-det_power      ; // used for color,smooth: Lerp(1, tex, det_power) == 1*(1-det_power) + tex*det_power == tex*det_power + (1-det_power) == tex*det_mul + det_inv
+        _multi.det_mul=  det_power*2;
+        _multi.det_add= -det_power  ;
+        _multi.det_inv=1-det_power  ;
       }else
-      {
+      { // same as above with det_power=0
         _multi.det_mul=0;
         _multi.det_add=0;
         _multi.det_inv=1;
@@ -324,54 +402,39 @@ Material& Material::validate() // #MaterialTextureLayout
    }
    return T;
 }
-/******************************************************************************
-Bool Material::convertAlphaTest(Bool blend)
-{
-   if(blend)
-   {
-      if(technique==MTECH_ALPHA_TEST){technique=MTECH_TEST_BLEND_LIGHT      ; color.w=1; validate(); return true;}
-      if(technique==MTECH_GRASS     ){technique=MTECH_TEST_BLEND_LIGHT_GRASS; color.w=1; validate(); return true;}
-      if(technique==MTECH_LEAF      ){technique=MTECH_TEST_BLEND_LIGHT_LEAF ; color.w=1; validate(); return true;}
-   }else
-   {
-      if(technique==MTECH_TEST_BLEND_LIGHT      ){technique=MTECH_ALPHA_TEST; color.w=0.5f; validate(); return true;}
-      if(technique==MTECH_TEST_BLEND_LIGHT_GRASS){technique=MTECH_GRASS     ; color.w=0.5f; validate(); return true;}
-      if(technique==MTECH_TEST_BLEND_LIGHT_LEAF ){technique=MTECH_LEAF      ; color.w=0.5f; validate(); return true;}
-   }
-   return false;
-}
 /******************************************************************************/
-void Material::setSolid()C
+void Material::setOpaque()C
 {
    if(MaterialLast!=this)
    {
       MaterialLast    =this;
       MaterialLast4[0]=null; // because they use the same shader images
 
-      if(_alpha_factor.a)Renderer._has_glow=true;
-      Sh.Col[0]  ->set(    base_0());
-      Sh.Nrm[0]  ->set(    base_1());
-      Sh.Ext[0]  ->set(    base_2());
-      Sh.Det[0]  ->set(detail_map());
-      Sh.Mac[0]  ->set( macro_map());
-      Sh.Lum     ->set( light_map());
+      if(_has_glow)Renderer._has_glow=true;
+      Sh.Col[0]  ->set(      base_0());
+      Sh.Nrm[0]  ->set(      base_1());
+      Sh.Ext[0]  ->set(      base_2());
+      Sh.Det[0]  ->set(  detail_map());
+      Sh.Mac[0]  ->set(   macro_map());
+      Sh.Lum     ->set(emissive_map());
       Sh.Material->set<MaterialParams>(T);
    #if !LINEAR_GAMMA
       Renderer.material_color_l->set(colorS());
    #endif
    }
 }
-void Material::setAmbient()C
+void Material::setEmissive()C
 {
    if(MaterialLast!=this)
    {
-      MaterialLast=this;
-    //MaterialLast4[0]=null; not needed since multi materials not rendered in ambient mode
+      MaterialLast    =this;
+      MaterialLast4[0]=null; // because they use the same shader images
 
       // textures needed for alpha-test #MaterialTextureLayout
-      Sh.Col[0]  ->set(base_0   ());
-      Sh.Lum     ->set(light_map());
-      Sh.Material->set<MaterialParams>(T); // params needed for alpha-test and ambient
+    //if(_has_glow)Renderer._has_glow=true; already processed in 'setOpaque'
+      Sh.Col[0]  ->set(base_0      ());
+      Sh.Lum     ->set(emissive_map());
+      Sh.Material->set<MaterialParams>(T); // params needed for alpha-test and emissive
    #if !LINEAR_GAMMA
       Renderer.material_color_l->set(colorS());
    #endif
@@ -384,14 +447,14 @@ void Material::setBlend()C
       MaterialLast=this;
     //MaterialLast4[0]=null; not needed since multi materials not rendered in blend mode
 
-      D.alphaFactor(_alpha_factor); if(_alpha_factor.a)Renderer._has_glow=true;
+      D.alphaFactor(_alpha_factor); if(_alpha_factor.a)Renderer._has_glow=true; // here operate only on '_alpha_factor.a' instead of '_has_glow' because blend shaders use glow only from alpha factor but not 'emissive_glow'
 
-      Sh.Col[0]  ->set(    base_0());
-      Sh.Nrm[0]  ->set(    base_1());
-      Sh.Ext[0]  ->set(    base_2());
-      Sh.Det[0]  ->set(detail_map());
-      Sh.Mac[0]  ->set( macro_map());
-      Sh.Lum     ->set( light_map());
+      Sh.Col[0]  ->set(      base_0());
+      Sh.Nrm[0]  ->set(      base_1());
+      Sh.Ext[0]  ->set(      base_2());
+      Sh.Det[0]  ->set(  detail_map());
+      Sh.Mac[0]  ->set(   macro_map());
+      Sh.Lum     ->set(emissive_map());
       Sh.Material->set<MaterialParams>(T);
    #if !LINEAR_GAMMA
       Renderer.material_color_l->set(colorS());
@@ -410,15 +473,15 @@ void Material::setBlendForce()C
       if(MaterialLast==this)return;
          MaterialLast= this;
 
-      D.alphaFactor(_alpha_factor); if(_alpha_factor.a)Renderer._has_glow=true;
+      D.alphaFactor(_alpha_factor); if(_alpha_factor.a)Renderer._has_glow=true; // here operate only on '_alpha_factor.a' instead of '_has_glow' because blend shaders use glow only from alpha factor but not 'emissive_glow'
    }
 
-   Sh.Col[0]  ->set(    base_0());
-   Sh.Nrm[0]  ->set(    base_1());
-   Sh.Ext[0]  ->set(    base_2());
-   Sh.Det[0]  ->set(detail_map());
-   Sh.Mac[0]  ->set( macro_map());
-   Sh.Lum     ->set( light_map());
+   Sh.Col[0]  ->set(      base_0());
+   Sh.Nrm[0]  ->set(      base_1());
+   Sh.Ext[0]  ->set(      base_2());
+   Sh.Det[0]  ->set(  detail_map());
+   Sh.Mac[0]  ->set(   macro_map());
+   Sh.Lum     ->set(emissive_map());
    Sh.Material->set<MaterialParams>(T);
 #if !LINEAR_GAMMA
    Renderer.material_color_l->set(colorS());
@@ -432,7 +495,7 @@ void Material::setOutline()C
     //MaterialLast4[0]=null; not needed since multi materials not rendered in outline mode
       // textures needed for alpha-test #MaterialTextureLayout
       Sh.Col[0]->set(base_0());
-      Renderer.material_color_l->set(colorD()); // only Material Color is used for potential alpha-testing
+      Renderer.material_color_l->set(colorD()); // only Material Color is used for alpha-testing
    }
 }
 void Material::setBehind()C
@@ -443,7 +506,7 @@ void Material::setBehind()C
     //MaterialLast4[0]=null; not needed since multi materials not rendered in behind mode
       // textures needed for alpha-test #MaterialTextureLayout
       Sh.Col[0]->set(base_0());
-      Renderer.material_color_l->set(colorD()); // only Material Color is used
+      Renderer.material_color_l->set(colorD()); // only Material Color is used for alpha-testing
    }
 }
 void Material::setShadow()C
@@ -454,7 +517,7 @@ void Material::setShadow()C
     //MaterialLast4[0]=null; not needed since multi materials don't have alpha test and don't need to set values in shadow mode
       // textures needed for alpha-test #MaterialTextureLayout
       Sh.Col[0]->set(base_0());
-      Renderer.material_color_l->set(colorD()); // only Material Color is used
+      Renderer.material_color_l->set(colorD()); // only Material Color is used for alpha-testing
    }
 }
 void Material::setMulti(Int i)C
@@ -465,7 +528,7 @@ void Material::setMulti(Int i)C
             MaterialLast4[i]=this;
       if(!i)MaterialLast    =null; // because they use the same shader images
 
-      if(_alpha_factor.a)Renderer._has_glow=true;
+      if(_has_glow)Renderer._has_glow=true;
 
       Sh.Col          [i]->set(  base_0  ());
       Sh.Nrm          [i]->set(  base_1  ());
@@ -480,13 +543,12 @@ void Material::setAuto()C
    switch(Renderer())
    {
       case RM_PREPARE :
-      case RM_SOLID   :
-      case RM_SOLID_M : setSolid(); break;
+      case RM_OPAQUE  :
+      case RM_OPAQUE_M: setOpaque(); break;
 
-      case RM_AMBIENT : setAmbient(); break;
+      case RM_EMISSIVE: setEmissive(); break;
 
       case RM_FUR     :
-      case RM_CLOUD   :
       case RM_BLEND   :
       case RM_PALETTE :
       case RM_PALETTE1:
@@ -501,204 +563,216 @@ void Material::setAuto()C
    }
 }
 /******************************************************************************/
-void Material::_adjustParams(UInt old_base_tex, UInt new_base_tex)
-{
-   UInt changed=(old_base_tex^new_base_tex);
-   if(changed&BT_BUMP)
-   {
-      if(!(new_base_tex&BT_BUMP))bump=0;else
-      if(bump<=EPS_MATERIAL_BUMP)bump=BUMP_DEFAULT_PAR;
-   }
-   if(changed&(BT_BUMP|BT_NORMAL))
-   {
-      if(!(new_base_tex&BT_BUMP) && !(new_base_tex&BT_NORMAL))normal=0;else
-      if(                                    normal<=EPS_COL8)normal=1;
-   }
-
-   if(changed&BT_SMOOTH)
-      if(!(new_base_tex&BT_SMOOTH))smooth=0;else
-      if(smooth<=EPS_COL8         )smooth=1;
-
-   if(changed&BT_REFLECT)
-      if(!(new_base_tex&BT_REFLECT)        )reflect=MATERIAL_REFLECT;else
-      if(reflect<=MATERIAL_REFLECT+EPS_COL8)reflect=1;
-
-   if(changed&BT_GLOW)
-      if(!(new_base_tex&BT_GLOW))glow=0;else
-      if(glow<=EPS_COL8         )glow=1;
-
-   if(changed&BT_ALPHA)
-   {
-      if(new_base_tex&BT_ALPHA)
-      {
-         if(!hasAlphaBlend() && color_l.w>=1-EPS_COL8)color_l.w=0.5f;
-         if(!hasAlpha     ()                         )technique=MTECH_ALPHA_TEST;
-      }else
-      {
-         if(hasAlpha())technique=MTECH_DEFAULT; // disable alpha technique if alpha map is not available
-      }
-   }
-
-   validate();
-}
-/******************************************************************************/
 Bool Material::saveData(File &f, CChar *path)C
 {
-   f.putMulti(Byte(10), cull, technique)<<SCAST(C MaterialParams, T); // version
+   f.putMulti(Byte(14), cull, detail_all_lod, technique)<<SCAST(C MaterialParams, T); // version
 
    // textures
-   f.putStr(    base_0.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
-   f.putStr(    base_1.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
-   f.putStr(    base_2.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
-   f.putStr(detail_map.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
-   f.putStr( macro_map.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
-   f.putStr( light_map.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
+   f.putStr(      base_0.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
+   f.putStr(      base_1.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
+   f.putStr(      base_2.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
+   f.putStr(  detail_map.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
+   f.putStr(   macro_map.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
+   f.putStr(emissive_map.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
 
    return f.ok();
 }
 Bool Material::loadData(File &f, CChar *path)
 {
-   MaterialParams &mp=T; Char temp[MAX_LONG_PATH]; Flt sss;
+   MaterialParams &mp=T; Char temp[MAX_LONG_PATH]; Flt sss, smooth, reflect;
    switch(f.decUIntV())
    {
+      case 14:
+      {
+         f.getMulti(cull, detail_all_lod, technique)>>mp;
+         f.getStr(temp);       base_0.require(temp, path); // base_0 is RGBA
+         f.getStr(temp);       base_1.require(temp, path); // base_1 is NormalXY
+         f.getStr(temp);       base_2.require(temp, path); // base_2 is Metal, Rough, Bump, Glow
+         f.getStr(temp);   detail_map.require(temp, path);
+         f.getStr(temp);    macro_map.require(temp, path);
+         f.getStr(temp); emissive_map.require(temp, path);
+      }break;
+
+      case 13:
+      {
+         f.getMulti(cull, technique)>>mp; detail_all_lod=false;
+         f.getStr(temp);       base_0.require(temp, path); // base_0 is RGBA
+         f.getStr(temp);       base_1.require(temp, path); // base_1 is NormalXY
+         f.getStr(temp);       base_2.require(temp, path); // base_2 is Metal, Rough, Bump, Glow
+         f.getStr(temp);   detail_map.require(temp, path);
+         f.getStr(temp);    macro_map.require(temp, path);
+         f.getStr(temp); emissive_map.require(temp, path);
+      }break;
+
+      case 12:
+      {
+         f.getMulti(cull, technique)>>color_l>>emissive_l>>rough_mul>>rough_add>>reflect_mul>>reflect_add>>glow>>normal>>bump>>det_power>>det_uv_scale>>uv_scale; emissive_glow=0; detail_all_lod=false;
+         f.getStr(temp);       base_0.require(temp, path); // base_0 is RGBA
+         f.getStr(temp);       base_1.require(temp, path); // base_1 is NormalXY
+         f.getStr(temp);       base_2.require(temp, path); // base_2 is Metal, Rough, Bump, Glow
+         f.getStr(temp);   detail_map.require(temp, path);
+         f.getStr(temp);    macro_map.require(temp, path);
+         f.getStr(temp); emissive_map.require(temp, path);
+      }break;
+
+      case 11:
+      {
+         f.getMulti(cull, technique)>>color_l>>emissive_l>>smooth>>reflect_mul>>reflect_add>>glow>>normal>>bump>>det_power>>det_uv_scale>>uv_scale; emissive_glow=0; detail_all_lod=false;
+         f.getStr(temp);       base_0.require(temp, path); // base_0 is RGBA
+         f.getStr(temp);       base_1.require(temp, path); // base_1 is NormalXY
+         f.getStr(temp);       base_2.require(temp, path); if(Is(temp)){T.rough_add=1; T.rough_mul=-smooth;}else{T.rough_add=1-smooth; T.rough_mul=0;} // base_2 is Metal, Smooth, Bump, Glow
+         f.getStr(temp);   detail_map.require(temp, path);
+         f.getStr(temp);    macro_map.require(temp, path);
+         f.getStr(temp); emissive_map.require(temp, path);
+      }break;
+
       case 10:
       {
-         f.getMulti(cull, technique)>>mp;
-         f.getStr(temp);     base_0.require(temp, path);
-         f.getStr(temp);     base_1.require(temp, path);
-         f.getStr(temp);     base_2.require(temp, path);
-         f.getStr(temp); detail_map.require(temp, path);
-         f.getStr(temp);  macro_map.require(temp, path);
-         f.getStr(temp);  light_map.require(temp, path);
+         f.getMulti(cull, technique)>>color_l>>emissive_l>>smooth>>reflect>>glow>>normal>>bump>>det_power>>det_uv_scale>>uv_scale; emissive_glow=0; detail_all_lod=false;
+         f.getStr(temp);       base_0.require(temp, path); // base_0 is RGBA
+         f.getStr(temp);       base_1.require(temp, path); // base_1 is NormalXY
+         f.getStr(temp);       base_2.require(temp, path); if(Is(temp)){T.rough_add=1; T.rough_mul=0; T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0; T.reflect_add=reflect; T.reflect_mul=0;} // base_2 is Smooth, Reflectivity, Bump, Glow
+         f.getStr(temp);   detail_map.require(temp, path);
+         f.getStr(temp);    macro_map.require(temp, path);
+         f.getStr(temp); emissive_map.require(temp, path);
       }break;
 
       case 9:
       {
-         f.getMulti(cull, technique)>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>reflect; colorS(color_l);
-         f.getStr(temp);     base_0.require(temp, path);
-         f.getStr(temp);     base_1.require(temp, path);
-                             base_2=null;
-         f.getStr(temp); detail_map.require(temp, path);
-         f.getStr(temp);  macro_map.require(temp, path);
-         f.getStr(temp); if(!Is(temp))reflect=MATERIAL_REFLECT;
-         f.getStr(temp);  light_map.require(temp, path);
+         f.getMulti(cull, technique)>>color_l>>emissive_l>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect; colorS(color_l); emissive_glow=0; detail_all_lod=false;
+         f.getStr(temp);       base_0.require(temp, path);
+         f.getStr(temp);       base_1.require(temp, path); if(Is(temp)){T.rough_add=1; T.rough_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0;} // base_1 had normals and specular
+                               base_2=null;
+         f.getStr(temp);   detail_map.require(temp, path);
+         f.getStr(temp);    macro_map.require(temp, path);
+         f.getStr(temp);
+         f.getStr(temp); emissive_map.require(temp, path);
          f.getStr(temp);
          f.getStr(temp);
+         T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0; T.normal=0;
       }break;
 
       case 8:
       {
-         f.getMulti(cull, technique)>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>reflect; colorS(color_l);
-         f._getStr1(temp);     base_0.require(temp, path);
-         f._getStr1(temp);     base_1.require(temp, path);
-                               base_2=null;
-         f._getStr1(temp); detail_map.require(temp, path);
-         f._getStr1(temp);  macro_map.require(temp, path);
-         f._getStr1(temp); if(!Is(temp))reflect=MATERIAL_REFLECT;
-         f._getStr1(temp);  light_map.require(temp, path);
+         f.getMulti(cull, technique)>>color_l>>emissive_l>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect; colorS(color_l); emissive_glow=0; detail_all_lod=false;
+         f._getStr1(temp);       base_0.require(temp, path);
+         f._getStr1(temp);       base_1.require(temp, path); if(Is(temp)){T.rough_add=1; T.rough_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0;} // base_1 had normals and specular
+                                 base_2=null;
+         f._getStr1(temp);   detail_map.require(temp, path);
+         f._getStr1(temp);    macro_map.require(temp, path);
+         f._getStr1(temp);
+         f._getStr1(temp); emissive_map.require(temp, path);
          f._getStr1(temp);
          f._getStr1(temp);
+         T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0; T.normal=0;
       }break;
 
       case 7:
       {
-         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
-         f._getStr(temp);     base_0.require(temp, path);
-         f._getStr(temp);     base_1.require(temp, path);
-                              base_2=null;
-         f._getStr(temp); detail_map.require(temp, path);
-         f._getStr(temp);  macro_map.require(temp, path);
-         f._getStr(temp); if(!Is(temp))reflect=MATERIAL_REFLECT;
-         f._getStr(temp);  light_map.require(temp, path);
+         f>>color_l>>emissive_l>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect>>cull>>technique; colorS(color_l); emissive_glow=0; detail_all_lod=false;
+         f._getStr(temp);       base_0.require(temp, path);
+         f._getStr(temp);       base_1.require(temp, path); if(Is(temp)){T.rough_add=1; T.rough_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0;} // base_1 had normals and specular
+                                base_2=null;
+         f._getStr(temp);   detail_map.require(temp, path);
+         f._getStr(temp);    macro_map.require(temp, path);
+         f._getStr(temp);
+         f._getStr(temp); emissive_map.require(temp, path);
          f._getStr(temp);
          f._getStr(temp);
+         T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0; T.normal=0;
       }break;
 
       case 6:
       {
-         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
-         f._getStr(temp);     base_0.require(temp, path);
-         f._getStr(temp);     base_1.require(temp, path);
-                              base_2=null;
-         f._getStr(temp); detail_map.require(temp, path);
-         f._getStr(temp);  macro_map.require(temp, path);
-         f._getStr(temp); if(!Is(temp))reflect=MATERIAL_REFLECT;
-         f._getStr(temp);  light_map.require(temp, path);
+         f>>color_l>>emissive_l>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect>>cull>>technique; colorS(color_l); emissive_glow=0; detail_all_lod=false;
+         f._getStr(temp);       base_0.require(temp, path);
+         f._getStr(temp);       base_1.require(temp, path); if(Is(temp)){T.rough_add=1; T.rough_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0;} // base_1 had normals and specular
+                                base_2=null;
+         f._getStr(temp);   detail_map.require(temp, path);
+         f._getStr(temp);    macro_map.require(temp, path);
+         f._getStr(temp);
+         f._getStr(temp); emissive_map.require(temp, path);
          f._getStr8();
+         T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0; T.normal=0;
       }break;
 
       case 5:
       {
-         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
-         f._getStr(temp);     base_0.require(temp, path);
-         f._getStr(temp);     base_1.require(temp, path);
-                              base_2=null;
-         f._getStr(temp); detail_map.require(temp, path);
-         f._getStr(temp); if(!Is(temp))reflect=MATERIAL_REFLECT;
-         f._getStr(temp);  light_map.require(temp, path);
-                           macro_map=null;
+         f>>color_l>>emissive_l>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect>>cull>>technique; colorS(color_l); emissive_glow=0; detail_all_lod=false;
+         f._getStr(temp);       base_0.require(temp, path);
+         f._getStr(temp);       base_1.require(temp, path); if(Is(temp)){T.rough_add=1; T.rough_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0;} // base_1 had normals and specular
+                                base_2=null;
+         f._getStr(temp);   detail_map.require(temp, path);
+         f._getStr(temp);
+         f._getStr(temp); emissive_map.require(temp, path);
+                             macro_map=null;
          f._getStr8();
+         T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0; T.normal=0;
       }break;
 
       case 4:
       {
-         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
-         f._getStr(temp);     base_0.require(temp, path);
-         f._getStr(temp);     base_1.require(temp, path);
-                              base_2=null;
-         f._getStr(temp); detail_map.require(temp, path);
-         f._getStr(temp); if(!Is(temp))reflect=MATERIAL_REFLECT;
-         f._getStr(temp);  light_map.require(temp, path);
-                           macro_map=null;
+         f>>color_l>>emissive_l>>smooth>>sss>>glow>>normal>>bump>>uv_scale>>det_uv_scale>>det_power>>reflect>>cull>>technique; colorS(color_l); emissive_glow=0; detail_all_lod=false;
+         f._getStr(temp);       base_0.require(temp, path);
+         f._getStr(temp);       base_1.require(temp, path); if(Is(temp)){T.rough_add=1; T.rough_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0;} // base_1 had normals and specular
+                                base_2=null;
+         f._getStr(temp);   detail_map.require(temp, path);
+         f._getStr(temp);
+         f._getStr(temp); emissive_map.require(temp, path);
+                             macro_map=null;
+         T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0; T.normal=0;
       }break;
 
       case 3:
       {
-         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull>>technique; tex_scale=1; colorS(color_l);
-             base_0.require(f._getStr8(), path);
-             base_1.require(f._getStr8(), path);
-             base_2=null;
-         detail_map.require(f._getStr8(), path);
-                  Str8 temp=f._getStr8(); if(!Is(temp))reflect=MATERIAL_REFLECT;
-          light_map.require(f._getStr8(), path);
-          macro_map=null;
+         f>>color_l>>emissive_l>>smooth>>sss>>glow>>normal>>bump>>det_uv_scale>>det_power>>reflect>>cull>>technique; uv_scale=1; colorS(color_l); emissive_glow=0; detail_all_lod=false;
+                base_0.require(f._getStr8(), path);
+                base_1.require(f._getStr8(), path); if(Is(temp)){T.rough_add=1; T.rough_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0;} // base_1 had normals and specular
+                base_2=null;
+            detail_map.require(f._getStr8(), path);
+                     Str8 temp=f._getStr8();
+          emissive_map.require(f._getStr8(), path);
+             macro_map=null;
+         T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0; T.normal=0;
       }break;
 
       case 2:
       {
          f.skip(1);
-         f>>color_l>>smooth>>sss>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull>>technique; ambient=0; tex_scale=1; colorS(color_l);
+         f>>color_l>>smooth>>sss>>glow>>normal>>bump>>det_uv_scale>>det_power>>reflect>>cull>>technique; emissive_l=0; uv_scale=1; colorS(color_l); emissive_glow=0; detail_all_lod=false;
          if(technique==MTECH_FUR){det_power=color_l.w; color_l.w=1;}
              base_0.require(f._getStr8(), path);
-             base_1.require(f._getStr8(), path);
+             base_1.require(f._getStr8(), path); if(Is(temp)){T.rough_add=1; T.rough_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0;} // base_1 had normals and specular
              base_2=null;
          detail_map.require(f._getStr8(), path);
-                  Str8 temp=f._getStr8(); if(!Is(temp))reflect=MATERIAL_REFLECT;
-          light_map=null;
-          macro_map=null;
+                  Str8 temp=f._getStr8();
+          emissive_map=null;
+             macro_map=null;
+         T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0; T.normal=0;
       }break;
 
       case 1:
       {
          f.skip(1);
-         f>>color_l>>smooth>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull>>technique; sss=0; ambient=0; tex_scale=1; colorS(color_l);
+         f>>color_l>>smooth>>glow>>normal>>bump>>det_uv_scale>>det_power>>reflect>>cull>>technique; sss=0; emissive_l=0; uv_scale=1; colorS(color_l); emissive_glow=0; detail_all_lod=false;
          if(technique==MTECH_FUR){det_power=color_l.w; color_l.w=1;}
              base_0.require(f._getStr8(), path);
-             base_1.require(f._getStr8(), path);
+             base_1.require(f._getStr8(), path); if(Is(temp)){T.rough_add=1; T.rough_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0;} // base_1 had normals and specular
              base_2=null;
          detail_map.require(f._getStr8(), path);
-                  Str8 temp=f._getStr8(); if(!Is(temp))reflect=MATERIAL_REFLECT;
-          light_map=null;
-          macro_map=null;
+                  Str8 temp=f._getStr8();
+          emissive_map=null;
+             macro_map=null;
+         T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0; T.normal=0;
       }break;
 
       case 0:
       {
          f.skip(1);
-         f>>color_l>>smooth>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull; sss=0; ambient=0; tex_scale=1; colorS(color_l);
+         f>>color_l>>smooth>>glow>>normal>>bump>>det_uv_scale>>det_power>>reflect>>cull; sss=0; emissive_l=0; uv_scale=1; colorS(color_l); emissive_glow=0; detail_all_lod=false;
          switch(f.getByte())
          {
-            default: technique=MTECH_DEFAULT   ; break;
+            default: technique=MTECH_OPAQUE    ; break;
             case 1 : technique=MTECH_ALPHA_TEST; break;
             case 4 : technique=MTECH_FUR       ; break;
             case 5 : technique=MTECH_GRASS     ; break;
@@ -706,12 +780,13 @@ Bool Material::loadData(File &f, CChar *path)
          if(technique==MTECH_FUR){det_power=color_l.w; color_l.w=1;}
          Char8 temp[80];
          f>>temp;     base_0.require(temp, path);
-         f>>temp;     base_1.require(temp, path);
+         f>>temp;     base_1.require(temp, path); if(Is(temp)){T.rough_add=1; T.rough_mul=0;}else{T.rough_add=1-smooth; T.rough_mul=0;} // base_1 had normals and specular
                       base_2=null;
          f>>temp; detail_map.require(temp, path);
-         f>>temp; if(!Is(temp))reflect=MATERIAL_REFLECT;
-                   light_map=null;
+         f>>temp;
+                emissive_map=null;
                    macro_map=null;
+         T.reflect_add=MATERIAL_REFLECT; T.reflect_mul=0; T.normal=0;
       }break;
 
       default: goto error;
@@ -754,19 +829,18 @@ static Int ImgH(C ImageSource &src, C Image *img) {return (!img->is()) ? 0 : (sr
 
 static FILTER_TYPE Filter(Int filter) {return InRange(filter, FILTER_NUM) ? FILTER_TYPE(filter) : FILTER_BEST;}
 
-UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &reflect, C ImageSource &glow, Bool resize_to_pow2, Bool flip_normal_y)
-{
-   // #MaterialTextureLayout
-   UInt  ret=0;
+TEX_FLAG CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &metal, C ImageSource &glow, Bool resize_to_pow2, Bool flip_normal_y, Bool smooth_is_rough)
+{ // #MaterialTextureLayout
+   TEX_FLAG texf=TEXF_NONE;
    Image dest_0, dest_1, dest_2;
    {
-      Image   color_temp; C Image *  color_src=&  color.image; if(  color_src->compressed())if(  color_src->copyTry(  color_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))  color_src=&  color_temp;else goto error;
-      Image   alpha_temp; C Image *  alpha_src=&  alpha.image; if(  alpha_src->compressed())if(  alpha_src->copyTry(  alpha_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))  alpha_src=&  alpha_temp;else goto error;
-      Image    bump_temp; C Image *   bump_src=&   bump.image; if(   bump_src->compressed())if(   bump_src->copyTry(   bump_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))   bump_src=&   bump_temp;else goto error;
-      Image  normal_temp; C Image * normal_src=& normal.image; if( normal_src->compressed())if( normal_src->copyTry( normal_temp, -1, -1, -1, IMAGE_R8G8         , IMAGE_SOFT, 1)) normal_src=& normal_temp;else goto error;
-      Image  smooth_temp; C Image * smooth_src=& smooth.image; if( smooth_src->compressed())if( smooth_src->copyTry( smooth_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1)) smooth_src=& smooth_temp;else goto error;
-      Image reflect_temp; C Image *reflect_src=&reflect.image; if(reflect_src->compressed())if(reflect_src->copyTry(reflect_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))reflect_src=&reflect_temp;else goto error;
-      Image    glow_temp; C Image *   glow_src=&   glow.image; if(   glow_src->compressed())if(   glow_src->copyTry(   glow_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))   glow_src=&   glow_temp;else goto error;
+      Image  color_temp; C Image * color_src=& color.image; if( color_src->compressed())if( color_src->copyTry( color_temp, -1, -1, -1,  color_src->typeInfo().a    ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) color_src=& color_temp;else goto error; // keep alpha because we might use it for alpha and IC_ALPHA_WEIGHT
+      Image  alpha_temp; C Image * alpha_src=& alpha.image; if( alpha_src->compressed())if( alpha_src->copyTry( alpha_temp, -1, -1, -1,  alpha_src->typeInfo().a    ? IMAGE_L8A8          : IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) alpha_src=& alpha_temp;else goto error;
+      Image   bump_temp; C Image *  bump_src=&  bump.image; if(  bump_src->compressed())if(  bump_src->copyTry(  bump_temp, -1, -1, -1,   bump_src->highPrecision() ? IMAGE_F32           : IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))  bump_src=&  bump_temp;else goto error; // use high precision because we might use it to create normal map or stretch
+      Image normal_temp; C Image *normal_src=&normal.image; if(normal_src->compressed())if(normal_src->copyTry(normal_temp, -1, -1, -1, normal_src->highPrecision() ? IMAGE_F32_2         : IMAGE_R8G8       , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))normal_src=&normal_temp;else goto error; // use high precision because we still do math operations so higher precision could be useful
+      Image smooth_temp; C Image *smooth_src=&smooth.image; if(smooth_src->compressed())if(smooth_src->copyTry(smooth_temp, -1, -1, -1,                                                     IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))smooth_src=&smooth_temp;else goto error;
+      Image  metal_temp; C Image * metal_src=& metal.image; if( metal_src->compressed())if( metal_src->copyTry( metal_temp, -1, -1, -1,                                                     IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) metal_src=& metal_temp;else goto error;
+      Image   glow_temp; C Image *  glow_src=&  glow.image; if(  glow_src->compressed())if(  glow_src->copyTry(  glow_temp, -1, -1, -1,                                                     IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))  glow_src=&  glow_temp;else goto error;
 
       // set alpha
       Bool alpha_from_col=false;
@@ -784,13 +858,13 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
                MIN(min_lum  , c.lum());
             }
             alpha_src->unlock();
-            if(min_alpha>=254 && min_lum<254)if(alpha_src->copyTry(alpha_temp, -1, -1, -1, IMAGE_L8, IMAGE_SOFT, 1))alpha_src=&alpha_temp;else goto error; // alpha channel is fully white -> use luminance as alpha
+            if(min_alpha>=254 && min_lum<254)if(alpha_src->copyTry(alpha_temp, -1, -1, -1, IMAGE_L8, IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))alpha_src=&alpha_temp;else goto error; // alpha channel is fully white -> use luminance as alpha
          }
       }else // if there's no alpha map
       if(color.image.typeInfo().a) // but there is alpha channel in color map
       {
          Byte min_alpha=255;
-         alpha_src=&alpha_temp.create(color_src->w(), color_src->h(), 1, IMAGE_A8, IMAGE_SOFT, 1);
+         alpha_src=&alpha_temp.mustCreate(color_src->w(), color_src->h(), 1, IMAGE_A8, IMAGE_SOFT, 1);
          if(color_src->lockRead())
          {
             REPD(y, color_src->h())
@@ -809,30 +883,36 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
       VecI2       alpha_size; if(!alpha_src->is())alpha_size.zero();else alpha_size.set((alpha.size.x>0) ? alpha.size.x : (alpha_from_col && color.size.x>0) ? color.size.x : alpha_src->w(),
                                                                                         (alpha.size.y>0) ? alpha.size.y : (alpha_from_col && color.size.y>0) ? color.size.y : alpha_src->h());
 
-      // set what textures do we have (set this before 'normal' is generated from 'bump')
-      if(  color_src->is())ret|=BT_COLOR  ;
-      if(  alpha_src->is())ret|=BT_ALPHA  ;
-      if(   bump_src->is())ret|=BT_BUMP   ;
-      if( normal_src->is())ret|=BT_NORMAL ;
-      if( smooth_src->is())ret|=BT_SMOOTH ;
-      if(reflect_src->is())ret|=BT_REFLECT;
-      if(   glow_src->is())ret|=BT_GLOW   ;
+      // set what textures we have (set this before 'normal' is generated from 'bump')
+      if( color_src->is())texf|=TEXF_COLOR ;
+      if( alpha_src->is())texf|=TEXF_ALPHA ;
+      if(  bump_src->is())texf|=TEXF_BUMP  ;
+      if(normal_src->is())texf|=TEXF_NORMAL;
+      if(smooth_src->is())texf|=TEXF_SMOOTH;
+      if( metal_src->is())texf|=TEXF_METAL ;
+      if(  glow_src->is())texf|=TEXF_GLOW  ;
 
       // base_0 RGBA
-      if(ret&(BT_COLOR|BT_ALPHA|BT_SMOOTH|BT_REFLECT|BT_BUMP|BT_GLOW)) // if want any for Base0 or Base2, because shaders support base_2 only if base_0 is also present, so if we want base_2 then also need base_0
+      if(texf&(TEXF_COLOR|TEXF_ALPHA|TEXF_SMOOTH|TEXF_METAL|TEXF_BUMP|TEXF_GLOW)) // if want any for Base0 or Base2, because shaders support base_2 only if base_0 is also present, so if we want base_2 then also need base_0
       {
          Int w=Max(1, ImgW(color, color_src), alpha_size.x), // Max 1 in case all images are empty, but we still need it because of Base2
              h=Max(1, ImgH(color, color_src), alpha_size.y); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         if( color_src->is() && (color_src->w()!=w || color_src->h()!=h))if(color_src->copyTry(color_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(color.filter), (color.clamp?IC_CLAMP:IC_WRAP)|IC_ALPHA_WEIGHT))color_src=&color_temp;else goto error;
-         if( alpha_src->is() && (alpha_src->w()!=w || alpha_src->h()!=h))if(alpha_src->copyTry(alpha_temp, w, h, -1, -1, IMAGE_SOFT, 1,        alpha_filter , (alpha.clamp?IC_CLAMP:IC_WRAP)                ))alpha_src=&alpha_temp;else goto error;
+         if( color_src->is() && (color_src->w()!=w || color_src->h()!=h))if(color_src->copyTry(color_temp, w, h, -1,                           IMAGE_R8G8B8_SRGB  , IMAGE_SOFT, 1, Filter(color.filter), (color.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA|IC_ALPHA_WEIGHT))color_src=&color_temp;else goto error;
+         if( alpha_src->is() && (alpha_src->w()!=w || alpha_src->h()!=h))if(alpha_src->copyTry(alpha_temp, w, h, -1, alpha_src->typeInfo().a ? IMAGE_A8 : IMAGE_L8, IMAGE_SOFT, 1,        alpha_filter , (alpha.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA                ))alpha_src=&alpha_temp;else goto error;
          if(!color_src->is() ||  color_src->lockRead())
          {
             if(!alpha_src->is() || alpha_src->lockRead())
             {
                dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8A8_SRGB);
-               Int alpha_component=(alpha_src->typeInfo().a ? 3 : 0); // use Alpha or Red in case src is R8/L8
+               Int   alpha_component=(alpha_src->typeInfo().a ? 3 : 0); // use Alpha or Red in case src is R8/L8
+               Color c=WHITE;
                REPD(y, dest_0.h())
-               REPD(x, dest_0.w()){Color c=(color_src->is() ? color_src->color(x, y) : WHITE); c.a=(alpha_src->is() ? alpha_src->color(x, y).c[alpha_component] : 255); dest_0.color(x, y, c);} // full alpha
+               REPD(x, dest_0.w())
+               {
+                  if(color_src->is())c.rgb=color_src->color(x, y).rgb;
+                  if(alpha_src->is())c.a  =alpha_src->color(x, y).c[alpha_component];
+                  dest_0.color(x, y, c);
+               }
                alpha_src->unlock();
             }
             color_src->unlock();
@@ -849,7 +929,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
          Int w=((normal.size.x>0) ? normal.size.x : (bump_to_normal==bump_src && bump.size.x>0) ? bump.size.x : bump_to_normal->w()),
              h=((normal.size.y>0) ? normal.size.y : (bump_to_normal==bump_src && bump.size.y>0) ? bump.size.y : bump_to_normal->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
        C ImageSource &src=((bump_to_normal==bump_src) ? bump : normal);
-         if(bump_to_normal->w()!=w || bump_to_normal->h()!=h)if(bump_to_normal->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(src.filter), (src.clamp?IC_CLAMP:IC_WRAP)))bump_to_normal=&normal_temp;else goto error; // !! convert to 'normal_temp' instead of 'bump_temp' because we still need original bump later !!
+         if(bump_to_normal->w()!=w || bump_to_normal->h()!=h)if(bump_to_normal->copyTry(normal_temp, w, h, -1, IMAGE_F32, IMAGE_SOFT, 1, Filter(src.filter), (src.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA))bump_to_normal=&normal_temp;else goto error; // !! convert to 'normal_temp' instead of 'bump_temp' because we still need original bump later !!
          bump_to_normal->bumpToNormal(normal_temp, AvgF(w, h)*BUMP_TO_NORMAL_SCALE); normal_src=&normal_temp;
          flip_normal_y=false; // no need to flip since normal map generated from bump is always correct
       }
@@ -857,16 +937,15 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
       {
          Int w=ImgW(normal, normal_src),
              h=ImgH(normal, normal_src); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         if( normal_src->is() && (normal_src->w()!=w || normal_src->h()!=h))if(normal_src->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(normal.filter), (normal.clamp?IC_CLAMP:IC_WRAP)))normal_src=&normal_temp;else goto error;
+         if( normal_src->is() && (normal_src->w()!=w || normal_src->h()!=h))if(normal_src->copyTry(normal_temp, w, h, -1, IMAGE_F32_2, IMAGE_SOFT, 1, Filter(normal.filter), (normal.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA))normal_src=&normal_temp;else goto error; // use high precision because we still do math operations so higher precision could be useful
          if(!normal_src->is() ||  normal_src->lockRead())
          {
             dest_1.createSoftTry(w, h, 1, IMAGE_R8G8_SIGN, 1);
-            Vec4 c; c.zw=0;
+            Vec4 c=0;
             REPD(y, dest_1.h())
             REPD(x, dest_1.w())
             {
-               c.xy=(normal_src->is() ? normal_src->colorF(x, y).xy*2-1 : Vec2Zero);
-               if(flip_normal_y)CHS(c.y);
+               if(normal_src->is()){c.xy=normal_src->colorF(x, y).xy*2-1; if(flip_normal_y)CHS(c.y);}
                dest_1.colorF(x, y, c);
             }
             normal_src->unlock();
@@ -874,40 +953,44 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSour
       }
 
       // base_2 SRBG
-      if(ret&(BT_SMOOTH|BT_REFLECT|BT_BUMP|BT_GLOW))
+      if(texf&(TEXF_SMOOTH|TEXF_METAL|TEXF_BUMP|TEXF_GLOW))
       {
-         Int w=Max(ImgW(smooth, smooth_src), ImgW(reflect, reflect_src), ImgW(bump, bump_src), ImgW(glow, glow_src)),
-             h=Max(ImgH(smooth, smooth_src), ImgH(reflect, reflect_src), ImgH(bump, bump_src), ImgH(glow, glow_src)); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+         Int w=Max(ImgW(smooth, smooth_src), ImgW(metal, metal_src), ImgW(bump, bump_src), ImgW(glow, glow_src)),
+             h=Max(ImgH(smooth, smooth_src), ImgH(metal, metal_src), ImgH(bump, bump_src), ImgH(glow, glow_src)); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
 
-         if( smooth_src->is() && ( smooth_src->w()!=w ||  smooth_src->h()!=h))if( smooth_src->copyTry( smooth_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter( smooth.filter), ( smooth.clamp?IC_CLAMP:IC_WRAP))) smooth_src=& smooth_temp;else goto error;
-         if(reflect_src->is() && (reflect_src->w()!=w || reflect_src->h()!=h))if(reflect_src->copyTry(reflect_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(reflect.filter), (reflect.clamp?IC_CLAMP:IC_WRAP)))reflect_src=&reflect_temp;else goto error;
-         if(   bump_src->is() && (   bump_src->w()!=w ||    bump_src->h()!=h))if(   bump_src->copyTry(   bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(   bump.filter), (   bump.clamp?IC_CLAMP:IC_WRAP)))   bump_src=&   bump_temp;else goto error;
-         if(   glow_src->is() && (   glow_src->w()!=w ||    glow_src->h()!=h))if(   glow_src->copyTry(   glow_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(   glow.filter), (   glow.clamp?IC_CLAMP:IC_WRAP)))   glow_src=&   glow_temp;else goto error;
+         if(smooth_src->is() && (smooth_src->w()!=w || smooth_src->h()!=h))if(smooth_src->copyTry(smooth_temp, w, h, -1, IMAGE_L8, IMAGE_SOFT, 1, Filter(smooth.filter), (smooth.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA))smooth_src=&smooth_temp;else goto error;
+         if( metal_src->is() && ( metal_src->w()!=w ||  metal_src->h()!=h))if( metal_src->copyTry( metal_temp, w, h, -1, IMAGE_L8, IMAGE_SOFT, 1, Filter( metal.filter), ( metal.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA)) metal_src=& metal_temp;else goto error;
+         if(  bump_src->is() && (  bump_src->w()!=w ||   bump_src->h()!=h))if(  bump_src->copyTry(  bump_temp, w, h, -1, IMAGE_L8, IMAGE_SOFT, 1, Filter(  bump.filter), (  bump.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA))  bump_src=&  bump_temp;else goto error;
+         if(  glow_src->is() && (  glow_src->w()!=w ||   glow_src->h()!=h))if(  glow_src->copyTry(  glow_temp, w, h, -1, IMAGE_L8, IMAGE_SOFT, 1, Filter(  glow.filter), (  glow.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA))  glow_src=&  glow_temp;else goto error;
 
          if(!smooth_src->is() || smooth_src->lockRead())
          {
-            if(!reflect_src->is() || reflect_src->lockRead())
+            if(!metal_src->is() || metal_src->lockRead())
             {
                if(!bump_src->is() || bump_src->lockRead())
                {
                   if(!glow_src->is() || glow_src->lockRead())
                   {
                      dest_2.createSoftTry(w, h, 1, IMAGE_R8G8B8A8);
+                     Color c;
+                     c.BASE_CHANNEL_ROUGH=TexSmooth(TEX_DEFAULT_SMOOTH);
+                     c.BASE_CHANNEL_METAL=          TEX_DEFAULT_METAL  ;
+                     c.BASE_CHANNEL_BUMP =          TEX_DEFAULT_BUMP   ;
+                     c.BASE_CHANNEL_GLOW =255;
                      REPD(y, dest_2.h())
                      REPD(x, dest_2.w())
                      {
-                        Color c;
-                        c.c[ SMOOTH_CHANNEL]=( smooth_src->is() ?  smooth_src->color(x, y).lum() : 255);
-                        c.c[REFLECT_CHANNEL]=(reflect_src->is() ? reflect_src->color(x, y).lum() : 255);
-                        c.c[   BUMP_CHANNEL]=(   bump_src->is() ?    bump_src->color(x, y).lum() : BUMP_DEFAULT_TEX);
-                        if(glow_src->is()){Color glow=glow_src->color(x, y); c.c[GLOW_CHANNEL]=DivRound(glow.lum()*glow.a, 255);}else c.c[GLOW_CHANNEL]=255;
+                        if(smooth_src->is()){c.BASE_CHANNEL_ROUGH=smooth_src->color(x, y).lum(); if(smooth_is_rough!=TEX_IS_ROUGH)c.BASE_CHANNEL_ROUGH=255-c.BASE_CHANNEL_ROUGH;}
+                        if( metal_src->is()) c.BASE_CHANNEL_METAL= metal_src->color(x, y).lum();
+                        if(  bump_src->is()) c.BASE_CHANNEL_BUMP =  bump_src->color(x, y).lum();
+                        if(  glow_src->is()) c.BASE_CHANNEL_GLOW =  glow_src->color(x, y).lum();
                         dest_2.color(x, y, c);
                      }
                      glow_src->unlock();
                   }
                   bump_src->unlock();
                }
-               reflect_src->unlock();
+               metal_src->unlock();
             }
             smooth_src->unlock();
          }
@@ -918,17 +1001,76 @@ error:
    Swap(dest_0, base_0);
    Swap(dest_1, base_1);
    Swap(dest_2, base_2);
-   return ret;
+   return texf;
+}
+TEX_FLAG ExtractBase0Texture(Image &base_0, Image *color, Image *alpha)
+{
+   TEX_FLAG tex=TEXF_NONE;
+   if(color)color->createSoftTry(base_0.w(), base_0.h(), 1, IMAGE_R8G8B8_SRGB);
+   if(alpha)alpha->createSoftTry(base_0.w(), base_0.h(), 1, IMAGE_L8);
+   REPD(y, base_0.h())
+   REPD(x, base_0.w())
+   {
+      Color c=base_0.color(x, y); // #MaterialTextureLayout
+      if(color){color->color(x, y, c  ); if(c.r<254 || c.g<254 || c.b<254)tex|=TEXF_COLOR;}
+      if(alpha){alpha->pixel(x, y, c.a); if(c.a<254                      )tex|=TEXF_ALPHA;}
+   }
+   return tex;
+}
+TEX_FLAG ExtractBase1Texture(Image &base_1, Image *normal)
+{
+   TEX_FLAG tex=TEXF_NONE;
+   if(normal)
+   {
+      normal->createSoftTry(base_1.w(), base_1.h(), 1, IMAGE_R8G8B8);
+      REPD(y, base_1.h())
+      REPD(x, base_1.w())
+      {
+         Vec4 n; n.xy=base_1.colorF(x, y).xy; // #MaterialTextureLayout
+         if(Abs(n.x)>1.5/127
+         || Abs(n.y)>1.5/127)tex|=TEXF_NORMAL;
+         n.z=CalcZ(n.xy);
+         n.xyz=n.xyz*0.5+0.5;
+         n.w=1;
+         normal->colorF(x, y, n);
+      }
+   }
+   return tex;
+}
+TEX_FLAG ExtractBase2Texture(Image &base_2, Image *bump, Image *smooth, Image *metal, Image *glow)
+{
+   TEX_FLAG tex=TEXF_NONE;
+   if(smooth)smooth->createSoftTry(base_2.w(), base_2.h(), 1, IMAGE_L8);
+   if(metal )metal ->createSoftTry(base_2.w(), base_2.h(), 1, IMAGE_L8);
+   if(bump  )bump  ->createSoftTry(base_2.w(), base_2.h(), 1, IMAGE_L8);
+   if(glow  )glow  ->createSoftTry(base_2.w(), base_2.h(), 1, IMAGE_L8);
+   REPD(y, base_2.h())
+   REPD(x, base_2.w())
+   {
+      Color c=base_2.color(x, y); // #MaterialTextureLayout
+      if(smooth){smooth->pixel(x, y, TexSmooth(c.BASE_CHANNEL_ROUGH)); if(TexSmooth(c.BASE_CHANNEL_ROUGH)>1                )tex|=TEXF_SMOOTH;} ASSERT(TEX_DEFAULT_SMOOTH==0);
+      if(metal ){metal ->pixel(x, y,           c.BASE_CHANNEL_METAL ); if(          c.BASE_CHANNEL_METAL >1                )tex|=TEXF_METAL ;} ASSERT(TEX_DEFAULT_METAL ==0);
+      if(bump  ){bump  ->pixel(x, y,           c.BASE_CHANNEL_BUMP  ); if(      Abs(c.BASE_CHANNEL_BUMP-TEX_DEFAULT_BUMP)>1)tex|=TEXF_BUMP  ;}
+      if(glow  ){glow  ->pixel(x, y,           c.BASE_CHANNEL_GLOW  ); if(          c.BASE_CHANNEL_GLOW  <254              )tex|=TEXF_GLOW  ;}
+   }
+   return tex;
 }
 /******************************************************************************/
-void CreateDetailTexture(Image &detail, C ImageSource &color, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, Bool resize_to_pow2, Bool flip_normal_y)
+TEX_FLAG CreateDetailTexture(Image &detail, C ImageSource &color, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, Bool resize_to_pow2, Bool flip_normal_y, Bool smooth_is_rough)
 {
+   TEX_FLAG texf=TEXF_NONE;
    Image dest;
    {
-      Image  color_temp; C Image * color_src=& color.image; if( color_src->compressed())if( color_src->copyTry( color_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1)) color_src=& color_temp;else goto error;
-      Image   bump_temp; C Image *  bump_src=&  bump.image; if(  bump_src->compressed())if(  bump_src->copyTry(  bump_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))  bump_src=&  bump_temp;else goto error;
-      Image normal_temp; C Image *normal_src=&normal.image; if(normal_src->compressed())if(normal_src->copyTry(normal_temp, -1, -1, -1, IMAGE_R8G8         , IMAGE_SOFT, 1))normal_src=&normal_temp;else goto error;
-      Image smooth_temp; C Image *smooth_src=&smooth.image; if(smooth_src->compressed())if(smooth_src->copyTry(smooth_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))smooth_src=&smooth_temp;else goto error;
+      Image  color_temp; C Image * color_src=& color.image; if( color_src->compressed())if( color_src->copyTry( color_temp, -1, -1, -1,                                         IMAGE_L8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) color_src=& color_temp;else goto error;
+      Image   bump_temp; C Image *  bump_src=&  bump.image; if(  bump_src->compressed())if(  bump_src->copyTry(  bump_temp, -1, -1, -1, bump_src->highPrecision() ? IMAGE_F32 : IMAGE_L8     , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))  bump_src=&  bump_temp;else goto error; // use high precision because we might use it to create normal map or stretch
+      Image normal_temp; C Image *normal_src=&normal.image; if(normal_src->compressed())if(normal_src->copyTry(normal_temp, -1, -1, -1,                                         IMAGE_R8G8   , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))normal_src=&normal_temp;else goto error;
+      Image smooth_temp; C Image *smooth_src=&smooth.image; if(smooth_src->compressed())if(smooth_src->copyTry(smooth_temp, -1, -1, -1,                                         IMAGE_L8     , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))smooth_src=&smooth_temp;else goto error;
+
+      // set what textures we have (set this before 'normal' is generated from 'bump')
+      if( color_src->is())texf|=TEXF_DET_COLOR ;
+    //if(  bump_src->is())texf|=TEXF_DET_BUMP  ;
+      if(normal_src->is())texf|=TEXF_DET_NORMAL;
+      if(smooth_src->is())texf|=TEXF_DET_SMOOTH;
 
       Int w=Max(ImgW(color, color_src), ImgW(smooth, smooth_src)),
           h=Max(ImgH(color, color_src), ImgH(smooth, smooth_src)); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
@@ -943,7 +1085,7 @@ void CreateDetailTexture(Image &detail, C ImageSource &color, C ImageSource &bum
          MAX(w, (normal.size.x>0) ? normal.size.x : (bump_to_normal==bump_src && bump.size.x>0) ? bump.size.x : bump_to_normal->w());
          MAX(h, (normal.size.y>0) ? normal.size.y : (bump_to_normal==bump_src && bump.size.y>0) ? bump.size.y : bump_to_normal->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
        C ImageSource &src=((bump_to_normal==bump_src) ? bump : normal);
-         if(bump_to_normal->w()!=w || bump_to_normal->h()!=h)if(bump_to_normal->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(src.filter), (src.clamp?IC_CLAMP:IC_WRAP)))bump_to_normal=&normal_temp;else goto error; // !! convert to 'normal_temp' instead of 'bump_temp' because we still need original bump later !!
+         if(bump_to_normal->w()!=w || bump_to_normal->h()!=h)if(bump_to_normal->copyTry(normal_temp, w, h, -1, IMAGE_F32, IMAGE_SOFT, 1, Filter(src.filter), (src.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA))bump_to_normal=&normal_temp;else goto error; // !! convert to 'normal_temp' instead of 'bump_temp' because we still need original bump later !!
          bump_to_normal->bumpToNormal(normal_temp, AvgF(w, h)*BUMP_TO_NORMAL_SCALE); normal_src=&normal_temp;
          flip_normal_y=false; // no need to flip since normal map generated from bump is always correct
       }else
@@ -953,10 +1095,10 @@ void CreateDetailTexture(Image &detail, C ImageSource &color, C ImageSource &bum
          MAX(h, ImgH(normal, normal_src)); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
       }
 
-      if( color_src->is() && ( color_src->w()!=w ||  color_src->h()!=h))if( color_src->copyTry( color_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter( color.filter), ( color.clamp?IC_CLAMP:IC_WRAP)|IC_ALPHA_WEIGHT)) color_src=& color_temp;else goto error;
-      if(  bump_src->is() && (  bump_src->w()!=w ||   bump_src->h()!=h))if(  bump_src->copyTry(  bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(  bump.filter), (  bump.clamp?IC_CLAMP:IC_WRAP)                ))  bump_src=&  bump_temp;else goto error;
-      if(normal_src->is() && (normal_src->w()!=w || normal_src->h()!=h))if(normal_src->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(normal.filter), (normal.clamp?IC_CLAMP:IC_WRAP)                ))normal_src=&normal_temp;else goto error;
-      if(smooth_src->is() && (smooth_src->w()!=w || smooth_src->h()!=h))if(smooth_src->copyTry(smooth_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(smooth.filter), (smooth.clamp?IC_CLAMP:IC_WRAP)                ))smooth_src=&smooth_temp;else goto error;
+      if( color_src->is() && ( color_src->w()!=w ||  color_src->h()!=h))if( color_src->copyTry( color_temp, w, h, -1, IMAGE_L8_SRGB, IMAGE_SOFT, 1, Filter( color.filter), ( color.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA|IC_ALPHA_WEIGHT)) color_src=& color_temp;else goto error;
+    //if(  bump_src->is() && (  bump_src->w()!=w ||   bump_src->h()!=h))if(  bump_src->copyTry(  bump_temp, w, h, -1, IMAGE_L8     , IMAGE_SOFT, 1, Filter(  bump.filter), (  bump.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA                ))  bump_src=&  bump_temp;else goto error;
+      if(normal_src->is() && (normal_src->w()!=w || normal_src->h()!=h))if(normal_src->copyTry(normal_temp, w, h, -1, IMAGE_R8G8   , IMAGE_SOFT, 1, Filter(normal.filter), (normal.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA                ))normal_src=&normal_temp;else goto error;
+      if(smooth_src->is() && (smooth_src->w()!=w || smooth_src->h()!=h))if(smooth_src->copyTry(smooth_temp, w, h, -1, IMAGE_L8     , IMAGE_SOFT, 1, Filter(smooth.filter), (smooth.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA                ))smooth_src=&smooth_temp;else goto error;
 
       dest.createSoftTry(w, h, 1, IMAGE_R8G8B8A8);
 
@@ -968,14 +1110,19 @@ void CreateDetailTexture(Image &detail, C ImageSource &color, C ImageSource &bum
             {
                if(!smooth_src->is() || smooth_src->lockRead())
                {
+                  Color detail; // #MaterialTextureLayoutDetail
+                  detail.DETAIL_CHANNEL_NORMAL=128;
+                  detail.DETAIL_CHANNEL_ROUGH =128;
+                  detail.DETAIL_CHANNEL_COLOR =128;
+
                   REPD(y, dest.h())
                   REPD(x, dest.w())
                   {
-                     Byte  color =( color_src->is() ?  color_src->color(x, y).lum() : 255);
-                   //Byte  bump  =(  bump_src->is() ?   bump_src->color(x, y).lum() : 128);
-                     Color normal=(normal_src->is() ? normal_src->color(x, y)       : Color(128, 128, 255, 0)); if(flip_normal_y)normal.g=255-normal.g;
-                     Byte  smooth=(smooth_src->is() ? smooth_src->color(x, y).lum() : 255);
-                     dest.color(x, y, Color(normal.r, normal.g, color, smooth)); // #MaterialTextureLayout
+                     if( color_src->is()) detail.DETAIL_CHANNEL_COLOR = color_src->color(x, y).lum();
+                   //if(  bump_src->is()) bump                        =  bump_src->color(x, y).lum();
+                     if(normal_src->is()){detail.DETAIL_CHANNEL_NORMAL=normal_src->color(x, y).rg   ; if(flip_normal_y                )detail.DETAIL_CHANNEL_NORMAL_Y=255-detail.DETAIL_CHANNEL_NORMAL_Y;}
+                     if(smooth_src->is()){detail.DETAIL_CHANNEL_ROUGH =smooth_src->color(x, y).lum(); if(smooth_is_rough!=TEX_IS_ROUGH)detail.DETAIL_CHANNEL_ROUGH   =255-detail.DETAIL_CHANNEL_ROUGH   ;}
+                     dest.color(x, y, detail);
                   }
                   smooth_src->unlock();
                }
@@ -989,44 +1136,65 @@ void CreateDetailTexture(Image &detail, C ImageSource &color, C ImageSource &bum
 
 error:
    Swap(dest, detail);
+   return texf;
+}
+TEX_FLAG ExtractDetailTexture(C Image &detail, Image *color, Image *bump, Image *normal, Image *smooth)
+{
+   TEX_FLAG tex=TEXF_NONE;
+   if(color )color ->createSoftTry(detail.w(), detail.h(), 1, IMAGE_L8);
+   if(bump  )bump  ->del();
+   if(normal)normal->createSoftTry(detail.w(), detail.h(), 1, IMAGE_R8G8B8);
+   if(smooth)smooth->createSoftTry(detail.w(), detail.h(), 1, IMAGE_L8);
+   REPD(y, detail.h())
+   REPD(x, detail.w())
+   {
+      Color c=detail.color(x, y); // #MaterialTextureLayoutDetail
+      if(color ){color ->pixel(x, y,           c.DETAIL_CHANNEL_COLOR ); if(Abs(c.DETAIL_CHANNEL_COLOR-128)>1)tex|=TEXF_DET_COLOR ;}
+      if(smooth){smooth->pixel(x, y, TexSmooth(c.DETAIL_CHANNEL_ROUGH)); if(Abs(c.DETAIL_CHANNEL_ROUGH-128)>1)tex|=TEXF_DET_SMOOTH;}
+      if(normal)
+      {
+         Vec n; n.xy.set((c.DETAIL_CHANNEL_NORMAL_X-128)/127.0, (c.DETAIL_CHANNEL_NORMAL_Y-128)/127.0); n.z=CalcZ(n.xy);
+         normal->color(x, y, Color(c.DETAIL_CHANNEL_NORMAL_X, c.DETAIL_CHANNEL_NORMAL_Y, Mid(Round(n.z*127+128), 0, 255))); if(Abs(c.DETAIL_CHANNEL_NORMAL_X-128)>1 || Abs(c.DETAIL_CHANNEL_NORMAL_Y-128)>1)tex|=TEXF_DET_NORMAL;
+      }
+   }
+   return tex;
 }
 /******************************************************************************/
-UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &reflect, C ImageSource &glow, Bool resize_to_pow2, Bool flip_normal_y)
-{
-   // #WaterMaterialTextureLayout
-   UInt  ret=0;
+TEX_FLAG CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C ImageSource &color, C ImageSource &alpha, C ImageSource &bump, C ImageSource &normal, C ImageSource &smooth, C ImageSource &metal, C ImageSource &glow, Bool resize_to_pow2, Bool flip_normal_y, Bool smooth_is_rough)
+{ // #MaterialTextureLayoutWater
+   TEX_FLAG texf=TEXF_NONE;
    Image dest_0, dest_1, dest_2;
    {
-      Image   color_temp; C Image *  color_src=&  color.image; if(  color_src->compressed())if(  color_src->copyTry(  color_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))  color_src=&  color_temp;else goto error;
-    //Image   alpha_temp; C Image *  alpha_src=&  alpha.image; if(  alpha_src->compressed())if(  alpha_src->copyTry(  alpha_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))  alpha_src=&  alpha_temp;else goto error;
-      Image    bump_temp; C Image *   bump_src=&   bump.image; if(   bump_src->compressed())if(   bump_src->copyTry(   bump_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))   bump_src=&   bump_temp;else goto error;
-      Image  normal_temp; C Image * normal_src=& normal.image; if( normal_src->compressed())if( normal_src->copyTry( normal_temp, -1, -1, -1, IMAGE_R8G8         , IMAGE_SOFT, 1)) normal_src=& normal_temp;else goto error;
-    //Image  smooth_temp; C Image * smooth_src=& smooth.image; if( smooth_src->compressed())if( smooth_src->copyTry( smooth_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1)) smooth_src=& smooth_temp;else goto error;
-    //Image reflect_temp; C Image *reflect_src=&reflect.image; if(reflect_src->compressed())if(reflect_src->copyTry(reflect_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))reflect_src=&reflect_temp;else goto error;
-    //Image    glow_temp; C Image *   glow_src=&   glow.image; if(   glow_src->compressed())if(   glow_src->copyTry(   glow_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))   glow_src=&   glow_temp;else goto error;
+      Image  color_temp; C Image * color_src=& color.image; if( color_src->compressed())if( color_src->copyTry( color_temp, -1, -1, -1,  color_src->typeInfo().a    ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) color_src=& color_temp;else goto error; // keep alpha because we might use it for alpha and IC_ALPHA_WEIGHT
+    //Image  alpha_temp; C Image * alpha_src=& alpha.image; if( alpha_src->compressed())if( alpha_src->copyTry( alpha_temp, -1, -1, -1,  alpha_src->typeInfo().a    ? IMAGE_L8A8          : IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) alpha_src=& alpha_temp;else goto error;
+      Image   bump_temp; C Image *  bump_src=&  bump.image; if(  bump_src->compressed())if(  bump_src->copyTry(  bump_temp, -1, -1, -1,   bump_src->highPrecision() ? IMAGE_F32           : IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))  bump_src=&  bump_temp;else goto error; // use high precision because we still do math operations so higher precision could be useful
+      Image normal_temp; C Image *normal_src=&normal.image; if(normal_src->compressed())if(normal_src->copyTry(normal_temp, -1, -1, -1, normal_src->highPrecision() ? IMAGE_F32_2         : IMAGE_R8G8       , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))normal_src=&normal_temp;else goto error; // use high precision because we still do math operations so higher precision could be useful
+    //Image smooth_temp; C Image *smooth_src=&smooth.image; if(smooth_src->compressed())if(smooth_src->copyTry(smooth_temp, -1, -1, -1,                                                     IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))smooth_src=&smooth_temp;else goto error;
+    //Image  metal_temp; C Image * metal_src=& metal.image; if( metal_src->compressed())if( metal_src->copyTry( metal_temp, -1, -1, -1,                                                     IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA)) metal_src=& metal_temp;else goto error;
+    //Image   glow_temp; C Image *  glow_src=&  glow.image; if(  glow_src->compressed())if(  glow_src->copyTry(  glow_temp, -1, -1, -1,                                                     IMAGE_L8         , IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))  glow_src=&  glow_temp;else goto error;
 
-      // set what textures do we have (set this before 'normal' is generated from 'bump')
-      if(  color_src->is())ret|=BT_COLOR  ;
-    //if(  alpha_src->is())ret|=BT_ALPHA  ;
-      if(   bump_src->is())ret|=BT_BUMP   ;
-      if( normal_src->is())ret|=BT_NORMAL ;
-    //if( smooth_src->is())ret|=BT_SMOOTH ;
-    //if(reflect_src->is())ret|=BT_REFLECT;
-    //if(   glow_src->is())ret|=BT_GLOW   ;
+      // set what textures we have (set this before 'normal' is generated from 'bump')
+      if( color_src->is())texf|=TEXF_COLOR ;
+    //if( alpha_src->is())texf|=TEXF_ALPHA ;
+      if(  bump_src->is())texf|=TEXF_BUMP  ;
+      if(normal_src->is())texf|=TEXF_NORMAL;
+    //if(smooth_src->is())texf|=TEXF_SMOOTH;
+    //if( metal_src->is())texf|=TEXF_METAL ;
+    //if(  glow_src->is())texf|=TEXF_GLOW  ;
 
       // base_0
       {
          Int w=ImgW(color, color_src),
              h=ImgH(color, color_src); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         if( color_src->is() && (color_src->w()!=w || color_src->h()!=h))if(color_src->copyTry(color_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(color.filter), (color.clamp?IC_CLAMP:IC_WRAP)|IC_ALPHA_WEIGHT))color_src=&color_temp;else goto error;
+         if( color_src->is() && (color_src->w()!=w || color_src->h()!=h))if(color_src->copyTry(color_temp, w, h, -1, IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1, Filter(color.filter), (color.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA|IC_ALPHA_WEIGHT))color_src=&color_temp;else goto error;
          if(!color_src->is() ||  color_src->lockRead())
          {
             dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8_SRGB);
+            Color c=WHITE;
             REPD(y, dest_0.h())
             REPD(x, dest_0.w())
             {
-               Color c=(color_src->is() ? color_src->color(x, y) : WHITE);
-               c.a=255; // force full alpha
+               if(color_src->is())c.rgb=color_src->color(x, y).rgb;
                dest_0.color(x, y, c);
             }
             color_src->unlock();
@@ -1043,7 +1211,7 @@ UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Imag
          Int w=((normal.size.x>0) ? normal.size.x : (bump_to_normal==bump_src && bump.size.x>0) ? bump.size.x : bump_to_normal->w()),
              h=((normal.size.y>0) ? normal.size.y : (bump_to_normal==bump_src && bump.size.y>0) ? bump.size.y : bump_to_normal->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
        C ImageSource &src=((bump_to_normal==bump_src) ? bump : normal);
-         if(bump_to_normal->w()!=w || bump_to_normal->h()!=h)if(bump_to_normal->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(src.filter), (src.clamp?IC_CLAMP:IC_WRAP)))bump_to_normal=&normal_temp;else goto error; // !! convert to 'normal_temp' instead of 'bump_temp' because we still need original bump later !!
+         if(bump_to_normal->w()!=w || bump_to_normal->h()!=h)if(bump_to_normal->copyTry(normal_temp, w, h, -1, IMAGE_F32, IMAGE_SOFT, 1, Filter(src.filter), (src.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA))bump_to_normal=&normal_temp;else goto error; // !! convert to 'normal_temp' instead of 'bump_temp' because we still need original bump later !!
          bump_to_normal->bumpToNormal(normal_temp, AvgF(w, h)*BUMP_TO_NORMAL_SCALE); normal_src=&normal_temp;
          flip_normal_y=false; // no need to flip since normal map generated from bump is always correct
       }
@@ -1051,16 +1219,15 @@ UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Imag
       {
          Int w=ImgW(normal, normal_src),
              h=ImgH(normal, normal_src); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         if( normal_src->is() && (normal_src->w()!=w || normal_src->h()!=h))if(normal_src->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(normal.filter), (normal.clamp?IC_CLAMP:IC_WRAP)))normal_src=&normal_temp;else goto error;
+         if( normal_src->is() && (normal_src->w()!=w || normal_src->h()!=h))if(normal_src->copyTry(normal_temp, w, h, -1, IMAGE_F32_2, IMAGE_SOFT, 1, Filter(normal.filter), (normal.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA))normal_src=&normal_temp;else goto error;
          if(!normal_src->is() ||  normal_src->lockRead())
          {
             dest_1.createSoftTry(w, h, 1, IMAGE_R8G8_SIGN, 1);
-            Vec4 c; c.zw=0;
+            Vec4 c=0;
             REPD(y, dest_1.h())
             REPD(x, dest_1.w())
             {
-               c.xy=(normal_src->is() ? normal_src->colorF(x, y).xy*2-1 : Vec2Zero);
-               if(flip_normal_y)CHS(c.y);
+               if(normal_src->is()){c.xy=normal_src->colorF(x, y).xy*2-1; if(flip_normal_y)CHS(c.y);}
                dest_1.colorF(x, y, c);
             }
             normal_src->unlock();
@@ -1072,7 +1239,7 @@ UInt CreateWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Imag
       {
          Int w=ImgW(bump, bump_src),
              h=ImgH(bump, bump_src); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         if( bump_src->is() && (bump_src->w()!=w || bump_src->h()!=h))if(bump_src->copyTry(bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, Filter(bump.filter), (bump.clamp?IC_CLAMP:IC_WRAP)))bump_src=&bump_temp;else goto error;
+         if( bump_src->is() && (bump_src->w()!=w || bump_src->h()!=h))if(bump_src->copyTry(bump_temp, w, h, -1, IMAGE_F32, IMAGE_SOFT, 1, Filter(bump.filter), (bump.clamp?IC_CLAMP:IC_WRAP)|IC_IGNORE_GAMMA))bump_src=&bump_temp;else goto error;
          if(!bump_src->is() ||  bump_src->lockRead())
          {
             dest_2.createSoftTry(w, h, 1, IMAGE_R8_SIGN);
@@ -1092,7 +1259,59 @@ error:
    Swap(dest_0, base_0);
    Swap(dest_1, base_1);
    Swap(dest_2, base_2);
-   return ret;
+   return texf;
+}
+TEX_FLAG ExtractWaterBase0Texture(C Image &base_0, Image *color)
+{ // #MaterialTextureLayoutWater
+   TEX_FLAG tex=TEXF_NONE;
+   if(color)
+   {
+      color->createSoftTry(base_0.w(), base_0.h(), 1, IMAGE_R8G8B8_SRGB);
+      REPD(y, base_0.h())
+      REPD(x, base_0.w())
+      {
+         Color c=base_0.color(x, y);
+         if(c.r<254 || c.g<254 || c.b<254)tex|=TEXF_COLOR;
+         color->color(x, y, c);
+      }
+   }
+   return tex;
+}
+TEX_FLAG ExtractWaterBase1Texture(C Image &base_1, Image *normal)
+{ // #MaterialTextureLayoutWater
+   TEX_FLAG tex=TEXF_NONE;
+   if(normal)
+   {
+      normal->createSoftTry(base_1.w(), base_1.h(), 1, IMAGE_R8G8B8);
+      REPD(y, base_1.h())
+      REPD(x, base_1.w())
+      {
+         Vec4 n; n.xy=base_1.colorF(x, y).xy;
+         if(Abs(n.x)>1.5/127
+         || Abs(n.y)>1.5/127)tex|=TEXF_NORMAL;
+         n.z=CalcZ(n.xy);
+         n.xyz=n.xyz*0.5+0.5;
+         n.w=1;
+         normal->colorF(x, y, n);
+      }
+   }
+   return tex;
+}
+TEX_FLAG ExtractWaterBase2Texture(C Image &base_2, Image *bump)
+{ // #MaterialTextureLayoutWater
+   TEX_FLAG tex=TEXF_NONE;
+   if(bump)
+   {
+      bump->createSoftTry(base_2.w(), base_2.h(), 1, IMAGE_L8);
+      REPD(y, base_2.h())
+      REPD(x, base_2.w())
+      {
+         Flt c=base_2.pixelF(x, y);
+         if(Abs(c)>1.5/127)tex|=TEXF_BUMP;
+         bump->pixelF(x, y, c*0.5+0.5);
+      }
+   }
+   return tex;
 }
 /******************************************************************************/
 Bool CreateBumpFromColor(Image &bump, C Image &color, Flt min_blur_range, Flt max_blur_range, Bool clamp)
@@ -1144,8 +1363,7 @@ static inline Flt LightSpecular(C Vec &normal, C Vec &light_dir, C Vec &eye_dir,
 #endif
 }
 Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int max_image_size, C Vec *light_dir, Flt light_power, Flt spec_mul, FILTER_TYPE filter)
-{
-   // #MaterialTextureLayout
+{ // #MaterialTextureLayout
 
    // dimensions
    VecI2 size=0;
@@ -1171,13 +1389,14 @@ Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int 
          REPD(x, color.w())color.color(x, y, WHITE);
       }
 
+      // TODO: this has to be updated based on PBR
       MAX(light_power, 0);
-           spec_mul*=material.smooth*light_power/255.0f;
-      Flt  glow_mul =material.glow  *(2*1.75f), // *2 because shaders use this multiplier, *1.75 because shaders iterate over few pixels and take the max out of them (this is just approximation)
+           spec_mul*=(1-material.rough_add)*light_power/255.0f;
+      Flt  glow_mul =   material.glow      *(2*1.75f), // *2 because shaders use this multiplier, *1.75 because shaders iterate over few pixels and take the max out of them (this is just approximation)
            glow_blur=0.07f;
-      Bool has_normal=(light_dir && material.base_1 && material.normal*light_power>0.01f),
-           has_spec  =(light_dir && material.base_2 && material.smooth*light_power>0.01f),
-           has_glow  =(             material.base_2 && material.glow              >0.01f);
+      Bool has_normal=(light_dir && material.base_1 &&    material.normal    *light_power>0.01f),
+           has_spec  =(light_dir && material.base_2 && (1-material.rough_add)*light_power>0.01f),
+           has_glow  =(             material.base_2 &&    material.glow                  >0.01f);
 
       Image normal; // 'base_1' resized to 'color' resolution
       if(has_normal)if(!material.base_1->copyTry(normal, color.w(), color.h(), 1, ImageTypeUncompressed(material.base_1->type()), IMAGE_SOFT, 1, filter, IC_WRAP))return false;
@@ -1192,7 +1411,7 @@ Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int 
          REPD(x, glow.w())
          {
             Vec4 c=color.colorF(x, y); // RGB
-            c.xyz*=b2.colorF(x, y).c[GLOW_CHANNEL]*glow_mul; // Glow
+            c.xyz*=b2.colorF(x, y).BASE_CHANNEL_GLOW*glow_mul; // Glow
             glow.colorF(x, y, c);
          }
          glow.blur(glow.size3()*glow_blur, false);
@@ -1232,7 +1451,7 @@ Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int 
                Flt d=Sat(-Dot(n, *light_dir)), l=ambient + light_power*d;
                col=ColorBrightness(col, l);
             }
-            if(has_spec)if(Byte s=b2.color(x, y).c[SMOOTH_CHANNEL])
+            if(has_spec)if(Byte s=TexSmooth(b2.color(x, y).BASE_CHANNEL_ROUGH)) // #MaterialTextureLayout
             {
                Flt spec=LightSpecular(-n, *light_dir, Vec(0, 0, 1))*spec_mul;
                Color cs=ColorBrightness(s*spec); cs.a=0;

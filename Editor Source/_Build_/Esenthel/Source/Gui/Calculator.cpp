@@ -26,7 +26,7 @@ CalculatorClass Calculator;
    }
    void CalculatorClass::draw(C GuiPC &gpc)
 {
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          super::draw(gpc);
          D.clip(gpc.clip);

@@ -132,6 +132,7 @@ Bool Cuts(C Vec     &point, C Capsule  &capsule); // if point    cuts a capsule
 Bool Cuts(C VecD    &point, C Capsule  &capsule); // if point    cuts a capsule
 Bool Cuts(C VecD    &point, C CapsuleM &capsule); // if point    cuts a capsule
 Bool Cuts(C Edge    &edge , C Capsule  &capsule); // if edge     cuts a capsule
+Bool Cuts(C Tri     &tri  , C Capsule  &capsule); // if triangle cuts a capsule
 Bool Cuts(C TriN    &tri  , C Capsule  &capsule); // if triangle cuts a capsule
 Bool Cuts(C Box     &box  , C Capsule  &capsule); // if box      cuts a capsule
 Bool Cuts(C OBox    &obox , C Capsule  &capsule); // if box      cuts a capsule

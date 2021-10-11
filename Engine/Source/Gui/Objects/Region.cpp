@@ -4,14 +4,13 @@ namespace EE{
 /******************************************************************************/
 GuiPC::GuiPC(C GuiPC &old, Region &region)
 {
-   T=old;
-   visible   &=region.visible();
-   enabled   &=region.enabled();
-   client_rect=region.clientRect()+offset;
+   visible    =old.visible&region.visible();
+   enabled    =old.enabled&region.enabled();
+   client_rect=region.clientRect()+old.offset;
    offset     =client_rect.lu();
    offset.x  -=region.slidebar[0].offset();
    offset.y  +=region.slidebar[1].offset();
-   GuiSkin *skin=region.getSkin(); if(skin && skin->region.normal && skin->region.normal->pixelBorder())clip&=Rect(client_rect).extend(-D._pixel_size);else clip&=client_rect; // if the panel draws 1-pixel-border then leave it, this is so that Region children will not draw on top of it, because border should look like it's on top
+   GuiSkin *skin=region.getSkin(); clip=old.clip&((skin && skin->region.normal && skin->region.normal->pixelBorder()) ? Rect(client_rect).extend(-D._pixel_size) : client_rect); // if the panel draws 1-pixel-border then leave it, this is so that Region children will not draw on top of it, because border should look like it's on top
 
    if(1)D.alignScreenToPixel(offset);
 }
@@ -131,7 +130,7 @@ Region& Region::alwaysHideHorizontalSlideBar(Bool hide)
    }
    return T;
 }
-
+/******************************************************************************/
 void Region::setButtons()
 {
    Bool vertical, horizontal;
@@ -202,6 +201,20 @@ Region& Region::move(C Vec2 &delta)
    return T;
 }
 /******************************************************************************/
+Region& Region::scrollTo(C GuiObj &child, Bool immediate)
+{
+   if(contains(&child))
+   {
+      Rect child_rect=child.screenRect();
+      Vec2  this_pos =      screenPos ();
+      this_pos.x-=slidebar[0].offset();
+      this_pos.y+=slidebar[1].offset();
+      slidebar[0].scrollFit(child_rect.min.x-this_pos.x, child_rect.max.x-this_pos.x, immediate);
+      slidebar[1].scrollFit(this_pos.y-child_rect.max.y, this_pos.y-child_rect.min.y, immediate);
+   }
+   return T;
+}
+/******************************************************************************/
 Region& Region::skin(C GuiSkinPtr &skin, Bool sub_objects)
 {
   _skin=skin;
@@ -224,25 +237,71 @@ GuiObj* Region::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
          if(slidebar[!priority]._usable)mouse_wheel=&slidebar[!priority];     // check !priority slidebar next
       }
 
-      GuiPC gc  (gpc, T                   ); if(GuiObj *go=_children.test(gc, pos, mouse_wheel))return go;
-      GuiPC gpc2(gpc, visible(), enabled());
-      if(GuiObj *go=slidebar[0].test(gpc2, pos, mouse_wheel))return go;
-      if(GuiObj *go=slidebar[1].test(gpc2, pos, mouse_wheel))return go;
-      if(GuiObj *go=view       .test(gpc2, pos, mouse_wheel))return go;
+      GuiPC gpc_children(gpc, T                   ); if(GuiObj *go=_children.test(gpc_children, pos, mouse_wheel))return go;
+      GuiPC gpc_this    (gpc, visible(), enabled());
+      if(GuiObj *go=slidebar[0].test(gpc_this, pos, mouse_wheel))return go;
+      if(GuiObj *go=slidebar[1].test(gpc_this, pos, mouse_wheel))return go;
+      if(GuiObj *go=view       .test(gpc_this, pos, mouse_wheel))return go;
 
       return go;
+   }
+   return null;
+}
+void Region::nearest(C GuiPC &gpc, GuiObjNearest &gon)
+{
+   if(/*gpc.visible &&*/ visible() && gon.test((rect()+gpc.offset)&gpc.clip))
+   {
+      GuiPC gpc_children(gpc, T); _children.nearest(gpc_children, gon);
+   }
+}
+GuiObj* Region::nearest(C Vec2 &screen_pos, C Vec2 &dir)
+{
+   if(_children.children.elms())
+   {
+      GuiObjNearest gon; gon.plane.normal=dir; if(gon.plane.normal.normalize())
+      {
+         GuiPC gpc;
+         gpc.visible  =gpc.enabled=true;
+         gpc.offset   =screenPos();
+         gpc.offset.x-=slidebar[0].offset();
+         gpc.offset.y+=slidebar[1].offset();
+         gpc.client_rect=gpc.clip.set(-FLT_MAX, -FLT_MAX, FLT_MAX, FLT_MAX);
+         GuiObj *mouse_wheel=null;
+
+            gon.state    =0;
+            gon.rect     =screen_pos;
+            gon.plane.pos=screen_pos;
+            gon.min_dist =D.pixelToScreenSize().max(); // use pixel size because this function may operate on mouse position which may be aligned to pixels
+         if(gon.obj      =_children.test(gpc, screen_pos, mouse_wheel))switch(gon.obj->type())
+         {
+            case GO_NONE   : // ignore for GO_NONE too, which is used for 'ModalWindow._background'
+            case GO_DESKTOP:
+            case GO_WINDOW :
+            case GO_REGION :
+               break;
+            default: gon.rect=gon.obj->screenRect().extend(-EPS); break;
+         }
+
+        _children.nearest(gpc, gon);
+
+         if(auto *nearest=gon.findNearest())
+         {
+          //out_pos=nearest->rect.center();
+            return  nearest->obj;
+         }
+      }
    }
    return null;
 }
 /******************************************************************************/
 void Region::update(C GuiPC &gpc)
 {
-   GuiPC gpc2(gpc, visible(), enabled());
-   if(   gpc2.enabled)
+   GuiPC gpc_this(gpc, visible(), enabled());
+   if(   gpc_this.enabled)
    {
       DEBUG_BYTE_LOCK(_used);
 
-      view.update(gpc2);
+      view.update(gpc_this);
       if(view())
       {
          if(Gui.ms()==&view)
@@ -267,15 +326,15 @@ void Region::update(C GuiPC &gpc)
       && slidebar[0]._usable) // we will scroll only horizontally, so check if that's possible
          slidebar[0].scroll(Ms.wheelX()*(slidebar[0]._scroll_mul*slidebar[0].length()+slidebar[0]._scroll_add), slidebar[0]._scroll_immediate);
 
-      slidebar[0].update(gpc2);
-      slidebar[1].update(gpc2);
+      slidebar[0].update(gpc_this);
+      slidebar[1].update(gpc_this);
 
-      GuiPC gc(gpc, T); _children.update(gc);
+      GuiPC gpc_children(gpc, T); _children.update(gpc_children);
    }
 }
 void Region::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       GuiSkin *skin=getSkin();
       Rect     rect=T.rect()+gpc.offset, ext_rect;
@@ -292,7 +351,7 @@ void Region::draw(C GuiPC &gpc)
          slidebar[0].draw(gpc);
          slidebar[1].draw(gpc);
 
-         GuiPC gc(gpc, T); _children.draw(gc);
+         GuiPC gpc_children(gpc, T); _children.draw(gpc_children);
 
          if(kb_lit && contains(Gui.kb())){D.clip(gpc.clip); Gui.kbLit(this, rect, skin);}
       }

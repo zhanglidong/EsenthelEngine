@@ -3,16 +3,26 @@ struct Callback
 {
    void (*func)();
 
-   void set (void func()) {T.func=func;}
-   void call(           ) {     func();}
+   Bool is   (           )C {return func!=null;}
+   void set  (void func())  {T.func=func;}
+   void clear(           )  {set(null);}
+   void call (           )  {func();}
+
+   Callback(           ) {}
+   Callback(void func()) {set(func);}
 };
 struct CallbackUser
 {
    void (*func)(Ptr user);
    Ptr    user;
 
-   void set (void func(Ptr user), Ptr user=null) {T.func=func; T.user=user;}
-   void call(                                  ) {  func(user);}
+   Bool is   (                                  )C {return func!=null;}
+   void set  (void func(Ptr user), Ptr user=null)  {T.func=func; T.user=user;}
+   void clear(                                  )  {set(null);}
+   void call (                                  )  {func(user);}
+
+   CallbackUser(                                  ) {}
+   CallbackUser(void func(Ptr user), Ptr user=null) {set(func, user);}
 };
 /******************************************************************************/
 struct Callbacks

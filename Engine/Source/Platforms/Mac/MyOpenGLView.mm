@@ -93,9 +93,9 @@ static ImageRTPtr    LiveResize;
    [super setFrameSize:newSize];
    [OpenGLContext update]; // without this, client area will be rendered incorrectly (black bars, flickering, offsets)
 #if 1
-   App._window_resized=WindowSize(true);
+   App._window_resized=App.window().size(true);
 #else // can't use this because if app was started in fullscreen then it will return incorrect sizes (including the border)
-   NSRect rect=[OpenGLView bounds]; App._window_resized.set(RoundPos(rect.size.width), RoundPos(rect.size.height));
+   NSRect rect=[self bounds]; App._window_resized.set(RoundPos(rect.size.width), RoundPos(rect.size.height));
 #endif
 }
 -(void) viewWillStartLiveResize
@@ -119,7 +119,7 @@ static ImageRTPtr    LiveResize;
    LiveResize.clear();
    [super viewDidEndLiveResize];
 #if 1
-   VecI2 size=WindowSize(true);
+   VecI2 size=App.window().size(true);
 #else // can't use this because if app was started in fullscreen then it will return incorrect sizes (including the border)
    NSRect rect=[self bounds]; VecI2 size(RoundPos(rect.size.width), RoundPos(rect.size.height));
 #endif

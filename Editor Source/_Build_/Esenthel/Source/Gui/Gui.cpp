@@ -58,8 +58,8 @@ void Highlight(C Rect &rect, flt alpha, C Color &color, flt e) // Color(100, 240
    if(GlowBorder && alpha>0)
    {
       MIN(e, rect.size().min());
-      Rect r=rect; r&=Rect(-D.w(), -D.h(), D.w(), D.h()); r.extend(-e/2);
-      GlowBorder->drawBorder(Color(0, 0, 0, Mid(Round(alpha*255), 0, 255)), Color(color.r, color.g, color.b, 0), r, -e);
+      Rect r=rect; r&=D.rect(); r.extend(-e/2);
+      GlowBorder->drawBorder(Color(0, 0, 0, Mid(Round(alpha*255), 0, 255)), Color(color.r, color.g, color.b, 0), r, e);
    }
 }
 /******************************************************************************/
@@ -234,7 +234,7 @@ void SetGuiSkin(UID id)
 }
 void InitGui()
 {
-      WhiteImage.create(1, 1, 1, IMAGE_L8, IMAGE_2D, 1);
+      WhiteImage.mustCreate(1, 1, 1, IMAGE_L8, IMAGE_2D, 1);
    if(WhiteImage.lock(LOCK_WRITE))
    {
       WhiteImage.color(0, 0, WHITE);
@@ -354,7 +354,6 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
    void ImageSkin::skinChanged() {rect_color=Gui.borderColor();}
    ImageSkin::ImageSkin() {images.include(T);}
   ImageSkin::~ImageSkin() {images.exclude(T);}
-   GuiObj* TextNoTest::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return null;}
    void PropEx::Clear(PropEx &prop) {prop.clear();}
    bool PropEx::compatible(ELM_TYPE elm_type)C {return ElmCompatible(elm_type, T.elm_type);}
    void    PropEx::setDesc(                        ) {Str d=_desc; if(elm_type)d.line()+=S+"Drag and drop "+ElmTypeName[elm_type]+" element here\nCtrl+LeftClick to open it"; super::desc(d);}
@@ -527,9 +526,9 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
       T+= name.create(Rect_L(clientWidth()/2+0.05f, -0.1f, 0.35f, 0.06f));
 
       T+=tarea_size.create(Vec2(0.05f, -0.2f), MLTC(u"Area Size (meters):", PL, u"Rozmiar Obszaru (metry):", DE, u"Gebiets Größe (Meter):", RU, u"Размер области (в метрах):", PO, u"Área (metros):"), &ts);
-      T+= area_size.create(Rect_L(clientWidth()/2+0.05f, -0.2f, 0.35f, 0.06f), area_siz, Elms(area_siz)).set(1).desc(MLTC(u"Lower Area Size is for Games which target Lower View Range with More Details.\nHigher Area Size is for Games which target Higher View Range with Less Details.", DE, u"Kleinere Gebietsgröße ist für Spiele mit geringerer Sichtweite und höherem Detail.\nGrößere Gebietsgrößen ist für Spiele die höhere Sichtweite mit weniger Detail wollen.", RU, u"Области с более низким размером. Для игр, где видимость меньше и большое количество деталей.\nОбласти с более высоким размером. Для игр, где видимость больше и меньше количество деталей.", PO, u"Áreas pequenas é para Jogos que tęm um menor alcance de visăo mas mais Detalhado.\nÁreas grandes é para Jogos que tęm maior alcance da visăo mas menos Detalhado."));
+      T+= area_size.create(Rect_L(clientWidth()/2+0.05f, -0.2f, 0.35f, 0.06f), area_siz, Elms(area_siz)).set(1).desc(MLTC(u"Lower Area Size is for Games which target Lower View Range with More Details.\nHigher Area Size is for Games which target Higher View Range with Less Details.", DE, u"Kleinere Gebietsgröße ist für Spiele mit geringerer Sichtweite und höherem Detail.\nGrößere Gebietsgrößen ist für Spiele die höhere Sichtweite mit weniger Detail wollen.", RU, u"Области с более низким размером. Для игр, где видимость меньше и большое количество деталей.\nОбласти с более высоким размером. Для игр, где видимость больше и меньше количество деталей.", PO, u"Áreas pequenas é para Jogos que tęm um menor alcance de visão mas mais Detalhado.\nÁreas grandes é para Jogos que tęm maior alcance da visão mas menos Detalhado."));
 
-      T+=theightmap_res.create(Vec2(0.05f, -0.3f), MLTC(u"Heightmap Resolution:", PL, u"Rozdzielczość Heightmapy:", DE, u"Heightmap Auflösung:", RU, u"Разрешение карты высот:", PO, u"Resoluçăo do Heightmap:"), &ts);
+      T+=theightmap_res.create(Vec2(0.05f, -0.3f), MLTC(u"Heightmap Resolution:", PL, u"Rozdzielczość Heightmapy:", DE, u"Heightmap Auflösung:", RU, u"Разрешение карты высот:", PO, u"Resolução do Heightmap:"), &ts);
       T+= heightmap_res.create(Rect_L(clientWidth()/2+0.05f, -0.3f, 0.35f, 0.06f), hm_res, Elms(hm_res)).set(1);
 
       T+=tdensity.create(Vec2(0.05f, -0.4f), MLTC(u"Heightmap Density:", PL, u"Gęstość Heightmapy:", DE, u"Heightmap Dichte:", RU, u"Плотность карты высот:", PO, u"Densidade do Heightmap:"), &ts);
@@ -549,7 +548,7 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
    {
       super::update(gpc);
 
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          density.set(S+TextReal(flt(heightmapRes())/areaSize(), -3)+MLTC(u" per meter", PL, u" na metr", DE, u" pro Meter", RU, u" за метр", PO, u" por metro"));
          if(Gui.window()==this && Kb.k(KB_ENTER))ok.push();
@@ -701,7 +700,7 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
    void ModeTabs::update(C GuiPC &gpc)
 {
       super::update(gpc);
-      if(visible() && gpc.visible && Ms.bp(2))REPA(T)if(Gui.ms()==&tab(i)) // close Tab on middle mouse
+      if(gpc.visible && visible() && Ms.bp(2))REPA(T)if(Gui.ms()==&tab(i)) // close Tab on middle mouse
       {
          closeTab(i, true);
          break;
@@ -950,7 +949,8 @@ set_optimize      .create(Rect_L(0.98f, -0.328f, 0.25f, 0.0475f), "Set Optimize"
          OK(T);
       }
    }
-   void EraseRemovedElms::OK(EraseRemovedElms &ere) {ere.hide(); Proj.eraseRemoved();}
+   void EraseRemovedElms::OK(EraseRemovedElms &ere) {ere.hide(); Proj.eraseRemoved(false);}
+   void EraseRemovedElms::Full(EraseRemovedElms &ere) {ere.hide(); Proj.eraseRemoved(true );}
       void EraseRemovedElms::Elm::create(C ::Elm &src)
       {
          name=Proj.elmFullName(&src);
@@ -960,8 +960,9 @@ set_optimize      .create(Rect_L(0.98f, -0.328f, 0.25f, 0.0475f), "Set Optimize"
    {
       Gui+=super ::create(Rect_C(0, 0, 1.44f, 1.5f), "Erase Removed Elements").hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
       T  +=text  .create(Rect_C(clientWidth()/2  , -0.15f, clientWidth()-0.05f, 0.1f), "Are you sure you wish to erase all removed elements from the project?\nWarning: This operation cannot be undone!\n\nThis will remove files only from the local computer - when connected to server it will redownload the elements."); text.auto_line=AUTO_LINE_SPACE_SPLIT;
-      T  +=ok    .create(Rect_C(clientWidth()*1/3, -0.34f, 0.29f, 0.07f), "OK"    ).func(OK         ,               T ).focusable(false);
-      T  +=cancel.create(Rect_C(clientWidth()*2/3, -0.34f, 0.29f, 0.07f), "Cancel").func(HideProjAct, SCAST(GuiObj, T)).focusable(false);
+      T  +=ok    .create(Rect_C(clientWidth()*1/4, -0.34f, 0.27f, 0.07f), "OK"    ).func(OK         ,               T ).focusable(false);
+      T  +=full  .create(Rect_C(clientWidth()*2/4, -0.34f, 0.27f, 0.07f), "Full"  ).func(Full       ,               T ).focusable(false).desc("This is slower but it may remove more useless files");
+      T  +=cancel.create(Rect_C(clientWidth()*3/4, -0.34f, 0.27f, 0.07f), "Cancel").func(HideProjAct, SCAST(GuiObj, T)).focusable(false);
       T  +=region.create(Rect  (0, -clientHeight(), clientWidth(), ok.rect().min.y-0.01f).extend(-0.03f));
       ListColumn lc[]=
       {

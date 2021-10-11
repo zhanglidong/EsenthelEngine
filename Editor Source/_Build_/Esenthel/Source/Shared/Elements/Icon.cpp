@@ -9,7 +9,7 @@
           || width_time>src.width_time || height_time>src.height_time || scale_time>src.scale_time || fov_time>src.fov_time
           || cam_angle_time>src.cam_angle_time || cam_focus_time>src.cam_focus_time
           || ambient_col_time>src.ambient_col_time || ambient_occl_time>src.ambient_occl_time || ambient_range_time>src.ambient_range_time
-          || bloom_original_time>src.bloom_original_time || bloom_scale_time>src.bloom_scale_time || bloom_cut_time>src.bloom_cut_time
+          || bloom_original_time>src.bloom_original_time || bloom_scale_time>src.bloom_scale_time || bloom_cut_time>src.bloom_cut_time || bloom_glow_time>src.bloom_glow_time
           || light0_col_time>src.light0_col_time || light1_col_time>src.light1_col_time || light0_angle_time>src.light0_angle_time || light1_angle_time>src.light1_angle_time;
    }
    bool IconSettings::equal(C IconSettings &src)C
@@ -18,7 +18,7 @@
           && width_time==src.width_time && height_time==src.height_time && scale_time==src.scale_time && fov_time==src.fov_time
           && cam_angle_time==src.cam_angle_time && cam_focus_time==src.cam_focus_time
           && ambient_col_time==src.ambient_col_time && ambient_occl_time==src.ambient_occl_time && ambient_range_time==src.ambient_range_time
-          && bloom_original_time==src.bloom_original_time && bloom_scale_time==src.bloom_scale_time && bloom_cut_time==src.bloom_cut_time
+          && bloom_original_time==src.bloom_original_time && bloom_scale_time==src.bloom_scale_time && bloom_cut_time==src.bloom_cut_time && bloom_glow_time==src.bloom_glow_time
           && light0_col_time==src.light0_col_time && light1_col_time==src.light1_col_time && light0_angle_time==src.light0_angle_time && light1_angle_time==src.light1_angle_time;
    }
    void IconSettings::reset() {T=IconSettings();}
@@ -42,6 +42,7 @@
       changed|=Sync(bloom_original_time, src.bloom_original_time, bloom_original, src.bloom_original);
       changed|=Sync(   bloom_scale_time, src.   bloom_scale_time, bloom_scale   , src.bloom_scale);
       changed|=Sync(     bloom_cut_time, src.     bloom_cut_time, bloom_cut     , src.bloom_cut);
+      changed|=Sync(    bloom_glow_time, src.    bloom_glow_time, bloom_glow    , src.bloom_glow);
       changed|=Sync(    light0_col_time, src.    light0_col_time, light0_col    , src.light0_col);
       changed|=Sync(    light1_col_time, src.    light1_col_time, light1_col    , src.light1_col);
       changed|=Sync(  light0_angle_time, src.  light0_angle_time, light0_angle  , src.light0_angle);
@@ -68,6 +69,7 @@
       changed|=Undo(bloom_original_time, src.bloom_original_time, bloom_original, src.bloom_original);
       changed|=Undo(   bloom_scale_time, src.   bloom_scale_time, bloom_scale   , src.bloom_scale);
       changed|=Undo(     bloom_cut_time, src.     bloom_cut_time, bloom_cut     , src.bloom_cut);
+      changed|=Undo(    bloom_glow_time, src.    bloom_glow_time, bloom_glow    , src.bloom_glow);
       changed|=Undo(    light0_col_time, src.    light0_col_time, light0_col    , src.light0_col);
       changed|=Undo(    light1_col_time, src.    light1_col_time, light1_col    , src.light1_col);
       changed|=Undo(  light0_angle_time, src.  light0_angle_time, light0_angle  , src.light0_angle);
@@ -76,21 +78,33 @@
    }
    bool IconSettings::save(File &f)C
    {
-      f.cmpUIntV(3);
+      f.cmpUIntV(4);
       f<<mip_maps<<auto_center<<light0_shadow<<light1_shadow<<type<<width<<height<<scale<<fov<<ambient_occl<<ambient_range<<cam_angle<<cam_focus<<ambient_col
-       <<bloom_original<<bloom_scale<<bloom_cut
+       <<bloom_original<<bloom_scale<<bloom_cut<<bloom_glow
        <<light0_col<<light1_col<<light0_angle<<light1_angle
        <<mip_maps_time<<auto_center_time<<light0_shadow_time<<light1_shadow_time<<type_time<<width_time<<height_time<<scale_time<<fov_time
        <<cam_angle_time<<cam_focus_time<<ambient_col_time<<ambient_occl_time<<ambient_range_time
-       <<bloom_original_time<<bloom_scale_time<<bloom_cut_time
+       <<bloom_original_time<<bloom_scale_time<<bloom_cut_time<<bloom_glow_time
        <<light0_col_time<<light1_col_time<<light0_angle_time<<light1_angle_time;
       return f.ok();
    }
    bool IconSettings::load(File &f)
    {
       flt bloom_contrast; TimeStamp bloom_contrast_time;
-      switch(f.decUIntV())
+      reset(); switch(f.decUIntV())
       {
+         case 4:
+         {
+            f>>mip_maps>>auto_center>>light0_shadow>>light1_shadow>>type>>width>>height>>scale>>fov>>ambient_occl>>ambient_range>>cam_angle>>cam_focus>>ambient_col
+             >>bloom_original>>bloom_scale>>bloom_cut>>bloom_glow
+             >>light0_col>>light1_col>>light0_angle>>light1_angle
+             >>mip_maps_time>>auto_center_time>>light0_shadow_time>>light1_shadow_time>>type_time>>width_time>>height_time>>scale_time>>fov_time
+             >>cam_angle_time>>cam_focus_time>>ambient_col_time>>ambient_occl_time>>ambient_range_time
+             >>bloom_original_time>>bloom_scale_time>>bloom_cut_time>>bloom_glow_time
+             >>light0_col_time>>light1_col_time>>light0_angle_time>>light1_angle_time;
+            if(f.ok())return true;
+         }break;
+
          case 3:
          {
             f>>mip_maps>>auto_center>>light0_shadow>>light1_shadow>>type>>width>>height>>scale>>fov>>ambient_occl>>ambient_range>>cam_angle>>cam_focus>>ambient_col
@@ -100,6 +114,7 @@
              >>cam_angle_time>>cam_focus_time>>ambient_col_time>>ambient_occl_time>>ambient_range_time
              >>bloom_original_time>>bloom_scale_time>>bloom_cut_time
              >>light0_col_time>>light1_col_time>>light0_angle_time>>light1_angle_time;
+            bloom_scale*=1.6f;
             if(f.ok())return true;
          }break;
 
@@ -112,6 +127,7 @@
              >>cam_angle_time>>cam_focus_time>>ambient_col_time>>ambient_occl_time>>ambient_range_time
              >>bloom_original_time>>bloom_scale_time>>bloom_cut_time>>bloom_contrast_time
              >>light0_col_time>>light1_col_time>>light0_angle_time>>light1_angle_time;
+            bloom_scale*=1.6f;
             if(type>=1)type=ElmImage::TYPE(type+1); if(f.ok())return true;
          }break;
 
@@ -125,6 +141,7 @@
              >>bloom_original_time>>bloom_scale_time>>bloom_cut_time>>bloom_contrast_time
              >>light0_col_time>>light1_col_time>>light0_angle_time>>light1_angle_time;
              light1_shadow=light0_shadow; light1_shadow_time=light0_shadow_time;
+            bloom_scale*=1.6f;
             if(type>=1)type=ElmImage::TYPE(type+1); if(f.ok())return true;
          }break;
 
@@ -137,6 +154,6 @@
       File f; if(f.readTry(name))return load(f);
       reset(); return false;
    }
-IconSettings::IconSettings() : mip_maps(false), auto_center(true), light0_shadow(true), light1_shadow(true), type(ElmImage::COMPRESSED), width(128), height(128), scale(1), fov(PI_6), ambient_occl(1.2f), ambient_range(0.1f), bloom_original(1.0f), bloom_scale(0.5f), bloom_cut(0.3f), cam_angle(0), cam_focus(0), ambient_col(0.4f), light0_col(0.7f), light1_col(0.0f), light0_angle( PI_4,  PI_4), light1_angle(-PI_4, -PI_4) {}
+IconSettings::IconSettings() : mip_maps(false), auto_center(true), light0_shadow(true), light1_shadow(true), type(ElmImage::COMPRESSED), width(128), height(128), scale(1), fov(PI_6), ambient_occl(1.2f), ambient_range(0.1f), bloom_original(1.0f), bloom_scale(0.8f), bloom_cut(0.3f), bloom_glow(1.0f), cam_angle(0), cam_focus(0), ambient_col(0.4f), light0_col(0.7f), light1_col(0.0f), light0_angle( PI_4,  PI_4), light1_angle(-PI_4, -PI_4) {}
 
 /******************************************************************************/

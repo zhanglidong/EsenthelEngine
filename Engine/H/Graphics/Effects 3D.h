@@ -30,7 +30,7 @@ struct Decal // Decal
 
 private:
    MaterialPtr _material;
-   Shader     *_shader[2][2]; // [F][P] F-Fullscreen, P-Palette
+   Shader     *_shader[3][2]; // [Mode][Fullscreen]
 };
 /******************************************************************************/
 struct ElectricityFx // Electricity Effect
@@ -45,7 +45,7 @@ struct ElectricityFx // Electricity Effect
    Memc<Vec> original       ; // original control points
 
    void update();
-   void draw  (); // draw using active matrix, this should be called in RM_SOLID and RM_AMBIENT modes
+   void draw  (); // draw using active matrix, this should be called in RM_OPAQUE and RM_AMBIENT modes
 
    ElectricityFx();
 
@@ -61,5 +61,5 @@ struct BlendObject // extendable class for depth-sorted rendering of graphics in
    virtual void drawBlend() {} // extend this method to draw custom graphics for RM_BLEND rendering mode, this method will be automatically called inside RM_BLEND rendering mode if 'scheduleDrawBlend' was called previously
 };
 /******************************************************************************/
-void DrawLaser(C Color &color, C Color &middle_color, Flt middle_exponent, Flt radius, Bool sharp_ending, C CMemPtr<Vec> &points); // draw laser effect using active matrix onto the screen, 'points'=array of laser points, this should be called in RM_SOLID and RM_AMBIENT modes
+void DrawLaser(C Color &color, C Color &middle_color, Flt middle_exponent, Flt radius, Bool sharp_ending, C CMemPtr<Vec> &points); // draw laser effect using active matrix onto the screen, 'points'=array of laser points, this should be called in RM_OPAQUE and RM_AMBIENT modes
 /******************************************************************************/

@@ -805,8 +805,7 @@ PhysicsClass& PhysicsClass::gravity(C Vec &gravity) {if(T._gravity!=gravity && B
 /******************************************************************************/
 PhysicsClass& PhysicsClass::timestep(PHYS_TIMESTEP_MODE mode)
 {
-   Clamp(mode, PHYS_TIMESTEP_MODE(0), PHYS_TIMESTEP_MODE(PHYS_TIMESTEP_NUM-1));
-   if(created())_timestep=mode;
+   if(InRange(mode, PHYS_TIMESTEP_NUM) && created())_timestep=mode;
    return T;
 }
 /******************************************************************************/

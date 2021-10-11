@@ -1,7 +1,7 @@
 /******************************************************************************/
 #pragma once // include the header only once
 /******************************************************************************/
-#define ENGINE_BUILD 68 // this is an integer value specifying the build iteration of Esenthel Engine, this gets incremented with each new release
+#define ENGINE_BUILD 70 // this is an integer value specifying the build iteration of Esenthel Engine, this gets incremented with each new release
 /******************************************************************************
 
    Following defines are available, they are always set to 0 (disabled) or 1 (enabled)
@@ -125,6 +125,9 @@
 namespace EE // Esenthel Engine namespace
 {
    /******************************************************************************/
+   #if EE_PRIVATE
+      #include "../Source/Shaders/!Header CPU.h"
+   #endif
    #pragma pack(push, 4)
    #include "_/defines.h"
    #include "_/structs.h"
@@ -177,9 +180,9 @@ namespace EE // Esenthel Engine namespace
    #include "Memory/_Map.h"
    #include "Memory/Map.h"
    #include "Misc/States.h"
+   #include "File/IO.h"
    #include "File/File.h"
    #include "File/File Text.h"
-   #include "File/IO.h"
    #include "File/Chunk.h"
    #include "Misc/Compress.h"
    #include "File/Pak.h"
@@ -246,10 +249,10 @@ namespace EE // Esenthel Engine namespace
    /******************************************************************************/
    // SOUND
    /******************************************************************************/
-   #include "Sound/Sound Extra.h"
    #include "Sound/Sound Stream.h"
    #include "Sound/Sound Buffer.h"
    #include "Sound/Sound.h"
+   #include "Sound/Sound Extra.h"
    #include "Sound/Music.h"
    /******************************************************************************/
    // MESH
@@ -283,8 +286,8 @@ namespace EE // Esenthel Engine namespace
    //
    /******************************************************************************/
    #include "Math/Frustum.h"
-   #include "Misc/Application.h"
    #include "Misc/Windows.h"
+   #include "Misc/Application.h"
    #include "Input/Input Buttons.h"
    #include "Input/Input.h"
    #include "Input/Keyboard.h"
@@ -403,7 +406,6 @@ namespace EE // Esenthel Engine namespace
    #include "Input/Touch.h"
    #include "_/inline.h"
    #if EE_PRIVATE
-      #include "../Source/Shaders/!Header CPU.h"
       #if SWITCH
          #include "../../NintendoSwitch/Switch.h"
       #endif

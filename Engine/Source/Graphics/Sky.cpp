@@ -151,7 +151,7 @@ void SkyClass::draw()
               density=(atmosphericDensityExponent()<1-EPS_GPU),
               dither =(D.dither() && !Renderer._col->highPrecision()),
               vertex = !_precision,
-              stars  =((_stars   !=null) && (_hor_col_l.w<1-EPS_COL || _sky_col_l.w<1-EPS_COL)),
+              stars  =((_stars   !=null) && (_hor_col_l.w<1-EPS_COL_1 || _sky_col_l.w<1-EPS_COL_1)),
               cloud  =(Clouds.draw && Clouds.layered.merge_with_sky && Clouds.layered.layers() && Clouds.layered.layer[0].image && Clouds.layered.layer[0].color_l.w && (Clouds.layered.draw_in_mirror || !Renderer.mirror()));
       Int     tex    =((_image[0]!=null) + (_image[1]!=null)),
               multi  =(Renderer._col->multiSample() ? ((Renderer._cur_type==RT_DEFERRED) ? 1 : 2) : 0);
@@ -207,25 +207,21 @@ void SkyClass::draw()
    #if !REVERSE_DEPTH // for low precision depth we need to make sure that sky ball mesh is slightly smaller than view range, to avoid mesh clipping, this was observed on OpenGL with viewFrom=0.05, viewRange=1024, Cam.yaw=0, Cam.pitch=PI_2
       MIN(sky_ball_mesh_size, to*EPS_SKY_MIN_VIEW_RANGE); // alternatively we could try using D3DRS_CLIPPING, DepthClipEnable, GL_DEPTH_CLAMP
    #endif
+      // !! THIS MUST NOT MODIFY 'Renderer._alpha' BECAUSE THAT WOULD DISABLE SUN RAYS !!
       Renderer.set(Renderer._col, Renderer._ds, true, blend ? NEED_DEPTH_READ : NO_DEPTH_READ); // specify correct mode because without it the sky may cover everything completely
-      D.alpha     (blend ? ALPHA_BLEND_DEC : ALPHA_NONE);
-      D.depthWrite(false);
-      if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_LESS_EQUAL); // to make sure we draw at the end of viewRange
-    //D.cull      (true ); ignore changing culling, because we're inside the sky ball, so we will always see its faces, we could potentially set false (to ignore overhead on the GPU for cull testing if any) however we choose to just ignore it to reduce GPU state changes on the CPU which are probably more costly
-      D.sampler3D (     ); // set in case of drawing clouds
-      if(shader_multi)D.stencil(STENCIL_MSAA_TEST);
+      D.alpha           (blend ? ALPHA_RENDER_BLEND : ALPHA_NONE);
+      D.depthOnWriteFunc(ds, false, FUNC_LESS_EQUAL); // to make sure we draw at the end of viewRange
+    //D.cull            (true); ignore changing culling, because we're inside the sky ball, so we will always see its faces, we could potentially set false (to ignore overhead on the GPU for cull testing if any) however we choose to just ignore it to reduce GPU state changes on the CPU which are probably more costly
      _mshr.set();
       SetOneMatrix(MatrixM(sky_ball_mesh_size, CamMatrix.pos)); // normally we have to set matrixes after 'setEyeViewportCam', however since matrixes are always relative to the camera, and here we set exactly at the camera position, so the matrix will be the same for both eyes
       REPS(Renderer._eye, Renderer._eye_num)
       {
          Renderer.setEyeViewportCam();
-         if(shader_multi){D.depth((multi==1) ? false : ds); D.stencilRef(STENCIL_REF_MSAA); shader_multi->begin(); _mshr.draw(); D.stencilRef(0);} // MS edges for deferred must not use depth testing
-                          D.depth(                     ds);                                 shader      ->begin(); _mshr.draw();
+         if(shader_multi){D.depth((multi==1) ? false : ds); D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); shader_multi->begin(); _mshr.draw(); D.stencilRef(0); D.depth(ds);} // MS edges for deferred must not use depth testing, call this first to set stencil, reset stencil ref and depth for call below
+                                                                                                            shader      ->begin(); _mshr.draw(); // call this next
       }
-      D.sampler2D (    );
-      D.depthWrite(true);
-      if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_DEFAULT);
-      D.stencil   (STENCIL_NONE);
+      D.depthOnWriteFunc(false, true, FUNC_DEFAULT);
+      D.stencil         (STENCIL_NONE);
    }
 }
 /******************************************************************************/

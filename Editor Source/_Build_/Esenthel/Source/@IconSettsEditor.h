@@ -55,6 +55,8 @@ class IconSettsEditor : PropWin
    static Str  BloomScale   (C IconSettsEditor &ie          );
    static void BloomCut     (  IconSettsEditor &ie, C Str &t);
    static Str  BloomCut     (C IconSettsEditor &ie          );
+   static void BloomGlow    (  IconSettsEditor &ie, C Str &t);
+   static Str  BloomGlow    (C IconSettsEditor &ie          );
    static void Light0Shadow (  IconSettsEditor &ie, C Str &t);
    static Str  Light0Shadow (C IconSettsEditor &ie          );
    static void Light1Shadow (  IconSettsEditor &ie, C Str &t);

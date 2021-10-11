@@ -63,30 +63,33 @@ static Str QPSFullPath (C Str &path) {return (path.is() && !FullPath(path)) ? Sy
 static Str QPSShortPath(C Str &path) {return SkipStartPath(path, DataPath());}
 static Str QPSFullPath (C Str &path) {return (path.is() && !FullPath(path)) ? DataPath()+path : path;}
 #endif
-static void PathChanged(C Str &path, QuickPathSelector &qps)
+static void PathChanged(C CMemPtr<MenuPush> &mps, QuickPathSelector &qps)
 {
-   if(path.is())
+   if(mps.elms())
    {
-      if(path==QPS_DATA        )qps.setPath(DataPath());else
-      if(path==QPS_DESKTOP     )qps.setPath(SystemPath(SP_DESKTOP  ));else
-      if(path==QPS_ONEDRIVE    )qps.setPath(SystemPath(SP_ONE_DRIVE));else
-      if(path==QPS_ADD_FAVORITE)
+    C Str &path=mps.last().name; if(path.is())
       {
-         Str path=qps.getPath(); if(path.is())
+         if(path==QPS_DATA        )qps.setPath(DataPath());else
+         if(path==QPS_DESKTOP     )qps.setPath(SystemPath(SP_DESKTOP  ));else
+         if(path==QPS_ONEDRIVE    )qps.setPath(SystemPath(SP_ONE_DRIVE));else
+         if(path==QPS_ADD_FAVORITE)
          {
-            if(!QPSShortPath(path).is())return;
-            REPA(WindowIOFavorites)if(EqualPath(WindowIOFavorites[i], path))return;
-            WindowIOFavorites.add(path);
-         }
-      }else
-      if(path==QPS_REM_FAVORITE)
-      {
-         Str path=qps.getPath(); if(path.is())
+            Str path=qps.getPath(); if(path.is())
+            {
+               if(!QPSShortPath(path).is())return;
+               REPA(WindowIOFavorites)if(EqualPath(WindowIOFavorites[i], path))return;
+               WindowIOFavorites.add(path);
+            }
+         }else
+         if(path==QPS_REM_FAVORITE)
          {
-            REPA(WindowIOFavorites)if(EqualPath(WindowIOFavorites[i], path))WindowIOFavorites.remove(i, true);
-         }
-      }else
-      if(path!=QPS_FAVORITES && path!=QPS_RECENT)qps.setPath(QPSFullPath(path)); // custom path
+            Str path=qps.getPath(); if(path.is())
+            {
+               REPA(WindowIOFavorites)if(EqualPath(WindowIOFavorites[i], path))WindowIOFavorites.remove(i, true);
+            }
+         }else
+         if(path!=QPS_FAVORITES && path!=QPS_RECENT)qps.setPath(QPSFullPath(path)); // custom path
+      }
    }
 }
 static void QPSChangedButton(QuickPathSelector &qps)

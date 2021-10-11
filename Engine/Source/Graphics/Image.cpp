@@ -246,6 +246,7 @@ IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type)
       case IMAGE_F16  :
       case IMAGE_F16_2:
       case IMAGE_F16_3:
+      case IMAGE_R11G11B10F:
          return IMAGE_F16_4;
 
       case IMAGE_F32  :
@@ -411,6 +412,7 @@ IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type) // this is for HW images, don't retu
          return IMAGE_R8G8_SIGN;
 
       case IMAGE_BC6:
+      case IMAGE_R11G11B10F:
          return IMAGE_F16_3;
    }
 }
@@ -567,6 +569,15 @@ IMAGE_TYPE                 ImageFormatToType(GPU_API(DXGI_FORMAT, UInt) format
    return IMAGE_NONE;
 }
 /******************************************************************************/
+IMAGE_PRECISION BitsToPrecision(Int bits)
+{
+   ASSERT(IMAGE_PRECISION_64+1==IMAGE_PRECISION_NUM);
+   if(bits>=64)return IMAGE_PRECISION_64;
+   if(bits>=32)return IMAGE_PRECISION_32;
+   if(bits>=16)return IMAGE_PRECISION_16;
+   if(bits>=10)return IMAGE_PRECISION_10;
+ /*if(bits>= 8)*/return IMAGE_PRECISION_8;
+}
 IMAGE_TYPE BytesToImageType(Int byte_pp)
 {
    switch(byte_pp)
@@ -611,37 +622,38 @@ Bool IsCube(IMAGE_MODE mode)
    }
 }
 /******************************************************************************/
+Int ImageFaces(IMAGE_MODE mode) {return IsCube(mode) ? 6 : 1;}
 Int PaddedWidth(Int w, Int h, Int mip, IMAGE_TYPE type)
 {
    if(type==IMAGE_PVRTC1_2 || type==IMAGE_PVRTC1_4 || type==IMAGE_PVRTC1_2_SRGB || type==IMAGE_PVRTC1_4_SRGB)w=h=CeilPow2(Max(w, h)); // PVRTC1 must be square and power of 2
-   Int mw=Max(1, w>>mip);
+   Int mip_w=Max(1, w>>mip);
    if(ImageTI[type].compressed)switch(type)
    {
-      case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB: return Max(Ceil8(mw), 16); // blocks are sized 8x4 pixels, min texture size is 16x8
-      case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB: return Max(Ceil4(mw),  8); // blocks are sized 4x4 pixels, min texture size is  8x8
-      default                                      : return     Ceil4(mw)     ; // blocks are sized 4x4 pixels, min texture size is  4x4
-   }                                                 return           mw      ;
+      case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB: return Max(Ceil8(mip_w), 16); // blocks are sized 8x4 pixels, min texture size is 16x8
+      case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB: return Max(Ceil4(mip_w),  8); // blocks are sized 4x4 pixels, min texture size is  8x8
+      default                                      : return     Ceil4(mip_w)     ; // blocks are sized 4x4 pixels, min texture size is  4x4
+   }                                                 return           mip_w      ;
 }
 Int PaddedHeight(Int w, Int h, Int mip, IMAGE_TYPE type)
 {
    if(type==IMAGE_PVRTC1_2 || type==IMAGE_PVRTC1_4 || type==IMAGE_PVRTC1_2_SRGB || type==IMAGE_PVRTC1_4_SRGB)w=h=CeilPow2(Max(w, h)); // PVRTC1 must be square and power of 2
-   Int mh=Max(1, h>>mip);
+   Int mip_h=Max(1, h>>mip);
    if(ImageTI[type].compressed)switch(type)
    {
-      case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB: return Max(Ceil4(mh), 8); // blocks are sized 8x4 pixels, min texture size is 16x8
-      case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB: return Max(Ceil4(mh), 8); // blocks are sized 4x4 pixels, min texture size is  8x8
-      default                                      : return     Ceil4(mh)    ; // blocks are sized 4x4 pixels, min texture size is  4x4
-   }                                                 return           mh     ;
+      case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB: return Max(Ceil4(mip_h), 8); // blocks are sized 8x4 pixels, min texture size is 16x8
+      case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB: return Max(Ceil4(mip_h), 8); // blocks are sized 4x4 pixels, min texture size is  8x8
+      default                                      : return     Ceil4(mip_h)    ; // blocks are sized 4x4 pixels, min texture size is  4x4
+   }                                                 return           mip_h     ;
 }
 Int ImagePitch(Int w, Int h, Int mip, IMAGE_TYPE type)
 {
-   w=PaddedWidth(w, h, mip, type);
-   return ImageTI[type].compressed ? w*ImageTI[type].bit_pp/2 : w*ImageTI[type].byte_pp; // all compressed formats use 4 rows per block (4*bit_pp/8 == bit_pp/2)
+   Int mip_w=PaddedWidth(w, h, mip, type);
+   return ImageTI[type].compressed ? mip_w*ImageTI[type].bit_pp/2 : mip_w*ImageTI[type].byte_pp; // all compressed formats use 4 rows per block (4*bit_pp/8 == bit_pp/2)
 }
 Int ImageBlocksY(Int w, Int h, Int mip, IMAGE_TYPE type)
 {
-   h=PaddedHeight(w, h, mip, type);
-   return ImageTI[type].compressed ? h/4 : h; // all compressed formats use 4 rows per block
+   Int mip_h=PaddedHeight(w, h, mip, type);
+   return ImageTI[type].compressed ? mip_h/4 : mip_h; // all compressed formats use 4 rows per block
 }
 Int ImageMipSize(Int w, Int h, Int mip, IMAGE_TYPE type)
 {
@@ -853,7 +865,7 @@ Image::~Image()
 {
    del();
 
-   // remove image from 'ShaderImages' and 'VI.image'
+   // remove image from 'ShaderImages', 'ShaderRWImages' and 'VI.image'
 #if !SYNC_LOCK_SAFE
    if(ShaderImages.elms())
 #endif
@@ -861,12 +873,19 @@ Image::~Image()
       ShaderImages.lock  (); REPA(ShaderImages){ShaderImage &image=ShaderImages.lockedData(i); if(image.get()==this)image.set(null);}
       ShaderImages.unlock();
    }
+#if !SYNC_LOCK_SAFE
+   if(ShaderRWImages.elms())
+#endif
+   {
+      ShaderRWImages.lock  (); REPA(ShaderRWImages){ShaderRWImage &image=ShaderRWImages.lockedData(i); if(image.get()==this)image.set(null);}
+      ShaderRWImages.unlock();
+   }
    if(VI._image==this)VI._image=null;
 }
        Image::Image    (                                                                   )           {zero();}
-       Image::Image    (C Image &src                                                       ) : Image() {src.copy(T);}
-       Image::Image    (Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps) : Image() {create(w, h, d, type, mode, mip_maps);}
-Image& Image::operator=(C Image &src                                                       )           {if(this!=&src)src.copy(T); return T;}
+       Image::Image    (C Image &src                                                       ) : Image() {src.mustCopy(T);}
+       Image::Image    (Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps) : Image() {mustCreate(w, h, d, type, mode, mip_maps);}
+Image& Image::operator=(C Image &src                                                       )           {if(this!=&src)src.mustCopy(T); return T;}
 /******************************************************************************/
 Image& Image::del()
 {
@@ -877,7 +896,9 @@ Image& Image::del()
       if(_txtr || _srv)
       {
          D.texClearAll(_srv);
-       //SyncLocker locker(D._lock); lock not needed for DX11 'Release'
+      #if GPU_LOCK // lock not needed for 'Release'
+         SyncLocker locker(D._lock);
+      #endif
          if(D.created())
          {
             // release children first
@@ -890,7 +911,7 @@ Image& Image::del()
       if(_txtr || _rb)
       {
          D.texClearAll(_txtr);
-      #if GL_LOCK
+      #if GPU_LOCK
          SyncLocker locker(D._lock);
       #endif
          if(D.created())
@@ -904,45 +925,6 @@ Image& Image::del()
    Free(_data_all);
    zero(); return T;
 }
-/******************************************************************************
-void Image::duplicate(C Image &src)
-{
-   if(this!=&src)
-   {
-      del();
-
-   #if DX11
-      if(_txtr=src._txtr)_txtr->AddRef();
-      if(_srv =src._srv )_srv ->AddRef();
-      if(_rtv =src._rtv )_rtv ->AddRef();
-      if(_dsv =src._dsv )_dsv ->AddRef();
-      if(_rdsv=src._rdsv)_rdsv->AddRef();
-   #elif GL
-      _dup =true     ;
-      _txtr=src._txtr;
-      _rb  =src._rb  ;
-      _w_s =src._w_s ;
-      _w_t =src._w_t ;
-      _w_r =src._w_r ;
-   #endif
-
-     _type   =src._type   ;
-     _hw_type=src._hw_type;
-     _mode   =src._mode   ;
-     _mms    =src._mms    ;
-     _samples=src._samples;
-     _byte_pp=src._byte_pp;
-     _partial=src._partial;
-     _part   =src._part   ;
-     _pitch  =src._pitch  ;
-     _pitch2 =src._pitch2 ;
-        _size=src.   _size;
-     _hw_size=src._hw_size;
-
-   //_lmm, _lcf, _lock_mode, _lock_count, _lock_size, _discard, _data, _data_all - ignored
-      this may break because of _data, _data_all
-   }
-}
 /******************************************************************************/
 void Image::setPartial()
 {
@@ -952,7 +934,6 @@ void Image::setPartial()
 Bool Image::setInfo()
 {
 #if DX11
-   // lock not needed for DX11 'D3D'
    if(_txtr)
    {
       if(mode()==IMAGE_3D)
@@ -996,6 +977,9 @@ Bool Image::setInfo()
             if(cube()          ){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURECUBE; srvd.TextureCube.MipLevels=mipMaps();}else
             if(!multiSample()  ){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D  .MipLevels=mipMaps();}else
                                 {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
+         #if GPU_LOCK // lock not needed for 'D3D'
+            SyncLocker locker(D._lock);
+         #endif
             D3D->CreateShaderResourceView(_txtr, &srvd, &_srv); if(!_srv && mode()!=IMAGE_DS)return false; // allow '_srv' optional in IMAGE_DS (for example it can fail for multi-sampled DS on FeatureLevel 10.0)
          }break;
       }
@@ -1081,15 +1065,14 @@ void Image::adjustInfo(Int w, Int h, Int d, IMAGE_TYPE type)
    setPartial();
 }
 /******************************************************************************/
-void Image::setGLParams() // #GLSampler
+void Image::setGLParams()
 {
 #if GL
-#if GL_LOCK
+#if GPU_LOCK
    SyncLocker locker(D._lock);
 #endif
    if(D.created() && _txtr)
    {
-      Bool mip_maps=(mipMaps()>1), filterable=T.filterable();
       UInt target;
       switch(mode())
       {
@@ -1106,10 +1089,14 @@ void Image::setGLParams() // #GLSampler
       D.texBind(target, _txtr);
 
       // first call those that can generate GL ERROR and we're OK with that, so we will call 'glGetError' to clear them
-                  glTexParameteri(target, GL_TEXTURE_MAX_LEVEL     , mip_maps ? mipMaps()-1 : 0);
-      if(mip_maps)glTexParameteri(target, GL_TEXTURE_MAX_ANISOTROPY,      Max(D.texFilter(), 1));
-                  glTexParameteri(target, GL_TEXTURE_MIN_FILTER    , mip_maps ? (filterable ? D.texMipFilter() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_NEAREST : GL_NEAREST_MIPMAP_NEAREST) : filterable ? GL_LINEAR : GL_NEAREST);
-                  glTexParameteri(target, GL_TEXTURE_MAG_FILTER    , (filterable && (D.texFilter() || mode()!=IMAGE_2D)) ? GL_LINEAR : GL_NEAREST);
+      Bool mip_maps=(mipMaps()>1);
+      glTexParameteri(target, GL_TEXTURE_MAX_LEVEL     , mip_maps ? mipMaps()-1 : 0);
+   #if 0 // this is now handled in the sampler
+      Bool filterable=T.filterable();
+      glTexParameteri(target, GL_TEXTURE_MAX_ANISOTROPY, Max(D.texFilter(), 1));
+      glTexParameteri(target, GL_TEXTURE_MIN_FILTER    , mip_maps ? (filterable ? D.texMipFilter() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_NEAREST : GL_NEAREST_MIPMAP_NEAREST) : filterable ? GL_LINEAR : GL_NEAREST);
+      glTexParameteri(target, GL_TEXTURE_MAG_FILTER    , (filterable && (D.texFilter() || mode()!=IMAGE_2D)) ? GL_LINEAR : GL_NEAREST);
+   #endif
       glGetError(); // clear error in case GL_TEXTURE_MAX_LEVEL, anisotropy, .. are not supported
 
       // now call thost that must succeed
@@ -1146,26 +1133,7 @@ void Image::setGLParams() // #GLSampler
 #endif
 }
 /******************************************************************************/
-void Image::setGLFont() // #GLSampler
-{
-#if GL
-#if GL_LOCK
-   SyncLocker locker(D._lock);
-#endif
-   if(D.created() && _txtr && mipMaps()>1)switch(mode())
-   {
-      case IMAGE_2D:
-      case IMAGE_RT:
-      {
-         D.texBind      (GL_TEXTURE_2D, _txtr);
-         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, D.fontMipBias());
-         glFlush        (); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
-      }break;
-   }
-#endif
-}
-/******************************************************************************/
-Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Byte samples, C Image *src
+Bool Image::createEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Byte samples, CPtr src_data, C Image *src
    #if GL_ES
       , Bool can_del_src
    #endif
@@ -1186,7 +1154,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
       else       MIN(mip_maps,total_mip_maps); // don't use more than maximum allowed
 
       // check if already matches what we want
-      if(T.w()==w && T.h()==h && T.d()==d && T.type()==type && T.mode()==mode && T.mipMaps()==mip_maps && T.samples()==samples && !src)
+      if(T.w()==w && T.h()==h && T.d()==d && T.type()==type && T.mode()==mode && T.mipMaps()==mip_maps && T.samples()==samples && !src_data && !src)
       {
          unlock(); // unlock if was locked
          return true;
@@ -1196,30 +1164,29 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
       if(!ImageSupported(type, mode, samples))goto error;
 
       // create as new
-   #if GL
+   #if WEB && GL
       Memt<Byte> temp;
    #endif
       // hardware size (do after calculating mip-maps)
       VecI hw_size(PaddedWidth(w, h, 0, type), PaddedHeight(w, h, 0, type), d);
-   #if DX11
-      D3D11_SUBRESOURCE_DATA *initial_data=null; MemtN<D3D11_SUBRESOURCE_DATA, 32*6> res_data; // 32 mip maps * 6 faces
-   #endif
       if(src) // if 'src' specified
       {
-      #if DX11 || GL // !! if adding more API's here, then allow them in 'Load' "Image IO.cpp" too !! only DX11, GL support this
          if(src==this // can't be created from self
          || src->hwType()!=type || src->hwSize3()!=hw_size || src->mipMaps()!=mip_maps || !src->soft() || src->cube()!=IsCube(mode)) // 'src' must match exactly what was requested
-      #endif
             goto error;
-
-      #if DX11
-       C Byte *data=src->softData(); Int faces=src->faces();
+         src_data=src->softData();
+      }
+   #if DX11
+      D3D11_SUBRESOURCE_DATA *initial_data=null; MemtN<D3D11_SUBRESOURCE_DATA, 32*6> res_data; // 32 mip maps * 6 faces
+      if(src_data) // always assumed to exactly match
+      {
+       C Byte *data=(Byte*)src_data; Int faces=ImageFaces(mode);
          initial_data=res_data.setNum(mip_maps*faces).data();
          FREPD(m, mip_maps)
-         { // have to specify HW sizes, because all images (HW and SOFT) are stored like that
-            Int mip_pitch =src->softPitch(m)                                                , // X
-                mip_pitch2=ImageBlocksY(src->hwW(), src->hwH(), m, src->hwType())*mip_pitch , // X*Y
-                mip_size  =                  Max(1, src->hwD()>>m               )*mip_pitch2; // X*Y*Z
+         { // have to specify HW sizes, because all images (HW and SOFT) are stored like that. Need to use 'hw_size' and not T.hwSize (because 1-it's not yet available, 2-it may be bigger, but we need the 'src' hw size which is always smallest)
+            Int mip_pitch =ImagePitch  (hw_size.x, hw_size.y, m, type)           , // X
+                mip_pitch2=ImageBlocksY(hw_size.x, hw_size.y, m, type)*mip_pitch , // X*Y
+                mip_size  =                 Max(1, hw_size.z>>m      )*mip_pitch2; // X*Y*Z
             FREPD(f, faces)
             {
                D3D11_SUBRESOURCE_DATA &srd=initial_data[D3D11CalcSubresource(m, f, mip_maps)];
@@ -1229,11 +1196,11 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                data+=mip_size;
             }
          }
-      #endif
       }
+   #endif
 
-   #if GL_LOCK
-      SyncLockerEx locker(D._lock, IsHW(mode)); // lock not needed for DX11 'D3D'
+   #if GPU_LOCK // lock not needed for 'D3D'
+      SyncLockerEx locker(D._lock, IsHW(mode));
    #endif
       if(IsHW(mode) && !D.created())goto error; // device not yet created
 
@@ -1281,7 +1248,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                desc.Height            =hwH();
                desc.MipLevels         =mip_maps;
                desc.Usage             =D3D11_USAGE_DEFAULT;
-               desc.BindFlags         =D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE;
+               desc.BindFlags         =D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE; if(samples<=1 && D.computeAvailable())desc.BindFlags|=D3D11_BIND_UNORDERED_ACCESS;
                desc.MiscFlags         =0;
                desc.CPUAccessFlags    =0;
                desc.SampleDesc.Count  =samples;
@@ -1383,7 +1350,6 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
          }break;
       #elif GL
          case IMAGE_2D:
-         case IMAGE_RT:
          {
             glGenTextures(1, &_txtr); if(_txtr)
             {
@@ -1393,13 +1359,15 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                glGetError (); // clear any previous errors
                setGLParams(); // call this first to bind the texture
 
+               // !! WARNING: IF THIS IS REPLACED TO USE 'glTexStorage2D' THEN CAN'T USE 'glTexImage2D/glCompressedTexImage2D' TO UPDATE MIP MAPS IN UNLOCK AND 'setFrom' and .., check 'glTexSubImage' and compressed? !!
+
                UInt format=hwTypeInfo().format, gl_format=SourceGLFormat(hwType()), gl_type=SourceGLType(hwType());
-               if(src)
+               if(src_data)
                {
                #if GL_ES
-                  if(mode!=IMAGE_RT && !(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && !can_del_src)Alloc(_data_all, CeilGL(src->memUsage())); Byte *dest=_data_all; // create a software copy only if we want it and we're not going to take it from 'src'
+                  if(!(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && !can_del_src)Alloc(_data_all, CeilGL(memUsage())); Byte *dest=_data_all; // create a software copy only if we want it and we're not going to take it from 'src'
                #endif
-                C Byte *data=src->softData(); FREPD(m, mipMaps()) // order important
+                C Byte *data=(Byte*)src_data; FREPD(m, mipMaps()) // order important
                   {
                      if(m==1) // check at the start of mip-map #1, to skip this when there's only one mip-map
                         if(glGetError()!=GL_NO_ERROR)goto error; // if first mip failed, then fail
@@ -1415,30 +1383,57 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                }else
                if(!compressed())
                {
-                  if(mode==IMAGE_RT)temp.setNumZero(CeilGL(memUsage())); // clear render targets to zero at start (especially important for floating point RT's)
-                  glTexImage2D(GL_TEXTURE_2D, 0, format, hwW(), hwH(), 0, gl_format, gl_type, temp.dataNull());
+                  glTexImage2D(GL_TEXTURE_2D, 0, format, hwW(), hwH(), 0, gl_format, gl_type, null);
                }else
                {
                   Int mip_size=ImageMipSize(hwW(), hwH(), 0, hwType());
-                  if(WEB)temp.setNumZero(CeilGL(mip_size)); // for WEB, null can't be specified in 'glCompressedTexImage'
-                  glCompressedTexImage2D(GL_TEXTURE_2D, 0, format, hwW(), hwH(), 0, mip_size, temp.dataNull());
+               #if WEB // for WEB, null can't be specified in 'glCompressedTexImage'
+                  glCompressedTexImage2D(GL_TEXTURE_2D, 0, format, hwW(), hwH(), 0, mip_size, temp.setNumZero(CeilGL(mip_size)).dataNull());
+               #else
+                  glCompressedTexImage2D(GL_TEXTURE_2D, 0, format, hwW(), hwH(), 0, mip_size, null);
+               #endif
                }
 
                if(glGetError()==GL_NO_ERROR && setInfo()) // ok
                {
                   glFlush(); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
                #if GL_ES
-                  if(mode!=IMAGE_RT)
+                  if(src_data)
                   {
-                     if(src)
+                     if(!(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && can_del_src) // take software copy from 'src', but only if we want it, and only on success (so if failed, then we can still use 'src', this is needed for 'Load' loading)
                      {
-                        if(!(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && can_del_src) // take software copy from 'src', but only if we want it, and only on success (so if failed, then we can still use 'src', this is needed for 'Load' loading)
-                        {
-                           Image &s=ConstCast(*src); _data_all=s._data_all; s._data_all=null; s.del();
-                        }
-                     }else Alloc(_data_all, CeilGL(memUsage()));
-                  }
+                        DYNAMIC_ASSERT(src, "'can_del_src' without 'src' is not implemented");
+                        Image &s=ConstCast(*src); _data_all=s._data_all; s._data_all=null; s.del();
+                     }
+                  }else Alloc(_data_all, CeilGL(memUsage()));
                #endif
+                  return true;
+               }
+            }
+         }break;
+
+         case IMAGE_RT: if(!compressed())
+         {
+            glGenTextures(1, &_txtr); if(_txtr)
+            {
+               T._mms    =mip_maps;
+               T._samples=1;
+
+               glGetError (); // clear any previous errors
+               setGLParams(); // call this first to bind the texture
+
+               UInt format=hwTypeInfo().format;
+               if(D.canSwapSRGB())
+               {
+                  glTexStorage2D(GL_TEXTURE_2D, mipMaps(), format, hwW(), hwH());
+               }else
+               {
+                  UInt gl_format=SourceGLFormat(hwType()), gl_type=SourceGLType(hwType());
+                  glTexImage2D(GL_TEXTURE_2D, 0, format, hwW(), hwH(), 0, gl_format, gl_type, null);
+               }
+               if(glGetError()==GL_NO_ERROR && setInfo()) // ok
+               {
+                  glFlush(); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
                   return true;
                }
             }
@@ -1455,12 +1450,12 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                setGLParams(); // call this first to bind the texture
 
                UInt format=hwTypeInfo().format, gl_format=SourceGLFormat(hwType()), gl_type=SourceGLType(hwType());
-               if(src)
+               if(src_data)
                {
                #if GL_ES
-                  if(!(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && !can_del_src)Alloc(_data_all, CeilGL(src->memUsage())); Byte *dest=_data_all; // create a software copy only if we want it and we're not going to take it from 'src'
+                  if(!(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && !can_del_src)Alloc(_data_all, CeilGL(memUsage())); Byte *dest=_data_all; // create a software copy only if we want it and we're not going to take it from 'src'
                #endif
-                C Byte *data=src->softData(); FREPD(m, mipMaps()) // order important
+                C Byte *data=(Byte*)src_data; FREPD(m, mipMaps()) // order important
                   {
                      if(m==1) // check at the start of mip-map #1, to skip this when there's only one mip-map
                         if(glGetError()!=GL_NO_ERROR)goto error; // if first mip failed, then fail
@@ -1481,10 +1476,11 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                {
                   glFlush(); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
                #if GL_ES
-                  if(src)
+                  if(src_data)
                   {
                      if(!(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && can_del_src) // take software copy from 'src', but only if we want it, and only on success (so if failed, then we can still use 'src', this is needed for 'Load' loading)
                      {
+                        DYNAMIC_ASSERT(src, "'can_del_src' without 'src' is not implemented");
                         Image &s=ConstCast(*src); _data_all=s._data_all; s._data_all=null; s.del();
                      }
                   }else Alloc(_data_all, CeilGL(memUsage()));
@@ -1510,16 +1506,18 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
             #if GL_ES
-               if(src && mode!=IMAGE_RT_CUBE && !(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && !can_del_src)Alloc(_data_all, CeilGL(src->memUsage())); Byte *dest=_data_all; // create a software copy only if we want it and we're not going to take it from 'src'
+               if(src_data && mode!=IMAGE_RT_CUBE && !(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && !can_del_src)Alloc(_data_all, CeilGL(memUsage())); Byte *dest=_data_all; // create a software copy only if we want it and we're not going to take it from 'src'
             #endif
 
                UInt format=hwTypeInfo().format, gl_format=SourceGLFormat(hwType()), gl_type=SourceGLType(hwType());
-             C Byte *data=(src ? src->softData() : null); Int mip_maps=(src ? mipMaps() : 1); FREPD(m, mip_maps) // order important
+             C Byte *data=(Byte*)src_data; Int mip_maps=(src_data ? mipMaps() : 1); // when have src we need to initialize all mip-maps, without src we can just try 1 mip-map to see if it succeeds
+               FREPD(m, mip_maps) // order important
                {
                   VecI2 size(Max(1, hwW()>>m), Max(1, hwH()>>m));
                   Int   mip_size=ImageMipSize(size.x, size.y, 0, hwType());
-                  if(!m && !src)
-                     if(mode==IMAGE_RT_CUBE || WEB && compressed())data=temp.setNumZero(CeilGL(mip_size)).dataNull(); // clear render targets to zero at start (especially important for floating point RT's), for WEB null can't be specified in 'glCompressedTexImage'
+               #if WEB // for WEB, null can't be specified in 'glCompressedTexImage'
+                  if(!m && !src_data && compressed())data=temp.setNumZero(CeilGL(mip_size)).dataNull();
+               #endif
                   FREPD(f, 6) // faces, order important
                   {
                      if(!compressed())glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+f, m, format, size.x, size.y, 0, gl_format, gl_type, data);
@@ -1527,7 +1525,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
 
                      if(!m && !f && glGetError()!=GL_NO_ERROR)goto error; // check for error only on the first mip and face
                      
-                     if(src)
+                     if(src_data)
                      {
                      #if GL_ES
                         if(dest){CopyFast(dest, data, mip_size); dest+=mip_size;}
@@ -1543,10 +1541,11 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                #if GL_ES
                   if(mode!=IMAGE_RT_CUBE)
                   {
-                     if(src)
+                     if(src_data)
                      {
                         if(!(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA) && can_del_src) // take software copy from 'src', but only if we want it, and only on success (so if failed, then we can still use 'src', this is needed for 'Load' loading)
                         {
+                           DYNAMIC_ASSERT(src, "'can_del_src' without 'src' is not implemented");
                            Image &s=ConstCast(*src); _data_all=s._data_all; s._data_all=null; s.del();
                         }
                      }else Alloc(_data_all, CeilGL(memUsage()));
@@ -1627,13 +1626,13 @@ error:
 }
 Bool Image::createTry(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Bool alt_type_on_fail)
 {
-   if(createTryEx(w, h, d, type, mode, mip_maps, 1))return true;
+   if(createEx(w, h, d, type, mode, mip_maps, 1))return true;
    if(alt_type_on_fail && w>0 && h>0 && d>0)
    {
       Int pw=PaddedWidth (w, h, 0, type), // must allocate entire HW size for 'type' to have enough room for its data, for example 48x48 PVRTC requires 64x64 size 7 mip maps, while RGBA would give us 48x48 size 6 mip maps, this is to achieve consistent results (have the same sizes, and mip maps) and it's also a requirement for saving
           ph=PaddedHeight(w, h, 0, type);
       for(IMAGE_TYPE alt_type=type; alt_type=ImageTypeOnFail(alt_type); )
-         if(createTryEx(pw, ph, d, alt_type, mode, mip_maps, 1))
+         if(createEx(pw, ph, d, alt_type, mode, mip_maps, 1))
       {
          adjustInfo(w, h, d, type);
          return true;
@@ -1641,7 +1640,7 @@ Bool Image::createTry(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int
    }
    return false;
 }
-Image& Image::create(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Bool alt_type_on_fail)
+Image& Image::mustCreate(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Bool alt_type_on_fail)
 {
    if(!createTry(w, h, d, type, mode, mip_maps, alt_type_on_fail))Exit(MLT(S+"Can't create Image "        +w+'x'+h+'x'+d+", type "+ImageTI[type].name+", mode "+mode+".",
                                                                        PL,S+u"Nie można utworzyć obrazka "+w+'x'+h+'x'+d+", typ " +ImageTI[type].name+", tryb "+mode+"."));
@@ -1947,14 +1946,26 @@ static Int CopyMipMaps(C Image &src, Image &dest, Bool ignore_gamma, Int max_mip
             if(!dest.lock    (LOCK_WRITE, mip, (DIR_ENUM)    face             )){src.unlock(); return 0;}
             Int blocks_y=Min(ImageBlocksY(src .hwW(), src .hwH(), i+mip, src .hwType()),
                              ImageBlocksY(dest.hwW(), dest.hwH(),   mip, dest.hwType()));
-            REPD(z, dest.ld())
+            FREPD(z, dest.ld())
             {
              C Byte * src_data= src.data() + z* src.pitch2();
                Byte *dest_data=dest.data() + z*dest.pitch2();
-               if(dest.pitch()==src.pitch())CopyFast(dest_data, src_data, Min(dest.pitch2(), src.pitch2()));else
+               if(dest.pitch()==src.pitch())
                {
-                  Int pitch=Min(dest.pitch(), src.pitch());
-                  REPD(y, blocks_y)CopyFast(dest_data + y*dest.pitch(), src_data + y*src.pitch(), pitch);
+                  Int copy_size=Min(dest.pitch2(), src.pitch2());
+                  CopyFast(dest_data, src_data, copy_size);
+                  ZeroFast(dest_data+copy_size, dest.pitch2()-copy_size); // zero unwritten data
+               }else
+               {
+                  Int copy_size=Min(dest.pitch(), src.pitch()), zero=dest.pitch()-copy_size;
+                  FREPD(y, blocks_y)
+                  {
+                     Byte *dest_data_y=dest_data + y*dest.pitch();
+                             CopyFast(dest_data_y, src_data + y*src.pitch(), copy_size);
+                     if(zero)ZeroFast(dest_data_y+copy_size, zero); // zero unwritten data
+                  }
+                  copy_size=dest.pitch()*blocks_y;
+                  ZeroFast(dest_data+copy_size, dest.pitch2()-copy_size); // zero unwritten data
                }
             }
             dest.unlock();
@@ -2086,7 +2097,7 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
       return true;
    }
 }
-void Image::copy(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mip_maps, FILTER_TYPE filter, UInt flags)C
+void Image::mustCopy(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mip_maps, FILTER_TYPE filter, UInt flags)C
 {
    if(!copyTry(dest, w, h, d, type, mode, mip_maps, filter, flags))
    {
@@ -2844,7 +2855,7 @@ Image& Image::updateMipMaps(FILTER_TYPE filter, UInt flags, Int mip_start)
 /******************************************************************************/
 // GET
 /******************************************************************************/
-Int Image::faces()C {return is() ? cube() ? 6 : 1 : 0;}
+Int Image::faces()C {return is() ? ImageFaces(mode()) : 0;}
 /******************************************************************************/
 UInt Image::    memUsage()C {return ImageSize(hwW(), hwH(), hwD(), hwType(), mode(), mipMaps());}
 UInt Image::typeMemUsage()C {return ImageSize(hwW(), hwH(), hwD(),   type(), mode(), mipMaps());}
@@ -2869,10 +2880,10 @@ void Image::copyMs(ImageRT &dest, Bool restore_rt, Bool multi_sample, C RectI *r
 
       Sh.Img  [0]->set(this);
       Sh.ImgMS[0]->set(this);
-      VI.shader(!multiSample() ? Sh.Draw    : // 1s->1s, 1s->ms
-                !multi_sample  ? Sh.DrawMs1 : // #0->1s, #0->ms
-            dest.multiSample() ? Sh.DrawMsM : // ms->ms
-                                 Sh.DrawMsN); // ms->1s
+      VI.shader(!multiSample() ? Sh.Draw[true][false] : // 1s->1s, 1s->ms
+                !multi_sample  ? Sh.DrawMs1           : // #0->1s, #0->ms
+            dest.multiSample() ? Sh.DrawMsM           : // ms->ms
+                                 Sh.DrawMsN          ); // ms->1s
                                 VI.setType(VI_2D_TEX, VI_STRIP);
       if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx (4))
       {
@@ -2919,6 +2930,7 @@ void Image::copyHw(ImageRT &dest, Bool restore_rt, C RectI *rect_src, C RectI *r
 {
    if(this!=&dest)
    {
+      if(!rect_dest)dest.discard(); // if we set entire 'dest' then we can discard it
    #if GL
       if(this==&Renderer._main) // in OpenGL cannot directly copy from main
       {
@@ -2976,7 +2988,7 @@ void Image::copyHw(ImageRT &dest, Bool restore_rt, C RectI *rect_src, C RectI *r
       ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
 
       VI.image  (this);
-      VI.shader (Sh.Draw);
+      VI.shader (Sh.Draw[true][false]);
       VI.setType(VI_2D_TEX, VI_STRIP);
       if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
       {
@@ -2988,8 +3000,10 @@ void Image::copyHw(ImageRT &dest, Bool restore_rt, C RectI *rect_src, C RectI *r
             v[3].pos.set( 1, -1);
          }else
          {
-            Rect frac(rect_dest->min.x/Flt(dest.hwW())*2-1, -rect_dest->max.y/Flt(dest.hwH())*2+1,
-                      rect_dest->max.x/Flt(dest.hwW())*2-1, -rect_dest->min.y/Flt(dest.hwH())*2+1);
+            Flt  xm=2.0f/dest.hwW(),
+                 ym=2.0f/dest.hwH();
+            Rect frac(rect_dest->min.x*xm-1, -rect_dest->max.y*ym+1,
+                      rect_dest->max.x*xm-1, -rect_dest->min.y*ym+1);
             v[0].pos.set(frac.min.x, frac.max.y);
             v[1].pos.set(frac.max.x, frac.max.y);
             v[2].pos.set(frac.min.x, frac.min.y);

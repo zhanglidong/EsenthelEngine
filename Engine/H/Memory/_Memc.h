@@ -33,14 +33,15 @@ struct _Memc // Continuous Memory Based Container Base - Do not use this class, 
    void removeNum (Int  i, Int n, Bool keep_order=false);
    void removeData(CPtr elm,      Bool keep_order=false);
 
-   void setNum    (Int num);
-   void setNum    (Int num, Int keep);
-   void setNumZero(Int num);
-   void setNumZero(Int num, Int keep);
-   Int  addNum    (Int num);
-   Int  addNumZero(Int num);
-   void reserve   (Int num);
-   void reserveAdd(Int num);
+   void setNum       (Int num);
+   void setNum       (Int num, Int keep);
+   void setNumZero   (Int num);
+   void setNumZero   (Int num, Int keep);
+   void setNumDiscard(Int num);
+   Int  addNum       (Int num);
+   Int  addNumZero   (Int num);
+   void reserve      (Int num);
+   void reserveAdd   (Int num);
 
    Bool binarySearch(CPtr value, Int &index, Int compare(CPtr a, CPtr b))C;
 

@@ -244,7 +244,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
          {
           //if(mshb.vtx.pos     ())mshb.vtx.pos     (i)=pos;
             if(mshb.vtx.hlp     ())mshb.vtx.hlp     (i)=hlp;
-            if(mshb.vtx.nrm     ())mshb.vtx.nrm     (i)=nrm;
+            if(mshb.vtx.nrm     ()){Vec &nrm=mshb.vtx.nrm(i); nrm=T.nrm; if(nrm.allZero())nrm.set(DEFAULT_VTX_NRM);} // !! valid non-zero normal must be set because otherwise NaN might get generated in the shader due to normalization of zero vectors !!
           //if(mshb.vtx.tan     ())mshb.vtx.tan     (i)=tan;
           //if(mshb.vtx.bin     ())mshb.vtx.bin     (i)=bin;
             if(mshb.vtx.tex0    ())mshb.vtx.tex0    (i)=tex0;

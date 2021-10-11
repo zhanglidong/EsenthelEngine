@@ -30,8 +30,7 @@ bool Init()
    {
       Material &m=material[i];
       m.reset();
-      m.glow=0.5;
-      m.ambient=1;
+      m.glow=1;
       switch(i)
       {
          case 0: m.colorS(Vec4(1  , 1, 0.5, 1)); break;

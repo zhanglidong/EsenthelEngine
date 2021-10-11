@@ -65,6 +65,8 @@ IconEditor IconEdit;
    Str  IconSettsEditor::BloomScale(C IconSettsEditor &ie          ) {return ie.edit.bloom_scale;}
    void IconSettsEditor::BloomCut(  IconSettsEditor &ie, C Str &t) {ie.edit.bloom_cut=TextFlt(t); ie.edit.bloom_cut_time.getUTC();}
    Str  IconSettsEditor::BloomCut(C IconSettsEditor &ie          ) {return ie.edit.bloom_cut;}
+   void IconSettsEditor::BloomGlow(  IconSettsEditor &ie, C Str &t) {ie.edit.bloom_glow=TextFlt(t); ie.edit.bloom_glow_time.getUTC();}
+   Str  IconSettsEditor::BloomGlow(C IconSettsEditor &ie          ) {return ie.edit.bloom_glow;}
    void IconSettsEditor::Light0Shadow(  IconSettsEditor &ie, C Str &t) {ie.edit.light0_shadow=TextBool(t); ie.edit.light0_shadow_time.getUTC();}
    Str  IconSettsEditor::Light0Shadow(C IconSettsEditor &ie          ) {return ie.edit.light0_shadow;}
    void IconSettsEditor::Light1Shadow(  IconSettsEditor &ie, C Str &t) {ie.edit.light1_shadow=TextBool(t); ie.edit.light1_shadow_time.getUTC();}
@@ -117,6 +119,7 @@ IconEditor IconEdit;
       add("Bloom Original", MemberDesc(DATA_REAL).setFunc(BloomOriginal, BloomOriginal)).range(0, 2);
       add("Bloom Scale"   , MemberDesc(DATA_REAL).setFunc(BloomScale   , BloomScale   )).range(0, 2);
       add("Bloom Cut"     , MemberDesc(DATA_REAL).setFunc(BloomCut     , BloomCut     )).range(0, 1);
+      add("Bloom Glow"    , MemberDesc(DATA_REAL).setFunc(BloomGlow    , BloomGlow    )).range(0, 2);
       add();
       add("Ambient"          , MemberDesc(DATA_VEC ).setFunc(AmbientCol   , AmbientCol   )).setColor();
       add("Ambient Occlusion", MemberDesc(DATA_REAL).setFunc(AmbientOccl  , AmbientOccl  )).range(0, 2);
@@ -252,29 +255,29 @@ IconEditor IconEdit;
    void IconEditor::Draw(Viewport &viewport) {IconEdit.draw();}
           void IconEditor::draw(bool final)
    {
-      MOTION_MODE      motion       =D.motionMode     (); D. motionMode    (MOTION_NONE);
-      AMBIENT_MODE     ambient      =D.ambientMode    (); D.ambientMode    (AMBIENT_ULTRA);
-      BUMP_MODE        bump         =D.bumpMode       (); if(final && bump<BUMP_PARALLAX)D.bumpMode(BUMP_PARALLAX);
-      EDGE_SOFTEN_MODE edge         =D.edgeSoften     (); D.edgeSoften     (EDGE_SOFTEN_SMAA);
-      SHADOW_MODE      shadow       =D.shadowMode     (); D.shadowMode     (SHADOW_MAP);
-      Vec              ambient_col_l=D.ambientColorL  (); D.ambientColorS  (settings.ambient_col);
-      flt              ambient_contr=D.ambientContrast(); D.ambientContrast(settings.ambient_occl);
-      flt              ambient_range=D.ambientRange   (); D.ambientRange   (settings.ambient_range);
-      int              ambient_res  =D.ambientRes     (); D.ambientRes     (1);
-      flt              lod_fac      =D.lodFactor      (); D.lodFactor      (0);
-      DOF_MODE         dof          =D.dofMode        (); D.dofMode        (DOF_NONE);
-      bool             bloom_max    =D.bloomMaximum   ();
-      bool             bloom_half   =D.bloomHalf      (), shadow_jitter=D.shadowJitter();
-      byte             bloom_blurs  =D.bloomBlurs     (), shadow_soft  =D.shadowSoft  (), shd_map_num=D.shadowMapNum();
-      bool             eye_adapt    =D.eyeAdaptation  (); D.eyeAdaptation(false);
-      bool             astros       =AstrosDraw         ; AstrosDraw     =false;
-      bool             ocean        =Water.draw         ; Water.draw     =false;
+      MOTION_MODE      motion       =D.motionMode       (); D. motionMode    (MOTION_NONE);
+      AMBIENT_MODE     ambient      =D.ambientMode      (); D.ambientMode    (AMBIENT_ULTRA);
+      BUMP_MODE        bump         =D.bumpMode         (); if(final)D.bumpMode(BUMP_RELIEF);
+      EDGE_SOFTEN_MODE edge         =D.edgeSoften       (); D.edgeSoften     (EDGE_SOFTEN_SMAA);
+      SHADOW_MODE      shadow       =D.shadowMode       (); D.shadowMode     (SHADOW_MAP);
+      Vec              ambient_col_l=D.ambientColorL    (); D.ambientColorS  (settings.ambient_col);
+      flt              ambient_contr=D.ambientContrast  (); D.ambientContrast(settings.ambient_occl);
+      flt              ambient_range=D.ambientRange     (); D.ambientRange   (settings.ambient_range);
+      flt              ambient_res  =D.ambientRes       (); if(final)D.ambientRes     (1);
+      flt              density      =D.density          (); if(final)D.density        (1);
+      flt              lod_factor   =D.lodFactor        (); D.lodFactor      (0);
+      DOF_MODE         dof          =D.dofMode          (); D.dofMode        (DOF_NONE);
+      bool             shadow_jitter=D.shadowJitter     ();
+      byte             shadow_soft  =D.shadowSoft       (), shd_map_num=D.shadowMapNum();
+      bool             eye_adapt    =D.eyeAdaptation    (); D.eyeAdaptation(false);
+      bool             null_mtrls   =D.drawNullMaterials(); if(final)D.drawNullMaterials(false);
+      bool             astros       =AstrosDraw           ; AstrosDraw     =false;
+      bool             ocean        =Water.draw           ; Water.draw     =false;
       flt              view_from=D.viewFrom(), view_range=D.viewRange(), view_fov=D.viewFov();
       VecI2            view_size;
       Sky.clear();
 
-      D.bloomOriginal(settings.bloom_original).bloomScale(settings.bloom_scale).bloomCut(settings.bloom_cut);
-      D.bloomBlurs(0).bloomHalf(true).bloomMaximum(false);
+      D.bloomOriginal(settings.bloom_original).bloomScale(settings.bloom_scale).bloomCut(settings.bloom_cut).bloomGlow(settings.bloom_glow);
       D.shadowSoft(1).shadowJitter(true).shadowMapNum(6);
 
       // set object first
@@ -334,7 +337,7 @@ IconEditor IconEdit;
       if(settings.auto_center)Cam.at+=(box()*matrix()).center();
       Cam.setSpherical(Cam.at, settings.cam_angle.x+PI, settings.cam_angle.y, settings.cam_angle.z, getDist()).set();
 
-      Renderer.allow_taa=false;
+      Renderer.allow_temporal=false;
       if(!final)Renderer(IconEditor::Render);else
       if(data)
       {
@@ -413,18 +416,19 @@ IconEditor IconEdit;
          setChanged(true);
          Save(col, Proj.gamePath(*elm)); Proj.savedGame(*elm);
       }
-      Renderer.allow_taa=true;
+      Renderer.allow_temporal=true;
 
       D.viewForceSquarePixel(false).viewFrom(view_from).viewRange(view_range).viewFov(view_fov);
-      D.   bloomBlurs(bloom_blurs).bloomHalf(bloom_half).bloomMaximum(bloom_max);
-      D.   shadowMode(shadow ).shadowSoft(shadow_soft).shadowJitter(shadow_jitter).shadowMapNum(shd_map_num);
-      D.    lodFactor(lod_fac);
-      D.      dofMode(dof    );
-      D.   edgeSoften(edge   );
-      D.     bumpMode(bump   );
-      D.  ambientMode(ambient).ambientColorL(ambient_col_l).ambientContrast(ambient_contr).ambientRange(ambient_range).ambientRes(ambient_res);
-      D.   motionMode(motion );
-      D.eyeAdaptation(eye_adapt);
+      D.       shadowMode(shadow    ).shadowSoft(shadow_soft).shadowJitter(shadow_jitter).shadowMapNum(shd_map_num);
+      D.        lodFactor(lod_factor);
+      D.          dofMode(dof       );
+      D.       edgeSoften(edge      );
+      D.         bumpMode(bump      );
+      D.      ambientMode(ambient   ).ambientColorL(ambient_col_l).ambientContrast(ambient_contr).ambientRange(ambient_range).ambientRes(ambient_res);
+      D.          density(density   );
+      D.       motionMode(motion    );
+      D.    eyeAdaptation(eye_adapt );
+      D.drawNullMaterials(null_mtrls);
       AstrosDraw      =astros;
       Water.draw      =ocean;
    }
@@ -440,7 +444,7 @@ IconEditor IconEdit;
    ElmIcon* IconEditor::data()C {return elm ? elm->iconData() : null;}
    void IconEditor::PreChanged(C Property &prop) {IconEdit.undos.set(&prop);}
    void    IconEditor::Changed(C Property &prop) {IconEdit.setChanged();}
-   void IconEditor::Object(  IconEditor &ie, C Str &text) {if(ElmIcon *data=ie.data()){data->obj_id=Proj.findElmID(text, ELM_OBJ); data->obj_time.getUTC();}}
+   void IconEditor::Object(  IconEditor &ie, C Str &text) {if(ElmIcon *data=ie.data()){data->obj_id=Proj.findElmID(text, ELM_OBJ); data->obj_time.getUTC(); ie.meshVariationChanged();}}
    Str  IconEditor::Object(C IconEditor &ie             ) {if(ElmIcon *data=ie.data())return Proj.elmFullName(data->obj_id); return S;}
    void IconEditor::Variation(  IconEditor &ie, C Str &text) {if(ElmIcon *data=ie.data())if(ie.var){data->variation_id=(InRange(ie.var->combobox(), ie.mesh_variations) ? ie.mesh_variations[ie.var->combobox()].id : ElmIcon::InheritVariation); data->variation_time.getUTC();}}
    Str  IconEditor::Variation(C IconEditor &ie             ) {if(ElmIcon *data=ie.data())REPA(ie.mesh_variations)if(data->variation_id==ie.mesh_variations[i].id)return i; return S;}

@@ -8,7 +8,7 @@ class ElmMaterial : ElmData
       USES_TEX_BUMP =1<<1,
       USES_TEX_GLOW =1<<2,
    };
-   UID                       base_0_tex, base_1_tex, base_2_tex, detail_tex, macro_tex, light_tex;
+   UID                       base_0_tex, base_1_tex, base_2_tex, detail_tex, macro_tex, emissive_tex;
    byte                      downsize_tex_mobile, flag;
    Edit::Material::TEX_QUALITY tex_quality;
 

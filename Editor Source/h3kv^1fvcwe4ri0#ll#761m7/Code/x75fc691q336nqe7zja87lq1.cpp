@@ -224,7 +224,7 @@ class SizeStatistics : ClosableWindow
    virtual void update(C GuiPC &gpc)override
    {
       super.update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          if(Ms.bd(       0) && Gui.ms()==&list
          || Kb.k (KB_ENTER) && Gui.kb()==&list)

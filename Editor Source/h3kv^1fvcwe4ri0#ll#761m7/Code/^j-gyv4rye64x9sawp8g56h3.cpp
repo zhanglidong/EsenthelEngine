@@ -124,7 +124,7 @@ class CodeView : Region, Edit.CodeEditorInterface
 
    virtual Rect menuRect()override
    {
-      Rect r(-D.w(), -D.h(), D.w(), D.h());
+      Rect r=D.rect();
       if(         Mode.visibleTabs())MIN(r.max.y,          Mode.rect().min.y);
       if(     MtrlEdit.visible    ())MIN(r.max.x,      MtrlEdit.rect().min.x);
       if(WaterMtrlEdit.visible    ())MIN(r.max.x, WaterMtrlEdit.rect().min.x);
@@ -400,7 +400,7 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
    }
    void buildDo(Edit.BUILD_MODE mode)
    {
-      if(PublishDataNeeded(configEXE(), mode))StartPublish(S, configEXE(), mode);else 
+      if(PublishDataNeeded(configEXE()))StartPublish(S, configEXE(), mode);else 
       {
          Proj.flush(); // flush in case we want to play with latest data
          codeDo(mode);
@@ -413,7 +413,7 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
    void rebuild() {clean(); rebuildSymbols(); build();} // override to call custom 'build'
    void openIDE()
    {
-      if(PublishDataNeeded(configEXE(), Edit.BUILD_PUBLISH))StartPublish(S, configEXE(), Edit.BUILD_PUBLISH, true, S, true);else // we need to create project data pak first
+      if(PublishDataNeeded(configEXE()))StartPublish(S, configEXE(), Edit.BUILD_IDE, true, S, true);else // we need to create project data pak first
       {
          Proj.flush(); // flush in case we want to play with latest data
          super.openIDE();
@@ -439,7 +439,7 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
             case Edit.EXPORT_VS2019:
                exe=Edit.EXE_UWP; break;
          }
-         if(exe>=0 && PublishDataNeeded(exe, Edit.BUILD_PUBLISH))StartPublish(S, exe, Edit.BUILD_PUBLISH, true);
+         if(exe>=0 && PublishDataNeeded(exe))StartPublish(S, exe, Edit.BUILD_PUBLISH, true);
       }
       makeAuto(false); // restore after exporting
       return ok;
@@ -449,7 +449,7 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
    {
       if(Proj.id==project_id && StateActive==&StateProject)
       {
-         if(PublishDataNeeded(exe_type, build_mode)) // if data was already published then package is ready
+         if(PublishDataNeeded(exe_type)) // if data was already published then package is ready
          {
             PublishSuccess(exe_name, S+"File name: "+GetBase(exe_name)+"\nFile size: "+FileSize(FSize(exe_name)));
          }else // proceed to data publishing
@@ -716,17 +716,17 @@ class AppPropsEditor : PropWin
    static void FacebookAppID               (  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData()){app_data.fb_app_id=TextULong(text); app_data.fb_app_id_time.getUTC();}}
    static Str  FacebookAppID               (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())if(app_data.fb_app_id)return app_data.fb_app_id; return S;}
    static void AdMobAppIDiOS               (  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData()){app_data.am_app_id_ios=text; app_data.am_app_id_ios_time.getUTC();}}
-   static Str  AdMobAppIDiOS               (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())if(app_data.am_app_id_ios)return app_data.am_app_id_ios; return S;}
+   static Str  AdMobAppIDiOS               (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())return app_data.am_app_id_ios; return S;}
    static void AdMobAppIDGoogle            (  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData()){app_data.am_app_id_google=text; app_data.am_app_id_google_time.getUTC();}}
-   static Str  AdMobAppIDGoogle            (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())if(app_data.am_app_id_google)return app_data.am_app_id_google; return S;}
+   static Str  AdMobAppIDGoogle            (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())return app_data.am_app_id_google; return S;}
    static void ChartboostAppIDiOS          (  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData()){app_data.cb_app_id_ios=text; app_data.cb_app_id_ios_time.getUTC();}}
-   static Str  ChartboostAppIDiOS          (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())if(app_data.cb_app_id_ios)return app_data.cb_app_id_ios; return S;}
+   static Str  ChartboostAppIDiOS          (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())return app_data.cb_app_id_ios; return S;}
    static void ChartboostAppSignatureiOS   (  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData()){app_data.cb_app_signature_ios=text; app_data.cb_app_signature_ios_time.getUTC();}}
-   static Str  ChartboostAppSignatureiOS   (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())if(app_data.cb_app_signature_ios)return app_data.cb_app_signature_ios; return S;}
+   static Str  ChartboostAppSignatureiOS   (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())return app_data.cb_app_signature_ios; return S;}
    static void ChartboostAppIDGoogle       (  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData()){app_data.cb_app_id_google=text; app_data.cb_app_id_google_time.getUTC();}}
-   static Str  ChartboostAppIDGoogle       (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())if(app_data.cb_app_id_google)return app_data.cb_app_id_google; return S;}
+   static Str  ChartboostAppIDGoogle       (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())return app_data.cb_app_id_google; return S;}
    static void ChartboostAppSignatureGoogle(  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData()){app_data.cb_app_signature_google=text; app_data.cb_app_signature_google_time.getUTC();}}
-   static Str  ChartboostAppSignatureGoogle(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())if(app_data.cb_app_signature_google)return app_data.cb_app_signature_google; return S;}
+   static Str  ChartboostAppSignatureGoogle(C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())return app_data.cb_app_signature_google; return S;}
    static void Storage                     (  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData()){app_data.storage=Edit.STORAGE_MODE(TextInt(text)); app_data.storage_time.getUTC();}}
    static Str  Storage                     (C AppPropsEditor &ap             ) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData())return app_data.storage; return S;}
    static void GuiSkin                     (  AppPropsEditor &ap, C Str &text) {if(ap.elm)if(ElmApp *app_data=ap.elm.appData()){app_data.gui_skin=Proj.findElmID(text, ELM_GUI_SKIN); app_data.gui_skin_time.getUTC(); if(ap.elm_id==Proj.curApp())CodeEdit.makeAuto();}}

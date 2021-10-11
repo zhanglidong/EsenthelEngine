@@ -713,12 +713,12 @@ void LogConsole(Bool on)
       if(    LogConsoleOn= (AllocConsole()!=0))
       {
          SetConsoleCtrlHandler(null, true); // this disables closing the console via Ctrl+C
-         if(HWND hwnd=GetConsoleWindow())if(HMENU menu=GetSystemMenu(hwnd, false))DeleteMenu(menu, SC_CLOSE, MF_BYCOMMAND); // this disables the Close button on the console window because on Windows OS once it's clicked, then entire App gets terminated immediately
+         if(HWND console=GetConsoleWindow())if(HMENU menu=GetSystemMenu(console, false))DeleteMenu(menu, SC_CLOSE, MF_BYCOMMAND); // this disables the Close button on the console window because on Windows OS once it's clicked, then entire App gets terminated immediately
          FILE *f;
          f=null; freopen_s(&f, "CONIN$" , "rb", stdin );
          f=null; freopen_s(&f, "CONOUT$", "wb", stdout);
          f=null; freopen_s(&f, "CONOUT$", "wb", stderr);
-         if(active)WindowActivate(); // opening console switches focus to it, so if the app was active, then reactivate it so we won't lose the focus
+         if(active)App.window().activate(); // opening console switches focus to it, so if the app was active, then reactivate it so we won't lose the focus
       }
    }
 #endif
@@ -790,24 +790,6 @@ void LogN(C Str &text)
 }
 void LogShow(Bool thread_id, Bool date, Bool time, Bool cur_time) {LogThreadID=thread_id; LogDate=date; LogTime=time; LogCurTime=cur_time;}
 /******************************************************************************/
-UInt Ceil2      (UInt  x       ) {return (x+  1)&(~  1);}
-UInt Ceil4      (UInt  x       ) {return (x+  3)&(~  3);}
-UInt Ceil8      (UInt  x       ) {return (x+  7)&(~  7);}
-UInt Ceil16     (UInt  x       ) {return (x+ 15)&(~ 15);}
-UInt Ceil32     (UInt  x       ) {return (x+ 31)&(~ 31);}
-UInt Ceil64     (UInt  x       ) {return (x+ 63)&(~ 63);}
-UInt Ceil128    (UInt  x       ) {return (x+127)&(~127);}
-UInt CeilPow2   (UInt  x       ) {UInt b=         1; for(; b<x && b<0x80000000; )b<<=1; return b;}
-UInt FloorPow2  (UInt  x       ) {UInt b=0x80000000; for(; b>x                ; )b>>=1; return b;}
-UInt NearestPow2(UInt  x       ) {UInt fp2=FloorPow2(x); if(fp2!=0x80000000 && x>fp2+(fp2>>1))fp2<<=1; return fp2;} // must be > to return correct value for "x==1"
-Bool IsPow2     (UInt  x       ) {return !(x&(x-1));}
-Int  Log2Ceil   (UInt  x       ) {Int  i=BitHi(x); if(x>(1u  <<i))i++; return i;}
-Int  Log2Ceil   (ULong x       ) {Int  i=BitHi(x); if(x>(1ull<<i))i++; return i;}
-UInt Shl        (UInt  x, Int i) {return (i>=0) ? ((i<32) ? x<<i : 0) : ((i>-32) ? x>>-i : 0);}
-UInt Shr        (UInt  x, Int i) {return (i>=0) ? ((i<32) ? x>>i : 0) : ((i>-32) ? x<<-i : 0);}
-UInt Rol        (UInt  x, Int i) {i&=31; return (x<<i) | (x>>(32-i));}
-UInt Ror        (UInt  x, Int i) {i&=31; return (x>>i) | (x<<(32-i));}
-
 Int BitOn(UInt x)
 {
 #if WINDOWS
@@ -912,6 +894,54 @@ Int ByteHi(ULong x)
                          return 0;
 }
 /******************************************************************************/
+UInt Ceil2  (UInt x) {return (x+  1)&(~  1);}
+UInt Ceil4  (UInt x) {return (x+  3)&(~  3);}
+UInt Ceil8  (UInt x) {return (x+  7)&(~  7);}
+UInt Ceil16 (UInt x) {return (x+ 15)&(~ 15);}
+UInt Ceil32 (UInt x) {return (x+ 31)&(~ 31);}
+UInt Ceil64 (UInt x) {return (x+ 63)&(~ 63);}
+UInt Ceil128(UInt x) {return (x+127)&(~127);}
+
+UInt CeilPow2(UInt x)
+{
+   if(x>0x40000000)return 0x80000000; // needed for >0x80000000
+#if 1 // faster
+   if(x<=        1)return          1; // needed for 0
+   x--;
+   x|=(x>> 1);
+   x|=(x>> 2);
+   x|=(x>> 4);
+   x|=(x>> 8);
+   x|=(x>>16);
+   return x+1;
+#elif 1 // slower
+   Int b=BitHi(x); UInt p2=1u<<b; if(x>p2)p2<<=1; return p2;
+#else // slowest
+   UInt p2=1; for(; p2<x; )p2<<=1; return p2;
+#endif
+}
+UInt FloorPow2(UInt x)
+{
+#if 1 // faster
+   return x ? 1u<<BitHi(x) : 0;
+#else // slower
+   UInt p2=0x80000000; for(; p2>x; )p2>>=1; return p2;
+#endif
+}
+UInt NearestPow2(UInt x) {UInt cp2=CeilPow2(x), smaller=(cp2>>1); return (cp2-x>x-smaller && cp2>=x) ? smaller : cp2;} // "cp2>=x" needed for very big number cases where CeilPow2 returns <x, alternative version: "UInt fp2=FloorPow2(x); if(fp2!=0x80000000 && x>=fp2+(fp2>>1) && x!=1)fp2<<=1; return fp2;"
+
+Bool IsPow2(UInt x) {return !(x&(x-1));}
+
+Int  Log2Ceil (UInt  x) {return x>1 ? BitHi(x-1)+1 : 0;} // Int i=BitHi(x); if(x>(1u  <<i))i++; return i;}
+Int  Log2Ceil (ULong x) {return x>1 ? BitHi(x-1)+1 : 0;} // Int i=BitHi(x); if(x>(1ull<<i))i++; return i;}
+Int  Log2Round(UInt  x) {if(x<=1)return 0; Int i=BitHi(x); if(x>=(3u  <<(i-1)))i++; return i;} // BitHi(NearestPow2(x)) doesn't work for values close to 1<<32
+Int  Log2Round(ULong x) {if(x<=1)return 0; Int i=BitHi(x); if(x>=(3ull<<(i-1)))i++; return i;} // BitHi(NearestPow2(x)) doesn't work for values close to 1<<64
+
+UInt Shl(UInt  x, Int i) {return (i>=0) ? ((i<32) ? x<<i : 0) : ((i>-32) ? x>>-i : 0);}
+UInt Shr(UInt  x, Int i) {return (i>=0) ? ((i<32) ? x>>i : 0) : ((i>-32) ? x<<-i : 0);}
+UInt Rol(UInt  x, Int i) {i&=31; return (x<<i) | (x>>(32-i));}
+UInt Ror(UInt  x, Int i) {i&=31; return (x>>i) | (x<<(32-i));}
+/******************************************************************************/
 Int MidMod(Int x, Int min, Int max)
 {
    return min+Mod(x-min, max-min+1);
@@ -974,14 +1004,13 @@ Bool ClipSet(C Str &text)
    return true;
 #elif LINUX
    // TODO: this text will disappear once the application gets closed
-   if(XDisplay && App.hwnd())
-      if(Atom FIND_ATOM(UTF8_STRING))
+   if(XDisplay && App.window() && UTF8_STRING)
    {
       Atom FIND_ATOM(CLIPBOARD);
       Str8 utf=UTF8(text);
       int  ok=XChangeProperty(XDisplay, DefaultRootWindow(XDisplay), XA_CUT_BUFFER0, UTF8_STRING, 8, PropModeReplace, (const unsigned char*)utf(), utf.length());
-      if(CLIPBOARD && XGetSelectionOwner(XDisplay, CLIPBOARD )!=App.Hwnd())XSetSelectionOwner(XDisplay, CLIPBOARD , App.Hwnd(), CurrentTime);
-      if(             XGetSelectionOwner(XDisplay, XA_PRIMARY)!=App.Hwnd())XSetSelectionOwner(XDisplay, XA_PRIMARY, App.Hwnd(), CurrentTime);
+      if(CLIPBOARD && App.window()!=XGetSelectionOwner(XDisplay, CLIPBOARD ))XSetSelectionOwner(XDisplay, CLIPBOARD , App.window(), CurrentTime);
+      if(             App.window()!=XGetSelectionOwner(XDisplay, XA_PRIMARY))XSetSelectionOwner(XDisplay, XA_PRIMARY, App.window(), CurrentTime);
       return ok==1;
    }
    return false;
@@ -1113,25 +1142,24 @@ Str ClipGet()
       }
    #endif
 #elif LINUX
-   if(XDisplay)
+   if(XDisplay && UTF8_STRING)
       if(Atom FIND_ATOM(CLIPBOARD))
-      if(Atom FIND_ATOM(UTF8_STRING))
    {
       Atom    selection;
       XWindow owner=XGetSelectionOwner(XDisplay, CLIPBOARD);
-      if(!owner || owner==App.Hwnd() || !App.hwnd())
+      if(!owner || App.window()==owner || !App.window())
       {
          owner=DefaultRootWindow(XDisplay);
          selection=XA_CUT_BUFFER0;
       }else
       {
-         owner=App.Hwnd();
+         owner=App.window();
          Atom GET_ATOM(EE_SELECTION); selection=EE_SELECTION;
          XConvertSelection(XDisplay, CLIPBOARD, UTF8_STRING, EE_SELECTION, owner, CurrentTime);
          XSync(XDisplay, false);
          REP(1024) // attempts to check if window got selection, otherwise get window property will fail (this is still needed even though 'XSync' is used)
          {
-            XEvent event; if(XCheckTypedWindowEvent(XDisplay, App.Hwnd(), SelectionNotify, &event))break;
+            XEvent event; if(XCheckTypedWindowEvent(XDisplay, App.window(), SelectionNotify, &event))break;
             usleep(1);
          }
       }
@@ -1379,7 +1407,7 @@ static struct UserNameGetter
 
  C Str& get()
    {
-      if(!is && App.hwnd()) // !! we can call this only after window was created, because OS might ask for permission !!
+      if(!is && App.window()) // !! we can call this only after window was created, because OS might ask for permission !!
       {
          if(C auto &user=OSUser.get())
          {
@@ -1417,17 +1445,13 @@ Str OSUserName(Bool short_name)
 #elif WINDOWS_NEW // calling this method will result in asking for permission on the screen
    return UserName.get();
 #elif MAC
-   Char8 name[MAX_UTF_PATH]; name[0]=0;
    #if 0
+      Char8 name[MAX_UTF_PATH]; name[0]=0;
       getlogin_r(name, Elms(name));
+      return FromUTF8(name);
    #else
-      if(CFStringRef cf_name=CSCopyUserName(short_name))
-      {
-         CFStringGetCString(cf_name, name, Elms(name), kCFStringEncodingUTF8);
-         CFRelease(cf_name);
-      }
+      return CFStringAuto(CSCopyUserName(short_name))(); // use CFStringAuto to auto-release
    #endif
-   return FromUTF8(name);
 #elif LINUX
    __uid_t uid=geteuid();
    passwd pw, *pwp;
@@ -1469,6 +1493,52 @@ Str OSUserEmail()
          return str.str();
 #endif
    return S;
+}
+/******************************************************************************/
+void OSMsgBox(C Str &title, C Str &text, Bool error)
+{
+#if WINDOWS_OLD
+   MessageBox(null, text, title, MB_OK|MB_TOPMOST|(error ? MB_ICONERROR : 0));
+#elif WINDOWS_NEW
+   if(auto dialog=ref new Windows::UI::Popups::MessageDialog(ref new Platform::String(text), ref new Platform::String(title)))
+   {
+      dialog->Commands->Append(ref new Windows::UI::Popups::UICommand("OK"));
+      dialog->ShowAsync();
+   }
+#elif LINUX // TODO: what if zenity is not installed?
+   Str safe_title=          Str(title).replace('`', '\'').replace('"', '\'');
+   Str safe_text =XmlString(Str(text ).replace('`', '\''));
+   Run("zenity", S+(error ? "--error" : "--info")+" --title=\""+safe_title+"\" --text=\""+safe_text+"\"");
+#elif MAC
+   CFUserNotificationDisplayAlert(0, error ? kCFUserNotificationStopAlertLevel : kCFUserNotificationNoteAlertLevel, null, null, null, CFStringAuto(title), CFStringAuto(text), CFSTR("OK"), null, null, null);
+#elif IOS
+	if(NSString *ns_title=AppleString(title)) // have to use 'AppleString' because it will get copied in the local function below
+   {
+   	if(NSString *ns_text=AppleString(text)) // have to use 'AppleString' because it will get copied in the local function below
+      {
+         dispatch_async(dispatch_get_main_queue(), ^{ // this is needed in case we're calling from a secondary thread
+            if(UIAlertController *alert_controller=[UIAlertController alertControllerWithTitle:ns_title message:ns_text preferredStyle:UIAlertControllerStyleAlert])
+            {
+               [alert_controller addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+               [[[[UIApplication sharedApplication] keyWindow] rootViewController] presentViewController:alert_controller animated:YES completion:nil];
+             //[alert_controller release]; release will crash
+            }
+         });
+         [ns_text release];
+      }
+      [ns_title release];
+   }
+#elif ANDROID
+   // we need to call the code on UI thread, so we need to call java that will do this
+   JNI jni;
+   if(jni && ActivityClass)
+   if(JMethodID messageBox=jni.staticFunc(ActivityClass, "messageBox", "(Ljava/lang/String;Ljava/lang/String;Z)V"))
+      if(JString ti=JString(jni, title))
+      if(JString te=JString(jni, text ))
+         jni->CallStaticVoidMethod(ActivityClass, messageBox, ti(), te(), jboolean(false));
+#elif WEB
+   JavaScriptRun(S+"alert(\""+CString(text)+"\")"); 
+#endif
 }
 /******************************************************************************/
 static struct Locale
@@ -1553,7 +1623,7 @@ LANG_TYPE OSLanguage()
       FREP(CFArrayGetCount(langs))
       {
          CFStringRef l=(CFStringRef)CFArrayGetValueAtIndex(langs, i);
-         Char8       name[MAX_UTF_PATH]; CFStringGetCString(l, name, Elms(name), kCFStringEncodingUTF8);
+         Char8       name[256]; CFStringGetCString(l, name, Elms(name), kCFStringEncodingASCII);
          if(lang=LanguageCode(name))break;
       }
       CFRelease(langs);
@@ -1790,11 +1860,23 @@ Bool Run(C Str &name, C Str &params, Bool hidden, Bool as_admin)
       command+=" &"; // normally 'system' is blocking on Linux, but adding " &" makes the call non-blocking
       return system(command)!=0;
    #elif MAC
-      Str8 command; Bool open=false; FileInfoSystem fi(name);
-      if(SpecialLink(name) || fi.type==FSTD_DRIVE || fi.type==FSTD_DIR){open=true; command="open"; if(fi.type==FSTD_DIR && Equal(_GetExt(name), "app"))command.space()+="--new"; if(hidden)command.space()+="--hide";} // special links and folders/drives can be opened only with "open" command, use --new for apps so multiple instances can be opened
-      command.space()+='"'; command+=UnixPathUTF8(name); command+='"';
-      if(params.is()){if(open)command.space()+="--args"; command.space()+=UnixPathUTF8(params);}
-      return system(command)!=0;
+      if(SpecialLink(name)) // system "open" will fail on http:// with spaces
+      {
+         Str8 utf=UTF8(name);
+         if(CFURLRef url=CFURLCreateWithBytes(null, (UInt8*)utf(), utf.length(), kCFStringEncodingUTF8, null))
+         {
+            Bool ok=(LSOpenCFURLRef(url, null)==noErr);
+            CFRelease(url);
+            return ok;
+         }
+      }else
+      {
+         Str8 command; Bool open=false; FileInfoSystem fi(name);
+         if(fi.type==FSTD_DRIVE || fi.type==FSTD_DIR){open=true; command="open"; if(fi.type==FSTD_DIR && Equal(_GetExt(name), "app"))command.space()+="--new"; if(hidden)command.space()+="--hide";} // special links and folders/drives can be opened only with "open" command, use --new for apps so multiple instances can be opened
+         command.space()+='"'; command+=UnixPathUTF8(name); command+='"';
+         if(params.is()){if(open)command.space()+="--args"; command.space()+=UnixPathUTF8(params);}
+         return system(command)!=0;
+      }
    #elif IOS
       Bool ok=false;
     //if(SpecialLink(name)) open everything through 'openURL' as there's no other way
@@ -2422,6 +2504,7 @@ Str SystemPath(SYSTEM_PATH type)
       case SP_SAVED_GAMES    : out=NSDocumentDirectory   ; break;
       case SP_APP_DATA       : out=NSDocumentDirectory   ; break;
       case SP_APP_DATA_PUBLIC: out=NSDocumentDirectory   ; break;
+      case SP_APP_CACHE      : out=NSCachesDirectory     ; break;
       case SP_PROG_FILES     : out=NSApplicationDirectory; break;
       default                : return S;
    }
@@ -2434,6 +2517,7 @@ Str SystemPath(SYSTEM_PATH type)
       case SP_SAVED_GAMES    : return AndroidAppDataPublicPath.is() ? AndroidAppDataPublicPath : AndroidAppDataPath;
       case SP_APP_DATA       : return AndroidAppDataPath;
       case SP_APP_DATA_PUBLIC: return AndroidAppDataPublicPath;
+      case SP_APP_CACHE      : return AndroidAppCachePath;
       case SP_PUBLIC         : return AndroidPublicPath;
       case SP_SD_CARD        : return AndroidSDCardPath;
    }
@@ -2450,6 +2534,7 @@ Str SystemPath(SYSTEM_PATH type)
       case SP_SAVED_GAMES    :
       case SP_APP_DATA       :
       case SP_APP_DATA_PUBLIC: return "save:"; // initialized by 'MountSaveData'
+      case SP_APP_CACHE      : extern Bool MountCache(); if(MountCache())return "cache:"; break; // initialized by 'MountCacheStorage'
    }
 #endif
    return S;
@@ -4133,6 +4218,10 @@ Bool ParseExe(C Str &name, MemPtr<ExeSection> sections)
   Int         FindSectionOffsetI(C CMemPtr<ExeSection> &sections, CPtr    offset) {REPA(sections)if(      sections[i].contains(offset ))return i; return -1;}
 C ExeSection* FindSectionName   (C CMemPtr<ExeSection> &sections, CChar8 *name  ) {return sections.addr(FindSectionNameI  (sections, name  ));}
 C ExeSection* FindSectionOffset (C CMemPtr<ExeSection> &sections, CPtr    offset) {return sections.addr(FindSectionOffsetI(sections, offset));}
+/******************************************************************************/
+Int Compare    (C DataRangeRel &a, C DataRangeRel &b) {if(a.start<b.start)return -1; if(a.start>b.start)return +1; return Compare(a.size , b.size );}
+Int Compare    (C DataRangeAbs &a, C DataRangeAbs &b) {if(a.start<b.start)return -1; if(a.start>b.start)return +1; return Compare(a.end  , b.end  );}
+Int CompareSize(C DataRangeRel &a, C DataRangeRel &b) {if(a.size <b.size )return -1; if(a.size >b.size )return +1; return Compare(a.start, b.start);}
 /******************************************************************************/
 void InitMisc()
 {

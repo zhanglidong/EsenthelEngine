@@ -301,7 +301,7 @@ Bool MeshOverlay::createAnimated(C Mesh &mesh, C MaterialPtr &material, C Matrix
 void MeshOverlay::setShader()
 {
   _shader=null;
-   if(_lods.elms() && _material && _material->base_0)_shader=ShaderFiles("Overlay")->get(ShaderOverlay(false, D.bumpMode()>BUMP_FLAT && _material->normal>EPS_COL8 && _material->base_1!=null, (_material->base_2!=null) ? 2 : 1)); // #MaterialTextureLayout
+   if(_lods.elms() && _material && _material->base_0)_shader=ShaderFiles("Mesh Overlay")->get(ShaderMeshOverlay(false, D.bumpMode()>BUMP_FLAT && _material->normal>EPS_COL8 && _material->base_1!=null, (_material->base_2!=null) ? 2 : 1)); // #MaterialTextureLayout
 }
 MeshOverlay& MeshOverlay::material(C MaterialPtr &material)
 {
@@ -310,7 +310,7 @@ MeshOverlay& MeshOverlay::material(C MaterialPtr &material)
    return T;
 }
 #pragma pack(push, 4)
-struct GOverlayClass
+struct GPUOverlayClass
 {
    Vec4   param;
    Matrix mtrx ;
@@ -318,14 +318,14 @@ struct GOverlayClass
 #pragma pack(pop)
 void MeshOverlay::setParams(Flt alpha)C // this is called only inside 'draw' methods, so '_material' is assumed to be != null
 {
-   GOverlayClass overlay_params;
+   GPUOverlayClass overlay_params;
    overlay_params.param.set(0.8f, alpha, 0, 0);
    overlay_params.mtrx=_matrix;
    Sh.OverlayParams->set(overlay_params);
   _material        ->setBlend();
    D.depth(true);
    D.cull (true);
- //D.alpha(ALPHA_BLEND_FACTOR); not needed because ALPHA_BLEND_FACTOR is used everywhere in RM_OVERLAY
+ //D.alpha(ALPHA_OVERLAY); not needed because ALPHA_OVERLAY is used everywhere in RM_OVERLAY
  /*D.depthWrite(false); not needed because false is used everywhere in RM_OVERLAY*/ Renderer.needDepthTest(); // !! 'needDepthTest' after 'depthWrite' !!
 }
 /******************************************************************************/

@@ -116,7 +116,7 @@ MeshAOClass MeshAO;
    void MeshAOClass::update(C GuiPC &gpc)
 {
       super::update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          if(needRebuild())startThread();
          if(processed_ready)

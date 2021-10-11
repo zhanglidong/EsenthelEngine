@@ -18,6 +18,7 @@ void SetCam(Camera &cam, C Box &box, flt yaw, flt pitch=0, flt zoom=1) // requir
    cam.dist=GetDist(box)*zoom;
    cam.at=box.center();
    cam.setSpherical().updateEnd().set();
+   D.dofFocus(cam.dist);
 }
 /******************************************************************************/
 class PreviewClass : Window // create as window so it will be above other windows in the editor
@@ -85,10 +86,10 @@ class PreviewClass : Window // create as window so it will be above other window
             // particle
          }break;
       }
-      if(Renderer()==RM_BLEND && elm_type==ELM_OBJ   && body)body->drawBlend(MatrixMIdentity, &NoTemp(Vec4(1, 1, 1, 0.32)));
-      if(Renderer()==RM_CLOUD && elm_type==ELM_IMAGE && image && image->mode()==IMAGE_3D)
+      if(Renderer()==RM_BLEND)
       {
-         image->drawVolume(WHITE, TRANSPARENT, OBox(Box(1)), 0.05);
+         if(elm_type==ELM_OBJ   && body                            )body ->drawBlend (MatrixMIdentity, &NoTemp(Vec4(1, 1, 1, 0.32)));
+         if(elm_type==ELM_IMAGE && image && image->mode()==IMAGE_3D)image->drawVolume(WHITE, TRANSPARENT, OBox(Box(1)), 0.05);
       }
    }
    void closeElm(C UID &elm_id)

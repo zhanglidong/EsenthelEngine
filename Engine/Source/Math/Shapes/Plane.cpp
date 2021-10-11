@@ -366,37 +366,53 @@ static void Test()
    }
 }
 /******************************************************************************/
-#define EPS_NRM_DOT 0.999999f // using EPS_COS 0.9999995f was insufficient
-Vec2 SlideMovement(C Circle &object, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, Int edges, C VecI2 *edge_ind, C Vec2 *edge_nrm, Int circles, C Circle *circle)
+VecD2 SlideMovement(C CircleM &object, C VecD2 &move, Int vtxs, C Vec2 *vtx_pos, Int edges, C VecI2 *edge_ind, C Vec2 *edge_nrm, Int circles, C CircleM *circle, Bool slide)
 {
-   if(Flt move_len=move.length2())
+#define DBL_PREC 1 // double precision needed because there are problems in Flt (object moves along the edge, then is getting blocked by that edge vertex with Dot(nrm, hit_nrm_prev)=0.999758601 which is too big)
+#if     DBL_PREC
+   typedef Dbl   Real;
+   typedef VecD2 VecR2;
+   #define EPS_NRM_DOT EPS_COS
+#else
+   typedef Flt  Real;
+   typedef Vec2 VecR2;
+   #define EPS_NRM_DOT 0.999995f // current value was needed in tests, don't increase !! using EPS_COS 0.9999995f was insufficient, this needs to be lower because it depends on a lot of calculations, so error is higher
+#endif
+
+   if(Real move_len=move.length2())
    {
       move_len=SqrtFast(move_len);
-      Int  step=0;
-      Vec2 cur_pos=object.pos;
-      Vec2 move_n=move/move_len;
-      Vec2 hit_nrm_prev;
+      Int   step=0;
+      Real  object_r    =object.r,
+            object_r_eps=object_r-EPS; // this will ignore vertexes that are barely touching object along the movement line, this is useful for cases when first slid along edge, but then detected collision with the same edges vertex (due to numerical precision issues)
+      VecR2 cur_pos=object.pos;
+      VecR2 move_n=move/move_len;
+      VecR2 hit_nrm_prev;
    again:
-      Flt  hit_len=move_len; // find only smaller than move length
-      Vec2 hit_nrm;
+      Real  hit_len=move_len; // find only smaller than move length
+      VecR2 hit_nrm;
       // edges
       REPD(e, edges)
       {
        C VecI2 &edge=edge_ind[e];
-       C Vec2  &edge_p0=vtx_pos[edge.x],
+       C VecR2 &edge_p0=vtx_pos[edge.x],
                &edge_p1=vtx_pos[edge.y];
-         Vec2   edge_nrm_temp;
-       C Vec2  &edge_n=(edge_nrm ? edge_nrm[e] : edge_nrm_temp=PerpN(edge_p0-edge_p1));
-         Flt    move_dot=Dot(move_n, edge_n); if(move_dot<0) // if moving towards edge
+      #if DBL_PREC
+         VecR2  edge_n=(edge_nrm ? (VecR2)edge_nrm[e] : PerpN(edge_p0-edge_p1));
+      #else
+         VecR2  edge_nrm_temp;
+       C VecR2 &edge_n=(edge_nrm ? edge_nrm[e] : edge_nrm_temp=PerpN(edge_p0-edge_p1));
+      #endif
+         Real   move_dot=Dot(move_n, edge_n); if(move_dot<0) // if moving towards edge
          {
-            Flt dist_nrm=DistPointPlane(cur_pos, edge_p0, edge_n); if(dist_nrm>=0) // if outside the edge
+            Real dist_nrm=DistPointPlane(cur_pos, edge_p0, edge_n); if(dist_nrm>=0) // if outside the edge
             {
                if(step && Dot(edge_n, hit_nrm_prev)>=EPS_NRM_DOT)goto ignore_edge; // if same normal as from previous step, then ignore this edge
 
-                  dist_nrm-=object.r;
+                  dist_nrm-=object_r;
                if(dist_nrm<=0) // object intersecting edge
                {
-                  Vec2 edge_dir=Perp(edge_n); // p0->p1 (p1-p0)
+                  VecR2 edge_dir=Perp(edge_n); // p0->p1 (p1-p0)
                   if(DistPointPlane(cur_pos, edge_p0, edge_dir)>=0
                   && DistPointPlane(cur_pos, edge_p1, edge_dir)<=0)
                   {
@@ -408,11 +424,11 @@ Vec2 SlideMovement(C Circle &object, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, In
                   // Don't check edge points here, instead check them later in points section
                }else
                {
-                  Flt dist_move=-dist_nrm/move_dot; if(dist_move<hit_len) // if less than previous distance
+                  Real dist_move=-dist_nrm/move_dot; if(dist_move<hit_len) // if less than previous distance
                   {
-                     Vec2 closest=cur_pos-edge_n*object.r; // closest point on object to the edge
-                          closest+=move_n*dist_move;
-                     Vec2 edge_dir=Perp(edge_n); // p0->p1 (p1-p0)
+                     VecR2 closest=cur_pos-edge_n*object_r; // closest point on object to the edge
+                           closest+=move_n*dist_move;
+                     VecR2 edge_dir=Perp(edge_n); // p0->p1 (p1-p0)
                      if(DistPointPlane(closest, edge_p0, edge_dir)>=0
                      && DistPointPlane(closest, edge_p1, edge_dir)<=0)
                      {
@@ -427,41 +443,41 @@ Vec2 SlideMovement(C Circle &object, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, In
       }
       // points and circles
       {
-         Vec2 move_r=Perp(move_n);
-         Vec2 object_rel(Dot(cur_pos, move_r), Dot(cur_pos, move_n)); // object position in space relative to movement
+         VecR2 move_r=Perp(move_n);
+         VecR2 object_rel(Dot(cur_pos, move_r), Dot(cur_pos, move_n)); // object position in space relative to movement
          REPD(v, vtxs)
          {
-          C Vec2 &pos=vtx_pos[v];
-            Vec2  pos_rel;
+          C VecR2 &pos=vtx_pos[v];
+            VecR2  pos_rel;
             pos_rel.x=Dot(pos, move_r)-object_rel.x; // check X first because this will eliminate more vertexes
-            if(Abs(pos_rel.x)<object.r) // consider only vertexes along the movement line
+            if(Abs(pos_rel.x)<object_r_eps) // consider only vertexes along the movement line
             {
                pos_rel.y=Dot(pos, move_n); // check Y
                if(pos_rel.y>object_rel.y) // test only > and not >= because if it's =0 then it means cur_pos and vtx_pos are the same and movement would always be stuck no matter what direction
                {
-                  Flt dist_move=pos_rel.y-object_rel.y; // !! Warning: this is not yet complete !!
-                  if( dist_move<hit_len+object.r) // if can potentially have smaller distance
+                  Real dist_move=pos_rel.y-object_rel.y; // !! Warning: this is not yet complete !!
+                  if(  dist_move<hit_len+object_r) // if can potentially have smaller distance
                   {
-                        dist_move-=CosSin(pos_rel.x/object.r)*object.r; // finish calculation
+                        dist_move-=CosSin(pos_rel.x/object_r)*object_r; // finish calculation
                      if(dist_move<hit_len) // if less than previous distance
                      {
                         if(dist_move<=0) // object intersecting point
                         {
-                           Vec2 delta=cur_pos-pos; Flt delta_len2=delta.length2(); if(!delta_len2)goto ignore_vtx; // if length is zero then cur pos and vtx pos are the same so just ignore it, this check is also needed for div by 0
-                         //if(delta_len2<Sqr(object.r)) shouldn't be needed at this stage
+                           VecR2 delta=cur_pos-pos; Real delta_len2=delta.length2(); if(!delta_len2)goto ignore_vtx; // if length is zero then cur pos and vtx pos are the same so just ignore it, this check is also needed for div by 0
+                         //if(delta_len2<Sqr(object_r)) shouldn't be needed at this stage
                            {
-                              Flt  delta_len=SqrtFast(delta_len2);
-                              Vec2 nrm=delta/delta_len;
+                              Real  delta_len=SqrtFast(delta_len2);
+                              VecR2 nrm=delta/delta_len;
                               if(step && Dot(nrm, hit_nrm_prev)>=EPS_NRM_DOT)goto ignore_vtx; // if same normal as from previous step, then ignore this vertex
 
                               hit_len=0;
                               hit_nrm=nrm;
-                              cur_pos+=hit_nrm*(object.r-delta_len); // move object away from point
+                              cur_pos+=hit_nrm*(object_r-delta_len); // move object away from point
                               goto hit_found;
                            }
                         }
 
-                        Vec2 nrm=(cur_pos+move_n*dist_move)-pos; nrm.normalize();
+                        VecR2 nrm=(cur_pos+move_n*dist_move)-pos; nrm.normalize();
                         if(step && Dot(nrm, hit_nrm_prev)>=EPS_NRM_DOT)goto ignore_vtx; // if same normal as from previous step, then ignore this vertex
 
                         hit_len=dist_move;
@@ -474,29 +490,29 @@ Vec2 SlideMovement(C Circle &object, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, In
          }
          REPD(c, circles)
          {
-          C Circle &circ=circle[c];
-            Flt     r   =circ.r+object.r;
-          C Vec2   &pos =circ.pos;
-            Vec2    pos_rel;
+          C auto  &circ=circle[c];
+            Real   r   =circ.r+object_r;
+          C VecR2 &pos =circ.pos;
+            VecR2  pos_rel;
             pos_rel.x=Dot(pos, move_r)-object_rel.x; // check X first because this will eliminate more circles
             if(Abs(pos_rel.x)<r) // consider only circles along the movement line
             {
                pos_rel.y=Dot(pos, move_n); // check Y
                if(pos_rel.y>object_rel.y) // test only > and not >= because if it's =0 then it means cur_pos and circle_pos are the same and movement would always be stuck no matter what direction
                {
-                  Flt dist_move=pos_rel.y-object_rel.y; // !! Warning: this is not yet complete !!
-                  if( dist_move<hit_len+r) // if can potentially have smaller distance
+                  Real dist_move=pos_rel.y-object_rel.y; // !! Warning: this is not yet complete !!
+                  if(  dist_move<hit_len+r) // if can potentially have smaller distance
                   {
                         dist_move-=CosSin(pos_rel.x/r)*r; // finish calculation
                      if(dist_move<hit_len) // if less than previous distance
                      {
                         if(dist_move<=0) // object intersecting circle
                         {
-                           Vec2 delta=cur_pos-pos; Flt delta_len2=delta.length2(); if(!delta_len2)goto ignore_circle; // if length is zero then cur pos and circle pos are the same so just ignore it, this check is also needed for div by 0
+                           VecR2 delta=cur_pos-pos; Real delta_len2=delta.length2(); if(!delta_len2)goto ignore_circle; // if length is zero then cur pos and circle pos are the same so just ignore it, this check is also needed for div by 0
                          //if(delta_len2<Sqr(r)) shouldn't be needed at this stage
                            {
-                              Flt  delta_len=SqrtFast(delta_len2);
-                              Vec2 nrm=delta/delta_len;
+                              Real  delta_len=SqrtFast(delta_len2);
+                              VecR2 nrm=delta/delta_len;
                               if(step && Dot(nrm, hit_nrm_prev)>=EPS_NRM_DOT)goto ignore_circle; // if same normal as from previous step, then ignore this circle
 
                               hit_len=0;
@@ -506,7 +522,7 @@ Vec2 SlideMovement(C Circle &object, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, In
                            }
                         }
 
-                        Vec2 nrm=(cur_pos+move_n*dist_move)-pos; nrm.normalize();
+                        VecR2 nrm=(cur_pos+move_n*dist_move)-pos; nrm.normalize();
                         if(step && Dot(nrm, hit_nrm_prev)>=EPS_NRM_DOT)goto ignore_circle; // if same normal as from previous step, then ignore this circle
 
                         hit_len=dist_move;
@@ -522,11 +538,11 @@ Vec2 SlideMovement(C Circle &object, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, In
       {
       hit_found:
          cur_pos+=move_n*hit_len;
-         if(step==0)
+         if(step<Int(slide))
          {
-            move_len-=hit_len; // moved this already
-            move_n*=move_len; // remaining move
-            move_n-=Dot(move_n, hit_nrm)*hit_nrm;
+            move_len-= hit_len; // moved this already
+            move_n  *=move_len; // remaining move
+            move_n  -=Dot(move_n, hit_nrm)*hit_nrm;
             if(move_len=move_n.normalize())
             {
                step++;

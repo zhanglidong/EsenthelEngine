@@ -8,6 +8,8 @@ namespace EE{
    GL ES may not support Half / F16 / GL_HALF_FLOAT / Float16 !!
 
 /******************************************************************************/
+#define VTX_FACE_ID 0 // FIXME: TODO: add support for this as one random ID same for all touching faces (process the same way in Editor as when needing TanBin depending on material)
+/******************************************************************************/
 // define following using defines instead of enum, so they can be used in preprocessor
 #if DX11 || DX12
    #define MEM     (32*1024)
@@ -101,13 +103,13 @@ static Int Compare(C VtxFormatKey &a, C VtxFormatKey &b)
    if(a.compress>b.compress)return +1;
                             return  0;
 }
-static Bool Create(VtxFormat &vf, C VtxFormatKey &key, Ptr) {return vf.create(key.flag, key.compress);}
+static Bool Create(VtxFormat &vf, C VtxFormatKey &key, Ptr) {vf.create(key.flag, key.compress); return true;}
 /******************************************************************************/
 IndBuf    IndBuf16384Quads, IndBufBorder, IndBufPanel, IndBufPanelEx, IndBufRectBorder, IndBufRectShaded;
 VtxIndBuf VI;
 ThreadSafeMap<VtxFormatKey, VtxFormat> VtxFormats(Compare, Create);
 #if GL_ES
-static void (*glDrawElementsBaseVertex) (GLenum mode, GLsizei count, GLenum type, void *indices, GLint basevertex);
+static void (*glDrawElementsBaseVertex)(GLenum mode, GLsizei count, GLenum type, void *indices, GLint basevertex);
 #endif
 /******************************************************************************
 255.0 scales (and not 256.0) are correct:
@@ -202,16 +204,20 @@ VtxFormat& VtxFormat::del()
 }
 #if DX11
 // following 'VS_Code' is a byte code of a vertex shader from "DX10+ Input Layout.cpp", look around the sources for #VTX_INPUT_LAYOUT on how to obtain the code (the code needs to be updated everytime 'VtxInput' is changed)
-static Byte VS_Code[952]={68,88,66,67,95,53,255,170,82,84,7,207,219,241,170,19,12,99,48,117,1,0,0,0,184,3,0,0,6,0,0,0,56,0,0,0,132,0,0,0,168,2,0,0,228,2,0,0,44,3,0,0,60,3,0,0,82,68,69,70,68,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,28,0,0,0,0,4,254,255,0,129,0,0,28,0,0,0,77,105,99,114,111,115,111,102,116,32,40,82,41,32,72,76,83,76,32,83,104,97,100,101,114,32,67,111,109,112,105,108,101,114,32,49,48,46,49,0,73,83,71,49,28,2,0,0,14,0,0,0,8,0,0,0,0,0,0,0,200,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,15,15,0,0,0,0,0,0,0,0,0,0,200,1,0,0,1,0,0,0,0,0,0,0,3,0,0,0,1,0,0,0,7,0,0,0,1,0,0,0,0,0,0,0,209,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,2,0,0,0,7,0,0,0,1,0,0,0,0,0,0,0,216,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,3,0,0,0,15,0,0,0,1,0,0,0,0,0,0,0,224,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,4,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,224,1,0,0,1,0,0,0,0,0,0,0,3,0,0,0,5,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,224,1,0,0,2,0,0,0,0,0,0,0,3,0,0,0,6,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,224,1,0,0,3,0,0,0,0,0,0,0,3,0,0,0,7,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,233,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,8,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,239,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,9,0,0,0,15,0,0,0,0,0,0,0,0,0,0,0,252,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,10,0,0,0,15,0,0,0,0,0,0,0,0,0,0,0,8,2,0,0,0,0,0,0,0,0,0,0,3,0,0,0,11,0,0,0,15,0,0,0,1,0,0,0,0,0,0,0,8,2,0,0,1,0,0,0,0,0,0,0,3,0,0,0,12,0,0,0,15,0,0,0,1,0,0,0,0,0,0,0,14,2,0,0,0,0,0,0,8,0,0,0,1,0,0,0,13,0,0,0,1,0,0,0,0,0,0,0,80,79,83,73,84,73,79,78,0,78,79,82,77,65,76,0,84,65,78,71,69,78,84,0,84,69,88,67,79,79,82,68,0,80,83,73,90,69,0,66,76,69,78,68,73,78,68,73,67,69,83,0,66,76,69,78,68,87,69,73,71,72,84,0,67,79,76,79,82,0,83,86,95,73,110,115,116,97,110,99,101,73,68,0,79,83,71,49,52,0,0,0,1,0,0,0,8,0,0,0,0,0,0,0,40,0,0,0,0,0,0,0,1,0,0,0,3,0,0,0,0,0,0,0,15,0,0,0,0,0,0,0,83,86,95,80,111,115,105,116,105,111,110,0,83,72,69,88,64,0,0,0,64,0,1,0,16,0,0,0,106,8,1,1,95,0,0,3,242,16,16,0,0,0,0,0,103,0,0,4,242,32,16,0,0,0,0,0,1,0,0,0,54,0,0,5,242,32,16,0,0,0,0,0,70,30,16,0,0,0,0,0,62,0,0,1,83,70,73,48,8,0,0,0,16,0,0,0,0,0,0,0,83,84,65,84,116,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-extern Bool AMD; // #ShaderAMD
-static Byte VS_Code_AMD[808]={68,88,66,67,202,188,123,40,217,76,13,168,191,146,146,40,96,49,52,105,1,0,0,0,40,3,0,0,5,0,0,0,52,0,0,0,128,0,0,0,52,2,0,0,104,2,0,0,172,2,0,0,82,68,69,70,68,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,28,0,0,0,0,4,254,255,0,145,0,0,28,0,0,0,77,105,99,114,111,115,111,102,116,32,40,82,41,32,72,76,83,76,32,83,104,97,100,101,114,32,67,111,109,112,105,108,101,114,32,49,48,46,49,0,73,83,71,78,172,1,0,0,14,0,0,0,8,0,0,0,88,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,15,15,0,0,88,1,0,0,1,0,0,0,0,0,0,0,3,0,0,0,1,0,0,0,7,0,0,0,97,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,2,0,0,0,7,0,0,0,104,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,3,0,0,0,15,0,0,0,112,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,4,0,0,0,3,0,0,0,112,1,0,0,1,0,0,0,0,0,0,0,3,0,0,0,5,0,0,0,3,0,0,0,112,1,0,0,2,0,0,0,0,0,0,0,3,0,0,0,6,0,0,0,3,0,0,0,112,1,0,0,3,0,0,0,0,0,0,0,3,0,0,0,7,0,0,0,3,0,0,0,121,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,8,0,0,0,1,0,0,0,127,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,9,0,0,0,15,0,0,0,140,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,10,0,0,0,15,0,0,0,152,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,11,0,0,0,15,0,0,0,152,1,0,0,1,0,0,0,0,0,0,0,3,0,0,0,12,0,0,0,15,0,0,0,158,1,0,0,0,0,0,0,8,0,0,0,1,0,0,0,13,0,0,0,1,0,0,0,80,79,83,73,84,73,79,78,0,78,79,82,77,65,76,0,84,65,78,71,69,78,84,0,84,69,88,67,79,79,82,68,0,80,83,73,90,69,0,66,76,69,78,68,73,78,68,73,67,69,83,0,66,76,69,78,68,87,69,73,71,72,84,0,67,79,76,79,82,0,83,86,95,73,110,115,116,97,110,99,101,73,68,0,79,83,71,78,44,0,0,0,1,0,0,0,8,0,0,0,32,0,0,0,0,0,0,0,1,0,0,0,3,0,0,0,0,0,0,0,15,0,0,0,83,86,95,80,111,115,105,116,105,111,110,0,83,72,68,82,60,0,0,0,64,0,1,0,15,0,0,0,95,0,0,3,242,16,16,0,0,0,0,0,103,0,0,4,242,32,16,0,0,0,0,0,1,0,0,0,54,0,0,5,242,32,16,0,0,0,0,0,70,30,16,0,0,0,0,0,62,0,0,1,83,84,65,84,116,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; // #ShaderAMD
+static Byte VS_Code[1032]={68,88,66,67,96,133,31,59,40,16,55,154,97,173,129,179,66,193,111,208,1,0,0,0,8,4,0,0,6,0,0,0,56,0,0,0,132,0,0,0,248,2,0,0,52,3,0,0,124,3,0,0,140,3,0,0,82,68,69,70,68,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,28,0,0,0,0,4,254,255,0,129,0,0,28,0,0,0,77,105,99,114,111,115,111,102,116,32,40,82,41,32,72,76,83,76,32,83,104,97,100,101,114,32,67,111,109,112,105,108,101,114,32,49,48,46,49,0,73,83,71,49,108,2,0,0,16,0,0,0,8,0,0,0,0,0,0,0,8,2,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,15,15,0,0,0,0,0,0,0,0,0,0,8,2,0,0,1,0,0,0,0,0,0,0,3,0,0,0,1,0,0,0,7,0,0,0,0,0,0,0,0,0,0,0,17,2,0,0,0,0,0,0,0,0,0,0,3,0,0,0,2,0,0,0,7,0,0,0,1,0,0,0,0,0,0,0,24,2,0,0,0,0,0,0,0,0,0,0,3,0,0,0,3,0,0,0,15,0,0,0,1,0,0,0,0,0,0,0,32,2,0,0,0,0,0,0,0,0,0,0,3,0,0,0,4,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,32,2,0,0,1,0,0,0,0,0,0,0,3,0,0,0,5,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,32,2,0,0,2,0,0,0,0,0,0,0,3,0,0,0,6,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,32,2,0,0,3,0,0,0,0,0,0,0,3,0,0,0,7,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,35,2,0,0,0,0,0,0,0,0,0,0,3,0,0,0,8,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,41,2,0,0,0,0,0,0,0,0,0,0,1,0,0,0,9,0,0,0,15,0,0,0,0,0,0,0,0,0,0,0,54,2,0,0,0,0,0,0,0,0,0,0,3,0,0,0,10,0,0,0,15,0,0,0,0,0,0,0,0,0,0,0,66,2,0,0,0,0,0,0,0,0,0,0,3,0,0,0,11,0,0,0,15,0,0,0,1,0,0,0,0,0,0,0,66,2,0,0,1,0,0,0,0,0,0,0,3,0,0,0,12,0,0,0,15,0,0,0,1,0,0,0,0,0,0,0,72,2,0,0,0,0,0,0,0,0,0,0,1,0,0,0,13,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,80,2,0,0,0,0,0,0,6,0,0,0,1,0,0,0,14,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,92,2,0,0,0,0,0,0,8,0,0,0,1,0,0,0,15,0,0,0,1,0,0,0,0,0,0,0,80,79,83,73,84,73,79,78,0,78,79,82,77,65,76,0,84,65,78,71,69,78,84,0,85,86,0,80,83,73,90,69,0,66,76,69,78,68,73,78,68,73,67,69,83,0,66,76,69,78,68,87,69,73,71,72,84,0,67,79,76,79,82,0,70,65,67,69,95,73,68,0,83,86,95,86,101,114,116,101,120,73,68,0,83,86,95,73,110,115,116,97,110,99,101,73,68,0,171,171,79,83,71,49,52,0,0,0,1,0,0,0,8,0,0,0,0,0,0,0,40,0,0,0,0,0,0,0,1,0,0,0,3,0,0,0,0,0,0,0,15,0,0,0,0,0,0,0,83,86,95,80,111,115,105,116,105,111,110,0,83,72,69,88,64,0,0,0,64,0,1,0,16,0,0,0,106,8,1,1,95,0,0,3,242,16,16,0,0,0,0,0,103,0,0,4,242,32,16,0,0,0,0,0,1,0,0,0,54,0,0,5,242,32,16,0,0,0,0,0,70,30,16,0,0,0,0,0,62,0,0,1,83,70,73,48,8,0,0,0,16,0,0,0,0,0,0,0,83,84,65,84,116,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
-Bool VtxFormat::create(D3D11_INPUT_ELEMENT_DESC ve[], Int elms)
+Bool VtxFormat::createTry(D3D11_INPUT_ELEMENT_DESC ve[], Int elms)
 {
- //SyncLocker locker(D._lock); lock not needed for DX11 'D3D'
+#if GPU_LOCK // lock not needed for 'D3D'
+   SyncLocker locker(D._lock);
+#endif
    del();
-   if(D3D)return OK(D3D->CreateInputLayout(ve, elms, AMD ? VS_Code_AMD : VS_Code, AMD ? Elms(VS_Code_AMD) : Elms(VS_Code), &vf));
+   if(D3D)return OK(D3D->CreateInputLayout(ve, elms, VS_Code, Elms(VS_Code), &vf));
    return false;
+}
+void VtxFormat::create(D3D11_INPUT_ELEMENT_DESC ve[], Int elms)
+{
+   if(!createTry(ve, elms))Exit("Can't create VtxFormat");
 }
 #elif GL
 GL_VTX_SEMANTIC VtxSemanticToIndex(Int semantic) {return GL_VTX_SEMANTIC(semantic);}
@@ -268,7 +274,7 @@ void VtxFormatGL::enableSet()C
 void VtxFormatGL::bind(C VtxBuf &vb) // this is called only on the main thread
 {
    // VAO
-#if GL_LOCK
+#if GPU_LOCK
    SyncLocker lock(D._lock);
 #endif
    if(!vao)
@@ -282,10 +288,11 @@ void VtxFormatGL::bind(C VtxBuf &vb) // this is called only on the main thread
    enableSet();
    glBindVertexArray(0); // disable VAO so binding IB will not modify this VAO, this is not strictly needed, because all IB bindings use either 'BindIndexBuffer' which clears VAO, or are done during drawing when correct VAO is already set, but leave it just in case
 }
-Bool VtxFormat::create(C MemPtrN<VtxFormatGL::Elm, 32> &elms) {if(!vf)New(vf); return vf->create(elms);}
-void VtxFormat::bind(C VtxBuf &vb) {if(vf)vf->bind(vb);}
+Bool VtxFormat::createTry(C MemPtrN<VtxFormatGL::Elm, 32> &elms) {if(!vf)New(vf); return vf->create(elms);}
+void VtxFormat::create   (C MemPtrN<VtxFormatGL::Elm, 32> &elms) {if(!createTry(elms))Exit("Can't create VtxFormat");}
+void VtxFormat::bind     (C VtxBuf &vb) {if(vf)vf->bind(vb);}
 #endif
-Bool VtxFormat::create(MESH_FLAG flag, UInt compress)
+void VtxFormat::create(MESH_FLAG flag, UInt compress)
 {
    // TODO: use R10G10B10A2 for compressed Nrm and Tan, however there's no signed format for that, so probably have to forget it
 #if DX11
@@ -302,24 +309,25 @@ Bool VtxFormat::create(MESH_FLAG flag, UInt compress)
 
                                      Set(ve[i++], ofs, DXGI_FORMAT_R32G32B32_FLOAT, "POSITION"    , 1); if(flag&VTX_HLP     )ofs+=SIZE(Vec  );
 
-   if(compress&VTX_COMPRESS_TEX_8  ){Set(ve[i++], ofs, DXGI_FORMAT_R8G8B8A8_UNORM , "TEXCOORD"    , 0); if(flag&VTX_TEX0    )ofs+=SIZE(VecB4);
-                                     Set(ve[i++], ofs, DXGI_FORMAT_R8G8B8A8_UNORM , "TEXCOORD"    , 1); if(flag&VTX_TEX1    )ofs+=SIZE(VecB4);
-                                     Set(ve[i++], ofs, DXGI_FORMAT_R8G8B8A8_UNORM , "TEXCOORD"    , 2); if(flag&VTX_TEX2    )ofs+=SIZE(VecB4);
-                                     Set(ve[i++], ofs, DXGI_FORMAT_R8G8B8A8_UNORM , "TEXCOORD"    , 3); if(flag&VTX_TEX3    )ofs+=SIZE(VecB4);}else
-   if(compress&VTX_COMPRESS_TEX    ){Set(ve[i++], ofs, DXGI_FORMAT_R16G16_FLOAT   , "TEXCOORD"    , 0); if(flag&VTX_TEX0    )ofs+=SIZE(VecH2);
-                                     Set(ve[i++], ofs, DXGI_FORMAT_R16G16_FLOAT   , "TEXCOORD"    , 1); if(flag&VTX_TEX1    )ofs+=SIZE(VecH2);
-                                     Set(ve[i++], ofs, DXGI_FORMAT_R16G16_FLOAT   , "TEXCOORD"    , 2); if(flag&VTX_TEX2    )ofs+=SIZE(VecH2);
-                                     Set(ve[i++], ofs, DXGI_FORMAT_R16G16_FLOAT   , "TEXCOORD"    , 3); if(flag&VTX_TEX3    )ofs+=SIZE(VecH2);}else
-                                    {Set(ve[i++], ofs, DXGI_FORMAT_R32G32_FLOAT   , "TEXCOORD"    , 0); if(flag&VTX_TEX0    )ofs+=SIZE(Vec2 );
-                                     Set(ve[i++], ofs, DXGI_FORMAT_R32G32_FLOAT   , "TEXCOORD"    , 1); if(flag&VTX_TEX1    )ofs+=SIZE(Vec2 );
-                                     Set(ve[i++], ofs, DXGI_FORMAT_R32G32_FLOAT   , "TEXCOORD"    , 2); if(flag&VTX_TEX2    )ofs+=SIZE(Vec2 );
-                                     Set(ve[i++], ofs, DXGI_FORMAT_R32G32_FLOAT   , "TEXCOORD"    , 3); if(flag&VTX_TEX3    )ofs+=SIZE(Vec2 );}
+   if(compress&VTX_COMPRESS_TEX_8  ){Set(ve[i++], ofs, DXGI_FORMAT_R8G8B8A8_UNORM , "UV"          , 0); if(flag&VTX_TEX0    )ofs+=SIZE(VecB4);
+                                     Set(ve[i++], ofs, DXGI_FORMAT_R8G8B8A8_UNORM , "UV"          , 1); if(flag&VTX_TEX1    )ofs+=SIZE(VecB4);
+                                     Set(ve[i++], ofs, DXGI_FORMAT_R8G8B8A8_UNORM , "UV"          , 2); if(flag&VTX_TEX2    )ofs+=SIZE(VecB4);
+                                     Set(ve[i++], ofs, DXGI_FORMAT_R8G8B8A8_UNORM , "UV"          , 3); if(flag&VTX_TEX3    )ofs+=SIZE(VecB4);}else
+   if(compress&VTX_COMPRESS_TEX    ){Set(ve[i++], ofs, DXGI_FORMAT_R16G16_FLOAT   , "UV"          , 0); if(flag&VTX_TEX0    )ofs+=SIZE(VecH2);
+                                     Set(ve[i++], ofs, DXGI_FORMAT_R16G16_FLOAT   , "UV"          , 1); if(flag&VTX_TEX1    )ofs+=SIZE(VecH2);
+                                     Set(ve[i++], ofs, DXGI_FORMAT_R16G16_FLOAT   , "UV"          , 2); if(flag&VTX_TEX2    )ofs+=SIZE(VecH2);
+                                     Set(ve[i++], ofs, DXGI_FORMAT_R16G16_FLOAT   , "UV"          , 3); if(flag&VTX_TEX3    )ofs+=SIZE(VecH2);}else
+                                    {Set(ve[i++], ofs, DXGI_FORMAT_R32G32_FLOAT   , "UV"          , 0); if(flag&VTX_TEX0    )ofs+=SIZE(Vec2 );
+                                     Set(ve[i++], ofs, DXGI_FORMAT_R32G32_FLOAT   , "UV"          , 1); if(flag&VTX_TEX1    )ofs+=SIZE(Vec2 );
+                                     Set(ve[i++], ofs, DXGI_FORMAT_R32G32_FLOAT   , "UV"          , 2); if(flag&VTX_TEX2    )ofs+=SIZE(Vec2 );
+                                     Set(ve[i++], ofs, DXGI_FORMAT_R32G32_FLOAT   , "UV"          , 3); if(flag&VTX_TEX3    )ofs+=SIZE(Vec2 );}
 
                                      Set(ve[i++], ofs, DXGI_FORMAT_R8G8B8A8_UINT  , "BLENDINDICES", 0); if(flag&VTX_MATRIX  )ofs+=SIZE(VecB4);
                                      Set(ve[i++], ofs, DXGI_FORMAT_R8G8B8A8_UNORM , "BLENDWEIGHT" , 0); if(flag&VTX_BLEND   )ofs+=SIZE(VecB4);
                                      Set(ve[i++], ofs, DXGI_FORMAT_R32_FLOAT      , "PSIZE"       , 0); if(flag&VTX_SIZE    )ofs+=SIZE(Flt  );
                                      Set(ve[i++], ofs, DXGI_FORMAT_R8G8B8A8_UNORM , "COLOR"       , 0); if(flag&VTX_MATERIAL)ofs+=SIZE(VecB4);
                                      Set(ve[i++], ofs, DXGI_FORMAT_R8G8B8A8_UNORM , "COLOR"       , 1); if(flag&VTX_COLOR   )ofs+=SIZE(Color);
+                                     Set(ve[i++], ofs, DXGI_FORMAT_R8G8B8A8_UINT  , "FACE_ID"     , 0); if(flag&VTX_FACE_ID )ofs+=SIZE(VecB4);
    return create(ve, i);
 #elif GL
    MemtN<VtxFormatGL::Elm, 32> ve;
@@ -353,9 +361,9 @@ Bool VtxFormat::create(MESH_FLAG flag, UInt compress)
                                      if(flag&VTX_SIZE    ){ve.New().set(GL_VTX_SIZE    , 1, GL_FLOAT        , false, ofs); ofs+=SIZE(Flt  );}
                                      if(flag&VTX_MATERIAL){ve.New().set(GL_VTX_MATERIAL, 4, GL_UNSIGNED_BYTE, true , ofs); ofs+=SIZE(VecB4);}
                                      if(flag&VTX_COLOR   ){ve.New().set(GL_VTX_COLOR   , 4, GL_UNSIGNED_BYTE, true , ofs); ofs+=SIZE(Color);}
+                                     if(flag&VTX_FACE_ID ){ve.New().set(GL_VTX_FACE_ID , 4, GL_UNSIGNED_BYTE, false, ofs); ofs+=SIZE(VecB4);}
    return create(ve);
 #endif
-   return false;
 }
 /******************************************************************************/
 // VERTEX BUFFER
@@ -365,16 +373,17 @@ VtxBuf& VtxBuf::del()
    unlock();
    if(_buf)
    {
-   #if GL_LOCK // lock not needed for DX11 'Release'
-      SafeSyncLocker lock(D._lock);
+   #if GPU_LOCK // lock not needed for 'Release'
+      SafeSyncLocker lock(D._lock); if(_buf)
    #endif
-
-	#if DX11
-      if(D.created())_buf->Release();
-   #elif GL
-      if(D.created())glDeleteBuffers(1, &_buf);
-      if(!IsMap(_dynamic))Free(_data);
-   #endif
+      {
+	   #if DX11
+         if(D.created())_buf->Release();
+      #elif GL
+         if(D.created())glDeleteBuffers(1, &_buf);
+         if(!IsMap(_dynamic))Free(_data);
+      #endif
+      }
    }
    Zero(T); return T;
 }
@@ -383,16 +392,17 @@ IndBuf& IndBuf::del()
    unlock();
    if(_buf)
    {
-   #if GL_LOCK // lock not needed for DX11 'Release'
-      SafeSyncLocker lock(D._lock);
+   #if GPU_LOCK // lock not needed for 'Release'
+      SafeSyncLocker lock(D._lock); if(_buf)
    #endif
-
-   #if DX11
-      if(D.created())_buf->Release();
-   #elif GL
-      if(D.created())glDeleteBuffers(1, &_buf);
-      if(!IsMap(_dynamic))Free(_data);
-   #endif
+      {
+      #if DX11
+         if(D.created())_buf->Release();
+      #elif GL
+         if(D.created())glDeleteBuffers(1, &_buf);
+         if(!IsMap(_dynamic))Free(_data);
+      #endif
+      }
    }
    Zero(T); return T;
 }
@@ -406,7 +416,7 @@ Bool VtxBuf::createRaw(Int memory_size, Bool dynamic, CPtr data)
 
    if(memory_size<=0){del(); return !memory_size;}
 
-#if GL_LOCK // lock not needed for DX11 'D3D'
+#if GPU_LOCK // lock not needed for 'D3D'
    SyncLocker locker(D._lock);
 #endif
 
@@ -454,7 +464,7 @@ Bool IndBuf::create(Int indexes, Bool bit16, Bool dynamic, CPtr data)
 
    if(indexes<=0){del(); return !indexes;}
 
-#if GL_LOCK // lock not needed for DX11 'D3D'
+#if GPU_LOCK // lock not needed for 'D3D'
    SyncLocker locker(D._lock);
 #endif
 
@@ -549,6 +559,7 @@ Bool VtxBuf::create(Int vertexes, MESH_FLAG flag, UInt compress, Bool dynamic)
                                      if(flag&VTX_SIZE    )size+=SIZE(Flt  );
                                      if(flag&VTX_MATERIAL)size+=SIZE(VecB4);
                                      if(flag&VTX_COLOR   )size+=SIZE(Color);
+                                     if(flag&VTX_FACE_ID )size+=SIZE(VecB4);
 
    return createNum(size, vertexes, dynamic);
 }
@@ -1062,15 +1073,16 @@ void VtxIndBuf::create()
          {"POSITION"    , 1, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"NORMAL"      , 0, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"TANGENT"     , 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 0, DXGI_FORMAT_R32G32_FLOAT      , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 0, DXGI_FORMAT_R32G32_FLOAT      , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"PSIZE"       , 0, DXGI_FORMAT_R32_FLOAT         , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf2D_flat.create(ve, Elms(ve));
    }
@@ -1081,15 +1093,16 @@ void VtxIndBuf::create()
          {"POSITION"    , 1, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"NORMAL"      , 0, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"TANGENT"     , 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 0, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 0, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"PSIZE"       , 0, DXGI_FORMAT_R32_FLOAT         , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx2DCol, color), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf2D_col.create(ve, Elms(ve));
    }
@@ -1100,15 +1113,16 @@ void VtxIndBuf::create()
          {"POSITION"    , 1, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"NORMAL"      , 0, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"TANGENT"     , 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 0, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx2DTex, tex), D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 0, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx2DTex, tex), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"PSIZE"       , 0, DXGI_FORMAT_R32_FLOAT         , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf2D_tex.create(ve, Elms(ve));
    }
@@ -1119,15 +1133,16 @@ void VtxIndBuf::create()
          {"POSITION"    , 1, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"NORMAL"      , 0, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"TANGENT"     , 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 0, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx2DTexCol, tex  ), D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 0, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx2DTexCol, tex  ), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"PSIZE"       , 0, DXGI_FORMAT_R32_FLOAT         , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx2DTexCol, color), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf2D_tex_col.create(ve, Elms(ve));
    }
@@ -1138,15 +1153,16 @@ void VtxIndBuf::create()
          {"POSITION"    , 1, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                         0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"NORMAL"      , 0, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                         0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"TANGENT"     , 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,                         0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 0, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx2DTex2, tex[0]), D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 1, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx2DTex2, tex[1]), D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                         0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                         0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 0, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx2DTex2, tex[0]), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 1, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx2DTex2, tex[1]), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                         0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                         0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"PSIZE"       , 0, DXGI_FORMAT_R32_FLOAT         , 0,                         0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                         0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                         0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                         0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                         0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                         0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf2D_tex2.create(ve, Elms(ve));
    }
@@ -1157,15 +1173,16 @@ void VtxIndBuf::create()
          {"POSITION"    , 1, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                        0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"NORMAL"      , 0, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                        0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"TANGENT"     , 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,                        0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 0, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx2DFont, tex  ), D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                        0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                        0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                        0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 0, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx2DFont, tex  ), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                        0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                        0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                        0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"PSIZE"       , 0, DXGI_FORMAT_R32_FLOAT         , 0, OFFSET(Vtx2DFont, shade), D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                        0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                        0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                        0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                        0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                        0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf2D_font.create(ve, Elms(ve));
    }
@@ -1176,15 +1193,16 @@ void VtxIndBuf::create()
          {"POSITION"    , 1, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"NORMAL"      , 0, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"TANGENT"     , 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 0, DXGI_FORMAT_R32G32_FLOAT      , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 0, DXGI_FORMAT_R32G32_FLOAT      , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"PSIZE"       , 0, DXGI_FORMAT_R32_FLOAT         , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                      0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_flat.create(ve, Elms(ve));
    }
@@ -1195,15 +1213,16 @@ void VtxIndBuf::create()
          {"POSITION"    , 1, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"NORMAL"      , 0, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"TANGENT"     , 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 0, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 0, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"PSIZE"       , 0, DXGI_FORMAT_R32_FLOAT         , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DCol, color), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_col.create(ve, Elms(ve));
    }
@@ -1214,15 +1233,16 @@ void VtxIndBuf::create()
          {"POSITION"    , 1, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"NORMAL"      , 0, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"TANGENT"     , 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 0, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx3DTex, tex), D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 0, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx3DTex, tex), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"PSIZE"       , 0, DXGI_FORMAT_R32_FLOAT         , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                     0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_tex.create(ve, Elms(ve));
    }
@@ -1233,15 +1253,16 @@ void VtxIndBuf::create()
          {"POSITION"    , 1, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"NORMAL"      , 0, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"TANGENT"     , 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 0, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx3DTexCol, tex  ), D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 0, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx3DTexCol, tex  ), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"PSIZE"       , 0, DXGI_FORMAT_R32_FLOAT         , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DTexCol, color), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_tex_col.create(ve, Elms(ve));
    }
@@ -1256,15 +1277,16 @@ void VtxIndBuf::create()
       #else
          {"TANGENT"     , 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, OFFSET(Vtx3DBilb, vel_angle), D3D11_INPUT_PER_VERTEX_DATA, 0},
       #endif
-         {"TEXCOORD"    , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DBilb, tex      ), D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DBilb, tex      ), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"PSIZE"       , 0, DXGI_FORMAT_R32_FLOAT         , 0, OFFSET(Vtx3DBilb, size     ), D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DBilb, color    ), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_bilb.create(ve, Elms(ve));
    }
@@ -1279,15 +1301,16 @@ void VtxIndBuf::create()
       #else
          {"TANGENT"     , 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, OFFSET(Vtx3DBilbAnim, vel_angle), D3D11_INPUT_PER_VERTEX_DATA, 0},
       #endif
-         {"TEXCOORD"    , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DBilbAnim, tex      ), D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 1, DXGI_FORMAT_R32_FLOAT         , 0, OFFSET(Vtx3DBilbAnim, frame    ), D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                                0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                                0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DBilbAnim, tex      ), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 1, DXGI_FORMAT_R32_FLOAT         , 0, OFFSET(Vtx3DBilbAnim, frame    ), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                                0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                                0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"PSIZE"       , 0, DXGI_FORMAT_R32_FLOAT         , 0, OFFSET(Vtx3DBilbAnim, size     ), D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                                0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                                0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                                0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DBilbAnim, color    ), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                                0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_bilb_anim.create(ve, Elms(ve));
    }
@@ -1298,15 +1321,16 @@ void VtxIndBuf::create()
          {"POSITION"    , 1, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"NORMAL"      , 0, DXGI_FORMAT_R32G32B32_FLOAT   , 0, OFFSET(Vtx3DLaser, nrm), D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"TANGENT"     , 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 0, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 0, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"PSIZE"       , 0, DXGI_FORMAT_R32_FLOAT         , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_laser.create(ve, Elms(ve));
    }
@@ -1317,15 +1341,16 @@ void VtxIndBuf::create()
          {"POSITION"    , 1, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"NORMAL"      , 0, DXGI_FORMAT_R32G32B32_FLOAT   , 0, OFFSET(Cloth::Vtx, nrm), D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"TANGENT"     , 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 0, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Cloth::Vtx, tex), D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 0, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Cloth::Vtx, tex), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"PSIZE"       , 0, DXGI_FORMAT_R32_FLOAT         , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                       0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_cloth.create(ve, Elms(ve));
    }*/
@@ -1336,15 +1361,16 @@ void VtxIndBuf::create()
          {"POSITION"    , 1, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"NORMAL"      , 0, DXGI_FORMAT_R32G32B32_FLOAT   , 0, OFFSET(Vtx3DSimple, nrm  ), D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"TANGENT"     , 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 0, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx3DSimple, tex  ), D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 0, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx3DSimple, tex  ), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"PSIZE"       , 0, DXGI_FORMAT_R32_FLOAT         , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DSimple, color), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                          0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_simple.create(ve, Elms(ve));
    }
@@ -1355,15 +1381,16 @@ void VtxIndBuf::create()
          {"POSITION"    , 1, DXGI_FORMAT_R32G32B32_FLOAT   , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"NORMAL"      , 0, DXGI_FORMAT_R32G32B32_FLOAT   , 0, OFFSET(Vtx3DStandard, nrm  ), D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"TANGENT"     , 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, OFFSET(Vtx3DStandard, tan  ), D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 0, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx3DStandard, tex  ), D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 0, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx3DStandard, tex  ), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 1, DXGI_FORMAT_R32G32_FLOAT      , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 2, DXGI_FORMAT_R32G32_FLOAT      , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 3, DXGI_FORMAT_R32G32_FLOAT      , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"PSIZE"       , 0, DXGI_FORMAT_R32_FLOAT         , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DStandard, color), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_standard.create(ve, Elms(ve));
    }
@@ -1374,15 +1401,16 @@ void VtxIndBuf::create()
          {"POSITION"    , 1, DXGI_FORMAT_R32G32B32_FLOAT   , 0, OFFSET(Vtx3DFull, hlp     ), D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"NORMAL"      , 0, DXGI_FORMAT_R32G32B32_FLOAT   , 0, OFFSET(Vtx3DFull, nrm     ), D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"TANGENT"     , 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, OFFSET(Vtx3DFull, tan     ), D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 0, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx3DFull, tex0    ), D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 1, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx3DFull, tex1    ), D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 2, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx3DFull, tex2    ), D3D11_INPUT_PER_VERTEX_DATA, 0},
-         {"TEXCOORD"    , 3, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx3DFull, tex3    ), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 0, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx3DFull, tex0    ), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 1, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx3DFull, tex1    ), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 2, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx3DFull, tex2    ), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"UV"          , 3, DXGI_FORMAT_R32G32_FLOAT      , 0, OFFSET(Vtx3DFull, tex3    ), D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"PSIZE"       , 0, DXGI_FORMAT_R32_FLOAT         , 0, OFFSET(Vtx3DFull, size    ), D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0, OFFSET(Vtx3DFull, matrix  ), D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"BLENDWEIGHT" , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DFull, blend   ), D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 0, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DFull, material), D3D11_INPUT_PER_VERTEX_DATA, 0},
          {"COLOR"       , 1, DXGI_FORMAT_R8G8B8A8_UNORM    , 0, OFFSET(Vtx3DFull, color   ), D3D11_INPUT_PER_VERTEX_DATA, 0},
+         {"FACE_ID"     , 0, DXGI_FORMAT_R8G8B8A8_UINT     , 0,                           0, D3D11_INPUT_PER_VERTEX_DATA, 0},
       };
      _vf3D_full.create(ve, Elms(ve));
    }
@@ -1594,7 +1622,7 @@ void VtxIndBuf::setType(VI_TYPE vtx_type, UInt flag)
       case VI_2D_COL          : VI._vb._vtx_size=SIZE(Vtx2DCol     ); shader=Sh.Draw2DCol                                                                                        ; vf=&VI._vf2D_col      ; D.depth(false); D.cull(false); break;
       case VI_2D_TEX          : VI._vb._vtx_size=SIZE(Vtx2DTex     ); shader=((flag&VI_SP_COL) ? Sh.Draw2DTexC : Sh.Draw2DTex)                                                   ; vf=&VI._vf2D_tex      ; D.depth(false); D.cull(false); break;
       case VI_2D_TEX_COL      : VI._vb._vtx_size=SIZE(Vtx2DTexCol  ); shader=Sh.Draw2DTexCol                                                                                     ; vf=&VI._vf2D_tex_col  ; D.depth(false); D.cull(false); break;
-      case VI_2D_TEX2         : VI._vb._vtx_size=SIZE(Vtx2DTex2    ); shader=Sh.DrawMask                                                                                         ; vf=&VI._vf2D_tex2     ; D.depth(false); D.cull(false); break;
+      case VI_2D_TEX2         : VI._vb._vtx_size=SIZE(Vtx2DTex2    ); shader=null                                                                                                ; vf=&VI._vf2D_tex2     ; D.depth(false); D.cull(false); break;
       case VI_2D_FONT         : VI._vb._vtx_size=SIZE(Vtx2DFont    ); shader=Sh.FontCur                                                                                          ; vf=&VI._vf2D_font     ; D.depth(false); D.cull(false); break;
       case VI_2D_DEPTH_TEX    : VI._vb._vtx_size=SIZE(Vtx3DTex     ); shader=Sh.Draw2DDepthTex[FlagTest(VI._user_flag, VI_ALPHA_TEST)][0]                                        ; vf=&VI._vf3D_tex      ; D.depth(true ); D.cull(false); break;
       case VI_2D_DEPTH_TEX_COL: VI._vb._vtx_size=SIZE(Vtx3DTexCol  ); shader=Sh.Draw2DDepthTex[FlagTest(VI._user_flag, VI_ALPHA_TEST)][1]                                        ; vf=&VI._vf3D_tex_col  ; D.depth(true ); D.cull(false); break;
@@ -1669,15 +1697,7 @@ void VtxIndBuf::clear()
    if(VI._user_flag)
    {
       if(VI._user_flag&VI_CUSTOM_DEPTH_WRITE)D.depthWrite(VI._depth_write); // reset depth writing
-      if(VI._user_flag&VI_CUSTOM_TEX_WRAP   ) // reset the sampler
-      {
-      #if DX11
-         if(D._sampler2D)SamplerLinearClamp.setPS(SSI_DEFAULT);
-         else            SamplerAnisotropic.setPS(SSI_DEFAULT);
-      #else
-         Sh.Img[0]->_sampler=null;
-      #endif
-      }
+      if(VI._user_flag&VI_CUSTOM_SAMPLER    )SamplerLinearClamp.setPS(SSI_DEFAULT_2D); // reset the sampler
       VI._user_flag=0; // clear the user flag
    }
 }
@@ -1691,8 +1711,8 @@ void VtxIndBuf::end()
    clear();
 }
 /******************************************************************************/
-void VtxIndBuf::shader(Shader *shader) {VI._shader=shader;}
-void VtxIndBuf::image (C Image *image) {VI._image =image ; Sh.Img[0]->set(image);}
+void VtxIndBuf::shader(C Shader *shader) {VI._shader=shader;}
+void VtxIndBuf::image (C Image  *image ) {VI._image =image ; Sh.Img[0]->set(image);}
 
 void VtxIndBuf::imageConditional(C Image *image, ShaderImage &shader_image)
 {
@@ -1705,6 +1725,7 @@ void VtxIndBuf::imageConditional(C Image *image, ShaderImage &shader_image)
 }
 void VtxIndBuf::color (C Vec4  &color) {Sh.Color[0]->set(color);} // don't do any caching here "if(T._color!=color).." because 'Sh.Color' can be changed freely across the engine
 void VtxIndBuf::color (C Color &color) {Sh.Color[0]->set(color);} // don't do any caching here "if(T._color!=color).." because 'Sh.Color' can be changed freely across the engine
+void VtxIndBuf::color1(C Vec4  &color) {Sh.Color[1]->set(color);}
 void VtxIndBuf::color1(C Color &color) {Sh.Color[1]->set(color);}
 
 void VtxIndBuf::cull      (Bool cull) {FlagSet(VI._user_flag, VI_CULL      , cull);}
@@ -1712,42 +1733,11 @@ void VtxIndBuf::alphaTest (Bool on  ) {FlagSet(VI._user_flag, VI_ALPHA_TEST, on 
 void VtxIndBuf::fog       (Bool on  ) {FlagSet(VI._user_flag, VI_FOG       , on  );}
 void VtxIndBuf::depthWrite(Bool on  ) {if(!(VI._user_flag&VI_CUSTOM_DEPTH_WRITE)){VI._depth_write=D._depth_write; VI._user_flag|=VI_CUSTOM_DEPTH_WRITE;} D.depthWrite(on);}
 
-void VtxIndBuf::clamp()
-{
-   FlagEnable(VI._user_flag, VI_CUSTOM_TEX_WRAP);
-#if DX11
-   SamplerLinearClamp.setPS(SSI_DEFAULT);
-#else
-   Sh.Img[0]->_sampler=&SamplerLinearClamp;
-#endif
-}
-void VtxIndBuf::wrap()
-{
-   FlagEnable(VI._user_flag, VI_CUSTOM_TEX_WRAP);
-#if DX11
-   SamplerLinearWrap.setPS(SSI_DEFAULT);
-#else
-   Sh.Img[0]->_sampler=&SamplerLinearWrap;
-#endif
-}
-void VtxIndBuf::wrapX()
-{
-   FlagEnable(VI._user_flag, VI_CUSTOM_TEX_WRAP);
-#if DX11
-   SamplerLinearWCC.setPS(SSI_DEFAULT);
-#else
-   Sh.Img[0]->_sampler=&SamplerLinearWCC;
-#endif
-}
-void VtxIndBuf::wrapY()
-{
-   FlagEnable(VI._user_flag, VI_CUSTOM_TEX_WRAP);
-#if DX11
-   SamplerLinearCWC.setPS(SSI_DEFAULT);
-#else
-   Sh.Img[0]->_sampler=&SamplerLinearCWC;
-#endif
-}
+void VtxIndBuf::clamp     () {FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER); SamplerLinearClamp     .setPS(SSI_DEFAULT_2D);}
+void VtxIndBuf::wrap      () {FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER); SamplerLinearWrap      .setPS(SSI_DEFAULT_2D);}
+void VtxIndBuf::wrapX     () {FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER); SamplerLinearWCC       .setPS(SSI_DEFAULT_2D);}
+void VtxIndBuf::wrapY     () {FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER); SamplerLinearCWC       .setPS(SSI_DEFAULT_2D);}
+void VtxIndBuf::clampAniso() {FlagEnable(VI._user_flag, VI_CUSTOM_SAMPLER); SamplerAnisotropicClamp.setPS(SSI_DEFAULT_2D);}
 /******************************************************************************/
 void VtxIndBuf::flush()
 {
@@ -1941,18 +1931,6 @@ void VtxIndBuf::line(C Vec2 &a, C Vec2 &b)
       v[1].pos=b;
    }
 }
-void VtxIndBuf::line(C Vec2 &a, C Vec2 &b, Flt width)
-{
-   Vec2 perp=Perp(b-a); perp.setLength(width);
-   setFirst(VI_2D_FLAT, VI_QUAD_IND);
-   if(Vtx2DFlat *v=(Vtx2DFlat*)VI.addVtx(4))
-   {
-      v[0].pos.set(a.x-perp.x, a.y-perp.y);
-      v[1].pos.set(b.x-perp.x, b.y-perp.y);
-      v[2].pos.set(b.x+perp.x, b.y+perp.y);
-      v[3].pos.set(a.x+perp.x, a.y+perp.y);
-   }
-}
 void VtxIndBuf::line(C Vec &a, C Vec &b)
 {
    setFirst(VI_3D_FLAT, VI_LINE);
@@ -1998,6 +1976,46 @@ void VtxIndBuf::line(C Color &col_a, C Color &col_b, C Vec &a, C Vec &b)
    {
       v[0].pos=a; v[0].color=col_a;
       v[1].pos=b; v[1].color=col_b;
+   }
+}
+/******************************************************************************/
+void VtxIndBuf::line(C Vec2 &a, C Vec2 &b, Flt width)
+{
+   Vec2 perp=Perp(b-a); perp.setLength(width);
+   setFirst(VI_2D_FLAT, VI_QUAD_IND);
+   if(Vtx2DFlat *v=(Vtx2DFlat*)VI.addVtx(4))
+   {
+      v[0].pos.set(a.x-perp.x, a.y-perp.y);
+      v[1].pos.set(b.x-perp.x, b.y-perp.y);
+      v[2].pos.set(b.x+perp.x, b.y+perp.y);
+      v[3].pos.set(a.x+perp.x, a.y+perp.y);
+   }
+}
+void VtxIndBuf::line(C Color &color, C Vec2 &a, C Vec2 &b, Flt width)
+{
+   Vec2 perp=Perp(b-a); perp.setLength(width);
+   setFirst(VI_2D_COL, VI_QUAD_IND);
+   if(Vtx2DCol *v=(Vtx2DCol*)VI.addVtx(4))
+   {
+      v[0].pos.set(a.x-perp.x, a.y-perp.y);
+      v[1].pos.set(b.x-perp.x, b.y-perp.y);
+      v[2].pos.set(b.x+perp.x, b.y+perp.y);
+      v[3].pos.set(a.x+perp.x, a.y+perp.y);
+      v[0].color=v[1].color=v[2].color=v[3].color=color;
+   }
+}
+void VtxIndBuf::line(C Color &col_a, C Color &col_b, C Vec2 &a, C Vec2 &b, Flt width)
+{
+   Vec2 perp=Perp(b-a); perp.setLength(width);
+   setFirst(VI_2D_COL, VI_QUAD_IND);
+   if(Vtx2DCol *v=(Vtx2DCol*)VI.addVtx(4))
+   {
+      v[0].pos.set(a.x-perp.x, a.y-perp.y);
+      v[1].pos.set(b.x-perp.x, b.y-perp.y);
+      v[2].pos.set(b.x+perp.x, b.y+perp.y);
+      v[3].pos.set(a.x+perp.x, a.y+perp.y);
+      v[0].color=v[3].color=col_a;
+      v[1].color=v[2].color=col_b;
    }
 }
 /******************************************************************************/

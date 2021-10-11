@@ -1078,7 +1078,7 @@ Source::Source() : undos(true, this, 15)
 {
    lit_symbol=null;
    win_io_save=null;
-   active=was_active=header=ee_header=false; opened=false; Const=false; view_comments=view_funcs=true; view_func_bodies=view_private_members=false;
+   active=was_active=header=ee_header=false; opened=false; Const=false; view_comments=view_funcs=view_func_bodies=true; view_private_members=false;
    recursive=parse_count=0; preproc_line_changed=highlight_line=-1; highlight_time=0; cur=0; sel=sel_temp=-1; lc_offset.zero(); delUndo();
    create().skin(&CE.source_skin, false); kb_lit=false; setScroll(); setHideSlideBar();
    T+=suggestions_region  .create().hide();

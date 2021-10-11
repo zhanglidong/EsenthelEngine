@@ -23,6 +23,7 @@ struct VecI4;
 struct VecB4;
 struct VecSB4;
 
+struct Plane2;
 struct Plane;
 struct PlaneM;
 struct PlaneD;
@@ -55,6 +56,8 @@ struct BoxI;
 struct OBox;
 struct Extent;
 struct Circle;
+struct CircleM;
+struct CircleD;
 struct Ball;
 struct BallM;
 struct BallD;
@@ -200,10 +203,12 @@ struct Str8;
 struct Str;
 struct BStr;
 struct File;
+struct FileText;
 struct PakFile;
 struct Pak;
 struct PakSet;
 struct PakProgress;
+struct PakInPlace;
 struct PakNode;
 struct PakFileData;
 struct TextNode;
@@ -240,6 +245,7 @@ struct Object;
 struct DataCallback;
 struct Notification;
 struct IndexWeight;
+struct SysWindow;
 /******************************************************************************/
 // SOUND
 /******************************************************************************/

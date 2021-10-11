@@ -9,11 +9,11 @@ BUFFER_END
 #include "!Set Prec Default.h"
 /******************************************************************************/
 #ifdef NUM
-VecH4 VolDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-                NOPERSP Vec2 inPosXY:TEXCOORD1,
-                NOPERSP PIXEL                 ):TARGET
+VecH4 VolDir_PS(NOPERSP Vec2 uv   :UV,
+                NOPERSP Vec2 posXY:POS_XY,
+                NOPERSP PIXEL            ):TARGET
 {
-   Vec obj   =GetPosLinear(inTex, inPosXY); // use linear filtering because we may be drawing to a smaller RT
+   Vec obj   =GetPosLinear(uv, posXY); // use linear filtering because we may be drawing to a smaller RT
    Flt power =0,
        length=Length(obj);
    if( length>ShdRange)
@@ -39,11 +39,11 @@ VecH4 VolDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 }
 #endif
 /******************************************************************************/
-VecH4 VolPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-                  NOPERSP Vec2 inPosXY:TEXCOORD1,
-                  NOPERSP PIXEL                 ):TARGET
+VecH4 VolPoint_PS(NOPERSP Vec2 uv   :UV,
+                  NOPERSP Vec2 posXY:POS_XY,
+                  NOPERSP PIXEL            ):TARGET
 {
-   Vec obj   =GetPosLinear(inTex, inPosXY); // use linear filtering because we may be drawing to a smaller RT
+   Vec obj   =GetPosLinear(uv, posXY); // use linear filtering because we may be drawing to a smaller RT
    Flt power =0,
        length=Length(obj);
    if( length>Viewport.range)
@@ -67,11 +67,11 @@ VecH4 VolPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    return VecH4(LightPoint.color.rgb*Min(LightPoint.vol_max, LightPoint.vol*power*(length/steps)), 0);
 }
 /******************************************************************************/
-VecH4 VolLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-                   NOPERSP Vec2 inPosXY:TEXCOORD1,
-                   NOPERSP PIXEL                 ):TARGET
+VecH4 VolLinear_PS(NOPERSP Vec2 uv   :UV,
+                   NOPERSP Vec2 posXY:POS_XY,
+                   NOPERSP PIXEL            ):TARGET
 {
-   Vec obj   =GetPosLinear(inTex, inPosXY); // use linear filtering because we may be drawing to a smaller RT
+   Vec obj   =GetPosLinear(uv, posXY); // use linear filtering because we may be drawing to a smaller RT
    Flt power =0,
        length=Length(obj);
    if( length>Viewport.range)
@@ -94,11 +94,11 @@ VecH4 VolLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    return VecH4(LightLinear.color.rgb*Min(LightLinear.vol_max, LightLinear.vol*power*(length/steps)), 0);
 }
 /******************************************************************************/
-VecH4 VolCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-                 NOPERSP Vec2 inPosXY:TEXCOORD1,
-                 NOPERSP PIXEL                 ):TARGET
+VecH4 VolCone_PS(NOPERSP Vec2 uv   :UV,
+                 NOPERSP Vec2 posXY:POS_XY,
+                 NOPERSP PIXEL            ):TARGET
 {
-   Vec obj   =GetPosLinear(inTex, inPosXY), // use linear filtering because we may be drawing to a smaller RT
+   Vec obj   =GetPosLinear(uv, posXY), // use linear filtering because we may be drawing to a smaller RT
        scale =Vec(LightCone.scale, LightCone.scale, 1);
    Flt power =0,
        length=Length(obj);
@@ -126,21 +126,21 @@ VecH4 VolCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    return VecH4(LightCone.color.rgb*Min(LightCone.vol_max, LightCone.vol*power*(length/steps)), 0);
 }
 /******************************************************************************/
-VecH4 Volumetric_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+VecH4 Volumetric_PS(NOPERSP Vec2 uv:UV):TARGET
 {
-   VecH vol=TexLod(Img, inTex).rgb; // use linear filtering because 'Img' may be smaller
+   VecH vol=TexLod(Img, uv).rgb; // use linear filtering because 'Img' may be smaller
 
    const Int samples=6;
    UNROLL for(Int i=0; i<samples; i++)
    {
       Vec2 t;
-      if(samples== 4)t=ImgSize.xy*BlendOfs4 [i]+inTex;
-    //if(samples== 5)t=ImgSize.xy*BlendOfs5 [i]+inTex;
-      if(samples== 6)t=ImgSize.xy*BlendOfs6 [i]+inTex;
-      if(samples== 8)t=ImgSize.xy*BlendOfs8 [i]+inTex;
-    //if(samples== 9)t=ImgSize.xy*BlendOfs9 [i]+inTex;
-      if(samples==12)t=ImgSize.xy*BlendOfs12[i]+inTex;
-    //if(samples==13)t=ImgSize.xy*BlendOfs13[i]+inTex;
+      if(samples== 4)t=ImgSize.xy*BlendOfs4 [i]+uv;
+    //if(samples== 5)t=ImgSize.xy*BlendOfs5 [i]+uv;
+      if(samples== 6)t=ImgSize.xy*BlendOfs6 [i]+uv;
+      if(samples== 8)t=ImgSize.xy*BlendOfs8 [i]+uv;
+    //if(samples== 9)t=ImgSize.xy*BlendOfs9 [i]+uv;
+      if(samples==12)t=ImgSize.xy*BlendOfs12[i]+uv;
+    //if(samples==13)t=ImgSize.xy*BlendOfs13[i]+uv;
 
       vol+=TexLod(Img, t).rgb; // use linear filtering because 'Img' may be smaller and texcoords are not rounded
    }
@@ -150,7 +150,7 @@ VecH4 Volumetric_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 #if ADD
    return VecH4(vol, 0); // alpha blending : ALPHA_ADD
 #else
-   Half max=Max(vol); return VecH4(vol/(HALF_MIN+max), max); // alpha blending : ALPHA_BLEND_DEC
+   Half max=Max(vol); return VecH4(vol/(HALF_MIN+max), max); // alpha blending : ALPHA_RENDER_BLEND
 #endif
 }
 /******************************************************************************/

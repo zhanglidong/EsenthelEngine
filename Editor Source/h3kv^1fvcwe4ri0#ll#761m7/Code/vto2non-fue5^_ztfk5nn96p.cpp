@@ -1,6 +1,6 @@
 /******************************************************************************/
-const uint ProjectVersion     =76, // !! increase this by one if any of engine/editor asset formats have changed !!
-           ClientServerVersion=76; // !! client/server version (client will fail if tries to connect to server compiled with different version), increase this by one if any of engine resource formats have changed or if the network protocol has changed or if editor classes formats have changed !!
+const uint ProjectVersion     =86, // !! increase this by one if any of engine/editor asset formats have changed !!
+           ClientServerVersion=86; // !! client/server version (client will fail if tries to connect to server compiled with different version), increase this by one if any of engine resource formats have changed or if the network protocol has changed or if editor classes formats have changed !!
 const Str  ClientServerString ="Esenthel Editor";
 /******************************************************************************/
 const cchar8       *WorldVerSuffix     ="\\Data",
@@ -62,12 +62,12 @@ const int           ForceInstaller=-2, // -2=disable and don't update, -1=disabl
                     MeshSplitMinSize=4;     // min size of mesh box (in meters) to split it
 const MESH_FLAG     MeshJoinAllTestVtxFlag=VTX_HLP|VTX_SIZE; // this is because of "Leaf" shader which works differently depending on existence of these components, testing for color/skin is not needed because parts that don't have them will have default values set (WHITE color, 0-bone/matrix)
 
-const Edit.Material.TEX_QUALITY MinMtrlTexQualityBase0 =Edit.Material.LOW   , // minimum texture compression quality for Material Base0  Texture (RGBA              ) #MaterialTextureLayout, set to LOW    because can be maximized based on 'ElmMaterial.tex_quality/EditMaterial.tex_quality'
-                                MinMtrlTexQualityBase1 =Edit.Material.HIGH  , // minimum texture compression quality for Material Base1  Texture (NxNy              ) #MaterialTextureLayout, set to HIGH   because normals need this (without this, they get very blocky due to low quality)
-                                MinMtrlTexQualityBase2 =Edit.Material.MEDIUM, // minimum texture compression quality for Material Base2  Texture (SmoothReflBumpGlow) #MaterialTextureLayout, set to MEDIUM because can't be changed otherwise
-                                MinMtrlTexQualityDetail=Edit.Material.HIGH  , // minimum texture compression quality for Material Detail Texture (NxNyColSmooth     ) #MaterialTextureLayout, set to HIGH   because normals need this (without this, they get very blocky due to low quality)
-                                MinMtrlTexQualityMacro =Edit.Material.LOW   , // minimum texture compression quality for Material Macro  Texture (RGB               ) #MaterialTextureLayout, set to LOW    because can be maximized based on 'ElmMaterial.tex_quality/EditMaterial.tex_quality'
-                                MinMtrlTexQualityLight =Edit.Material.MEDIUM; // minimum texture compression quality for Material Light  Texture (RGB               ) #MaterialTextureLayout, set to MEDIUM because can't be changed otherwise
+const Edit.Material.TEX_QUALITY MinMtrlTexQualityBase0 =Edit.Material.LOW   , // minimum texture compression quality for Material Base0  Texture (RGBA              ) #MaterialTextureLayout      , set to LOW    because can be maximized based on 'ElmMaterial.tex_quality/EditMaterial.tex_quality'
+                                MinMtrlTexQualityBase1 =Edit.Material.HIGH  , // minimum texture compression quality for Material Base1  Texture (NxNy              ) #MaterialTextureLayout      , set to HIGH   because normals need this (without this, they get very blocky due to low quality)
+                                MinMtrlTexQualityBase2 =Edit.Material.MEDIUM, // minimum texture compression quality for Material Base2  Texture (MetalRoughBumpGlow) #MaterialTextureLayout      , set to MEDIUM because can't be changed otherwise
+                                MinMtrlTexQualityDetail=Edit.Material.HIGH  , // minimum texture compression quality for Material Detail Texture (NxNyRoughCol      ) #MaterialTextureLayoutDetail, set to HIGH   because normals need this (without this, they get very blocky due to low quality)
+                                MinMtrlTexQualityMacro =Edit.Material.LOW   , // minimum texture compression quality for Material Macro  Texture (RGB               ) #MaterialTextureLayout      , set to LOW    because can be maximized based on 'ElmMaterial.tex_quality/EditMaterial.tex_quality'
+                                MinMtrlTexQualityLight =Edit.Material.MEDIUM; // minimum texture compression quality for Material Light  Texture (RGB               ) #MaterialTextureLayout      , set to MEDIUM because can't be changed otherwise
 
 const COMPRESS_TYPE ServerNetworkCompression     =COMPRESS_LZ4, ClientNetworkCompression     =COMPRESS_LZMA, EsenthelProjectCompression     =COMPRESS_LZMA;
 const int           ServerNetworkCompressionLevel=9           , ClientNetworkCompressionLevel=9            , EsenthelProjectCompressionLevel=9;
@@ -135,7 +135,7 @@ class ClassNameDesc
 }
 ClassNameDesc CipherText[]=
 {
-   {null     , "No Encryption", u"Project data is not going to be encrypted (not recommended).\nAnyone will be able to access your project files.\nHowever this mode has the best performance x20"}, // CIPHER_NONE
+   {null     , "No Encryption", u"Project data is not going to be encrypted (not recommended).\nAnyone will be able to access your project files.\nHowever this mode has the best performance x6"}, // CIPHER_NONE
    {"Cipher1", "Cipher 1"     , u"Project data is going to be encrypted using 'Cipher1' class (recommended).\nIt offers good security and good performance x2"}, // CIPHER_1
    {"Cipher2", "Cipher 2"     , u"Project data is going to be encrypted using 'Cipher2' class.\nIt offers great security and medium performance x1.5"}, // CIPHER_2
    {"Cipher3", "Cipher 3"     , u"Project data is going to be encrypted using 'Cipher3' class.\nIt offers best security and low performance x1"}, // CIPHER_3
@@ -436,37 +436,37 @@ class MtrlImages
       }
       operator ImageSource()C {return ImageSource(T, size, filter, clamp);}
    }
-   bool        flip_normal_y=false;
+   bool        flip_normal_y=false, smooth_is_rough=false;
    int         tex=0;
-   ImageResize color, alpha, bump, normal, smooth, reflect, glow;
+   ImageResize color, alpha, bump, normal, smooth, metal, glow;
    
    MtrlImages& del()
    {
-      flip_normal_y=false;
+      flip_normal_y=smooth_is_rough=false;
       tex=0;
-      color.del(); alpha.del(); bump.del(); normal.del(); smooth.del(); reflect.del(); glow.del();
+      color.del(); alpha.del(); bump.del(); normal.del(); smooth.del(); metal.del(); glow.del();
       return T;
    }
    /*bool create(C VecI2 &size)
    {
       del();
-      return color  .createTry(size, IMAGE_R8G8B8_SRGB)
-          && alpha  .createTry(size, IMAGE_I8)
-          && bump   .createTry(size, IMAGE_I8)
-          && normal .createTry(size, IMAGE_R8G8B8)
-          && smooth .createTry(size, IMAGE_I8)
-          && reflect.createTry(size, IMAGE_I8)
-          && glow   .createTry(size, IMAGE_I8);
+      return color .createTry(size, IMAGE_R8G8B8_SRGB)
+          && alpha .createTry(size, IMAGE_I8)
+          && bump  .createTry(size, IMAGE_I8)
+          && normal.createTry(size, IMAGE_R8G8B8)
+          && smooth.createTry(size, IMAGE_I8)
+          && metal .createTry(size, IMAGE_I8)
+          && glow  .createTry(size, IMAGE_I8);
    }
    void clear()
    {
-      flip_normal_y=false;
+      flip_normal_y=smooth_is_rough=false;
       tex=0;
-      color  .clear();
-      alpha  .clear();
-      smooth .clear();
-      reflect.clear();
-      glow   .clear();
+      color .clear();
+      alpha .clear();
+      smooth.clear();
+      metal .clear();
+      glow  .clear();
 
       REPD(y, bump.h())
       REPD(x, bump.w())bump.pixB(x, y)=128;
@@ -477,23 +477,23 @@ class MtrlImages
    }
    void compact()
    {
-      if(!(tex&BT_COLOR  ))color  .del();
-      if(!(tex&BT_ALPHA  ))alpha  .del();
-      if(!(tex&BT_BUMP   ))bump   .del();
-      if(!(tex&BT_NORMAL ))normal .del();
-      if(!(tex&BT_SMOOTH ))smooth .del();
-      if(!(tex&BT_REFLECT))reflect.del();
-      if(!(tex&BT_GLOW   ))glow   .del();
+      if(!(tex&TEXF_COLOR ))color .del();
+      if(!(tex&TEXF_ALPHA ))alpha .del();
+      if(!(tex&TEXF_BUMP  ))bump  .del();
+      if(!(tex&TEXF_NORMAL))normal.del();
+      if(!(tex&TEXF_SMOOTH))smooth.del();
+      if(!(tex&TEXF_METAL ))metal .del();
+      if(!(tex&TEXF_GLOW  ))glow  .del();
    }
    void Export(C Str &name, C Str &ext)C
    {
-      color  .Export(name+"color."  +ext);
-      alpha  .Export(name+"alpha."  +ext);
-      bump   .Export(name+"bump."   +ext);
-      normal .Export(name+"normal." +ext);
-      smooth .Export(name+"smooth." +ext);
-      reflect.Export(name+"reflect."+ext);
-      glow   .Export(name+"glow."   +ext);
+      color .Export(name+"color." +ext);
+      alpha .Export(name+"alpha." +ext);
+      bump  .Export(name+"bump."  +ext);
+      normal.Export(name+"normal."+ext);
+      smooth.Export(name+"smooth."+ext);
+      metal .Export(name+"metal." +ext);
+      glow  .Export(name+"glow."  +ext);
    }
    static void Crop(ImageResize &image, C Rect &frac)
    {
@@ -514,110 +514,112 @@ class MtrlImages
    }
    void crop(C Rect &frac)
    {
-      Crop(color  , frac);
-      Crop(alpha  , frac);
-      Crop(bump   , frac);
-      Crop(normal , frac);
-      Crop(smooth , frac);
-      Crop(reflect, frac);
-      Crop(glow   , frac);
+      Crop(color , frac);
+      Crop(alpha , frac);
+      Crop(bump  , frac);
+      Crop(normal, frac);
+      Crop(smooth, frac);
+      Crop(metal , frac);
+      Crop(glow  , frac);
    }
    void resize(C VecI2 &size)
    {
       if(size.x>=0 || size.y>=0)
       {
-         color  .resize(size);
-         alpha  .resize(size);
-         bump   .resize(size);
-         normal .resize(size);
-         smooth .resize(size);
-         reflect.resize(size);
-         glow   .resize(size);
+         color .resize(size);
+         alpha .resize(size);
+         bump  .resize(size);
+         normal.resize(size);
+         smooth.resize(size);
+         metal .resize(size);
+         glow  .resize(size);
       }
    }
    void apply()
    {
-      color  .apply();
-      alpha  .apply();
-      bump   .apply();
-      normal .apply();
-      smooth .apply();
-      reflect.apply();
-      glow   .apply();
+      color .apply();
+      alpha .apply();
+      bump  .apply();
+      normal.apply();
+      smooth.apply();
+      metal .apply();
+      glow  .apply();
    }*/
-   void fromMaterial(C EditMaterial &material, C Project &proj, bool changed_flip_normal_y=false)
+   void fromMaterial(C EditMaterial &material, C Project &proj, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false)
    {
       del();
 
       // here when loading images, load them without resize, in case for example bump is original 256x256, resized to 128x128, and normal created from bump resized to 256x256, normally normal would be created from bump that was already resized from 256x256 to 128x128 and then resized again to 256x256
-      TextParam color_resize, alpha_resize, smooth_resize, reflect_resize, bump_resize, normal_resize, glow_resize;
+      TextParam color_resize, alpha_resize, smooth_resize, metal_resize, bump_resize, normal_resize, glow_resize;
 
-      // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !!
-      bool color_ok=proj.loadImages(  color, &  color_resize, material.  color_map, true , false),
-           alpha_ok=proj.loadImages(  alpha, &  alpha_resize, material.  alpha_map, false, false, WHITE, &color, &color_resize),
-          smooth_ok=proj.loadImages( smooth, & smooth_resize, material. smooth_map, false, false, WHITE, &color, &color_resize),
-         reflect_ok=proj.loadImages(reflect, &reflect_resize, material.reflect_map, false, false, WHITE, &color, &color_resize, &smooth, &smooth_resize),
-            bump_ok=proj.loadImages(   bump, &   bump_resize, material.   bump_map, false, false, GREY , &color, &color_resize, &smooth, &smooth_resize),
-          normal_ok=proj.loadImages( normal, & normal_resize, material. normal_map, false, false, Color(128, 128, 255), &color, &color_resize, &smooth, &smooth_resize, &bump, &bump_resize),
-            glow_ok=proj.loadImages(   glow, &   glow_resize, material.   glow_map, false, false);
+      // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !! #MaterialTextureLayout
+      bool color_ok=proj.loadImages( color, & color_resize, material.  color_map, true , false),
+           alpha_ok=proj.loadImages( alpha, & alpha_resize, material.  alpha_map, false, false, WHITE, &color, &color_resize),
+          smooth_ok=proj.loadImages(smooth, &smooth_resize, material. smooth_map, false, false, BLACK, &color, &color_resize),
+           metal_ok=proj.loadImages( metal, & metal_resize, material.  metal_map, false, false, BLACK, &color, &color_resize, &smooth, &smooth_resize),
+            bump_ok=proj.loadImages(  bump, &  bump_resize, material.   bump_map, false, false, GREY , &color, &color_resize, &smooth, &smooth_resize),
+          normal_ok=proj.loadImages(normal, &normal_resize, material. normal_map, false, false, Color(128, 128, 255), &color, &color_resize, &smooth, &smooth_resize, &bump, &bump_resize),
+            glow_ok=proj.loadImages(  glow, &  glow_resize, material.   glow_map, false, false);
 
       // process resize
-      if(  color_ok)  color.setFrom(  color_resize);
-      if(  alpha_ok)  alpha.setFrom(  alpha_resize);
-      if( smooth_ok) smooth.setFrom( smooth_resize);
-      if(reflect_ok)reflect.setFrom(reflect_resize);
-      if(   bump_ok)   bump.setFrom(   bump_resize);
-      if( normal_ok) normal.setFrom( normal_resize);
-      if(   glow_ok)   glow.setFrom(   glow_resize);
+      if( color_ok) color.setFrom( color_resize);
+      if( alpha_ok) alpha.setFrom( alpha_resize);
+      if(smooth_ok)smooth.setFrom(smooth_resize);
+      if( metal_ok) metal.setFrom( metal_resize);
+      if(  bump_ok)  bump.setFrom(  bump_resize);
+      if(normal_ok)normal.setFrom(normal_resize);
+      if(  glow_ok)  glow.setFrom(  glow_resize);
 
       if(!color_ok && !material. alpha_map.is()) alpha_ok=false; // if color map failed to load, and there is no dedicated alpha  map, and since it's possible that alpha  was created from the color, which is not available, so alpha  needs to be marked as failed
       if(! bump_ok && !material.normal_map.is())normal_ok=false; // if bump  map failed to load, and there is no dedicated normal map, and since it's possible that normal was created from the bump , which is not available, so normal needs to be marked as failed
 
       ExtractBaseTextures(proj, material.base_0_tex, material.base_1_tex, material.base_2_tex,
-         color_ok ? null : &color, alpha_ok ? null : &alpha, bump_ok ? null : &bump, normal_ok ? null : &normal, smooth_ok ? null : &smooth, reflect_ok ? null : &reflect, glow_ok ? null : &glow);
+         color_ok ? null : &color, alpha_ok ? null : &alpha, bump_ok ? null : &bump, normal_ok ? null : &normal, smooth_ok ? null : &smooth, metal_ok ? null : &metal, glow_ok ? null : &glow);
 
-      T.flip_normal_y=(normal_ok ? material.flip_normal_y : changed_flip_normal_y); // if we failed to load the original image, and instead we're using extracted normal map, then we need to flip Y only if we're changing flipping at this moment
+      T.flip_normal_y  =(normal_ok ? material.flip_normal_y   : changed_flip_normal_y  ); // if we failed to load the original image, and instead we're using extracted normal map, then we need to flip Y only if we're changing flipping at this moment
+      T.smooth_is_rough=(smooth_ok ? material.smooth_is_rough : changed_smooth_is_rough);
    }
-   void fromMaterial(C EditWaterMtrl &material, C Project &proj, bool changed_flip_normal_y=false)
+   void fromMaterial(C EditWaterMtrl &material, C Project &proj, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false)
    {
       del();
 
       // here when loading images, load them without resize, in case for example bump is original 256x256, resized to 128x128, and normal created from bump resized to 256x256, normally normal would be created from bump that was already resized from 256x256 to 128x128 and then resized again to 256x256
-      TextParam color_resize, alpha_resize, smooth_resize, reflect_resize, bump_resize, normal_resize, glow_resize;
+      TextParam color_resize, alpha_resize, smooth_resize, metal_resize, bump_resize, normal_resize, glow_resize;
 
-      // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !!
-      bool color_ok=proj.loadImages(  color, &  color_resize, material.  color_map, true , false),
-           alpha_ok=proj.loadImages(  alpha, &  alpha_resize, material.  alpha_map, false, false, WHITE, &color, &color_resize),
-          smooth_ok=proj.loadImages( smooth, & smooth_resize, material. smooth_map, false, false, WHITE, &color, &color_resize),
-         reflect_ok=proj.loadImages(reflect, &reflect_resize, material.reflect_map, false, false, WHITE, &color, &color_resize, &smooth, &smooth_resize),
-            bump_ok=proj.loadImages(   bump, &   bump_resize, material.   bump_map, false, false, GREY , &color, &color_resize, &smooth, &smooth_resize),
-          normal_ok=proj.loadImages( normal, & normal_resize, material. normal_map, false, false, Color(128, 128, 255), &color, &color_resize, &smooth, &smooth_resize, &bump, &bump_resize),
-            glow_ok=proj.loadImages(   glow, &   glow_resize, material.   glow_map, false, false);
+      // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !! #MaterialTextureLayoutWater
+      bool color_ok=proj.loadImages( color, & color_resize, material. color_map, true , false),
+           alpha_ok=proj.loadImages( alpha, & alpha_resize, material. alpha_map, false, false, WHITE, &color, &color_resize),
+          smooth_ok=proj.loadImages(smooth, &smooth_resize, material.smooth_map, false, false, WHITE, &color, &color_resize),
+           metal_ok=proj.loadImages( metal, & metal_resize, material. metal_map, false, false, BLACK, &color, &color_resize, &smooth, &smooth_resize),
+            bump_ok=proj.loadImages(  bump, &  bump_resize, material.  bump_map, false, false, GREY , &color, &color_resize, &smooth, &smooth_resize),
+          normal_ok=proj.loadImages(normal, &normal_resize, material.normal_map, false, false, Color(128, 128, 255), &color, &color_resize, &smooth, &smooth_resize, &bump, &bump_resize),
+            glow_ok=proj.loadImages(  glow, &  glow_resize, material.  glow_map, false, false);
 
       // process resize
-      if(  color_ok)  color.setFrom(  color_resize);
-      if(  alpha_ok)  alpha.setFrom(  alpha_resize);
-      if( smooth_ok) smooth.setFrom( smooth_resize);
-      if(reflect_ok)reflect.setFrom(reflect_resize);
-      if(   bump_ok)   bump.setFrom(   bump_resize);
-      if( normal_ok) normal.setFrom( normal_resize);
-      if(   glow_ok)   glow.setFrom(   glow_resize);
+      if( color_ok) color.setFrom( color_resize);
+      if( alpha_ok) alpha.setFrom( alpha_resize);
+      if(smooth_ok)smooth.setFrom(smooth_resize);
+      if( metal_ok) metal.setFrom( metal_resize);
+      if(  bump_ok)  bump.setFrom(  bump_resize);
+      if(normal_ok)normal.setFrom(normal_resize);
+      if(  glow_ok)  glow.setFrom(  glow_resize);
 
       if(!color_ok && !material. alpha_map.is()) alpha_ok=false; // if color map failed to load, and there is no dedicated alpha  map, and since it's possible that alpha  was created from the color, which is not available, so alpha  needs to be marked as failed
       if(! bump_ok && !material.normal_map.is())normal_ok=false; // if bump  map failed to load, and there is no dedicated normal map, and since it's possible that normal was created from the bump , which is not available, so normal needs to be marked as failed
 
       ExtractWaterBaseTextures(proj, material.base_0_tex, material.base_1_tex, material.base_2_tex,
-         color_ok ? null : &color, alpha_ok ? null : &alpha, bump_ok ? null : &bump, normal_ok ? null : &normal, smooth_ok ? null : &smooth, reflect_ok ? null : &reflect, glow_ok ? null : &glow);
+         color_ok ? null : &color, alpha_ok ? null : &alpha, bump_ok ? null : &bump, normal_ok ? null : &normal, smooth_ok ? null : &smooth, metal_ok ? null : &metal, glow_ok ? null : &glow);
 
-      T.flip_normal_y=(normal_ok ? material.flip_normal_y : changed_flip_normal_y); // if we failed to load the original image, and instead we're using extracted normal map, then we need to flip Y only if we're changing flipping at this moment
+      T.flip_normal_y  =(normal_ok ? material.flip_normal_y   : changed_flip_normal_y  ); // if we failed to load the original image, and instead we're using extracted normal map, then we need to flip Y only if we're changing flipping at this moment
+      T.smooth_is_rough=(smooth_ok ? material.smooth_is_rough : changed_smooth_is_rough);
    }
-   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2)C
+   TEX_FLAG createBaseTextures(Image &base_0, Image &base_1, Image &base_2)C
    {
-      return CreateBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, reflect, glow, true, flip_normal_y);
+      return CreateBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, metal, glow, true, flip_normal_y, smooth_is_rough);
    }
-   uint createWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2)C
+   TEX_FLAG createWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2)C
    {
-      return CreateWaterBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, reflect, glow, true, flip_normal_y);
+      return CreateWaterBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, metal, glow, true, flip_normal_y, smooth_is_rough);
    }
    void baseTextureSizes(VecI2 *size0, VecI2 *size1, VecI2 *size2)
    { // TODO: this could be optimized by calculating Max of image sizes, however there are some special cases (normal made from bump, etc.)

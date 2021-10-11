@@ -38,7 +38,8 @@ static const CChar8 *ShaderTypeName[]=
    "HS", // 1
    "DS", // 2
    "PS", // 3
-}; ASSERT(ST_VS==0 && ST_HS==1 && ST_DS==2 && ST_PS==3 && ST_NUM==4);
+   "CS", // 4
+}; ASSERT(ST_VS==0 && ST_HS==1 && ST_DS==2 && ST_PS==3 && ST_CS==4 && ST_NUM==5);
 /******************************************************************************/
 static Bool HasData(CPtr data, Int size)
 {
@@ -210,6 +211,8 @@ void ShaderCompiler::Param::addTranslation(ID3D11ShaderReflectionType *type, C D
          switch(type_desc.Type)
          {
             case D3D_SVT_BOOL      :
+            case D3D_SVT_INT       :
+            case D3D_SVT_UINT      :
             case D3D_SVT_FLOAT     :
             case D3D_SVT_MIN16FLOAT:
             {
@@ -269,6 +272,8 @@ void ShaderCompiler::Param::addTranslation(ID3D12ShaderReflectionType *type, C D
          switch(type_desc.Type)
          {
             case D3D_SVT_BOOL      :
+            case D3D_SVT_INT       :
+            case D3D_SVT_UINT      :
             case D3D_SVT_FLOAT     :
             case D3D_SVT_MIN16FLOAT:
             {
@@ -332,7 +337,7 @@ void ShaderCompiler::Param::addTranslation(spvc_compiler compiler, spvc_type_id 
    Int           elms=Max(array_elms, 1), last_index=elms-1; // 'array_elms' is 0 for non-arrays
    if(!is_struct)
    {
-      if(type!=SPVC_BASETYPE_FP32 && type!=SPVC_BASETYPE_UINT32)Exit(S+"Unhandled Shader Parameter Type for \""+names+'.'+name+'"');
+      if(type!=SPVC_BASETYPE_FP32 && type!=SPVC_BASETYPE_INT32 && type!=SPVC_BASETYPE_UINT32)Exit(S+"Unhandled Shader Parameter Type for \""+names+'.'+name+'"');
       auto vec_size=spvc_type_get_vector_size(var),
            cols    =spvc_type_get_columns    (var);
       if(vec_size<=0 || vec_size>4)Exit("Invalid Shader Param Vector Size");
@@ -453,6 +458,14 @@ ShaderCompiler::Shader& ShaderCompiler::Source::New(C Str &name, C Str8 &vs_func
    shader.sub[ST_PS].func_name=ps_func_name;
    return shader;
 }
+ShaderCompiler::Shader& ShaderCompiler::Source::computeNew(C Str &name, C Str8 &cs_func_name)
+{
+   Shader &shader=shaders.New();
+   shader.model=model;
+   shader.name =name;
+   shader.sub[ST_CS].func_name=cs_func_name;
+   return shader;
+}
 ShaderCompiler::Source::~Source()
 {
 #if DX_SHADER_COMPILER
@@ -499,13 +512,27 @@ static Bool Match(C ShaderCompiler::SubShader &output, C ShaderCompiler::SubShad
    REPA(input.inputs) // have to check only inputs, we can ignore outputs not present in inputs
    {
     C ShaderCompiler::IO &in=input.inputs[i];
-      if(!InRange(i, output.outputs) || in!=output.outputs[i])
-         if(in.name!="SV_SampleIndex" && in.name!="SV_IsFrontFace")
+      if(in.name!="SV_SampleIndex" && in.name!="SV_IsFrontFace" && in.name!="SV_PrimitiveID")
       {
+         REPA(output.outputs)if(in==output.outputs[i])goto found;
          error.line()+=S+"Input "+in.name+in.index+" register:"+in.reg+" in \""+input.func_name+"\" doesn't match output in \""+output.func_name+'"';
          ok=false;
+      found:;
       }
    }
+#if 1 // check outputs (if they're not needed, shaders will still work, however remove them for performance reason)
+   REPA(output.outputs)
+   {
+    C ShaderCompiler::IO &out=output.outputs[i];
+      if(out.name!="SV_Position" && out.name!="SV_ClipDistance")
+      {
+         REPA(input.inputs)if(out==input.inputs[i])goto found1;
+         error.line()+=S+"Output "+out.name+out.index+" register:"+out.reg+" in \""+output.func_name+"\" doesn't match input in \""+input.func_name+'"';
+         ok=false;
+      found1:;
+      }
+   }
+#endif
    return ok;
 }
 void ShaderCompiler::SubShader::compile()
@@ -520,6 +547,7 @@ void ShaderCompiler::SubShader::compile()
       case ST_HS: target[0]='h'; break;
       case ST_DS: target[0]='d'; break;
       case ST_PS: target[0]='p'; break;
+      case ST_CS: target[0]='c'; break;
    }
    target[1]='s';
    target[2]='_';
@@ -527,7 +555,7 @@ void ShaderCompiler::SubShader::compile()
    target[6]='\0';
 REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to process 2 times, first to extract default values, then to get actual results
 {
-   SHADER_MODEL model=shader->model; if(type==ST_HS || type==ST_DS)MAX(model, SM_5); // HS DS are supported only in SM5+
+   SHADER_MODEL model=shader->model; if(type==ST_HS || type==ST_DS || type==ST_CS)MAX(model, SM_5); // HS DS CS are supported only in SM5+ (CS in SM4 too but has limitations)
    if(!get_default_val && compiler->api!=API_DX)MAX(model, SM_6); // need to use new compiler for DX-> conversions
    switch(model)
    {
@@ -652,18 +680,20 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
                   {
                      D3D12_SHADER_DESC desc; if(!OK(reflection->GetDesc(&desc))){error.line()+="'ID3D12ShaderReflection.GetDesc' failed.";}else
                      {
-                        Int images_elms=0, buffers_elms=0;
+                        Int images_elms=0, rw_images_elms=0, buffers_elms=0;
                         FREP(desc.BoundResources)
                         {
                            D3D12_SHADER_INPUT_BIND_DESC desc; if(!OK(reflection->GetResourceBindingDesc(i, &desc))){error.line()+="'GetResourceBindingDesc' failed."; goto error_new;}
                            switch(desc.Type)
                            {
-                              case D3D_SIT_TEXTURE:  images_elms++; break;
-                              case D3D_SIT_CBUFFER: buffers_elms++; break;
+                              case D3D_SIT_TEXTURE    :    images_elms++; break;
+                              case D3D_SIT_UAV_RWTYPED: rw_images_elms++; break;
+                              case D3D_SIT_CBUFFER    :   buffers_elms++; break;
                            }
                         }
-                         images.setNum( images_elms);  images_elms=0;
-                        buffers.setNum(buffers_elms); buffers_elms=0;
+                         images.setNum(   images_elms);    images_elms=0;
+                      rw_images.setNum(rw_images_elms); rw_images_elms=0;
+                        buffers.setNum(  buffers_elms);   buffers_elms=0;
                         FREP(desc.BoundResources)
                         {
                            D3D12_SHADER_INPUT_BIND_DESC desc; if(!OK(reflection->GetResourceBindingDesc(i, &desc))){error.line()+="'GetResourceBindingDesc' failed."; goto error_new;}
@@ -673,6 +703,12 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
                               {
                                  if(!InRange(desc.BindPoint, MAX_SHADER_IMAGES)){error.line()+=S+"Image index: "+desc.BindPoint+", is too big"; goto error_new;}
                                  Image &image=images[images_elms++]; image.name=desc.Name; image.bind_slot=desc.BindPoint;
+                              }break;
+
+                              case D3D_SIT_UAV_RWTYPED:
+                              {
+                                 if(!InRange(desc.BindPoint, MAX_SHADER_IMAGES)){error.line()+=S+"RW Image index: "+desc.BindPoint+", is too big"; goto error_new;}
+                                 Image &image=rw_images[rw_images_elms++]; image.name=desc.Name; image.bind_slot=desc.BindPoint;
                               }break;
 
                               case D3D_SIT_CBUFFER:
@@ -717,12 +753,13 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
                               }break;
                            }
                         }
-                        if(get_default_val)images.del(); // we don't need images for default value, only buffers
+                        if(get_default_val){images.del(); rw_images.del();} // we don't need images for default value, only buffers
                         if(!shader->dummy)
                         {
                            // sort by bind members, to increase chance of generating the same bind map for multiple shaders
                            buffers.sort(CompareBind);
                             images.sort(CompareBind);
+                         rw_images.sort(CompareBind);
 
                             inputs.setNum(desc. InputParameters); FREPA( inputs){D3D12_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetInputParameterDesc (i, &desc)))Exit("'GetInputParameterDesc' failed" );  inputs[i]=desc;}
                            outputs.setNum(desc.OutputParameters); FREPA(outputs){D3D12_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetOutputParameterDesc(i, &desc)))Exit("'GetOutputParameterDesc' failed"); outputs[i]=desc;}
@@ -803,16 +840,10 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
          macro.Name      =APIName[i];
          macro.Definition=((compiler->api==i) ? "1" : "0");
       }
-      Bool amd=FlagTest(compiler->flag, SC_AMD); if(amd)
-      {
-         auto &macro=macros.NewAt(macros.elms()-1);
-         macro.Name      ="AMD";
-         macro.Definition="1";
-      }
       Zero(macros.last()); // must be null-terminated
 
       ID3DBlob *buffer=null, *error_blob=null;
-      D3DCompile(source->file_data.data(), source->file_data.elms(), (Str8)source->file_name, macros.data(), &NoTemp(Include11(source->file_name)), func_name, target, (amd ? D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY : 0)|(get_default_val ? D3DCOMPILE_SKIP_VALIDATION|D3DCOMPILE_SKIP_OPTIMIZATION : SKIP_OPTIMIZATION ? D3DCOMPILE_SKIP_OPTIMIZATION : D3DCOMPILE_OPTIMIZATION_LEVEL3), 0, &buffer, &error_blob);
+      D3DCompile(source->file_data.data(), source->file_data.elms(), (Str8)source->file_name, macros.data(), &NoTemp(Include11(source->file_name)), func_name, target, (get_default_val ? D3DCOMPILE_SKIP_VALIDATION|D3DCOMPILE_SKIP_OPTIMIZATION : SKIP_OPTIMIZATION ? D3DCOMPILE_SKIP_OPTIMIZATION : D3DCOMPILE_OPTIMIZATION_LEVEL3), 0, &buffer, &error_blob);
       if(error_blob)
       {
          CChar8 *e=(Char8*)error_blob->GetBufferPointer();
@@ -826,18 +857,20 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
          {
             D3D11_SHADER_DESC desc; if(!OK(reflection->GetDesc(&desc))){error.line()+="'ID3D11ShaderReflection.GetDesc' failed.";}else
             {
-               Int images_elms=0, buffers_elms=0;
+               Int images_elms=0, rw_images_elms=0, buffers_elms=0;
                FREP(desc.BoundResources)
                {
                   D3D11_SHADER_INPUT_BIND_DESC desc; if(!OK(reflection->GetResourceBindingDesc(i, &desc))){error.line()+="'GetResourceBindingDesc' failed."; goto error;}
                   switch(desc.Type)
                   {
-                     case D3D_SIT_TEXTURE:  images_elms++; break;
-                     case D3D_SIT_CBUFFER: buffers_elms++; break;
+                     case D3D_SIT_TEXTURE    :    images_elms++; break;
+                     case D3D_SIT_UAV_RWTYPED: rw_images_elms++; break;
+                     case D3D_SIT_CBUFFER    :   buffers_elms++; break;
                   }
                }
-                images.setNum( images_elms);  images_elms=0;
-               buffers.setNum(buffers_elms); buffers_elms=0;
+                images.setNum(   images_elms);    images_elms=0;
+             rw_images.setNum(rw_images_elms); rw_images_elms=0;
+               buffers.setNum(  buffers_elms);   buffers_elms=0;
                FREP(desc.BoundResources)
                {
                   D3D11_SHADER_INPUT_BIND_DESC desc; if(!OK(reflection->GetResourceBindingDesc(i, &desc))){error.line()+="'GetResourceBindingDesc' failed."; goto error;}
@@ -847,6 +880,12 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
                      {
                         if(!InRange(desc.BindPoint, MAX_SHADER_IMAGES)){error.line()+=S+"Image index: "+desc.BindPoint+", is too big"; goto error;}
                         Image &image=images[images_elms++]; image.name=desc.Name; image.bind_slot=desc.BindPoint;
+                     }break;
+
+                     case D3D_SIT_UAV_RWTYPED:
+                     {
+                        if(!InRange(desc.BindPoint, MAX_SHADER_IMAGES)){error.line()+=S+"RW Image index: "+desc.BindPoint+", is too big"; goto error;}
+                        Image &image=rw_images[rw_images_elms++]; image.name=desc.Name; image.bind_slot=desc.BindPoint;
                      }break;
 
                      case D3D_SIT_CBUFFER:
@@ -890,12 +929,13 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
                      }break;
                   }
                }
-               if(get_default_val)images.del(); // we don't need images for default value, only buffers
+               if(get_default_val){images.del(); rw_images.del();} // we don't need images for default value, only buffers
                if(!shader->dummy)
                {
                   // sort by bind members, to increase chance of generating the same bind map for multiple shaders
                   buffers.sort(CompareBind);
                    images.sort(CompareBind);
+                rw_images.sort(CompareBind);
 
                    inputs.setNum(desc. InputParameters); FREPA( inputs){D3D11_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetInputParameterDesc (i, &desc)))Exit("'GetInputParameterDesc' failed" );  inputs[i]=desc;}
                   outputs.setNum(desc.OutputParameters); FREPA(outputs){D3D11_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetOutputParameterDesc(i, &desc)))Exit("'GetOutputParameterDesc' failed"); outputs[i]=desc;}
@@ -1004,6 +1044,17 @@ ShaderCompiler::Source& ShaderCompiler::New(C Str &file_name)
 /******************************************************************************/
 static UShort AsUShort(Int i) {RANGE_ASSERT_ERROR(i, USHORT_MAX+1, "Value too big to be represented as UShort"); return i;}
 
+ShaderIndex::ShaderIndex(C ShaderCompiler::SubShader &shader)
+{
+   shader_data_index=         shader.shader_data_index ;
+   buffer_bind_index=AsUShort(shader.buffer_bind_index);
+    image_bind_index=AsUShort(shader. image_bind_index);
+}
+ComputeShaderIndex::ComputeShaderIndex(C ShaderCompiler::SubShader &shader) : ShaderIndex(shader)
+{
+   rw_image_bind_index=AsUShort(shader.rw_image_bind_index);
+}
+
 Bool ShaderCompiler::Param::save(File &f)C
 {
    f.putStr(name).putMulti(cpu_data_size, gpu_data_size, array_elms); // name+info
@@ -1026,15 +1077,15 @@ Bool ShaderCompiler::Shader::save(File &f, C ShaderCompiler &compiler)C
    if(compiler.api!=API_GL)
    {
       // indexes
-      ShaderIndexes indexes;
-      FREPA(sub)
+      if(compute()) // compute shader
       {
-       C SubShader &sub=T.sub[i];
-         indexes.shader_data_index[i]=         sub.shader_data_index ;
-         indexes.buffer_bind_index[i]=AsUShort(sub.buffer_bind_index);
-         indexes. image_bind_index[i]=AsUShort(sub. image_bind_index);
+         ComputeShaderIndex index=sub[ST_CS];
+         f<<index;
+      }else
+      {
+         ShaderIndex indexes[ST_BASE]; FREPAO(indexes)=sub[i]; // !! WARNING: HERE 'sub' HAS MORE ELEMENTS THAN 'indexes' !!
+         f<<indexes;
       }
-      f<<indexes;
 
       // all buffers
       MemtN<UShort, 256> all_buffers;
@@ -1051,7 +1102,13 @@ Bool ShaderCompiler::Shader::save(File &f, C ShaderCompiler &compiler)C
    }else
    {
       // indexes
-      f.putMulti(sub[ST_VS].shader_data_index, sub[ST_PS].shader_data_index);
+      if(compute()) // compute shader
+      {
+         f<<sub[ST_CS].shader_data_index;
+      }else
+      {
+         f.putMulti(sub[ST_VS].shader_data_index, sub[ST_PS].shader_data_index);
+      }
    }
 
    return f.ok();
@@ -1091,7 +1148,7 @@ struct ConvertContext
    SyncLock        lock;
 #if DEBUG
    Memc<                ShaderData> (&shader_datas)[ST_NUM];
-   Mems<ShaderCompiler::Shader*   >  &shaders;
+   Mems<ShaderCompiler::Shader*   >  &shaders, &compute_shaders;
 #endif
    ShaderCompiler::Shader* findShader(C ShaderData &shader_data)C // find first 'Shader' using 'shader_data'
    {
@@ -1100,10 +1157,8 @@ struct ConvertContext
       {
          Int shader_data_index=shader_datas[type].index(&shader_data); if(shader_data_index>=0)
          {
-            FREPAD(si, shaders)
-            {
-               ShaderCompiler::Shader &shader=*shaders[si]; if(shader.sub[type].shader_data_index==shader_data_index)return &shader;
-            }
+            FREPAD(si,         shaders){ShaderCompiler::Shader &shader=*        shaders[si]; if(shader.sub[type].shader_data_index==shader_data_index)return &shader;}
+            FREPAD(si, compute_shaders){ShaderCompiler::Shader &shader=*compute_shaders[si]; if(shader.sub[type].shader_data_index==shader_data_index)return &shader;}
             break;
          }
       }
@@ -1123,12 +1178,13 @@ struct ConvertContext
 
    ConvertContext(ShaderCompiler &compiler
    #if DEBUG
-    , Memc<                ShaderData> (&shader_datas)[ST_NUM]
-    , Mems<ShaderCompiler::Shader*   >  &shaders
+    , Memc<                ShaderData> (&        shader_datas)[ST_NUM]
+    , Mems<ShaderCompiler::Shader*   >  &        shaders
+    , Mems<ShaderCompiler::Shader*   >  &compute_shaders
    #endif
    ) : compiler(compiler)
    #if DEBUG
-     , shader_datas(shader_datas), shaders(shaders)
+     , shader_datas(shader_datas), shaders(shaders), compute_shaders(compute_shaders)
    #endif
    {
    }
@@ -1182,6 +1238,10 @@ static Str8 RemoveEmptyLines(C Str8 &str)
    }
    return s;
 }
+static Str8 SamplerName(Int sampler_index, C Str8 &image_name)
+{
+   return S8+'S'+sampler_index+'_'+image_name; // use S sampler_index _ image_name format, so we can use SkipStart when loading shaders without having to allocate memory for Str, so the name must be at the end, and sampler index before that, since name can't start with a number then S is also added at the start #SamplerName
+}
 static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_index)
 {
    ShaderCompiler &compiler=cc.compiler;
@@ -1206,6 +1266,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
       case SpvExecutionModelTessellationEvaluation: type=ST_DS; break;
     //case SpvExecutionModelGeometry              : type=ST_GS; break;
       case SpvExecutionModelFragment              : type=ST_PS; break;
+      case SpvExecutionModelGLCompute             : type=ST_CS; break;
       default: Exit("Invalid Execution model"); break;
    }
 
@@ -1304,7 +1365,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
     //CChar8 *name=spvc_compiler_get_name(spirv_compiler, res.id); name=_SkipStart(name, "out_var_");
       Int loc=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationLocation); //DYNAMIC_ASSERT(loc==i, S+"location!=i "+cc.shaderName(shader_data));
     //Bool no_persp=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationNoPerspective);
-      Set(start, (type==ST_PS) ? "RT" : "IO"); Append(start, TextInt(loc, temp)); // OUTPUT name must match INPUT name, this solves problem when using "TEXCOORD" and "TEXCOORD0"
+      Set(start, (type==ST_PS) ? "RT" : "IO"); Append(start, TextInt(loc, temp)); // OUTPUT name must match INPUT name, this solves problem when using "UV" and "UV0"
       spvc_compiler_set_name(spirv_compiler, res.id, start);
    }
    list=null; count=0; spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_STAGE_INPUT, &list, &count); FREP(count)
@@ -1314,7 +1375,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
       Int loc=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationLocation); //DYNAMIC_ASSERT(loc==i, S+"location!=i "+cc.shaderName(shader_data));
     //Bool no_persp=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationNoPerspective);
       if(Starts(name, "ATTR"))DYNAMIC_ASSERT(TextInt(name+4)==loc, "ATTR index!=loc"); // verify vtx input ATTR index
-      Set(start, (type==ST_VS) ? "ATTR" : "IO"); Append(start, TextInt(loc, temp)); // OUTPUT name must match INPUT name, this solves problem when using "TEXCOORD" and "TEXCOORD0"
+      Set(start, (type==ST_VS) ? "ATTR" : "IO"); Append(start, TextInt(loc, temp)); // OUTPUT name must match INPUT name, this solves problem when using "UV" and "UV0"
       spvc_compiler_set_name(spirv_compiler, res.id, start);
    }
 
@@ -1326,7 +1387,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
       {
       #if 1 // use GL_ES to output precisions
          spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_TRUE);
-         spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, 300);
+         spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, (type==ST_CS) ? 310 : 300);
       #else
          spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_FALSE);
          spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, 330);
@@ -1337,6 +1398,8 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
 
          spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_SUPPORT_NONZERO_BASE_INSTANCE, SPVC_FALSE);
 
+         spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_FLATTEN_MULTIDIMENSIONAL_ARRAYS, SPVC_TRUE); // needed for "Arrays of arrays not supported before ESSL version 310. Try using --flatten-multidimensional-arrays or set options.flatten_multidimensional_arrays to true."
+
        //spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ENABLE_420PACK_EXTENSION, SPVC_FALSE);
       }break;
 
@@ -1346,17 +1409,64 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    }
    spvc_compiler_install_compiler_options(spirv_compiler, options);
 
- //spvc_variable_id dummy=0; spvc_compiler_build_dummy_sampler_for_combined_images(spirv_compiler, &dummy);
+   spvc_variable_id dummy_sampler=0; spvc_compiler_build_dummy_sampler_for_combined_images(spirv_compiler, &dummy_sampler); // this is needed when using Texture.Load or Texture[pixel] 'texelFetch' (accessing Texture without a Sampler)
    spvc_compiler_build_combined_image_samplers(spirv_compiler);
    const spvc_combined_image_sampler *samplers=null; size_t num_samplers=0;
    spvc_compiler_get_combined_image_samplers(spirv_compiler, &samplers, &num_samplers);
+   struct ReplaceSampler
+   {
+      Str8 src, dest;
+   };
+   Memc<ReplaceSampler> replace_samplers;
    FREP(num_samplers)
    {
     C spvc_combined_image_sampler &cis=samplers[i];
-      CChar8 *  image_name=spvc_compiler_get_name(spirv_compiler, cis.  image_id);
-    //CChar8 *sampler_name=spvc_compiler_get_name(spirv_compiler, cis.sampler_id);
-      spvc_compiler_set_name(spirv_compiler, cis.combined_id, image_name);
-      {SyncLocker lock(cc.lock); compiler.images.binaryInclude(Str8(image_name), CompareCS);}
+      Str8      image_name=spvc_compiler_get_name(spirv_compiler, cis.  image_id);
+      CChar8 *sampler_name=spvc_compiler_get_name(spirv_compiler, cis.sampler_id);
+      Int     sampler_index;
+      if(cis.sampler_id==dummy_sampler) // if this is a dummy sampler
+      {
+         FREPD(j, num_samplers)if(j!=i)
+         {
+          C spvc_combined_image_sampler &cis1=samplers[j];
+            if(cis1.image_id==cis.image_id) // find if there's another sampler using the same image
+            { // if found, then keep current name as is, and later we will replace this sampler with another
+               CChar8 *sampler_name =spvc_compiler_get_name(spirv_compiler, cis1.sampler_id);
+               Int     sampler_index=GetSamplerIndex(sampler_name);
+               auto &rs=replace_samplers.New();
+               rs.src =SamplerName(SSI_NUM      , image_name); // use SSI_NUM as invalid
+               rs.dest=SamplerName(sampler_index, image_name);
+               spvc_compiler_set_name(spirv_compiler, cis.combined_id, rs.src);
+               goto next; // proceed to the next one, don't add to 'compiler.images' because we're going to replace it
+            }
+         }
+            sampler_index=SSI_POINT; // if didn't found another image, then use PointSampler as dummy because it's not needed anyway, any could be used
+      }else{sampler_index=GetSamplerIndex(sampler_name); if(sampler_index<0)Exit(S+"Unknown sampler for '"+image_name+"'");}
+      spvc_compiler_set_name(spirv_compiler, cis.combined_id, SamplerName(sampler_index, image_name));
+      {SyncLocker lock(cc.lock); compiler.images.binaryInclude(image_name, CompareCS);}
+   next:;
+   }
+   auto unique_samplers=num_samplers-replace_samplers.elms();
+   if(  unique_samplers>MAX_SHADER_IMAGES)
+   {
+      Str sampler_info; FREP(num_samplers)
+      {
+       C spvc_combined_image_sampler &cis=samplers[i];
+         sampler_info+=spvc_compiler_get_name(spirv_compiler, cis.   image_id); sampler_info+=", ";
+         sampler_info+=spvc_compiler_get_name(spirv_compiler, cis. sampler_id); sampler_info+=", ";
+         sampler_info+=spvc_compiler_get_name(spirv_compiler, cis.combined_id); sampler_info+='\n';
+      }
+      Exit(S+"Samplers number: "+unique_samplers+", is too big!\nShader: "+cc.shaderName(shader_data)+'\n'+sampler_info);
+   }
+
+   list=null; count=0; spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_STORAGE_IMAGE, &list, &count); FREP(count)
+   {
+    C spvc_reflected_resource &res=list[i];
+    //Int                loc=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationLocation);
+    //CChar8 *base_type_name=spvc_compiler_get_name(spirv_compiler, res.base_type_id);
+    //CChar8 *     type_name=spvc_compiler_get_name(spirv_compiler, res.type_id);
+      Str8        image_name=spvc_compiler_get_name(spirv_compiler, res.id);
+      {SyncLocker lock(cc.lock); compiler.rw_images.binaryInclude(image_name, CompareCS);}
    }
 
    Str8 code;
@@ -1370,6 +1480,8 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
 
       code=Replace(code, "#version 330\n", S);
       code=Replace(code, "#version 300 es\n", S);
+      code=Replace(code, "#version 310 es\n", S);
+      code=Replace(code, "#version 320 es\n", S);
       code=RemoveEmptyLines(RemoveSpaces(code));
 
       FREPA(buffer_instances)
@@ -1377,6 +1489,24 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
          Str8 &inst=buffer_instances[i];
          code=Replace(code, inst+'.', S, true, WHOLE_WORD_STRICT);
          code=Replace(code, inst    , S, true, WHOLE_WORD_STRICT);
+      }
+
+      // remove "binding=x" because it might be invalid
+      for(;;)
+      {
+         Int pos=TextPosI(code, "binding=", true, WHOLE_WORD_YES); if(pos<0)break;
+         Int end=pos+8;
+         Bool removed_prev=(pos>0 && code[pos-1]==','); if(removed_prev)pos--;
+         for(; CharFlag(code[end])&CHARF_DIG; )end++;
+         if(!removed_prev && code[end]==',')end++;
+         code.remove(pos, end-pos);
+      }
+      REPA(replace_samplers)
+      {
+       C auto &rs=replace_samplers[i];
+         code=Replace(code, S8+"uniform mediump sampler2D "+rs.src+";\n", S, true, WHOLE_WORD_STRICT); // remove definition
+         code=Replace(code, S8+"uniform highp sampler2D "  +rs.src+";\n", S, true, WHOLE_WORD_STRICT); // remove definition
+         code=Replace(code,                                 rs.src, rs.dest, true, WHOLE_WORD_STRICT); // replace with another
       }
 
    #if FORCE_LOG_SHADER_CODE
@@ -1410,17 +1540,17 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    }
 }
 /******************************************************************************/
-struct ImageBindMap : Mems<ShaderCompiler::Bind>
+struct ImageBindMap : Mems<ShaderCompiler::Image>
 {
    void operator =(C Mems<ShaderCompiler::Image> &images)  {setNum(images.elms()); FREPAO(T)=images[i];}
    Bool operator==(C Mems<ShaderCompiler::Image> &images)C {if(elms()!=images.elms())return false; REPA(T)if(T[i]!=images[i])return false; return true;}
-   Bool save(File &f, C ShaderCompiler &compiler)C
+   Bool save(File &f, C Memc<Str8> &images)C
    {
       f.cmpUIntV(elms());
       FREPA(T)
       {
        C ShaderCompiler::Bind &bind=T[i];
-         Int src_index; if(!compiler.images.binarySearch(bind.name, src_index, CompareCS))Exit("Image not found in Shader");
+         Int src_index; if(!images.binarySearch(bind.name, src_index, CompareCS))Exit("Image not found in Shader");
          f<<ConstantIndex(bind.bind_slot, src_index);
       }
       return f.ok();
@@ -1464,18 +1594,18 @@ struct BufferBindMap : Mems<ShaderCompiler::Bind>
 /******************************************************************************/
 Bool ShaderCompiler::compileTry(Threads &threads)
 {
-   Int shaders_num=0;
+   Int     shaders_num=0,
+   compute_shaders_num=0;
    FREPA(sources)
    {
       Source &source=sources[i];
       if(!source.load())return error(S+"Can't open file:"+source.file_name);
-    //shaders_num+=source.shaders.elms(); need to check if dummy
       FREPA(source.shaders)
       {
          Shader &shader=source.shaders[i];
          shader.source=&source; // link only during compilation because sources use 'Memc' container which could change addresses while new sources were being added, however at this stage all have already been created
          shader.finalizeName();
-         shaders_num+=!shader.dummy;
+         if(!shader.dummy)(shader.compute() ? compute_shaders_num : shaders_num)++;
          FREPA(shader.sub)
          {
             SubShader &sub=shader.sub[i]; if(sub.is())
@@ -1488,10 +1618,10 @@ Bool ShaderCompiler::compileTry(Threads &threads)
       }
    }
    threads.wait1();
-   Memc< ImageBindMap>  image_maps;
+   Memc< ImageBindMap>  image_maps, rw_image_maps;
    Memc<BufferBindMap> buffer_maps;
    Memc<ShaderData   > shader_datas[ST_NUM];
-   Mems<Shader*      > shaders(shaders_num); shaders_num=0;
+   Mems<Shader*      > shaders(shaders_num), compute_shaders(compute_shaders_num); shaders_num=compute_shaders_num=0;
    FREPA(sources)
    {
       Source &source=sources[i]; FREPA(source.shaders)
@@ -1505,7 +1635,8 @@ Bool ShaderCompiler::compileTry(Threads &threads)
                Buffer &    buffer=*buffers(sub_buffer.name);
                if(!buffer.name.is())buffer=sub_buffer;else if(buffer!=sub_buffer)return error(S+"Buffer \""+buffer.name+"\" is not always the same in all shaders");
             }
-            FREPA(sub.images)images.binaryInclude(sub.images[i].name, CompareCS);
+            FREPA(sub.   images)   images.binaryInclude(sub.   images[i].name, CompareCS);
+            FREPA(sub.rw_images)rw_images.binaryInclude(sub.rw_images[i].name, CompareCS);
 
             if(!shader.dummy)
             {
@@ -1513,11 +1644,16 @@ Bool ShaderCompiler::compileTry(Threads &threads)
                FREPA(buffer_maps)if(buffer_maps[i]==sub.buffers){sub.buffer_bind_index=i; goto got_buffer;} // find same
                sub.buffer_bind_index=buffer_maps.elms(); buffer_maps.add(sub.buffers);
             got_buffer:
-            
+
                // image map
                FREPA(image_maps)if(image_maps[i]==sub.images){sub.image_bind_index=i; goto got_image;} // find same
                sub.image_bind_index=image_maps.elms(); image_maps.add(sub.images);
             got_image:
+
+               // rw image map
+               FREPA(rw_image_maps)if(rw_image_maps[i]==sub.rw_images){sub.rw_image_bind_index=i; goto got_rw_image;} // find same
+               sub.rw_image_bind_index=rw_image_maps.elms(); rw_image_maps.add(sub.rw_images);
+            got_rw_image:
 
                // shader data
                if(sub.shader_data.elms())
@@ -1530,10 +1666,12 @@ Bool ShaderCompiler::compileTry(Threads &threads)
                }
             }
          }
-         if(!shader.dummy)shaders[shaders_num++]=&shader;
+         if(!shader.dummy)(shader.compute() ? compute_shaders[compute_shaders_num++]
+                                            :         shaders[        shaders_num++])=&shader;
       }
    }
-   shaders.sort(Compare); // sort by name so we can do binary search when looking for shaders
+           shaders.sort(Compare); // sort by name so we can do binary search when looking for shaders
+   compute_shaders.sort(Compare); // sort by name so we can do binary search when looking for shaders
 
    if(api!=API_DX)
    {
@@ -1541,7 +1679,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
 
       ConvertContext cc(T
       #if DEBUG
-       , shader_datas, shaders
+       , shader_datas, shaders, compute_shaders
       #endif
       );
       FREPA(shader_datas)
@@ -1594,13 +1732,15 @@ Bool ShaderCompiler::compileTry(Threads &threads)
       }
 
       // images
-      f.cmpUIntV(images.elms()); FREPA(images)f.putStr(images[i]);
+      f.cmpUIntV(   images.elms()); FREPA(   images)f.putStr(   images[i]);
+      f.cmpUIntV(rw_images.elms()); FREPA(rw_images)f.putStr(rw_images[i]);
 
       // buffer+image map
       if(api!=API_GL)
       {
-         if(!buffer_maps.save(f, T))goto error;
-         if(! image_maps.save(f, T))goto error;
+         if(!  buffer_maps.save(f,         T))goto error;
+         if(!   image_maps.save(f,    images))goto error;
+         if(!rw_image_maps.save(f, rw_images))goto error;
       }
 
       // shader data
@@ -1610,11 +1750,8 @@ Bool ShaderCompiler::compileTry(Threads &threads)
       }
 
       // shaders
-      f.cmpUIntV(shaders.elms()); FREPA(shaders)
-      {
-       C Shader &shader=*shaders[i];
-         if(!shader.save(f, T))goto error;
-      }
+      f.cmpUIntV(        shaders.elms()); FREPA(        shaders)if(!        shaders[i]->save(f, T))goto error;
+      f.cmpUIntV(compute_shaders.elms()); FREPA(compute_shaders)if(!compute_shaders[i]->save(f, T))goto error;
 
       if(f.flushOK())return true;
 

@@ -19,31 +19,31 @@ class MtrlImages
 public:
    ImageResize();
    };
-   bool        flip_normal_y;
+   bool        flip_normal_y, smooth_is_rough;
    int         tex;
-   ImageResize color, alpha, bump, normal, smooth, reflect, glow;
+   ImageResize color, alpha, bump, normal, smooth, metal, glow;
    
    MtrlImages& del();
    /*bool create(C VecI2 &size)
    {
       del();
-      return color  .createTry(size, IMAGE_R8G8B8_SRGB)
-          && alpha  .createTry(size, IMAGE_I8)
-          && bump   .createTry(size, IMAGE_I8)
-          && normal .createTry(size, IMAGE_R8G8B8)
-          && smooth .createTry(size, IMAGE_I8)
-          && reflect.createTry(size, IMAGE_I8)
-          && glow   .createTry(size, IMAGE_I8);
+      return color .createTry(size, IMAGE_R8G8B8_SRGB)
+          && alpha .createTry(size, IMAGE_I8)
+          && bump  .createTry(size, IMAGE_I8)
+          && normal.createTry(size, IMAGE_R8G8B8)
+          && smooth.createTry(size, IMAGE_I8)
+          && metal .createTry(size, IMAGE_I8)
+          && glow  .createTry(size, IMAGE_I8);
    }
    void clear()
    {
-      flip_normal_y=false;
+      flip_normal_y=smooth_is_rough=false;
       tex=0;
-      color  .clear();
-      alpha  .clear();
-      smooth .clear();
-      reflect.clear();
-      glow   .clear();
+      color .clear();
+      alpha .clear();
+      smooth.clear();
+      metal .clear();
+      glow  .clear();
 
       REPD(y, bump.h())
       REPD(x, bump.w())bump.pixB(x, y)=128;
@@ -54,23 +54,23 @@ public:
    }
    void compact()
    {
-      if(!(tex&BT_COLOR  ))color  .del();
-      if(!(tex&BT_ALPHA  ))alpha  .del();
-      if(!(tex&BT_BUMP   ))bump   .del();
-      if(!(tex&BT_NORMAL ))normal .del();
-      if(!(tex&BT_SMOOTH ))smooth .del();
-      if(!(tex&BT_REFLECT))reflect.del();
-      if(!(tex&BT_GLOW   ))glow   .del();
+      if(!(tex&TEXF_COLOR ))color .del();
+      if(!(tex&TEXF_ALPHA ))alpha .del();
+      if(!(tex&TEXF_BUMP  ))bump  .del();
+      if(!(tex&TEXF_NORMAL))normal.del();
+      if(!(tex&TEXF_SMOOTH))smooth.del();
+      if(!(tex&TEXF_METAL ))metal .del();
+      if(!(tex&TEXF_GLOW  ))glow  .del();
    }
    void Export(C Str &name, C Str &ext)C
    {
-      color  .Export(name+"color."  +ext);
-      alpha  .Export(name+"alpha."  +ext);
-      bump   .Export(name+"bump."   +ext);
-      normal .Export(name+"normal." +ext);
-      smooth .Export(name+"smooth." +ext);
-      reflect.Export(name+"reflect."+ext);
-      glow   .Export(name+"glow."   +ext);
+      color .Export(name+"color." +ext);
+      alpha .Export(name+"alpha." +ext);
+      bump  .Export(name+"bump."  +ext);
+      normal.Export(name+"normal."+ext);
+      smooth.Export(name+"smooth."+ext);
+      metal .Export(name+"metal." +ext);
+      glow  .Export(name+"glow."  +ext);
    }
    static void Crop(ImageResize &image, C Rect &frac)
    {
@@ -91,41 +91,41 @@ public:
    }
    void crop(C Rect &frac)
    {
-      Crop(color  , frac);
-      Crop(alpha  , frac);
-      Crop(bump   , frac);
-      Crop(normal , frac);
-      Crop(smooth , frac);
-      Crop(reflect, frac);
-      Crop(glow   , frac);
+      Crop(color , frac);
+      Crop(alpha , frac);
+      Crop(bump  , frac);
+      Crop(normal, frac);
+      Crop(smooth, frac);
+      Crop(metal , frac);
+      Crop(glow  , frac);
    }
    void resize(C VecI2 &size)
    {
       if(size.x>=0 || size.y>=0)
       {
-         color  .resize(size);
-         alpha  .resize(size);
-         bump   .resize(size);
-         normal .resize(size);
-         smooth .resize(size);
-         reflect.resize(size);
-         glow   .resize(size);
+         color .resize(size);
+         alpha .resize(size);
+         bump  .resize(size);
+         normal.resize(size);
+         smooth.resize(size);
+         metal .resize(size);
+         glow  .resize(size);
       }
    }
    void apply()
    {
-      color  .apply();
-      alpha  .apply();
-      bump   .apply();
-      normal .apply();
-      smooth .apply();
-      reflect.apply();
-      glow   .apply();
+      color .apply();
+      alpha .apply();
+      bump  .apply();
+      normal.apply();
+      smooth.apply();
+      metal .apply();
+      glow  .apply();
    }*/
-   void fromMaterial(C EditMaterial &material, C Project &proj, bool changed_flip_normal_y=false);
-   void fromMaterial(C EditWaterMtrl &material, C Project &proj, bool changed_flip_normal_y=false);
-   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2)C;
-   uint createWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2)C;
+   void fromMaterial(C EditMaterial &material, C Project &proj, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
+   void fromMaterial(C EditWaterMtrl &material, C Project &proj, bool changed_flip_normal_y=false, bool changed_smooth_is_rough=false);
+   TEX_FLAG createBaseTextures(Image &base_0, Image &base_1, Image &base_2)C;
+   TEX_FLAG createWaterBaseTextures(Image &base_0, Image &base_1, Image &base_2)C;
    void baseTextureSizes(VecI2 *size0, VecI2 *size1, VecI2 *size2);
    void waterBaseTextureSizes(VecI2 *size0, VecI2 *size1, VecI2 *size2);
    /*void processAlpha()

@@ -57,7 +57,8 @@ enum AccessChainFlagBits
 	ACCESS_CHAIN_CHAIN_ONLY_BIT = 1 << 1,
 	ACCESS_CHAIN_PTR_CHAIN_BIT = 1 << 2,
 	ACCESS_CHAIN_SKIP_REGISTER_EXPRESSION_READ_BIT = 1 << 3,
-	ACCESS_CHAIN_LITERAL_MSB_FORCE_ID = 1 << 4
+	ACCESS_CHAIN_LITERAL_MSB_FORCE_ID = 1 << 4,
+	ACCESS_CHAIN_FLATTEN_ALL_MEMBERS_BIT = 1 << 5
 };
 typedef uint32_t AccessChainFlags;
 
@@ -120,6 +121,10 @@ public:
 		// which would otherwise be uninitialized will now be initialized to 0 instead.
 		bool force_zero_initialized_variables = false;
 
+		// In GLSL, force use of I/O block flattening, similar to
+		// what happens on legacy GLSL targets for blocks and structs.
+		bool force_flattened_io_blocks = false;
+
 		enum Precision
 		{
 			DontCare,
@@ -128,7 +133,7 @@ public:
 			Highp
 		};
 
-		struct
+		struct VertexOptions
 		{
 			// GLSL: In vertex shaders, rewrite [0, w] depth (Vulkan/D3D style) to [-w, w] depth (GL style).
 			// MSL: In vertex shaders, rewrite [-w, w] depth (GL style) to [0, w] depth.
@@ -145,7 +150,7 @@ public:
 			bool support_nonzero_base_instance = true;
 		} vertex;
 
-		struct
+		struct FragmentOptions
 		{
 			// Add precision mediump float in ES targets when emitting GLES source.
 			// Add precision highp int in ES targets when emitting GLES source.
@@ -316,7 +321,8 @@ protected:
 	};
 	virtual std::string to_function_args(const TextureFunctionArguments &args, bool *p_forward);
 
-	void emit_sparse_feedback_temporaries(uint32_t result_type_id, uint32_t id, uint32_t &feedback_id, uint32_t &texel_id);
+	void emit_sparse_feedback_temporaries(uint32_t result_type_id, uint32_t id, uint32_t &feedback_id,
+	                                      uint32_t &texel_id);
 	uint32_t get_sparse_feedback_texel_id(uint32_t id) const;
 	virtual void emit_buffer_block(const SPIRVariable &type);
 	virtual void emit_push_constant_block(const SPIRVariable &var);
@@ -481,12 +487,17 @@ protected:
 	void emit_buffer_reference_block(SPIRType &type, bool forward_declaration);
 	void emit_buffer_block_legacy(const SPIRVariable &var);
 	void emit_buffer_block_flattened(const SPIRVariable &type);
+	void fixup_implicit_builtin_block_names();
 	void emit_declared_builtin_block(spv::StorageClass storage, spv::ExecutionModel model);
 	bool should_force_emit_builtin_block(spv::StorageClass storage);
 	void emit_push_constant_block_vulkan(const SPIRVariable &var);
 	void emit_push_constant_block_glsl(const SPIRVariable &var);
 	void emit_interface_block(const SPIRVariable &type);
 	void emit_flattened_io_block(const SPIRVariable &var, const char *qual);
+	void emit_flattened_io_block_struct(const std::string &basename, const SPIRType &type, const char *qual,
+	                                    const SmallVector<uint32_t> &indices);
+	void emit_flattened_io_block_member(const std::string &basename, const SPIRType &type, const char *qual,
+	                                    const SmallVector<uint32_t> &indices);
 	void emit_block_chain(SPIRBlock &block);
 	void emit_hoisted_temporaries(SmallVector<std::pair<TypeID, ID>> &temporaries);
 	std::string constant_value_macro_name(uint32_t id);
@@ -559,6 +570,9 @@ protected:
 	std::string access_chain_internal(uint32_t base, const uint32_t *indices, uint32_t count, AccessChainFlags flags,
 	                                  AccessChainMeta *meta);
 
+	virtual void prepare_access_chain_for_scalar_access(std::string &expr, const SPIRType &type,
+	                                                    spv::StorageClass storage, bool &is_packed);
+
 	std::string access_chain(uint32_t base, const uint32_t *indices, uint32_t count, const SPIRType &target_type,
 	                         AccessChainMeta *meta = nullptr, bool ptr_chain = false);
 
@@ -603,6 +617,7 @@ protected:
 	void strip_enclosed_expression(std::string &expr);
 	std::string to_member_name(const SPIRType &type, uint32_t index);
 	virtual std::string to_member_reference(uint32_t base, const SPIRType &type, uint32_t index, bool ptr_chain);
+	std::string to_multi_member_reference(const SPIRType &type, const SmallVector<uint32_t> &indices);
 	std::string type_to_glsl_constructor(const SPIRType &type);
 	std::string argument_decl(const SPIRFunction::Parameter &arg);
 	virtual std::string to_qualifiers_glsl(uint32_t id);
@@ -663,11 +678,14 @@ protected:
 	std::unordered_set<uint32_t> flushed_phi_variables;
 
 	std::unordered_set<uint32_t> flattened_buffer_blocks;
-	std::unordered_set<uint32_t> flattened_structs;
+	std::unordered_map<uint32_t, bool> flattened_structs;
 
-	std::string load_flattened_struct(SPIRVariable &var);
-	std::string to_flattened_struct_member(const SPIRVariable &var, uint32_t index);
-	void store_flattened_struct(SPIRVariable &var, uint32_t value);
+	std::string load_flattened_struct(const std::string &basename, const SPIRType &type);
+	std::string to_flattened_struct_member(const std::string &basename, const SPIRType &type, uint32_t index);
+	void store_flattened_struct(uint32_t lhs_id, uint32_t value);
+	void store_flattened_struct(const std::string &basename, uint32_t rhs, const SPIRType &type,
+	                            const SmallVector<uint32_t> &indices);
+	std::string to_flattened_access_chain_expression(uint32_t id);
 
 	// Usage tracking. If a temporary is used more than once, use the temporary instead to
 	// avoid AST explosion when SPIRV is generated with pure SSA and doesn't write stuff to variables.
@@ -739,8 +757,6 @@ protected:
 	bool type_is_empty(const SPIRType &type);
 
 	virtual void declare_undefined_values();
-
-	static std::string sanitize_underscores(const std::string &str);
 
 	bool can_use_io_location(spv::StorageClass storage, bool block);
 	const Instruction *get_next_instruction_in_block(const Instruction &instr);

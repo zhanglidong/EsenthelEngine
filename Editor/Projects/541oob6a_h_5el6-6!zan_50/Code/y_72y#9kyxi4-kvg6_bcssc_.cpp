@@ -1,7 +1,7 @@
 /******************************************************************************
 
    Image Mask can be used for example for drawing pregenerated world mini maps
-      onto the circular mini map gui element on the screen.
+      onto a circular mini map gui element on the screen.
 
 /******************************************************************************/
 ImagePtr logo, mask;
@@ -14,7 +14,6 @@ bool Init()
 {
    logo=UID(1119600675, 1212460399, 80010661, 526665178);
    mask=UID(2338406646, 1284858740, 3530955697, 2844784642);
-
    return true;
 }
 void Shut()

@@ -18,324 +18,6 @@
 #endif
 /******************************************************************************/
 namespace EE{
-#if 0
-/******************************************************************************/
-// CIPHER 0
-/******************************************************************************/
-struct Cipher0 : Cipher // Memory De/Encryption Implementation
-{
-   Byte key[32]; // key
-
-   virtual void encrypt(Ptr dest, CPtr src, IntPtr size, Int offset)override; // encrypt 'src' data into 'dest' of 'size' bytes, 'offset'=offset of source data in the stream
-   virtual void decrypt(Ptr dest, CPtr src, IntPtr size, Int offset)override; // decrypt 'src' data into 'dest' of 'size' bytes, 'offset'=offset of source data in the stream
-
-   virtual void randomizeKey(       )  override;
-   virtual Bool      saveKey(File &f)C override; // save key into 'f' file, return false on fail
-   virtual Bool      loadKey(File &f)  override; // load key from 'f' file, return false on fail
-   virtual Bool       mixKey(File &f)  override; // mix current key with the key stored in 'f' file, operation should be symmetrical (it should provide the same results as if the keys were swapped - key from file was mixed with current key), return false on fail
-
-   Cipher0();
-   Cipher0(Byte k00, Byte k01, Byte k02, Byte k03, Byte k04, Byte k05, Byte k06, Byte k07, Byte k08, Byte k09,
-           Byte k10, Byte k11, Byte k12, Byte k13, Byte k14, Byte k15, Byte k16, Byte k17, Byte k18, Byte k19,
-           Byte k20, Byte k21, Byte k22, Byte k23, Byte k24, Byte k25, Byte k26, Byte k27, Byte k28, Byte k29,
-           Byte k30, Byte k31);
-};
-Cipher0::Cipher0()
-{
-   Zero(key);
-}
-Cipher0::Cipher0(Byte k00, Byte k01, Byte k02, Byte k03, Byte k04, Byte k05, Byte k06, Byte k07, Byte k08, Byte k09,
-                 Byte k10, Byte k11, Byte k12, Byte k13, Byte k14, Byte k15, Byte k16, Byte k17, Byte k18, Byte k19,
-                 Byte k20, Byte k21, Byte k22, Byte k23, Byte k24, Byte k25, Byte k26, Byte k27, Byte k28, Byte k29,
-                 Byte k30, Byte k31)
-{
-   key[ 0]=k00; key[ 1]=k01; key[ 2]=k02; key[ 3]=k03; key[ 4]=k04; key[ 5]=k05; key[ 6]=k06; key[ 7]=k07; key[ 8]=k08; key[ 9]=k09;
-   key[10]=k10; key[11]=k11; key[12]=k12; key[13]=k13; key[14]=k14; key[15]=k15; key[16]=k16; key[17]=k17; key[18]=k18; key[19]=k19;
-   key[20]=k20; key[21]=k21; key[22]=k22; key[23]=k23; key[24]=k24; key[25]=k25; key[26]=k26; key[27]=k27; key[28]=k28; key[29]=k29;
-   key[30]=k30; key[31]=k31;
-}
-/******************************************************************************/
-void Cipher0::randomizeKey()
-{
-   UID uid[SIZE(key)/SIZE(UID)]; REPAO(uid).randomize(); // 'UID.randomize' uses a more secure version than 'Random'
-   ASSERT(SIZE(uid)==SIZE(key)); CopyFast(key, uid, SIZE(key));
-}
-Bool Cipher0::saveKey(File &f)C {f<<key; return f.ok();}
-Bool Cipher0::loadKey(File &f)  {f>>key; return f.ok();}
-Bool Cipher0:: mixKey(File &f)  {Byte temp[SIZE(key)]; f>>temp; REPAO(key)^=temp[i]; return f.ok();}
-/******************************************************************************/
-#pragma runtime_checks("", off)
-void Cipher0::encrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
-{
-   if(Byte *d=(Byte*)dest)
-   {
-      if(Byte *s=(Byte*)src)
-      {
-         REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
-         {
-            offset&=15; *d++=((*s++)+key[offset])^key[offset+16]; offset++;
-            offset&=15; *d++=((*s++)+key[offset])^key[offset+16]; offset++;
-            offset&=15; *d++=((*s++)+key[offset])^key[offset+16]; offset++;
-            offset&=15; *d++=((*s++)+key[offset])^key[offset+16]; offset++;
-         }
-         switch(size%4) // this is faster than REP(size%4), can't use "size&3" due to negative numbers
-         {
-            case 3: offset&=15; *d++=((*s++)+key[offset])^key[offset+16];   offset++; // !! no break on purpose !!
-            case 2: offset&=15; *d++=((*s++)+key[offset])^key[offset+16];   offset++; // !! no break on purpose !!
-            case 1: offset&=15; *d++=((*s++)+key[offset])^key[offset+16]; //offset++; // !! no break on purpose !!
-         }
-      }else
-      {
-         REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
-         {
-            offset&=15; *d++=key[offset]^key[offset+16]; offset++;
-            offset&=15; *d++=key[offset]^key[offset+16]; offset++;
-            offset&=15; *d++=key[offset]^key[offset+16]; offset++;
-            offset&=15; *d++=key[offset]^key[offset+16]; offset++;
-         }
-         switch(size%4) // this is faster than REP(size%4), can't use "size&3" due to negative numbers
-         {
-            case 3: offset&=15; *d++=key[offset]^key[offset+16];   offset++; // !! no break on purpose !!
-            case 2: offset&=15; *d++=key[offset]^key[offset+16];   offset++; // !! no break on purpose !!
-            case 1: offset&=15; *d++=key[offset]^key[offset+16]; //offset++; // !! no break on purpose !!
-         }
-      }
-   }
-}
-void Cipher0::decrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
-{
-   if(Byte *d=(Byte*)dest)
-   {
-      if(Byte *s=(Byte*)src)
-      {
-         REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
-         {
-            offset&=15; *d++=((*s++)^key[offset+16])-key[offset]; offset++;
-            offset&=15; *d++=((*s++)^key[offset+16])-key[offset]; offset++;
-            offset&=15; *d++=((*s++)^key[offset+16])-key[offset]; offset++;
-            offset&=15; *d++=((*s++)^key[offset+16])-key[offset]; offset++;
-         }
-         switch(size%4) // this is faster than REP(size%4), can't use "size&3" due to negative numbers
-         {
-            case 3: offset&=15; *d++=((*s++)^key[offset+16])-key[offset];   offset++; // !! no break on purpose !!
-            case 2: offset&=15; *d++=((*s++)^key[offset+16])-key[offset];   offset++; // !! no break on purpose !!
-            case 1: offset&=15; *d++=((*s++)^key[offset+16])-key[offset]; //offset++; // !! no break on purpose !!
-         }
-      }else
-      {
-         REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
-         {
-            offset&=15; *d++=key[offset+16]-key[offset]; offset++;
-            offset&=15; *d++=key[offset+16]-key[offset]; offset++;
-            offset&=15; *d++=key[offset+16]-key[offset]; offset++;
-            offset&=15; *d++=key[offset+16]-key[offset]; offset++;
-         }
-         switch(size%4) // this is faster than REP(size%4), can't use "size&3" due to negative numbers
-         {
-            case 3: offset&=15; *d++=key[offset+16]-key[offset];   offset++; // !! no break on purpose !!
-            case 2: offset&=15; *d++=key[offset+16]-key[offset];   offset++; // !! no break on purpose !!
-            case 1: offset&=15; *d++=key[offset+16]-key[offset]; //offset++; // !! no break on purpose !!
-         }
-      }
-   }
-}
-#pragma runtime_checks("", restore)
-/******************************************************************************/
-// CIPHER 0A
-/******************************************************************************/
-struct Cipher0A : Cipher
-{
-   void setKey(C Byte *key, Int key_size); // set key from 'key' array of 'key_size' bytes ('key_size' can be any size, but only up to first 256 bytes will be used)
-#if EE_PRIVATE
-   void wrapKey();
-#endif
-
-   virtual void encrypt(Ptr dest, CPtr src, IntPtr size, Int offset)override; // encrypt 'src' data into 'dest' of 'size' bytes, 'offset'=offset of source data in the stream
-   virtual void decrypt(Ptr dest, CPtr src, IntPtr size, Int offset)override; // decrypt 'src' data into 'dest' of 'size' bytes, 'offset'=offset of source data in the stream
-
-   virtual void randomizeKey(       )  override;
-   virtual Bool      saveKey(File &f)C override; // save key into 'f' file, return false on fail
-   virtual Bool      loadKey(File &f)  override; // load key from 'f' file, return false on fail
-   virtual Bool       mixKey(File &f)  override; // mix current key with the key stored in 'f' file, operation should be symmetrical (it should provide the same results as if the keys were swapped - key from file was mixed with current key), return false on fail
-
-   Cipher0A();
-   Cipher0A(C Byte *key, Int key_size) {setKey(key, key_size);}
-   Cipher0A(Byte k00, Byte k01, Byte k02, Byte k03, Byte k04, Byte k05, Byte k06, Byte k07, Byte k08, Byte k09, Byte k0A, Byte k0B, Byte k0C, Byte k0D, Byte k0E, Byte k0F,
-            Byte k10, Byte k11, Byte k12, Byte k13, Byte k14, Byte k15, Byte k16, Byte k17, Byte k18, Byte k19, Byte k1A, Byte k1B, Byte k1C, Byte k1D, Byte k1E, Byte k1F,
-            Byte k20, Byte k21, Byte k22, Byte k23, Byte k24, Byte k25, Byte k26, Byte k27, Byte k28, Byte k29, Byte k2A, Byte k2B, Byte k2C, Byte k2D, Byte k2E, Byte k2F,
-            Byte k30, Byte k31, Byte k32, Byte k33, Byte k34, Byte k35, Byte k36, Byte k37, Byte k38, Byte k39, Byte k3A, Byte k3B, Byte k3C, Byte k3D, Byte k3E, Byte k3F,
-            Byte k40, Byte k41, Byte k42, Byte k43, Byte k44, Byte k45, Byte k46, Byte k47, Byte k48, Byte k49, Byte k4A, Byte k4B, Byte k4C, Byte k4D, Byte k4E, Byte k4F,
-            Byte k50, Byte k51, Byte k52, Byte k53, Byte k54, Byte k55, Byte k56, Byte k57, Byte k58, Byte k59, Byte k5A, Byte k5B, Byte k5C, Byte k5D, Byte k5E, Byte k5F,
-            Byte k60, Byte k61, Byte k62, Byte k63, Byte k64, Byte k65, Byte k66, Byte k67, Byte k68, Byte k69, Byte k6A, Byte k6B, Byte k6C, Byte k6D, Byte k6E, Byte k6F,
-            Byte k70, Byte k71, Byte k72, Byte k73, Byte k74, Byte k75, Byte k76, Byte k77, Byte k78, Byte k79, Byte k7A, Byte k7B, Byte k7C, Byte k7D, Byte k7E, Byte k7F,
-            Byte k80, Byte k81, Byte k82, Byte k83, Byte k84, Byte k85, Byte k86, Byte k87, Byte k88, Byte k89, Byte k8A, Byte k8B, Byte k8C, Byte k8D, Byte k8E, Byte k8F,
-            Byte k90, Byte k91, Byte k92, Byte k93, Byte k94, Byte k95, Byte k96, Byte k97, Byte k98, Byte k99, Byte k9A, Byte k9B, Byte k9C, Byte k9D, Byte k9E, Byte k9F,
-            Byte kA0, Byte kA1, Byte kA2, Byte kA3, Byte kA4, Byte kA5, Byte kA6, Byte kA7, Byte kA8, Byte kA9, Byte kAA, Byte kAB, Byte kAC, Byte kAD, Byte kAE, Byte kAF,
-            Byte kB0, Byte kB1, Byte kB2, Byte kB3, Byte kB4, Byte kB5, Byte kB6, Byte kB7, Byte kB8, Byte kB9, Byte kBA, Byte kBB, Byte kBC, Byte kBD, Byte kBE, Byte kBF,
-            Byte kC0, Byte kC1, Byte kC2, Byte kC3, Byte kC4, Byte kC5, Byte kC6, Byte kC7, Byte kC8, Byte kC9, Byte kCA, Byte kCB, Byte kCC, Byte kCD, Byte kCE, Byte kCF,
-            Byte kD0, Byte kD1, Byte kD2, Byte kD3, Byte kD4, Byte kD5, Byte kD6, Byte kD7, Byte kD8, Byte kD9, Byte kDA, Byte kDB, Byte kDC, Byte kDD, Byte kDE, Byte kDF,
-            Byte kE0, Byte kE1, Byte kE2, Byte kE3, Byte kE4, Byte kE5, Byte kE6, Byte kE7, Byte kE8, Byte kE9, Byte kEA, Byte kEB, Byte kEC, Byte kED, Byte kEE, Byte kEF,
-            Byte kF0, Byte kF1, Byte kF2, Byte kF3, Byte kF4, Byte kF5, Byte kF6, Byte kF7, Byte kF8, Byte kF9, Byte kFA, Byte kFB, Byte kFC, Byte kFD, Byte kFE, Byte kFF);
-
-private:
-   Byte _key[256+4];
-};
-Cipher0A::Cipher0A()
-{
-   Zero(_key);
-}
-Cipher0A::Cipher0A(Byte k00, Byte k01, Byte k02, Byte k03, Byte k04, Byte k05, Byte k06, Byte k07, Byte k08, Byte k09, Byte k0A, Byte k0B, Byte k0C, Byte k0D, Byte k0E, Byte k0F,
-                   Byte k10, Byte k11, Byte k12, Byte k13, Byte k14, Byte k15, Byte k16, Byte k17, Byte k18, Byte k19, Byte k1A, Byte k1B, Byte k1C, Byte k1D, Byte k1E, Byte k1F,
-                   Byte k20, Byte k21, Byte k22, Byte k23, Byte k24, Byte k25, Byte k26, Byte k27, Byte k28, Byte k29, Byte k2A, Byte k2B, Byte k2C, Byte k2D, Byte k2E, Byte k2F,
-                   Byte k30, Byte k31, Byte k32, Byte k33, Byte k34, Byte k35, Byte k36, Byte k37, Byte k38, Byte k39, Byte k3A, Byte k3B, Byte k3C, Byte k3D, Byte k3E, Byte k3F,
-                   Byte k40, Byte k41, Byte k42, Byte k43, Byte k44, Byte k45, Byte k46, Byte k47, Byte k48, Byte k49, Byte k4A, Byte k4B, Byte k4C, Byte k4D, Byte k4E, Byte k4F,
-                   Byte k50, Byte k51, Byte k52, Byte k53, Byte k54, Byte k55, Byte k56, Byte k57, Byte k58, Byte k59, Byte k5A, Byte k5B, Byte k5C, Byte k5D, Byte k5E, Byte k5F,
-                   Byte k60, Byte k61, Byte k62, Byte k63, Byte k64, Byte k65, Byte k66, Byte k67, Byte k68, Byte k69, Byte k6A, Byte k6B, Byte k6C, Byte k6D, Byte k6E, Byte k6F,
-                   Byte k70, Byte k71, Byte k72, Byte k73, Byte k74, Byte k75, Byte k76, Byte k77, Byte k78, Byte k79, Byte k7A, Byte k7B, Byte k7C, Byte k7D, Byte k7E, Byte k7F,
-                   Byte k80, Byte k81, Byte k82, Byte k83, Byte k84, Byte k85, Byte k86, Byte k87, Byte k88, Byte k89, Byte k8A, Byte k8B, Byte k8C, Byte k8D, Byte k8E, Byte k8F,
-                   Byte k90, Byte k91, Byte k92, Byte k93, Byte k94, Byte k95, Byte k96, Byte k97, Byte k98, Byte k99, Byte k9A, Byte k9B, Byte k9C, Byte k9D, Byte k9E, Byte k9F,
-                   Byte kA0, Byte kA1, Byte kA2, Byte kA3, Byte kA4, Byte kA5, Byte kA6, Byte kA7, Byte kA8, Byte kA9, Byte kAA, Byte kAB, Byte kAC, Byte kAD, Byte kAE, Byte kAF,
-                   Byte kB0, Byte kB1, Byte kB2, Byte kB3, Byte kB4, Byte kB5, Byte kB6, Byte kB7, Byte kB8, Byte kB9, Byte kBA, Byte kBB, Byte kBC, Byte kBD, Byte kBE, Byte kBF,
-                   Byte kC0, Byte kC1, Byte kC2, Byte kC3, Byte kC4, Byte kC5, Byte kC6, Byte kC7, Byte kC8, Byte kC9, Byte kCA, Byte kCB, Byte kCC, Byte kCD, Byte kCE, Byte kCF,
-                   Byte kD0, Byte kD1, Byte kD2, Byte kD3, Byte kD4, Byte kD5, Byte kD6, Byte kD7, Byte kD8, Byte kD9, Byte kDA, Byte kDB, Byte kDC, Byte kDD, Byte kDE, Byte kDF,
-                   Byte kE0, Byte kE1, Byte kE2, Byte kE3, Byte kE4, Byte kE5, Byte kE6, Byte kE7, Byte kE8, Byte kE9, Byte kEA, Byte kEB, Byte kEC, Byte kED, Byte kEE, Byte kEF,
-                   Byte kF0, Byte kF1, Byte kF2, Byte kF3, Byte kF4, Byte kF5, Byte kF6, Byte kF7, Byte kF8, Byte kF9, Byte kFA, Byte kFB, Byte kFC, Byte kFD, Byte kFE, Byte kFF)
-{
-   Byte k[]={
-      k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k0A, k0B, k0C, k0D, k0E, k0F,
-      k10, k11, k12, k13, k14, k15, k16, k17, k18, k19, k1A, k1B, k1C, k1D, k1E, k1F,
-      k20, k21, k22, k23, k24, k25, k26, k27, k28, k29, k2A, k2B, k2C, k2D, k2E, k2F,
-      k30, k31, k32, k33, k34, k35, k36, k37, k38, k39, k3A, k3B, k3C, k3D, k3E, k3F,
-      k40, k41, k42, k43, k44, k45, k46, k47, k48, k49, k4A, k4B, k4C, k4D, k4E, k4F,
-      k50, k51, k52, k53, k54, k55, k56, k57, k58, k59, k5A, k5B, k5C, k5D, k5E, k5F,
-      k60, k61, k62, k63, k64, k65, k66, k67, k68, k69, k6A, k6B, k6C, k6D, k6E, k6F,
-      k70, k71, k72, k73, k74, k75, k76, k77, k78, k79, k7A, k7B, k7C, k7D, k7E, k7F,
-      k80, k81, k82, k83, k84, k85, k86, k87, k88, k89, k8A, k8B, k8C, k8D, k8E, k8F,
-      k90, k91, k92, k93, k94, k95, k96, k97, k98, k99, k9A, k9B, k9C, k9D, k9E, k9F,
-      kA0, kA1, kA2, kA3, kA4, kA5, kA6, kA7, kA8, kA9, kAA, kAB, kAC, kAD, kAE, kAF,
-      kB0, kB1, kB2, kB3, kB4, kB5, kB6, kB7, kB8, kB9, kBA, kBB, kBC, kBD, kBE, kBF,
-      kC0, kC1, kC2, kC3, kC4, kC5, kC6, kC7, kC8, kC9, kCA, kCB, kCC, kCD, kCE, kCF,
-      kD0, kD1, kD2, kD3, kD4, kD5, kD6, kD7, kD8, kD9, kDA, kDB, kDC, kDD, kDE, kDF,
-      kE0, kE1, kE2, kE3, kE4, kE5, kE6, kE7, kE8, kE9, kEA, kEB, kEC, kED, kEE, kEF,
-      kF0, kF1, kF2, kF3, kF4, kF5, kF6, kF7, kF8, kF9, kFA, kFB, kFC, kFD, kFE, kFF,
-   };
-   setKey((Byte*)k, SIZE(k));
-}
-void Cipher0A::setKey(C Byte *key, Int key_size)
-{
-   if(key && key_size>0)
-   {
-      for(Int pos=0; pos<256; )
-      {
-         Int copy=Min(256-pos, key_size);
-         CopyFast(_key+pos, key, copy);
-         pos+=copy;
-      }
-      wrapKey();
-   }else Zero(_key);
-}
-void Cipher0A::wrapKey()
-{
-  _key[256+0]=_key[0];
-  _key[256+1]=_key[1];
-  _key[256+2]=_key[2];
-  _key[256+3]=_key[3];
-}
-/******************************************************************************/
-void Cipher0A::randomizeKey()
-{
-   UID uid[256/SIZE(UID)]; REPAO(uid).randomize(); // 'UID.randomize' uses a more secure version than 'Random'
-   setKey(uid[0].b, SIZE(uid));
-}
-Bool Cipher0A::saveKey(File &f)C {return  f.put(_key, 256);}
-Bool Cipher0A::loadKey(File &f)  {Bool ok=f.get(_key, 256); wrapKey(); return ok;}
-Bool Cipher0A:: mixKey(File &f)  {Byte temp[256]; f>>temp; REP(256)_key[i]^=temp[i]; wrapKey(); return f.ok();}
-/******************************************************************************/
-#pragma runtime_checks("", off)
-void Cipher0A::encrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
-{
-   if(Byte *d=(Byte*)dest)
-   {
-      if(Byte *s=(Byte*)src)
-      {
-         offset&=255;
-         REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
-         {
-            *d++=((*s++)+_key[offset+0])^_key[offset+1];
-            *d++=((*s++)+_key[offset+1])^_key[offset+2];
-            *d++=((*s++)+_key[offset+2])^_key[offset+3];
-            *d++=((*s++)+_key[offset+3])^_key[offset+4];
-            offset+=4; offset&=255;
-         }
-         switch(size%4) // this is faster than REP(size%4), can't use "size&3" due to negative numbers
-         {
-            case 3: *d++=((*s++)+_key[offset+0])^_key[offset+1];   offset++; // !! no break on purpose !!
-            case 2: *d++=((*s++)+_key[offset+0])^_key[offset+1];   offset++; // !! no break on purpose !!
-            case 1: *d++=((*s++)+_key[offset+0])^_key[offset+1]; //offset++; // !! no break on purpose !!
-         }
-      }else
-      {
-         offset&=255;
-         REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
-         {
-            *d++=_key[offset+0]^_key[offset+1];
-            *d++=_key[offset+1]^_key[offset+2];
-            *d++=_key[offset+2]^_key[offset+3];
-            *d++=_key[offset+3]^_key[offset+4];
-            offset+=4; offset&=255;
-         }
-         switch(size%4) // this is faster than REP(size%4), can't use "size&3" due to negative numbers
-         {
-            case 3: *d++=_key[offset+0]^_key[offset+1];   offset++; // !! no break on purpose !!
-            case 2: *d++=_key[offset+0]^_key[offset+1];   offset++; // !! no break on purpose !!
-            case 1: *d++=_key[offset+0]^_key[offset+1]; //offset++; // !! no break on purpose !!
-         }
-      }
-   }
-}
-void Cipher0A::decrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
-{
-   if(Byte *d=(Byte*)dest)
-   {
-      if(Byte *s=(Byte*)src)
-      {
-         offset&=255;
-         REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
-         {
-            *d++=((*s++)^_key[offset+1])-_key[offset+0];
-            *d++=((*s++)^_key[offset+2])-_key[offset+1];
-            *d++=((*s++)^_key[offset+3])-_key[offset+2];
-            *d++=((*s++)^_key[offset+4])-_key[offset+3];
-            offset+=4; offset&=255;
-         }
-         switch(size%4) // this is faster than REP(size%4), can't use "size&3" due to negative numbers
-         {
-            case 3: *d++=((*s++)^_key[offset+1])-_key[offset+0];   offset++; // !! no break on purpose !!
-            case 2: *d++=((*s++)^_key[offset+1])-_key[offset+0];   offset++; // !! no break on purpose !!
-            case 1: *d++=((*s++)^_key[offset+1])-_key[offset+0]; //offset++; // !! no break on purpose !!
-         }
-      }else
-      {
-         offset&=255;
-         REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
-         {
-            *d++=_key[offset+1]-_key[offset+0];
-            *d++=_key[offset+2]-_key[offset+1];
-            *d++=_key[offset+3]-_key[offset+2];
-            *d++=_key[offset+4]-_key[offset+3];
-            offset+=4; offset&=255;
-         }
-         switch(size%4) // this is faster than REP(size%4), can't use "size&3" due to negative numbers
-         {
-            case 3: *d++=_key[offset+1]-_key[offset+0];   offset++; // !! no break on purpose !!
-            case 2: *d++=_key[offset+1]-_key[offset+0];   offset++; // !! no break on purpose !!
-            case 1: *d++=_key[offset+1]-_key[offset+0]; //offset++; // !! no break on purpose !!
-         }
-      }
-   }
-}
-#pragma runtime_checks("", restore)
-#endif
 /******************************************************************************/
 // CIPHER 1
 /******************************************************************************/
@@ -347,7 +29,7 @@ Cipher1& Cipher1::setKey(C Byte *key, Int key_size)
        REP(256)_enc[i]=i;
       FREP(255) // RandomizeOrder based on 'key'
       {
-         Byte k=key[UInt(i)%UInt(key_size)]; // unsigned div is slightly faster
+         Byte k=key[Unsigned(i)%Unsigned(key_size)]; // unsigned mod is slightly faster
          UInt left=256-i;
          Swap(_enc[i], _enc[i+k%left]);
       }
@@ -407,7 +89,7 @@ Cipher1::Cipher1(Byte k00, Byte k01, Byte k02, Byte k03, Byte k04, Byte k05, Byt
       kE0, kE1, kE2, kE3, kE4, kE5, kE6, kE7, kE8, kE9, kEA, kEB, kEC, kED, kEE, kEF,
       kF0, kF1, kF2, kF3, kF4, kF5, kF6, kF7, kF8, kF9, kFA, kFB, kFC, kFD, kFE, kFF,
    };
-   setKey((Byte*)k, SIZE(k));
+   setKey(k, SIZE(k));
 }
 void Cipher1::setDec()
 {
@@ -428,9 +110,9 @@ void Cipher1::encrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
 {
    if(Byte *d=(Byte*)dest)
    {
-      if(Byte *s=(Byte*)src)
+      offset&=255;
+      if(C Byte *s=(Byte*)src)
       {
-         offset&=255;
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
            *d++=_enc[(*s++)^_enc[offset+0]];
@@ -447,7 +129,6 @@ void Cipher1::encrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
          }
       }else
       {
-         offset&=255;
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
            *d++=_enc[_enc[offset+0]];
@@ -469,9 +150,9 @@ void Cipher1::decrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
 {
    if(Byte *d=(Byte*)dest)
    {
-      if(Byte *s=(Byte*)src)
+      offset&=255;
+      if(C Byte *s=(Byte*)src)
       {
-         offset&=255;
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
            *d++=_dec[(*s++)]^_enc[offset+0];
@@ -489,7 +170,6 @@ void Cipher1::decrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
       }else
       {
          Byte dec0=_dec[0];
-         offset&=255;
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
            *d++=dec0^_enc[offset+0];
@@ -519,7 +199,7 @@ Cipher2& Cipher2::setKey(C Byte *key, Int key_size)
       REPAO(_enc)=i;
       FREP(255) // RandomizeOrder based on 'key'
       {
-         Byte k=key[UInt(i)%UInt(key_size)]; // unsigned div is slightly faster
+         Byte k=key[Unsigned(i)%Unsigned(key_size)]; // unsigned mod is slightly faster
          UInt left=256-i;
          Swap(_enc[i], _enc[i+k%left]);
       }
@@ -566,7 +246,7 @@ Cipher2::Cipher2(Byte k00, Byte k01, Byte k02, Byte k03, Byte k04, Byte k05, Byt
       kE0, kE1, kE2, kE3, kE4, kE5, kE6, kE7, kE8, kE9, kEA, kEB, kEC, kED, kEE, kEF,
       kF0, kF1, kF2, kF3, kF4, kF5, kF6, kF7, kF8, kF9, kFA, kFB, kFC, kFD, kFE, kFF,
    };
-   setKey((Byte*)k, SIZE(k));
+   setKey(k, SIZE(k));
 }
 void Cipher2::setDec()
 {
@@ -587,7 +267,7 @@ void Cipher2::encrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
 {
    if(Byte *d=(Byte*)dest)
    {
-      if(Byte *s=(Byte*)src)
+      if(C Byte *s=(Byte*)src)
       {
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
@@ -624,7 +304,7 @@ void Cipher2::decrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
 {
    if(Byte *d=(Byte*)dest)
    {
-      if(Byte *s=(Byte*)src)
+      if(C Byte *s=(Byte*)src)
       {
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
@@ -670,7 +350,7 @@ Cipher3& Cipher3::setKey(C Byte *key, Int key_size)
       REPAO(_enc)=i;
       FREP(255) // RandomizeOrder based on 'key'
       {
-         Byte k=key[UInt(i)%UInt(key_size)]; // unsigned div is slightly faster
+         Byte k=key[Unsigned(i)%Unsigned(key_size)]; // unsigned mod is slightly faster
          UInt left=256-i;
          Swap(_enc[i], _enc[i+k%left]);
       }
@@ -717,7 +397,7 @@ Cipher3::Cipher3(Byte k00, Byte k01, Byte k02, Byte k03, Byte k04, Byte k05, Byt
       kE0, kE1, kE2, kE3, kE4, kE5, kE6, kE7, kE8, kE9, kEA, kEB, kEC, kED, kEE, kEF,
       kF0, kF1, kF2, kF3, kF4, kF5, kF6, kF7, kF8, kF9, kFA, kFB, kFC, kFD, kFE, kFF,
    };
-   setKey((Byte*)k, SIZE(k));
+   setKey(k, SIZE(k));
 }
 void Cipher3::setDec()
 {
@@ -738,7 +418,7 @@ void Cipher3::encrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
 {
    if(Byte *d=(Byte*)dest)
    {
-      if(Byte *s=(Byte*)src)
+      if(C Byte *s=(Byte*)src)
       {
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
@@ -775,7 +455,7 @@ void Cipher3::decrypt(Ptr dest, CPtr src, IntPtr size, Int offset)
 {
    if(Byte *d=(Byte*)dest)
    {
-      if(Byte *s=(Byte*)src)
+      if(C Byte *s=(Byte*)src)
       {
          REPP(size/4) // doing 'VecB4' reads/writes made things slower, so process each 'Byte' separately, "for(; size>=4; size-=4)" was slower for size>=1024
          {
@@ -1457,24 +1137,42 @@ AES_ATTR Bool AES::create(CPtr key_data, Int key_size)
    }
    return false;
 }
-AES_ATTR void AES::encrypt(Ptr dest, CPtr src)C
+/******************************************************************************/
+#if AES_CPU
+static INLINE AES_ATTR void AESEncrypt16(Ptr dest, CPtr src, Int rounds, CPtr encrypt_key)
+{
+   const __m128i *key=(const __m128i*)encrypt_key;
+   __m128i block=_mm_loadu_si128((const __m128i*)src);
+   block=_mm_xor_si128(block, key[0]);
+   for(Int i=1; i<rounds-1; i+=2)
+   {
+      block=_mm_aesenc_si128(block, key[i  ]);
+      block=_mm_aesenc_si128(block, key[i+1]);
+   }
+   block=_mm_aesenc_si128    (block, key[rounds-1]);
+   block=_mm_aesenclast_si128(block, key[rounds  ]);
+   _mm_storeu_si128((__m128i*)dest, block);
+}
+static INLINE AES_ATTR void AESDecrypt16(Ptr dest, CPtr src, Int rounds, CPtr decrypt_key)
+{
+   const __m128i *key=(const __m128i*)decrypt_key;
+   __m128i block=_mm_loadu_si128((const __m128i*)src);
+   block=_mm_xor_si128(block, key[0]);
+   for(Int i=1; i<rounds-1; i+=2)
+   {
+      block=_mm_aesdec_si128(block, key[i  ]);
+      block=_mm_aesdec_si128(block, key[i+1]);
+   }
+   block=_mm_aesdec_si128    (block, key[rounds-1]);
+   block=_mm_aesdeclast_si128(block, key[rounds  ]);
+   _mm_storeu_si128((__m128i*)dest, block);
+}
+#endif
+/******************************************************************************/
+AES_ATTR void AES::encrypt16(Ptr dest, CPtr src)C
 {
 #if AES_CPU
-   if(Cpu.flag()&CPU_AES)
-   {
-      const __m128i *key=(const __m128i*)_encrypt_key;
-      __m128i block=_mm_loadu_si128((const __m128i*)src);
-      block=_mm_xor_si128(block, key[0]);
-      for(Int i=1; i<_rounds-1; i+=2)
-      {
-         block=_mm_aesenc_si128(block, key[i  ]);
-         block=_mm_aesenc_si128(block, key[i+1]);
-      }
-      block=_mm_aesenc_si128    (block, key[_rounds-1]);
-      block=_mm_aesenclast_si128(block, key[_rounds  ]);
-      _mm_storeu_si128((__m128i*)dest, block);
-      return;
-   }
+   if(Cpu.flag()&CPU_AES){AESEncrypt16(dest, src, _rounds, _encrypt_key); return;}
 #endif
 
    const Byte *in =(Byte*)src;
@@ -1581,24 +1279,11 @@ AES_ATTR void AES::encrypt(Ptr dest, CPtr src)C
    s2 = (Te2[(t2 >> 24)] & 0xff000000) ^ (Te3[(t3 >> 16) & 0xff] & 0x00ff0000) ^ (Te0[(t0 >> 8) & 0xff] & 0x0000ff00) ^ (Te1[(t1) & 0xff] & 0x000000ff) ^ rk[2]; PUTU32(out+ 8, s2);
    s3 = (Te2[(t3 >> 24)] & 0xff000000) ^ (Te3[(t0 >> 16) & 0xff] & 0x00ff0000) ^ (Te0[(t1 >> 8) & 0xff] & 0x0000ff00) ^ (Te1[(t2) & 0xff] & 0x000000ff) ^ rk[3]; PUTU32(out+12, s3);
 }
-AES_ATTR void AES::decrypt(Ptr dest, CPtr src)C
+/******************************************************************************/
+AES_ATTR void AES::decrypt16(Ptr dest, CPtr src)C
 {
 #if AES_CPU
-   if(Cpu.flag()&CPU_AES)
-   {
-      const __m128i *key=(const __m128i*)_decrypt_key;
-      __m128i block=_mm_loadu_si128((const __m128i*)src);
-      block=_mm_xor_si128(block, key[0]);
-      for(Int i=1; i<_rounds-1; i+=2)
-      {
-         block=_mm_aesdec_si128(block, key[i  ]);
-         block=_mm_aesdec_si128(block, key[i+1]);
-      }
-      block=_mm_aesdec_si128    (block, key[_rounds-1]);
-      block=_mm_aesdeclast_si128(block, key[_rounds  ]);
-      _mm_storeu_si128((__m128i*)dest, block);
-      return;
-   }
+   if(Cpu.flag()&CPU_AES){AESDecrypt16(dest, src, _rounds, _decrypt_key); return;}
 #endif
 
    const Byte *in =(Byte*)src;
@@ -1709,6 +1394,58 @@ AES_ATTR void AES::decrypt(Ptr dest, CPtr src)C
 #undef SWAP
 #undef GETU32
 #undef PUTU32
+/******************************************************************************/
+AES_ATTR Bool AES::encrypt(Ptr dest, CPtr src, IntPtr size)C
+{
+   if(size<0 || size&15)return false;
+   size>>=4;
+#if AES_CPU
+   if(Cpu.flag()&CPU_AES)
+   {
+      REPP(size)
+      {
+         AESEncrypt16(dest, src, _rounds, _encrypt_key);
+         dest=(Byte*)dest+16;
+         src =(Byte*)src +16;
+      }
+   }else
+#endif
+   {
+      REPP(size)
+      {
+         encrypt16(dest, src);
+         dest=(Byte*)dest+16;
+         src =(Byte*)src +16;
+      }
+   }
+   return true;
+}
+AES_ATTR Bool AES::decrypt(Ptr dest, CPtr src, IntPtr size)C
+{
+   if(size<0 || size&15)return false;
+   size>>=4;
+#if AES_CPU
+   if(Cpu.flag()&CPU_AES)
+   {
+      REPP(size)
+      {
+         AESDecrypt16(dest, src, _rounds, _decrypt_key);
+         dest=(Byte*)dest+16;
+         src =(Byte*)src +16;
+      }
+   }else
+#endif
+   {
+      REPP(size)
+      {
+         decrypt16(dest, src);
+         dest=(Byte*)dest+16;
+         src =(Byte*)src +16;
+      }
+   }
+   return true;
+}
+/******************************************************************************/
 #endif
 /******************************************************************************/
 }

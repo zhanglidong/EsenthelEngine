@@ -140,7 +140,7 @@ static JavaVM        *JVM;
        AAssetManager *AssetManager;
        android_app   *AndroidApp;
        Str8           AndroidPackageName;
-       Str            AndroidAppPath, AndroidAppDataPath, AndroidAppDataPublicPath, AndroidPublicPath, AndroidSDCardPath;
+       Str            AndroidAppPath, AndroidAppDataPath, AndroidAppDataPublicPath, AndroidAppCachePath, AndroidPublicPath, AndroidSDCardPath;
 static KB_KEY         KeyMap[256];
 static Byte           ShiftMap[3][128], JoyMap[256];
 static Bool           Initialized, // !! This may be set to true when app is restarted (without previous crashing) !!
@@ -246,15 +246,18 @@ static void UpdateOrientation()
       case ROTATION_270: App._orientation=DIR_RIGHT; break;
    }
 }
-static void UpdateSize(ANativeWindow &window)
+static void UpdateSize()
 {
-   VecI2 res(ANativeWindow_getWidth (&window),
-             ANativeWindow_getHeight(&window));
-   if(D.res()!=res && res.x>0 && res.y>0)
+   if(App.window())
    {
-      LOG(S+"Resize: "+res.x+", "+res.y);
-      Renderer._main.forceInfo(res.x, res.y, 1, Renderer._main.type(), Renderer._main.mode(), Renderer._main.samples()); // '_main_ds' will be set in 'rtCreate'
-      D.modeSet(res.x, res.y);
+      VecI2 res(ANativeWindow_getWidth (App.window()),
+                ANativeWindow_getHeight(App.window()));
+      if(D.res()!=res && res.x>0 && res.y>0)
+      {
+         LOG(S+"Resize: "+res.x+", "+res.y);
+         Renderer._main.forceInfo(res.x, res.y, 1, Renderer._main.type(), Renderer._main.mode(), Renderer._main.samples()); // '_main_ds' will be set in 'rtCreate'
+         D.modeSet(res.x, res.y);
+      }
    }
 }
 /******************************************************************************/
@@ -284,13 +287,14 @@ static int32_t InputCallback(android_app *app, AInputEvent *event)
          {
             if(action_type==AMOTION_EVENT_ACTION_MOVE)
             {
-               Joypad &joy=Joypads(action_index); if(!joy._name.is()){joy._name=JavaInputDeviceName(device); if(!joy._name.is())joy._name="Joypad";}
-               joy.dir     .set(AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_HAT_X, action_index),
-                               -AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_HAT_Y, action_index));
-               joy.dir_a[0].set(AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_X    , action_index),
-                               -AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_Y    , action_index));
-               joy.dir_a[1].set(AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_RX   , action_index),
-                               -AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_RY   , action_index));
+               Joypad &jp=Joypads(action_index); if(!jp._name.is()){jp._name=JavaInputDeviceName(device); if(!jp._name.is())jp._name="Joypad";}
+               jp.dir     .set(AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_HAT_X, action_index),
+                              -AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_HAT_Y, action_index));
+               jp.dir_a[0].set(AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_X    , action_index),
+                              -AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_Y    , action_index));
+               jp.dir_a[1].set(AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_RX   , action_index),
+                              -AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_RY   , action_index));
+               jp.diri.set(Round(jp.dir.x), Round(jp.dir.y));
             }
          }else
          if((source&AINPUT_SOURCE_MOUSE) && !stylus)  // check for stylus because on "Samsung Galaxy Note 2" stylus input generates both "AINPUT_SOURCE_STYLUS|AINPUT_SOURCE_MOUSE" at the same time
@@ -305,7 +309,7 @@ static int32_t InputCallback(android_app *app, AInputEvent *event)
             Int button_state=AMotionEvent_getButtonState(event);
             if(action_type==AMOTION_EVENT_ACTION_DOWN && !button_state){PossibleTap=true; PossibleTapTime=Time.appTime();}else // 'getButtonState' does not detect tapping on the touchpad, so we need to detect it according to 'AMOTION_EVENT_ACTION_DOWN', also proceed only if no buttons are pressed in case this event is triggered by secondary mouse button
             if(PossibleTap && (button_state || (LastMousePos-Ms.desktopPos()).abs().max()>=6))PossibleTap=false; // if we've pressed a button or moved away too much then it's definitely not a tap
-            if(action_type==AMOTION_EVENT_ACTION_UP   &&  PossibleTap ){PossibleTap=false; if(Time.appTime()<=PossibleTapTime+0.33f+Time.ad())Ms.push(0, 0.33f);} // this is a tap so push the button and it will be released line below because 'button_state' is 0, use 0.33f time limit because on Asus Transformer Prime tapping can result in times as long as 0.318s
+            if(action_type==AMOTION_EVENT_ACTION_UP   &&  PossibleTap ){PossibleTap=false; if(Time.appTime()<=PossibleTapTime+DoubleClickTime+Time.ad())Ms.push(0);} // this is a tap so push the button and it will be released line below because 'button_state' is 0
             REPA(Ms._button)if(FlagTest(button_state, 1<<i)!=Ms.b(i))if(Ms.b(i))Ms.release(i);else Ms.push(i);
 
             // get scrolling and cursor position
@@ -322,9 +326,9 @@ static int32_t InputCallback(android_app *app, AInputEvent *event)
                   Ms._wheel.y+=(pos.y-LastMousePos.y)*mul;
                }else
                {
-                  Ms._desktop_posi=pos;
-                  Ms. _window_posi.x=Round(AMotionEvent_getX(event, 0));
-                  Ms. _window_posi.y=Round(AMotionEvent_getY(event, 0));
+                  Ms._desktop_pixeli=pos;
+                  Ms. _window_pixeli.x=Round(AMotionEvent_getX(event, 0));
+                  Ms. _window_pixeli.y=Round(AMotionEvent_getY(event, 0));
                }
                LastMousePos=pos;
             }
@@ -341,7 +345,7 @@ static int32_t InputCallback(android_app *app, AInputEvent *event)
                      Vec2   pixel (AMotionEvent_getX(event, i), AMotionEvent_getY(event, i)),
                             pos   =D.windowPixelToScreen(pixel);
                      VecI2  pixeli=Round(pixel);
-                     Touch *touch=FindTouchByHandle(pid);
+                     Touch *touch =FindTouchByHandle(pid);
                      if(   !touch)touch=&Touches.New().init(pixeli, pos, pid, stylus);else
                      {
                         touch->_remove=false; // disable 'remove' in case it was enabled (for example the same touch was released in same/previous frame)
@@ -379,9 +383,9 @@ static int32_t InputCallback(android_app *app, AInputEvent *event)
                      Touch *touch =FindTouchByHandle(pid);
                      if(   !touch)touch=&Touches.New().init(pixeli, pos, pid, stylus);else
                      {  // update
-                        touch->_deltai+=pixeli-touch->_pixeli;
-                        touch->_pixeli =pixeli;
-                        touch->_pos    =pos;
+                        touch->_delta_pixeli_clp+=pixeli-touch->_pixeli;
+                        touch->_pixeli           =pixeli;
+                        touch->_pos              =pos;
                         if(!touch->_state)touch->_gui_obj=Gui.objAtPos(touch->pos()); // when hovering then also update gui object (check for 'state' because hover can be called the same frame that release is called, and for release we want to keep the original values)
                      }
                   }
@@ -409,10 +413,10 @@ static int32_t InputCallback(android_app *app, AInputEvent *event)
                   {
                      Vec2  pixel (AMotionEvent_getX(event, action_index), AMotionEvent_getY(event, action_index));
                      VecI2 pixeli=Round(pixel);
-                     touch->_deltai+=pixeli-touch->_pixeli;
-                     touch->_pixeli =pixeli;
-                     touch->_pos    =D.windowPixelToScreen(pixel);
-                     touch->_remove =true;
+                     touch->_delta_pixeli_clp+=pixeli-touch->_pixeli;
+                     touch->_pixeli           =pixeli;
+                     touch->_pos              =D.windowPixelToScreen(pixel);
+                     touch->_remove           =true;
                      if(touch->_state&BS_ON) // check for state in case it was manually eaten
                      {
                         touch->_state|= BS_RELEASED;
@@ -599,7 +603,7 @@ static void CmdCallback(android_app *app, int32_t cmd)
       case APP_CMD_INIT_WINDOW:
       {
          LOG("APP_CMD_INIT_WINDOW");
-         if(app->window)
+         if(App._window=app->window)
          {
             if(!Initialized)
             {
@@ -615,6 +619,7 @@ static void CmdCallback(android_app *app, int32_t cmd)
       case APP_CMD_TERM_WINDOW:
       {
          LOG("APP_CMD_TERM_WINDOW");
+         App._window=null;
          D.androidClose();
       }break;
 
@@ -627,7 +632,7 @@ static void CmdCallback(android_app *app, int32_t cmd)
          eglQuerySurface(display, surface, EGL_HEIGHT, &h);
          LOG(S+"EGL: w:"+w+", h:"+h);*/
          UpdateOrientation();
-       //if(app->window)UpdateSize(*app->window); // at this stage, old window size may occur, instead we need to check this every frame
+       //UpdateSize       (); // at this stage, old window size may occur, instead we need to check this every frame
       }break;
 
       case APP_CMD_WINDOW_REDRAW_NEEDED:
@@ -732,6 +737,12 @@ static void JavaGetAppName()
       if(JObject      external_files_dir    =Jni->CallObjectMethod(Activity          ,  getExternalFilesDir, null))
       if(JString      external_files_dir_str=Jni->CallObjectMethod(external_files_dir,  getAbsolutePath))
          AndroidAppDataPublicPath=external_files_dir_str.str().replace('/', '\\');
+
+      // app cache
+      if(JMethodID getCacheDir     =Jni.func             (ActivityClass, "getCacheDir", "()Ljava/io/File;"))
+      if(JObject      files_dir    =Jni->CallObjectMethod(Activity     ,  getCacheDir))
+      if(JString      files_dir_str=Jni->CallObjectMethod(files_dir    ,  getAbsolutePath))
+         AndroidAppCachePath=files_dir_str.str().replace('/', '\\');
 
       // public
       if(JClass    Environment="android/os/Environment")
@@ -1221,16 +1232,15 @@ void android_main(android_app *app)
    stop:
 
       // process input
-      Ms._deltai          = Ms. desktopPos()-old_posi;
-      Ms._delta_relative.x= Ms._deltai.x;
-      Ms._delta_relative.y=-Ms._deltai.y;
+      Ms._delta_pixeli_clp= Ms. desktopPos()-old_posi;
+      Ms._delta_rel.x     = Ms._delta_pixeli_clp.x;
+      Ms._delta_rel.y     =-Ms._delta_pixeli_clp.y;
 
       LOG2(S+"AndroidApp->window:"+(AndroidApp->window!=null));
    #if DEBUG
       if(!eglGetCurrentContext())LOG("No current EGL Context available on the main thread");
    #endif
-      if(AndroidApp->window) // this may be unavailable if device is being (dis)connected to dock, or app is working in the background
-         UpdateSize(*AndroidApp->window);
+      UpdateSize();
       App.update();
    }
 

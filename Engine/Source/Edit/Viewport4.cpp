@@ -20,7 +20,7 @@ void Viewport4::View::setViewportCamera()
 /******************************************************************************/
 void Viewport4::ViewportEx::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       Color rect_color=T.rect_color; T.rect_color.a=0;
 
@@ -162,14 +162,14 @@ void Viewport4::Cube::update(C GuiPC &gpc)
 }
 void Viewport4::Cube::draw(C GuiPC &gpc)
 {
-   if(mesh && visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible() && mesh)
    {
       D.clip(gpc.clip);
       ALPHA_MODE alpha=D.alpha();
       DisplayClass::ViewportSettings view; Camera camera; MatrixM matrix;
       setView(gpc, view, camera, matrix);
-      D.sampler3D(); D.depthLock  (false); mesh->drawBlend(matrix); if(Gui.ms()==this && InRange(part, *mesh))mesh->parts[part].drawBlend(&NoTemp(Vec4(2)));
-      D.sampler2D(); D.depthUnlock(     ); D.depthWrite(true); D.alpha(alpha); // reset 'depthWrite' and 'alpha' because they can be modified by 'drawBlend'
+      D.depthLock  (false); D.depthOnWriteFunc(false, false, FUNC_ALWAYS ); mesh->drawBlend(matrix); if(Gui.ms()==this && InRange(part, *mesh))mesh->parts[part].drawBlend(&NoTemp(Vec4(2))); // set func in case 'depthLock' is ignored for performance reasons
+      D.depthUnlock(     ); D.depthOnWriteFunc(false, true , FUNC_DEFAULT); D.alpha(alpha); // reset 'depthWrite' and 'alpha' because they can be modified by 'drawBlend'
       resetView(view, camera);
    }
 }
@@ -199,7 +199,7 @@ void Viewport4::Zoom::update(C GuiPC &gpc)
 }
 void Viewport4::Zoom::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       D.clip(gpc.clip);
       Rect rect=T.rect()+gpc.offset;
@@ -225,7 +225,7 @@ Viewport4::DPadY& Viewport4::DPadY::create(Viewport4 *v4, View *view) {super::cr
 
 GuiObj* Viewport4::DPad::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 {
-   return (visible() && gpc.visible && Cuts(pos, Circle(rect().h()*0.5f, rect().center()+gpc.offset))) ? this : null;
+   return (/*gpc.visible &&*/ visible() && Cuts(pos, Circle(rect().h()*0.5f, rect().center()+gpc.offset))) ? this : null;
 }
 void Viewport4::DPad::update(C GuiPC &gpc)
 {
@@ -274,7 +274,7 @@ void Viewport4::DPadY::update(C GuiPC &gpc)
 }
 void Viewport4::DPad::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       D.clip(gpc.clip);
       Circle circle(rect().h()*0.5f, rect().center()+gpc.offset);
@@ -292,7 +292,7 @@ void Viewport4::DPad::draw(C GuiPC &gpc)
 }
 void Viewport4::DPadY::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       D.clip(gpc.clip);
       Rect rect=T.rect()+gpc.offset; Vec2 right=rect.lerp(0.66f, 0.5f);
@@ -314,7 +314,7 @@ Viewport4::APadY& Viewport4::APadY::create(Viewport4 &v4, View &view) {super::cr
 
 GuiObj* Viewport4::APad::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 {
-   return (visible() && gpc.visible && Cuts(pos, Circle(rect().h()*0.5f, rect().center()+gpc.offset))) ? this : null;
+   return (/*gpc.visible &&*/ visible() && Cuts(pos, Circle(rect().h()*0.5f, rect().center()+gpc.offset))) ? this : null;
 }
 void Viewport4::APad::update(C GuiPC &gpc)
 {
@@ -350,7 +350,7 @@ void Viewport4::APadY::update(C GuiPC &gpc)
 }
 void Viewport4::APad::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       D.clip(gpc.clip);
       Circle c(rect().h()*0.5f, rect().center()+gpc.offset);
@@ -370,7 +370,7 @@ void Viewport4::APad::draw(C GuiPC &gpc)
 }
 void Viewport4::APadY::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       D.clip(gpc.clip);
       Rect rect=T.rect()+gpc.offset;
@@ -395,7 +395,7 @@ Viewport4::DragY& Viewport4::DragY::create(Viewport4 &v4, View &view) {super::cr
 
 GuiObj* Viewport4::Drag::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 {
-   return (visible() && gpc.visible && Cuts(pos, Circle(rect().h()*0.5f, rect().center()+gpc.offset))) ? this : null;
+   return (/*gpc.visible &&*/ visible() && Cuts(pos, Circle(rect().h()*0.5f, rect().center()+gpc.offset))) ? this : null;
 }
 void Viewport4::Drag::update(C GuiPC &gpc)
 {
@@ -427,7 +427,7 @@ void Viewport4::DragY::update(C GuiPC &gpc)
 }
 void Viewport4::Drag::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       D.clip(gpc.clip);
       Circle c(rect().h()*0.5f, rect().center()+gpc.offset);
@@ -437,7 +437,7 @@ void Viewport4::Drag::draw(C GuiPC &gpc)
 }
 void Viewport4::DragY::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       D.clip(gpc.clip);
       Rect rect=T.rect()+gpc.offset;
@@ -498,7 +498,7 @@ void Viewport4::Arrows::update(C GuiPC &gpc)
 }
 void Viewport4::Arrows::draw(C GuiPC &gpc)
 {
-   if(gpc.visible && visible())
+   if(/*gpc.visible &&*/ visible())
    {
       D.clip(gpc.clip);
       Button b; b.create().disabled(true); b.text_size=0.75f; // set disabled to be half transparent
@@ -868,7 +868,7 @@ Viewport4& Viewport4::setViewportCamera()
 /******************************************************************************/
 void Viewport4::update()
 {
-   REPAO(view).camera.updateBegin(); // Warning: TODO: this method calls 'updateBegin' and 'updateEnd' however 'Viewport4::Cube', 'Viewport4::Zoom' and others might modify camera outside of this function which might affect camera velocities/motion blur/taa (solution is for example move camera updates from those functions into special 'updateCam' functions and call them here)
+   REPAO(view).camera.updateBegin(); // Warning: TODO: this method calls 'updateBegin' and 'updateEnd' however 'Viewport4::Cube', 'Viewport4::Zoom' and others might modify camera outside of this function which might affect camera velocities/MotionBlur/Temporal (solution is for example move camera updates from those functions into special 'updateCam' functions and call them here)
    
    // detect highlight
    if(_focus=getView(Gui.ms()))_last=_focus;

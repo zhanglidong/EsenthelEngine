@@ -65,12 +65,12 @@ static struct VirtualRealityDummyApi : VirtualRealityApi
    virtual Bool     createUIImage ()override {return _ui    .create(VR.guiRes()     , LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8);}
    virtual Bool createRenderImage ()override {return _render.create(VecI2(1280, 720), LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8);}
 
-   virtual ImageRT* getNewRender()override {return _render.is() ? &_render : null;}
-   virtual ImageRT* getNewUI    ()override {return _ui    .is() ? &_ui     : null;}
+   virtual ImageRTC* getNewRender()override {return _render.is() ? &_render : null;}
+   virtual ImageRTC* getNewUI    ()override {return _ui    .is() ? &_ui     : null;}
 
 private:
-   Bool    _active;
-   ImageRT _render, _ui;
+   Bool     _active;
+   ImageRTC _render, _ui;
 }VirtualRealityDummy;
 /******************************************************************************/
        VirtualReality    VR;
@@ -173,7 +173,10 @@ Matrix VirtualReality::matrixCur()C {return _api->matrixCur();}
 void   VirtualReality::recenter ()  {       _api->recenter ();}
 void   VirtualReality::update   ()  {       _api->update   ();}
 void   VirtualReality::draw     ()
-{
+{ // #AutoHdrBoost
+   Bool boost=(D.outputPrecision()>IMAGE_PRECISION_8 && D.whiteLum()!=1);
+   Vec4 boost_col; if(boost)boost_col.set(D.whiteLum(), D.whiteLum(), D.whiteLum(), 1);
+
    // !! it's very important to clear '_render' and '_ui' !!
    if(active())
    {
@@ -196,7 +199,8 @@ void   VirtualReality::draw     ()
          #if DEBUG && 1
             if(Kb.b(KB_NPMUL)){D.clearCol(); _render->drawFs(FIT_FULL, FILTER_LINEAR);}else
          #endif
-           _render->drawPart(Fit(_left_eye_tex_aspect, D.rect(), FIT_FILL), _left_eye_tex_rect);
+            if(boost)_render->drawPart(boost_col, Vec4Zero, Fit(_left_eye_tex_aspect, D.rect(), FIT_FILL), _left_eye_tex_rect);
+            else     _render->drawPart(                     Fit(_left_eye_tex_aspect, D.rect(), FIT_FILL), _left_eye_tex_rect);
             D.alpha(alpha);
            _render.clear(); // !! clear because we no longer need it, this is very important because it allows to select the new RT in the VR swapchain !!
          }else D.clearCol(); // clear because UI may not cover the entire window
@@ -206,7 +210,8 @@ void   VirtualReality::draw     ()
             if(draw_2d)
             {
                Rect screen=_ui->fit(D.rect(), FIT_FULL);
-              _ui->draw(screen);
+               if(boost)_ui->draw(boost_col, Vec4Zero, screen);
+               else     _ui->draw(                     screen);
             }
            _ui.clear(); // !! clear because we no longer need it, this is very important because it allows to select the new RT in the VR swapchain !!
          }
@@ -214,6 +219,12 @@ void   VirtualReality::draw     ()
 
       Renderer.setMain(); // restore the main RT (that includes advancing to the next VR texture) after discarding '_cur_main_ds'
       D._allow_stereo=true; D.aspectRatioEx(true, true); Frustum.set(); // !! call in this order !!
+   }else
+   if(boost)
+   {
+      ALPHA_MODE alpha=D.alpha(ALPHA_MUL);
+      D.rect().draw(boost_col);
+      D.alpha(alpha);
    }
 }
 /******************************************************************************/
@@ -291,8 +302,8 @@ Bool VirtualReality::createImages()
    return createRenderImage() && createUIImage();
 }
 
-ImageRT* VirtualReality::getRender() {if(!_render)_render=_api->getNewRender(); return _render;} // this will call 'discard', have to keep as 'ImageRTPtr' as long as we need it
-ImageRT* VirtualReality::getUI    () {if(!_ui    )_ui    =_api->getNewUI    (); return _ui    ;} // this will call 'discard', have to keep as 'ImageRTPtr' as long as we need it
+ImageRTC* VirtualReality::getRender() {if(!_render)_render=_api->getNewRender(); return _render;} // this will call 'discard', have to keep as 'ImageRTPtr' as long as we need it
+ImageRTC* VirtualReality::getUI    () {if(!_ui    )_ui    =_api->getNewUI    (); return _ui    ;} // this will call 'discard', have to keep as 'ImageRTPtr' as long as we need it
 /******************************************************************************/
 }
 /******************************************************************************/

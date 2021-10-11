@@ -28,7 +28,7 @@ struct GuiObjsObj : GuiObjs::Obj
       if(GuiObj *parent=go.parent())
       {
          // if objects parent is a Tab, then instead of storing it as child of Tab, we store it as child of Tabs, with index specified to given Tab (this is because there are no single Tab objects in the Gui, but they're always a member of Tabs)
-         Tab *tab=null; if(parent->type()==GO_TAB){tab=&parent->asTab(); parent=tab->parent();} // use parent of Tab (which is Tabs)
+         Tab *tab=null; if(parent->isTab()){tab=&parent->asTab(); parent=tab->parent();} // use parent of Tab (which is Tabs)
          if(parent)if(C Memx<GuiObj> *parent_container=src[parent->type()])
          {
                parent_index=parent_container->validIndex(parent);
@@ -175,7 +175,7 @@ static GuiObj* GetObj(Memc<Memx<GuiObj>*> &objs, Memc<Int> &offset, GUI_OBJ_TYPE
       if(InRange(index, *obj))
       {
          GuiObj &go=(*obj)[index];
-         if(go.type()==GO_TABS && InRange(sub, go.asTabs()))return &go.asTabs().tab(sub);
+         if(go.isTabs() && InRange(sub, go.asTabs()))return &go.asTabs().tab(sub);
          return &go;
       }
    }
@@ -322,7 +322,7 @@ GuiObj* GuiObjs::go(GUI_OBJ_TYPE type, Int index, Int sub)
    if(Memb<GuiObj> *objs=T.objs(type))if(InRange(index, *objs))
    {
       GuiObj &go=(*objs)[index];
-      if(go.type()==GO_TABS && InRange(sub, go.asTabs()))return &go.asTabs().tab(sub);
+      if(go.isTabs() && InRange(sub, go.asTabs()))return &go.asTabs().tab(sub);
       return &go;
    }
    return null;
@@ -401,7 +401,7 @@ GuiObjs& GuiObjs::fadeIn()
    REPA(_objs)
    {
     C Obj &goi=_objs[i];
-      if(!goi.parent_type)if(GuiObj *go=T.go(goi.type, goi.index))if(go->type()==GO_WINDOW)go->asWindow().fadeIn();else go->show();
+      if(!goi.parent_type)if(GuiObj *go=T.go(goi.type, goi.index))if(go->isWindow())go->asWindow().fadeIn();else go->show();
    }
    return T;
 }
@@ -410,7 +410,7 @@ GuiObjs& GuiObjs::fadeOut()
    REPA(_objs)
    {
     C Obj &goi=_objs[i];
-      if(!goi.parent_type)if(GuiObj *go=T.go(goi.type, goi.index))if(go->type()==GO_WINDOW)go->asWindow().fadeOut();else go->hide();
+      if(!goi.parent_type)if(GuiObj *go=T.go(goi.type, goi.index))if(go->isWindow())go->asWindow().fadeOut();else go->hide();
    }
    return T;
 }

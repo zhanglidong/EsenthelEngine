@@ -344,6 +344,53 @@ private:
 };
 /******************************************************************************/
 #if EE_PRIVATE
+struct SoundResampler
+{
+      Bool         end     ;
+    C Flt          speed   ; // !! must be copied to a temporary because it might get changed on a secondary thread !!
+      Flt         volume[2];
+    C Int     dest_channels,
+              dest_block   ,
+               src_channels,
+               src_block   ;
+      Int     dest_samples ,
+               src_samples ;
+      ResampleBuffer buffer;
+   union
+   {
+      Ptr     dest_data;
+      I16    *dest_mono;
+      Stereo *dest_stereo;
+   };
+   union
+   {
+     CPtr     src_data;
+    C I16    *src_mono;
+    C Stereo *src_stereo;
+   };
+
+   SoundResampler(Flt speed, Flt volume[2], Int dest_channels, Int dest_samples, Ptr dest_data, Int src_channels, C ResampleBuffer *buffer=null) :
+      end(false), speed(speed), volume{volume[0], volume[1]},
+      dest_channels(dest_channels), dest_block(SIZE(I16)*dest_channels),
+       src_channels( src_channels),  src_block(SIZE(I16)* src_channels),
+       dest_samples(dest_samples ), dest_data(dest_data)
+   {
+      if(src_channels==2 && dest_channels==1)REPAO(T.volume)/=2;
+      if(buffer)T.buffer=*buffer;else T.buffer.init();
+   }
+   void setSrc(Int src_samples, Ptr src_data) {T.src_samples=src_samples; T.src_data=src_data;}
+
+   I16     srcMono  (Int pos)C;
+ C Stereo& srcStereo(Int pos)C;
+
+   void process(void Process(I16 &sample, Flt value));
+   void set(); // dest =src
+   void add(); // dest+=src
+};
+#endif
+Bool SoundResample(Int src_samples, Int src_channels, I16 *src_data, MemPtr<I16> dest_data, Flt speed, Bool hi_quality, C Flt *volume=null); // resample source sound into 'dest_data', 'src_samples'=number of samples in source, 'src_channels'=number of channels in source, 'src_data'=source data, 'dest_data'=this container will get automatically resized, 'speed'=desired speed of source sound, 'hi_quality'=if use high quality but slow resampler, this operates on 16-bit samples only, false on fail
+/******************************************************************************/
+#if EE_PRIVATE
 extern Memc<SoundRecord*> SoundRecords;
 #endif
 /******************************************************************************/

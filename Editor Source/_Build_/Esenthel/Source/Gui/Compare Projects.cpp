@@ -141,7 +141,7 @@ CompareProjects CompareProjs;
    void CompareProjects::update(C GuiPC &gpc)
 {
       super::update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          select_selected.visible(Proj.valid());
          select_all     .visible(Proj.valid());

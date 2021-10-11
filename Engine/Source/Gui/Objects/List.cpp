@@ -51,7 +51,7 @@ GuiPC::GuiPC(C GuiPC &old, _List &list) // this is to be used for columns only
    visible&=(list.visible() && list.columnsVisible());
    enabled&= list.enabled();
 #if 0
-   if(list.parent() && list.parent()->type()==GO_REGION)offset.y-=list.parent()->asRegion().slidebar[1].offset(); // this can't be used due to pixel align (when scrolling list, the column buttons shake)
+   if(list.parent() && list.parent()->isRegion())offset.y-=list.parent()->asRegion().slidebar[1].offset(); // this can't be used due to pixel align (when scrolling list, the column buttons shake)
 #else
    offset.y=client_rect.max.y;
 #endif
@@ -152,7 +152,7 @@ void ListColumn::update(C GuiPC &gpc)
 {
    if(Gui.ms()==this)
    {
-     _List *list=((parent() && parent()->type()==GO_LIST) ? &parent()->asList() : null);
+     _List *list=((parent() && parent()->isList()) ? &parent()->asList() : null);
 
       if(Ms.b(0) || Ms.br(0)) // resize
       {
@@ -185,13 +185,13 @@ Flt _List::parentWidth()C
 {
    if(GuiObj *parent=T.parent())
    {
-      if(parent->type()==GO_MENU)
+      if(parent->isMenu())
       {
-         if(GuiObj *owner=parent->asMenu().Owner())if(owner->type()==GO_COMBOBOX)return owner->clientSize().x;
+         if(GuiObj *owner=parent->asMenu().Owner())if(owner->isComboBox())return owner->clientSize().x;
       }
 
-      if(parent->type()==GO_REGION)return parent->size().x-parent->asRegion().slidebarSize();
-      else                         return parent->clientSize().x;
+      if(parent->isRegion())return parent->size().x-parent->asRegion().slidebarSize();
+      else                  return parent->clientSize().x;
    }
    return 0;
 }
@@ -692,7 +692,7 @@ void _List::setRects()
       Dbl  x=0, y=0; // use double precision to improve precision for a lot of elements (this gets increased for every element, so errors get accumulated)
       Flt  W=0, H=0;
       Vec2 max_size=size;
-      if(parent() && parent()->type()==GO_REGION)
+      if(parent() && parent()->isRegion())
       {
          Region &region=parent()->asRegion();
          MAX(max_size.x, region.rect().w()-region.slidebarSize());
@@ -909,6 +909,7 @@ Int _List::localToVisY(Flt local_y)C {Int v=localToVirtualY(local_y); return InR
 Int _List::screenToVisX     (  Flt   x  , C GuiPC *gpc)C {return localToVisX     (x  -(gpc ? gpc->offset.x : screenPos().x));}
 Int _List::screenToVisY     (  Flt   y  , C GuiPC *gpc)C {return localToVisY     (y  -(gpc ? gpc->offset.y : screenPos().y));}
 Int _List::screenToVis      (C Vec2 &pos, C GuiPC *gpc)C {return localToVis      (pos-(gpc ? gpc->offset   : screenPos()  ));}
+Int _List::screenToVirtualX (  Flt   x  , C GuiPC *gpc)C {return localToVirtualX (x  -(gpc ? gpc->offset.x : screenPos().x));}
 Int _List::screenToVirtualY (  Flt   y  , C GuiPC *gpc)C {return localToVirtualY (y  -(gpc ? gpc->offset.y : screenPos().y));}
 Flt _List::screenToVirtualYF(  Flt   y  , C GuiPC *gpc)C {return localToVirtualYF(y  -(gpc ? gpc->offset.y : screenPos().y));}
 Int _List::screenToColumnX  (  Flt   x  , C GuiPC *gpc)C {return localToColumnX  (x  -(gpc ? gpc->offset.x : screenPos().x));}
@@ -997,6 +998,80 @@ VecI2 _List::visibleElmsOnScreen(C GuiPC *gpc)C
    }
    return VecI2(0, -1);
 }
+Int _List::nearest(C Vec2 &screen_pos, C Vec2 &dir)C
+{
+   if(visibleElms())switch(drawMode())
+   {
+      case LDM_LIST: if(dir.y)
+      {
+         Int v=screenToVirtualY(screen_pos.y);
+         if(dir.y>0){v--; return Mid(v, -1, visibleElms()-1);}
+                     v++; if(v>=visibleElms())return -1; return Max(v, 0);
+      }break;
+
+      case LDM_RECTS:
+      {
+         Vec2 dir_n=dir; if(dir_n.normalize())
+         {
+            Vec2  local_pos=screen_pos-screenPos();
+            VecI2 range;
+            if(_horizontal)
+            {
+               Int v=Mid(localToVirtualX(local_pos.x), 0, visibleElms()-1);
+               range=v;
+               if(range.x>0) // go to the start of previous line
+               {
+                  Flt x=_rects[--range.x].min.x; for(; range.x-1>=0 && Equal(_rects[range.x-1].min.x, x); range.x--); // keep going as long as rect.min.x is the same
+               }
+               if(range.y+1<visibleElms()) // go to the end of current line
+               {
+                  Flt x=_rects[range.y].min.x; for(; range.y+1<visibleElms() && Equal(_rects[range.y+1].min.x, x); range.y++); // keep going as long as rect.min.x is the same
+                  if(range.y+1<visibleElms()) // go to the end of next line
+                  {
+                     Flt x=_rects[++range.y].min.x; for(; range.y+1<visibleElms() && Equal(_rects[range.y+1].min.x, x); range.y++); // keep going as long as rect.min.x is the same
+                  }
+               }
+            }else
+            {
+               Int v=Mid(localToVirtualY(local_pos.y), 0, visibleElms()-1);
+               range=v;
+               if(range.x>0) // go to the start of previous line
+               {
+                  Flt y=_rects[--range.x].max.y; for(; range.x-1>=0 && Equal(_rects[range.x-1].max.y, y); range.x--); // keep going as long as rect.max.y is the same
+               }
+               if(range.y+1<visibleElms()) // go to the end of current line
+               {
+                  Flt y=_rects[range.y].max.y; for(; range.y+1<visibleElms() && Equal(_rects[range.y+1].max.y, y); range.y++); // keep going as long as rect.max.y is the same
+                  if(range.y+1<visibleElms()) // go to the end of next line
+                  {
+                     Flt y=_rects[++range.y].max.y; for(; range.y+1<visibleElms() && Equal(_rects[range.y+1].max.y, y); range.y++); // keep going as long as rect.max.y is the same
+                  }
+               }
+            }
+            Int nearest=-1;
+            Flt dist=FLT_MAX, min_dist=D.pixelToScreenSize().max(); // use pixel size because this function may operate on mouse position which may be aligned to pixels
+            if(columnsVisible())local_pos.y+=columnHeight(); // make 'local_pos' and '_rects' in the same space
+            for(Int i=range.x; i<=range.y; i++)
+            {
+             C Rect &rect=_rects[i];
+               if(!Cuts(local_pos, rect)) // ignore starting rect
+               {
+                  Vec2 pos  =rect.center(),
+                       delta=pos-local_pos;
+                  Flt  dist_plane=Dot(delta, dir_n);
+                  if(  dist_plane>min_dist)
+                  {
+                     Flt d=DistDot(delta.length2(), dist_plane);
+                     if( d<dist){dist=d; nearest=i;}
+                  }
+               }
+            }
+            return nearest;
+         }
+      }break;
+   }
+   return -1;
+}
 Int _List::pageElms(C GuiPC *gpc)C
 {
    Int page_elms=1;
@@ -1008,10 +1083,28 @@ Int _List::pageElms(C GuiPC *gpc)C
    return page_elms;
 }
 /******************************************************************************/
+Bool _List::scrollingMain()C
+{
+   if(_parent && _parent->isRegion())
+   {
+      Region &region=_parent->asRegion();
+      switch(drawMode())
+      {
+         case LDM_LIST : return region.slidebar[         1].scrolling();
+         case LDM_RECTS: return region.slidebar[vertical()].scrolling();
+      }
+   }
+   return false;
+}
+Vec2 _List::scrollDelta()C
+{
+   if(_parent && _parent->isRegion())return _parent->asRegion().scrollDelta();
+   return 0;
+}
 _List& _List::scrollTo(Int i, Bool immediate, Flt center)
 {
    Clamp(i, 0, elms()-1);
-   if(InRange(i, T) && _parent && _parent->type()==GO_REGION)
+   if(InRange(i, T) && _parent && _parent->isRegion())
    {
       Region &region=_parent->asRegion();
       Flt     add   =(columnsVisible() ? columnHeight() : 0), h=region.clientHeight()-add, e;
@@ -1037,7 +1130,7 @@ _List& _List::scrollTo(Int i, Bool immediate, Flt center)
 }
 _List& _List::scrollY(Flt delta, Bool immediate)
 {
-   if(_parent && _parent->type()==GO_REGION)_parent->asRegion().scrollY(delta, immediate);
+   if(_parent && _parent->isRegion())_parent->asRegion().scrollY(delta, immediate);
    return T;
 }
 /******************************************************************************/
@@ -1283,30 +1376,74 @@ _List& _List::  setElmGroup     (Str        &member) {      _group_offset=UInt(U
 /******************************************************************************/
 GuiObj* _List::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 {
-   if(visible() && gpc.visible && Cuts(pos, gpc.clip))
+   if(/*gpc.visible &&*/ visible() && Cuts(pos, gpc.clip))
    {
       if(Kb.ctrlCmd() && (flag&LIST_SCALABLE))mouse_wheel=this;
-      GuiPC gpc_col(gpc, T); REP(columns())if(GuiObj *go=column(i).test(gpc_col, pos, mouse_wheel))return go;
+      if(columnsVisible())
+      {
+         GuiPC gpc_col(gpc, T); REP(columns())if(GuiObj *go=column(i).test(gpc_col, pos, mouse_wheel))return go;
+      }
       if(_children.children.elms())
       {
          VecI2 visible_range=visibleElmsOnScreen(&gpc); if(visible_range.y>=visible_range.x)
          {
-            GuiPC gpc2(gpc, visible(), enabled()); Vec2 offset=gpc2.offset;
+            GuiPC gpc_this(gpc, visible(), enabled()); Vec2 offset=gpc_this.offset;
             if(columnsVisible())
             {
                Flt max_y=gpc.client_rect.max.y-columnHeight();
-               MIN(gpc2.clip.max.y, max_y);
+               MIN(gpc_this.clip.max.y, max_y);
             }
             REPA(_children) // 'test' must be done from the end
             {
                Children::Child &child=_children[i];
-               if(SetGPC(T, gpc2, offset, child.abs_col, visible_range))if(GuiObj *go=child.go->test(gpc2, pos, mouse_wheel))return go;
+               if(SetGPC(T, gpc_this, offset, child.abs_col, visible_range))if(GuiObj *go=child.go->test(gpc_this, pos, mouse_wheel))return go;
             }
          }
       }
       return this;
    }
    return null;
+}
+void _List::nearest(C GuiPC &gpc, GuiObjNearest &gon)
+{
+   if(/*gpc.visible &&*/ visible())
+   {
+      Bool ignore_start;
+      if(  ignore_start=(gon.obj==this))gon.state=1;
+   #if 0 // skip because list covers entire parent, so if parent is OK, then list is too
+      if(gon.test((T.rect()+gpc.offset)&gpc.clip)) // this already tests if rect is valid
+   #endif
+      {
+         Vec2  pos=gpc.offset; if(columnsVisible())pos.y-=columnHeight();
+         VecI2 visible_range=visibleElmsOnScreen(&gpc);
+         switch(drawMode())
+         {
+            case LDM_LIST:
+            {
+               Rect rect; rect.setX(gpc.clip.min.x, gpc.clip.max.x);
+               Flt area=T.rect().w()*_height_ez;
+               for(Int i=visible_range.x; i<=visible_range.y; i++)
+               {
+                  rect.max.y=pos.y     -i*_height_ez;
+                  rect.min.y=rect.max.y-  _height_ez;
+                  if(ignore_start && Cuts(gon.plane.pos, rect))continue;
+                  gon.add(rect&gpc.clip, area, T);
+               }
+            }break;
+
+            case LDM_RECTS: if(_rects)
+            {
+               for(Int i=visible_range.x; i<=visible_range.y; i++)
+               {
+                C Rect &rect=_rects[i];
+                  Rect  screen_rect=rect+pos;
+                  if(ignore_start && Cuts(gon.plane.pos, screen_rect))continue;
+                  gon.add(screen_rect&gpc.clip, rect.area(), T);
+               }
+            }break;
+         }
+      }
+   }
 }
 /******************************************************************************/
 Bool _List::setSel(Int visible) // returns if selection has changed, this may call ONLY 'selChanging', but NOT 'selChanged', 'curChanged'
@@ -1458,7 +1595,7 @@ void _List::update(C GuiPC &gpc)
    {
       if(cur_mode==LCM_MOUSE)setCur(-1);
    }else
-   if(visible() && gpc.visible)
+   if(gpc.visible && visible())
    {
       DEBUG_BYTE_LOCK(_used); // because updating children
       if(visibleElms())
@@ -1478,7 +1615,7 @@ void _List::update(C GuiPC &gpc)
          {
             Touch &touch=Touches[i]; if(touch.guiObj()==this && (touch.state()&(BS_PUSHED|BS_ON|BS_RELEASED))) // process cursor for (pushed to set) and (on+released to skip from mouse), release needed so 'Menu' detection can work
             {
-               GuiObj *container=this; if(parent()->is(GO_MENU))container=parent(); if(container->contains(Gui.objAtPos(touch.pos())))
+               GuiObj *container=this; if(parent() && parent()->isMenu())container=parent(); if(container->contains(Gui.objAtPos(touch.pos())))
                {
                   if( touch.pd() // set cursor only when pushed
                   || !touch.scrolling() // or not scrolling, to avoid situations when scrolling could possibly change the cursor, but allow for 'Menu'
@@ -1563,7 +1700,7 @@ void _List::update(C GuiPC &gpc)
             }
 
             // smooth scroll
-            if(Kb.ctrlCmd() && _parent && _parent->type()==GO_REGION)
+            if(Kb.ctrlCmd() && _parent && _parent->isRegion())
             {
                Region &region=_parent->asRegion();
                if(Kb.b(KB_UP   )){Kb.eat(KB_UP   ); region.slidebar[1].button[1].push();}
@@ -1620,14 +1757,14 @@ void _List::update(C GuiPC &gpc)
       }
 
       // update children
-      GuiPC gpc_col(gpc, T); REPAO(_columns).update(gpc_col);
-      GuiPC gpc2(gpc, visible(), enabled()); _children.update(gpc2);
+      GuiPC gpc_col (gpc, T                   ); REPAO(_columns).update(gpc_col);
+      GuiPC gpc_this(gpc, visible(), enabled());       _children.update(gpc_this);
    }
 }
 /******************************************************************************/
 void _List::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       GuiSkin       *     skin=getSkin();
       GuiSkin::List *list_skin=(skin ? &skin->list : null);
@@ -1840,11 +1977,11 @@ void _List::draw(C GuiPC &gpc)
          {
             VecI2 visible_range=visibleElmsOnScreen(&gpc); if(visible_range.y>=visible_range.x)
             {
-               GuiPC gpc2(gpc, visible(), enabled()); gpc2.clip=elms_rect; Vec2 offset=gpc2.offset;
+               GuiPC gpc_this(gpc, visible(), enabled()); gpc_this.clip=elms_rect; Vec2 offset=gpc_this.offset;
                FREPA(_children) // 'draw' must be done from the start
                {
                   Children::Child &child=_children[i];
-                  if(SetGPC(T, gpc2, offset, child.abs_col, visible_range))child.go->draw(gpc2);
+                  if(SetGPC(T, gpc_this, offset, child.abs_col, visible_range))child.go->draw(gpc_this);
                }
             }
          }

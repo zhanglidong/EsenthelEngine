@@ -34,20 +34,20 @@ Touch::Touch()
 {
    user_type=0;
    user_ptr =null;
+  _allow_scrolling=true;
   _selecting=_dragging=_scrolling=_remove=false;
   _first=true;
-  _state=0;
+  _state=BS_NONE;
   _axis_moved=0;
   _id=0;
-  _start_time=0;
-  _start_pos=_prev_pos=_pos=_sm_pos=_delta=_abs_delta=_vel=0; _pixeli=_deltai=0;
+  _start_time=Time.appTime();
+  _start_pos=_prev_pos=_pos=_sm_pos=_delta=_abs_delta=_vel=0; _pixeli=_delta_pixeli_clp=0;
   _handle=null;
   _gui_obj=null;
 }
 Touch& Touch::init(C VecI2 &pixeli, C Vec2 &pos, CPtr handle, Bool stylus)
 {
    if(TouchesID==0)TouchesID=1; _id=TouchesID++; // don't select zero for the ID
-  _start_time=Time.appTime();
   _start_pos=_prev_pos=_pos=_sm_pos=pos; _sv_pos.init(pos);
   _pixeli=pixeli;
   _handle=handle;
@@ -57,21 +57,28 @@ Touch& Touch::init(C VecI2 &pixeli, C Vec2 &pos, CPtr handle, Bool stylus)
 }
 Touch& Touch::reinit(C VecI2 &pixeli, C Vec2 &pos)
 {
+   // don't modify '_remove' and '_state', caller has to modify them
+   user_type =0;
+   user_ptr  =null;
+  _allow_scrolling=true;
+  _selecting=_dragging=_scrolling=false;
   _start_time=Time.appTime();
   _start_pos =_pos=pos;
   _pixeli    =pixeli;
   _gui_obj   =Gui.objAtPos(_pos);
   _axis_moved=0;
-   user_type =0;
-   user_ptr  =null;
    return T;
+}
+void Touch::disableScroll()
+{
+  _allow_scrolling=_scrolling=false;
 }
 void Touch::eat()
 {
    FlagDisable(_state, BS_NOT_ON);
 }
 /******************************************************************************/
-void MouseTouch::guiObj(Int i, GuiObj *obj) {if(InRange(i, Touches))Touches[i].guiObj(obj);else Gui._ms=Gui._ms_src=obj;}
+void MouseTouch::guiObj(Int i, GuiObj *obj) {if(InRange(i, Touches))Touches[i].guiObj(obj);else Gui.ms(obj);}
 /******************************************************************************/
 Touch* FindTouch(UInt id) // 0 is reserved for mouse
 {
@@ -138,14 +145,14 @@ void TouchesUpdate()
             t->_pixeli=pixeli;
             t->_pos   =pos;
          }
-         t->_deltai=Ms.pixelDelta();
+         t->_delta_pixeli_clp=Ms.pixelDelta();
       }
       if(Ms.br(0) || !Ms.b(0))if(Touch *t=FindTouchByHandle(handle)) // simulate 'touchesReleased'
       {
-         t->_pixeli=pixeli;
-         t->_pos   =pos;
-         t->_deltai=Ms.pixelDelta();
-         t->_remove=true;
+         t->_pixeli          =pixeli;
+         t->_pos             =pos;
+         t->_delta_pixeli_clp=Ms.pixelDelta();
+         t->_remove          =true;
          if(t->_state&BS_ON) // check for state in case it was manually eaten
          {
             t->_state|= BS_RELEASED;
@@ -180,7 +187,7 @@ void TouchesUpdate()
          if(!t.dragging() && t.selecting() && t.life()>=DragTime+Time.ad())t._dragging=true;
 
          // scroll regions
-         if(t.id()!=Gui._drag_touch_id) // only if not dragging something
+         if(t._allow_scrolling) // only if allowed
          {
             if(t.vel().any())
             {
@@ -191,7 +198,7 @@ void TouchesUpdate()
                   t._scrolling=true;
          }
       }else
-      if(!t.rs())t._selecting=t._dragging=t._scrolling=false;
+      if(!t.rs())t._selecting=t._dragging=t._scrolling=false; // !on && !rs
 
       if(t._scrolling) // process for 'on' and 'rs'
          if(Region *region=t.guiObj()->firstScrollableRegion())
@@ -260,7 +267,7 @@ void TouchesClear()
          Touches.remove(i, true);
       }else
       {
-         t._deltai.zero();
+         t._delta_pixeli_clp.zero();
          FlagDisable(t._state, BS_NOT_ON);
       }
    }

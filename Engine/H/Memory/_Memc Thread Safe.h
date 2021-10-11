@@ -8,6 +8,7 @@ struct _MemcThreadSafe // Thread-Safe Continuous Memory Based Container Base - D
    Int     elms    ()C {return _memc.elms    ();}
    UInt    elmSize ()C {return _memc.elmSize ();}
    UIntPtr memUsage()C {return _memc.memUsage();}
+   UIntPtr elmsMem ()C {return _memc.elmsMem ();}
 
    Ptr lockedData (     )C {return _memc.data ( );}
    Ptr lockedAddr (Int i)C {return _memc.addr (i);}

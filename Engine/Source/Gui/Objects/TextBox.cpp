@@ -323,10 +323,10 @@ GuiObj* TextBox::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
       if(slidebar[ priority]._usable)mouse_wheel=&slidebar[ priority];else // check  priority slidebar first
       if(slidebar[!priority]._usable)mouse_wheel=&slidebar[!priority];     // check !priority slidebar next
 
-      GuiPC gpc2(gpc, visible(), enabled());
-      if(GuiObj *go=slidebar[0].test(gpc2, pos, mouse_wheel))return go;
-      if(GuiObj *go=slidebar[1].test(gpc2, pos, mouse_wheel))return go;
-      if(GuiObj *go=view       .test(gpc2, pos, mouse_wheel))return go;
+      GuiPC gpc_this(gpc, visible(), enabled());
+      if(GuiObj *go=slidebar[0].test(gpc_this, pos, mouse_wheel))return go;
+      if(GuiObj *go=slidebar[1].test(gpc_this, pos, mouse_wheel))return go;
+      if(GuiObj *go=view       .test(gpc_this, pos, mouse_wheel))return go;
 
       return go;
    }
@@ -360,12 +360,12 @@ void TextBox::moveCursor(Int lines, Int pages)
 /******************************************************************************/
 void TextBox::update(C GuiPC &gpc)
 {
-   GuiPC gpc2(gpc, visible(), enabled());
-   if(   gpc2.enabled)
+   GuiPC gpc_this(gpc, visible(), enabled());
+   if(   gpc_this.enabled)
    {
       DEBUG_BYTE_LOCK(_used);
 
-      view.update(gpc2);
+      view.update(gpc_this);
       if(view())
       {
          if(Gui.ms()==&view)
@@ -390,8 +390,8 @@ void TextBox::update(C GuiPC &gpc)
       && slidebar[0]._usable) // we will scroll only horizontally, so check if that's possible
          slidebar[0].scroll(Ms.wheelX()*(slidebar[0]._scroll_mul*slidebar[0].length()+slidebar[0]._scroll_add), slidebar[0]._scroll_immediate);
 
-      slidebar[0].update(gpc2);
-      slidebar[1].update(gpc2);
+      slidebar[0].update(gpc_this);
+      slidebar[1].update(gpc_this);
 
       // update text here
       if(Gui.kb()==this)
@@ -415,8 +415,8 @@ void TextBox::update(C GuiPC &gpc)
          if(Kb.k(KB_PGDN)){moveCursor(0,  1); Kb.eatKey();}
          if(cur!=_edit.cur || changed){cur=_edit.cur; _edit.cur=-1; cursor(cur);} // set -1 to force adjustment of offset and calling 'setTextInput'
       }
-    C Vec2 *touch_pos  =null;
-      Byte  touch_state=0   ; if(Gui.ms()==this && (Ms._button[0]&(BS_ON|BS_PUSHED))){touch_pos=&Ms.pos(); touch_state=Ms._button[0];} if(!touch_pos)REPA(Touches)if(Touches[i].guiObj()==this && (Touches[i]._state&(BS_ON|BS_PUSHED))){touch_pos=&Touches[i].pos(); touch_state=Touches[i]._state;}
+    C Vec2   *touch_pos  =null;
+      BS_FLAG touch_state=BS_NONE; if(Gui.ms()==this && (Ms._button[0]&(BS_ON|BS_PUSHED))){touch_pos=&Ms.pos(); touch_state=Ms._button[0];} if(!touch_pos)REPA(Touches)if(Touches[i].guiObj()==this && (Touches[i]._state&(BS_ON|BS_PUSHED))){touch_pos=&Touches[i].pos(); touch_state=Touches[i]._state;}
       if(_text.is() && touch_pos)
       {
          if(GuiSkin *skin=getSkin())
@@ -478,7 +478,7 @@ void TextBox::update(C GuiPC &gpc)
 }
 void TextBox::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       GuiSkin *skin=getSkin();
       Rect     rect=T.rect()+gpc.offset, ext_rect;

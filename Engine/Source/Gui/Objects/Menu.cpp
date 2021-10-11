@@ -41,9 +41,8 @@ namespace EE{
 /******************************************************************************/
 GuiPC::GuiPC(C GuiPC &old, Menu &menu)
 {
-   T=old;
-   visible   &=menu.visible();
-   enabled   &=menu.enabled(); if(menu._owner)enabled&=menu._owner->enabledFull();
+   visible    =old.visible&menu.visible();
+   enabled    =old.enabled&menu.enabled(); if(menu._owner)enabled&=menu._owner->enabledFull();
    client_rect=menu._crect;
    clip       =client_rect; // set instead of intersection because child Menu's would be clipped fully
    offset     =client_rect.lu();
@@ -134,19 +133,27 @@ void MenuElm::push()
    if(flag()&MENU_TOGGLABLE)on^=1;
    call();
 }
-void Menu::push(C Str &elm)
+void Menu::push(Int abs)
 {
-   Str path=elm;
-   for(GuiObj *go=this; go->is(GO_MENU); go=go->parent())if(go->asMenu()._func)
+   if(Ptr data=list.absToData(abs)) // if index valid
+      for(GuiObj *go=this; go && go->isMenu(); go=go->parent()) // iterate all menu parents (including this)
+         if(go->asMenu()._func) // if any has a callback
    {
+      Memc<MenuPush> mps;
+
+      // set first element to this
+      MenuPush &mp=mps.New(); mp.abs=abs;
+      if(_elms.elms())mp.name=((MenuElm*)data)->name;else // prefer this, because below uses 'display_name'
+      if(ListColumn *lc=listColumn())mp.name=lc->md.asText(data, lc->precision);
+
       GuiObj *menu  =this,
              *parent=menu->parent();
-      for(; parent->is(GO_MENU); )
+      for(;   parent && parent->isMenu(); )
       {
          Menu &parent_menu=parent->asMenu();
          FREP( parent_menu.elms())if(parent_menu.elm(i).menu()==menu)
          {
-            path=parent_menu.elm(i).name+'\\'+path;
+            mps.New().set(i, parent_menu.elm(i).name);
             goto found;
          }
          return;
@@ -154,8 +161,9 @@ void Menu::push(C Str &elm)
          menu  =parent;
          parent=parent->parent();
       }
-      DEBUG_BYTE_LOCK(_used); go->asMenu()._func(path, go->asMenu()._func_user);
-      break;
+      mps.reverseOrder(); // reverse to have parents first
+      DEBUG_BYTE_LOCK(_used); go->asMenu()._func(mps, go->asMenu()._func_user);
+      break; // stop on first found !! ALSO REMEMBER THAT WE'VE REVERSED ORDER, SO CONTINUING WOULD HAVE THEM REVERSED !!
    }
 }
 /******************************************************************************/
@@ -285,6 +293,7 @@ Menu& Menu::setData(CChar8 *data[], Int elms, C CMemPtr<Bool> &visible, Bool kee
    columns[0].width  =LCW_MAX_DATA_PARENT;
    columns[0].md.type=DATA_CHAR8_PTR;
 
+   // _elms.del called in 'setColumns'
    setColumns(columns, Elms(columns), true);
    setData<CChar8*>(data, elms, visible, keep_cur); // call not self but the template
    return T;
@@ -298,6 +307,7 @@ Menu& Menu::setData(CChar *data[], Int elms, C CMemPtr<Bool> &visible, Bool keep
    columns[0].width  =LCW_MAX_DATA_PARENT;
    columns[0].md.type=DATA_CHAR_PTR;
 
+   // _elms.del called in 'setColumns'
    setColumns(columns, Elms(columns), true);
    setData<CChar*>(data, elms, visible, keep_cur); // call not self but the template
    return T;
@@ -477,7 +487,7 @@ Menu& Menu::show()
 Menu& Menu::clearElmSelectable(                ) {_selectable_offset=-1                        ; return T;}
 Menu& Menu::  setElmSelectable(Bool &selectable) {_selectable_offset=UInt(UIntPtr(&selectable)); return T;}
 /******************************************************************************/
-Menu& Menu::func(void (*func)(C Str &path, Ptr user), Ptr user)
+Menu& Menu::func(void (*func)(C CMemPtr<MenuPush> &path, Ptr user), Ptr user)
 {
    T._func     =func;
    T._func_user=user;
@@ -495,18 +505,26 @@ ListColumn* Menu::listColumn()
 /******************************************************************************/
 GuiObj* Menu::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
-      GuiPC gpc2(gpc, T);
-      FREPA(_elms)if(Menu *menu=_elms[i].menu())if(GuiObj *go=menu->test(gpc2, pos, mouse_wheel))return go;
+      GuiPC gpc_this(gpc, T);
+      FREPA(_elms)if(Menu *menu=_elms[i].menu())if(GuiObj *go=menu->test(gpc_this, pos, mouse_wheel))return go;
       if(Cuts(pos, rect()))
       {
          mouse_wheel=this;
-         if(GuiObj *go=list.test(gpc2, pos, mouse_wheel))return go;
+         if(GuiObj *go=list.test(gpc_this, pos, mouse_wheel))return go;
          return this;
       }
    }
    return null;
+}
+void Menu::nearest(C GuiPC &gpc, GuiObjNearest &gon)
+{
+   if(/*gpc.visible &&*/ visible())
+   { // menus are always on top, so we can ignore offset and clip, also don't do 'test' because sub menus can be located outside of this Menu rectangle
+      gon.cover(rect());
+      GuiPC gpc_this(gpc, T); list.nearest(gpc_this, gon); REPA(_elms)if(Menu *menu=_elms[i].menu())menu->nearest(gpc_this, gon);
+   }
 }
 /******************************************************************************/
 void Menu::hideAll() {if(GuiObj *root=last(GO_MENU))root->deactivate();}
@@ -522,14 +540,14 @@ void Menu::checkKeyboardShortcuts()
             DEBUG_BYTE_LOCK(_used);
             e._kbsc.eat();
             e.push();
-              push(e.name);
+              push(i);
          }else
          if(e._kbsc2.pd())
          {
             DEBUG_BYTE_LOCK(_used);
             e._kbsc2.eat();
             e.push();
-              push(e.name);
+              push(i);
          }
          if(Menu *menu=e.menu())menu->checkKeyboardShortcuts();
       }
@@ -538,8 +556,8 @@ void Menu::checkKeyboardShortcuts()
 static inline Flt ScrollSpeed(Menu &menu) {return menu.list.elmHeight()*14*Time.ad();} // speed of 14 elements per second
 void Menu::update(C GuiPC &gpc)
 {
-   GuiPC gpc2(gpc, T);
-   if(   gpc2.enabled)
+   GuiPC gpc_this(gpc, T);
+   if(   gpc_this.enabled)
    {
       DEBUG_BYTE_LOCK(_used);
 
@@ -550,14 +568,14 @@ void Menu::update(C GuiPC &gpc)
          if(Ms.test(_crect+d))
          {
             move(d);
-            gpc2=GuiPC(gpc, T); // reset GuiPC because move can affect position
+            gpc_this=GuiPC(gpc, T); // reset GuiPC because move can affect position
          }
       }
 
       // list
-      list.update(gpc2);
+      list.update(gpc_this);
 
-      if(gpc2.visible)
+      if(gpc_this.visible)
       {
          if(_elms.elms())
          {
@@ -593,7 +611,7 @@ void Menu::update(C GuiPC &gpc)
             }else // use detection basing on the 'list.cur'
             if(InRange(list.cur, list.visibleElms()))
             {
-               Flt y=list.visToLocalY(list.cur)+gpc2.offset.y,
+               Flt y=list.visToLocalY(list.cur)+gpc_this.offset.y,
                    d=D.h()-(y+paddingT());
                if( d<0) // top of the screen (check this before bottom of the screen)
                {
@@ -644,17 +662,16 @@ void Menu::update(C GuiPC &gpc)
                         }else
                         {
                            e->push();
-                              push(e->name);
+                              push(list.visToAbs(list.cur));
                            if(!(e->flag()&(MENU_TOGGLABLE|MENU_NO_CLOSE)) && Gui.menu()==this)hideAll();
                         }
                      }
                   }else
                   {
-                     if(Ptr data=list.visToData(list.cur))
-                     {
-                        if(_selectable_offset>=0 && !*(Bool*)((Byte*)data+_selectable_offset))goto skip;
-                        if(ListColumn *lc=listColumn())push(lc->md.asText(data, lc->precision));
-                     }
+                     if(_selectable_offset>=0)
+                        if(Ptr data=list.visToData(list.cur))
+                           if(!*(Bool*)((Byte*)data+_selectable_offset))goto skip;
+                     push(list.visToAbs(list.cur));
                      hideAll();
                   skip:;
                   }
@@ -686,7 +703,7 @@ void Menu::update(C GuiPC &gpc)
                if(parent())
                {
                   parent()->activate();
-                  if(parent()->type()==GO_MENU)
+                  if(parent()->isMenu())
                   {
                      Menu &menu=parent()->asMenu();
                      menu.list.lit=menu.list.cur=-1; // immediatelly clear lit/cur to avoid 1 frame delay
@@ -725,7 +742,7 @@ void Menu::update(C GuiPC &gpc)
 
       // check shortcuts
       if(Kb.k.any()) // shortcuts are detected based on char or key press, so check them only if there's something pressed
-         if(!parent()->is(GO_MENU)) // don't check Menu's that are children of other Menu's, check only root Menu's, and if it's accessible, then it will check its children
+         if(!parent() || !parent()->isMenu()) // don't check Menu's that are children of other Menu's, check only root Menu's, and if it's accessible, then it will check its children
             if(GuiObj *owner=Owner())
       {
          GuiObj *owner_window=owner->first(GO_WINDOW); // get owner Window (first Window that contains the owner)
@@ -735,13 +752,13 @@ void Menu::update(C GuiPC &gpc)
       }
 
       // children
-      REPA(_elms)if(Menu *menu=_elms[i].menu())menu->update(gpc2);
+      REPA(_elms)if(Menu *menu=_elms[i].menu())menu->update(gpc_this);
    }
 }
 /******************************************************************************/
 void Menu::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
    {
       if(GuiSkin *skin=getSkin())
       {
@@ -749,7 +766,7 @@ void Menu::draw(C GuiPC &gpc)
          if(skin->menu.normal        )skin->menu.normal->draw(skin->menu.normal_color, rect());else
          if(skin->menu.normal_color.a)            rect().draw(skin->menu.normal_color);
       }
-      GuiPC gpc2(gpc, T); list.draw(gpc2); REPA(_elms)if(Menu *menu=_elms[i].menu())menu->draw(gpc2);
+      GuiPC gpc_this(gpc, T); list.draw(gpc_this); REPA(_elms)if(Menu *menu=_elms[i].menu())menu->draw(gpc_this);
    }
 }
 /******************************************************************************/

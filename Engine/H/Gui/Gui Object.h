@@ -59,12 +59,40 @@ struct GuiPC // Gui Parent->Child Relation
 #endif
 };
 /******************************************************************************/
+struct GuiObjNearest
+{
+#if EE_PRIVATE
+   struct Obj
+   {
+      Bool    recalc;
+      Flt     area_min,
+              dist, dist_rect;
+      Rect    rect;
+      GuiObj *obj;
+
+      Bool recalcDo(GuiObjNearest &gon);
+   };
+
+   Byte      state; // 0=haven't yet encountered the starting 'obj' during processing, 1=encountered 'obj', 2='rect' becamed covered
+   Flt       min_dist;
+   Plane2    plane;
+   Rect      rect;
+   GuiObj   *obj;
+   Memt<Obj> nearest;
+
+   Bool test (C Rect &rect)C;
+   void cover(C Rect &rect);
+   void add  (C Rect &rect, Flt area, GuiObj &obj); // 'rect'=rect after clipping, 'area'=rect area before clipping
+   Obj* findNearest();
+#endif
+};
+/******************************************************************************/
 const_mem_addr struct GuiObj // Gui Object interface inherited by all Gui Object classes (Button, CheckBox, Window, ..) !! must be stored in constant memory address !!
 {
    Ptr user; // user data pointer
 
    // manage
-   virtual GuiObj& del   (); // manually delete
+   virtual GuiObj& del   (             ); // manually delete
            GuiObj& create(C GuiObj &src); // create from 'src', this method will succeed only if objects are of the same type
 
    // children
@@ -103,7 +131,8 @@ const_mem_addr struct GuiObj // Gui Object interface inherited by all Gui Object
    virtual GuiObj& setText              (       );                                                              // set text, this is called automatically when application language changes due to 'App.lang', you can override this method and set new text for this object (or its children) based on new 'App.lang', don't forget to call 'super.setText'
 
    // set / get
-                                                 Bool         is         ()C {return  _type!=GO_NONE;} //     get if created
+                                                 Bool         is         (                 )C {return _type!=GO_NONE;} // get if created
+                                                 Bool         is         (GUI_OBJ_TYPE type)C {return _type==type   ;} // get if object is of specified 'type'
                                                  GUI_OBJ_TYPE type       ()C {return  _type         ;} //     get object type
                                                  CChar *      typeName   ()C;                          //     get object type name
                                                  GuiObj*      parent     ()C {return  _parent       ;} //     get object parent
@@ -131,11 +160,34 @@ const_mem_addr struct GuiObj // Gui Object interface inherited by all Gui Object
 
                                                  Bool         visibleOnActiveDesktop()C;               //     get if visible and all parents are also visible, and belongs to active desktop
 
+   Region* firstScrollableRegion(); // get first parent which is a scrollable region
+
    // helpers
    Bool contains    (C GuiObj *child)C; // if object contains 'child'
    Int  compareLevel(C GuiObj &obj  )C; // compare level between this object and 'obj' in parent's children hierarchy, <0 value is returned if this object is below 'obj', 0 value is returned if they share the same level or have different parents, >0 value is returned if this object is above 'obj'
    Bool above       (C GuiObj &obj  )C {return compareLevel(obj)>0;} // if this object is above 'obj'
    Bool below       (C GuiObj &obj  )C {return compareLevel(obj)<0;} // if this object is below 'obj'
+
+   Bool isButton  ()C {return is(GO_BUTTON  );}
+   Bool isCheckBox()C {return is(GO_CHECKBOX);}
+   Bool isComboBox()C {return is(GO_COMBOBOX);}
+   Bool isCustom  ()C {return is(GO_CUSTOM  );}
+   Bool isDesktop ()C {return is(GO_DESKTOP );}
+   Bool isImage   ()C {return is(GO_IMAGE   );}
+   Bool isList    ()C {return is(GO_LIST    );}
+   Bool isMenu    ()C {return is(GO_MENU    );}
+   Bool isMenuBar ()C {return is(GO_MENU_BAR);}
+   Bool isProgress()C {return is(GO_PROGRESS);}
+   Bool isRegion  ()C {return is(GO_REGION  );}
+   Bool isSlideBar()C {return is(GO_SLIDEBAR);}
+   Bool isSlider  ()C {return is(GO_SLIDER  );}
+   Bool isTab     ()C {return is(GO_TAB     );}
+   Bool isTabs    ()C {return is(GO_TABS    );}
+   Bool isText    ()C {return is(GO_TEXT    );}
+   Bool isTextBox ()C {return is(GO_TEXTBOX );}
+   Bool isTextLine()C {return is(GO_TEXTLINE);}
+   Bool isViewport()C {return is(GO_VIEWPORT);}
+   Bool isWindow  ()C {return is(GO_WINDOW  );}
 
    // convert
    Button   & asButton  () {return ( Button   &)T;}   C Button   & asButton  ()C {return ( Button   &)T;} // return as Button   (you may use this only if type()==GO_BUTTON  )
@@ -160,9 +212,10 @@ const_mem_addr struct GuiObj // Gui Object interface inherited by all Gui Object
    Window   & asWindow  () {return ( Window   &)T;}   C Window   & asWindow  ()C {return ( Window   &)T;} // return as Window   (you may use this only if type()==GO_WINDOW  )
 
    // main
-   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel); // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
-   virtual void    update(C GuiPC &gpc) {} // update object
-   virtual void    draw  (C GuiPC &gpc) {} // draw   object
+   virtual GuiObj* test   (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel); // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
+   virtual void    nearest(C GuiPC &gpc, GuiObjNearest &gon);
+   virtual void    update (C GuiPC &gpc) {} // update object
+   virtual void    draw   (C GuiPC &gpc) {} // draw   object
 
    // IO
    virtual Bool save(File &f, CChar *path=null)C; // save to   file, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
@@ -173,13 +226,11 @@ const_mem_addr struct GuiObj // Gui Object interface inherited by all Gui Object
 
    void copyParams(C GuiObj &src); // copy common parameters
 
-   Bool    is                   (GUI_OBJ_TYPE type)C; // if  object is of 'type' type, this method is "null safe"
    GuiObj* last                 (GUI_OBJ_TYPE type) ; // get last  parent of     'type'
    GuiObj* first                (GUI_OBJ_TYPE type) ; // get first parent of     'type'
    GuiObj* firstNon             (GUI_OBJ_TYPE type) ; // get first parent of non 'type'
    GuiObj* firstContainer       (                 ) ; // get first parent which is a container
-   GuiObj* firstKbParent        (                 ) ; // get first parent which is a kb storage
-   Region* firstScrollableRegion(                 ) ; // get first parent which is a scrollable region
+   GuiObj* firstKbParent        (                 ) ; // get first parent which is a Keyboard storage
    Int     parents              (                 )C; // get how many parents this object belongs to
 
    Vec2       clientOffset()C; // get client offset (from position to client position)
@@ -248,9 +299,10 @@ struct GuiObjChildren
    void                 moveBelow   (C GuiObj &child_a, C GuiObj &child_b);
    Bool                 Switch      (C GuiObj &go     , Bool next=true);
 
-   GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel);
-   void    update(C GuiPC &gpc);
-   void    draw  (C GuiPC &gpc);
+   GuiObj* test   (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel);
+   void    nearest(C GuiPC &gpc, GuiObjNearest &gon);
+   void    update (C GuiPC &gpc);
+   void    draw   (C GuiPC &gpc);
 #endif
 
   ~GuiObjChildren() {del();}

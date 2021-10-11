@@ -6,6 +6,7 @@ AnimEditor AnimEdit;
 
 
 /******************************************************************************/
+   const bool AnimEditor::always_draw_events=true;
    cchar8 *AnimEditor::event_op_t[]=
    {
       "Move",
@@ -47,6 +48,11 @@ AnimEditor AnimEdit;
             Proj.refresh(false, false); // refresh any invalid skeleton link references
          }
       }
+      void AnimEditor::Track::removedEvent(int index)
+      {
+         if(event_lit==index)event_lit=-1;else if(event_lit>index)event_lit--;
+         if(event_sel==index)event_sel=-1;else if(event_sel>index)event_sel--;
+      }
       flt AnimEditor::Track::screenToTime(flt x)C
       {
          if(C Animation *anim=AnimEdit.anim)
@@ -76,7 +82,7 @@ AnimEditor AnimEdit;
       }
       void AnimEditor::Track::update(C GuiPC &gpc)
 {
-         AnimEdit.preview.event_lit=-1;
+         event_lit=-1;
          if(gpc.visible && visible() && Gui.ms()==this)if(Animation *anim=AnimEdit.anim)
          {
             Rect r=rect()+gpc.offset;
@@ -86,20 +92,20 @@ AnimEditor AnimEdit;
             {
                // get lit
                flt dist=0;
-               if(AnimEdit.preview.event_op()>=0 && AnimEdit.preview.event_op()!=EVENT_NEW)REPA(anim->events)
+               if((always_draw_events || AnimEdit.preview.event_op()>=0) && AnimEdit.preview.event_op()!=EVENT_NEW)REPA(anim->events)
                {
                   flt d=Abs(Ms.pos().x - ElmPosX(r, anim->events[i].time));
-                  if(AnimEdit.preview.event_lit<0 || d<dist){AnimEdit.preview.event_lit=i; dist=d;}
+                  if(event_lit<0 || d<dist){event_lit=i; dist=d;}
                }
-               if(dist>0.05f)AnimEdit.preview.event_lit=-1;
+               if(dist>0.05f)event_lit=-1;
 
-               if(AnimEdit.preview.event_op()==EVENT_RENAME && Ms.bp(0))RenameEvent.activate(AnimEdit.preview.event_lit);
-               if(AnimEdit.preview.event_op()==EVENT_DEL    && Ms.bp(0))AnimEdit   .delEvent(AnimEdit.preview.event_lit);
+               if(AnimEdit.preview.event_op()==EVENT_RENAME && Ms.bp(0))RenameEvent.activate(event_lit);
+               if(AnimEdit.preview.event_op()==EVENT_DEL    && Ms.bp(0))AnimEdit   .delEvent(event_lit);
                if(AnimEdit.preview.event_op()==EVENT_NEW    && Ms.bp(0))AnimEdit   .newEvent(time);
                if(AnimEdit.preview.event_op()==EVENT_MOVE   && Ms.b (0))
                {
-                  if(Ms.bp(0))AnimEdit.preview.event_sel=AnimEdit.preview.event_lit; AnimEdit.moveEvent(AnimEdit.preview.event_sel, time);
-                              AnimEdit.preview.event_lit=AnimEdit.preview.event_sel;
+                  if(Ms.bp(0))event_sel=event_lit; AnimEdit.moveEvent(event_sel, time);
+                              event_lit=event_sel;
                }
 
                // set time
@@ -197,16 +203,16 @@ AnimEditor AnimEdit;
                ElmRect(r, AnimEdit.animTime()).draw(BLACK); // draw time position
                if(events)
                {
-                  TextStyleParams ts; ts.size=0.05f; ts.align.set(0, 1); ts.color=ColorAlpha(0.6f);
+                  TextStyleParams ts; ts.size=(AnimEdit.preview.event_op()>=0 ? 0.05f : 0.035f); ts.align.set(0, 1); ts.color=ColorAlpha(0.6f);
                   FREPA(anim->events) // draw events
                   {
                    C AnimEvent &event=anim->events[i];
                      Rect e=ElmRect(r, event.time);
-                     e.draw((AnimEdit.preview.event_lit==i) ? LitColor : LitSelColor); if(AnimEdit.preview.event_op()>=0 && AnimEdit.preview.event_lit!=i)D.text(ts, e.up(), event.name);
+                     e.draw((event_lit==i) ? LitColor : LitSelColor); if((always_draw_events || AnimEdit.preview.event_op()>=0) && event_lit!=i)D.text(ts, e.up(), event.name);
                   }
-                  if(AnimEdit.preview.event_op()>=0 && InRange(AnimEdit.preview.event_lit, anim->events)) // draw highlighted event last to be on top of others
+                  if(InRange(event_lit, anim->events)) // draw highlighted event last to be on top of others
                   {
-                   C AnimEvent &event=anim->events[AnimEdit.preview.event_lit];
+                   C AnimEvent &event=anim->events[event_lit];
                      ts.resetColors(false); ts.size*=1.3f; D.text(ts, ElmRect(r, event.time).up(), event.name);
                   }
                }else
@@ -268,7 +274,7 @@ AnimEditor AnimEdit;
       void AnimEditor::Preview::Target(  Preview &editor, C Str &t) {AnimEdit.setTarget(t);}
       Str  AnimEditor::Preview::Target(C Preview &editor          ) {return Proj.elmFullName(Proj.animToObj(AnimEdit.elm));}
       void AnimEditor::Preview::Split(  Preview &editor          ) {SplitAnim.activate(AnimEdit.elm_id);}
-      void AnimEditor::Preview::Speed(  Preview &editor          ) {AnimEdit.applySpeed();}
+      void AnimEditor::Preview::ApplySpeed(  Preview &editor          ) {AnimEdit.applySpeed();}
       void AnimEditor::Preview::Render()
       {
          switch(Renderer())
@@ -298,7 +304,7 @@ AnimEditor AnimEdit;
             bool         astros   =AstrosDraw       ; AstrosDraw     =false;
             bool         ocean    =Water.draw       ; Water.draw     =false;
             flt fov=D.viewFov(), from=D.viewFrom(), range=D.viewRange();
-            Renderer.allow_taa=false; // disable TAA because previous bone matrixes are incorrect
+            Renderer.allow_temporal=false; // disable Temporal because previous bone matrixes are incorrect
 
             // render
             Box box(0); if(mesh){if(mesh->is())box=mesh->ext;else if(skel)box=*skel;}
@@ -322,7 +328,7 @@ AnimEditor AnimEdit;
             D.lineSmooth(line_smooth);
 
             // restore settings
-            Renderer.allow_taa=true;
+            Renderer.allow_temporal=true;
             D.viewFov(fov).viewFrom(from).viewRange(range);
             D.      dofMode(dof      );
             D.  ambientMode(ambient  );
@@ -354,15 +360,15 @@ AnimEditor AnimEdit;
          obj->textline.resize(Vec2(h, 0));
          prop_max_x=r.max.x;
          T+=split.create(Rect_RU(r.max.x, r.max.y, 0.15f, 0.055f), "Split").func(Split, T).desc(S+"Split Animation\nKeyboard Shortcut: "+Kb.ctrlCmdName()+"+S");
-         T+=apply_speed.create(Rect_R(r.max.x, play->name.rect().centerY(), 0.23f, h), "Apply Speed").func(Speed, T).desc("Animation length/speed will be adjusted according to current \"Anim Speed\".");
+         T+=apply_speed.create(Rect_R(r.max.x, play->name.rect().centerY(), 0.23f, h), "Apply Speed").func(ApplySpeed, T).desc("Animation length/speed will be adjusted according to current \"Anim Speed\".");
          T+=edit.create(Rect_L(r.max.x/2, r.min.y, 0.17f, 0.055f), "Edit").func(Fullscreen, AnimEdit).focusable(false).desc(S+"Edit Animation KeyFrames\nKeyboard Shortcut: "+Kb.ctrlCmdName()+"+E");
          T+=locate.create(Rect_R(r.max.x/2-0.01f, r.min.y, 0.17f, 0.055f), "Locate").func(Locate, AnimEdit).focusable(false).desc("Locate this element in the Project");
          T+=viewport.create(Draw); viewport.fov=PreviewFOV;
          T+=event_op.create(Rect_LU(0.02f, 0, 0.45f, 0.110f), 0, event_op_t, Elms(event_op_t));
          event_op.tab(EVENT_MOVE  ).rect(Rect(event_op.rect().lerp(0  , 0.5f), event_op.rect().lerp(0.5f, 1  ))).desc("Move event\nKeyboard Shortcut: F1");
          event_op.tab(EVENT_RENAME).rect(Rect(event_op.rect().lerp(0.5f, 0.5f), event_op.rect().lerp(1  , 1  ))).desc("Rename event\nKeyboard Shortcut: F2");
-         event_op.tab(EVENT_NEW   ).rect(Rect(event_op.rect().lerp(0  , 0  ), event_op.rect().lerp(0.5f, 0.5f))).desc("Create new event\nHold Ctrl to don't show Rename Window\nKeyboard Shortcut: F3");
-         event_op.tab(EVENT_DEL   ).rect(Rect(event_op.rect().lerp(0.5f, 0  ), event_op.rect().lerp(1  , 0.5f))).desc("Delete event\nKeyboard Shortcut: F4");
+         event_op.tab(EVENT_NEW   ).rect(Rect(event_op.rect().lerp(0  , 0  ), event_op.rect().lerp(0.5f, 0.5f))).desc("Create new event\nHold Ctrl to don't show Rename Window\nKeyboard Shortcut: F3\n\nAlternatively press Insert Key to create event at current time.");
+         event_op.tab(EVENT_DEL   ).rect(Rect(event_op.rect().lerp(0.5f, 0  ), event_op.rect().lerp(1  , 0.5f))).desc("Delete event\nKeyboard Shortcut: F4\n\nAlternatively press Ctrl+Delete Key to delete event at Mouse cursor.");
          T+=track.create(true);
          rect(Rect_C(0, 0, Min(1.7f, D.w()*2), Min(1.07f, D.h()*2)));
       }
@@ -371,18 +377,13 @@ AnimEditor AnimEdit;
          super::toGui();
          if(length)length->name.set(S+"Length: "+(anim() ? S+TextReal(anim()->length(), -2)+"s" : S));
       }
-      void AnimEditor::Preview::removedEvent(int index)
-      {
-         if(event_lit==index)event_lit=-1;else if(event_lit>index)event_lit--;
-         if(event_sel==index)event_sel=-1;else if(event_sel>index)event_sel--;
-      }
       ::AnimEditor::Preview& AnimEditor::Preview::hide(            )  {if(!AnimEdit.fullscreen)AnimEdit.set(null); super::hide(); return T;}
       Rect     AnimEditor::Preview::sizeLimit(            )C {Rect r=super::sizeLimit(); r.min.set(1.0f, 0.9f); return r;}
       ::AnimEditor::Preview& AnimEditor::Preview::rect(C Rect &rect)  
 {
          super   ::rect(rect);
          track   .rect(Rect(prop_max_x, -clientHeight(), clientWidth(), -clientHeight()+0.09f).extend(-0.02f));
-         viewport.rect(Rect(prop_max_x, track.rect().max.y, clientWidth(), 0).extend(-0.02f));
+         viewport.rect(Rect(prop_max_x, track.rect().max.y+0.01f, clientWidth(), 0).extend(-0.02f));
          event_op.move(Vec2(0, track.rect().min.y-event_op.rect().min.y));
          if(event)event->name.pos(event_op.rect().lu()+Vec2(0, 0.025f));
          return T;
@@ -390,11 +391,11 @@ AnimEditor AnimEdit;
       void AnimEditor::Preview::update(C GuiPC &gpc)
 {
          flt old_time=AnimEdit.animTime();
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             if(contains(Gui.kb()))
             {
-               KbSc edit(KB_E, KBSC_CTRL_CMD), split(KB_S, KBSC_CTRL_CMD), play(KB_P, KBSC_CTRL_CMD), play2(KB_D, KBSC_CTRL_CMD), bones(KB_B, KBSC_ALT), axis(KB_A, KBSC_ALT), plane(KB_P, KBSC_ALT);
+               KbSc edit(KB_E, KBSC_CTRL_CMD), split(KB_S, KBSC_CTRL_CMD), play(KB_P, KBSC_CTRL_CMD), play2(KB_D, KBSC_CTRL_CMD), bones(KB_B, KBSC_ALT), axis(KB_A, KBSC_ALT), plane(KB_P, KBSC_ALT), prev(KB_PGUP, KBSC_CTRL|KBSC_REPEAT), next(KB_PGDN, KBSC_CTRL|KBSC_REPEAT);
                if(Kb.bp(KB_F1))event_op.toggle(0);else
                if(Kb.bp(KB_F2))event_op.toggle(1);else
                if(Kb.bp(KB_F3))event_op.toggle(2);else
@@ -404,8 +405,16 @@ AnimEditor AnimEdit;
                if(bones.pd()){bones.eat(); draw_bones^=true; toGui();}else
                if(axis .pd()){axis .eat(); draw_axis ^=true; toGui();}else
                if(plane.pd()){plane.eat(); draw_plane^=true; toGui();}else
+               if(prev .pd()){prev .eat(); PrevAnim(AnimEdit);}else
+               if(next .pd()){next .eat(); NextAnim(AnimEdit);}else
                if(play .pd() || play2.pd()){play.eat(); play2.eat(); AnimEdit.playToggle();}
-               if(Gui.kb()->type()!=GO_TEXTLINE && Gui.kb()->type()!=GO_CHECKBOX && Kb.bp(KB_SPACE)){Kb.eat(KB_SPACE); AnimEdit.playToggle();}
+
+               if(Gui.kb()->type()!=GO_TEXTLINE && Gui.kb()->type()!=GO_CHECKBOX)
+               {
+                  if(Kb.bp(KB_INS  )                ){Kb.eat(KB_INS  ); AnimEdit.newEvent(AnimEdit.animTime());}
+                  if(Kb.bp(KB_DEL  ) && Kb.ctrlCmd()){Kb.eat(KB_DEL  ); AnimEdit.delEvent(track.event_lit);}
+                  if(Kb.bp(KB_SPACE)                ){Kb.eat(KB_SPACE); AnimEdit.playToggle();}
+               }
             }
             if(Gui.ms   ()==&viewport)if(Ms.b(0) || Ms.b(MS_BACK)){cam_yaw-=Ms.d().x; cam_pitch+=Ms.d().y; Ms.freeze();}
             if(Gui.wheel()==&viewport)Clamp(cam_zoom*=ScaleFactor(Ms.wheel()*-0.2f), 0.1f, 32);
@@ -568,15 +577,16 @@ AnimEditor AnimEdit;
    {
       setAnimSkel();
       view.camera.set();
+      D.dofFocus(ActiveCam.dist);
       CurrentEnvironment().set();
       bool astros=AstrosDraw; AstrosDraw=false;
       bool ocean =Water.draw; Water.draw=false;
       Renderer.wire=wire();
-      Renderer.allow_taa=false; // disable TAA because previous bone matrixes are incorrect
+      Renderer.allow_temporal=false; // disable Temporal because previous bone matrixes are incorrect
 
       Renderer(AnimEditor::Render);
 
-      Renderer.allow_taa=true;
+      Renderer.allow_temporal=true;
       Renderer.wire=false;
       AstrosDraw=astros;
       Water.draw=ocean;
@@ -646,6 +656,7 @@ AnimEditor AnimEdit;
    void AnimEditor::ScalePosKey(AnimEditor &editor) {editor.scale_pos_keys.activate();}
    void AnimEditor::TimeRangeSp(AnimEditor &editor) {editor.time_range_speed.display();}
    void AnimEditor::ReverseFrames(AnimEditor &editor) {editor.reverseFrames();}
+   void AnimEditor::ApplySpeed(AnimEditor &editor) {editor.applySpeed();}
    void AnimEditor::FreezeBone(AnimEditor &editor) {editor.freezeBone();}
    void AnimEditor::Mirror(AnimEditor &editor) {if(editor.anim){editor.undos.set("mirror", true); Skeleton temp; editor.anim->mirror(editor.skel ? *editor.skel : temp); editor.setAnimSkel(); editor.setOrnTarget(); editor.setChanged(); editor.toGui();}}
    void AnimEditor::rotate(C Matrix3 &m)
@@ -1041,6 +1052,7 @@ AnimEditor AnimEdit;
       n.New().create("Delete All Bone KeyFrames at End", DelFramesAtEnd, T).kbsc(KbSc(KB_DEL, KBSC_CTRL_CMD|KBSC_WIN_CTRL)).desc("This will delete keyframes located at the end of the animation, for all bones (except root motion).");
       n++;
       n.New().create("Reverse KeyFrames", ReverseFrames, T).kbsc(KbSc(KB_R, KBSC_CTRL_CMD|KBSC_SHIFT)); // avoid Ctrl+R collision with reload project element
+      n.New().create("Apply Speed"      , ApplySpeed   , T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD|KBSC_SHIFT|KBSC_ALT)); // avoid Ctrl+R collision with reload project element
       n++;
       n.New().create("Reduce KeyFrames"           , Optimize   , T).kbsc(KbSc(KB_O, KBSC_CTRL_CMD));
       n.New().create("Scale Position Keys"        , ScalePosKey, T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD));
@@ -1207,7 +1219,7 @@ AnimEditor AnimEdit;
    void AnimEditor::update(C GuiPC &gpc)
 {
       lit_bone=-1;
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          optimize_anim .refresh(); // refresh all the time because animation can be changed all the time (since we're accessing it directly from 'Animations' cache)
          scale_pos_keys.refresh(); // refresh all the time because animation can be changed all the time (since we're accessing it directly from 'Animations' cache)
@@ -1754,9 +1766,20 @@ AnimEditor AnimEdit;
       if(anim)
       {
          undos.set("event"); // keep the same as 'renameEvent' because they're linked
-         anim->events.New().set(RenameEvent.textline().is() ? RenameEvent.textline() : S+"Event", time); // reuse last name if available
+         Str  name=RenameEvent.textline().is() ? RenameEvent.textline() : S+"Event"; // reuse last name if available
+         bool edit_name=!Kb.ctrlCmd();
+
+         // if there's already an event with same name at the same time, then don't add new, due to accidental clicks
+         if(!(edit_name && !RenameEvent.visibleOnActiveDesktop())) // always add if we're going to show rename window as long as it's hidden
+            REPA(anim->events)
+         {
+          C AnimEvent &event=anim->events[i];
+            if(Equal(event.name, name) && Abs(event.time-time)<=TimeEps())return;
+         }
+
+         anim->events.New().set(name, time);
          setChanged();
-         if(!Kb.ctrlCmd())RenameEvent.activate(anim->events.elms()-1); // activate window for renaming created event
+         if(edit_name)RenameEvent.activate(anim->events.elms()-1); // activate window for renaming created event
       }
    }
    void AnimEditor::delEvent(int index)
@@ -1766,7 +1789,8 @@ AnimEditor AnimEdit;
          undos.set("eventDel");
          anim->events.remove(index, true);
          setChanged();
-         preview.removedEvent(index);
+                 track.removedEvent(index);
+         preview.track.removedEvent(index);
       }
    }
    void AnimEditor::renameEvent(int index, C Str &old_name, C Str &new_name)
@@ -1943,7 +1967,9 @@ AnimEditor AnimEdit;
    }
 AnimEditor::AnimEditor() : elm_id(UIDZero), mesh_id(UIDZero), skel_id(UIDZero), elm(null), changed(false), fullscreen(false), copied_bone_pos_relative(false), blend_range(-1), anim(null), skel(null), anim_speed(1), key_time(0), lit_bone(-1), sel_bone(-1), bone_axis(-1), orn_target(0), orn_perp(0), copied_bone_pos(0), undos(true), _anim_time(0) {}
 
-AnimEditor::Preview::Preview() : draw_bones(false), draw_slots(false), draw_axis(false), draw_plane(false), event_lit(-1), event_sel(-1), time_speed(1), prop_max_x(0), cam_yaw(PI), cam_pitch(0), cam_zoom(1), length(null), event(null) {}
+AnimEditor::Track::Track() : event_lit(-1), event_sel(-1) {}
+
+AnimEditor::Preview::Preview() : draw_bones(false), draw_slots(false), draw_axis(false), draw_plane(false), time_speed(1), prop_max_x(0), cam_yaw(PI), cam_pitch(0), cam_zoom(1), length(null), event(null) {}
 
 AnimEditor::OptimizeAnim::OptimizeAnim() : refresh_needed(true), preview(true), angle_eps(EPS_ANIM_ANGLE), pos_eps(EPS_ANIM_POS), scale_eps(EPS_ANIM_SCALE), file_size(null), optimized_size(null) {}
 

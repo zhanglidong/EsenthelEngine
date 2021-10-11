@@ -142,7 +142,9 @@ struct VtxFull // Vertex containing all possible data
    VtxFull& from(C MeshBase &mshb, Int i) ; // set VtxFull from i-th vertex in 'mshb'
    void     to  (  MeshBase &mshb, Int i)C; // set i-th 'mshb' vertex from VtxFull
 
-   VtxFull& avg(C VtxFull &a, C VtxFull &b); // set as average from vertexes, T=Avg(a, b)
+   VtxFull& avg(C VtxFull &a, C VtxFull &b                            ); // set as average from vertexes, T=Avg(a, b)
+   VtxFull& avg(C VtxFull &a, C VtxFull &b, C VtxFull &c              ); // set as average from vertexes, T=Avg(a, b, c)
+   VtxFull& avg(C VtxFull &a, C VtxFull &b, C VtxFull &c, C VtxFull &d); // set as average from vertexes, T=Avg(a, b, c, d)
 
    VtxFull& lerp(C VtxFull &a, C VtxFull &b,                 Flt  step ); // set as linear interpolation from vertexes, T=Lerp(a, b, step)
    VtxFull& lerp(C VtxFull &a, C VtxFull &b, C VtxFull &c, C Vec &blend); // set as linear interpolation from vertexes, T=a*blend.x + b*blend.y + c*blend.z
@@ -369,23 +371,23 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
    MeshBase& setAdjacencies(Bool faces=true, Bool edges=false                                 ); // set adjacencies, 'faces'=if set face adjacencies ('tri.adjFace', 'quad.adjFace'), 'edges'=if set edges ('edge') and edge adjacencies ('tri.adjEdge', 'quad.adjEdge', 'edge.adjFace')
 
    // transform
-   MeshBase& move     (              C Vec &move         ); //           move mesh
-   MeshBase& scale    (C Vec &scale                      ); // scale          mesh
-   MeshBase& scaleMove(C Vec &scale, C Vec &move         ); // scale and move mesh
-   MeshBase& setSize  (C Box &box                        ); // scale and move mesh to fit box
-   MeshBase& transform(C Matrix3               &matrix   ); // transform by matrix
-   MeshBase& transform(C Matrix                &matrix   ); // transform by matrix
-   MeshBase& animate  (C MemPtrN<Matrix , 256> &matrixes ); // animate   by matrixes
-   MeshBase& animate  (C MemPtrN<MatrixM, 256> &matrixes ); // animate   by matrixes
-   MeshBase& animate  (C AnimatedSkeleton      &anim_skel); // animate   by skeleton
-   MeshBase& mirrorX  (                                  ); // mirror in X axis
-   MeshBase& mirrorY  (                                  ); // mirror in Y axis
-   MeshBase& mirrorZ  (                                  ); // mirror in Z axis
-   MeshBase& reverse  (                                  ); // reverse all      faces
-   MeshBase& reverse  (  Int           face              ); // reverse selected face , here the 'face'  index can point to both triangles and quads, if face is a triangle then "face=triangle_index", if face is a quad then "face=quad_index^SIGN_BIT"
-   MeshBase& reverse  (C CMemPtr<Int> &faces             ); // reverse selected faces, here the 'faces' index can point to both triangles and quads, if face is a triangle then "face=triangle_index", if face is a quad then "face=quad_index^SIGN_BIT"
+   MeshBase& move     (              C Vec &move                               ); //           move mesh
+   MeshBase& scale    (C Vec &scale                                            ); // scale          mesh
+   MeshBase& scaleMove(C Vec &scale, C Vec &move                               ); // scale and move mesh
+   MeshBase& setSize  (C Box &box                                              ); // scale and move mesh to fit box
+   MeshBase& transform(C Matrix3               &matrix, Bool scale_normals=true); // transform by matrix, 'scale_normals'=if scale normals (if false then normals are not scaled but only rotated)
+   MeshBase& transform(C Matrix                &matrix, Bool scale_normals=true); // transform by matrix, 'scale_normals'=if scale normals (if false then normals are not scaled but only rotated)
+   MeshBase& animate  (C MemPtrN<Matrix , 256> &matrixes                       ); // animate   by matrixes
+   MeshBase& animate  (C MemPtrN<MatrixM, 256> &matrixes                       ); // animate   by matrixes
+   MeshBase& animate  (C AnimatedSkeleton      &anim_skel                      ); // animate   by skeleton
+   MeshBase& mirrorX  (                                                        ); // mirror in X axis
+   MeshBase& mirrorY  (                                                        ); // mirror in Y axis
+   MeshBase& mirrorZ  (                                                        ); // mirror in Z axis
+   MeshBase& reverse  (                                                        ); // reverse all      faces
+   MeshBase& reverse  (  Int           face                                    ); // reverse selected face , here the 'face'  index can point to both triangles and quads, if face is a triangle then "face=triangle_index", if face is a quad then "face=quad_index^SIGN_BIT"
+   MeshBase& reverse  (C CMemPtr<Int> &faces                                   ); // reverse selected faces, here the 'faces' index can point to both triangles and quads, if face is a triangle then "face=triangle_index", if face is a quad then "face=quad_index^SIGN_BIT"
 #if EE_PRIVATE
-   MeshBase& rightToLeft(                                ); // convert from right hand to left hand coordinate system
+   MeshBase& rightToLeft(                                                      ); // convert from right hand to left hand coordinate system
 #endif
 
    // texture transform
@@ -411,9 +413,11 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
 
    MeshBase& explodeVtxs(); // separate vertexes so that each edge/face has its own unique vertexes
 
-   MeshBase& tesselate    (); // smooth subdivide faces, preserving original vertexes
-   MeshBase& subdivide    (); // smooth subdivide faces,  smoothing original vertexes
-   MeshBase& subdivideEdge(Bool freeze_z=false, C CMemPtr<Bool> &is=null); // smooth subdivide edges, 'is'=only selected edges
+   MeshBase& tesselate    (                          Flt weld_pos_eps=EPS); // smooth subdivide faces, preserving original vertexes, 'weld_pos_eps'=epsilon used for final vertex position welding
+   MeshBase& tesselate    (C CMemPtr<Bool> &vtx_sel, Flt weld_pos_eps=EPS); // smooth subdivide faces, preserving original vertexes, 'weld_pos_eps'=epsilon used for final vertex position welding, only selected vertexes will be tesselated, 'vtx_sel'=array of all vertexes in mesh specifying if each vertex is selected (true) or not (false)
+   MeshBase& tesselate    (C CMemPtr<Int > &vtx_sel, Flt weld_pos_eps=EPS); // smooth subdivide faces, preserving original vertexes, 'weld_pos_eps'=epsilon used for final vertex position welding, only selected vertexes will be tesselated, 'vtx_sel'=list of selected vertexes
+   MeshBase& subdivide    (                                              ); // smooth subdivide faces,  smoothing original vertexes
+   MeshBase& subdivideEdge(Bool freeze_z=false, C CMemPtr<Bool> &is=null ); // smooth subdivide edges, 'is'=only selected edges
 
    MeshBase&   boneRemap(C CMemPtr<Byte, 256> &old_to_new); // remap vertex bone/matrix indexes according to bone 'old_to_new' remap
    void     setUsedBones(Bool (&bones)[256])C;
@@ -572,6 +576,10 @@ struct MeshBaseIndex : MeshBase
 {
    Int index;
 };
+
+#define DEFAULT_VTX_NRM 0, 1,  0 // value was chosen to point up, so if object is viewed from all ground sides (left/right/front/back) it will have same relative normal
+#define DEFAULT_VTX_TAN 1, 0,  0
+#define DEFAULT_VTX_BIN 0, 0, -1 // Cross(Vec(DEFAULT_VTX_NRM), Vec(DEFAULT_VTX_TAN))
 #endif
 /******************************************************************************/
 inline Int Elms(C MeshVtxs  &vtx ) {return vtx .elms();}

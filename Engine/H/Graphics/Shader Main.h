@@ -15,8 +15,10 @@ struct MainShaderClass
    static void draw (C Image &image, C Color &color, C Color &color_add=TRANSPARENT, C Rect *rect=null);
    static void draw (C Image &image, C Vec4  &color, C Vec4  &color_add=Vec4Zero   , C Rect *rect=null);
 
-   INLINE void imgSize(C Image &image) {ImgSize->set           (Vec4(1.0f/image.hwSize(), image.hwSize()));} // xy=1/hwSize(), zw=hwSize(), this format is also required for SMAA
-   INLINE void  rtSize(C Image &image) {RTSize ->setConditional(Vec4(1.0f/image.hwSize(), image.hwSize()));} // xy=1/hwSize(), zw=hwSize(), this format is also required for SMAA
+   static INLINE Vec4 GetImgSize(C VecI2 &size ) {return Vec4(1.0f/size, size);} // xy=1/size, zw=size, this format is also required by SMAA
+          INLINE void    imgSize(C VecI2 &size ) {ImgSize->set(GetImgSize(size));}
+          INLINE void    imgSize(C Image &image) {imgSize(image.hwSize());}
+          INLINE void     rtSize(C Image &image) {RTSize ->setConditional(GetImgSize(image.hwSize()));}
 
    // private
    void del           ();
@@ -48,6 +50,11 @@ struct MainShaderClass
       *Mac[4],
       *Lum;
 
+   ShaderRWImage
+      *RWImg,
+      *RWImgX[2],
+      *RWImgXY;
+
    ShaderParam
        Dummy,
 
@@ -56,9 +63,9 @@ struct MainShaderClass
       *RTSize  ,
       *Coords  =&Dummy,
       *Viewport=&Dummy,
-      *TAAOffset         =&Dummy,
-      *TAAOffsetCurToPrev=&Dummy,
-      *TAAAspectRatio,
+      *AspectRatio,
+      *TemporalOffset,
+      *TemporalOffsetStart,
       *DepthWeightScale=&Dummy,
 
       *ViewMatrix    =&Dummy,
@@ -99,15 +106,15 @@ struct MainShaderClass
 
       *RippleParams,
 
-      *AmbientRange_2    =&Dummy,
-      *AmbientRangeInvSqr=&Dummy,
-      *AmbientContrast   =&Dummy,
-      *AmbientMin        =&Dummy,
-      *AmbientColor_l    =&Dummy, // Vec Linear Gamma
-      *AmbientColorNS_l  =&Dummy, // Vec Linear Gamma + NightShade
-      *NightShadeColor   =&Dummy,
-      *EnvColor          =&Dummy,
-      *EnvMipMaps        =&Dummy,
+      *AmbientRange_2     =&Dummy,
+      *AmbientRangeInvSqr2=&Dummy,
+      *AmbientContrast2   =&Dummy,
+      *AmbientMin         =&Dummy,
+      *AmbientColor_l     =&Dummy, // Vec Linear Gamma
+      *AmbientColorNS_l   =&Dummy, // Vec Linear Gamma + NightShade
+      *NightShadeColor    =&Dummy,
+      *EnvColor           =&Dummy,
+      *EnvMipMaps         =&Dummy,
 
       *HdrBrightness=&Dummy,
       *HdrExp       =&Dummy,
@@ -147,12 +154,20 @@ struct MainShaderClass
 
       *DecalParams,
       *OverlayParams,
+
+      *Easu,
+      *Rcas=&Dummy,
       
       *SMAAThreshold=&Dummy;
 
    ShaderParamBool
       *FirstPass,
       *VtxSkinning;
+
+   ShaderParamInt
+      *NoiseOffset,
+      *TemporalOffsetGatherIndex,
+      *TemporalCurPixel;
 
    // SHADERS
    Shader
@@ -170,7 +185,7 @@ struct MainShaderClass
       *DrawXC[2][2]           , // [Dither] [Gamma]
       *Simple                 ,
 
-      *DrawMask,
+      *DrawMask[2][2], // [Alpha][Point]
       *DrawCubeFace,
 
       *FontCur,
@@ -183,8 +198,9 @@ struct MainShaderClass
       *PaletteDraw,
 
       // BASIC 2D
-      *SetCol ,
-      *Draw   ,
+      *SetCol,
+      *Draw[2][2], // [Alpha][Dither]
+
       *DrawC  ,
       *DrawG  ,
       *DrawCG ,
@@ -194,7 +210,7 @@ struct MainShaderClass
       *DrawMsM,
       *ClearDeferred,
       *ClearLight   ,
-      *ColorLUT[2][2][2][2], // [HDR][Dither][In Gamma][Out Gamma]
+      *ColorLUT[2][2][2][2], // [HDR][Dither][InGamma][OutGamma]
 
       // BLUR
       #define SHADER_BLUR_RANGE 5 // 5 pixel range in both directions
@@ -221,7 +237,7 @@ struct MainShaderClass
       *RadialBlur ,
 
       // 3D FX
-      *Decal[2][2][3], // [FullScreen][Layout][Mode]
+      *Decal[3][2][2][2], // [Mode][FullScreen][Layout][Normal]
 
       // RENDERING
       *Outline        ,
@@ -236,11 +252,10 @@ struct MainShaderClass
       *LinearizeDepth[3][2], // [MultiSample] [Perspective]
       *ResolveDepth,
       *SetDepth,
-      *Dither,
-      *SetAlphaFromDepth,
-      *SetAlphaFromDepthMS,
-      *SetAlphaFromDepthAndCol,
-      *SetAlphaFromDepthAndColMS,
+      *SetAlphaFromDepth        [2], // [Sky]
+      *SetAlphaFromDepthMS      [2], // [Sky]
+      *SetAlphaFromDepthAndCol  [2], // [Sky]
+      *SetAlphaFromDepthAndColMS[2], // [Sky]
       *CombineAlpha,
       *ReplaceAlpha,
 
@@ -270,10 +285,13 @@ struct MainShaderClass
       *MLAABlend,
       *MLAA     ,
    #endif
-      *SMAAEdge[2] , // [Gamma]
-      *SMAABlend   ,
-      *SMAA        ,
-      *TAA[2][2][2], // [UVClamp][Alpha][Dual]
+      *SMAAEdge[2], // [Gamma]
+      *SMAABlend  ,
+      *SMAA       ,
+      *Temporal[3][2][2], // [Mode][ViewFull][Alpha]
+   #if TEMPORAL_SEPARATE_SUPER_RES_OLD_WEIGHT
+      *TemporalOldWeight[2], // [ViewFull]
+   #endif
 
       // PARTICLE
       *Bilb                ,
@@ -284,39 +302,43 @@ struct MainShaderClass
       *DrawTexPointC,
 
       // CUBIC
-      *DrawTexCubicFast    [2], // [Color]
-      *DrawTexCubicFastF   [2], // [Dither]
-      *DrawTexCubicFastFRGB[2], // [Dither]
-      *DrawTexCubic        [2], // [Color]
-      *DrawTexCubicF       [2], // [Dither]
-      *DrawTexCubicFRGB    [2]; // [Dither]
+      *DrawTexCubicFast       [2], // [Color]
+      *DrawTexCubicFastF   [2][2], // [Alpha][Dither]
+      *DrawTexCubicPlus       [2], // [Color]
+      *DrawTexCubicPlusF[2][2][2], // [Alpha][Dither][Gamma]
+
+      // FIDELITY FX
+      *EASUScreen[2], // [Color]
+      *EASU[2][2][2], // [Alpha][Dither][Gamma]
+      *RCAS[2][2][2]; // [Alpha][Dither][Gamma]
    void initCubicShaders();   INLINE void loadCubicShaders() {if(SLOW_SHADER_LOAD)initCubicShaders();}
 
    // SHADOWS
    Shader
-      *ShdDir[6][2][2], // [NumberOfMaps] [Clouds] [MultiSample]
-      *ShdPoint    [2], //                         [MultiSample]
-      *ShdCone     [2], //                         [MultiSample]
-      *ShdBlur  [2][4], // [Geom] [Quality]
-      *ShdBlurX [2]   , // [Geom]
-      *ShdBlurY [2]   ; // [Geom]
+      *ShdDir       [6][2][2], // [NumberOfMaps] [Clouds] [MultiSample]
+      *ShdPoint           [2], //                         [MultiSample]
+      *ShdCone            [2], //                         [MultiSample]
+      *ShdBlur      [2][2][4], // [Geom] [LinearDepth] [Quality]
+      *ShdBlurX     [2][2]   , // [Geom] [LinearDepth]
+      *ShdBlurY     [2][2]   , // [Geom] [LinearDepth]
+      *ShdBlurJitter[2][2]   ; // [Geom] [LinearDepth]
    Shader* getShdDir  (Int map_num, Bool clouds, Bool multi_sample);
    Shader* getShdPoint(                          Bool multi_sample);
    Shader* getShdCone (                          Bool multi_sample);
 
    // LIGHT
    Shader
-      *DrawLightDir   [DIFFUSE_NUM][2][2][2]   , // [Diffuse] [Shadow] [MultiSample] [Water]
-      *DrawLightPoint [DIFFUSE_NUM][2][2][2]   , // [Diffuse] [Shadow] [MultiSample] [Water]
-      *DrawLightLinear[DIFFUSE_NUM][2][2][2]   , // [Diffuse] [Shadow] [MultiSample] [Water]
-      *DrawLightCone  [DIFFUSE_NUM][2][2][2][2]; // [Diffuse] [Shadow] [MultiSample] [Water] [Image]
-   Shader* getDrawLightDir   (Int diffuse, Bool shadow, Bool multi_sample, Bool water);
-   Shader* getDrawLightPoint (Int diffuse, Bool shadow, Bool multi_sample, Bool water);
-   Shader* getDrawLightLinear(Int diffuse, Bool shadow, Bool multi_sample, Bool water);
-   Shader* getDrawLightCone  (Int diffuse, Bool shadow, Bool multi_sample, Bool water, Bool image);
+      *DrawLightDir   [DIFFUSE_NUM][3][2][2]   , // [Diffuse] [MultiSample] [Shadow] [Water]
+      *DrawLightPoint [DIFFUSE_NUM][3][2][2]   , // [Diffuse] [MultiSample] [Shadow] [Water]
+      *DrawLightLinear[DIFFUSE_NUM][3][2][2]   , // [Diffuse] [MultiSample] [Shadow] [Water]
+      *DrawLightCone  [DIFFUSE_NUM][3][2][2][2]; // [Diffuse] [MultiSample] [Shadow] [Water] [Image]
+   Shader* getDrawLightDir   (Int diffuse, Int multi_sample, Bool shadow, Bool water);
+   Shader* getDrawLightPoint (Int diffuse, Int multi_sample, Bool shadow, Bool water);
+   Shader* getDrawLightLinear(Int diffuse, Int multi_sample, Bool shadow, Bool water);
+   Shader* getDrawLightCone  (Int diffuse, Int multi_sample, Bool shadow, Bool water, Bool image);
 #if !DEPTH_CLIP_SUPPORTED
-   Shader *   DrawLightConeFlat[DIFFUSE_NUM][2][2][2][2]; // [Diffuse] [Shadow] [MultiSample] [Water] [Image]
-   Shader* getDrawLightConeFlat(Int diffuse, Bool shadow, Bool multi_sample, Bool water, Bool image);
+   Shader *   DrawLightConeFlat[DIFFUSE_NUM][3][2][2][2]; // [Diffuse] [MultiSample] [Shadow] [Water] [Image]
+   Shader* getDrawLightConeFlat(Int diffuse, Int multi_sample, Bool shadow, Bool water, Bool image);
 #endif
 
    // APPLY LIGHT
@@ -328,17 +350,16 @@ struct MainShaderClass
    ShaderParam
       *BloomParams;
    Shader
-      *BloomDS[2][2][2][2][2], // [Glow] [UVClamp] [HalfRes] [Saturate] [Gamma]
-      *Bloom  [2][2][2]      ; // [Dither] [Gamma] [Alpha]
-   Shader* getBloomDS(Bool glow, Bool uv_clamp, Bool half_res, Bool saturate, Bool gamma);
-   Shader* getBloom  (Bool dither, Bool gamma, Bool alpha);
+      *PrecomputedBloomDS    [2][2], // [ViewFull] [HalfRes]
+      *BloomDS         [2][2][2][2], // [Glow] [ViewFull] [HalfRes] [Exposure]
+      *Bloom[TONE_MAP_NUM][3][2][2]; // [ToneMap] [Alpha] [Dither] [Exposure]
+   Shader* getPrecomputedBloomDS(Bool view_full, Bool half_res);
+   Shader* getBloomDS(Bool glow, Bool view_full, Bool half_res, Bool exposure);
+   Shader* getBloom  (Int tone_map, Int alpha, Bool dither, Bool exposure);
 
    // SUN
-   Shader
-      *SunRaysMask[2]      , // [Mask]
-      *SunRays [2][2][2][2]; // [Mask] [Dither] [Jitter] [Gamma]
-   Shader* getSunRaysMask(Bool mask);
-   Shader* getSunRays    (Bool mask, Bool dither, Bool jitter, Bool gamma);
+   Shader *SunRays[2][2][2][2]; // [Alpha] [Dither] [Jitter] [Gamma]
+   Shader* getSunRays(Bool alpha, Bool dither, Bool jitter, Bool gamma);
 
    // SKY
    Shader
@@ -357,8 +378,7 @@ struct MainShaderClass
 
 struct AmbientOcclusion
 {
-   ShaderFile *shader;
-   Shader     *AO[4][2][2]; // [Quality] [Jitter] [Normal]
+   Shader *AO[4][2][2]; // [Quality] [Jitter] [Normal]
 
    Shader* get(Int quality, Bool jitter, Bool normal);
 }extern
@@ -405,7 +425,7 @@ struct HDR
    ShaderFile *shader;
    Shader     *HdrDS[2], // [Step]
               *HdrUpdate,
-              *Hdr[2]; // [Dither]
+              *AdaptEye[2]; // [Dither]
 
    void load();
 }extern
@@ -414,29 +434,27 @@ struct HDR
 struct MotionBlur
 {
    ShaderFile  *shader;
-   ShaderParam *MotionScaleLimit   ,
-               *MotionPixelSize    ;
-   Shader      *Explosion          ,
-               *Convert      [2][2], // [High][Clamp]
-               *Dilate             ,
-               *SetDirs      [2]   ; // [Clamp]
+   ShaderParam *MotionScale_2=&Sh.Dummy;
+   Shader      *Explosion,
+               *SetVel,
+               *Convert[6][2]; // [Range][ViewFull]
 
    struct DilateRange
    {
-      Int     pixels;
-      Shader *DilateX[2], // [Diagonal]
-             *DilateY[2]; // [Diagonal]
-   }Dilates[12];
+      Int     range;
+      Shader *Dilate;
+   }Dilates[10]; // #MotionBlurDilateRanges
 
    struct BlurRange
    {
       Int     samples;
-      Shader *Blur[2][2]; // [Dither][Alpha]
+      Shader *Blur[3][2][2][2][2][2]; // [Glow][Dither][Jitter][Alpha][Temporal][ViewFull]
    }Blurs[4];
 
    void load();
- C DilateRange* getDilate(Int pixels , Bool diagonal);
-        Shader* getBlur  (Int samples, Bool dither, Bool alpha);
+   Shader     * getConvert(Int range);
+ C DilateRange& getDilate (Int range);
+   Shader     * getBlur   (Int samples, Int glow, Int dither, Bool alpha);
 }extern
    Mtn;
 
@@ -444,7 +462,7 @@ struct DepthOfField
 {
    ShaderFile  *shader;
    ShaderParam *DofParams;
-   Shader      *DofDS[2][2][2][2], // [Clamp ][Realistic][Alpha][Half]
+   Shader      *DofDS[2][2][2][2], // [ViewFull][Realistic][Alpha][Half]
                *Dof  [2][2][2]   ; // [Dither][Realistic][Alpha]
 
    struct Pixel
@@ -455,9 +473,9 @@ struct DepthOfField
    }pixels[11];
 
    void load();
-   Shader* getDS(Bool clamp , Bool realistic, Bool alpha, Bool half_res);
-   Shader* get  (Bool dither, Bool realistic, Bool alpha);
- C Pixel&  pixel(Bool alpha , Int pixel);
+   Shader* getDS(Bool view_full, Bool realistic, Bool alpha, Bool half_res);
+   Shader* get  (Bool dither   , Bool realistic, Bool alpha);
+ C Pixel&  pixel(Bool alpha    , Int  pixel);
 }extern
    Dof;
 
@@ -471,13 +489,12 @@ struct WaterShader
               *LakeL [7][2][2][2][2], // [Shadows] [Soft ] [ReflectEnv] [ReflectMirror] [Refract]
               *RiverL[7][2][2][2][2], // [Shadows] [Soft ] [ReflectEnv] [ReflectMirror] [Refract]
               *Apply    [2][2][2][2], //           [Depth] [ReflectEnv] [ReflectMirror] [Refract]
-              *Under             [2]; //                                                [Refract]
+              *Under                ;
 
    ShaderParam
       *WaterMaterial,
       *Water_color_underwater0,
       *Water_color_underwater1,
-      *Water_refract_underwater,
       *WaterUnderStep,
       *WaterOfsCol,
       *WaterOfsNrm,
@@ -493,25 +510,25 @@ struct WaterShader
 }extern
    WS;
 
-extern ShaderImage::Sampler SamplerPoint, SamplerLinearWrap, SamplerLinearWCC, SamplerLinearCWC, SamplerLinearCWW, SamplerLinearClamp, SamplerFont, SamplerAnisotropic, SamplerShadowMap;
+extern ShaderSampler SamplerPoint, SamplerLinearWrap, SamplerLinearWCC, SamplerLinearCWC, SamplerLinearCWW, SamplerLinearClamp, SamplerMinimum, SamplerMaximum, SamplerFont, SamplerRender, SamplerAnisotropicClamp, SamplerShadowMap;
 
-void Create2DSampler         ();
-void CreateFontSampler       ();
-void CreateAnisotropicSampler();
+void Create2DSampler    ();
+void CreateFontSampler  ();
+void CreateRenderSampler();
 
-Str8 ShaderDeferred  (Int skin, Int materials, Int layout, Int bump_mode, Int alpha_test, Int detail, Int macro, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tesselate);
-Str8 ShaderForward   (Int skin, Int materials, Int layout, Int bump_mode, Int alpha_test, Int reflect, Int light_map, Int detail, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tesselate);
-Str8 ShaderBlendLight(Int skin, Int color    , Int layout, Int bump_mode, Int alpha_test, Int alpha, Int reflect, Int light_map, Int fx, Int per_pixel, Int shadow_maps, Int tesselate);
-Str8 ShaderPosition  (Int skin, Int alpha_test, Int test_blend, Int fx, Int tesselate);
-Str8 ShaderBlend     (Int skin, Int color, Int layout, Int bump_mode, Int reflect);
-Str8 ShaderSetColor  (Int skin, Int alpha_test, Int tesselate);
-Str8 ShaderBehind    (Int skin, Int alpha_test);
-Str8 ShaderEarlyZ    (Int skin);
-Str8 ShaderAmbient   (Int skin, Int alpha_test, Int light_map);
-Str8 ShaderOverlay   (Int skin, Int normal, Int layout);
-Str8 ShaderFurBase   (Int skin, Int size, Int diffuse);
-Str8 ShaderFurSoft   (Int skin, Int size, Int diffuse);
-Str8 ShaderTattoo    (Int skin, Int tesselate);
+Str8 ShaderDeferred   (Int skin, Int materials, Int layout, Int bump_mode, Int alpha_test, Int detail, Int macro, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tesselate);
+Str8 ShaderForward    (Int skin, Int materials, Int layout, Int bump_mode, Int alpha_test, Int reflect, Int emissive_map, Int detail, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tesselate);
+Str8 ShaderBlendLight (Int skin, Int color    , Int layout, Int bump_mode, Int alpha_test, Int alpha, Int reflect, Int emissive_map, Int fx, Int per_pixel, Int shadow_maps, Int tesselate);
+Str8 ShaderPosition   (Int skin, Int alpha_test, Int test_blend, Int fx, Int tesselate);
+Str8 ShaderBlend      (Int skin, Int color, Int layout, Int bump_mode, Int reflect, Int emissive_map);
+Str8 ShaderSetColor   (Int skin, Int alpha_test, Int tesselate);
+Str8 ShaderBehind     (Int skin, Int alpha_test);
+Str8 ShaderEarlyZ     (Int skin);
+Str8 ShaderEmissive   (Int skin, Int alpha_test, Int emissive_map, Int fx, Int tesselate);
+Str8 ShaderMeshOverlay(Int skin, Int normal, Int layout);
+Str8 ShaderFurBase    (Int skin, Int size, Int diffuse);
+Str8 ShaderFurSoft    (Int skin, Int size, Int diffuse);
+Str8 ShaderOverlay    (Int skin, Int tesselate);
 
 struct DefaultShaders
 {
@@ -520,28 +537,28 @@ struct DefaultShaders
         mtrl_blend,
         heightmap,
         tex, normal, color, size,
-        fur, blend, grass, leaf,
-        alpha, alpha_test, alpha_blend, alpha_blend_light,
+        fur, grass, leaf,
+        alpha, alpha_blend, alpha_blend_no_light, alpha_blend_light,
         skin,
         tesselate;
-   Byte materials, layout, bump, ambient, fx;
+   Byte materials, alpha_test, layout, bump, emissive, fx;
 
    void      init(C Material *material[4], MESH_FLAG mesh_flag, Int lod_index, Bool heightmap);
    DefaultShaders(C Material *material[4], MESH_FLAG mesh_flag, Int lod_index, Bool heightmap) {init(material, mesh_flag, lod_index, heightmap);}
    DefaultShaders(C Material *material   , MESH_FLAG mesh_flag, Int lod_index, Bool heightmap);
 
-   Shader* EarlyZ ()C;
-   Shader* Solid  (Bool mirror=false)C;
-   Shader* Ambient()C;
-   Shader* Outline()C;
-   Shader* Behind ()C;
-   Shader* Fur    ()C;
-   Shader* Shadow ()C;
-   Shader* Blend  ()C;
-   Shader* Overlay()C;
-   Shader* get    (RENDER_MODE mode)C;
-   FRST  * Frst   ()C;
-   BLST  * Blst   ()C;
+   Shader* EarlyZ  ()C;
+   Shader* Opaque  (Bool mirror=false)C;
+   Shader* Overlay ()C;
+   Shader* Emissive()C;
+   Shader* Outline ()C;
+   Shader* Behind  ()C;
+   Shader* Fur     ()C;
+   Shader* Shadow  ()C;
+   Shader* Blend   ()C;
+   Shader* get     (RENDER_MODE mode)C;
+   FRST  * Frst    ()C;
+   BLST  * Blst    ()C;
 
    void set(Shader *shader[RM_SHADER_NUM], FRST **frst, BLST **blst);
 };

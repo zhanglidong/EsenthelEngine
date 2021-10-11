@@ -71,17 +71,17 @@ struct ShaderMaterialMesh
 };
 extern Memc<ShaderMaterialMesh> ShaderMaterialMeshes;
 
-struct SolidShaderMaterialMeshInstance
+struct OpaqueShaderMaterialMeshInstance
 {
-   Int                      next_instance; // index of next instance in the same shader/material/mesh group in 'SolidShaderMaterialMeshInstances' container, keep 'next_instance' as first member, because it's used most often
+   Int                      next_instance; // index of next instance in the same shader/material/mesh group in 'OpaqueShaderMaterialMeshInstances' container, keep 'next_instance' as first member, because it's used most often
    MatrixPair               view_matrix; // store as 'view_matrix' instead of 'obj_matrix' so we can use 'Matrix' instead of 'MatrixM'
  C Memc<ShaderParamChange> *shader_param_changes;
    Color                    highlight;
    Byte                     stencil_value;
 
-   SolidShaderMaterialMeshInstance& set();
+   OpaqueShaderMaterialMeshInstance& set();
 };
-extern Memc<SolidShaderMaterialMeshInstance> SolidShaderMaterialMeshInstances;
+extern Memc<OpaqueShaderMaterialMeshInstance> OpaqueShaderMaterialMeshInstances;
 
 struct ShadowShaderMaterialMeshInstance
 {
@@ -93,14 +93,14 @@ struct ShadowShaderMaterialMeshInstance
 };
 extern Memc<ShadowShaderMaterialMeshInstance> ShadowShaderMaterialMeshInstances;
 
-struct AmbientInstance // ambient instances are stored in a simple way, without categorizing to shaders/materials, so we don't have to store one extra "MaterialShader _ambient_material_shader" in 'Material', also ambient instances are almost never used
+struct EmissiveInstance // emissive instances are stored in a simple way, without categorizing to shaders/materials, so we don't have to store one extra "MaterialShader _emissive_material_shader" in 'Material', also emissive instances are almost never used
 {
  C MeshPart *mesh;
 #if SUPPORT_MATERIAL_CHANGE_IN_RENDERING
    Shader   *shader;
    Material *material;
    #if COUNT_MATERIAL_USAGE
-     ~AmbientInstance() {material->decUsage();} // for ambient, material will always be != null, because only materials with ambient value can create ambient instances
+     ~EmissiveInstance() {material->decUsage();} // for emissive, material will always be != null, because only materials with emissive value can create emissive instances
    #endif
 #else
    #if INSTANCE_PTR
@@ -111,15 +111,15 @@ struct AmbientInstance // ambient instances are stored in a simple way, without 
     C MeshPart::Variation& Variation()C {return mesh->getVariation1(variation_1);}
    #endif
    #if COUNT_MATERIAL_USAGE
-     ~AmbientInstance() {Variation().material->decUsage();} // for ambient, material will always be != null, because only materials with ambient value can create ambient instances
+     ~EmissiveInstance() {Variation().material->decUsage();} // for emissive, material will always be != null, because only materials with emissive value can create emissive instances
    #endif
 #endif
    Matrix                   view_matrix; // store as 'view_matrix' instead of 'obj_matrix' so we can use 'Matrix' instead of 'MatrixM'
  C Memc<ShaderParamChange> *shader_param_changes;
 
-   AmbientInstance& set(C MeshPart &mesh, C MeshPart::Variation &variation);
+   EmissiveInstance& set(C MeshPart &mesh, C MeshPart::Variation &variation);
 };
-extern Memc<AmbientInstance> AmbientInstances;
+extern Memc<EmissiveInstance> EmissiveInstances;
 /******************************************************************************/
 // SKELETON
 /******************************************************************************/
@@ -145,16 +145,16 @@ struct SkeletonShaderMaterialMeshInstance
 };
 extern Memc<SkeletonShaderMaterialMeshInstance> SkeletonShadowShaderMaterialMeshInstances;
 
-struct SkeletonSolidShaderMaterialMeshInstance : SkeletonShaderMaterialMeshInstance
+struct SkeletonOpaqueShaderMaterialMeshInstance : SkeletonShaderMaterialMeshInstance
 {
    Color highlight;
 
    void set(C MeshRender &mesh);
    void set(C MeshPart   &mesh) {set(mesh.render);}
 };
-extern Memc<SkeletonSolidShaderMaterialMeshInstance> SkeletonSolidShaderMaterialMeshInstances;
+extern Memc<SkeletonOpaqueShaderMaterialMeshInstance> SkeletonOpaqueShaderMaterialMeshInstances;
 
-struct SkeletonBlendShaderMaterialMeshInstance : SkeletonSolidShaderMaterialMeshInstance
+struct SkeletonBlendShaderMaterialMeshInstance : SkeletonOpaqueShaderMaterialMeshInstance
 {
    STENCIL_MODE stencil_mode;
 
@@ -185,7 +185,7 @@ struct SkeletonInstance
    void set(C AnimatedSkeleton &anim_skel);
    void newInstance(ShaderBase &shader, C Material &material, Memc<SkeletonShaderMaterialMeshInstance> &instances);
 
-   void unlinkSolid () {anim_skel->_instance.solid =-1;}
+   void unlinkOpaque() {anim_skel->_instance.opaque=-1;}
    void unlinkBlend () {anim_skel->_instance.blend =-1;}
    void unlinkShadow() {anim_skel->_instance.shadow=-1;}
 };
@@ -201,7 +201,7 @@ struct SkeletonBlendInstance
    void addBlend(BLST   &blst  , C Material &material, C MeshPart &mesh);
    void addFur  (Shader &shader, C Material &material, C MeshPart &mesh);
 
-   void unlinkSolid () {anim_skel->_instance.solid =-1;}
+   void unlinkOpaque() {anim_skel->_instance.opaque=-1;}
    void unlinkBlend () {anim_skel->_instance.blend =-1;}
    void unlinkShadow() {anim_skel->_instance.shadow=-1;}
 };
@@ -209,19 +209,19 @@ struct SkeletonBlendInstance
 struct SkeletonInstances : Memc<SkeletonInstance>
 {
           SkeletonInstance& getSkeletonInstance      (C AnimatedSkeleton &anim_skel, Int &instance_index);
-   INLINE SkeletonInstance& getSkeletonInstanceSolid (C AnimatedSkeleton &anim_skel) {return getSkeletonInstance(anim_skel, anim_skel._instance.solid );}
+   INLINE SkeletonInstance& getSkeletonInstanceOpaque(C AnimatedSkeleton &anim_skel) {return getSkeletonInstance(anim_skel, anim_skel._instance.opaque);}
    INLINE SkeletonInstance& getSkeletonInstanceShadow(C AnimatedSkeleton &anim_skel) {return getSkeletonInstance(anim_skel, anim_skel._instance.shadow);}
 };
-extern SkeletonInstances SkeletonSolidInstances, SkeletonShadowInstances;
+extern SkeletonInstances SkeletonOpaqueInstances, SkeletonShadowInstances;
 
-struct SkeletonAmbientInstance // ambient instances are stored in a simple way, without categorizing to shaders/materials, so we don't have to store one extra "Int _ambient" in 'AnimatedSkeleton', also ambient instances are almost never used
+struct SkeletonEmissiveInstance // emissive instances are stored in a simple way, without categorizing to shaders/materials, so we don't have to store one extra "Int _emissive" in 'AnimatedSkeleton', also emissive instances are almost never used
 {
  C MeshPart *mesh;
 #if SUPPORT_MATERIAL_CHANGE_IN_RENDERING
    Shader   *shader;
  C Material *material;
    #if COUNT_MATERIAL_USAGE
-     ~SkeletonAmbientInstance() {material->decUsage();} // for ambient, material will always be != null, because only materials with ambient value can create ambient instances
+     ~SkeletonEmissiveInstance() {material->decUsage();} // for emissive, material will always be != null, because only materials with emissive value can create emissive instances
    #endif
 #else
    #if INSTANCE_PTR
@@ -232,7 +232,7 @@ struct SkeletonAmbientInstance // ambient instances are stored in a simple way, 
     C MeshPart::Variation& Variation()C {return mesh->getVariation1(variation_1);}
    #endif
    #if COUNT_MATERIAL_USAGE
-     ~SkeletonAmbientInstance() {Variation().material->decUsage();} // for ambient, material will always be != null, because only materials with ambient value can create ambient instances
+     ~SkeletonEmissiveInstance() {Variation().material->decUsage();} // for emissive, material will always be != null, because only materials with emissive value can create emissive instances
    #endif
 #endif
  C AnimatedSkeleton        *anim_skel;
@@ -240,7 +240,7 @@ struct SkeletonAmbientInstance // ambient instances are stored in a simple way, 
 
    void set(C MeshPart &mesh, C MeshPart::Variation &variation, C AnimatedSkeleton &anim_skel);
 };
-extern Memc<SkeletonAmbientInstance> SkeletonAmbientInstances;
+extern Memc<SkeletonEmissiveInstance> SkeletonEmissiveInstances;
 /******************************************************************************/
 // BLEND
 /******************************************************************************/
@@ -248,18 +248,18 @@ struct BlendInstance
 {
    enum TYPE
    {
-      SOLID     ,
-      SOLID_BLST,
-      SOLID_FUR ,
-      SKELETON  ,
-      BLEND_OBJ ,
-      GAME_OBJ  ,
-      GAME_AREA ,
+      STATIC     ,
+      STATIC_BLST,
+      STATIC_FUR ,
+      SKELETON   ,
+      BLEND_OBJ  ,
+      GAME_OBJ   ,
+      GAME_AREA  ,
    }type;
 
    Flt z; // used for sorting
 
-   struct Solid // solid
+   struct Static // non-animated
    {
    #if 1
       union
@@ -280,7 +280,7 @@ struct BlendInstance
 
    union // Data
    {
-      Solid                 s         ; // solid
+      Static                stat      ; // static
       SkeletonBlendInstance skeleton  ; // skeleton
       BlendObject          *blend_obj ; // blend object
       Game::Obj            * game_obj ; //  game object
@@ -290,9 +290,9 @@ struct BlendInstance
    void setViewZ(Flt z) {T.z=z;}
    void setZ    (C VecD &pos);
 
-   void viewMatrixChanged() {setViewZ(s.view_matrix.cur.pos.z);}
-   void setViewMatrix(C Matrix  &view_matrix                             ) {s.view_matrix.cur=view_matrix;                                      viewMatrixChanged();} // here 's.view_matrix.prev' is ignored because it's assumed to be unused
-   void setViewMatrix(C Matrix  &view_matrix, C Matrix  &view_matrix_prev) {s.view_matrix.cur=view_matrix; s.view_matrix.prev=view_matrix_prev; viewMatrixChanged();}
+   void viewMatrixChanged() {setViewZ(stat.view_matrix.cur.pos.z);}
+   void setViewMatrix(C Matrix  &view_matrix                             ) {stat.view_matrix.cur=view_matrix;                                         viewMatrixChanged();} // here 'stat.view_matrix.prev' is ignored because it's assumed to be unused
+   void setViewMatrix(C Matrix  &view_matrix, C Matrix  &view_matrix_prev) {stat.view_matrix.cur=view_matrix; stat.view_matrix.prev=view_matrix_prev; viewMatrixChanged();}
    void setMatrix    (C MatrixM &     matrix);
    void setMatrix    (C MatrixM &     matrix, C MatrixM &matrix_prev);
 
@@ -346,25 +346,25 @@ struct GameAreas : Memc<Game::Area::Data*>
 // VARIABLES
 /******************************************************************************/
 extern BlendInstancesClass BlendInstances;
-//extern ClothInstances      SolidClothInstances, ShadowClothInstances;
-extern    GameObjects      PaletteObjects, Palette1Objects, OverlayObjects, SolidObjects, AmbientObjects, OutlineObjects, BehindObjects;
+//extern ClothInstances      OpaqueClothInstances, ShadowClothInstances;
+extern    GameObjects      PaletteObjects, Palette1Objects, OverlayObjects, OpaqueObjects, EmissiveObjects, OutlineObjects, BehindObjects;
 extern    GameAreas        PaletteAreas  , Palette1Areas;
 /******************************************************************************/
 Bool   HasEarlyZInstances();
 void  DrawEarlyZInstances();
 void ClearEarlyZInstances();
 
-void  DrawSolidInstances();
-void ClearSolidInstances();
+void  DrawOpaqueInstances();
+void ClearOpaqueInstances();
 
         Int             Compare(C BlendInstance &a, C BlendInstance &b);
 inline void  SortBlendInstances() {BlendInstances.sort(Compare);}
        void  DrawBlendInstances();
        void ClearBlendInstances();
 
-void  SortAmbientInstances();
-void  DrawAmbientInstances();
-void ClearAmbientInstances();
+void  SortEmissiveInstances();
+void  DrawEmissiveInstances();
+void ClearEmissiveInstances();
 
 void PrepareShadowInstances();
 void    DrawShadowInstances();

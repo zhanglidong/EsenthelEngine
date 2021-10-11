@@ -62,16 +62,22 @@
 #define EPS_NRM_AUTO      PI_3              // Normal Angle       Epsilon (used for calculating vertex normals)
 
 #if EE_PRIVATE
-#define EPS_COL8_LINEAR        (EPS_COL8/12.92f)                           // EPS_COL8 in linear Gamma, Warning: "/12.92f" is valid only for small values
-#define EPS_COL_LINEAR         (EPS_COL /12.92f)                           // EPS_COL  in linear Gamma, Warning: "/12.92f" is valid only for small values
-#define EPS_COL8_NATIVE        (LINEAR_GAMMA ? EPS_COL8_LINEAR : EPS_COL8)
-#define EPS_COL_NATIVE         (LINEAR_GAMMA ? EPS_COL_LINEAR  : EPS_COL )
-#define EPS_GPU                (MOBILE ? HALF_EPS : FLT_EPS)               // GPU             Epsilon (Mobile GPU's may have only half precision)
-#define EPS_ANIM_BLEND         (1.0f/4096)                                 // Animation Blend Epsilon (default value used for ignoring animations)
-#define EPS_SKY_MIN_LERP_DIST  (1.0f/8)                                    // 12.5 cm
-#define EPS_SKY_MIN_VIEW_RANGE 0.999f                                      // 0.999f was the biggest value that caused holes to disappear
-#define EPS_TAN_COS            EPS_COL_COS                                 // use strict eps to merge only if are the same, strict eps doesn't significantly increase the vertex count, on few test models vtx count was only 1% bigger when compared to 0 eps
-#define EPS_BIN_COS            0                                           // can use 0 for 'Dot' (to differentiate only if binormals are on the same side) because binormals are stored in MeshRender using 1-bit only and reconstructed as "Cross(nrm, tan)" or "-Cross(nrm, tan)"
+#define EPS_COL8_LINEAR        0.000151171f                                    // EPS_COL8 in linear Gamma, SRGBToLinear(0.5/ 256  )  , Warning: can be used only when comparing with 0
+#define EPS_COL_LINEAR         0.000037793f                                    // EPS_COL  in linear Gamma, SRGBToLinear(0.5/1024  )  , Warning: can be used only when comparing with 0
+#define EPS_COL8_NATIVE        (LINEAR_GAMMA ? EPS_COL8_LINEAR   : EPS_COL8  ) //                                                       Warning: can be used only when comparing with 0
+#define EPS_COL_NATIVE         (LINEAR_GAMMA ? EPS_COL_LINEAR    : EPS_COL   ) //                                                       Warning: can be used only when comparing with 0
+#define EPS_COL8_1             EPS_COL8                                        //                                                       Warning: can be used only when comparing with 1
+#define EPS_COL_1              EPS_COL                                         //                                                       Warning: can be used only when comparing with 1
+#define EPS_COL8_1_LINEAR      0.004448891f                                    // EPS_COL8 in linear Gamma, SRGBToLinear(0.5/ 256+1)-1, Warning: can be used only when comparing with 1
+#define EPS_COL_1_LINEAR       0.001111269f                                    // EPS_COL  in linear Gamma, SRGBToLinear(0.5/1024+1)-1, Warning: can be used only when comparing with 1
+#define EPS_COL8_1_NATIVE      (LINEAR_GAMMA ? EPS_COL8_1_LINEAR : EPS_COL8_1) //                                                       Warning: can be used only when comparing with 1
+#define EPS_COL_1_NATIVE       (LINEAR_GAMMA ? EPS_COL_1_LINEAR  : EPS_COL_1 ) //                                                       Warning: can be used only when comparing with 1
+#define EPS_GPU                (MOBILE ? HALF_EPS : FLT_EPS)                   // GPU             Epsilon (Mobile GPU's may have only half precision)
+#define EPS_ANIM_BLEND         (1.0f/4096)                                     // Animation Blend Epsilon (default value used for ignoring animations)
+#define EPS_SKY_MIN_LERP_DIST  (1.0f/8)                                        // 12.5 cm
+#define EPS_SKY_MIN_VIEW_RANGE 0.999f                                          // 0.999f was the biggest value that caused holes to disappear
+#define EPS_TAN_COS            EPS_COL_COS                                     // use strict eps to merge only if are the same, strict eps doesn't significantly increase the vertex count, on few test models vtx count was only 1% bigger when compared to 0 eps
+#define EPS_BIN_COS            0                                               // can use 0 for 'Dot' (to differentiate only if binormals are on the same side) because binormals are stored in MeshRender using 1-bit only and reconstructed as "Cross(nrm, tan)" or "-Cross(nrm, tan)"
 #endif
 /******************************************************************************/
 enum AXIS_TYPE
@@ -199,17 +205,22 @@ inline UInt  AvgI(UInt  x, UInt  y                ) {return DivRound(x+y    , 2u
 inline Long  AvgI(Long  x, Long  y                ) {return DivRound(x+y    , 2ll )      ;}
 inline ULong AvgI(ULong x, ULong y                ) {return DivRound(x+y    , 2ull)      ;}
 inline Flt   AvgF(Int   x, Int   y                ) {return         (x+y          )*0.5f ;}
+inline Flt   Avg (Int   x, Int   y                ) {return         (x+y          )*0.5f ;}
+inline Flt   Avg (Int   x, Flt   y                ) {return         (x+y          )*0.5f ;}
+inline Flt   Avg (Flt   x, Int   y                ) {return         (x+y          )*0.5f ;}
 inline Flt   Avg (Flt   x, Flt   y                ) {return         (x+y          )*0.5f ;}
 inline Dbl   Avg (Dbl   x, Dbl   y                ) {return         (x+y          )*0.5  ;}
 inline Int   AvgI(Int   x, Int   y, Int  z        ) {return DivRound(x+y+z  , 3   )      ;}
 inline Byte  AvgI(Byte  x, Byte  y, Byte z        ) {return DivRound(UInt(x+y+z)  , 3u)  ;}
 inline UInt  AvgI(UInt  x, UInt  y, UInt z        ) {return DivRound(x+y+z  , 3u  )      ;}
 inline Flt   AvgF(Int   x, Int   y, Int  z        ) {return         (x+y+z        )/3.0f ;}
+inline Flt   Avg (Int   x, Int   y, Int  z        ) {return         (x+y+z        )/3.0f ;}
 inline Flt   Avg (Flt   x, Flt   y, Flt  z        ) {return         (x+y+z        )/3.0f ;}
 inline Dbl   Avg (Dbl   x, Dbl   y, Dbl  z        ) {return         (x+y+z        )/3.0  ;}
 inline Int   AvgI(Int   x, Int   y, Int  z, Int  w) {return DivRound(x+y+z+w, 4   )      ;}
 inline UInt  AvgI(UInt  x, UInt  y, UInt z, UInt w) {return DivRound(x+y+z+w, 4u  )      ;}
 inline Flt   AvgF(Int   x, Int   y, Int  z, Int  w) {return         (x+y+z+w      )*0.25f;}
+inline Flt   Avg (Int   x, Int   y, Int  z, Int  w) {return         (x+y+z+w      )*0.25f;}
 inline Flt   Avg (Flt   x, Flt   y, Flt  z, Flt  w) {return         (x+y+z+w      )*0.25f;}
 inline Dbl   Avg (Dbl   x, Dbl   y, Dbl  z, Dbl  w) {return         (x+y+z+w      )*0.25 ;}
 /******************************************************************************/
@@ -230,6 +241,26 @@ inline Bool Any(C Dbl &x                              ); // faster version of "x
 inline Bool Any(C Dbl &x, C Dbl &y                    ); // faster version of "x!=0 || y!=0"
 inline Bool Any(C Dbl &x, C Dbl &y, C Dbl &z          ); // faster version of "x!=0 || y!=0 || z!=0"
 inline Bool Any(C Dbl &x, C Dbl &y, C Dbl &z, C Dbl &w); // faster version of "x!=0 || y!=0 || z!=0 || w!=0"
+/******************************************************************************/
+// CHANGE SIGN
+/******************************************************************************/
+inline void CHS(Int  &x) {x=-x;}
+inline void CHS(Long &x) {x=-x;}
+inline void CHS(Flt  &x) {((U32&) x)   ^=SIGN_BIT;} // works as "x=-x;" but faster
+inline void CHS(Dbl  &x) {((U32*)&x)[1]^=SIGN_BIT;} // works as "x=-x;" but faster
+#if EE_PRIVATE
+INLINE Bool NegativeSB(Flt  x) {return FlagTest   ((UInt&)x, SIGN_BIT);}
+INLINE void      CHSSB(Flt &x) {       FlagToggle ((UInt&)x, SIGN_BIT);}
+INLINE void      ABSSB(Flt &x) {       FlagDisable((UInt&)x, SIGN_BIT);}
+
+inline Flt Xor(Flt a, UInt b) {((U32&) a)   ^=b; return a;} // used for fast changing of the 'a' sign, 'b' should be either 0 or SIGN_BIT
+inline Dbl Xor(Dbl a, UInt b) {((U32*)&a)[1]^=b; return a;} // used for fast changing of the 'a' sign, 'b' should be either 0 or SIGN_BIT
+
+void DecRealByBit(Flt &r); // decrement real value by just 1 bit
+void DecRealByBit(Dbl &r); // decrement real value by just 1 bit
+void IncRealByBit(Flt &r); // increment real value by just 1 bit
+void IncRealByBit(Dbl &r); // increment real value by just 1 bit
+#endif
 /******************************************************************************/
 // 16-BIT FLOAT
 /******************************************************************************/
@@ -383,6 +414,8 @@ struct Vec2 // Vector 2D
    Vec2&     rotate       (Flt angle       );                        // rotate by angle
    Vec2&     rotateCosSin (Flt cos, Flt sin);                        // rotate by cos and sin of angle
    Vec2&     chs          (                );                        // change sign of all components
+   Vec2&     chsX         (                ) {CHS(x);     return T;} // change sign of X   component
+   Vec2&     chsY         (                ) {CHS(y);     return T;} // change sign of Y   component
    Vec2&     abs          (                );                        // absolute       all components
    Vec2&     sat          (                );                        // saturate       all components
    Vec2&     swap         (                ) {Swap(x, y); return T;} // swap               components
@@ -481,10 +514,21 @@ struct VecD2 // Vector 2D (double precision)
    friend VecD2 operator* (Dbl r, C VecD2 &v) {return VecD2(r*v.x, r*v.y);}
    friend VecD2 operator/ (Dbl r, C VecD2 &v) {return VecD2(r/v.x, r/v.y);}
 
-   friend VecD2 operator+ (C VecD2 &a, C VecD2    &b) {return VecD2(a.x+b.x, a.y+b.y);}
-   friend VecD2 operator- (C VecD2 &a, C VecD2    &b) {return VecD2(a.x-b.x, a.y-b.y);}
-   friend VecD2 operator* (C VecD2 &a, C VecD2    &b) {return VecD2(a.x*b.x, a.y*b.y);}
-   friend VecD2 operator/ (C VecD2 &a, C VecD2    &b) {return VecD2(a.x/b.x, a.y/b.y);}
+   friend VecD2 operator+ (C Vec2 &a, C VecD2 &b) {return VecD2(a.x+b.x, a.y+b.y);}
+   friend VecD2 operator- (C Vec2 &a, C VecD2 &b) {return VecD2(a.x-b.x, a.y-b.y);}
+   friend VecD2 operator* (C Vec2 &a, C VecD2 &b) {return VecD2(a.x*b.x, a.y*b.y);}
+   friend VecD2 operator/ (C Vec2 &a, C VecD2 &b) {return VecD2(a.x/b.x, a.y/b.y);}
+
+   friend VecD2 operator+ (C VecD2 &a, C Vec2 &b) {return VecD2(a.x+b.x, a.y+b.y);}
+   friend VecD2 operator- (C VecD2 &a, C Vec2 &b) {return VecD2(a.x-b.x, a.y-b.y);}
+   friend VecD2 operator* (C VecD2 &a, C Vec2 &b) {return VecD2(a.x*b.x, a.y*b.y);}
+   friend VecD2 operator/ (C VecD2 &a, C Vec2 &b) {return VecD2(a.x/b.x, a.y/b.y);}
+
+   friend VecD2 operator+ (C VecD2 &a, C VecD2 &b) {return VecD2(a.x+b.x, a.y+b.y);}
+   friend VecD2 operator- (C VecD2 &a, C VecD2 &b) {return VecD2(a.x-b.x, a.y-b.y);}
+   friend VecD2 operator* (C VecD2 &a, C VecD2 &b) {return VecD2(a.x*b.x, a.y*b.y);}
+   friend VecD2 operator/ (C VecD2 &a, C VecD2 &b) {return VecD2(a.x/b.x, a.y/b.y);}
+
    friend VecD2 operator* (C VecD2 &v, C MatrixD3 &m) {return VecD2(v)*=m;}
    friend VecD2 operator* (C VecD2 &v, C MatrixD  &m) {return VecD2(v)*=m;}
    friend VecD2 operator/ (C VecD2 &v, C MatrixD3 &m) {return VecD2(v)/=m;}
@@ -524,6 +568,8 @@ struct VecD2 // Vector 2D (double precision)
    VecD2&     divNormalized(C MatrixD3 &m );                        // transform by matrix inverse, this method is faster than 'div' however 'm' must be normalized
    VecD2&     divNormalized(C MatrixD  &m );                        // transform by matrix inverse, this method is faster than 'div' however 'm' must be normalized
    VecD2&     chs          (              );                        // change sign of all components
+   VecD2&     chsX         (              ) {CHS(x);     return T;} // change sign of X   component
+   VecD2&     chsY         (              ) {CHS(y);     return T;} // change sign of Y   component
    VecD2&     abs          (              );                        // absolute       all components
    VecD2&     sat          (              );                        // saturate       all components
    VecD2&     swap         (              ) {Swap(x, y); return T;} // swap               components
@@ -684,6 +730,9 @@ struct Vec // Vector 3D
    Vec&     rotateY      (Flt angle     );                           // rotate along Y axis by angle
    Vec&     rotateZ      (Flt angle     );                           // rotate along Z axis by angle
    Vec&     chs          (              );                           // change sign of all components
+   Vec&     chsX         (              ) {CHS(x); return T;}        // change sign of X   component
+   Vec&     chsY         (              ) {CHS(y); return T;}        // change sign of Y   component
+   Vec&     chsZ         (              ) {CHS(z); return T;}        // change sign of Z   component
    Vec&     abs          (              );                           // absolute       all components
    Vec&     sat          (              );                           // saturate       all components
    Vec&     swapYZ       (              ) {Swap(y, z); return T;}    // swap       Y and Z components
@@ -897,6 +946,9 @@ struct VecD // Vector 3D (double precision)
    VecD&     divNormalized(C MatrixM  &m );                           // transform by matrix inverse, this method is faster than 'div' however 'm' must be normalized
    VecD&     divNormalized(C MatrixD  &m );                           // transform by matrix inverse, this method is faster than 'div' however 'm' must be normalized
    VecD&     chs          (              );                           // change sign of all components
+   VecD&     chsX         (              ) {CHS(x); return T;}        // change sign of X   component
+   VecD&     chsY         (              ) {CHS(y); return T;}        // change sign of Y   component
+   VecD&     chsZ         (              ) {CHS(z); return T;}        // change sign of Z   component
    VecD&     abs          (              );                           // absolute       all components
    VecD&     sat          (              );                           // saturate       all components
    VecD&     swapYZ       (              ) {Swap(y, z); return T;}    // swap       Y and Z components
@@ -1004,6 +1056,10 @@ struct Vec4 // Vector 4D
    Flt   normalize   ();                                 // normalize and return previous length
    Vec4& mul         (C Matrix4 &m);                     // transform by matrix
    Vec4& chs         ();                                 // change sign of all components
+   Vec4& chsX        () {CHS(x); return T;}              // change sign of X   component
+   Vec4& chsY        () {CHS(y); return T;}              // change sign of Y   component
+   Vec4& chsZ        () {CHS(z); return T;}              // change sign of Z   component
+   Vec4& chsW        () {CHS(w); return T;}              // change sign of W   component
    Vec4& abs         ();                                 // absolute       all components
    Vec4& sat         ();                                 // saturate       all components
 
@@ -1095,6 +1151,16 @@ struct VecD4 // Vector 4D (double precision)
    friend VecD4 operator* (Dbl r, C VecD4 &v) {return VecD4(r*v.x, r*v.y, r*v.z, r*v.w);}
    friend VecD4 operator/ (Dbl r, C VecD4 &v) {return VecD4(r/v.x, r/v.y, r/v.z, r/v.w);}
 
+   friend VecD4 operator+ (C Vec4 &a, C VecD4 &b) {return VecD4(a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w);}
+   friend VecD4 operator- (C Vec4 &a, C VecD4 &b) {return VecD4(a.x-b.x, a.y-b.y, a.z-b.z, a.w-b.w);}
+   friend VecD4 operator* (C Vec4 &a, C VecD4 &b) {return VecD4(a.x*b.x, a.y*b.y, a.z*b.z, a.w*b.w);}
+   friend VecD4 operator/ (C Vec4 &a, C VecD4 &b) {return VecD4(a.x/b.x, a.y/b.y, a.z/b.z, a.w/b.w);}
+
+   friend VecD4 operator+ (C VecD4 &a, C Vec4 &b) {return VecD4(a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w);}
+   friend VecD4 operator- (C VecD4 &a, C Vec4 &b) {return VecD4(a.x-b.x, a.y-b.y, a.z-b.z, a.w-b.w);}
+   friend VecD4 operator* (C VecD4 &a, C Vec4 &b) {return VecD4(a.x*b.x, a.y*b.y, a.z*b.z, a.w*b.w);}
+   friend VecD4 operator/ (C VecD4 &a, C Vec4 &b) {return VecD4(a.x/b.x, a.y/b.y, a.z/b.z, a.w/b.w);}
+
    friend VecD4 operator+ (C VecD4 &a, C VecD4 &b) {return VecD4(a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w);}
    friend VecD4 operator- (C VecD4 &a, C VecD4 &b) {return VecD4(a.x-b.x, a.y-b.y, a.z-b.z, a.w-b.w);}
    friend VecD4 operator* (C VecD4 &a, C VecD4 &b) {return VecD4(a.x*b.x, a.y*b.y, a.z*b.z, a.w*b.w);}
@@ -1118,6 +1184,10 @@ struct VecD4 // Vector 4D (double precision)
    Dbl    length2     ()C {return x*x + y*y + z*z + w*w;} // get squared length
    Dbl    normalize   ();                                 // normalize and return previous length
    VecD4& chs         ();                                 // change sign of all components
+   VecD4& chsX        () {CHS(x); return T;}              // change sign of X   component
+   VecD4& chsY        () {CHS(y); return T;}              // change sign of Y   component
+   VecD4& chsZ        () {CHS(z); return T;}              // change sign of Z   component
+   VecD4& chsW        () {CHS(w); return T;}              // change sign of W   component
    VecD4& abs         ();                                 // absolute       all components
    VecD4& sat         ();                                 // saturate       all components
 
@@ -1705,6 +1775,8 @@ struct VecI2 // Vector 2D (integer)
    VecI2& reverse     (         ) {Swap(c[0], c[1]); return T;} // reverse components order
    VecI2& rotateOrder (         ) {Swap(c[0], c[1]); return T;} // rotate  components order
    VecI2& chs         (         );                              // change sign of all components
+   VecI2& chsX        (         ) {CHS(x); return T;}           // change sign of X   component
+   VecI2& chsY        (         ) {CHS(y); return T;}           // change sign of Y   component
    VecI2& abs         (         );                              // absolute       all components
    VecI2& sat         (         );                              // saturate       all components
 
@@ -1725,6 +1797,7 @@ struct VecI2 // Vector 2D (integer)
    CONVERSION VecI2(C VecSB2 &v ) {set(v.x, v.y);}
    CONVERSION VecI2(C VecUS2 &v ) {set(v.x, v.y);}
 };
+#define VecI2Zero (VecI4Zero.xy) // const VecI2(0, 0)
 /******************************************************************************/
 struct VecI // Vector 3D (integer)
 {
@@ -1872,6 +1945,9 @@ struct VecI // Vector 3D (integer)
    VecI& reverse     (         ) {Swap(c[0], c[2]); return T;}   // reverse  components order
    VecI& rotateOrder (         );                                // rotate   components order
    VecI& chs         (         );                                // change sign of all components
+   VecI& chsX        (         ) {CHS(x); return T;}             // change sign of X   component
+   VecI& chsY        (         ) {CHS(y); return T;}             // change sign of Y   component
+   VecI& chsZ        (         ) {CHS(z); return T;}             // change sign of Z   component
    VecI& abs         (         );                                // absolute       all components
    VecI& sat         (         );                                // saturate       all components
 
@@ -1889,6 +1965,7 @@ struct VecI // Vector 3D (integer)
    CONVERSION VecI(C VecSB &v         ) {set(v.x, v.y, v.z);}
    CONVERSION VecI(C VecUS &v         ) {set(v.x, v.y, v.z);}
 };
+#define VecIZero (VecI4Zero.xyz) // const VecI(0, 0, 0)
 /******************************************************************************/
 struct VecI4 // Vector 4D (integer)
 {
@@ -2023,6 +2100,10 @@ struct VecI4 // Vector 4D (integer)
    VecI4& reverse     (         ) {Swap(c[0], c[3]); Swap(c[1], c[2]); return T;}         // reverse  components order
    VecI4& rotateOrder (         );                                                        // rotate   components order
    VecI4& chs         (         );                                                        // change sign of all components
+   VecI4& chsX        (         ) {CHS(x); return T;}                                     // change sign of X   component
+   VecI4& chsY        (         ) {CHS(y); return T;}                                     // change sign of Y   component
+   VecI4& chsZ        (         ) {CHS(z); return T;}                                     // change sign of Z   component
+   VecI4& chsW        (         ) {CHS(w); return T;}                                     // change sign of W   component
    VecI4& abs         (         );                                                        // absolute       all components
    VecI4& sat         (         );                                                        // saturate       all components
 
@@ -2045,7 +2126,8 @@ struct VecI4 // Vector 4D (integer)
               VecI4(C VecI2  &xy , C VecI2 &zw ) {set(xy      , zw      );}
    CONVERSION VecI4(C VecB4  &v                ) {set(v.x, v.y, v.z, v.w);}
    CONVERSION VecI4(C VecSB4 &v                ) {set(v.x, v.y, v.z, v.w);}
-};
+};extern VecI4
+   const VecI4Zero; // VecI4(0, 0, 0, 0)
 /******************************************************************************/
 // ROUNDING
 /******************************************************************************/
@@ -2138,18 +2220,34 @@ inline    Flt FracS(Flt x, Flt range) {return FracS(x/range)*range;} // (-range.
 inline    Dbl FracS(Dbl x, Dbl range) {return FracS(x/range)*range;} // (-range..range) (sign preserving)
 
 // align
-constexpr Int AlignTrunc(Flt x, Int align) {return Trunc (x/align)*align;} // align 'x' to nearest multiple of 'align' using truncation
-constexpr Flt AlignTrunc(Flt x, Flt align) {return Trunc (x/align)*align;} // align 'x' to nearest multiple of 'align' using truncation
-constexpr Dbl AlignTrunc(Dbl x, Dbl align) {return Trunc (x/align)*align;} // align 'x' to nearest multiple of 'align' using truncation
-constexpr Int AlignRound(Flt x, Int align) {return Round (x/align)*align;} // align 'x' to nearest multiple of 'align' using rounding
-constexpr Flt AlignRound(Flt x, Flt align) {return Round (x/align)*align;} // align 'x' to nearest multiple of 'align' using rounding
-constexpr Dbl AlignRound(Dbl x, Dbl align) {return Round (x/align)*align;} // align 'x' to nearest multiple of 'align' using rounding
-inline    Int AlignFloor(Flt x, Int align) {return Floor (x/align)*align;} // align 'x' to nearest multiple of 'align' using floor
-inline    Flt AlignFloor(Flt x, Flt align) {return floorf(x/align)*align;} // align 'x' to nearest multiple of 'align' using floor, use 'floorf' instead of 'Floor' to avoid conversion to Int (faster this way)
-inline    Dbl AlignFloor(Dbl x, Dbl align) {return floor (x/align)*align;} // align 'x' to nearest multiple of 'align' using floor, use 'floor'  instead of 'Floor' to avoid conversion to Int (faster this way)
-inline    Int AlignCeil (Flt x, Int align) {return Ceil  (x/align)*align;} // align 'x' to nearest multiple of 'align' using ceil
-inline    Flt AlignCeil (Flt x, Flt align) {return ceilf (x/align)*align;} // align 'x' to nearest multiple of 'align' using ceil , use 'ceilf'  instead of 'Ceil'  to avoid conversion to Int (faster this way)
-inline    Dbl AlignCeil (Dbl x, Dbl align) {return ceil  (x/align)*align;} // align 'x' to nearest multiple of 'align' using ceil , use 'ceil'   instead of 'Ceil'  to avoid conversion to Int (faster this way)
+constexpr Int   AlignTrunc(Int   x, Int   align) {return          (x/ align)*align;} // align 'x' to nearest multiple of 'align' using truncation
+constexpr Long  AlignTrunc(Long  x, Long  align) {return          (x/ align)*align;} // align 'x' to nearest multiple of 'align' using truncation
+constexpr UInt  AlignTrunc(UInt  x, UInt  align) {return          (x/ align)*align;} // align 'x' to nearest multiple of 'align' using truncation
+constexpr ULong AlignTrunc(ULong x, ULong align) {return          (x/ align)*align;} // align 'x' to nearest multiple of 'align' using truncation
+constexpr Int   AlignTrunc(Flt   x, Int   align) {return    Trunc (x/ align)*align;} // align 'x' to nearest multiple of 'align' using truncation
+constexpr Flt   AlignTrunc(Flt   x, Flt   align) {return    Trunc (x/ align)*align;} // align 'x' to nearest multiple of 'align' using truncation
+constexpr Dbl   AlignTrunc(Dbl   x, Dbl   align) {return    Trunc (x/ align)*align;} // align 'x' to nearest multiple of 'align' using truncation
+constexpr Int   AlignRound(Int   x, Int   align) {return DivRound (x, align)*align;} // align 'x' to nearest multiple of 'align' using rounding
+constexpr Long  AlignRound(Long  x, Long  align) {return DivRound (x, align)*align;} // align 'x' to nearest multiple of 'align' using rounding
+constexpr UInt  AlignRound(UInt  x, UInt  align) {return DivRound (x, align)*align;} // align 'x' to nearest multiple of 'align' using rounding
+constexpr ULong AlignRound(ULong x, ULong align) {return DivRound (x, align)*align;} // align 'x' to nearest multiple of 'align' using rounding
+constexpr Int   AlignRound(Flt   x, Int   align) {return    Round (x/ align)*align;} // align 'x' to nearest multiple of 'align' using rounding
+constexpr Flt   AlignRound(Flt   x, Flt   align) {return    Round (x/ align)*align;} // align 'x' to nearest multiple of 'align' using rounding
+constexpr Dbl   AlignRound(Dbl   x, Dbl   align) {return    Round (x/ align)*align;} // align 'x' to nearest multiple of 'align' using rounding
+constexpr Int   AlignFloor(Int   x, Int   align) {return DivFloor (x, align)*align;} // align 'x' to nearest multiple of 'align' using floor
+constexpr Long  AlignFloor(Long  x, Long  align) {return DivFloor (x, align)*align;} // align 'x' to nearest multiple of 'align' using floor
+constexpr UInt  AlignFloor(UInt  x, UInt  align) {return DivFloor (x, align)*align;} // align 'x' to nearest multiple of 'align' using floor
+constexpr ULong AlignFloor(ULong x, ULong align) {return DivFloor (x, align)*align;} // align 'x' to nearest multiple of 'align' using floor
+inline    Int   AlignFloor(Flt   x, Int   align) {return    Floor (x/ align)*align;} // align 'x' to nearest multiple of 'align' using floor
+inline    Flt   AlignFloor(Flt   x, Flt   align) {return    floorf(x/ align)*align;} // align 'x' to nearest multiple of 'align' using floor, use 'floorf' instead of 'Floor' to avoid conversion to Int (faster this way)
+inline    Dbl   AlignFloor(Dbl   x, Dbl   align) {return    floor (x/ align)*align;} // align 'x' to nearest multiple of 'align' using floor, use 'floor'  instead of 'Floor' to avoid conversion to Int (faster this way)
+constexpr Int   AlignCeil (Int   x, Int   align) {return DivCeil  (x, align)*align;} // align 'x' to nearest multiple of 'align' using ceil
+constexpr Long  AlignCeil (Long  x, Long  align) {return DivCeil  (x, align)*align;} // align 'x' to nearest multiple of 'align' using ceil
+constexpr UInt  AlignCeil (UInt  x, UInt  align) {return DivCeil  (x, align)*align;} // align 'x' to nearest multiple of 'align' using ceil
+constexpr ULong AlignCeil (ULong x, ULong align) {return DivCeil  (x, align)*align;} // align 'x' to nearest multiple of 'align' using ceil
+inline    Int   AlignCeil (Flt   x, Int   align) {return    Ceil  (x/ align)*align;} // align 'x' to nearest multiple of 'align' using ceil
+inline    Flt   AlignCeil (Flt   x, Flt   align) {return    ceilf (x/ align)*align;} // align 'x' to nearest multiple of 'align' using ceil , use 'ceilf'  instead of 'Ceil'  to avoid conversion to Int (faster this way)
+inline    Dbl   AlignCeil (Dbl   x, Dbl   align) {return    ceil  (x/ align)*align;} // align 'x' to nearest multiple of 'align' using ceil , use 'ceil'   instead of 'Ceil'  to avoid conversion to Int (faster this way)
 /******************************************************************************/
 // FUNCTIONS
 /******************************************************************************/
@@ -2324,6 +2422,11 @@ VecI4 AvgI(C VecI4 &a, C VecI4 &b);
 Vec2  AvgF(C VecI2 &a, C VecI2 &b);
 Vec   AvgF(C VecI  &a, C VecI  &b);
 Vec4  AvgF(C VecI4 &a, C VecI4 &b);
+
+#if EE_PRIVATE
+// divide
+inline VecI2 DivCeil16(C VecI2 &v) {return VecI2(DivCeil16(v.x), DivCeil16(v.y));}
+#endif
 
 // distance between 2 points
 Flt Dist(C Vec2  &a, C Vec2  &b);

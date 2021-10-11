@@ -161,7 +161,6 @@ class ListElm;
 class LodRegion;
 class LodView;
 class MaterialRegion;
-class MaterialTech;
 class MergeSimilarMaterials;
 class MeshAOClass;
 class MeshParts;
@@ -189,6 +188,7 @@ class ObjRot;
 class ObjScale;
 class ObjVer;
 class ObjView;
+class Palette;
 class PanelEditor;
 class PanelImageEditor;
 class ParamEditor;
@@ -238,9 +238,7 @@ class StoreFiles;
 class SynchronizerClass;
 class TerrainObj;
 class TerrainObj2;
-class TexInfoGetter;
 class TextBlack;
-class TextNoTest;
 class TextStyleEditor;
 class TextWhite;
 class Texture;
@@ -266,6 +264,7 @@ class WorldData;
 class WorldUndo;
 class WorldVer;
 class WorldView;
+class XMaterialEx;
 /******************************************************************************/
 // CACHES
 /******************************************************************************/
@@ -278,21 +277,28 @@ enum APPLY_MODE
 {
    APPLY_SET,
    APPLY_BLEND,
-   APPLY_BLEND_PREMUL,
+   APPLY_MERGE,
    APPLY_MUL,
    APPLY_MUL_RGB,
    APPLY_MUL_RGB_SAT,
+   APPLY_MUL_RGB_INV_SAT,
    APPLY_MUL_RGB_LIN,
    APPLY_MUL_A,
    APPLY_MUL_LUM,
    APPLY_MUL_SAT,
    APPLY_MUL_SAT_PHOTO,
    APPLY_DIV,
+   APPLY_DIV_RGB,
    APPLY_ADD,
    APPLY_ADD_RGB,
    APPLY_ADD_LUM,
+   APPLY_MUL_INV_LUM,
+   APPLY_MUL_INV_LUM_ADD_RGB, // used for adding emissive on top of color and reducing color where emissive is added
+   APPLY_ADD_SAT,
+   APPLY_ADD_SAT_PHOTO,
    APPLY_ADD_HUE,
    APPLY_ADD_HUE_PHOTO,
+   APPLY_SET_A_FROM_RGB,
    APPLY_SET_HUE,
    APPLY_SET_HUE_PHOTO,
    APPLY_SUB,
@@ -303,11 +309,14 @@ enum APPLY_MODE
    APPLY_AVG,
    APPLY_MIN,
    APPLY_MAX,
+   APPLY_MAX_RGB,
    APPLY_MAX_A,
+   APPLY_MAX_LUM,
    APPLY_MASK_MUL,
    APPLY_MASK_ADD,
    APPLY_METAL,
    APPLY_SCALE,
+   APPLY_FIRE,
    APPLY_SKIP,
 };
 /******************************************************************************/
@@ -559,15 +568,15 @@ enum MODE
 /******************************************************************************/
 enum
 {
-   IGNORE_ALPHA=1<<0,
-   SRGB        =1<<1,
-   MTRL_BASE_0 =1<<2,
-   MTRL_BASE_1 =1<<3,
-   MTRL_BASE_2 =1<<4,
-   WATER_MTRL  =1<<5,
-   MTRL_DETAIL =1<<6,
-   MTRL_MACRO  =1<<7,
-   MTRL_LIGHT  =1<<8,
+   IGNORE_ALPHA =1<<0,
+   SRGB         =1<<1,
+   MTRL_BASE_0  =1<<2,
+   MTRL_BASE_1  =1<<3,
+   MTRL_BASE_2  =1<<4,
+   WATER_MTRL   =1<<5,
+   MTRL_DETAIL  =1<<6,
+   MTRL_MACRO   =1<<7,
+   MTRL_EMISSIVE=1<<8,
 };
 /******************************************************************************/
 enum
@@ -651,7 +660,7 @@ enum VIEW_MODE
 /******************************************************************************/
 // CONSTANTS
 /******************************************************************************/
-const int  EE_APP_BUILD        =68;
+const int  EE_APP_BUILD        =71;
 const int           ForceInstaller=-2, // -2=disable and don't update, -1=disable, 0=auto, 1=enable (this is used only in Debug)
                     HeightBrushNoiseRes=256,
                     MtrlBrushSlots=14,
@@ -676,21 +685,21 @@ const int           ForceInstaller=-2, // -2=disable and don't update, -1=disabl
                     MeshSplitMinVtxs=12000, // min number of vertexes in a mesh to split it
                     MeshSplitMinSize=4;
 const uint          NewElmTime=1;
-const uint ProjectVersion     =76, // !! increase this by one if any of engine/editor asset formats have changed !!
-           ClientServerVersion=76;
+const uint ProjectVersion     =86, // !! increase this by one if any of engine/editor asset formats have changed !!
+           ClientServerVersion=86;
 const int           ServerNetworkCompressionLevel=9           , ClientNetworkCompressionLevel=9            , EsenthelProjectCompressionLevel=9;
 /******************************************************************************/
 // TYPEDEFS
 /******************************************************************************/
 typedef CacheElmPtr<EditObject, EditObjects> EditObjectPtr;
 typedef CacheElmPtr<ElmMatrix,ElmMatrixes>ElmMatrixPtr;
-ASSERT(MTECH_DEFAULT==0 && MTECH_ALPHA_TEST==1 && MTECH_FUR==2 && MTECH_GRASS==3 && MTECH_LEAF==4 && MTECH_BLEND==5 && MTECH_BLEND_LIGHT==6 && MTECH_BLEND_LIGHT_GRASS==7 && MTECH_BLEND_LIGHT_LEAF==8 && MTECH_TEST_BLEND_LIGHT==9 && MTECH_TEST_BLEND_LIGHT_GRASS==10 && MTECH_TEST_BLEND_LIGHT_LEAF==11 && MTECH_GRASS_3D==12 && MTECH_LEAF_2D==13 && MTECH_NUM==14);
 ASSERT(CIPHER_NONE==0 && CIPHER_1==1 && CIPHER_2==2 && CIPHER_3==3 && CIPHER_NUM==4);
 ASSERT(OBJ_ACCESS_CUSTOM==0 && OBJ_ACCESS_TERRAIN==1 && OBJ_ACCESS_GRASS==2 && OBJ_ACCESS_OVERLAY==3);
 /******************************************************************************/
 /******************************************************************************/
 // CLASSES
 /******************************************************************************/
+#include "@XMaterialEx.h"
 #include "@WorldVer.h"
 #include "@WorldUndo.h"
 #include "@WorldData.h"
@@ -702,8 +711,6 @@ ASSERT(OBJ_ACCESS_CUSTOM==0 && OBJ_ACCESS_TERRAIN==1 && OBJ_ACCESS_GRASS==2 && O
 #include "@TimeStamp.h"
 #include "@TextureInfo.h"
 #include "@Texture.h"
-#include "@TextNoTest.h"
-#include "@TexInfoGetter.h"
 #include "@TerrainObj2.h"
 #include "@TerrainObj.h"
 #include "@SynchronizerClass.h"
@@ -734,6 +741,7 @@ ASSERT(OBJ_ACCESS_CUSTOM==0 && OBJ_ACCESS_TERRAIN==1 && OBJ_ACCESS_GRASS==2 && O
 #include "@Pose.h"
 #include "@Player.h"
 #include "@PhysPath.h"
+#include "@Palette.h"
 #include "@ObjVer.h"
 #include "@ObjPtrs.h"
 #include "@ObjGrid.h"
@@ -745,7 +753,6 @@ ASSERT(OBJ_ACCESS_CUSTOM==0 && OBJ_ACCESS_TERRAIN==1 && OBJ_ACCESS_GRASS==2 && O
 #include "@MiniMapVer.h"
 #include "@MeshVariations.h"
 #include "@MeshParts.h"
-#include "@MaterialTech.h"
 #include "@LodView.h"
 #include "@ListElm.h"
 #include "@LakeBase.h"
@@ -816,8 +823,8 @@ ASSERT(OBJ_ACCESS_CUSTOM==0 && OBJ_ACCESS_TERRAIN==1 && OBJ_ACCESS_GRASS==2 && O
 #include "@AreaBuild.h"
 #include "@Project.h"
 #include "@GuiEditParam.h"
+#include "@WaterVer.h"
 #include "@TextWhite.h"
-#include "@ViewportSkin.h"
 #include "@PathProps.h"
 #include "@ElmWorld.h"
 #include "@ElmWaterMtrl.h"
@@ -844,29 +851,27 @@ ASSERT(OBJ_ACCESS_CUSTOM==0 && OBJ_ACCESS_TERRAIN==1 && OBJ_ACCESS_GRASS==2 && O
 #include "@ElmFile.h"
 #include "@ElmEnv.h"
 #include "@ElmEnum.h"
+#include "@ViewportSkin.h"
 #include "@ElmCodeData.h"
-#include "@WorldChange.h"
-#include "@TextBlack.h"
 #include "@ObjData.h"
 #include "@Obj.h"
-#include "@NewWorldClass.h"
+#include "@TextBlack.h"
 #include "@NewLodClass.h"
 #include "@EditWaterMtrl.h"
-#include "@WaypointPos.h"
+#include "@WorldChange.h"
 #include "@MiscRegion.h"
 #include "@StoreClass.h"
+#include "@WaypointPos.h"
 #include "@MeshAOClass.h"
-#include "@TransformRegion.h"
 #include "@MaterialRegion.h"
 #include "@LodRegion.h"
-#include "@WaterVer.h"
 #include "@LeafRegion.h"
 #include "@PublishClass.h"
 #include "@PropWin.h"
 #include "@PropEx.h"
 #include "@ImportTerrainClass.h"
 #include "@ImporterClass.h"
-#include "@TheaterClass.h"
+#include "@TransformRegion.h"
 #include "@ProjectSettings.h"
 #include "@Projects.h"
 #include "@SizeStatistics.h"
@@ -879,46 +884,48 @@ ASSERT(OBJ_ACCESS_CUSTOM==0 && OBJ_ACCESS_TERRAIN==1 && OBJ_ACCESS_GRASS==2 && O
 #include "@AppPropsEditor.h"
 #include "@AnimEditor.h"
 #include "@AdjustBoneOrns.h"
+#include "@PanelEditor.h"
+#include "@TextureDownsize.h"
+#include "@PhysMtrlEditor.h"
 #include "@MulSoundVolumeClass.h"
+#include "@VideoOptions.h"
 #include "@VideoEditor.h"
-#include "@TextStyleEditor.h"
-#include "@GuiView.h"
 #include "@RemoveProjWin.h"
 #include "@MiniMapEditor.h"
+#include "@GuiView.h"
 #include "@GuiSkinEditor.h"
 #include "@IconSettings.h"
 #include "@MergeSimilarMaterials.h"
 #include "@ParamEditor.h"
-#include "@PanelImageEditor.h"
 #include "@SoundEditor.h"
-#include "@GroupRegion.h"
-#include "@GridPlaneLevel.h"
+#include "@PanelImageEditor.h"
 #include "@DetectSimilarTextures.h"
-#include "@IconEditor.h"
+#include "@GroupRegion.h"
 #include "@CreateMaterials.h"
 #include "@CopyElements.h"
 #include "@ConvertToDeAtlasClass.h"
 #include "@ConvertToAtlasClass.h"
 #include "@CompareProjects.h"
+#include "@GridPlaneLevel.h"
+#include "@IconEditor.h"
 #include "@ElmProperties.h"
 #include "@FontEditor.h"
+#include "@TheaterClass.h"
+#include "@SetMtrlColorClass.h"
 #include "@WaterMtrlRegion.h"
 #include "@ObjScale.h"
-#include "@TextureDownsize.h"
 #include "@ObjRot.h"
-#include "@SetMtrlColorClass.h"
+#include "@TextStyleEditor.h"
 #include "@ObjPos.h"
 #include "@ObjPaintClass.h"
 #include "@ObjListClass.h"
-#include "@EnvEditor.h"
-#include "@EnumEditor.h"
-#include "@ObjClassEditor.h"
-#include "@PanelEditor.h"
-#include "@ObjView.h"
 #include "@RenameProjWin.h"
-#include "@PhysMtrlEditor.h"
-#include "@VideoOptions.h"
+#include "@EnvEditor.h"
+#include "@ObjClassEditor.h"
+#include "@EnumEditor.h"
+#include "@NewWorldClass.h"
 #include "@IconSettsEditor.h"
+#include "@ObjView.h"
 #include "@WorldView.h"
 #include "@WorldBrushClass.h"
 /******************************************************************************/

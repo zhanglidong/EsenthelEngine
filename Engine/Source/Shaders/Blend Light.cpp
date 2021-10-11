@@ -3,7 +3,7 @@
 #include "Fog.h"
 #include "Sky.h"
 /******************************************************************************/
-// SKIN, COLORS, LAYOUT, BUMP_MODE, ALPHA_TEST, ALPHA, REFLECT, LIGHT_MAP, FX, PER_PIXEL, SHADOW_MAPS, TESSELATE
+// SKIN, COLORS, LAYOUT, BUMP_MODE, ALPHA_TEST, ALPHA, REFLECT, EMISSIVE_MAP, FX, PER_PIXEL, SHADOW_MAPS, TESSELATE
 #define NO_AMBIENT  0 // this could be set to 1 for Secondary Passes, if we would use this then we could remove 'FirstPass'
 #define HAS_AMBIENT (!NO_AMBIENT)
 
@@ -11,12 +11,12 @@
 #define LIGHT          1
 #define SHADOW         (SHADOW_MAPS>0)
 #define VTX_LIGHT      (LIGHT && !PER_PIXEL)
-#define AMBIENT_IN_VTX (VTX_LIGHT && !SHADOW && !LIGHT_MAP) // if stored per-vertex (in either 'vtx.col' or 'vtx.lum')
+#define AMBIENT_IN_VTX (VTX_LIGHT && !SHADOW) // if stored per-vertex (in either 'vtx.col' or 'vtx.lum')
 #define LIGHT_IN_COL   (VTX_LIGHT && !DETAIL && (NO_AMBIENT || !SHADOW) && !REFLECT) // can't mix light with vtx.col when REFLECT because for reflections we need unlit color
 #define FOG_IN_COL     (!REFLECT) // can't mix fog with vtx.col when REFLECT because for reflections we need unlit color
 #define USE_VEL        ALPHA_TEST
 #define SET_POS        ((LIGHT && PER_PIXEL) || SHADOW || REFLECT || TESSELATE)
-#define SET_TEX        (LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
+#define SET_UV         (LAYOUT || DETAIL || EMISSIVE_MAP || BUMP_MODE>SBUMP_FLAT)
 #define SET_LUM        (VTX_LIGHT && !LIGHT_IN_COL)
 #define SET_FOG        (!FOG_IN_COL)
 #define VTX_REFLECT    (REFLECT && !PER_PIXEL && BUMP_MODE<=SBUMP_FLAT) // require !PER_PIXEL because even without normal maps (SBUMP_FLAT) the quality suffers
@@ -24,14 +24,14 @@
 #define GRASS_FADE     (FX==FX_GRASS_2D || FX==FX_GRASS_3D)
 #define ALPHA_CLIP     0.5
 /******************************************************************************/
-struct VS_PS
+struct Data
 {
 #if SET_POS
    Vec pos:POS;
 #endif
 
-#if SET_TEX
-   Vec2 tex:TEXCOORD;
+#if SET_UV
+   Vec2 uv:UV;
 #endif
 
    VecH4 col    :COLOR;
@@ -41,10 +41,10 @@ struct VS_PS
 #endif
 
 #if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
-   MatrixH3 mtrx:MATRIX; // !! may not be Normalized !!
+   centroid MatrixH3 mtrx:MATRIX; // !! may not be Normalized !! have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
    VecH Nrm() {return mtrx[2];}
 #elif BUMP_MODE>=SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
-   VecH nrm:NORMAL; // !! may not be Normalized !!
+   centroid VecH nrm:NORMAL; // !! may not be Normalized !! have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
    VecH Nrm() {return nrm;}
 #else
    VecH Nrm() {return 0;}
@@ -69,8 +69,8 @@ void VS
 (
    VtxInput vtx,
 
-   out VS_PS O,
-   out Vec4  O_vtx:POSITION
+   out Data O,
+   out Vec4 vpos:POSITION
 )
 {
    Vec  local_pos=vtx.pos(), view_pos, view_vel;
@@ -79,9 +79,9 @@ void VS
    // VEL
    Vec local_pos_prev, view_pos_prev; if(USE_VEL)local_pos_prev=local_pos;
 
-#if SET_TEX
-   O.tex=vtx.tex(HEIGHTMAP);
-   if(HEIGHTMAP)O.tex*=Material.tex_scale;
+#if SET_UV
+   O.uv=vtx.uv(HEIGHTMAP);
+   if(HEIGHTMAP)O.uv*=Material.uv_scale;
 #endif
 
              O.col =Material.color;
@@ -198,11 +198,8 @@ void VS
       VecH total_lum;
 
       // AMBIENT
-      if(HAS_AMBIENT && AMBIENT_IN_VTX)
-      {
-         total_lum=AmbientNSColor;
-         /*if(MATERIALS<=1 && FirstPass)*/total_lum+=Material.ambient;
-      }else total_lum=0;
+      if(HAS_AMBIENT && AMBIENT_IN_VTX)total_lum=AmbientNSColor;
+      else                             total_lum=0;
 
       // LIGHTS
       total_lum+=LightDir.color.rgb*Sat(Dot(nrm, LightDir.dir));
@@ -216,7 +213,7 @@ void VS
    }
    #endif
 
-   O_vtx=Project(view_pos);
+   vpos=Project(view_pos);
 #if SET_POS
    O.pos=view_pos;
 #endif
@@ -229,7 +226,7 @@ void VS
 /******************************************************************************/
 void PS
 (
-   VS_PS I,
+   Data I,
 #if USE_VEL
    PIXEL,
 #endif
@@ -238,29 +235,32 @@ void PS
 #endif
 
   out VecH4 outCol  :TARGET0
+, out Half  outAlpha:TARGET1 // #RTOutput.Blend
 #if USE_VEL
-, out VecH4 outVel  :TARGET1
+, out VecH4 outVel  :TARGET2 // #RTOutput.Blend
 #endif
-, out Half  outAlpha:TARGET2 // #RTOutput.Blend
 ) // #RTOutput
 {
-   Half smooth, reflectivity;
+   Half rough, reflect, glow;
 
    // #MaterialTextureLayout
 #if   LAYOUT==0
-   smooth      =Material.smooth;
-   reflectivity=Material.reflect;
+   rough  =Material.  rough_add;
+   reflect=Material.reflect_add;
+   glow   =Material.       glow;
 #elif LAYOUT==1
-   VecH4 tex_col=Tex(Col, I.tex); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
+   VecH4 tex_col=RTex(Col, I.uv); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
    if(ALPHA)I.col*=tex_col;else I.col.rgb*=tex_col.rgb;
-   smooth      =Material.smooth;
-   reflectivity=Material.reflect;
+   rough  =Material.  rough_add;
+   reflect=Material.reflect_add;
+   glow   =Material.       glow;
 #elif LAYOUT==2
-   VecH4 tex_col=Tex(Col, I.tex); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
-   VecH4 tex_ext=Tex(Ext, I.tex);
+   VecH4 tex_col=RTex(Col, I.uv); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
+   VecH4 tex_ext=RTex(Ext, I.uv);
    if(ALPHA)I.col*=tex_col;else I.col.rgb*=tex_col.rgb;
-   smooth      =Material.smooth *tex_ext.x;
-   reflectivity=Material.reflect*tex_ext.y;
+   rough  =Sat(tex_ext.BASE_CHANNEL_ROUGH*Material.  rough_mul+Material.  rough_add); // need to saturate to avoid invalid values
+   reflect=    tex_ext.BASE_CHANNEL_METAL*Material.reflect_mul+Material.reflect_add ;
+   glow   =    tex_ext.BASE_CHANNEL_GLOW *Material.       glow;
 #endif
 
    // normal
@@ -271,9 +271,15 @@ void PS
    #elif BUMP_MODE==SBUMP_FLAT
       nrmh=I.Nrm();
    #else
-      nrmh.xy=Tex(Nrm, I.tex).xy*Material.normal;
-      nrmh.z =CalcZ(nrmh.xy);
-      nrmh   =Transform(nrmh, I.mtrx);
+      #if 0
+         nrmh.xy=RTex(Nrm, I.uv).BASE_CHANNEL_NORMAL*Material.normal;
+         nrmh.z =CalcZ(nrmh.xy);
+      #else
+         nrmh.xy =RTex(Nrm, I.uv).BASE_CHANNEL_NORMAL;
+         nrmh.z  =CalcZ(nrmh.xy);
+         nrmh.xy*=Material.normal;
+      #endif
+         nrmh=Transform(nrmh, I.mtrx);
    #endif
 
    #if FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
@@ -289,23 +295,13 @@ void PS
 
    Bool translucent=(FX==FX_GRASS_3D || FX==FX_LEAF_3D || FX==FX_LEAFS_3D);
 
-   Half inv_metal  =ReflectToInvMetal(reflectivity);
-   VecH reflect_col=ReflectCol       (reflectivity, I.col.rgb, inv_metal); // calc 'reflect_col' from unlit color
+   Half inv_metal  =ReflectToInvMetal(reflect);
+   VecH reflect_col=ReflectCol       (reflect, I.col.rgb, inv_metal); // calc 'reflect_col' from unlit color
 
    // lighting
    VecH ambient;
-   if(HAS_AMBIENT && !AMBIENT_IN_VTX)
-   {
-      ambient=AmbientNSColor;
-      /*if(MATERIALS<=1 && FirstPass)*/
-      {
-      #if LIGHT_MAP
-         ambient+=Material.ambient*Tex(Lum, I.tex).rgb;
-      #else
-         ambient+=Material.ambient;
-      #endif
-      }
-   }else ambient=0;
+   if(HAS_AMBIENT && !AMBIENT_IN_VTX)ambient=AmbientNSColor;
+   else                              ambient=0;
 
    VecH total_lum,
         total_specular=0;
@@ -351,35 +347,69 @@ void PS
             lp.set(nrm, light_dir, eye_dir);
 
             VecH            lum_rgb=LightDir.color.rgb*lum;
-            total_lum     +=lum_rgb*lp.diffuse (smooth                                                        ); // diffuse
-            total_specular+=lum_rgb*lp.specular(smooth, reflectivity, reflect_col, false, LightDir.radius_frac); // specular
+            total_lum     +=lum_rgb*lp.diffuse (rough                                                   ); // diffuse
+            total_specular+=lum_rgb*lp.specular(rough, reflect, reflect_col, false, LightDir.radius_frac); // specular
          }
       }
    }
    #endif
 
-   I.col.rgb=I.col.rgb*total_lum*Diffuse(inv_metal) + total_specular;
-   #if REFLECT // reflection
+   Half diffuse=Diffuse(inv_metal);
+   if(/*FirstPass; Blend Light is always 1 pass only */1) // add all below only to the first pass
    {
-   #if VTX_REFLECT
-      Vec reflect_dir=I.reflect_dir;
-   #else
-      Vec reflect_dir=ReflectDir(eye_dir, nrm);
-   #endif
-      I.col.rgb+=ReflectTex(reflect_dir, smooth)*EnvColor*ReflectEnv(smooth, reflectivity, reflect_col, -Dot(nrm, eye_dir), false);
+      #if REFLECT // reflection
+      {
+      #if VTX_REFLECT
+         Vec reflect_dir=I.reflect_dir;
+      #else
+         Vec reflect_dir=ReflectDir(eye_dir, nrm);
+      #endif
+         total_specular+=ReflectTex(reflect_dir, rough)*EnvColor*ReflectEnv(rough, reflect, reflect_col, -Dot(nrm, eye_dir), false);
+      }
+      #endif
+
+      // glow
+      ApplyGlow(glow, I.col.rgb, diffuse, total_specular);
+
+    //if(MATERIALS<=1) // emissive, this should be done after 'ApplyGlow' because emissive glow should not be applied to base color
+      {
+      #if EMISSIVE_MAP
+         VecH emissive=RTex(Lum, I.uv).rgb;
+         total_specular+=Material.emissive     *    emissive ;
+         glow          +=Material.emissive_glow*Max(emissive);
+      #else
+         total_specular+=Material.emissive;
+         glow          +=Material.emissive_glow;
+      #endif
+      }
+   }else
+   {
+      // glow
+      ApplyGlow(glow, diffuse);
+
+  /*//if(MATERIALS<=1) glow from emissive, not needed because final glow is ignored in secondary passes
+      {
+      #if EMISSIVE_MAP
+         VecH emissive=RTex(Lum, I.uv).rgb;
+         glow+=Material.emissive_glow*Max(emissive);
+      #else
+         glow+=Material.emissive_glow;
+      #endif
+      }*/
    }
-   #endif
+   I.col.rgb=I.col.rgb*total_lum*diffuse + total_specular;
 
 #if SET_FOG
    I.col.rgb*=I.fog_rev;
 #endif
    I.col.rgb+=I.col_add; // add after lighting and reflection because this could have fog
 
+   // can't output glow because we use alpha-blending here
    outCol  =I.col;
    outAlpha=I.col.a;
 
 #if USE_VEL
-   outVel.xy=GetVelocityPixel(I.projected_prev_pos_xyw, pixel); outVel.z=0; outVel.w=I.col.a; // alpha needed because of blending, Z needed because have to write all channels
+   outVel.xy=GetMotion(I.projected_prev_pos_xyw, pixel); outVel.z=0; outVel.w=I.col.a; // alpha needed because of blending, Z needed because have to write all channels
 #endif
 }
 /******************************************************************************/

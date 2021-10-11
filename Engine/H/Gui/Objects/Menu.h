@@ -16,6 +16,14 @@ enum MENU_COLUMN // List columns available when creating 'Menu' from 'Node<MenuE
    MENU_COLUMN_NUM  , // number of menu list columns
 };
 /******************************************************************************/
+struct MenuPush
+{
+   Int abs ; // absolute index
+   Str name; // name
+
+   void set(Int abs, C Str &name) {T.abs=abs; T.name=name;}
+};
+/******************************************************************************/
 struct MenuElm // Menu Element
 {
    Str  name        , //         name (used for code commands)
@@ -75,19 +83,19 @@ const_mem_addr struct Menu : GuiObj // Gui Menu !! must be stored in constant me
   _List list; // list
 
    // manage
-   Menu& del   (                     );                                 // delete
-   Menu& create(                     );                                 // create empty
-   Menu& create(C Node<MenuElm> &node) {return create().setData(node);} // create from node of MenuElm's
-   Menu& create(C Menu &src          );                                 // create from 'src'
+   virtual Menu& del   (                     )override;                         // delete
+           Menu& create(                     );                                 // create empty
+           Menu& create(C Node<MenuElm> &node) {return create().setData(node);} // create from node of MenuElm's
+           Menu& create(C Menu &src          );                                 // create from 'src'
 
    // get / set
    void operator()(C Str &command, Bool on, SET_MODE mode=SET_DEFAULT) ; // set 'command' 'on' state (checked), sample usage:       ("View/Wireframe", true)
    Bool operator()(C Str &command                                    )C; // if  'command' is on      (checked), sample usage:       ("View/Wireframe")
    Bool exists    (C Str &command                                    )C; // if  'command' exists in menu      , sample usage: exists("File/Exit")
 
-            Menu& func(void (*func)(C Str &path, Ptr   user), Ptr   user=null);                                                    // set function called when any sub-element is pushed, with 'user' as its parameter
-   T1(TYPE) Menu& func(void (*func)(C Str &path, TYPE *user), TYPE *user     ) {return T.func((void(*)(C Str&, Ptr))func,  user);} // set function called when any sub-element is pushed, with 'user' as its parameter
-   T1(TYPE) Menu& func(void (*func)(C Str &path, TYPE &user), TYPE &user     ) {return T.func((void(*)(C Str&, Ptr))func, &user);} // set function called when any sub-element is pushed, with 'user' as its parameter
+            Menu& func(void (*func)(C CMemPtr<MenuPush> &path, Ptr   user), Ptr   user=null);                                                                  // set function called when any sub-element is pushed, with 'user' as its parameter
+   T1(TYPE) Menu& func(void (*func)(C CMemPtr<MenuPush> &path, TYPE *user), TYPE *user     ) {return T.func((void(*)(C CMemPtr<MenuPush>&, Ptr))func,  user);} // set function called when any sub-element is pushed, with 'user' as its parameter
+   T1(TYPE) Menu& func(void (*func)(C CMemPtr<MenuPush> &path, TYPE &user), TYPE &user     ) {return T.func((void(*)(C CMemPtr<MenuPush>&, Ptr))func, &user);} // set function called when any sub-element is pushed, with 'user' as its parameter
 
    Menu& setData(CChar8 *data[], Int elms, C CMemPtr<Bool> &visible=null, Bool keep_cur=false); // set columns and data from text array
    Menu& setData(CChar  *data[], Int elms, C CMemPtr<Bool> &visible=null, Bool keep_cur=false); // set columns and data from text array
@@ -109,18 +117,18 @@ const_mem_addr struct Menu : GuiObj // Gui Menu !! must be stored in constant me
    MenuElm& elm (Int i)  {return _elms[i]    ;} // get i-th      menu element
  C MenuElm& elm (Int i)C {return _elms[i]    ;} // get i-th      menu element
 
-   virtual Menu& rect     (C Rect &rect ); C Rect& rect ()C {return super::rect ();} // set/get rectangle
-   virtual Menu& pos      (C Vec2 &pos  );   Vec2  pos  ()C {return super::pos  ();} // set/get top    left  position
-   virtual Menu& posRU    (C Vec2 &pos  );   Vec2  posRU()C {return super::posRU();} // set/get top    right position
-   virtual Menu& posLD    (C Vec2 &pos  );   Vec2  posLD()C {return super::posLD();} // set/get bottom left  position
-   virtual Menu& posL     (C Vec2 &pos  );   Vec2  posL ()C {return super::posL ();} // set/get left         position
-   virtual Menu& posR     (C Vec2 &pos  );   Vec2  posR ()C {return super::posR ();} // set/get right        position
-   virtual Menu& posD     (C Vec2 &pos  );   Vec2  posD ()C {return super::posD ();} // set/get bottom       position
-   virtual Menu& posU     (C Vec2 &pos  );   Vec2  posU ()C {return super::posU ();} // set/get top          position
-   virtual Menu& posC     (C Vec2 &pos  );   Vec2  posC ()C {return super::posC ();} // set/get center       position
-   virtual Menu& move     (C Vec2 &delta);                                           // move by delta
-   virtual Menu& moveClamp(C Vec2 &delta);                                           // move by delta and clamp to desktop area
-   virtual Menu& show     (             );                                           // show
+   virtual Menu& rect     (C Rect &rect )override; C Rect& rect ()C {return super::rect ();} // set/get rectangle
+   virtual Menu& pos      (C Vec2 &pos  )override;   Vec2  pos  ()C {return super::pos  ();} // set/get top    left  position
+   virtual Menu& posRU    (C Vec2 &pos  )override;   Vec2  posRU()C {return super::posRU();} // set/get top    right position
+   virtual Menu& posLD    (C Vec2 &pos  )override;   Vec2  posLD()C {return super::posLD();} // set/get bottom left  position
+   virtual Menu& posL     (C Vec2 &pos  )override;   Vec2  posL ()C {return super::posL ();} // set/get left         position
+   virtual Menu& posR     (C Vec2 &pos  )override;   Vec2  posR ()C {return super::posR ();} // set/get right        position
+   virtual Menu& posD     (C Vec2 &pos  )override;   Vec2  posD ()C {return super::posD ();} // set/get bottom       position
+   virtual Menu& posU     (C Vec2 &pos  )override;   Vec2  posU ()C {return super::posU ();} // set/get top          position
+   virtual Menu& posC     (C Vec2 &pos  )override;   Vec2  posC ()C {return super::posC ();} // set/get center       position
+   virtual Menu& move     (C Vec2 &delta)override;                                           // move by delta
+   virtual Menu& moveClamp(C Vec2 &delta);                                                   // move by delta and clamp to desktop area
+   virtual Menu& show     (             )override;                                           // show
 
    virtual Menu& posAround(C Rect &rect, Flt align=1); // set menu position around the 'rect' screen rectangle while trying to avoid occluding it, 'align'=horizontal alignment (-1 .. 1) specifying on which side (left or right) the menu should be located
 
@@ -132,9 +140,9 @@ const_mem_addr struct Menu : GuiObj // Gui Menu !! must be stored in constant me
    void checkKeyboardShortcuts(); // manually iterate all elements to check for their keyboard shortcuts and process them if pushed
 
    // main
-   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel); // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
-   virtual void    update(C GuiPC &gpc); // update object
-   virtual void    draw  (C GuiPC &gpc); // draw   object
+   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override; // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
+   virtual void    update(C GuiPC &gpc)override; // update object
+   virtual void    draw  (C GuiPC &gpc)override; // draw   object
 
 #if EE_PRIVATE
    Flt         paddingL  ()C {return _crect.min.x- _rect.min.x;}
@@ -147,7 +155,7 @@ const_mem_addr struct Menu : GuiObj // Gui Menu !! must be stored in constant me
    void        zero      ();
    GuiObj*     Owner     ()C {return _owner ? _owner : _parent;}
    ListColumn* listColumn();
-   void        push      (C Str &elm);
+   void        push      (Int abs);
    void        hideAll   ();
 #endif
 
@@ -164,10 +172,11 @@ private:
    Mems<MenuElm> _elms;
    GuiSkinPtr    _skin;
    Ptr           _func_user;
-   void        (*_func)(C Str &path, Ptr user);
+   void        (*_func)(C CMemPtr<MenuPush> &path, Ptr user);
 
 protected:
-   virtual GuiObj* owner()C;
+   virtual GuiObj* owner()C override;
+   virtual void nearest(C GuiPC &gpc, GuiObjNearest &gon)override;
 
    NO_COPY_CONSTRUCTOR(Menu);
 };

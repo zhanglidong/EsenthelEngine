@@ -10,8 +10,11 @@
       -use Half, VecH2, VecH, VecH4 precision where possible
       -use NOPERSP for flat 2D shaders
       -offload some calculations on the CPU or Vertex Shader
+      -use 'TexGather' or 'TexMin' or 'TexMax' wherever possible
       -use 'TexPoint' or 'TexLod' wherever possible
       -use constants without any suffix (0.0 instead of 0.0f or 0.0h) - https://gpuopen.com/first-steps-implementing-fp16/ - "Using either the h or f suffix will result in a conversion. It is better to use the unadorned literal, such as 0.0, 1.5 and so on."
+      -if want to use "branching, continue, break" then have to check how it affects performance
+      -compute shaders might be slow if "numthreads" is low (1,1,1)
 
 /******************************************************************************/
 #include "!Header CPU.h"
@@ -54,12 +57,17 @@
 #define ImageCube   TextureCube<VecH4>
 #define ImageShadow Texture2D  <Half >
 
+#define RWImageH  RWTexture2D<Half >
+#define RWImageH2 RWTexture2D<VecH2>
+#define RWImage   RWTexture2D<VecH4>
+
 #define        SAMPLER(name, index) sampler                name : register(s##index) //        sampler
 #define SHADOW_SAMPLER(name, index) SamplerComparisonState name : register(s##index) // shadow sampler
 /******************************************************************************/
 // HELPERS
 /******************************************************************************/
 #define PIXEL               Vec4 pixel :SV_Position               // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
+#define FACE                UInt face  :SV_PrimitiveID            // face ID
 #define IS_FRONT            Bool front :SV_IsFrontFace            // face front side
 #define CLIP_DIST       out Flt  O_clip:SV_ClipDistance           // clip plane distance
 #define CLIP_PLANE(pos) O_clip=Dot(Vec4((pos).xyz, 1), ClipPlane) // perform user plane clipping
@@ -80,7 +88,8 @@
 #define TARGET6  SV_Target6
 #define TARGET7  SV_Target7
 
-#define NOPERSP noperspective // will disable perspective interpolation
+#define NOINTERP nointerpolation // disable             interpolation and take value from the main vertex
+#define NOPERSP  noperspective   // disable perspective interpolation
 
 #define FLATTEN [flatten] // will make a conditional statement flattened, use before 'if'        statement
 #define BRANCH  [branch ] // will make a conditional statement branched , use before 'if'        statement
@@ -101,6 +110,7 @@
 #define Floor     floor
 #define Ceil      ceil
 #define Sqrt      sqrt
+#define Rsqrt     rsqrt
 #define Normalize normalize
 #define Pow       pow
 #define Sin       sin
@@ -112,12 +122,13 @@
 // CONSTANTS
 /******************************************************************************/
 #define MAX_MATRIX 256 // maximum number of matrixes
-#define FLT_MIN    1.175494351e-38F                   // Minimum positive value of 32-bit real (Flt )
+#define FLT_MIN    1.175494351e-38f                   // Minimum positive value of 32-bit real (Flt )
 #define HALF_MIN   0.00006103515625                   // Minimum positive value of 16-bit real (Half)
 #define HALF_MAX   65504                              // Maximum possible value of 16-bit real (Half)
 #define EPS        0.0001                             // float epsilon
 #define EPS_COL    (1.0/256)                          // color epsilon
 #define EPS_LUM    (LINEAR_GAMMA ? 1.0/512 : EPS_COL) // light epsilon (need a little extra precision for linear gamma)
+#define EPS_RSQRT  HALF_MIN                           // rsqrt epsilon, makes sure that vec*rsqrt(Length2(vec)+EPS_RSQRT) gives range -1..1
 
 #define PI_6    0.5235987755982988 // PI/6 ( 30 deg) Flt
 #define PI_4    0.7853981633974483 // PI/4 ( 45 deg) Flt
@@ -137,14 +148,15 @@
 #define TRANSLUCENT_VAL 0.5
 
 #define REFLECT_OCCL 0 // if apply occlusion for reflectivity below 0.02 #SpecularReflectionFromZeroSmoothReflectivity
+
+#define JITTER_RANGE 4 // 3 or 4, don't use 3 because it's not good enough
 /******************************************************************************/
 // RENDER TARGETS
 /******************************************************************************/
 #define MS_SAMPLES 4 // number of samples in multi-sampled render targets
 
 // signed formats in GL depend on "GL_EXT_render_snorm"
-#define SIGNED_NRM_RT 0 // if Normal     Render Target  is  signed, never  because we use IMAGE_R10G10B10A2 which is unsigned
-#define SIGNED_MTN_RT 0 // if MotionBlur Render Targets are signed, never  because we use IMAGE_R10G10B10A2 which is unsigned
+#define SIGNED_NRM_RT 0 // if Normal Render Target is signed, never because we use IMAGE_R10G10B10A2 which is unsigned
 
 #define REVERSE_DEPTH (!GL) // if Depth Buffer is reversed. Can't enable on GL because for some reason (might be related to #glClipControl) it disables far-plane depth clipping, which can be observed when using func=FUNC_ALWAYS inside 'D.depthFunc'. Even though we clear the depth buffer, there may still be performance hit, because normally geometry would already get clipped due to far plane, but without it, per-pixel depth tests need to be performed.
 #if     REVERSE_DEPTH
@@ -155,7 +167,10 @@
    #define DEPTH_FOREGROUND(x) ((x)> Z_BACK)
    #define DEPTH_BACKGROUND(x) ((x)<=Z_BACK)
    #define DEPTH_SMALLER(x, y) ((x)> (y))
+   #define DEPTH_INC(x, y)     ((x)-=(y))
    #define DEPTH_DEC(x, y)     ((x)+=(y))
+   #define TexDepthRawMin(uv)  TexMax(Depth, uv).x
+   #define TexDepthRawMax(uv)  TexMin(Depth, uv).x
 #else
    #define Z_FRONT             0.0
    #define Z_BACK              1.0
@@ -164,46 +179,75 @@
    #define DEPTH_FOREGROUND(x) ((x)< Z_BACK)
    #define DEPTH_BACKGROUND(x) ((x)>=Z_BACK)
    #define DEPTH_SMALLER(x, y) ((x)< (y))
+   #define DEPTH_INC(x, y)     ((x)+=(y))
    #define DEPTH_DEC(x, y)     ((x)-=(y))
+   #define TexDepthRawMin(uv)  TexMin(Depth, uv).x
+   #define TexDepthRawMax(uv)  TexMax(Depth, uv).x
 #endif
 /******************************************************************************/
-// TEXTURE ACCESSING                 (Y^)
-// GATHER returns in following order: V1 X  Y
-//                                    V0 W  Z
-//                                     + U0 U1 (X>)
-/******************************************************************************/
-#define Tex(    image, uv )   image.Sample(SamplerDefault, uv ) // access a 2D   texture
-#define Tex3D(  image, uvw)   image.Sample(SamplerDefault, uvw) // access a 3D   texture
-#define TexCube(image, uvw)   image.Sample(SamplerDefault, uvw) // access a Cube texture
+#define RTex(    image, uv     )   image.Sample     (SamplerRender     , uv     ) // access 2D texture                               using Render Sampler
+#if GL // for GL use 'SamplerRender' to avoid mixing different samplers, because on GL it would require to use a separate glsl 'sampler2D' which would increase CPU overhead for setting images/samplers and possibly exceed the MAX_SHADER_IMAGES
+#define RTexLod( image, uv     )   image.SampleLevel(SamplerRender     , uv,   0) // access 2D texture   0-th MipMap (LOD level=  0) using Render Sampler (however since 'SampleLevel' makes Anisotropy disabled then for possible better performance use 'SamplerLinearWrap')
+#define RTexLodI(image, uv, lod)   image.SampleLevel(SamplerRender     , uv, lod) // access 2D texture lod-th MipMap (LOD level=lod) using Render Sampler (however since 'SampleLevel' makes Anisotropy disabled then for possible better performance use 'SamplerLinearWrap')
+#else
+#define RTexLod( image, uv     )   image.SampleLevel(SamplerLinearWrap , uv,   0) // access 2D texture   0-th MipMap (LOD level=  0) using Render Sampler (however since 'SampleLevel' makes Anisotropy disabled then for possible better performance use 'SamplerLinearWrap')
+#define RTexLodI(image, uv, lod)   image.SampleLevel(SamplerLinearWrap , uv, lod) // access 2D texture lod-th MipMap (LOD level=lod) using Render Sampler (however since 'SampleLevel' makes Anisotropy disabled then for possible better performance use 'SamplerLinearWrap')
+#endif
+#define  Tex(    image, uv     )   image.Sample     (SamplerLinearClamp, uv     ) // access 2D texture
+#define  TexLod( image, uv     )   image.SampleLevel(SamplerLinearClamp, uv,   0) // access 2D texture   0-th MipMap (LOD level=  0)
+#define  TexLodI(image, uv, lod)   image.SampleLevel(SamplerLinearClamp, uv, lod) // access 2D texture lod-th MipMap (LOD level=lod)
 
-#define TexLod(     image, uv      )   image.SampleLevel(SamplerDefault, uv ,   0) // access 2D   texture's   0-th MipMap (LOD level=  0)
-#define TexLodI(    image, uv , lod)   image.SampleLevel(SamplerDefault, uv , lod) // access 2D   texture's lod-th MipMap (LOD level=lod)
-#define Tex3DLod(   image, uvw     )   image.SampleLevel(SamplerDefault, uvw,   0) // access 3D   texture's   0-th MipMap (LOD level=  0)
-#define TexCubeLod( image, uvw     )   image.SampleLevel(SamplerDefault, uvw,   0) // access Cube texture's   0-th MipMap (LOD level=  0)
-#define TexCubeLodI(image, uvw, lod)   image.SampleLevel(SamplerDefault, uvw, lod) // access Cube texture's lod-th MipMap (LOD level=lod)
+#define Tex3D(   image, uvw)   image.Sample     (SamplerLinearClamp, uvw   ) // access 3D texture
+#define Tex3DLod(image, uvw)   image.SampleLevel(SamplerLinearClamp, uvw, 0) // access 3D texture 0-th MipMap (LOD level=0)
+
+#define TexCube(     image, uvw     )   image.Sample     (SamplerRender     , uvw     ) // access Cube texture
+#if GL // for GL use 'SamplerRender' to avoid mixing different samplers, because on GL it would require to use a separate glsl 'sampler2D' which would increase CPU overhead for setting images/samplers and possibly exceed the MAX_SHADER_IMAGES
+#define TexCubeLod(  image, uvw     )   image.SampleLevel(SamplerRender     , uvw,   0) // access Cube texture   0-th MipMap (LOD level=  0), since 'SampleLevel' makes Anisotropy disabled then for possible better performance instead of 'SamplerRender' use 'SamplerLinearWrap'
+#define TexCubeLodI( image, uvw, lod)   image.SampleLevel(SamplerRender     , uvw, lod) // access Cube texture lod-th MipMap (LOD level=lod), since 'SampleLevel' makes Anisotropy disabled then for possible better performance instead of 'SamplerRender' use 'SamplerLinearWrap'
+#else
+#define TexCubeLod(  image, uvw     )   image.SampleLevel(SamplerLinearWrap , uvw,   0) // access Cube texture   0-th MipMap (LOD level=  0), since 'SampleLevel' makes Anisotropy disabled then for possible better performance instead of 'SamplerRender' use 'SamplerLinearWrap'
+#define TexCubeLodI( image, uvw, lod)   image.SampleLevel(SamplerLinearWrap , uvw, lod) // access Cube texture lod-th MipMap (LOD level=lod), since 'SampleLevel' makes Anisotropy disabled then for possible better performance instead of 'SamplerRender' use 'SamplerLinearWrap'
+#endif
+#define TexCubeClamp(image, uvw     )   image.Sample     (SamplerLinearClamp, uvw     ) // access Cube texture
 
 #define TexPoint(   image, uv     )   image.SampleLevel(SamplerPoint, uv, 0)
 #define TexPointOfs(image, uv, ofs)   image.SampleLevel(SamplerPoint, uv, 0, ofs)
 
+#define TexMin(   image, uv     )   image.SampleLevel(SamplerMinimum, uv, 0)      // returns minimum out of all samples
+#define TexMinOfs(image, uv, ofs)   image.SampleLevel(SamplerMinimum, uv, 0, ofs) // returns minimum out of all samples
+
+#define TexMax(   image, uv     )   image.SampleLevel(SamplerMaximum, uv, 0)      // returns maximum out of all samples
+#define TexMaxOfs(image, uv, ofs)   image.SampleLevel(SamplerMaximum, uv, 0, ofs) // returns maximum out of all samples
+
+/* TEXTURE ACCESSING                 (Y^)
+   GATHER returns in following order: V1 X  Y
+                                      V0 W  Z
+                                       + U0 U1 (X>) */
 #define TexGather(   image, uv     )   image.Gather(SamplerPoint, uv     ) // gather available since SM_4_1, GL 4.0, GL ES 3.1
 #define TexGatherOfs(image, uv, ofs)   image.Gather(SamplerPoint, uv, ofs) // gather available since SM_4_1, GL 4.0, GL ES 3.1
 
-#define TexClamp(    image, uv )   image.Sample     (SamplerLinearClamp, uv    )
-#define TexLodClamp( image, uv )   image.SampleLevel(SamplerLinearClamp, uv , 0)
-#define Tex3DLodWrap(image, uvw)   image.SampleLevel(SamplerLinearWrap , uvw, 0)
+#define TexGatherR(   image, uv     )   image.GatherRed  (SamplerPoint, uv     ) // gather channel available since SM_5, GL 4.0, GL ES 3.1
+#define TexGatherG(   image, uv     )   image.GatherGreen(SamplerPoint, uv     ) // gather channel available since SM_5, GL 4.0, GL ES 3.1
+#define TexGatherB(   image, uv     )   image.GatherBlue (SamplerPoint, uv     ) // gather channel available since SM_5, GL 4.0, GL ES 3.1
+#define TexGatherA(   image, uv     )   image.GatherAlpha(SamplerPoint, uv     ) // gather channel available since SM_5, GL 4.0, GL ES 3.1
+#define TexGatherROfs(image, uv, ofs)   image.GatherRed  (SamplerPoint, uv, ofs) // gather channel available since SM_5, GL 4.0, GL ES 3.1
+#define TexGatherGOfs(image, uv, ofs)   image.GatherGreen(SamplerPoint, uv, ofs) // gather channel available since SM_5, GL 4.0, GL ES 3.1
+#define TexGatherBOfs(image, uv, ofs)   image.GatherBlue (SamplerPoint, uv, ofs) // gather channel available since SM_5, GL 4.0, GL ES 3.1
+#define TexGatherAOfs(image, uv, ofs)   image.GatherAlpha(SamplerPoint, uv, ofs) // gather channel available since SM_5, GL 4.0, GL ES 3.1
 
 #define TexSample(image, pixel, i)   image.Load(pixel, i) // access i-th sample of a multi-sampled texture
 
-#define TexDepthRawPoint(   uv)                       TexPoint    (Depth  , uv     ).x
-#define TexDepthRawPointOfs(uv, ofs)                  TexPointOfs (Depth  , uv, ofs).x
-#define TexDepthRawLinear(  uv)                       TexLod      (Depth  , uv     ).x
-#define TexDepthPoint(      uv)        LinearizeDepth(TexPoint    (Depth  , uv     ).x)
-#define TexDepthPointOfs(   uv, ofs)   LinearizeDepth(TexPointOfs (Depth  , uv, ofs).x)
-#define TexDepthLinear(     uv)        LinearizeDepth(TexLod      (Depth  , uv     ).x)
-#define TexDepthGather(     uv)                       TexGather   (Depth  , uv     )
-#define TexDepthGatherOfs(  uv, ofs)                  TexGatherOfs(Depth  , uv, ofs)
-#define TexDepthMSRaw(pixel, sample)                  TexSample   (DepthMS, pixel, sample).x
-#define TexDepthMS(   pixel, sample)   LinearizeDepth(TexSample   (DepthMS, pixel, sample).x)
+#define TexDepthRawPoint(      uv)                       TexPoint    (Depth  , uv     ).x
+#define TexDepthRawPointOfs(   uv, ofs)                  TexPointOfs (Depth  , uv, ofs).x
+#define TexDepthRawLinear(     uv)                       TexLod      (Depth  , uv     ).x
+#define TexDepthPoint(         uv)        LinearizeDepth(TexPoint    (Depth  , uv     ).x)
+#define TexDepthPointOfs(      uv, ofs)   LinearizeDepth(TexPointOfs (Depth  , uv, ofs).x)
+#define TexDepthLinear(        uv)        LinearizeDepth(TexLod      (Depth  , uv     ).x)
+#define TexDepthRawGather(     uv)                       TexGather   (Depth  , uv     )
+#define TexDepthRawGatherOfs(  uv, ofs)                  TexGatherOfs(Depth  , uv, ofs)
+#define TexDepthRawMS(   pixel, sample)                  TexSample   (DepthMS, pixel, sample).x
+#define TexDepthMS(      pixel, sample)   LinearizeDepth(TexSample   (DepthMS, pixel, sample).x)
+#define TexDepthPix(     pixel        )   LinearizeDepth(             Depth  [ pixel])
 
 #if !GL
 #define TexShadow(image, uvw)   image.SampleCmpLevelZero(SamplerShadowMap, uvw.xy, uvw.z)
@@ -214,6 +258,11 @@
 // CONSTANTS
 /******************************************************************************/
 #include "!Set Prec Struct.h"
+
+struct RectI
+{
+   VecI2 min, max;
+};
 
 struct ViewportClass
 {
@@ -331,8 +380,22 @@ BUFFER(Constants)
       Vec2(-0.5,  3.5),
       Vec2( 1.5,  3.5),
    };*/
-   #define V(x) (Flt(x-32)/32/256) // gives -1..1 / 256 range
-   const Flt OrderDither[64]=
+   #define V(x) ((x+0.5)/4-0.5) // gives -0.375 .. 0.375 range
+   const Flt Noise4[4]=
+   {
+      V(0), V(2),
+      V(3), V(1),
+   };
+   #define V(x) ((x+0.5)/16-0.5) // gives -0.46875 .. 0.46875 range
+   const Flt Noise16[16]=
+   {
+      V( 0), V( 8), V( 2), V(10),
+      V(12), V( 4), V(14), V( 6),
+      V( 3), V(11), V( 1), V( 9),
+      V(15), V( 7), V(13), V( 5),
+   };
+   #define V(x) ((x+0.5)/64-0.5) // gives -0.4921875 .. 0.4921875 range
+   const Flt Noise64[64]=
    {
       V( 0), V(32), V( 8), V(40), V( 2), V(34), V(10), V(42),
       V(48), V(16), V(56), V(24), V(50), V(18), V(58), V(26),
@@ -343,6 +406,7 @@ BUFFER(Constants)
       V(15), V(47), V( 7), V(39), V(13), V(45), V( 5), V(37),
       V(63), V(31), V(55), V(23), V(61), V(29), V(53), V(21),
    };
+   #undef V
 BUFFER_END
 
 BUFFER(Step)
@@ -363,14 +427,16 @@ BUFFER_END
 /******************************************************************************/
 BUFFER_I(Frame, SBI_FRAME) // once per-frame
    Vec4  ClipPlane=Vec4(0, 0, 0, 1); // clipping plane
+   Vec4  BendFactor                ; // factors used for grass/leaf bending calculation
+   Vec4  BendFactorPrev            ; // factors used for grass/leaf bending calculation (for previous frame)
+   VecI2 NoiseOffset               ; // per-frame texture noise offset
    Vec2  GrassRangeMulAdd          ; // factors used for grass opacity calculation
    Flt   TesselationDensity        ; // tesselation density
-   Bool  FirstPass=true            ; // if first pass (apply Material Ambient)
+   Bool  FirstPass=true            ; // if first pass (apply Material Emissive and Light from Glow)
    VecH  AmbientNSColor            ; // ambient combined with night shade
+   Half  AspectRatio               ; // converts UV to Screen aspect ratio
    VecH  EnvColor                  ; // environment map color
    Half  EnvMipMaps                ; // environment map mip-maps
-   VecH4 BendFactor                ; // factors used for grass/leaf bending calculation
-   VecH4 BendFactorPrev            ; // factors used for grass/leaf bending calculation (for previous frame)
 BUFFER_END
 
 BUFFER_I(Camera, SBI_CAMERA) // this gets changed when drawing shadow maps
@@ -398,15 +464,16 @@ BUFFER_END
 struct MaterialClass // this is used when a MeshPart has only one material
 {
    VecH4 color; // !! color must be listed first because ShaderParam handle for setting 'Material.color' is set from the entire Material object pointer !!
-   VecH  ambient;
-   Half  smooth,
-         reflect,
+   VecH  emissive;
+   Half  emissive_glow,
+           rough_mul,   rough_add,
+         reflect_mul, reflect_add,
          glow,
          normal,
          bump,
          det_power;
-   Flt   det_scale,
-         tex_scale;
+   Flt   det_uv_scale,
+             uv_scale;
 };
 BUFFER_I(Material, SBI_MATERIAL)
    MaterialClass Material;
@@ -415,9 +482,9 @@ BUFFER_END
 struct MultiMaterialClass // this is used when a MeshPart has multiple materials
 {
    VecH4 color;
-   VecH  srg_mul, srg_add;
+   VecH  refl_rogh_glow_mul, refl_rogh_glow_add;
    Half  normal, bump, det_mul, det_add, det_inv, macro;
-   Flt   tex_scale, det_scale;
+   Flt   uv_scale, det_uv_scale;
 };
 BUFFER(MultiMaterial0) MultiMaterialClass MultiMaterial0; BUFFER_END
 BUFFER(MultiMaterial1) MultiMaterialClass MultiMaterial1; BUFFER_END
@@ -430,22 +497,21 @@ BUFFER(MultiMaterial3) MultiMaterialClass MultiMaterial3; BUFFER_END
 /******************************************************************************/
 #include "!Set Prec Image.h"
 // #MaterialTextureLayout
-Image     Col, Col1, Col2, Col3;
-ImageH2   Nrm, Nrm1, Nrm2, Nrm3;
-Image     Ext, Ext1, Ext2, Ext3,
-          Det, Det1, Det2, Det3,
-          Mac, Mac1, Mac2, Mac3,
-          Lum;
+Image   Col, Col1, Col2, Col3;
+ImageH2 Nrm, Nrm1, Nrm2, Nrm3;
+Image   Ext, Ext1, Ext2, Ext3,
+        Det, Det1, Det2, Det3,
+        Mac, Mac1, Mac2, Mac3,
+        Lum;
 
-#define    BUMP_IMAGE   Ext
-#define  SMOOTH_CHANNEL x
-#define REFLECT_CHANNEL y
-#define    BUMP_CHANNEL z
-#define    GLOW_CHANNEL w
-#define   ALPHA_CHANNEL w
+// #MaterialTextureLayout
+#define BUMP_IMAGE Ext
+
+// #MaterialTextureLayoutDetail
+#define APPLY_DETAIL_ROUGH(rough, tx_delta) rough+=(TEX_IS_ROUGH ? tx_delta : -tx_delta) // apply texture relative delta onto roughness (this is -tx and not 1-tx because this is relative delta and not absolute value)
 
 Image     Img, Img1, Img2, Img3, Img4, Img5;
-ImageH    ImgX, ImgX1, ImgX2, ImgX3;
+ImageH    ImgX, ImgX1, ImgX2, ImgX3, ImgNoise;
 ImageF    ImgXF, ImgXF1, Depth;
 ImageH2   ImgXY, ImgXY1, ImgXY2, EnvDFG;
 ImageCube Env, Cub, Cub1;
@@ -456,26 +522,40 @@ Texture2DMS<VecH4, MS_SAMPLES> ImgMS, ImgMS1, ImgMS2, ImgMS3;
 Texture2DMS<Half , MS_SAMPLES> ImgXMS;
 Texture2DMS<VecH2, MS_SAMPLES> ImgXYMS;
 Texture2DMS<Flt  , MS_SAMPLES> DepthMS;
+
+RWImage   RWImg;
+RWImageH  RWImgX, RWImgX1;
+RWImageH2 RWImgXY;
 #include "!Set Prec Default.h"
 
-       SAMPLER(SamplerDefault    , SSI_DEFAULT     );
+       SAMPLER(SamplerRender     , SSI_RENDER      );
        SAMPLER(SamplerPoint      , SSI_POINT       );
        SAMPLER(SamplerLinearClamp, SSI_LINEAR_CLAMP);
        SAMPLER(SamplerLinearWrap , SSI_LINEAR_WRAP );
        SAMPLER(SamplerLinearCWW  , SSI_LINEAR_CWW  );
 SHADOW_SAMPLER(SamplerShadowMap  , SSI_SHADOW      );
        SAMPLER(SamplerFont       , SSI_FONT        );
-#if GL // use default sampler on GL because it would create a secondary "sampler2D" in GLSL and we would have to set 2 ShaderImage's #GLSampler
-   #define SamplerPoint       SamplerDefault
-   #define SamplerLinearClamp SamplerDefault
-   #define SamplerLinearWrap  SamplerDefault
-#endif
+       SAMPLER(SamplerMinimum    , SSI_MINIMUM     );
+       SAMPLER(SamplerMaximum    , SSI_MAXIMUM     );
 /******************************************************************************/
+Bool CanDiv(Half x) {return x>=HALF_MIN;} // instead of >0 to skip subnormals in case they might cause bad values
+Bool CanDiv(Flt  x) {return x>= FLT_MIN;} // instead of >0 to skip subnormals in case they might cause bad values
+
 // force convert to Half (can be used for testing Precisions)
-Half  HALF(Flt  x) {return f16tof32(f32tof16(x));}
-VecH2 HALF(Vec2 x) {return f16tof32(f32tof16(x));}
-VecH  HALF(Vec  x) {return f16tof32(f32tof16(x));}
-VecH4 HALF(Vec4 x) {return f16tof32(f32tof16(x));}
+Half  AsHalf(Flt  x) {return f16tof32(f32tof16(x));}
+VecH2 AsHalf(Vec2 x) {return f16tof32(f32tof16(x));}
+VecH  AsHalf(Vec  x) {return f16tof32(f32tof16(x));}
+VecH4 AsHalf(Vec4 x) {return f16tof32(f32tof16(x));}
+
+// have to use custom functions because DX compiler might optimize-away default 'isnan' and 'isinf'
+Bool  NaN(Flt  x) {return (asuint(x)&0x7FFFFFFF)> 0x7F800000;}
+Bool  Inf(Flt  x) {return (asuint(x)&0x7FFFFFFF)==0x7F800000;}
+bool2 NaN(Vec2 x) {return bool2(NaN(x.x), NaN(x.y));}
+bool2 Inf(Vec2 x) {return bool2(Inf(x.x), Inf(x.y));}
+bool3 NaN(Vec  x) {return bool3(NaN(x.x), NaN(x.y), NaN(x.z));}
+bool3 Inf(Vec  x) {return bool3(Inf(x.x), Inf(x.y), Inf(x.z));}
+bool4 NaN(Vec4 x) {return bool4(NaN(x.x), NaN(x.y), NaN(x.z), NaN(x.w));}
+bool4 Inf(Vec4 x) {return bool4(Inf(x.x), Inf(x.y), Inf(x.z), Inf(x.w));}
 
 Int   Min(Int   x, Int   y                  ) {return min(x, y);}
 Half  Min(Half  x, Half  y                  ) {return min(x, y);}
@@ -610,6 +690,16 @@ Vec   Sqr(Vec   x) {return x*x;}
 VecH4 Sqr(VecH4 x) {return x*x;}
 Vec4  Sqr(Vec4  x) {return x*x;}
 
+Int   SqrS(Int   x) {return (x>=0) ? x*x : -x*x;}
+Half  SqrS(Half  x) {return (x>=0) ? x*x : -x*x;}
+Flt   SqrS(Flt   x) {return (x>=0) ? x*x : -x*x;}
+VecH2 SqrS(VecH2 x) {return (x>=0) ? x*x : -x*x;}
+Vec2  SqrS(Vec2  x) {return (x>=0) ? x*x : -x*x;}
+VecH  SqrS(VecH  x) {return (x>=0) ? x*x : -x*x;}
+Vec   SqrS(Vec   x) {return (x>=0) ? x*x : -x*x;}
+VecH4 SqrS(VecH4 x) {return (x>=0) ? x*x : -x*x;}
+Vec4  SqrS(Vec4  x) {return (x>=0) ? x*x : -x*x;}
+
 Int   Cube(Int   x) {return x*x*x;}
 Half  Cube(Half  x) {return x*x*x;}
 Flt   Cube(Flt   x) {return x*x*x;}
@@ -722,6 +812,17 @@ Flt  AngleBetween  (Vec2  a   , Vec2  b ) {return AngleDelta(Angle(a), Angle(b))
 VecH2 Perp(VecH2 vec) {return VecH2(vec.y, -vec.x);} // get perpendicular vector
 Vec2  Perp(Vec2  vec) {return Vec2 (vec.y, -vec.x);} // get perpendicular vector
 
+VecH Perp(VecH v)
+{
+   if(Abs(v.x)<Abs(v.z))return VecH(0, v.z, -v.y); // Cross(v, VecH(1, 0,  0));
+   else                 return VecH(-v.y, v.x, 0); // Cross(v, VecH(0, 0, -1));
+}
+Vec Perp(Vec v)
+{
+   if(Abs(v.x)<Abs(v.z))return Vec(0, v.z, -v.y); // Cross(v, Vec(1, 0,  0));
+   else                 return Vec(-v.y, v.x, 0); // Cross(v, Vec(0, 0, -1));
+}
+
 VecH2 Rotate(VecH2 vec, VecH2 cos_sin) // rotate vector by cos and sin values obtained from a custom angle
 {
    return VecH2(vec.x*cos_sin.x - vec.y*cos_sin.y,
@@ -735,8 +836,50 @@ Vec2 Rotate(Vec2 vec, Vec2 cos_sin) // rotate vector by cos and sin values obtai
 
 Half LerpR (Half from, Half to, Half v) {return     (v-from)/(to-from) ;}
 Flt  LerpR (Flt  from, Flt  to, Flt  v) {return     (v-from)/(to-from) ;}
+VecH LerpR (VecH from, VecH to, VecH v) {return     (v-from)/(to-from) ;}
 Half LerpRS(Half from, Half to, Half v) {return Sat((v-from)/(to-from));}
 Flt  LerpRS(Flt  from, Flt  to, Flt  v) {return Sat((v-from)/(to-from));}
+
+Half Angle1Fast(Half x, Half y)
+{
+   Half r=Abs(x)+Abs(y); return r ? ((y>=0) ? 1-x/r : x/r-1) : 0;
+}
+VecH2 Angle1FastToPos(Half angle_fast)
+{
+   return (angle_fast>=0) ? (angle_fast<= 1) ? VecH2(1-angle_fast,    angle_fast)
+                                             : VecH2(1-angle_fast,  2-angle_fast)
+                          : (angle_fast>=-1) ? VecH2(1+angle_fast,    angle_fast)
+                                             : VecH2(1+angle_fast, -2-angle_fast);
+}
+VecH2 ToLen2Angle1Fast(VecH2 v) // 'v'=pos XY, returns (X=length2, Y=Angle1Fast)
+{
+   Half r=Abs(v.x)+Abs(v.y); return r ? VecH2(Length2(v), (v.y>=0) ? 1-v.x/r : v.x/r-1) : 0;
+}
+VecH2 FromLen2Angle1Fast(VecH2 v) // 'v'=(X=length2, Y=Angle1Fast), returns pos XY
+{
+   VecH2  p=Angle1FastToPos(v.y); // never zero
+   return p*Sqrt(v.x/Length2(p));
+}
+/******************************************************************************/
+Half  DistPointLine(VecH2 pos, VecH2 line_pos, VecH2 line_dir) {return Abs(DistPointPlane(pos, line_pos, Perp(line_dir)));}
+Half Dist2PointLine(VecH2 pos, VecH2 line_pos, VecH2 line_dir) {return Sqr(DistPointPlane(pos, line_pos, Perp(line_dir)));}
+
+Half DistPointEdge(VecH2 pos, VecH2 edge_a, VecH2 edge_b) // safe in case 'edge' is zero length because 'd' would be zero, and 'DistPointPlane' would be zero
+{
+   VecH2 d=edge_b-edge_a;
+   if(DistPointPlane(pos, edge_a, d)<=0)return Dist         (pos, edge_a);
+   if(DistPointPlane(pos, edge_b, d)>=0)return Dist         (pos, edge_b);
+                                        return DistPointLine(pos, edge_a, Normalize(d));
+}
+Half Dist2PointEdge(VecH2 pos, VecH2 edge_a, VecH2 edge_b) // safe in case 'edge' is zero length because 'd' would be zero, and 'DistPointPlane' would be zero
+{
+   VecH2 d=edge_b-edge_a;
+   if(DistPointPlane(pos, edge_a, d)<=0)return Dist2         (pos, edge_a);
+   if(DistPointPlane(pos, edge_b, d)>=0)return Dist2         (pos, edge_b);
+                                        return Dist2PointLine(pos, edge_a, Normalize(d));
+}
+/******************************************************************************/
+#include "Fast Math.h"
 /******************************************************************************/
 #if 1 // faster (1.6 fps) tested on GeForce 1050 Ti
 Vec  Transform(Vec  v, Matrix3  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2]));} // transform 'v' vector by 'm' orientation-scale matrix
@@ -812,7 +955,7 @@ Vec ViewMatrixPrevZ  (UInt mtrx=0) {return ViewMatrixPrev[mtrx][2];}
 Vec ViewMatrixPrevPos(UInt mtrx=0) {return ViewMatrixPrev[mtrx][3];}
 
 Matrix GetViewMatrix() {return ViewMatrix[0];}
-#else // Mac currently has no known workaround and must use this. Arm Mali has a bug on Android GL ES, where it expects 4xVec4 array stride for 'Matrix' - https://community.arm.com/developer/tools-software/graphics/f/discussions/43743/serious-problems-with-handling-of-mat4x3 however a workaround was found to declare layout additionally for struct instead of just member.
+#else // Mac currently has no known workaround and must use this
 #include "!Set Prec Struct.h"
 BUFFER_I(ObjMatrix, SBI_OBJ_MATRIX) // !! WARNING: this CB is dynamically resized, do not add other members !!
    Vec4 ViewMatrix[MAX_MATRIX*3]; // object transformation matrixes relative to view space (this is object matrix * inversed camera matrix = object matrix / camera matrix)
@@ -927,8 +1070,8 @@ Vec ObjWorldPosPrev(UInt mtrx=0) {return Transform(ViewMatrixPrevPos(mtrx), CamM
 Vec4 Project(Vec pos)
 {
 #if 1 // 2x faster on Intel (made no difference for GeForce)
-   return Vec4(pos.x*ProjMatrix[0].x + pos.z*ProjMatrix[2].x, // "pos.z*ProjMatrix[2].x" only needed for Stereo or TAA
-               pos.y*ProjMatrix[1].y + pos.z*ProjMatrix[2].y, // "pos.z*ProjMatrix[2].y" only needed for           TAA
+   return Vec4(pos.x*ProjMatrix[0].x + pos.z*ProjMatrix[2].x, // "pos.z*ProjMatrix[2].x" only needed for Stereo or Temporal
+               pos.y*ProjMatrix[1].y + pos.z*ProjMatrix[2].y, // "pos.z*ProjMatrix[2].y" only needed for           Temporal
                                        pos.z*ProjMatrix[2].z + ProjMatrix[3].z,
                                        pos.z*ProjMatrix[2].w + ProjMatrix[3].w);
 #else // slower
@@ -938,8 +1081,8 @@ Vec4 Project(Vec pos)
 Vec ProjectXYW(Vec pos)
 {
 #if 1 // 2x faster on Intel (made no difference for GeForce)
-   return Vec(pos.x*ProjMatrix[0].x + pos.z*ProjMatrix[2].x, // "pos.z*ProjMatrix[2].x" only needed for Stereo or TAA
-              pos.y*ProjMatrix[1].y + pos.z*ProjMatrix[2].y, // "pos.z*ProjMatrix[2].y" only needed for           TAA
+   return Vec(pos.x*ProjMatrix[0].x + pos.z*ProjMatrix[2].x, // "pos.z*ProjMatrix[2].x" only needed for Stereo or Temporal
+              pos.y*ProjMatrix[1].y + pos.z*ProjMatrix[2].y, // "pos.z*ProjMatrix[2].y" only needed for           Temporal
                                     //pos.z*ProjMatrix[2].z + ProjMatrix[3].z,
                                       pos.z*ProjMatrix[2].w + ProjMatrix[3].w);
 #else // slower
@@ -949,8 +1092,8 @@ Vec ProjectXYW(Vec pos)
 Vec ProjectPrevXYW(Vec pos)
 {
 #if 1 // 2x faster on Intel (made no difference for GeForce)
-   return Vec(pos.x*ProjMatrixPrev[0].x + pos.z*ProjMatrixPrev[2].x, // "pos.z*ProjMatrixPrev[2].x" only needed for Stereo or TAA
-              pos.y*ProjMatrixPrev[1].y + pos.z*ProjMatrixPrev[2].y, // "pos.z*ProjMatrixPrev[2].y" only needed for           TAA
+   return Vec(pos.x*ProjMatrixPrev[0].x + pos.z*ProjMatrixPrev[2].x, // "pos.z*ProjMatrixPrev[2].x" only needed for Stereo or Temporal
+              pos.y*ProjMatrixPrev[1].y + pos.z*ProjMatrixPrev[2].y, // "pos.z*ProjMatrixPrev[2].y" only needed for           Temporal
                                         //pos.z*ProjMatrixPrev[2].z + ProjMatrixPrev[3].z,
                                           pos.z*ProjMatrixPrev[2].w + ProjMatrixPrev[3].w);
 #else // slower
@@ -958,9 +1101,42 @@ Vec ProjectPrevXYW(Vec pos)
 #endif
 }
 /******************************************************************************/
-Vec2 UVClamp(Vec2 uv, Bool do_clamp=true)
+Vec2 UVClamp      (Vec2 uv, Bool do_clamp=true) {return do_clamp ? Mid(uv, ImgClamp.xy, ImgClamp.zw) : uv;} // clamp  UV
+Vec2 UVInView     (Vec2 uv, Bool view_full    ) {return         UVClamp(uv, !view_full);                  } // return UV inside viewport, 'view_full'=if viewport is full
+Bool UVInsideView (Vec2 uv                    ) {return all(uv==UVClamp(uv));                             } // if UV is  inside viewport
+Bool UVOutsideView(Vec2 uv                    ) {return any(uv!=UVClamp(uv));                             } // if UV is outside viewport "any(uv<ImgClamp.xy || uv>ImgClamp.zw)"
+
+Flt ViewportClamp(Vec2 pos, Vec2 dir) // this can be used to clamp 'pos' to Viewport rectangle along 'dir', works OK if 'pos' is both inside and outside viewport, returns fraction of 'dir' to move from 'pos' to be inside viewport, assuming 'dir' points towards viewport (dir=start-pos where start=some point inside viewport)
 {
-   return do_clamp ? Mid(uv, ImgClamp.xy, ImgClamp.zw) : uv;
+#if 0
+   if(pos.x>1)
+   {
+      Flt frac=(1-start.x)/(pos.x-start.x);
+      pos.x =1;
+      pos.y-=(1-frac)*(pos.y-start.y);
+   }else
+   if(pos.x<0)
+   {
+      Flt frac=(start.x)/(start.x-pos.x);
+      pos.x =0;
+      pos.y-=(1-frac)*(pos.y-start.y);
+   }
+
+   if(pos.y>1)
+   {
+      Flt frac=(1-start.y)/(pos.y-start.y);
+      pos.y =1;
+      pos.x-=(1-frac)*(pos.x-start.x);
+   }else
+   if(pos.y<0)
+   {
+      Flt frac=(start.y)/(start.y-pos.y);
+      pos.y =0;
+      pos.x-=(1-frac)*(pos.x-start.x);
+   }
+#else
+   return Max(Max(Vec2(0, 0), Abs(pos-Viewport.center)-Viewport.size/2)/Abs(dir)); // Max(Max(0, Abs(pos.x-0.5)-0.5)/Abs(pos.x-start.x), Max(0, Abs(pos.y-0.5)-0.5)/Abs(pos.y-start.y));
+#endif
 }
 /******************************************************************************/
 Vec2 FracToPosXY(Vec2 frac) // return view space xy position at z=1
@@ -991,6 +1167,19 @@ Vec2 PosToUV(Vec view_pos)
 Vec2 PixelToUV(Vec4 pixel) // faster and more accurate than 'ProjectedPosToUV', returns (0,0)..(1,1) range
 {
    return pixel.xy*RTSize.xy;
+}
+Vec2 UVToPixel(Vec2 uv)
+{
+   return uv*RTSize.zw;
+}
+/******************************************************************************/
+Vec2 DownSamplePointUV(Vec2 uv) // !! needs 'ImgSize' !! this function will return tex coordinates for downsampling with point filtering
+{ /* if downsampling 1x (no downsample, just copy), then 'uv' will be located exactly at the center of 1x1 image texel  (  correct), no offset needed
+     if downsampling 2x                             then 'uv' will be located exactly at the center of 2x2 image texels (incorrect), due to precision issues point filter might sometimes return any of them         , to fix this problem, offset tex coordinates
+     if downsampling 3x                             then 'uv' will be located exactly at the center of 3x3 image texels (  correct), no offset needed
+     if downsampling 4x                             then 'uv' will be located exactly at the center of 4x4 image texels (incorrect), due to precision issues point filter might sometimes return any of the inner 2x2, to fix this problem, offset tex coordinates
+   */
+   return ImgSize.xy*-0.25+uv; // uv-ImgSize.xy/4; instead of doing /2, do /4 because if there's no downsampling (scale=1) then UV is exactly at the center, and moving by /2 we would actually put it at biggest risk (at border between texels), so just move by /4
 }
 /******************************************************************************/
 // VELOCITIES
@@ -1027,13 +1216,13 @@ Vec GetBoneVel(VecH local_pos, Vec view_pos, VecU bone, VecH weight) // no need 
           +GetCamAngVel( view_pos);
 }
 /******************************************************************************/
-VecH2 GetVelocityUV(Vec projected_prev_pos_xyw, Vec2 uv)
+VecH2 GetMotionUV(Vec projected_prev_pos_xyw, Vec2 uv)
 {
    projected_prev_pos_xyw.z=Max(projected_prev_pos_xyw.z, Viewport.from); // prevent division by <=0 (needed for previous positions that are behind the camera)
-   VecH2 vel=ProjectedPosXYWToUV(projected_prev_pos_xyw)-uv;
+   VecH2  vel=uv-ProjectedPosXYWToUV(projected_prev_pos_xyw); // cur-prev #MotionDir
    return vel;
 }
-VecH2 GetVelocityPixel(Vec projected_prev_pos_xyw, Vec4 pixel) {return GetVelocityUV(projected_prev_pos_xyw, PixelToUV(pixel));}
+VecH2 GetMotion(Vec projected_prev_pos_xyw, Vec4 pixel) {return GetMotionUV(projected_prev_pos_xyw, PixelToUV(pixel));}
 /******************************************************************************/
 // DEPTH
 /******************************************************************************/
@@ -1077,20 +1266,20 @@ Vec GetPos(Flt z, Vec2 pos_xy) // Get Viewspace Position at 'z' depth, 'pos_xy'=
                     pos.xy=pos_xy*pos.z;
    return pos;
 }
-Vec GetPosPoint (Vec2 tex             ) {return GetPos(TexDepthPoint (tex), UVToPosXY(tex));} // Get Viewspace Position at 'tex' screen coordinates
-Vec GetPosPoint (Vec2 tex, Vec2 pos_xy) {return GetPos(TexDepthPoint (tex), pos_xy        );} // Get Viewspace Position at 'tex' screen coordinates, 'pos_xy'=known xy position at depth=1
-Vec GetPosLinear(Vec2 tex             ) {return GetPos(TexDepthLinear(tex), UVToPosXY(tex));} // Get Viewspace Position at 'tex' screen coordinates
-Vec GetPosLinear(Vec2 tex, Vec2 pos_xy) {return GetPos(TexDepthLinear(tex), pos_xy        );} // Get Viewspace Position at 'tex' screen coordinates, 'pos_xy'=known xy position at depth=1
-
-Vec GetPosMS(VecI2 pixel, UInt sample, Vec2 pos_xy) {return GetPos(TexDepthMS(pixel, sample), pos_xy);}
+Vec GetPosPix   (VecI2 pixel,              Vec2 pos_xy) {return GetPos(TexDepthPix   (pixel        ),     pos_xy   );}
+Vec GetPosMS    (VecI2 pixel, UInt sample, Vec2 pos_xy) {return GetPos(TexDepthMS    (pixel, sample),     pos_xy   );}
+Vec GetPosPoint (Vec2  uv                             ) {return GetPos(TexDepthPoint (uv           ), UVToPosXY(uv));} // Get Viewspace Position at 'uv' coordinates
+Vec GetPosPoint (Vec2  uv   ,              Vec2 pos_xy) {return GetPos(TexDepthPoint (uv           ),     pos_xy   );} // Get Viewspace Position at 'uv' coordinates, 'pos_xy'=known xy position at depth=1
+Vec GetPosLinear(Vec2  uv                             ) {return GetPos(TexDepthLinear(uv           ), UVToPosXY(uv));} // Get Viewspace Position at 'uv' coordinates
+Vec GetPosLinear(Vec2  uv   ,              Vec2 pos_xy) {return GetPos(TexDepthLinear(uv           ),     pos_xy   );} // Get Viewspace Position at 'uv' coordinates, 'pos_xy'=known xy position at depth=1
 /******************************************************************************/
 // sRGB
 /******************************************************************************/
 #define SRGBToLinearFast Sqr  // simple and fast sRGB -> Linear conversion
 #define LinearToSRGBFast Sqrt // simple and fast Linear -> sRGB conversion
 
-Half SRGBToLinear(Half s) {return (s<=0.04045  ) ? s/12.92 : Pow((s+0.055)/1.055, 2.4);} // convert 0..1 srgb   to 0..1 linear
-Half LinearToSRGB(Half l) {return (l<=0.0031308) ? l*12.92 : Pow(l, 1/2.4)*1.055-0.055;} // convert 0..1 linear to 0..1 srgb
+Half SRGBToLinear(Half s) {return (s<=0.04045  ) ? s/12.92 : Pow(s/1.055+0.055/1.055, 2.4);} // convert 0..1 srgb   to 0..1 linear, (s+0.055)/1.055
+Half LinearToSRGB(Half l) {return (l<=0.0031308) ? l*12.92 : Pow(l, 1/2.4)*1.055-0.055    ;} // convert 0..1 linear to 0..1 srgb
 
 VecH2 SRGBToLinear(VecH2 s) {return VecH2(SRGBToLinear(s.x), SRGBToLinear(s.y));}
 VecH2 LinearToSRGB(VecH2 l) {return VecH2(LinearToSRGB(l.x), LinearToSRGB(l.y));}
@@ -1105,40 +1294,94 @@ Half LinearLumOfLinearColor(VecH l) {return                  Dot(               
 Half LinearLumOfSRGBColor  (VecH s) {return                  Dot(SRGBToLinearFast(s), ColorLumWeight2) ;}
 Half   SRGBLumOfSRGBColor  (VecH s) {return LinearToSRGBFast(Dot(SRGBToLinearFast(s), ColorLumWeight2));}
 /******************************************************************************/
+// DITHER
+/******************************************************************************/
+Half Noise1D_4(VecI2 pixel) // 4 steps, -0.375 .. 0.375
+{
+ //return Noise4[(pixel.x&1) + (pixel.y&1)*2];
+   return ((pixel.x*2 + (pixel.y&1)*3)&3)*(1.0/4) - 0.375;
+}
+Half Noise1D_16(VecI2 pixel) // 16 steps, -0.46875 .. 0.46875
+{
+   return Noise16[(pixel.x&3) + (pixel.y&3)*4];
+}
+Half Noise1D_64(VecI2 pixel) // 64 steps, -0.4921875 .. 0.4921875
+{
+   return Noise64[(pixel.x&7) + (pixel.y&7)*8];
+}
+Half Noise1D_Blue(VecI2 pixel) // many steps, -1.0 .. 1.0
+{
+   return ImgNoise[pixel&(NOISE_IMAGE_RES-1)];
+}
+Half Noise1D(Vec2 pixel) // many steps, -0.5 .. 0.5
+{
+#if 0 // low
+   return Frac(Dot(pixel, Vec2(1.0, 0.5)/3))-0.5;
+#elif 0 // medium
+   return Frac(Dot(pixel, Vec2(3, 1)/8))-0.5;
+#elif 1 // good
+   return Frac(Dot(pixel, Vec2(1.6, 1)*0.25))-0.5;
+#endif
+}
+VecH Noise3D(Vec2 pixel) // -0.5 .. 0.5
+{
+   Flt noise=Dot(Vec2(171, 231), pixel);
+   return Frac(noise/Vec(103, 71, 96.9999))-0.5; // 96.9999 instead of 97 fixes blue artifacts (there are some inconsistent white lines when using 97)
+}
+Vec2 Noise2D(VecI2 pixel) // (-0.5, -0.5) .. (0.5, 0.5)
+{
+   pixel&=1;
+#if 0
+   Vec2 p=pixel-0.5; Vec2 cos_sin; CosSin(cos_sin.x, cos_sin.y, PI_4); // PI_4 is the best angle because it looks like doubling resolution
+   return Rotate(p, cos_sin)*(0.5/SQRT2_2); // 0.5 is the best scale, it puts texels exactly in the middle
+#else // optimized
+   Vec2 p=pixel*0.5-0.25; return Vec2(p.x-p.y, p.x+p.y);
+#endif
+}
+void ApplyDither(inout VecH col, Vec2 pixel, Bool linear_gamma=LINEAR_GAMMA)
+{
+   if(linear_gamma)col=LinearToSRGBFast(col);
+   col+=Noise3D(pixel)*(1.0/255); // use 1.0 because any bigger generates too much noise on repeated dither calls, 4.0/3 was the biggest value that didn't introduce artifacts (1.35 already had them), 1.5 is good however has some artifacts
+   if(linear_gamma)col=SRGBToLinearFast(col);
+}
+/******************************************************************************/
 struct VtxInput // Vertex Input, use this class to access vertex data in vertex shaders
 {
 #include "!Set Prec Struct.h"
 #if GL || VULKAN
    // !! LOC, ATTR numbers AND list order, must be in sync with GL_VTX_SEMANTIC !!
    LOC( 0) Vec4  _pos     :ATTR0 ;
-   LOC( 1) VecH  _hlp     :ATTR1 ;
+   LOC( 1) Vec   _hlp     :ATTR1 ;
    LOC( 2) VecH  _nrm     :ATTR2 ;
    LOC( 3) VecH4 _tan     :ATTR3 ;
-   LOC( 4) Vec2  _tex     :ATTR4 ;
-   LOC( 5) Vec2  _tex1    :ATTR5 ;
-   LOC( 6) Vec2  _tex2    :ATTR6 ;
-   LOC( 7) Vec2  _tex3    :ATTR7 ;
+   LOC( 4) Vec2  _uv      :ATTR4 ;
+   LOC( 5) Vec2  _uv1     :ATTR5 ;
+   LOC( 6) Vec2  _uv2     :ATTR6 ;
+   LOC( 7) Vec2  _uv3     :ATTR7 ;
    LOC( 8) Half  _size    :ATTR8 ;
    LOC( 9) Vec4  _bone    :ATTR9 ; // this has to be Vec4 because VecI4 and VecU4 don't work for some reason
    LOC(10) Vec4  _weight  :ATTR10; // this has to be Vec4 instead of VecH4 because of 2 reasons, we need sum of weights to be equal to 1.0 (half's can't do that), also when converting to GLSL the explicit casts to "Vec weight" precision are optimized away and perhaps some GLSL compilers may want to perform optimizations where Half*Vec is converted to VecH which would destroy precision for skinned characters
    LOC(11) VecH4 _material:ATTR11;
    LOC(12) VecH4 _color   :ATTR12;
+   LOC(13) VecU2 _face_id :ATTR13;
 #else
    // !! IF MAKING ANY CHANGE (EVEN PRECISION) THEN DON'T FORGET TO RE-CREATE 'VS_Code' FOR 'CreateInputLayout', see #VTX_INPUT_LAYOUT !!
    Vec4  _pos     :POSITION0   ;
-   VecH  _hlp     :POSITION1   ;
+   Vec   _hlp     :POSITION1   ;
    VecH  _nrm     :NORMAL      ;
    VecH4 _tan     :TANGENT     ;
-   Vec2  _tex     :TEXCOORD0   ;
-   Vec2  _tex1    :TEXCOORD1   ;
-   Vec2  _tex2    :TEXCOORD2   ;
-   Vec2  _tex3    :TEXCOORD3   ;
+   Vec2  _uv      :UV0         ;
+   Vec2  _uv1     :UV1         ;
+   Vec2  _uv2     :UV2         ;
+   Vec2  _uv3     :UV3         ;
    Half  _size    :PSIZE       ;
    VecU4 _bone    :BLENDINDICES;
    Vec4  _weight  :BLENDWEIGHT ; // this has to be Vec4 instead of VecH4 because of 2 reasons, we need sum of weights to be equal to 1.0 (half's can't do that), also when converting to GLSL the explicit casts to "Vec weight" precision are optimized away and perhaps some GLSL compilers may want to perform optimizations where Half*Vec is converted to VecH which would destroy precision for skinned characters
    VecH4 _material:COLOR0      ;
    VecH4 _color   :COLOR1      ;
+   VecU2 _face_id :FACE_ID     ;
 #endif
+   UInt  _id      :SV_VertexID;
    UInt  _instance:SV_InstanceID;
 #include "!Set Prec Default.h"
 
@@ -1149,12 +1392,12 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    Vec   pos      (                                        ) {return _pos.xyz                                                              ;} // vertex position
    Vec4  pos4     (                                        ) {return _pos                                                                  ;} // vertex position in Vec4(pos.xyz, 1) format
    Flt   posZ     (                                        ) {return _pos.z                                                                ;} // vertex position Z
-   VecH  hlp      (                                        ) {return _hlp                                                                  ;} // helper position
+   Vec   hlp      (                                        ) {return _hlp                                                                  ;} // helper position
    VecH  tan      (                                        ) {return _tan.xyz                                                              ;} // helper position
-   Vec2  tex      (                    Bool heightmap=false) {return heightmap ? Vec2(_pos.x, -_pos.z) : _tex                              ;} // tex coords 0
-   Vec2  tex1     (                                        ) {return                                     _tex1                             ;} // tex coords 1
-   Vec2  tex2     (                                        ) {return                                     _tex2                             ;} // tex coords 2
-   Vec2  tex3     (                                        ) {return                                     _tex3                             ;} // tex coords 3
+   Vec2  uv       (                    Bool heightmap=false) {return heightmap ? Vec2(_pos.x, -_pos.z) : _uv                               ;} // tex coords 0
+   Vec2  uv1      (                                        ) {return                                     _uv1                              ;} // tex coords 1
+   Vec2  uv2      (                                        ) {return                                     _uv2                              ;} // tex coords 2
+   Vec2  uv3      (                                        ) {return                                     _uv3                              ;} // tex coords 3
 #if GL
    VecU  bone     (                                        ) {return VtxSkinning ? VecU(_bone.xyz) : VecU(0, 0, 0)                         ;} // bone matrix indexes
 #else
@@ -1180,36 +1423,50 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    VecH4 colorF    () {return _color                                       ;} // linear vertex color
    VecH  colorF3   () {return _color.rgb                                   ;} // linear vertex color
 
-   UInt instance() {return _instance;}
+   VecU2 faceID  () {return _face_id;}
+   UInt  id      () {return _id;}
+   UInt  instance() {return _instance;}
 };
 /******************************************************************************/
-void DrawPixel_VS(VtxInput vtx,
-      NOPERSP out Vec4 outVtx:POSITION)
-{
-   outVtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
-}
 void Draw_VS(VtxInput vtx,
- NOPERSP out Vec2 outTex:TEXCOORD0,
- NOPERSP out Vec4 outVtx:POSITION )
+          NOPERSP out Vec4 pixel:POSITION)
 {
-   outTex=vtx.tex();
-   outVtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
+}
+void DrawUV_VS(VtxInput vtx,
+   NOPERSP out Vec2 uv   :UV,
+   NOPERSP out Vec4 pixel:POSITION)
+{
+   uv   =vtx.uv();
+   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
+}
+void DrawUVPosXY_VS(VtxInput vtx,
+        NOPERSP out Vec2 uv   :UV    ,
+        NOPERSP out Vec2 posXY:POS_XY,
+        NOPERSP out Vec4 pixel:POSITION)
+{
+   uv   =vtx.uv();
+   posXY=UVToPosXY(uv);
+   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
 }
 void DrawPosXY_VS(VtxInput vtx,
-      NOPERSP out Vec2 outTex  :TEXCOORD0,
-      NOPERSP out Vec2 outPosXY:TEXCOORD1,
-      NOPERSP out Vec4 outVtx  :POSITION )
+      NOPERSP out Vec2 posXY:POS_XY,
+      NOPERSP out Vec4 pixel:POSITION)
 {
-   outTex  =vtx.tex();
-   outPosXY=UVToPosXY(outTex);
-   outVtx  =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
+   posXY=UVToPosXY(vtx.uv());
+   pixel=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only foreground pixels (no sky/background)
 }
-void Draw2DTex_VS(VtxInput vtx,
-      NOPERSP out Vec2 outTex:TEXCOORD,
-      NOPERSP out Vec4 outVtx:POSITION)
+void DrawScreen_VS(VtxInput vtx,
+      NOPERSP out Vec4 pixel:POSITION)
 {
-   outTex=vtx.tex();
-   outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, Z_FRONT, 1);
+   pixel=Vec4(vtx.pos2()*Coords.xy+Coords.zw, Z_FRONT, 1);
+}
+void DrawScreenUV_VS(VtxInput vtx,
+      NOPERSP out Vec2 uv   :UV,
+      NOPERSP out Vec4 pixel:POSITION)
+{
+   uv   =vtx.uv();
+   pixel=Vec4(vtx.pos2()*Coords.xy+Coords.zw, Z_FRONT, 1);
 }
 /******************************************************************************/
 Half DistPointPlaneRay(VecH2 p,                  VecH2 plane_normal, VecH2 ray) {Half rd=Dot(ray, plane_normal); return rd ? Dot           (p,            plane_normal)/rd : 0;}
@@ -1301,6 +1558,7 @@ VecH4 Lerp4(VecH4 v0, VecH4 v1, VecH4 v2, VecH4 v3, Half s)
 /******************************************************************************/
 Half LerpCube(Half s) {return (3-2*s)*s*s;}
 Flt  LerpCube(Flt  s) {return (3-2*s)*s*s;}
+VecH LerpCube(VecH s) {return (3-2*s)*s*s;}
 
 Half LerpCube(Half from, Half to, Half s) {return Lerp(from, to, LerpCube(s));}
 Flt  LerpCube(Flt  from, Flt  to, Flt  s) {return Lerp(from, to, LerpCube(s));}
@@ -1323,28 +1581,19 @@ Flt  BlendSmoothSin(Flt  x) {x=Sat(Abs(x)); return Cos(x*PI)*0.5+0.5;}
 
 Half Gaussian(Half x) {return exp(-x*x);}
 Flt  Gaussian(Flt  x) {return exp(-x*x);}
+
+Half ScaleFactor (Half x) {return (x>=0) ? (1+x) : (1/(1-x));}
+Flt  ScaleFactor (Flt  x) {return (x>=0) ? (1+x) : (1/(1-x));}
+Half ScaleFactorR(Half s) {return (s>=1) ? (s-1) : (1-(1/s));}
+Flt  ScaleFactorR(Flt  s) {return (s>=1) ? (s-1) : (1-(1/s));}
+
+Half Pinch      (Half x, Half pinch) {return x*pinch/(1+x*(pinch-1));}
+Flt  Pinch      (Flt  x, Flt  pinch) {return x*pinch/(1+x*(pinch-1));}
+Half PinchFactor(Half x, Half pinch) {return Pinch(x, ScaleFactor(pinch));}
+Flt  PinchFactor(Flt  x, Flt  pinch) {return Pinch(x, ScaleFactor(pinch));}
 /******************************************************************************/
 Half     VisibleOpacity(Flt density, Flt range) {return   Pow(1-density, range);} // calculate visible     opacity (0..1) having 'density' environment density (0..1), and 'range' (0..Inf)
 Half AccumulatedDensity(Flt density, Flt range) {return 1-Pow(1-density, range);} // calculate accumulated density (0..1) having 'density' environment density (0..1), and 'range' (0..Inf)
-/******************************************************************************/
-Half DitherValue(Vec2 pixel)
-{
-#if 0 // low
-   return Frac(Dot(pixel, Vec2(1.0, 0.5)/3))-0.5;
-#elif 0 // medium
-   return Frac(Dot(pixel, Vec2(3, 1)/8))-0.5;
-#elif 1 // good
-   return Frac(Dot(pixel, Vec2(1.6, 1)*0.25))-0.5; // -0.5 .. 0.5 range
-#else
-   VecI2 xy=Trunc(pixel)%8; return OrderDither[xy.x + xy.y*8]; // -1..1 / 256 range
-#endif
-}
-void ApplyDither(inout VecH col, Vec2 pixel, Bool linear_gamma=LINEAR_GAMMA)
-{
-   if(linear_gamma)col=LinearToSRGBFast(col);
-   col+=DitherValue(pixel)*(1.5/255);
-   if(linear_gamma)col=SRGBToLinearFast(col);
-}
 /******************************************************************************/
 // RGB <-> HSB
 /******************************************************************************/
@@ -1389,12 +1638,23 @@ Vec HsbToRgb(Vec hsb)
 /******************************************************************************/
 // ALPHA TEST
 /******************************************************************************/
-void AlphaTest(Half alpha)
+void MaterialAlphaTest(Half alpha)
 {
    clip(alpha+Material.color.a-1);
 }
+void MaterialAlphaTestDither(Half alpha, VecI2 pixel, VecU2 face, bool noise_offset=true)
+{
+   pixel=pixel+(noise_offset ? NoiseOffset : 0)+face; // can't use xor because it would destroy noise image continuity, adjust by face to make sure that multiple faces on top of each other would use different weights (example #0 face with alpha=0.5 and then #1 face with alpha=0.5 drawn on top of #0 would use the same pixels, but with face index variation they will use different)
+   Half scale=1-1.0/1024; // this is needed to preserve fully opaque =1 alphas 
+#if 0 // 64-step cbuffer
+   alpha=alpha*Material.color.a+(Noise1D_64  (pixel)*     scale -0.5);
+#else // blue noise image
+   alpha=alpha*Material.color.a+(Noise1D_Blue(pixel)*(0.5*scale)-0.5);
+#endif
+   if(alpha<=0)discard;
+}
 /******************************************************************************/
-// NORMAL
+// NORMAL + EXT
 /******************************************************************************/
 Vec4 UnpackNormal(VecH4 nrm)
 {
@@ -1405,28 +1665,16 @@ Vec4 UnpackNormal(VecH4 nrm)
    nrm_hp.xyz=Normalize(nrm_hp.xyz); // normalize needed even if source was F16 format because it improves quality for specular
    return nrm_hp;
 }
-Vec4 GetNormal  (Vec2  tex               ) {return UnpackNormal(TexPoint (Img  , tex          ));}
-Vec4 GetNormalMS(VecI2 pixel, UInt sample) {return UnpackNormal(TexSample(ImgMS, pixel, sample));}
-/******************************************************************************/
-// EXT
-/******************************************************************************/
-VecH2 GetExt  (Vec2  tex               ) {return TexPoint (ImgXY  , tex          );}
-VecH2 GetExtMS(VecI2 pixel, UInt sample) {return TexSample(ImgXYMS, pixel, sample);}
+Vec4  GetNormal  (VecI2 pixel             ) {return UnpackNormal(          Img     [pixel]);}
+Vec4  GetNormalMS(VecI2 pixel, UInt sample) {return UnpackNormal(TexSample(ImgMS  , pixel, sample));}
+VecH2 GetExt     (VecI2 pixel             ) {return                        ImgXY   [pixel];}
+VecH2 GetExtMS   (VecI2 pixel, UInt sample) {return              TexSample(ImgXYMS, pixel, sample) ;}
 /******************************************************************************/
 // LOD INDEX
 /******************************************************************************/
-Flt GetLod(Vec2 tex_coord, Flt tex_size)
-{
-   Vec2 tex=tex_coord*tex_size;
-   return 0.5*log2(Max(Length2(ddx(tex)) , Length2(ddy(tex)))); // NVIDIA
- //return 0.5*log2(Max(Sqr    (ddx(tex)) + Sqr    (ddy(tex)))); // ATI
-}
-Flt GetLod(Vec2 tex_coord, Vec2 tex_size)
-{
-   Vec2 tex=tex_coord*tex_size;
-   return 0.5*log2(Max(Length2(ddx(tex)) , Length2(ddy(tex)))); // NVIDIA
- //return 0.5*log2(Max(Sqr    (ddx(tex)) + Sqr    (ddy(tex)))); // ATI
-}
+// TODO: 'CalculateLevelOfDetail' could be used however it's only DX 10.1 SM_4_1 / GL 4.0+ / GL ES ?
+Flt GetLod(Vec2 uv, Flt  tex_size) {Vec2 pix=uv*tex_size; return 0.5*log2(Max(Length2(ddx(pix)), Length2(ddy(pix))));}
+Flt GetLod(Vec2 uv, Vec2 tex_size) {Vec2 pix=uv*tex_size; return 0.5*log2(Max(Length2(ddx(pix)), Length2(ddy(pix))));}
 /******************************************************************************/
 // GRASS AND LEAF
 /******************************************************************************/
@@ -1439,31 +1687,31 @@ Flt GetLod(Vec2 tex_coord, Vec2 tex_size)
 /******************************************************************************/
 Vec2 GetGrassBend(Vec world_pos, Bool prev=false)
 {
-   VecH4 bend_factor=(prev ? BendFactorPrev : BendFactor);
-   Flt   offset=Dot(world_pos.xz, Vec2(0.7, 0.9)*GrassBendFreq);
+   Vec4 bend_factor=(prev ? BendFactorPrev : BendFactor);
+   Flt  offset=Dot(world_pos.xz, Vec2(0.7, 0.9)*GrassBendFreq);
    return Vec2((1.0*GrassBendScale)*Sin(offset+bend_factor.x) + (1.0*GrassBendScale)*Sin(offset+bend_factor.y),
                (1.0*GrassBendScale)*Sin(offset+bend_factor.z) + (1.0*GrassBendScale)*Sin(offset+bend_factor.w));
 }
-VecH2 GetLeafBend(VecH center, Bool prev=false)
+Vec2 GetLeafBend(Vec center, Bool prev=false)
 {
-   VecH4 bend_factor=(prev ? BendFactorPrev : BendFactor);
-   Half  offset=Dot(center.xy, VecH2(0.7, 0.8)*LeafBendFreq);
-   return VecH2((1.0*LeafBendScale)*(Half)Sin(offset+bend_factor.x) + (1.0*LeafBendScale)*(Half)Sin(offset+bend_factor.y),
-                (1.0*LeafBendScale)*(Half)Sin(offset+bend_factor.z) + (1.0*LeafBendScale)*(Half)Sin(offset+bend_factor.w));
+   Vec4 bend_factor=(prev ? BendFactorPrev : BendFactor);
+   Flt  offset=Dot(center.xy, Vec2(0.7, 0.8)*LeafBendFreq);
+   return Vec2((1.0*LeafBendScale)*Sin(offset+bend_factor.x) + (1.0*LeafBendScale)*Sin(offset+bend_factor.y),
+               (1.0*LeafBendScale)*Sin(offset+bend_factor.z) + (1.0*LeafBendScale)*Sin(offset+bend_factor.w));
 }
-VecH2 GetLeafsBend(VecH center, Bool prev=false)
+Vec2 GetLeafsBend(Vec center, Flt offset, Bool prev=false)
 {
-   VecH4 bend_factor=(prev ? BendFactorPrev : BendFactor);
-   Half  offset=Dot(center.xy, VecH2(0.7, 0.8)*LeafBendFreq);
-   return VecH2((1.0*LeafsBendScale)*(Half)Sin(offset+bend_factor.x) + (1.0*LeafsBendScale)*(Half)Sin(offset+bend_factor.y),
-                (1.0*LeafsBendScale)*(Half)Sin(offset+bend_factor.z) + (1.0*LeafsBendScale)*(Half)Sin(offset+bend_factor.w));
+   Vec4 bend_factor=(prev ? BendFactorPrev : BendFactor);
+   offset+=Dot(center.xy, Vec2(0.7, 0.8)*LeafBendFreq);
+   return Vec2((1.0*LeafsBendScale)*Sin(offset+bend_factor.x) + (1.0*LeafsBendScale)*Sin(offset+bend_factor.y),
+               (1.0*LeafsBendScale)*Sin(offset+bend_factor.z) + (1.0*LeafsBendScale)*Sin(offset+bend_factor.w));
 }
 /******************************************************************************/
 Half GrassFadeOut(UInt mtrx=0)
 {
    return Sat(Length2(ViewMatrixPos(mtrx))*GrassRangeMulAdd.x+GrassRangeMulAdd.y);
 }
-void BendGrass(Vec local_pos, in out Vec view_pos, UInt mtrx=0, Bool prev=false)
+void BendGrass(Vec local_pos, inout Vec view_pos, UInt mtrx=0, Bool prev=false)
 {
 #if 1 // slower but higher quality
    if(local_pos.y>0)
@@ -1507,51 +1755,53 @@ void BendGrass(Vec local_pos, in out Vec view_pos, UInt mtrx=0, Bool prev=false)
 #endif
 }
 /******************************************************************************/
-void BendLeaf(VecH center, in out Vec pos, Bool prev=false)
+// Here can't use Half's because precision was not good enough
+void BendLeaf(Vec center, inout Vec pos, Bool prev=false)
 {
-   VecH   delta=(VecH)pos-center;
+   VecH   delta=pos-center;
    VecH2  cos_sin, bend=GetLeafBend(center, prev);
    CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin);
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin);
    pos=center+delta;
 }
-void BendLeaf(VecH center, in out Vec pos, in out VecH nrm, Bool prev=false)
+void BendLeaf(Vec center, inout Vec pos, inout VecH nrm, Bool prev=false)
 {
-   VecH   delta=(VecH)pos-center;
+   VecH   delta=pos-center;
    VecH2  cos_sin, bend=GetLeafBend(center, prev);
    CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin); nrm.xy=Rotate(nrm.xy, cos_sin);
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin);
    pos=center+delta;
 }
-void BendLeaf(VecH center, in out Vec pos, in out VecH nrm, in out VecH tan, Bool prev=false)
+void BendLeaf(Vec center, inout Vec pos, inout VecH nrm, inout VecH tan, Bool prev=false)
 {
-   VecH   delta=(VecH)pos-center;
+   VecH   delta=pos-center;
    VecH2  cos_sin, bend=GetLeafBend(center, prev);
    CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin); nrm.xy=Rotate(nrm.xy, cos_sin); tan.xy=Rotate(tan.xy, cos_sin);
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin); tan.zy=Rotate(tan.zy, cos_sin);
    pos=center+delta;
 }
 /******************************************************************************/
-void BendLeafs(VecH center, Half offset, in out Vec pos, Bool prev=false)
+// Here can't use Half's because precision was not good enough
+void BendLeafs(Vec center, Flt offset, inout Vec pos, Bool prev=false)
 {
-   VecH   delta=(VecH)pos-center;
-   VecH2  cos_sin, bend=GetLeafsBend(center+offset, prev);
+   VecH   delta=pos-center;
+   VecH2  cos_sin, bend=GetLeafsBend(center, offset, prev);
    CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin);
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin);
    pos=center+delta;
 }
-void BendLeafs(VecH center, Half offset, in out Vec pos, in out VecH nrm, Bool prev=false)
+void BendLeafs(Vec center, Flt offset, inout Vec pos, inout VecH nrm, Bool prev=false)
 {
-   VecH   delta=(VecH)pos-center;
-   VecH2  cos_sin, bend=GetLeafsBend(center+offset, prev);
+   VecH   delta=pos-center;
+   VecH2  cos_sin, bend=GetLeafsBend(center, offset, prev);
    CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin); nrm.xy=Rotate(nrm.xy, cos_sin);
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin);
    pos=center+delta;
 }
-void BendLeafs(VecH center, Half offset, in out Vec pos, in out VecH nrm, in out VecH tan, Bool prev=false)
+void BendLeafs(Vec center, Flt offset, inout Vec pos, inout VecH nrm, inout VecH tan, Bool prev=false)
 {
-   VecH   delta=(VecH)pos-center;
-   VecH2  cos_sin, bend=GetLeafsBend(center+offset, prev);
+   VecH   delta=pos-center;
+   VecH2  cos_sin, bend=GetLeafsBend(center, offset, prev);
    CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin); nrm.xy=Rotate(nrm.xy, cos_sin); tan.xy=Rotate(tan.xy, cos_sin);
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin); tan.zy=Rotate(tan.zy, cos_sin);
    pos=center+delta;
@@ -1561,15 +1811,16 @@ void BendLeafs(VecH center, Half offset, in out Vec pos, in out VecH nrm, in out
 /******************************************************************************/
 #include "!Set Prec Struct.h"
 BUFFER(DepthWeight)
-   Flt DepthWeightScale=0.005;
+   Vec2 DepthWeightScale; // X=for linear filtering, Y=for point filtering
 BUFFER_END
 #include "!Set Prec Default.h"
 
 #if 0
 Flt P1=0.004, P2=2;
-Vec2 DepthWeightMAD(Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale+P1), P2);}
+Vec2 DepthWeightMAD      (Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale+P1), P2);}
 #else
-Vec2 DepthWeightMAD(Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale+0.004), 2);}
+Vec2 DepthWeightMADLinear(Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale.x+0.004), 2);}
+Vec2 DepthWeightMADPoint (Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale.y+0.008), 2);} // use 2x bigger tolerance because point filtering doesn't smoothen depth values
 #endif
 Half DepthWeight(Flt delta, Vec2 dw_mad)
 {
@@ -1578,45 +1829,46 @@ Half DepthWeight(Flt delta, Vec2 dw_mad)
 /******************************************************************************/
 // DETAIL
 /******************************************************************************/
-VecH4 GetDetail(Vec2 tex)
+VecH4 GetDetail(Vec2 tex) // XY=nrm.xy -1..1 delta, Z=rough -1..1 delta, W=color 0..2 scale
 {
-   VecH4 det=Tex(Det, tex*Material.det_scale); // XY=nrm.xy, Z=color, W=smooth #MaterialTextureLayout
-   det.xy=(det.xy-0.5)*Material.det_power;
-   det.zw= det.zw     *Material.det_power+(1-Material.det_power); // Lerp(1, det.zw, Material.det_power) = 1*(1-Material.det_power) + det.zw*Material.det_power
+   VecH4 det=RTex(Det, tex*Material.det_uv_scale); // XY=nrm.xy 0..1, Z=rough 0..1, W=color 0..1 #MaterialTextureLayoutDetail
+
+   /* unoptimized
+   det.xyz                 =(det.xyz            -0.5)*2*Material.det_power;
+   det.DETAIL_CHANNEL_COLOR= det.DETAIL_CHANNEL_COLOR*2*Material.det_power+(1-Material.det_power); // Lerp(1, det*2, Material.det_power) = 1*(1-Material.det_power) + det*2*Material.det_power */
+
+   // optimized TODO: these constants could be precalculated as det_power2=det_power*2; det_power_neg=-det_power; det_power_inv=1-det_power; however that would increase the Material buffer size
+   det.xyz                 =det.xyz                 *(Material.det_power*2)+( -Material.det_power);
+   det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*(Material.det_power*2)+(1-Material.det_power);
+
    return det;
 }
-VecH4 GetDetail0(Vec2 tex) {VecH4 det=Tex(Det , tex*MultiMaterial0.det_scale); det.xy=det.xy*MultiMaterial0.det_mul+MultiMaterial0.det_add; det.zw=det.zw*MultiMaterial0.det_mul+MultiMaterial0.det_inv; return det;}
-VecH4 GetDetail1(Vec2 tex) {VecH4 det=Tex(Det1, tex*MultiMaterial1.det_scale); det.xy=det.xy*MultiMaterial1.det_mul+MultiMaterial1.det_add; det.zw=det.zw*MultiMaterial1.det_mul+MultiMaterial1.det_inv; return det;}
-VecH4 GetDetail2(Vec2 tex) {VecH4 det=Tex(Det2, tex*MultiMaterial2.det_scale); det.xy=det.xy*MultiMaterial2.det_mul+MultiMaterial2.det_add; det.zw=det.zw*MultiMaterial2.det_mul+MultiMaterial2.det_inv; return det;}
-VecH4 GetDetail3(Vec2 tex) {VecH4 det=Tex(Det3, tex*MultiMaterial3.det_scale); det.xy=det.xy*MultiMaterial3.det_mul+MultiMaterial3.det_add; det.zw=det.zw*MultiMaterial3.det_mul+MultiMaterial3.det_inv; return det;}
+VecH4 GetDetail0(Vec2 tex) {VecH4 det=RTex(Det , tex*MultiMaterial0.det_uv_scale); det.xyz=det.xyz*MultiMaterial0.det_mul+MultiMaterial0.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial0.det_mul+MultiMaterial0.det_inv; return det;}
+VecH4 GetDetail1(Vec2 tex) {VecH4 det=RTex(Det1, tex*MultiMaterial1.det_uv_scale); det.xyz=det.xyz*MultiMaterial1.det_mul+MultiMaterial1.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial1.det_mul+MultiMaterial1.det_inv; return det;}
+VecH4 GetDetail2(Vec2 tex) {VecH4 det=RTex(Det2, tex*MultiMaterial2.det_uv_scale); det.xyz=det.xyz*MultiMaterial2.det_mul+MultiMaterial2.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial2.det_mul+MultiMaterial2.det_inv; return det;}
+VecH4 GetDetail3(Vec2 tex) {VecH4 det=RTex(Det3, tex*MultiMaterial3.det_uv_scale); det.xyz=det.xyz*MultiMaterial3.det_mul+MultiMaterial3.det_add; det.DETAIL_CHANNEL_COLOR=det.DETAIL_CHANNEL_COLOR*MultiMaterial3.det_mul+MultiMaterial3.det_inv; return det;}
 /******************************************************************************/
 // FACE NORMAL HANDLING
 /******************************************************************************/
-void BackFlip(in out VecH dir, Bool front) {if(!front)dir=-dir;}
+void BackFlip(inout VecH dir, Bool front) {if(!front)dir=-dir;}
 /******************************************************************************/
 Half MultiMaterialWeight(Half weight, Half alpha) // 'weight'=weight of this material, 'alpha'=color texture alpha (opacity or bump)
 {
-   // sharpen alpha
-#if 0 // not needed when ALPHA_POWER is big
-   #if 0 // good but slow
-      if(alpha<=0.5)alpha=  2*Sqr(  alpha);
-      else          alpha=1-2*Sqr(1-alpha);
-   #else // fast approximation
-      alpha=Sat(alpha*1.5 + (-0.5*1.5+0.5)); // Sat((alpha-0.5)*1.5+0.5)
-   #endif
-#endif
-
-#if 1 // works best
-   #define ALPHA_POWER 10.0
-   Half w=weight // base
-         +weight*(1-weight)*(alpha*ALPHA_POWER - 0.5*ALPHA_POWER); // "weight"=ignore alpha at start "1-weight" ignore alpha at end, "(alpha-0.5)*ALPHA_POWER" alpha
-   if(ALPHA_POWER>2)w=Max(w, weight/16); // if ALPHA_POWER>2 then this formula could go below zero which could result in artifacts, because weights could be negative or all zero, so maximize with a small slope (has to be zero at start, and small after that)
-   return w;
-#elif 1
-   #define ALPHA_POWER 0.5
-   return Sat(weight*(1+ALPHA_POWER) + alpha*ALPHA_POWER - ALPHA_POWER); // start at "-ALPHA_POWER" so it can clear out any alpha we have at the start (we always want up to zero weight at the start even if we have high alpha) and always want at least 1 weight at the end, even if we have low alpha
-#else
-   return Lerp(weight, alpha, weight*(1-weight)*2);
+#if 0 // linear
+   return weight;
+#elif 0 // Pow (too bright on low weights, causing visible jumps due to material reduction for low weights, also blurry (small contrast) compared to Pinch
+   const Half sharpen=-5;
+   return Pow(weight, ScaleFactor(alpha*sharpen - 0.5*sharpen));
+#elif 0 // Pinch (too sharp transitions)
+   const Half sharpen=32;
+   return PinchFactor(weight, alpha*sharpen - 0.5*sharpen);
+#elif 0 // uses alpha on middle and high, too bright on low weights, causing visible jumps due to material reduction for low weights
+   const Half sharpen=4;
+   return Max(0, weight*(alpha*sharpen - 0.5*sharpen + 1));
+#else // uses alpha on middle
+   const Half sharpen=8;
+   return Max(0, weight // base
+                +weight*(1-weight)*(alpha*sharpen - 0.5*sharpen)); // "weight"=ignore alpha at start "1-weight" ignore alpha at end, "(alpha-0.5)*sharpen" alpha
 #endif
 }
 /******************************************************************************/
@@ -1680,37 +1932,37 @@ VecH F_Schlick(VecH f0, Half f90, Half cos) // High Precision not needed
    Half q=Quint(1-cos); // Quint(1-x) = ~exp2(-9.28*x)
    return f90*q + f0*(1-q); // re-ordered because of Vec
 }
-Half Vis_SmithR2Inv(Half roughness2, Half NdotL, Half NdotV) // High Precision not needed, "roughness2=Sqr(roughness)", result is inversed 1/x
+Half Vis_SmithR2Inv(Half rough2, Half NdotL, Half NdotV) // High Precision not needed, "rough2=Sqr(rough)", result is inversed 1/x
 {
 #if 1
-   Half view =NdotV+Sqrt((-NdotV*roughness2+NdotV)*NdotV+roughness2);
-	Half light=NdotL+Sqrt((-NdotL*roughness2+NdotL)*NdotL+roughness2);
+   Half view =NdotV+Sqrt((-NdotV*rough2+NdotV)*NdotV+rough2);
+	Half light=NdotL+Sqrt((-NdotL*rough2+NdotL)*NdotL+rough2);
 	return view*light;
 #else // gives same results but has 2 MUL and 1 ADD, instead of 2 ADD 1 MUL, don't use in case MUL is slower than ADD
    // Warning: "NdotL*" and "NdotV*" are exchanged on purpose
-   Half view =NdotL*Sqrt((-NdotV*roughness2+NdotV)*NdotV+roughness2);
-   Half light=NdotV*Sqrt((-NdotL*roughness2+NdotL)*NdotL+roughness2);
+   Half view =NdotL*Sqrt((-NdotV*rough2+NdotV)*NdotV+rough2);
+   Half light=NdotV*Sqrt((-NdotL*rough2+NdotL)*NdotL+rough2);
    return (view+light)*2;
 #endif
 }
-Half Vis_SmithFastInv(Half roughness, Half NdotL, Half NdotV) // fast approximation of 'Vis_Smith', High Precision not needed, result is inversed 1/x
+Half Vis_SmithFastInv(Half rough, Half NdotL, Half NdotV) // fast approximation of 'Vis_Smith', High Precision not needed, result is inversed 1/x
 {
-	Half view =NdotL*(NdotV*(1-roughness)+roughness);
-	Half light=NdotV*(NdotL*(1-roughness)+roughness);
+	Half view =NdotL*(NdotV*(1-rough)+rough);
+	Half light=NdotV*(NdotL*(1-rough)+rough);
 	return (view+light)*2;
 }
-/*Half D_GGX(Half roughness, Flt NdotH) // Trowbridge-Reitz, High Precision required
+/*Half D_GGX(Half rough, Flt NdotH) // Trowbridge-Reitz, High Precision required
 {
-   Flt roughness2=Sqr(roughness);
-   Flt f=(NdotH*roughness2-NdotH)*NdotH+1;
-   return roughness2/(f*f); // NaN
+   Flt rough2=Sqr(rough);
+   Flt f=(NdotH*rough2-NdotH)*NdotH+1;
+   return rough2/(f*f); // NaN
 }*/
-Half D_GGX_Vis_Smith(Half roughness, Flt NdotH, Half NdotL, Half NdotV, Bool quality) // D_GGX and Vis_Smith combined together
+Half D_GGX_Vis_Smith(Half rough, Flt NdotH, Half NdotL, Half NdotV, Bool quality) // D_GGX and Vis_Smith combined together
 {
-   Half roughness2=Sqr(roughness);
-   Flt  f=(NdotH*roughness2-NdotH)*NdotH+1;
-   Flt  div=f*f*(quality ? Vis_SmithR2Inv(roughness2, NdotL, NdotV) : Vis_SmithFastInv(roughness, NdotL, NdotV));
-   return div ? roughness2/div : HALF_MAX;
+   Half rough2=Sqr(rough);
+   Flt  f=(NdotH*rough2-NdotH)*NdotH+1;
+   Flt  div=f*f*(quality ? Vis_SmithR2Inv(rough2, NdotL, NdotV) : Vis_SmithFastInv(rough, NdotL, NdotV));
+   return div ? rough2/div : HALF_MAX;
 }
 /******************************************************************************
 Popular game engines use only metalness texture, and calculate "Diffuse{return (1-metal)*base_color}" and "ReflectCol{return Lerp(0.04, base_color, metal)}"
@@ -1722,20 +1974,20 @@ Unity:
    half OneMinusReflectivityMetallic(half metallic) {lerp(dielectricSpec, 1, metallic);} with 'dielectricSpec' defined as 0.04
 To achieve compatibility with a lot of assets for those engines, Esenthel uses a similar formula, however tweaked to preserve original diffuse color and minimize reflectivity at low reflectivity values:
    for reflectivities<=0.04 to make 'Diffuse' return 1 and 'ReflectCol' return 'reflectivity'
-   for reflectivities> 0.04 there's a minor difference due to the fact that 'ReflectToInvMetal' is slightly modified however the difference is negligible (full compatibility would require a secondary 'Lerp'), to workaround this, import metal textures with "?metalToReflect" param
+   for reflectivities> 0.04 there's a minor difference due to the fact that 'ReflectToInvMetal' is slightly modified however the difference is negligible (full compatibility would require a secondary 'Lerp')
 */
-Half ReflectToInvMetal(Half reflectivity) // this returns "1-metal" to make 'Diffuse' calculation faster
+Half ReflectToInvMetal(Half reflectivity) // this returns "1-metal" to make 'Diffuse' calculation faster, returned range is 0..1+ (slightly bigger than 1 for reflectivities <0.04) so result might need to be "Min(1, )"
 {
    return LerpR(1.00, 0.04, reflectivity); // treat 0 .. 0.04 reflectivity as dielectrics (metal=0), after that go linearly to metal=1, because for dielectrics we want to preserve original texture fully (make 'Diffuse' return 1), and then go to 1.0 so we can get smooth transition to metal and slowly decrease 'Diffuse' and affect 'ReflectCol'
 }
 Half Diffuse(Half inv_metal) {return Min(1, inv_metal);}
-VecH ReflectCol(Half reflectivity, VecH unlit_col, Half inv_metal) // non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
+VecH ReflectCol(Half reflectivity, VecH base_col, Half inv_metal) // non-metals (with low reflectivity) have white reflection and metals (with high reflectivity) have colored reflection
 {
-   return (reflectivity<=0.04) ? reflectivity : Lerp(unlit_col, 0.04, inv_metal);
+   return (reflectivity<=0.04) ? reflectivity : Lerp(base_col, 0.04, inv_metal);
 }
-VecH ReflectCol(Half reflectivity, VecH unlit_col)
+VecH ReflectCol(Half reflectivity, VecH base_col)
 {
-   return ReflectCol(reflectivity, unlit_col, ReflectToInvMetal(reflectivity));
+   return ReflectCol(reflectivity, base_col, ReflectToInvMetal(reflectivity));
 }
 /******************************************************************************/
 struct LightParams
@@ -1750,9 +2002,9 @@ struct LightParams
    }
    void set(Vec N, Vec L, Vec nV) // nV=-V, High Precision required for all 3 vectors (this was tested)
    {
-    /*if(Q)N=HALF(N);
-      if(W)L=HALF(L);
-      if(E)nV=HALF(nV);*/
+    /*if(Q)N=AsHalf(N);
+      if(W)L=AsHalf(L);
+      if(E)nV=AsHalf(nV);*/
 	   NdotV=NdotV_HP=-Dot(N, nV);
 	   VdotL=VdotL_HP=-Dot(nV, L);
    #if 0
@@ -1761,31 +2013,29 @@ struct LightParams
       VdotH   =Dot(L, H);
    #else // faster
     //VdotL=2*VdotH*VdotH-1
-	   Flt VL=rsqrt(VdotL_HP*2+2);
+	   Flt VL=Rsqrt(VdotL_HP*2+2);
 	   NdotH_HP=(NdotL_HP+NdotV_HP)*VL;
 	   VdotH   =       VL*VdotL_HP +VL;
    #endif
-    /*if(Q)NdotV=HALF(NdotV);
-      if(W)VdotL=HALF(VdotL);
-      if(E)NdotV_HP=HALF(NdotV_HP);
-      if(R)NdotH_HP=HALF(NdotH_HP);*/
+    /*if(Q)NdotV=AsHalf(NdotV);
+      if(W)VdotL=AsHalf(VdotL);
+      if(E)NdotV_HP=AsHalf(NdotV_HP);
+      if(R)NdotH_HP=AsHalf(NdotH_HP);*/
    }
 
    // High Precision not needed for Diffuse
-   Half diffuseOrenNayar(Half smooth) // highlights edges starting from smooth = 1 -> 0
+   Half diffuseOrenNayar(Half rough) // highlights edges starting from smooth = 1 -> 0
    {
-      Half roughness=1-smooth;
-	   Half a=Sqr(roughness), a2=Sqr(a); // it's better to square roughness for 'a' too, because it provides smoother transitions between 0..1
+	   Half a=Sqr(rough), a2=Sqr(a); // it's better to square roughness for 'a' too, because it provides smoother transitions between 0..1
 	   Half s=VdotL - NdotV*NdotL;
 	   Half A=1-0.5*a2/(a2+0.33);
 	   Half B= 0.45*a2/(a2+0.09)*s; if(s>=0)B/=Max(NdotL, NdotV);
 	   return (A+B)*(a*0.5+1);
    }
-   Half diffuseBurley(Half smooth) // aka Disney, highlights edges starting from smooth = 0.5 -> 0 and darkens starting from smooth = 0.5 -> 1.0
+   Half diffuseBurley(Half rough) // aka Disney, highlights edges starting from smooth = 0.5 -> 0 and darkens starting from smooth = 0.5 -> 1.0
    {
-      Half roughness=1-smooth;
-    //Half f90=0.5+(2*VdotH*VdotH)*roughness; 2*VdotH*VdotH=1+VdotL;
-      Half f90=0.5+roughness+roughness*VdotL;
+    //Half f90=0.5+(2*VdotH*VdotH)*rough; 2*VdotH*VdotH=1+VdotL;
+      Half f90=0.5+rough+rough*VdotL;
       Half light_scatter=F_Schlick(1, f90,     NdotL );
       Half  view_scatter=F_Schlick(1, f90, Abs(NdotV));
       return 0.965521237*light_scatter*view_scatter;
@@ -1801,38 +2051,37 @@ struct LightParams
       return Lerp(1.0, min, Sqr(NdotV));
    #endif
    }
-   Half diffuse(Half smooth)
+   Half diffuse(Half rough)
    {
    #if WATER
       return diffuseWater();
    #elif DIFFUSE_MODE==SDIFFUSE_OREN_NAYAR
-      return diffuseOrenNayar(smooth);
+      return diffuseOrenNayar(rough);
    #elif DIFFUSE_MODE==SDIFFUSE_BURLEY
-      return diffuseBurley(smooth);
+      return diffuseBurley(rough);
    #else
       return 1;
    #endif
    }
 
-   VecH specular(Half smooth, Half reflectivity, VecH reflect_col, Bool quality, Half light_radius_frac=0.0036)
+   VecH specular(Half rough, Half reflectivity, VecH reflect_col, Bool quality, Half light_radius_frac=0.0036)
    { // currently specular can be generated even for smooth=0 and reflectivity=0 #SpecularReflectionFromZeroSmoothReflectivity
-      Half roughness=1-smooth;
    #if 0
-      if( Q)roughness=Lerp(Pow(light_radius_frac, E ? 1.0/4 : 1.0/2), Pow(1, E ? 1.0/4 : 1.0/2), roughness);
-      roughness=(E ? Quart(roughness) : Sqr(roughness));
-      if(!Q)roughness=Lerp(light_radius_frac, 1, roughness);
+      if( Q)rough=Lerp(Pow(light_radius_frac, E ? 1.0/4 : 1.0/2), Pow(1, E ? 1.0/4 : 1.0/2), rough);
+      rough=(E ? Quart(rough) : Sqr(rough));
+      if(!Q)rough=Lerp(light_radius_frac, 1, rough);
    #else
-      roughness =Sqr(roughness);
-      roughness+=light_radius_frac*(1-roughness); // roughness=Lerp(light_radius_frac, 1, roughness);
+      rough =Sqr(rough);
+      rough+=light_radius_frac*(1-rough); // rough=Lerp(light_radius_frac, 1, rough);
    #endif
 
       VecH F=F_Schlick(reflect_col, REFLECT_OCCL ? Sat(reflectivity*50) : 1, VdotH);
    #if 0
-      Half D=D_GGX(roughness, NdotH_HP);
-      Half Vis=(quality ? Vis_Smith(roughness, NdotL, Abs(NdotV)) : Vis_SmithFast(roughness, NdotL, Abs(NdotV))); // use "Abs(NdotV)" as it helps greatly with faces away from the camera
+      Half D=D_GGX(rough, NdotH_HP);
+      Half Vis=(quality ? Vis_Smith(rough, NdotL, Abs(NdotV)) : Vis_SmithFast(rough, NdotL, Abs(NdotV))); // use "Abs(NdotV)" as it helps greatly with faces away from the camera
       return F*(D*Vis/PI);
    #else
-      Half D_Vis=D_GGX_Vis_Smith(roughness, NdotH_HP, NdotL, Abs(NdotV), quality); // use "Abs(NdotV)" as it helps greatly with faces away from the camera
+      Half D_Vis=D_GGX_Vis_Smith(rough, NdotH_HP, NdotL, Abs(NdotV), quality); // use "Abs(NdotV)" as it helps greatly with faces away from the camera
       return F*(D_Vis/PI);
    #endif
    }
@@ -1840,20 +2089,20 @@ struct LightParams
 /******************************************************************************/
 // PBR REFLECTION
 /******************************************************************************/
-VecH2 EnvDFGTex(Half smooth, Half NdotV) // uses precomputed texture
+VecH2 EnvDFGTex(Half rough, Half NdotV) // uses precomputed texture
 {
-   return TexLodClamp(EnvDFG, VecH2(smooth, NdotV)).xy;
+   return TexLod(EnvDFG, VecH2(rough, NdotV)).xy; // need UV clamp
 }
 /* https://blog.selfshadow.com/publications/s2013-shading-course/lazarov/s2013_pbs_black_ops_2_notes.pdf
 originally developed by Lazarov, modified by Karis */
-VecH2 EnvDFGLazarovKaris(Half smooth, Half NdotV) 
+VecH2 EnvDFGLazarovKaris(Half rough, Half NdotV) 
 {
    const VecH4 m={-1, -0.0275, -0.572,  0.022},
                a={ 1,  0.0425,  1.04 , -0.04 };
-#if 0
-   VecH4 r=roughness*m+a;
+#if 1
+   VecH4 r=rough*m+a;
 #else
-   // roughness=1-smooth
+   // rough=1-smooth
    VecH4 r=smooth*(-m)+(a+m);
 #endif
    Half mul=Min(r.x*r.x, Quint(1-NdotV))*r.x + r.y;
@@ -1862,16 +2111,16 @@ VecH2 EnvDFGLazarovKaris(Half smooth, Half NdotV)
 /*
 http://miciwan.com/SIGGRAPH2015/course_notes_wip.pdf
 NO because has overshots in low reflectivity
-VecH2 EnvDFGIwanicki(Half roughness, Half NdotV)
+VecH2 EnvDFGIwanicki(Half rough, Half NdotV)
 {
-   Half bias=exp2(-(7*NdotV+4*roughness));
-   Half scale=1-bias-roughness*Max(bias, Min(Sqrt(roughness), 0.739 + 0.323*NdotV)-0.434);
+   Half bias=exp2(-(7*NdotV+4*rough));
+   Half scale=1-bias-rough*Max(bias, Min(Sqrt(rough), 0.739 + 0.323*NdotV)-0.434);
    return VecH2(scale, bias);
 }
 
 https://knarkowicz.wordpress.com/2014/12/27/analytical-dfg-term-for-ibl/
 NO because for low reflect and high smooth, 'EnvDFGLazarovKaris' looks better
-VecH2 EnvDFGLazarovNarkowicz(Half smooth, Half NdotV)
+VecH2 EnvDFGLazarovNarkowiczSmooth(Half smooth, Half NdotV)
 {
    smooth=Sqr(smooth);
    VecH4 p0 = VecH4( 0.5745, 1.548, -0.02397, 1.301 );
@@ -1888,7 +2137,7 @@ VecH2 EnvDFGLazarovNarkowicz(Half smooth, Half NdotV)
 
 https://knarkowicz.wordpress.com/2014/12/27/analytical-dfg-term-for-ibl/
 NO because for low reflect, and high smooth it looks the same for long smooth range
-VecH2 EnvDFGNarkowicz(Half smooth, Half NdotV)
+VecH2 EnvDFGNarkowiczSmooth(Half smooth, Half NdotV)
 {
    smooth=Sqr(smooth);
 
@@ -1915,14 +2164,14 @@ VecH2 EnvDFGNarkowicz(Half smooth, Half NdotV)
  
    return VecH2(scale, bias);
 }*/
-VecH ReflectEnv(Half smooth, Half reflectivity, VecH reflect_col, Half NdotV, Bool quality)
+VecH ReflectEnv(Half rough, Half reflectivity, VecH reflect_col, Half NdotV, Bool quality)
 {
    // currently reflection can be generated even for smooth=0 and reflectivity=0 #SpecularReflectionFromZeroSmoothReflectivity
    VecH2 mad;
- //smooth=  Sqr(  smooth); // don't do because it decreases highlights too much
- //smooth=1-Sqr(1-smooth); // don't do because it increases highlights too much
-   if(quality)mad=EnvDFGTex         (smooth, NdotV);
-   else       mad=EnvDFGLazarovKaris(smooth, NdotV);
+ //rough=  Sqr(  rough); // don't do because it decreases highlights too much
+ //rough=1-Sqr(1-rough); // don't do because it increases highlights too much
+   if(quality)mad=EnvDFGTex         (rough, NdotV);
+   else       mad=EnvDFGLazarovKaris(rough, NdotV);
 
    // energy compensation, increase reflectivity if it's close to 1 to account for multi-bounce https://google.github.io/filament/Filament.html#materialsystem/improvingthebrdfs/energylossinspecularreflectance
 #if 1 // Esenthel version
@@ -1936,19 +2185,30 @@ Vec ReflectDir(Vec eye_dir, Vec nrm) // High Precision needed for high resolutio
 {
    return Transform3(reflect(eye_dir, nrm), CamMatrix);
 }
-VecH ReflectTex(Vec reflect_dir, Half smooth)
+VecH ReflectTex(Vec reflect_dir, Half rough)
 {
-   return TexCubeLodI(Env, reflect_dir, (1-smooth)*EnvMipMaps).rgb;
+   return TexCubeLodI(Env, reflect_dir, rough*EnvMipMaps).rgb;
 }
-VecH PBR(VecH unlit_col, VecH lit_col, Vec nrm, Half smooth, Half reflectivity, Vec eye_dir, VecH spec)
+/******************************************************************************/
+#define GLOW_OCCLUSION 0 // glow should not be occluded, so remove occlusion from color and use maximized color
+void ProcessGlow(inout Half glow, inout Half diffuse)
 {
-   Half NdotV      =-Dot(nrm, eye_dir);
-   Vec  reflect_dir=ReflectDir       (eye_dir, nrm);
-   Half inv_metal  =ReflectToInvMetal(reflectivity);
-   VecH reflect_col=ReflectCol       (reflectivity, unlit_col, inv_metal);
-   return lit_col*Diffuse(inv_metal)
-         +spec
-         +ReflectTex(reflect_dir, smooth)*EnvColor*ReflectEnv(smooth, reflectivity, reflect_col, NdotV, true);
+   glow=SRGBToLinearFast(glow); // have to convert to linear because small glow of 1/255 would give 12.7/255 sRGB (Glow was sampled from non-sRGB texture and stored in RT alpha channel without any gamma conversions), this has to be done first before using glow and before adjusting 'diffuse' (if it's done after 'diffuse' then 'glow' could actually darken colors)
+   diffuse*=Max(0, 1-glow); // focus on glow by reducing 'lit_col' where glow is present, glowable pixels should not be affected by lighting (for example if glow light is half covered by shadow, and half not, then half will be darker and half brighter which will look bad)
+}
+void ProcessGlow(Half glow, VecH base_col, inout VecH col)
+{
+   if(GLOW_OCCLUSION)col+=base_col*(glow*2); // boost glow by 2 because here we don't maximize 'base_col', so average 'base_col' 0..1 is 0.5, so *2 makes it 1.0
+   else {Half max=Max(Max(base_col), 1.0/32); col+=base_col*(glow/max);} // use a decent max value (1/32 was the smallest value that prevented artifacts) to have 2 effects: prevent division by zero, and another very important is for colors close to black (0,0,0) like (1/255, 2/255, 0/255) where color can't be extracted precisely due to low precision and texture compression artifacts, this will make those colors remain very dark and don't affect glow much, thus preventing from showing artifacts
+}
+void ApplyGlow(Half glow, inout Half diffuse) {ProcessGlow(glow, diffuse);} // !! THIS CAN'T MODIFY 'glow' AS "inout" BECAUSE ORIGINAL IS STILL NEEDED !!
+void ApplyGlow(Half glow, VecH base_col, inout Half diffuse, inout VecH col) // !! THIS CAN'T MODIFY 'glow' AS "inout" BECAUSE ORIGINAL IS STILL NEEDED !!
+{
+   if(glow>0)
+   {
+      ProcessGlow(glow, diffuse);
+      ProcessGlow(glow, base_col, col);
+   }
 }
 /******************************************************************************/
 // SHADOWS
@@ -1958,8 +2218,8 @@ BUFFER(Shadow)
    Flt     ShdRange      ,
            ShdStep[6]    ;
    Vec2    ShdRangeMulAdd;
+   Vec2    ShdJitter     ;
    VecH2   ShdOpacity    ;
-   Vec4    ShdJitter     ;
    Matrix  ShdMatrix     ;
    Matrix4 ShdMatrix4[6] ;
 BUFFER_END
@@ -1972,7 +2232,10 @@ ImageH      ShdMap1;
 #include "!Set Prec Default.h"
 
 Half ShadowFinal(Half shadow) {return shadow*ShdOpacity.x+ShdOpacity.y;}
-
+Vec2 ShadowJitter(Vec2 pixel)
+{
+   return Noise2D(pixel)*ShdJitter;
+}
 Vec ShadowDirTransform(Vec pos, Int num)
 {  // using "Int/UInt matrix_index" and "matrix_index=.."  and "ShdMatrix4[matrix_index]" was slower 
    // using "Matrix4  m"            and "m=ShdMatrix4[..]" and "p=Transform(pos, m)"      had the same performance as version below
@@ -2020,14 +2283,6 @@ Vec ShadowPointTransform(Vec pos)
    return p.xyz/p.w;
 }
 /******************************************************************************/
-Vec2 ShadowJitter(Vec2 pixel)
-{
-     Vec2 offset=Frac(pixel*0.5)*2 - 0.5;
-          offset.y+=   offset.x;
-       if(offset.y>1.1)offset.y=0;
-   return offset*ShdJitter.xy+ShdJitter.zw;
-}
-/******************************************************************************/
 Half CompareDepth(Vec pos, Vec2 jitter_value, Bool jitter)
 {
    if(jitter)pos.xy+=jitter_value;
@@ -2035,7 +2290,7 @@ Half CompareDepth(Vec pos, Vec2 jitter_value, Bool jitter)
 }
 Half CompareDepth2(Vec pos) // 'ShdMap1' is not a Shadow Map Depth Buffer but a Shadow Intensity Color RT
 {
-   return Tex(ShdMap1, pos.xy).x;
+   return TexLod(ShdMap1, pos.xy).x;
 }
 /******************************************************************************/
 Half ShadowDirValue(Vec pos, Vec2 jitter_value, Bool jitter, Int num, Bool cloud)
@@ -2056,13 +2311,13 @@ Half ShadowConeValue(Vec pos, Vec2 jitter_value, Bool jitter)
    return CompareDepth(p.xyz, jitter_value, jitter);
 }
 /******************************************************************************/
-struct DeferredSolidOutput // use this structure in Pixel Shader for setting the output of RT_DEFERRED solid modes
+struct DeferredOutput // use this structure in Pixel Shader for setting the output of RT_DEFERRED modes
 {
    // #RTOutput
    VecH4 out0:TARGET0; // Col, Glow
    VecH4 out1:TARGET1; // Nrm XYZ, Translucent
-   VecH2 out2:TARGET2; // Smooth, Reflect
-   VecH2 out3:TARGET3; // Velocity (TEXCOORD delta)
+   VecH2 out2:TARGET2; // Rough, Reflect
+   VecH2 out3:TARGET3; // Motion (UV delta)
 
    // set components
    void color (VecH color ) {out0.rgb=color;}
@@ -2077,12 +2332,11 @@ struct DeferredSolidOutput // use this structure in Pixel Shader for setting the
    }
    void translucent(Half translucent) {out1.w=translucent;}
 
-   void smooth (Half smooth ) {out2.x=smooth ;}
+   void rough  (Half rough  ) {out2.x=rough  ;}
    void reflect(Half reflect) {out2.y=reflect;}
 
-   void velocity    (Vec projected_prev_pos_xyw, Vec4 pixel) {out3.xy=GetVelocityPixel(projected_prev_pos_xyw, pixel);}
-   void velocityUV  (Vec projected_prev_pos_xyw, Vec2 uv   ) {out3.xy=GetVelocityUV   (projected_prev_pos_xyw, uv   );}
-   void velocityZero(                                      ) {out3.xy=0;}
+   void motion    (Vec projected_prev_pos_xyw, Vec4 pixel) {out3.xy=GetMotion(projected_prev_pos_xyw, pixel);}
+   void motionZero(                                      ) {out3.xy=0;}
 };
 /******************************************************************************/
 // TESSELATION
@@ -2100,17 +2354,18 @@ struct HSData
        B201:TEXCOORD5,
        B111:TEXCOORD6;
 
-#if 0 // Cubic normals
-   Vec N110:NORMAL0,
-       N011:NORMAL1,
-       N101:NORMAL2;
+#define NORMAL_CUBIC_INTERPOLATE 0 // if use cubic interpolation for vertex normals
+#if     NORMAL_CUBIC_INTERPOLATE
+   VecH N110:NORMAL0,
+        N011:NORMAL1,
+        N101:NORMAL2;
 #endif
 };
 Vec2 ToScreen(Vec pos)
 {
    return pos.xy/Max(0.1, pos.z);
 }
-HSData GetHSData(Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nrm2, Bool shadow_map=false)
+HSData GetHSData(Vec pos0, Vec pos1, Vec pos2, VecH nrm0, VecH nrm1, VecH nrm2, Bool shadow_map=false)
 {
    HSData O;
 
@@ -2135,9 +2390,9 @@ HSData GetHSData(Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nrm2, Boo
           B030=pos1,
           B300=pos2;
 
-      Vec N002=nrm0,
-          N020=nrm1,
-          N200=nrm2;
+      VecH N002=nrm0,
+           N020=nrm1,
+           N200=nrm2;
 
       O.B210=2*B003+B030-Dot(B030-B003,N002)*N002;
       O.B120=2*B030+B003-Dot(B003-B030,N020)*N020;
@@ -2151,7 +2406,7 @@ HSData GetHSData(Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nrm2, Boo
       O.B111=E*0.5-V;
    }
 
-#if 0 // cubic normal interpolation
+#if NORMAL_CUBIC_INTERPOLATE
    Flt V12=2*Dot(B030-B003, N002+N020)/Dot(B030-B003, B030-B003); O.N110=Normalize(N002+N020-V12*(B030-B003));
    Flt V23=2*Dot(B300-B030, N020+N200)/Dot(B300-B030, B300-B030); O.N011=Normalize(N020+N200-V23*(B300-B030));
    Flt V31=2*Dot(B003-B300, N200+N002)/Dot(B003-B300, B003-B300); O.N101=Normalize(N200+N002-V31*(B003-B300));
@@ -2160,7 +2415,7 @@ HSData GetHSData(Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nrm2, Boo
    return O;
 }
 /******************************************************************************/
-void SetDSPosNrm(out Vec pos, out Vec nrm, Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nrm2, Vec B, HSData hs_data, Bool clamp_tess, Flt clamp_tess_factor)
+void SetDSPosNrm(out Vec pos, out VecH nrm, Vec pos0, Vec pos1, Vec pos2, VecH nrm0, VecH nrm1, VecH nrm2, Vec B, HSData hs_data, Bool clamp_tess, Flt clamp_tess_factor)
 {
    // TODO: we could encode 'clamp_tess_factor' in vtx.nrm.w
 
@@ -2168,14 +2423,14 @@ void SetDSPosNrm(out Vec pos, out Vec nrm, Vec pos0, Vec pos1, Vec pos2, Vec nrm
        V=B.y, VV=V*V,
        W=B.z, WW=W*W;
 
-#if 0 // cubic normal interpolation
+#if NORMAL_CUBIC_INTERPOLATE
    nrm=Normalize(nrm0*WW
                 +nrm1*UU
                 +nrm2*VV
-                +hs_data.N110*W*U
-                +hs_data.N011*U*V
-                +hs_data.N101*W*V);
-#else // linear normal interpolation
+                +hs_data.N110*(W*U)
+                +hs_data.N011*(U*V)
+                +hs_data.N101*(W*V));
+#else // linear interpolation
    nrm=Normalize(nrm0*W + nrm1*U + nrm2*V);
 #endif
 
@@ -2197,4 +2452,16 @@ void SetDSPosNrm(out Vec pos, out Vec nrm, Vec pos0, Vec pos1, Vec pos2, Vec nrm
       pos=pos0*W + pos1*U + pos2*V;
    }
 }
+/******************************************************************************/
+void TestDepth(inout Flt depth, Flt d, inout VecI2 ofs, VecI2 o)
+{
+   if(DEPTH_SMALLER(d, depth)){depth=d; ofs=o;}
+}
+/******************************************************************************/
+void DrawLine(inout VecH col, VecH line_col, Vec2 screen, Flt eps, Flt y)
+{
+   col=Lerp(col, line_col, Sat(Half(1-Abs(screen.y-y)*eps)));
+}
+/******************************************************************************
+Flt CT, SH, AL, WI, SP, TB, MX, MY; // variables that can be used for testing, Ctrl, Shift, ..
 /******************************************************************************/

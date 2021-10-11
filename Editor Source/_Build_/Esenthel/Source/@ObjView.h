@@ -250,6 +250,8 @@ public:
    static void Draw(Viewport &viewport);        
           void draw(Edit::Viewport4::View&view);
 
+   void setLodTabsPos();
+
    static void       LodChanged(ObjView &editor);
    static void VariationChanged(ObjView &editor);
    static void      ModeChanged(ObjView &editor);
@@ -295,7 +297,7 @@ public:
    static void MeshSetNormalP   (ObjView &editor);      
    static void MeshSetNormalT   (ObjView &editor);      
    static void MeshSetNormal    (ObjView &editor);      
-   static void MeshSetNormalH   (ObjView &editor);         void meshSetNrmH();
+   static void MeshCopyNormal   (ObjView &editor);         void meshCopyNrm();
    static void MeshNormalY      (ObjView &editor);         void meshNrmY   ();
    static void MeshSetVtxAO     (ObjView &editor);
    static void MeshCreateFace   (ObjView &editor);void meshCreateFace   ();
@@ -303,6 +305,7 @@ public:
    static void MeshMergeCopFaces(ObjView &editor);          void meshMergeCoplanarFaces(bool all);
    static void MeshRotQuads     (ObjView &editor);void meshRotQuads     ();
    static void MeshQuadToTri    (ObjView &editor);void meshQuadToTri    ();
+   static void MeshTriToQuad    (ObjView &editor);void meshTriToQuad    ();
    static void MeshTesselate    (ObjView &editor);void meshTesselate    ();
    static void MeshSubdivide    (ObjView &editor);void meshSubdivide    ();
    static void MeshColorBrghtn  (ObjView &editor);void meshColorBrghtn  ();

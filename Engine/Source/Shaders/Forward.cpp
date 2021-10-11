@@ -1,7 +1,7 @@
 /******************************************************************************/
 #include "!Header.h"
 /******************************************************************************
-SKIN, MATERIALS, LAYOUT, BUMP_MODE, ALPHA_TEST, REFLECT, LIGHT_MAP, DETAIL, COLORS, MTRL_BLEND, HEIGHTMAP, FX, PER_PIXEL
+SKIN, MATERIALS, LAYOUT, BUMP_MODE, ALPHA_TEST, REFLECT, EMISSIVE_MAP, DETAIL, COLORS, MTRL_BLEND, HEIGHTMAP, FX, PER_PIXEL
 LIGHT_DIR, LIGHT_DIR_SHD, LIGHT_DIR_SHD_NUM
 LIGHT_POINT, LIGHT_POINT_SHD
 LIGHT_LINEAR, LIGHT_LINEAR_SHD
@@ -17,46 +17,46 @@ Final = (TexCol*MtrlCol*VtxCol+Detail)*FinalLight
 #define LIGHT          (LIGHT_DIR || LIGHT_POINT || LIGHT_LINEAR || LIGHT_CONE)
 #define SHADOW         (LIGHT_DIR_SHD || LIGHT_POINT_SHD || LIGHT_LINEAR_SHD || LIGHT_CONE_SHD)
 #define VTX_LIGHT      (LIGHT && !PER_PIXEL)
-#define AMBIENT_IN_VTX (VTX_LIGHT && !SHADOW && !LIGHT_MAP) // if stored per-vertex (in either 'vtx.col' or 'vtx.lum')
+#define AMBIENT_IN_VTX (VTX_LIGHT && !SHADOW) // if stored per-vertex (in either 'vtx.col' or 'vtx.lum')
 #define LIGHT_IN_COL   (VTX_LIGHT && !DETAIL && (NO_AMBIENT || !SHADOW) && !REFLECT) // can't mix light with vtx.col when REFLECT because for reflections we need unlit color
 #define SET_POS        ((LIGHT && PER_PIXEL) || SHADOW || REFLECT || TESSELATE)
-#define SET_TEX        (LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
+#define SET_UV         (LAYOUT || DETAIL || EMISSIVE_MAP || BUMP_MODE>SBUMP_FLAT)
 #define SET_COL        (COLORS || LIGHT_IN_COL)
 #define SET_LUM        (VTX_LIGHT && !LIGHT_IN_COL)
 #define VTX_REFLECT    (REFLECT && !PER_PIXEL && BUMP_MODE<=SBUMP_FLAT) // require !PER_PIXEL because even without normal maps (SBUMP_FLAT) the quality suffers
 #define PIXEL_NORMAL   ((PER_PIXEL && LIGHT) || REFLECT) // if calculate normal in the pixel shader
 #define GRASS_FADE     (FX==FX_GRASS_2D || FX==FX_GRASS_3D)
 /******************************************************************************/
-struct VS_PS
+struct Data
 {
 #if SET_POS
    Vec pos:POS;
 #endif
 
-#if SET_TEX
-   Vec2 tex:TEXCOORD;
+#if SET_UV
+   Vec2 uv:UV;
+#endif
+
+#if VTX_REFLECT
+   Vec reflect_dir:REFLECTION;
 #endif
 
 #if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
-   MatrixH3 mtrx:MATRIX; // !! may not be Normalized !!
+   centroid MatrixH3 mtrx:MATRIX; // !! may not be Normalized !! have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
    VecH Nrm() {return mtrx[2];}
 #elif BUMP_MODE>=SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
-   VecH nrm:NORMAL; // !! may not be Normalized !!
+   centroid VecH nrm:NORMAL; // !! may not be Normalized !! have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
    VecH Nrm() {return nrm;}
 #else
    VecH Nrm() {return 0;}
 #endif
 
 #if MATERIALS>1
-   VecH4 material:MATERIAL;
+   centroid VecH4 material:MATERIAL; // have to use 'centroid' to prevent values from getting outside of 0..1 range, without centroid values can get MUCH different which might cause infinite loop in Relief=crash, and cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
 #endif
 
 #if SET_COL
    VecH col:COLOR;
-#endif
-
-#if VTX_REFLECT
-   Vec reflect_dir:REFLECTION;
 #endif
 
 #if GRASS_FADE
@@ -66,6 +66,10 @@ struct VS_PS
 #if SET_LUM
    VecH lum:LUM;
 #endif
+
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+   NOINTERP VecU2 face_id:FACE_ID;
+#endif
 };
 /******************************************************************************/
 // VS
@@ -74,8 +78,8 @@ void VS
 (
    VtxInput vtx,
 
-   out VS_PS O,
-   out Vec4  O_vtx:POSITION,
+   out Data O,
+   out Vec4 vpos:POSITION,
 
    CLIP_DIST
 )
@@ -83,9 +87,13 @@ void VS
    Vec  pos=vtx.pos();
    VecH nrm, tan; if(BUMP_MODE>=SBUMP_FLAT)nrm=vtx.nrm(); if(BUMP_MODE>SBUMP_FLAT)tan=vtx.tan(nrm, HEIGHTMAP);
 
-#if SET_TEX
-   O.tex=vtx.tex(HEIGHTMAP);
-   if(HEIGHTMAP && MATERIALS==1)O.tex*=Material.tex_scale;
+#if SET_UV
+   O.uv=vtx.uv(HEIGHTMAP);
+   if(HEIGHTMAP && MATERIALS==1)O.uv*=Material.uv_scale;
+#endif
+
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+   O.face_id=vtx.faceID();
 #endif
 
 #if MATERIALS>1
@@ -186,11 +194,8 @@ void VS
       VecH total_lum;
 
       // AMBIENT
-      if(HAS_AMBIENT && AMBIENT_IN_VTX)
-      {
-         total_lum=AmbientNSColor;
-         if(MATERIALS<=1 && FirstPass)total_lum+=Material.ambient;
-      }else total_lum=0;
+      if(HAS_AMBIENT && AMBIENT_IN_VTX)total_lum=AmbientNSColor;
+      else                             total_lum=0;
 
       // LIGHTS
       #if LIGHT_DIR
@@ -256,7 +261,7 @@ void VS
    }
    #endif
 
-   O_vtx=Project(pos); CLIP_PLANE(pos);
+   vpos=Project(pos); CLIP_PLANE(pos);
 #if SET_POS
    O.pos=pos;
 #endif
@@ -266,20 +271,19 @@ void VS
 /******************************************************************************/
 VecH4 PS
 (
-   VS_PS I,
+   Data I,
    PIXEL
 
 #if PIXEL_NORMAL && FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
  , IS_FRONT
 #endif
-
 ):TARGET
 {
    VecH col;
 #if PIXEL_NORMAL
    VecH nrmh;
 #endif
-   Half smooth, reflect, glow;
+   Half rough, reflect, glow;
 
 #if SET_COL
    col=I.col;
@@ -290,49 +294,57 @@ VecH4 PS
 #if MATERIALS==1
    VecH4 det;
 #if DETAIL
-   det=GetDetail(I.tex);
+   det=GetDetail(I.uv);
 #endif
 
    // #MaterialTextureLayout
    #if LAYOUT==0
    {
-      smooth =Material.smooth;
-      reflect=Material.reflect;
+      rough  =Material.  rough_add;
+      reflect=Material.reflect_add;
       glow   =Material.glow;
-      if(DETAIL){col*=det.z; smooth*=det.w;}
+      if(DETAIL){col*=det.DETAIL_CHANNEL_COLOR; APPLY_DETAIL_ROUGH(rough, det.DETAIL_CHANNEL_ROUGH);} // #MaterialTextureLayoutDetail
    }
    #elif LAYOUT==1
    {
-      VecH4 tex_col=Tex(Col, I.tex);
+      VecH4 tex_col=RTex(Col, I.uv);
       if(ALPHA_TEST)
       {
       #if GRASS_FADE
          tex_col.a-=I.fade_out;
       #endif
-         AlphaTest(tex_col.a);
+      #if ALPHA_TEST==ALPHA_TEST_YES
+         MaterialAlphaTest(tex_col.a);
+      #elif ALPHA_TEST==ALPHA_TEST_DITHER
+         MaterialAlphaTestDither(tex_col.a, pixel.xy, I.face_id);
+      #endif
       }
       col   *=tex_col.rgb;
-      smooth =Material.smooth;
-      reflect=Material.reflect;
+      rough  =Material.  rough_add;
+      reflect=Material.reflect_add;
       glow   =Material.glow;
-      if(DETAIL){col*=det.z; smooth*=det.w;}
+      if(DETAIL){col*=det.DETAIL_CHANNEL_COLOR; APPLY_DETAIL_ROUGH(rough, det.DETAIL_CHANNEL_ROUGH);} // #MaterialTextureLayoutDetail
    }
    #elif LAYOUT==2
    {
-      VecH4 tex_col=Tex(Col, I.tex);
+      VecH4 tex_col=RTex(Col, I.uv);
       if(ALPHA_TEST)
       {
       #if GRASS_FADE
          tex_col.a-=I.fade_out;
       #endif
-         AlphaTest(tex_col.a);
+      #if ALPHA_TEST==ALPHA_TEST_YES
+         MaterialAlphaTest(tex_col.a);
+      #elif ALPHA_TEST==ALPHA_TEST_DITHER
+         MaterialAlphaTestDither(tex_col.a, pixel.xy, I.face_id);
+      #endif
       }
-      VecH4 tex_ext=Tex(Ext, I.tex);
+      VecH4 tex_ext=RTex(Ext, I.uv);
       col   *=tex_col.rgb;
-      smooth =Material.smooth *tex_ext.x;
-      reflect=Material.reflect*tex_ext.y;
-      glow   =Material.glow   *tex_ext.w;
-      if(DETAIL){col*=det.z; smooth*=det.w;}
+      rough  =tex_ext.BASE_CHANNEL_ROUGH*Material.  rough_mul+Material.  rough_add; // saturated later below
+      reflect=tex_ext.BASE_CHANNEL_METAL*Material.reflect_mul+Material.reflect_add;
+      glow   =tex_ext.BASE_CHANNEL_GLOW *Material.glow;
+      if(DETAIL){col*=det.DETAIL_CHANNEL_COLOR; APPLY_DETAIL_ROUGH(rough, det.DETAIL_CHANNEL_ROUGH);} // #MaterialTextureLayoutDetail
    }
    #endif
 
@@ -343,73 +355,86 @@ VecH4 PS
       #elif BUMP_MODE==SBUMP_FLAT
          nrmh=I.Nrm(); // can't add DETAIL normal because it would need 'I.mtrx'
       #else
-                   nrmh.xy =Tex(Nrm, I.tex).xy*Material.normal;
-         if(DETAIL)nrmh.xy+=det.xy;
-                   nrmh.z  =CalcZ(nrmh.xy);
-                   nrmh    =Transform(nrmh, I.mtrx);
+         #if 0
+                      nrmh.xy =RTex(Nrm, I.uv).BASE_CHANNEL_NORMAL*Material.normal;
+            if(DETAIL)nrmh.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
+                      nrmh.z  =CalcZ(nrmh.xy);
+         #else
+                      nrmh.xy =RTex(Nrm, I.uv).BASE_CHANNEL_NORMAL;
+                      nrmh.z  =CalcZ(nrmh.xy);
+                      nrmh.xy*=Material.normal;
+            if(DETAIL)nrmh.xy+=det.DETAIL_CHANNEL_NORMAL; // #MaterialTextureLayoutDetail
+         #endif
+                      nrmh    =Transform(nrmh, I.mtrx);
       #endif
    #endif
 
 #else // MATERIALS>1
-   // assuming that in multi materials LAYOUT!=0
-   Vec2 tex0, tex1, tex2, tex3;
-                   tex0=I.tex*MultiMaterial0.tex_scale;
-                   tex1=I.tex*MultiMaterial1.tex_scale;
-   if(MATERIALS>=3)tex2=I.tex*MultiMaterial2.tex_scale;
-   if(MATERIALS>=4)tex3=I.tex*MultiMaterial3.tex_scale;
+   // on GeForce with Half support (GeForce 1150+) it was verified that these values can get outside of 0..1 range, which might cause infinite loop in Relief=crash and cause normals to be very big and after Normalization make them equal to 0,0,0 which later causes NaN on normalization in other shaders
+   if(MATERIALS==1)I.material.x   =Sat(I.material.x   );
+   if(MATERIALS==2)I.material.xy  =Sat(I.material.xy  );
+   if(MATERIALS==3)I.material.xyz =Sat(I.material.xyz );
+   if(MATERIALS==4)I.material.xyzw=Sat(I.material.xyzw);
 
-   // #MaterialTextureLayout
+   // assuming that in multi materials LAYOUT!=0
+   Vec2 uv0, uv1, uv2, uv3;
+                   uv0=I.uv*MultiMaterial0.uv_scale;
+                   uv1=I.uv*MultiMaterial1.uv_scale;
+   if(MATERIALS>=3)uv2=I.uv*MultiMaterial2.uv_scale;
+   if(MATERIALS>=4)uv3=I.uv*MultiMaterial3.uv_scale;
+
+   // #MaterialTextureLayout #MaterialTextureLayoutDetail
 
    // detail texture
    VecH4 det0, det1, det2, det3;
    if(DETAIL)
    {
-                      det0=GetDetail0(tex0);
-                      det1=GetDetail1(tex1);
-      if(MATERIALS>=3)det2=GetDetail2(tex2);
-      if(MATERIALS>=4)det3=GetDetail3(tex3);
+                      det0=GetDetail0(uv0);
+                      det1=GetDetail1(uv1);
+      if(MATERIALS>=3)det2=GetDetail2(uv2);
+      if(MATERIALS>=4)det3=GetDetail3(uv3);
    }
 
    // macro texture
    //Half mac_blend; if(MACRO)mac_blend=LerpRS(MacroFrom, MacroTo, Length(I.pos))*MacroMax;
 
-   // Smooth, Reflect, Bump, Glow !! DO THIS FIRST because it may modify 'I.material' which affects everything !!
-   VecH srg; // smooth_reflect_glow
+   // Reflect, Rough, Bump, Glow !! DO THIS FIRST because it may modify 'I.material' which affects everything !!
+   VecH refl_rogh_glow;
    if(LAYOUT==2)
    {
       VecH4 ext0, ext1, ext2, ext3;
-                      ext0=Tex(Ext , tex0);
-                      ext1=Tex(Ext1, tex1);
-      if(MATERIALS>=3)ext2=Tex(Ext2, tex2);
-      if(MATERIALS>=4)ext3=Tex(Ext3, tex3);
+                      ext0=RTex(Ext , uv0);
+                      ext1=RTex(Ext1, uv1);
+      if(MATERIALS>=3)ext2=RTex(Ext2, uv2);
+      if(MATERIALS>=4)ext3=RTex(Ext3, uv3);
       if(MTRL_BLEND)
       {
-                          I.material.x=MultiMaterialWeight(I.material.x, ext0.BUMP_CHANNEL);
-                          I.material.y=MultiMaterialWeight(I.material.y, ext1.BUMP_CHANNEL); if(MATERIALS==2)I.material.xy  /=I.material.x+I.material.y;
-         if(MATERIALS>=3){I.material.z=MultiMaterialWeight(I.material.z, ext2.BUMP_CHANNEL); if(MATERIALS==3)I.material.xyz /=I.material.x+I.material.y+I.material.z;}
-         if(MATERIALS>=4){I.material.w=MultiMaterialWeight(I.material.w, ext3.BUMP_CHANNEL); if(MATERIALS==4)I.material.xyzw/=I.material.x+I.material.y+I.material.z+I.material.w;}
+         VecH4 mtrl;      mtrl.x=MultiMaterialWeight(I.material.x, ext0.BASE_CHANNEL_BUMP);
+                          mtrl.y=MultiMaterialWeight(I.material.y, ext1.BASE_CHANNEL_BUMP); if(MATERIALS==2){Half sum=Sum(mtrl.xy  ); if(CanDiv(sum))I.material.xy  =mtrl.xy  /sum;}
+         if(MATERIALS>=3){mtrl.z=MultiMaterialWeight(I.material.z, ext2.BASE_CHANNEL_BUMP); if(MATERIALS==3){Half sum=Sum(mtrl.xyz ); if(CanDiv(sum))I.material.xyz =mtrl.xyz /sum;}}
+         if(MATERIALS>=4){mtrl.w=MultiMaterialWeight(I.material.w, ext3.BASE_CHANNEL_BUMP); if(MATERIALS==4){Half sum=Sum(mtrl.xyzw); if(CanDiv(sum))I.material.xyzw=mtrl.xyzw/sum;}}
       }
-                      {VecH srg0=ext0.xyw*MultiMaterial0.srg_mul+MultiMaterial0.srg_add; if(DETAIL)srg0.x*=det0.w; srg =srg0*I.material.x;}
-                      {VecH srg1=ext1.xyw*MultiMaterial1.srg_mul+MultiMaterial1.srg_add; if(DETAIL)srg1.x*=det1.w; srg+=srg1*I.material.y;}
-      if(MATERIALS>=3){VecH srg2=ext2.xyw*MultiMaterial2.srg_mul+MultiMaterial2.srg_add; if(DETAIL)srg2.x*=det2.w; srg+=srg2*I.material.z;}
-      if(MATERIALS>=4){VecH srg3=ext3.xyw*MultiMaterial3.srg_mul+MultiMaterial3.srg_add; if(DETAIL)srg3.x*=det3.w; srg+=srg3*I.material.w;}
+                      {VecH refl_rogh_glow0=ext0.xyw*MultiMaterial0.refl_rogh_glow_mul+MultiMaterial0.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow0.y, det0.DETAIL_CHANNEL_ROUGH); refl_rogh_glow =refl_rogh_glow0*I.material.x;} // #MaterialTextureLayoutDetail
+                      {VecH refl_rogh_glow1=ext1.xyw*MultiMaterial1.refl_rogh_glow_mul+MultiMaterial1.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow1.y, det1.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow1*I.material.y;}
+      if(MATERIALS>=3){VecH refl_rogh_glow2=ext2.xyw*MultiMaterial2.refl_rogh_glow_mul+MultiMaterial2.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow2.y, det2.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow2*I.material.z;}
+      if(MATERIALS>=4){VecH refl_rogh_glow3=ext3.xyw*MultiMaterial3.refl_rogh_glow_mul+MultiMaterial3.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow3.y, det3.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow3*I.material.w;}
    }else
    {
-                      {VecH srg0=MultiMaterial0.srg_add; if(DETAIL)srg0.x*=det0.w; srg =srg0*I.material.x;}
-                      {VecH srg1=MultiMaterial1.srg_add; if(DETAIL)srg1.x*=det1.w; srg+=srg1*I.material.y;}
-      if(MATERIALS>=3){VecH srg2=MultiMaterial2.srg_add; if(DETAIL)srg2.x*=det2.w; srg+=srg2*I.material.z;}
-      if(MATERIALS>=4){VecH srg3=MultiMaterial3.srg_add; if(DETAIL)srg3.x*=det3.w; srg+=srg3*I.material.w;}
+                      {VecH refl_rogh_glow0=MultiMaterial0.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow0.y, det0.DETAIL_CHANNEL_ROUGH); refl_rogh_glow =refl_rogh_glow0*I.material.x;} // #MaterialTextureLayoutDetail
+                      {VecH refl_rogh_glow1=MultiMaterial1.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow1.y, det1.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow1*I.material.y;}
+      if(MATERIALS>=3){VecH refl_rogh_glow2=MultiMaterial2.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow2.y, det2.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow2*I.material.z;}
+      if(MATERIALS>=4){VecH refl_rogh_glow3=MultiMaterial3.refl_rogh_glow_add; if(DETAIL)APPLY_DETAIL_ROUGH(refl_rogh_glow3.y, det3.DETAIL_CHANNEL_ROUGH); refl_rogh_glow+=refl_rogh_glow3*I.material.w;}
    }
-   smooth =srg.x;
-   reflect=srg.y;
-   glow   =srg.z;
+   rough  =refl_rogh_glow.y;
+   reflect=refl_rogh_glow.x;
+   glow   =refl_rogh_glow.z;
 
    // Color + Detail + Macro !! do this second after modifying 'I.material' !! here Alpha is ignored for multi-materials
    VecH rgb;
-                   {VecH col0=Tex(Col , tex0).rgb; col0.rgb*=MultiMaterial0.color.rgb; if(DETAIL)col0.rgb*=det0.z; /*if(MACRO)col0.rgb=Lerp(col0.rgb, Tex(Mac , tex0*MacroScale).rgb, MultiMaterial0.macro*mac_blend);*/ rgb =I.material.x*col0;}
-                   {VecH col1=Tex(Col1, tex1).rgb; col1.rgb*=MultiMaterial1.color.rgb; if(DETAIL)col1.rgb*=det1.z; /*if(MACRO)col1.rgb=Lerp(col1.rgb, Tex(Mac1, tex1*MacroScale).rgb, MultiMaterial1.macro*mac_blend);*/ rgb+=I.material.y*col1;}
-   if(MATERIALS>=3){VecH col2=Tex(Col2, tex2).rgb; col2.rgb*=MultiMaterial2.color.rgb; if(DETAIL)col2.rgb*=det2.z; /*if(MACRO)col2.rgb=Lerp(col2.rgb, Tex(Mac2, tex2*MacroScale).rgb, MultiMaterial2.macro*mac_blend);*/ rgb+=I.material.z*col2;}
-   if(MATERIALS>=4){VecH col3=Tex(Col3, tex3).rgb; col3.rgb*=MultiMaterial3.color.rgb; if(DETAIL)col3.rgb*=det3.z; /*if(MACRO)col3.rgb=Lerp(col3.rgb, Tex(Mac3, tex3*MacroScale).rgb, MultiMaterial3.macro*mac_blend);*/ rgb+=I.material.w*col3;}
+                   {VecH col0=RTex(Col , uv0).rgb; col0.rgb*=MultiMaterial0.color.rgb; if(DETAIL)col0.rgb*=det0.DETAIL_CHANNEL_COLOR; /*if(MACRO)col0.rgb=Lerp(col0.rgb, RTex(Mac , uv0*MacroScale).rgb, MultiMaterial0.macro*mac_blend);*/ rgb =I.material.x*col0;} // #MaterialTextureLayoutDetail
+                   {VecH col1=RTex(Col1, uv1).rgb; col1.rgb*=MultiMaterial1.color.rgb; if(DETAIL)col1.rgb*=det1.DETAIL_CHANNEL_COLOR; /*if(MACRO)col1.rgb=Lerp(col1.rgb, RTex(Mac1, uv1*MacroScale).rgb, MultiMaterial1.macro*mac_blend);*/ rgb+=I.material.y*col1;}
+   if(MATERIALS>=3){VecH col2=RTex(Col2, uv2).rgb; col2.rgb*=MultiMaterial2.color.rgb; if(DETAIL)col2.rgb*=det2.DETAIL_CHANNEL_COLOR; /*if(MACRO)col2.rgb=Lerp(col2.rgb, RTex(Mac2, uv2*MacroScale).rgb, MultiMaterial2.macro*mac_blend);*/ rgb+=I.material.z*col2;}
+   if(MATERIALS>=4){VecH col3=RTex(Col3, uv3).rgb; col3.rgb*=MultiMaterial3.color.rgb; if(DETAIL)col3.rgb*=det3.DETAIL_CHANNEL_COLOR; /*if(MACRO)col3.rgb=Lerp(col3.rgb, RTex(Mac3, uv3*MacroScale).rgb, MultiMaterial3.macro*mac_blend);*/ rgb+=I.material.w*col3;}
 #if SET_COL
    col*=rgb.rgb;
 #else
@@ -424,17 +449,17 @@ VecH4 PS
          nrmh=I.Nrm(); // can't add DETAIL normal because it would need 'I.mtrx'
       #else
          if(DETAIL)
-         {
-                            nrmh.xy =(Tex(Nrm , tex0).xy*MultiMaterial0.normal + det0.xy)*I.material.x;
-                            nrmh.xy+=(Tex(Nrm1, tex1).xy*MultiMaterial1.normal + det1.xy)*I.material.y;
-            if(MATERIALS>=3)nrmh.xy+=(Tex(Nrm2, tex2).xy*MultiMaterial2.normal + det2.xy)*I.material.z;
-            if(MATERIALS>=4)nrmh.xy+=(Tex(Nrm3, tex3).xy*MultiMaterial3.normal + det3.xy)*I.material.w;
+         { // #MaterialTextureLayoutDetail
+                            nrmh.xy =(RTex(Nrm , uv0).BASE_CHANNEL_NORMAL*MultiMaterial0.normal + det0.DETAIL_CHANNEL_NORMAL)*I.material.x;
+                            nrmh.xy+=(RTex(Nrm1, uv1).BASE_CHANNEL_NORMAL*MultiMaterial1.normal + det1.DETAIL_CHANNEL_NORMAL)*I.material.y;
+            if(MATERIALS>=3)nrmh.xy+=(RTex(Nrm2, uv2).BASE_CHANNEL_NORMAL*MultiMaterial2.normal + det2.DETAIL_CHANNEL_NORMAL)*I.material.z;
+            if(MATERIALS>=4)nrmh.xy+=(RTex(Nrm3, uv3).BASE_CHANNEL_NORMAL*MultiMaterial3.normal + det3.DETAIL_CHANNEL_NORMAL)*I.material.w;
          }else
          {
-                            nrmh.xy =Tex(Nrm , tex0).xy*(MultiMaterial0.normal*I.material.x);
-                            nrmh.xy+=Tex(Nrm1, tex1).xy*(MultiMaterial1.normal*I.material.y);
-            if(MATERIALS>=3)nrmh.xy+=Tex(Nrm2, tex2).xy*(MultiMaterial2.normal*I.material.z);
-            if(MATERIALS>=4)nrmh.xy+=Tex(Nrm3, tex3).xy*(MultiMaterial3.normal*I.material.w);
+                            nrmh.xy =RTex(Nrm , uv0).BASE_CHANNEL_NORMAL*(MultiMaterial0.normal*I.material.x);
+                            nrmh.xy+=RTex(Nrm1, uv1).BASE_CHANNEL_NORMAL*(MultiMaterial1.normal*I.material.y);
+            if(MATERIALS>=3)nrmh.xy+=RTex(Nrm2, uv2).BASE_CHANNEL_NORMAL*(MultiMaterial2.normal*I.material.z);
+            if(MATERIALS>=4)nrmh.xy+=RTex(Nrm3, uv3).BASE_CHANNEL_NORMAL*(MultiMaterial3.normal*I.material.w);
          }
          nrmh.z=CalcZ(nrmh.xy);
          nrmh  =Transform(nrmh, I.mtrx);
@@ -444,6 +469,7 @@ VecH4 PS
 #endif // MATERIALS
 
    col+=Highlight.rgb;
+   if(LAYOUT==2 || DETAIL)rough=Sat(rough); // need to saturate to avoid invalid values
 
 #if PIXEL_NORMAL
    #if FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
@@ -465,18 +491,8 @@ VecH4 PS
 
    // lighting
    VecH ambient;
-   if(HAS_AMBIENT && !AMBIENT_IN_VTX)
-   {
-      ambient=AmbientNSColor;
-      if(MATERIALS<=1 && FirstPass)
-      {
-      #if LIGHT_MAP
-         ambient+=Material.ambient*Tex(Lum, I.tex).rgb;
-      #else
-         ambient+=Material.ambient;
-      #endif
-      }
-   }else ambient=0;
+   if(HAS_AMBIENT && !AMBIENT_IN_VTX)ambient=AmbientNSColor;
+   else                              ambient=0;
 
    VecH total_lum,
         total_specular=0;
@@ -525,8 +541,8 @@ VecH4 PS
             lp.set(nrm, light_dir, eye_dir);
 
             VecH            lum_rgb=LightDir.color.rgb*lum;
-            total_lum     +=lum_rgb*lp.diffuse (smooth                                                   ); // diffuse
-            total_specular+=lum_rgb*lp.specular(smooth, reflect, reflect_col, false, LightDir.radius_frac); // specular
+            total_lum     +=lum_rgb*lp.diffuse (rough                                                   ); // diffuse
+            total_specular+=lum_rgb*lp.specular(rough, reflect, reflect_col, false, LightDir.radius_frac); // specular
          }
       }
       #endif
@@ -554,8 +570,8 @@ VecH4 PS
             lp.set(nrm, light_dir, eye_dir);
             
             VecH            lum_rgb=LightPoint.color.rgb*lum;
-            total_lum     +=lum_rgb*lp.diffuse (smooth                             ); // diffuse
-            total_specular+=lum_rgb*lp.specular(smooth, reflect, reflect_col, false); // specular
+            total_lum     +=lum_rgb*lp.diffuse (rough                             ); // diffuse
+            total_specular+=lum_rgb*lp.specular(rough, reflect, reflect_col, false); // specular
          }
       }
       #endif
@@ -583,8 +599,8 @@ VecH4 PS
             lp.set(nrm, light_dir, eye_dir);
             
             VecH            lum_rgb=LightLinear.color.rgb*lum;
-            total_lum     +=lum_rgb*lp.diffuse (smooth                             ); // diffuse
-            total_specular+=lum_rgb*lp.specular(smooth, reflect, reflect_col, false); // specular
+            total_lum     +=lum_rgb*lp.diffuse (rough                             ); // diffuse
+            total_specular+=lum_rgb*lp.specular(rough, reflect, reflect_col, false); // specular
          }
       }
       #endif
@@ -615,8 +631,8 @@ VecH4 PS
                lp.set(nrm, light_dir, eye_dir);
             
                VecH            lum_rgb=LightCone.color.rgb*lum;
-               total_lum     +=lum_rgb*lp.diffuse (smooth                             ); // diffuse
-               total_specular+=lum_rgb*lp.specular(smooth, reflect, reflect_col, false); // specular
+               total_lum     +=lum_rgb*lp.diffuse (rough                             ); // diffuse
+               total_specular+=lum_rgb*lp.specular(rough, reflect, reflect_col, false); // specular
             }
          }
       }
@@ -624,18 +640,50 @@ VecH4 PS
    }
    #endif
 
-   col=col*total_lum*Diffuse(inv_metal) + total_specular;
-#if REFLECT // reflection
-   if(FirstPass) // add reflection only for the fist pass
+   Half diffuse=Diffuse(inv_metal);
+   if(FirstPass) // add all below only to the first pass
    {
-   #if VTX_REFLECT
-      Vec reflect_dir=I.reflect_dir;
-   #else
-      Vec reflect_dir=ReflectDir(eye_dir, nrm);
-   #endif
-      col+=ReflectTex(reflect_dir, smooth)*EnvColor*ReflectEnv(smooth, reflect, reflect_col, -Dot(nrm, eye_dir), false);
+      #if REFLECT // reflection
+      {
+      #if VTX_REFLECT
+         Vec reflect_dir=I.reflect_dir;
+      #else
+         Vec reflect_dir=ReflectDir(eye_dir, nrm);
+      #endif
+         total_specular+=ReflectTex(reflect_dir, rough)*EnvColor*ReflectEnv(rough, reflect, reflect_col, -Dot(nrm, eye_dir), false);
+      }
+      #endif
+
+      // glow
+      ApplyGlow(glow, col, diffuse, total_specular);
+
+      if(MATERIALS<=1) // emissive, this should be done after 'ApplyGlow' because emissive glow should not be applied to base color
+      {
+      #if EMISSIVE_MAP
+         VecH emissive=RTex(Lum, I.uv).rgb;
+         total_specular+=Material.emissive     *    emissive ;
+         glow          +=Material.emissive_glow*Max(emissive);
+      #else
+         total_specular+=Material.emissive;
+         glow          +=Material.emissive_glow;
+      #endif
+      }
+   }else
+   {
+      // glow
+      ApplyGlow(glow, diffuse);
+
+    /*if(MATERIALS<=1) // glow from emissive, not needed because final glow is ignored in secondary passes
+      {
+      #if EMISSIVE_MAP
+         VecH emissive=RTex(Lum, I.uv).rgb;
+         glow+=Material.emissive_glow*Max(emissive);
+      #else
+         glow+=Material.emissive_glow;
+      #endif
+      }*/
    }
-#endif
+   col=col*total_lum*diffuse + total_specular;
 
    return VecH4(col, glow);
 }
@@ -643,20 +691,20 @@ VecH4 PS
 // HULL / DOMAIN
 /******************************************************************************/
 #if TESSELATE
-HSData HSConstant(InputPatch<VS_PS,3> I) {return GetHSData(I[0].pos, I[1].pos, I[2].pos, I[0].Nrm(), I[1].Nrm(), I[2].Nrm());}
+HSData HSConstant(InputPatch<Data,3> I) {return GetHSData(I[0].pos, I[1].pos, I[2].pos, I[0].Nrm(), I[1].Nrm(), I[2].Nrm());}
 [maxtessfactor(5.0)]
 [domain("tri")]
 [partitioning("fractional_odd")] // use 'odd' because it supports range from 1.0 ('even' supports range from 2.0)
 [outputtopology("triangle_cw")]
 [patchconstantfunc("HSConstant")]
 [outputcontrolpoints(3)]
-VS_PS HS
+Data HS
 (
-   InputPatch<VS_PS,3> I,
+   InputPatch<Data,3> I,
    UInt cp_id:SV_OutputControlPointID
 )
 {
-   VS_PS O;
+   Data O;
    O.pos=I[cp_id].pos;
 
 #if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
@@ -665,8 +713,8 @@ VS_PS HS
    O.nrm =I[cp_id].nrm;
 #endif
 
-#if SET_TEX
-   O.tex=I[cp_id].tex;
+#if SET_UV
+   O.uv=I[cp_id].uv;
 #endif
 
 #if MATERIALS>1
@@ -689,16 +737,20 @@ VS_PS HS
    O.lum=I[cp_id].lum;
 #endif
 
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+   O.face_id=I[cp_id].face_id;
+#endif
+
    return O;
 }
 /******************************************************************************/
 [domain("tri")]
 void DS
 (
-   HSData hs_data, const OutputPatch<VS_PS,3> I, Vec B:SV_DomainLocation,
+   HSData hs_data, const OutputPatch<Data,3> I, Vec B:SV_DomainLocation,
 
-   out VS_PS O,
-   out Vec4  O_vtx:POSITION
+   out Data O,
+   out Vec4 pixel:POSITION
 )
 {
 #if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
@@ -709,8 +761,8 @@ void DS
    SetDSPosNrm(O.pos, O.nrm    , I[0].pos, I[1].pos, I[2].pos, I[0].Nrm(), I[1].Nrm(), I[2].Nrm(), B, hs_data, false, 0);
 #endif
 
-#if SET_TEX
-   O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
+#if SET_UV
+   O.uv=I[0].uv*B.z + I[1].uv*B.x + I[2].uv*B.y;
 #endif
 
 #if MATERIALS>1
@@ -733,7 +785,11 @@ void DS
    O.lum=I[0].lum*B.z + I[1].lum*B.x + I[2].lum*B.y;
 #endif
 
-   O_vtx=Project(O.pos);
+#if ALPHA_TEST==ALPHA_TEST_DITHER
+   O.face_id=I[0].face_id;
+#endif
+
+   pixel=Project(O.pos);
 }
 #endif
 /******************************************************************************/

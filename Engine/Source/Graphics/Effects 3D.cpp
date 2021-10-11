@@ -47,7 +47,7 @@ void DrawLaser(C Color &color, C Color &middle_color, Flt middle_exponent, Flt r
 
       c->m.setPosDir(points[0], !(points[1]-points[0]));
 
-      Bool normals=(color!=middle_color && middle_exponent>EPS_GPU && Renderer()!=RM_AMBIENT),
+      Bool normals=(color!=middle_color && middle_exponent>EPS_GPU && Renderer()!=RM_EMISSIVE),
            closed =Equal(points.first(), points.last());
       if(sharp_ending && points.elms()<3)sharp_ending=false;
       if(sharp_ending)
@@ -83,7 +83,7 @@ void DrawLaser(C Color &color, C Color &middle_color, Flt middle_exponent, Flt r
          }
       }
 
-      if(Renderer()==RM_AMBIENT)
+      if(Renderer()==RM_EMISSIVE)
       {
          VI.color (Color(255, 255, 255, 0));
          VI.color1(Color(255, 255, 255, 0));

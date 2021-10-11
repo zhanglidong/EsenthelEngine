@@ -27,13 +27,17 @@ struct BlendState
    {
       if(state)
       {
-       //SyncLocker locker(D._lock); if(state) lock not needed for DX11 'Release'
+      #if GPU_LOCK // lock not needed for 'Release'
+         SyncLocker locker(D._lock); if(state)
+      #endif
             {if(D.created())state->Release(); state=null;}
       }
    }
    void create(D3D11_BLEND_DESC &desc)
    {
-    //SyncLocker locker(D._lock); lock not needed for DX11 'D3D'
+   #if GPU_LOCK // lock not needed for 'D3D'
+      SyncLocker locker(D._lock);
+   #endif
       del();
       if(D3D && OK(D3D->CreateBlendState(&desc, &state)))return;
       Exit("Can't create a Blend State");
@@ -54,13 +58,17 @@ struct DepthState
    {
       if(state)
       {
-       //SyncLocker locker(D._lock); if(state) lock not needed for DX11 'Release'
+      #if GPU_LOCK // lock not needed for 'Release'
+         SyncLocker locker(D._lock); if(state)
+      #endif
             {if(D.created())state->Release(); state=null;}
       }
    }
    void create(D3D11_DEPTH_STENCIL_DESC &desc)
    {
-    //SyncLocker locker(D._lock); lock not needed for DX11 'D3D'
+   #if GPU_LOCK // lock not needed for 'D3D'
+      SyncLocker locker(D._lock);
+   #endif
       del();
       if(D3D && OK(D3D->CreateDepthStencilState(&desc, &state)))return;
       Exit("Can't create a DepthStencil State");
@@ -81,13 +89,17 @@ struct RasterizerState
    {
       if(state)
       {
-       //SyncLocker locker(D._lock); if(state) lock not needed for DX11 'Release'
+      #if GPU_LOCK // lock not needed for 'Release'
+         SyncLocker locker(D._lock); if(state)
+      #endif
             {if(D.created())state->Release(); state=null;}
       }
    }
    void create(D3D11_RASTERIZER_DESC &desc)
    {
-    //SyncLocker locker(D._lock); lock not needed for DX11 'D3D'
+   #if GPU_LOCK // lock not needed for 'D3D'
+      SyncLocker locker(D._lock);
+   #endif
       del();
       if(D3D && OK(D3D->CreateRasterizerState(&desc, &state)))return;
       Exit("Can't create a Rasterizer State");
@@ -109,7 +121,7 @@ static Bool DepthAllow=true, DepthReal;
 static Byte Col0WriteAllow=COL_WRITE_RGBA, Col0WriteReal=COL_WRITE_RGBA;
 static UInt StencilFunc=GL_ALWAYS, StencilMask=~0;
 #if !WINDOWS && !SWITCH
-static void (*glBlendFunci) (GLuint buf, GLenum src, GLenum dst); // see 'D.independentBlendAvailable'
+static void (*glBlendFunci)(GLuint buf, GLenum src, GLenum dst); // see 'D.independentBlendAvailable'
 #endif
 #endif
 
@@ -142,7 +154,6 @@ DisplayState::DisplayState()
 
   _linear_gamma    =LINEAR_GAMMA;
   _clip_allow      =true;
-  _sampler2D       =true;
   _depth_write     =true;
   _depth_clip      =true;
   _depth_bias      =BIAS_ZERO;
@@ -164,11 +175,13 @@ void DisplayState::depthLock  (Bool on) {depth(on); D._depth_lock=true ;}
 #if DX11
    #define D3D11_COMPARISON_FIRST D3D11_COMPARISON_NEVER
 static void SetDS() {DepthStates[D._stencil][D._depth][D._depth_write][D._depth_func-D3D11_COMPARISON_FIRST].set();}
-void DisplayState::depth     (Bool on  ) {                          if(D._depth      !=on && !D._depth_lock   ){D._depth      =on  ;                  SetDS();}}
-Bool DisplayState::depthWrite(Bool on  ) {Bool last=D._depth_write; if(D._depth_write!=on                     ){D._depth_write=on  ;                  SetDS();} return last;}
-void DisplayState::depthFunc (UInt func) {                          if(D._depth_func !=func                   ){D._depth_func =func;                  SetDS();}}
-void DisplayState::stencilRef(Byte ref ) {                          if(D._stencil_ref!=ref                    ){D._stencil_ref=ref ;                  SetDS();}}
-void DisplayState::stencil   (STENCIL_MODE mode, Byte ref) {        if(D._stencil_ref!=ref || D._stencil!=mode){D._stencil_ref=ref ; D._stencil=mode; SetDS();}}
+void DisplayState::depth           (Bool on                       ) {                          if(D._depth!=on && !D._depth_lock                              ){D._depth=on;                                           SetDS();}}
+Bool DisplayState::depthWrite      (         Bool write           ) {Bool last=D._depth_write; if(                D._depth_write!=write                       ){             D._depth_write=write;                     SetDS();} return last;}
+void DisplayState::depthFunc       (                     UInt func) {                          if(                                         D._depth_func!=func){                                   D._depth_func=func; SetDS();}}
+void DisplayState::depthOnWrite    (Bool on, Bool write           ) {                          if(D._depth!=on || D._depth_write!=write                       ){D._depth=on; D._depth_write=write;                     SetDS();}} // this ignores '_depth_lock'
+void DisplayState::depthOnWriteFunc(Bool on, Bool write, UInt func) {                          if(D._depth!=on || D._depth_write!=write || D._depth_func!=func){D._depth=on; D._depth_write=write; D._depth_func=func; SetDS();}} // this ignores '_depth_lock'
+void DisplayState::stencilRef      (                   Byte ref   ) {                          if(D._stencil_ref!=ref                                         ){D._stencil_ref=ref ;                                   SetDS();}}
+void DisplayState::stencil         (STENCIL_MODE mode, Byte ref   ) {                          if(D._stencil_ref!=ref || D._stencil!=mode                     ){D._stencil_ref=ref ; D._stencil=mode;                  SetDS();}}
 #elif GL
 Bool DisplayState::depthWrite(Bool on  ) {Bool last=D._depth_write; if(D._depth_write!=on  )glDepthMask  (             D._depth_write=on              ); return last;}
 void DisplayState::depthFunc (UInt func) {                          if(D._depth_func !=func)glDepthFunc  (             D._depth_func =func            );}
@@ -204,6 +217,8 @@ void DisplayState::depthAllow(Bool on)
       if(DepthReal!=on)if(DepthReal=on)glEnable(GL_DEPTH_TEST);else glDisable(GL_DEPTH_TEST);
    }
 }
+void DisplayState::depthOnWrite    (Bool on, Bool write           ) {D.depth(on); D.depthWrite(write);}
+void DisplayState::depthOnWriteFunc(Bool on, Bool write, UInt func) {D.depth(on); D.depthWrite(write); D.depthFunc(func);}
 #endif
 /******************************************************************************/
 void DisplayState::depth2DOn(UInt func)
@@ -512,11 +527,11 @@ ALPHA_MODE DisplayState::alpha(ALPHA_MODE alpha)
          glBlendEquation    (GL_FUNC_ADD);
          glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA, GL_ONE);
       break;
-      case ALPHA_BLEND_DEC:
+      case ALPHA_RENDER_BLEND:
          glEnable           (GL_BLEND);
          glBlendEquation    (GL_FUNC_ADD);
          glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
-         if(glBlendFunci)glBlendFunci(2, GL_ONE_MINUS_DST_COLOR, GL_ONE); // #RTOutput.Blend set RT2 Alpha as Increase
+         if(glBlendFunci)glBlendFunci(1, GL_ONE_MINUS_DST_COLOR, GL_ONE); // #RTOutput.Blend set RT1 as Increase
       break;
 
       case ALPHA_ADD:
@@ -546,22 +561,20 @@ ALPHA_MODE DisplayState::alpha(ALPHA_MODE alpha)
          glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ZERO, GL_ONE);
       break;
 
-      case ALPHA_BLEND_FACTOR:
+      case ALPHA_RENDER_BLEND_FACTOR:
          glEnable           (GL_BLEND);
          glBlendEquation    (GL_FUNC_ADD);
          glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_CONSTANT_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-         if(glBlendFunci)glBlendFunci(2, GL_ONE_MINUS_DST_COLOR, GL_ONE); // #RTOutput.Blend set RT2 Alpha as Increase
+         if(glBlendFunci)glBlendFunci(1, GL_ONE_MINUS_DST_COLOR, GL_ONE); // #RTOutput.Blend set RT1 as Increase
       break;
-    /*case ALPHA_ADD_FACTOR:
+
+      case ALPHA_OVERLAY:
+      {
          glEnable           (GL_BLEND);
          glBlendEquation    (GL_FUNC_ADD);
-         glBlendFuncSeparate(GL_ONE, GL_ONE, GL_CONSTANT_ALPHA, GL_ONE);
-      break;*/
-      case ALPHA_SETBLEND_SET:
-         glEnable           (GL_BLEND);
-         glBlendEquation    (GL_FUNC_ADD);
-         glBlendFuncSeparate(GL_SRC_ALPHA, GL_ZERO, GL_ONE, GL_ZERO);
-      break;
+         glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_CONSTANT_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      }break;
+
       case ALPHA_FACTOR:
          glEnable       (GL_BLEND);
          glBlendEquation(GL_FUNC_ADD);
@@ -590,12 +603,6 @@ ALPHA_MODE DisplayState::alpha(ALPHA_MODE alpha)
          glBlendEquation    (GL_FUNC_ADD);
          glBlendFuncSeparate(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO);
       break;
-
-      /*case ALPHA_NONE_ADD:
-         glEnable           (GL_BLEND);
-         glBlendEquation    (GL_FUNC_ADD);
-         glBlendFuncSeparate(GL_ONE, GL_ZERO, GL_ONE, GL_ONE);
-      break;*/
    }
 #endif
    return prev;
@@ -686,48 +693,8 @@ void DisplayState::vf(GPU_API(ID3D11InputLayout, VtxFormatGL) *vf)
 #endif
 }
 /******************************************************************************/
-void DisplayState::sampler2D()
-{
-   D._sampler2D=true;
-#if DX11
-   SamplerLinearClamp.setPS(SSI_DEFAULT);
-#elif GL
- //D._sampler_filter[0]=GL_LINEAR; unused
- //D._sampler_filter[1]=GL_LINEAR; unused
- //D._sampler_filter[2]=GL_LINEAR; unused
-   D._sampler_address  =GL_CLAMP_TO_EDGE;
-#endif
-}
-void DisplayState::sampler3D()
-{
-   D._sampler2D=false;
-#if DX11
-   SamplerAnisotropic.setPS(SSI_DEFAULT);
-#elif GL
- /*switch(D.texFilter()) unused
-   {
-      case  0: D._sampler_filter[0]=GL_LINEAR; break; // or GL_LINEAR_MIPMAP_LINEAR
-      case  1: D._sampler_filter[0]=GL_LINEAR; break; // or GL_LINEAR_MIPMAP_LINEAR
-      default: D._sampler_filter[0]=GL_LINEAR; break; // or GL_LINEAR_MIPMAP_LINEAR
-   }
-
-   switch(D.texFilter())
-   {
-      case  0: D._sampler_filter[1]=GL_NEAREST; break;
-      default: D._sampler_filter[1]=GL_LINEAR ; break; // or GL_LINEAR_MIPMAP_LINEAR
-   }
-
-   D._sampler_filter[2]=(D.texMipFilter() ? GL_LINEAR : GL_NEAREST);*/
-
-   D._sampler_address=GL_REPEAT;
-#endif
-}
-void DisplayState::samplerShadow()
-{
-   sampler3D(); // we could potentially use a different sampler here with smaller anisotropic value, however quality does suffer (especially with filter=1, so don't go below 2), however performance difference is minimal, so for simplicity just use the default 3D sampler
-}
-void DisplayState::set2D() {                     D.clipPlane(false); D.wire(false        ); D.sampler2D();}
-void DisplayState::set3D() {if(Renderer.mirror())D.clipPlane(true ); D.wire(Renderer.wire); D.sampler3D();}
+void DisplayState::set2D() {                     D.clipPlane(false); D.wire(false        );}
+void DisplayState::set3D() {if(Renderer.mirror())D.clipPlane(true ); D.wire(Renderer.wire);}
 /******************************************************************************/
 void DisplayState::linearGamma(Bool on)
 {
@@ -762,19 +729,20 @@ Bool DisplayState::mainFBO()C
 /******************************************************************************/
 void DisplayState::setDeviceSettings()
 {
-   sampler2D();
    DisplayState old=T;
 
-#if DX11
-   SamplerLinearWrap .set(SSI_DEFAULT); SamplerLinearClamp.setPS(SSI_DEFAULT); // use linear wrap everywhere (needed for example in Vertex Shaders for Water), but use linear clamp for PS as it's the default 2D sampler used everywhere except 3D
+   SamplerRender     .set(SSI_RENDER);
    SamplerPoint      .set(SSI_POINT);
    SamplerLinearWrap .set(SSI_LINEAR_WRAP);
    SamplerLinearClamp.set(SSI_LINEAR_CLAMP);
    SamplerLinearCWW  .set(SSI_LINEAR_CWW);
    SamplerShadowMap  .set(SSI_SHADOW);
    SamplerFont       .set(SSI_FONT);
+   SamplerMinimum    .set(SSI_MINIMUM);
+   SamplerMaximum    .set(SSI_MAXIMUM);
  //SPSet("AllowAlphaToCoverage", D.multiSample() || D.densityByte()==255);
-#elif GL
+
+#if GL
       glEnable     (GL_DITHER);
    #if GL_ES
       glClearDepthf(REVERSE_DEPTH ? 0.5f : 1.0f); // #glClipControl
@@ -879,16 +847,17 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ZERO;
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_INV_SRC_ALPHA;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      if(D.independentBlendAvailable()) // #RTOutput.Blend set RT2 Alpha as Increase
+      if(D.independentBlendAvailable()) // #RTOutput.Blend set RT1 as Increase
       {
          desc.IndependentBlendEnable=true;
          for(Int i=1; i<Elms(desc.RenderTarget); i++)desc.RenderTarget[i]=desc.RenderTarget[0];
-         desc.RenderTarget[2]. SrcBlend     =D3D11_BLEND_INV_DEST_COLOR;
-         desc.RenderTarget[2].DestBlend     =D3D11_BLEND_ONE           ;
-         desc.RenderTarget[2]. SrcBlendAlpha=D3D11_BLEND_ZERO          ;
-         desc.RenderTarget[2].DestBlendAlpha=D3D11_BLEND_ONE           ;
+
+         desc.RenderTarget[1]. SrcBlend     =D3D11_BLEND_INV_DEST_COLOR;
+         desc.RenderTarget[1].DestBlend     =D3D11_BLEND_ONE           ;
+         desc.RenderTarget[1]. SrcBlendAlpha=D3D11_BLEND_ZERO          ; // these are ignored because alpha RT is R8
+         desc.RenderTarget[1].DestBlendAlpha=D3D11_BLEND_ONE           ; // these are ignored because alpha RT is R8
       }
-      BlendStates[ALPHA_BLEND_DEC].create(desc);
+      BlendStates[ALPHA_RENDER_BLEND].create(desc);
    }
    {
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -963,42 +932,30 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_BLEND_FACTOR ;
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_INV_SRC_ALPHA;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      if(D.independentBlendAvailable()) // #RTOutput.Blend set RT2 Alpha as Increase
+      if(D.independentBlendAvailable()) // #RTOutput.Blend set RT1 as Increase
       {
          desc.IndependentBlendEnable=true;
          for(Int i=1; i<Elms(desc.RenderTarget); i++)desc.RenderTarget[i]=desc.RenderTarget[0];
-         desc.RenderTarget[2]. SrcBlend     =D3D11_BLEND_INV_DEST_COLOR;
-         desc.RenderTarget[2].DestBlend     =D3D11_BLEND_ONE           ;
-         desc.RenderTarget[2]. SrcBlendAlpha=D3D11_BLEND_ZERO          ;
-         desc.RenderTarget[2].DestBlendAlpha=D3D11_BLEND_ONE           ;
+
+         desc.RenderTarget[1]. SrcBlend     =D3D11_BLEND_INV_DEST_COLOR;
+         desc.RenderTarget[1].DestBlend     =D3D11_BLEND_ONE           ;
+         desc.RenderTarget[1]. SrcBlendAlpha=D3D11_BLEND_ZERO          ; // these are ignored because alpha RT is R8
+         desc.RenderTarget[1].DestBlendAlpha=D3D11_BLEND_ONE           ; // these are ignored because alpha RT is R8
       }
-      BlendStates[ALPHA_BLEND_FACTOR].create(desc);
+      BlendStates[ALPHA_RENDER_BLEND_FACTOR].create(desc);
    }
-   /*{
-      D3D11_BLEND_DESC desc; Zero(desc);
-      desc.AlphaToCoverageEnable =false;
-      desc.IndependentBlendEnable=false;
-      desc.RenderTarget[0].BlendEnable=true;
-      desc.RenderTarget[0].BlendOp       =desc.RenderTarget[0].BlendOpAlpha=D3D11_BLEND_OP_ADD;
-      desc.RenderTarget[0]. SrcBlend     =D3D11_BLEND_ONE;
-      desc.RenderTarget[0].DestBlend     =D3D11_BLEND_ONE;
-      desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_BLEND_FACTOR;
-      desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ONE;
-      desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BlendStates[ALPHA_ADD_FACTOR].create(desc);
-   }*/
    {
       D3D11_BLEND_DESC desc; Zero(desc);
       desc.AlphaToCoverageEnable =false;
       desc.IndependentBlendEnable=false;
       desc.RenderTarget[0].BlendEnable=true;
       desc.RenderTarget[0].BlendOp       =desc.RenderTarget[0].BlendOpAlpha=D3D11_BLEND_OP_ADD;
-      desc.RenderTarget[0]. SrcBlend     =D3D11_BLEND_SRC_ALPHA;
-      desc.RenderTarget[0].DestBlend     =D3D11_BLEND_ZERO;
-      desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ONE;
-      desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ZERO;
+      desc.RenderTarget[0]. SrcBlend     =D3D11_BLEND_SRC_ALPHA    ;
+      desc.RenderTarget[0].DestBlend     =D3D11_BLEND_INV_SRC_ALPHA;
+      desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_BLEND_FACTOR ;
+      desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_INV_SRC_ALPHA;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BlendStates[ALPHA_SETBLEND_SET].create(desc);
+      BlendStates[ALPHA_OVERLAY].create(desc);
    }
    {
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -1059,55 +1016,6 @@ void DisplayState::create()
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALPHA;
       BlendStates[ALPHA_KEEP_SET].create(desc);
    }
-   /*{
-      D3D11_BLEND_DESC desc; Zero(desc);
-      desc.AlphaToCoverageEnable =false;
-      desc.IndependentBlendEnable=false;
-      desc.RenderTarget[0].BlendEnable=false;
-      desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_RED|D3D11_COLOR_WRITE_ENABLE_GREEN|D3D11_COLOR_WRITE_ENABLE_BLUE;
-      BlendStates[ALPHA_SET_KEEP].create(desc);
-   }*/
-   /*{
-      D3D11_BLEND_DESC desc; Zero(desc);
-      desc.AlphaToCoverageEnable =true;
-      desc.IndependentBlendEnable=true;
-      REPAO(desc.RenderTarget  ).BlendEnable=false;
-      REPAO(desc.RenderTarget  ).RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-            desc.RenderTarget[0].BlendEnable=true;
-            desc.RenderTarget[0].BlendOp=desc.RenderTarget[0].BlendOpAlpha=D3D11_BLEND_OP_ADD;
-            desc.RenderTarget[0]. SrcBlend     =D3D11_BLEND_ONE ;
-            desc.RenderTarget[0].DestBlend     =D3D11_BLEND_ZERO;
-            desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ZERO;
-            desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ZERO;
-      BlendStates[ALPHA_NONE_COVERAGE].create(desc);
-   }*/
-   /*{
-      D3D11_BLEND_DESC desc; Zero(desc);
-      desc.AlphaToCoverageEnable =true;
-      desc.IndependentBlendEnable=true;
-      REPAO(desc.RenderTarget  ).BlendEnable=false;
-      REPAO(desc.RenderTarget  ).RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-            desc.RenderTarget[0].BlendEnable=true;
-            desc.RenderTarget[0].BlendOp=desc.RenderTarget[0].BlendOpAlpha=D3D11_BLEND_OP_ADD;
-            desc.RenderTarget[0]. SrcBlend     =D3D11_BLEND_ONE ;
-            desc.RenderTarget[0].DestBlend     =D3D11_BLEND_ONE ;
-            desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ZERO;
-            desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ONE ;
-      BlendStates[ALPHA_ADD_COVERAGE].create(desc);
-   }*/
-   /*{
-      D3D11_BLEND_DESC desc; Zero(desc);
-      desc.AlphaToCoverageEnable =false;
-      desc.IndependentBlendEnable=false;
-      desc.RenderTarget[0].BlendEnable=true;
-      desc.RenderTarget[0].BlendOp       =desc.RenderTarget[0].BlendOpAlpha=D3D11_BLEND_OP_ADD;
-      desc.RenderTarget[0]. SrcBlend     =D3D11_BLEND_ONE ;
-      desc.RenderTarget[0].DestBlend     =D3D11_BLEND_ZERO;
-      desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ONE ;
-      desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ONE ;
-      desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BlendStates[ALPHA_NONE_ADD].create(desc);
-   }*/
 
    // depth stencil state
    REPD(stencil    , STENCIL_NUM)

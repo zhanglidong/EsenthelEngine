@@ -769,7 +769,7 @@ GuiView GuiEdit;
 {
       super::update(gpc);
       lit.clear();
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          GuiSkinPtr temp_skin=Gui.skin; if(GuiSkinPtr skin=Proj.appGuiSkin())Gui.skin=skin; // set skin because that may affect object properties (for example slidebar button visibility, window client rectangle)
 

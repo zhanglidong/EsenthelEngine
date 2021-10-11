@@ -6,7 +6,7 @@ namespace EE{
 static void WindowButtonCheck(Button &button)
 {
    if(GuiObj *parent=button.parent())
-      if(parent->type()==GO_WINDOW)
+      if(parent->isWindow())
    {
       Window &window= parent->asWindow();
       IntPtr  index =&button-window.button;
@@ -94,9 +94,9 @@ Button& Button::func(void (*func)(Ptr), Ptr user, Bool immediate)
    T._func_immediate=immediate;
    return T;
 }
-void Button::call(Bool sound)
+void Button::call(Bool allow_sound)
 {
-   if(sound && T.sound && mode!=BUTTON_CONTINUOUS && _sub_type==BUTTON_TYPE_DEFAULT)Gui.playClickSound(); // don't play sounds for 'Tab' because they're played by 'Tabs'
+   if(allow_sound && sound && mode!=BUTTON_CONTINUOUS && _sub_type==BUTTON_TYPE_DEFAULT)Gui.playClickSound(); // don't play sounds for 'Tab' because they're played by 'Tabs'
    if(_func)
    {
       if(_func_immediate)
@@ -163,10 +163,11 @@ Button& Button::set(Bool on, SET_MODE mode)
    }
    return T;
 }
-Button& Button::push    (                 ) {T._push_button=true ; return T;}
-Button& Button::setText (C Str      &text ) {T. text       =text ; return T;}
-Button& Button::setImage(C ImagePtr &image) {T. image      =image; return T;}
-Button& Button::subType (BUTTON_TYPE type ) {T._sub_type   =type ; return T;}
+Button& Button::push    (                   ) {T._push_button=true ; return T;}
+Button& Button::setText (C Str        &text ) {T. text       =text ; return T;}
+Button& Button::setImage(C ImagePtr   &image) {T. image      =image; return T;}
+Button& Button::setSkin (C GuiSkinPtr &skin ) {T. skin       =skin ; return T;}
+Button& Button::subType (BUTTON_TYPE   type ) {T._sub_type   =type ; return T;}
 /******************************************************************************/
 Button& Button:: enabled (Bool  enabled) {if(T. enabled()!= enabled){if(!enabled && mode!=BUTTON_TOGGLE)_on=false; super:: enabled( enabled);} return T;}
 Button& Button::disabled (Bool disabled) {if(T.disabled()!=disabled){if(disabled && mode!=BUTTON_TOGGLE)_on=false; super::disabled(disabled);} return T;}
@@ -191,18 +192,18 @@ void Button::update(C GuiPC &gpc)
    Bool enabled=(T.enabled() && gpc.enabled);
    if(  enabled)
    {
-      Bool call_func=false, lit=false;
-      Byte state=0;
+      Bool    call_func=false, lit=false;
+      BS_FLAG state=BS_NONE;
       if(Gui.ms()==this)
       {
          lit   =true;
-         state|=((Ms.b (0) && (mode!=BUTTON_DEFAULT || Gui.msLit()==this)) ? BS_ON       : 0) // mode==BUTTON_DEFAULT requires Gui.msLit()==this while other modes don't
-              | ((Ms.bp(0)                                               ) ? BS_PUSHED   : 0)
-              | ((Ms.br(0) &&                          Gui.msLit()==this ) ? BS_RELEASED : 0);
+         state|=((Ms.b (0) && (mode!=BUTTON_DEFAULT || Gui.msLit()==this)) ? BS_ON       : BS_NONE) // mode==BUTTON_DEFAULT requires Gui.msLit()==this while other modes don't
+              | ((Ms.bp(0)                                               ) ? BS_PUSHED   : BS_NONE)
+              | ((Ms.br(0) &&                          Gui.msLit()==this ) ? BS_RELEASED : BS_NONE);
       }
       if(Gui.kb()==this)
       {
-         if(mode==BUTTON_CONTINUOUS)state|=((Kb.b(KB_ENTER) || Kb.b(KB_NPENTER)) ? BS_ON : 0);
+         if(mode==BUTTON_CONTINUOUS)state|=((Kb.b(KB_ENTER) || Kb.b(KB_NPENTER)) ? BS_ON : BS_NONE);
          if((Kb.k(KB_ENTER) || Kb.k(KB_NPENTER)) && Kb.k.first()){Kb.eatKey(); state|=(BS_PUSHED|BS_RELEASED|BS_ON);} // 'BS_RELEASED' to work for 'BUTTON_DEFAULT', this is because there's no way to cancel keyboard activation (mouse cursor for example can be moved away before releasing button, while keyboard can't)
       }
       REPA(Touches)
@@ -212,14 +213,14 @@ void Button::update(C GuiPC &gpc)
             lit|=t.stylus();
             if(t.scrolling()) // if touch is used for scrolling, then we need to process the button differently
             {
-               state|=((t.on() && (mode!=BUTTON_DEFAULT || Gui.objAtPos(t.pos())==this)) ? BS_ON                 : 0)  // mode==BUTTON_DEFAULT requires Gui.objAtPos(t.pos())==this while other modes don't
-                  //| ((t.pd()                                                         ) ? BS_PUSHED             : 0)  // ignore the first push
-                    | ((t.rs() &&                          Gui.objAtPos(t.pos())==this ) ? BS_RELEASED|BS_PUSHED : 0); // process touch release as both BS_RELEASED|BS_PUSHED so it can be used instead of touch pushes
+               state|=((t.on() && (mode!=BUTTON_DEFAULT || Gui.objAtPos(t.pos())==this)) ? BS_ON                 : BS_NONE)  // mode==BUTTON_DEFAULT requires Gui.objAtPos(t.pos())==this while other modes don't
+                  //| ((t.pd()                                                         ) ? BS_PUSHED             : BS_NONE)  // ignore the first push
+                    | ((t.rs() &&                          Gui.objAtPos(t.pos())==this ) ? BS_RELEASED|BS_PUSHED : BS_NONE); // process touch release as both BS_RELEASED|BS_PUSHED so it can be used instead of touch pushes
             }else
             {
-               state|=((t.on() && (mode!=BUTTON_DEFAULT || Gui.objAtPos(t.pos())==this)) ? BS_ON       : 0) // mode==BUTTON_DEFAULT requires Gui.objAtPos(t.pos())==this while other modes don't
-                    | ((t.pd()                                                         ) ? BS_PUSHED   : 0)
-                    | ((t.rs() &&                          Gui.objAtPos(t.pos())==this ) ? BS_RELEASED : 0);
+               state|=((t.on() && (mode!=BUTTON_DEFAULT || Gui.objAtPos(t.pos())==this)) ? BS_ON       : BS_NONE) // mode==BUTTON_DEFAULT requires Gui.objAtPos(t.pos())==this while other modes don't
+                    | ((t.pd()                                                         ) ? BS_PUSHED   : BS_NONE)
+                    | ((t.rs() &&                          Gui.objAtPos(t.pos())==this ) ? BS_RELEASED : BS_NONE);
             }
          }
       }
@@ -262,7 +263,7 @@ void Button::update(C GuiPC &gpc)
 /******************************************************************************/
 void Button::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
       if(GuiSkin *skin=getSkin())
    {
       Rect                  r=rect()+gpc.offset;

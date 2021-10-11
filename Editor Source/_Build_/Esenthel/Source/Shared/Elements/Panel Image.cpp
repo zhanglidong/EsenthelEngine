@@ -324,7 +324,7 @@
              || force_uniform_stretch[0]>src.force_uniform_stretch[0] || force_uniform_stretch[1]>src.force_uniform_stretch[1]
              || resolution>src.resolution || width>src.width || height>src.height
              || round_corners>src.round_corners || left_slope>src.left_slope || right_slope>src.right_slope
-             || max_side_stretch>src.max_side_stretch || extend>src.extend || extend_inner_padd>src.extend_inner_padd
+             || max_side_stretch>src.max_side_stretch || min_size>src.min_size || extend>src.extend || extend_inner_padd>src.extend_inner_padd
              || border_size>src.border_size
              || outer_glow_spread>src.outer_glow_spread || outer_glow_radius>src.outer_glow_radius || inner_glow_radius>src.inner_glow_radius || outer_glow_color>src.outer_glow_color || inner_glow_color>src.inner_glow_color
              || light_ambient>src.light_ambient
@@ -348,7 +348,7 @@
              && force_uniform_stretch[0]==src.force_uniform_stretch[0] && force_uniform_stretch[1]==src.force_uniform_stretch[1]
              && resolution==src.resolution && width==src.width && height==src.height
              && round_corners==src.round_corners && left_slope==src.left_slope && right_slope==src.right_slope
-             && max_side_stretch==src.max_side_stretch && extend==src.extend && extend_inner_padd==src.extend_inner_padd
+             && max_side_stretch==src.max_side_stretch && min_size==src.min_size && extend==src.extend && extend_inner_padd==src.extend_inner_padd
              && border_size==src.border_size
              && outer_glow_spread==src.outer_glow_spread && outer_glow_radius==src.outer_glow_radius && inner_glow_radius==src.inner_glow_radius && outer_glow_color==src.outer_glow_color && inner_glow_color==src.inner_glow_color
              && light_ambient==src.light_ambient
@@ -371,7 +371,7 @@
          REPAO(force_uniform_stretch)++;
          resolution++; width++; height++;
          round_corners++; left_slope++; right_slope++;
-         max_side_stretch++; extend++; extend_inner_padd++;
+         max_side_stretch++; min_size++; extend++; extend_inner_padd++;
          border_size++;
          outer_glow_spread++; outer_glow_radius++; inner_glow_radius++; outer_glow_color++; inner_glow_color++;
          light_ambient++;
@@ -407,6 +407,7 @@
          changed|=Sync(left_slope          , src.left_slope          , val.left_slope          , src_val.left_slope          );
          changed|=Sync(right_slope         , src.right_slope         , val.right_slope         , src_val.right_slope         );
          changed|=Sync(max_side_stretch    , src.max_side_stretch    , val.max_side_stretch    , src_val.max_side_stretch    );
+         changed|=Sync(min_size            , src.min_size            , val.min_size            , src_val.min_size            );
          changed|=Sync(extend              , src.extend              , val.extend              , src_val.extend              );
          changed|=Sync(extend_inner_padd   , src.extend_inner_padd   , val.extend_inner_padd   , src_val.extend_inner_padd   );
          changed|=Sync(border_size         , src.border_size         , val.border_size         , src_val.border_size         );
@@ -472,6 +473,7 @@
          changed|=Undo(left_slope          , src.left_slope          , val.left_slope          , src_val.left_slope          );
          changed|=Undo(right_slope         , src.right_slope         , val.right_slope         , src_val.right_slope         );
          changed|=Undo(max_side_stretch    , src.max_side_stretch    , val.max_side_stretch    , src_val.max_side_stretch    );
+         changed|=Undo(min_size            , src.min_size            , val.min_size            , src_val.min_size            );
          changed|=Undo(extend              , src.extend              , val.extend              , src_val.extend              );
          changed|=Undo(extend_inner_padd   , src.extend_inner_padd   , val.extend_inner_padd   , src_val.extend_inner_padd   );
          changed|=Undo(border_size         , src.border_size         , val.border_size         , src_val.border_size         );
@@ -516,13 +518,13 @@
       }
       bool EditPanelImage::Base::save(File &f)C
       {
-         f.cmpUIntV(1);
+         f.cmpUIntV(2);
          f<<cut_left<<cut_right<<cut_bottom<<cut_top
           <<cut_corners<<cut_corner_slope<<cut_corner_amount
           <<force_uniform_stretch
           <<resolution<<width<<height
           <<round_corners<<left_slope<<right_slope
-          <<max_side_stretch<<extend<<extend_inner_padd
+          <<max_side_stretch<<min_size<<extend<<extend_inner_padd
           <<border_size
           <<outer_glow_spread<<outer_glow_radius<<inner_glow_radius<<outer_glow_color<<inner_glow_color
           <<light_ambient
@@ -541,6 +543,29 @@
       {
          reset(); switch(f.decUIntV())
          {
+            case 2:
+            {
+               f>>cut_left>>cut_right>>cut_bottom>>cut_top
+                >>cut_corners>>cut_corner_slope>>cut_corner_amount
+                >>force_uniform_stretch
+                >>resolution>>width>>height
+                >>round_corners>>left_slope>>right_slope
+                >>max_side_stretch>>min_size>>extend>>extend_inner_padd
+                >>border_size
+                >>outer_glow_spread>>outer_glow_radius>>inner_glow_radius>>outer_glow_color>>inner_glow_color
+                >>light_ambient
+                >>depth>>round_depth>>inner_distance>>smooth_depth
+                >>shadow_radius>>shadow_opacity>>shadow_spread
+                >>color>>color_top>>color_bottom>>color_left>>color_right
+                >>images_size>>top_height>>bottom_height>>left_right_width>>top_corner_width>>bottom_corner_width
+                >>top_image>>bottom_image>>center_image>>left_image>>right_image>>top_left_image>>top_right_image>>bottom_left_image>>bottom_right_image
+                >>compressed_time>>mip_maps_time>>compressed>>mip_maps
+                >>top_id>>bottom_id>>center_id>>left_id>>right_id>>top_left_id>>top_right_id>>bottom_left_id>>bottom_right_id;
+               FREPA(lights  )if(!lights  [i].load(f))goto error;
+               FREPA(sections)if(!sections[i].load(f))goto error;
+               if(f.ok())return true;
+            }break;
+
             case 1:
             {
                f>>cut_left>>cut_right>>cut_bottom>>cut_top

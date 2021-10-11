@@ -25,7 +25,7 @@ class CalculatorClass : ClosableWindow
    }
    virtual void draw(C GuiPC &gpc)override
    {
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          super.draw(gpc);
          D.clip(gpc.clip);

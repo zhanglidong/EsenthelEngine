@@ -122,10 +122,10 @@ MiscRegion Misc;
    {
       Node<MenuElm> menu_menu;
       {
-         menu_menu.New().create("Help"           , Help      , T).display(MLTC(null, PL, u"Pomoc"        , DE, u"Hilfe"          , RU, u"Помощь"         , PO, u"Ajuda"             )); //.desc(MLT("Show Esenthel Engine help documentation", PL,"Wyświetl pomoc Esenthel Engine", DE,"Zeige Esenthel Engine Hilfe Dokumentation", RU,"Показать документацию Esenthel Engine", PO,"Mostrar a documentaçăo de ajuda do Esenthel Engine"));
+         menu_menu.New().create("Help"           , Help      , T).display(MLTC(null, PL, u"Pomoc"        , DE, u"Hilfe"          , RU, u"Помощь"         , PO, u"Ajuda"             )); //.desc(MLT("Show Esenthel Engine help documentation", PL,"Wyświetl pomoc Esenthel Engine", DE,"Zeige Esenthel Engine Hilfe Dokumentation", RU,"Показать документацию Esenthel Engine", PO,"Mostrar a documentação de ajuda do Esenthel Engine"));
          menu_menu.New().create("About"          , About     , T);
-         menu_menu.New().create("Video Options"  , VidOpt    , T).kbsc(KbSc(KB_F12  )).display(MLTC(null, PL, u"Opcje Grafiki", DE, u"Grafik Optionen", RU, u"Настройки видео", PO, u"Opçőes de Video"   )).desc(MLT("Change video options", PL,u"Zmień opcje grafiki", DE,u"Ändert die Grafik Optionen", RU,u"Изменить видео настройки", PO,u"Mudar as opçőes de video")).flag(MENU_HIDDEN);
-         menu_menu.New().create("Fullscreen"     , Fullscreen, T).kbsc(KbSc(KB_F11  )).display(MLTC(null, PL, u"Pełny Ekran"  , DE, u"Vollbild"       , RU, u"Полноэкранный"  , PO, u"Ecră inteiro"      )).desc(MLT("Toggle fullscreen mode", PL,u"Zmień pełny ekran", DE, "Wechseln zu Fullscreen Modus", RU,u"Переключить полноэкранный режим", PO,u"Accionar modo de ecră inteiro"));
+         menu_menu.New().create("Video Options"  , VidOpt    , T).kbsc(KbSc(KB_F12  )).display(MLTC(null, PL, u"Opcje Grafiki", DE, u"Grafik Optionen", RU, u"Настройки видео", PO, u"Opções de Video"   )).desc(MLT("Change video options", PL,u"Zmień opcje grafiki", DE,u"Ändert die Grafik Optionen", RU,u"Изменить видео настройки", PO,u"Mudar as opções de video")).flag(MENU_HIDDEN);
+         menu_menu.New().create("Fullscreen"     , Fullscreen, T).kbsc(KbSc(KB_F11  )).display(MLTC(null, PL, u"Pełny Ekran"  , DE, u"Vollbild"       , RU, u"Полноэкранный"  , PO, u"Ecrã inteiro"      )).desc(MLT("Toggle fullscreen mode", PL,u"Zmień pełny ekran", DE, "Wechseln zu Fullscreen Modus", RU,u"Переключить полноэкранный режим", PO,u"Accionar modo de ecrã inteiro"));
          menu_menu.New().create("Screenshot"     , Screenshot, T).kbsc(KbSc(KB_PRINT)).display(MLTC(null, RU, u"Скриншот")).desc("Take a screenshot and save it on the Desktop"/*MLTC(u"Take a screenshot and save it to \"ScreenShot\" folder inside the Editor", PL, u"Pobierz ekran oraz zapisz go do katalogu \"ScreenShot\"", DE, u"Macht einen Screenshot und speichert ihn in \"ScreenShot\"", RU, u"Сделать скриншот и сохранить в \"ScreenShot\"", PO, u"Captar um screenshot e guardar em \"ScreenShot\"")*/);
          menu_menu.New().create("Calculator"     , CalcShow  , T).kbsc(KbSc(KB_EQUAL, KBSC_CTRL_CMD));
        //menu_menu.New().create("Verify Elements", VerifyElms, T).desc("Verify if project elemets are accessing elements that haven't been removed.");
@@ -148,7 +148,7 @@ MiscRegion Misc;
          menu_menu.New().create("Synchronize Codes (Experimental)", SyncCodes, T).desc("This will initiate synchronizing codes between client and server.\nFirst all codes will be received from server.\nThen any changes in codes will be merged on the client side.\nUpon completion of merging code changes all of them will be sent to the server.");
          menu_menu++;
          menu_menu.New().create("Project List"   , ProjList     , T).kbsc(KbSc(KB_ESC, KBSC_SHIFT              )).desc("Go back to the project list");
-         menu_menu.New().create("Exit"           , Quit         , T).kbsc(KbSc(KB_F4 , KBSC_ALT                )).display(MLTC(null, PL, u"Wyjdź", DE, u"Beenden", RU, u"Выход", PO, u"Sair")).desc(MLT("Exit application", PL,u"Wyjdź z programu", DE,"Beendet die Anwendung", RU,u"Выйти и закрыть программу", PO,u"Sair da aplicaçăo"));
+         menu_menu.New().create("Exit"           , Quit         , T).kbsc(KbSc(KB_F4 , KBSC_ALT                )).display(MLTC(null, PL, u"Wyjdź", DE, u"Beenden", RU, u"Выход", PO, u"Sair")).desc(MLT("Exit application", PL,u"Wyjdź z programu", DE,"Beendet die Anwendung", RU,u"Выйти и закрыть программу", PO,u"Sair da aplicação"));
          menu_menu.New().create("Toggle Project" , ToggleProj   , T).kbsc(KbSc(KB_1  , KBSC_ALT                )).flag(MENU_HIDDEN);
          menu_menu.New().create("Toggle Theater" , ToggleTheater, T).kbsc(KbSc(KB_4  , KBSC_ALT                )).flag(MENU_HIDDEN);
          menu_menu.New().create("Toggle Removed" , ToggleRemoved, T).kbsc(KbSc(KB_R  , KBSC_ALT                )).flag(MENU_HIDDEN);
@@ -261,7 +261,7 @@ MiscRegion Misc;
       Gui+=super    ::create(Rect_LU(0, 0,                      w,    h)).skin(&DarkSkin, false).hide().disabled(true); kb_lit=false;
       T  +=hide_proj.create(Rect_LU(0, 0,                  0.090f, 0.06f), "<<").func(HideProj, T).focusable(false).desc("Hide Project\nKeyboard Shortcut: Alt+1"); hide_proj.mode=BUTTON_TOGGLE;
       T  +=menu     .create(Rect_LU(hide_proj.rect().ru(), 0.060f, 0.06f), menu_menu).skin(&NoComboBoxImage).focusable(false).desc("Menu"); menu.text="M"; menu.text_align=0; menu.flag|=COMBOBOX_CONST_TEXT;
-      T  +=vid_opt  .create(Rect_LU(menu     .rect().ru(), 0.060f, 0.06f)).func(VidOpt, T).focusable(false).desc(S+MLTC(u"Video Options", PL, u"Opcje Grafiki", DE, u"Grafik Optionen", RU, u"Настройки видео", PO, u"Opçőes de Video")+"\nKeyboard Shortcut: F12"); vid_opt.image="Gui/Misc/display.img"; vid_opt.mode=BUTTON_TOGGLE;
+      T  +=vid_opt  .create(Rect_LU(menu     .rect().ru(), 0.060f, 0.06f)).func(VidOpt, T).focusable(false).desc(S+MLTC(u"Video Options", PL, u"Opcje Grafiki", DE, u"Grafik Optionen", RU, u"Настройки видео", PO, u"Opções de Video")+"\nKeyboard Shortcut: F12"); vid_opt.image="Gui/Misc/display.img"; vid_opt.mode=BUTTON_TOGGLE;
       T  +=online   .create(Rect_LU(vid_opt  .rect().ru(), 0.155f, 0.06f), "Offline", &online_ts);
       T  +=play     .create(Rect_LU(online   .rect().ru(), 0.060f, 0.06f)).func(Play, T).focusable(false).desc("Play active application\nKeyboard Shortcut: F5"); play.image="Gui/arrow_right_big.img";
       T  +=build    .create(Rect_LU(play     .rect().ru(), 0.125f, 0.06f)).setData(build_menu).focusable(false); build.text="Build"; build.text_size*=0.64f; FlagDisable(build.flag, COMBOBOX_MOUSE_WHEEL); build.flag|=COMBOBOX_CONST_TEXT;
@@ -277,9 +277,8 @@ MiscRegion Misc;
    }
    void MiscRegion::resize()
    {
-      Rect screen(-D.w(), -D.h(), D.w(), D.h());
       Vec2 cur=rect().lerp(pos.x, pos.y),
-        target(screen.lerp(pos.x, pos.y));
+      target(D.rect().lerp(pos.x, pos.y));
       move(target-cur);
          cur=move_misc.rect().lerp(  pos.x, 0);
       target=          rect().lerp(1-pos.x, 0);
@@ -297,7 +296,7 @@ MiscRegion Misc;
    }
    void MiscRegion::draw(C GuiPC &gpc)
 {
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          if(Proj.visible() && Proj.rect().max.x>rect().max.x+EPS)
             if(Mode()==MODE_OBJ || Mode()==MODE_ANIM || Mode()==MODE_WORLD || Mode()==MODE_TEX_DOWN)

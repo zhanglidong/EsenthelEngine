@@ -26,7 +26,7 @@ Property::~Property()
 }
 Property::Property()
 {
-   min_use  =max_use  =false;
+   min_use  =max_use  =mouse_edit_linked=false;
    min_value=max_value=0;
    mouse_edit_mode =PROP_MOUSE_EDIT_LINEAR;
    mouse_edit_speed=1.0f;
@@ -130,7 +130,7 @@ void Property::Color::update(C GuiPC &gpc)
 }
 void Property::Color::draw(C GuiPC &gpc)
 {
-   if(gpc.visible && visible())
+   if(/*gpc.visible &&*/ visible())
    {
       D.clip(gpc.clip);
       Property &prop=*(Property*)user;
@@ -574,12 +574,10 @@ Property& Property::visible      (Bool on)  {return on ? show() : hide();}
 Bool      Property::visible      (       )C {return name.visible();}
 Property& Property::visibleToggle(       )  {return name.visible() ? hide() : show();}
 /******************************************************************************/
-Property& Property::pos (C Vec2 &pos  ) {return move(pos-name.pos());}
-Property& Property::move(C Vec2 &delta)
+Property& Property::moveValue(C Vec2 &delta)
 {
    if(delta.any())
    {
-      name    .move(delta);
       checkbox.move(delta);
       textline.move(delta);
       button  .move(delta);
@@ -589,6 +587,16 @@ Property& Property::move(C Vec2 &delta)
    }
    return T;
 }
+Property& Property::move(C Vec2 &delta)
+{
+   if(delta.any())
+   {
+      name.move(delta);
+      moveValue(delta);
+   }
+   return T;
+}
+Property& Property::pos(C Vec2 &pos) {return move(pos-name.pos());}
 Property& Property::close()
 {
    if(_cp)_cp->hide();
@@ -639,7 +647,7 @@ void Property::SelectFile(Property &prop)
 void Property::MouseEdit(Property &prop)
 {
    // get total delta movement (and number of start touches)
-   Vec2 d=0; Int on=0, pd=0; REPA(MT)if(MT.b(i) && MT.guiObj(i)==&prop.button){d+=MT.ad(i); if(!MT.touch(i))Ms.freeze(); if(MT.bp(i))pd++;else on++;}
+   Vec2 d=0; Int on=0, pd=0; REPA(MT)if(MT.b(i) && MT.guiObj(i)==&prop.button){d+=MT.ad(i); if(Touch *touch=MT.touch(i))touch->disableScroll();else Ms.freeze(); if(MT.bp(i))pd++;else on++;}
 
    if(pd && !on)switch(prop.md.type) // on start set initial value
    {
@@ -655,9 +663,9 @@ void Property::MouseEdit(Property &prop)
       d*=prop.mouse_edit_speed;
       Int  dim =((prop.md.type==DATA_VEC2 || prop.md.type==DATA_VECI2) ? 2 : 1);
       Bool dim2=(dim==2);
-      if((Kb.ctrlCmd() && Kb.shift()) || (Gui.ms()==&prop.button && Ms.b(1)))d.set(d.sum()   );else
-      if(                 Kb.shift()  &&  dim2                              )d.set(0, d.sum());else
-      if( Kb.ctrlCmd()                || !dim2                              )d.set(d.sum(), 0);
+      if( !dim2 || Kb.ctrlCmd() && !Kb.shift())d.set(d.sum(), 0);else
+      if(         !Kb.ctrlCmd() &&  Kb.shift())d.set(0, d.sum());else
+      if(         (Kb.ctrlCmd() &&  Kb.shift() || (Gui.ms()==&prop.button && Ms.b(1)))^prop.mouse_edit_linked)d.set(d.sum());
       switch(prop.md.type)
       {
          case DATA_INT  :

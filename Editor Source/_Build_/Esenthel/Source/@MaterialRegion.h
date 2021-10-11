@@ -2,28 +2,6 @@
 /******************************************************************************/
 class MaterialRegion : Region
 {
-   enum TEX_TYPE
-   {
-      TEX_COLOR     ,
-      TEX_ALPHA     ,
-      TEX_BUMP      ,
-      TEX_NORMAL    ,
-      TEX_SMOOTH    ,
-      TEX_REFLECT   ,
-      TEX_GLOW      ,
-      TEX_DET_COLOR ,
-      TEX_DET_BUMP  ,
-      TEX_DET_NORMAL,
-      TEX_DET_SMOOTH,
-      TEX_MACRO     ,
-      TEX_LIGHT     ,
-      
-      TEX_BASE_BEGIN=TEX_COLOR,
-      TEX_BASE_END  =TEX_GLOW ,
-      TEX_DET_BEGIN =TEX_DET_COLOR,
-      TEX_DET_END   =TEX_DET_SMOOTH,
-   };
-
    class Change : Edit::_Undo::Change
    {
       EditMaterial data;
@@ -48,7 +26,7 @@ class MaterialRegion : Region
       static void ReplaceElmNames(Mems<FileParams> &files);
       void setDesc();
       static void FixPath(Mems<FileParams> &fps);
-      void setFile(Str file);
+      void setFile(Str file, bool set_undo=true);
       void toGui();
       Texture& create(TEX_TYPE type, C MemberDesc &md_file, C MemberDesc &md_time, Rect rect, C Str &text, MaterialRegion &mr);
 
@@ -77,8 +55,8 @@ public:
    Vec               mouse_edit_value;
    Vec2              light_angle;
    Region            sub;
-   Button            brightness;
-   Property         *red, *green, *blue, *alpha;
+   Button            brightness, rgb_1, emissive;
+   Property         *red, *green, *blue, *alpha, *emit_red, *emit_green, *emit_blue, *smooth;
    Memx<Property>    props;
    Memx<Texture>     texs;
    TextBlack         ts;
@@ -102,6 +80,14 @@ public:
    static void PreChanged(C Property &prop); // set all RGB props to have the same change_type so they will not create too manu undos
    static void    Changed(C Property &prop);
 
+   class MaterialTech
+   {
+      MATERIAL_TECHNIQUE tech;
+      cchar8            *name;
+      cchar             *desc;
+   };
+   static MaterialTech mtrl_techs[]
+; ASSERT(MTECH_NUM==16);
    static Str  Tech(C MaterialRegion &mr          );
    static void Tech(  MaterialRegion &mr, C Str &t);
 
@@ -132,7 +118,9 @@ public:
    static Str  MaxTexSize(C MaterialRegion &mr          ) {REPA(max_tex_sizes)if(max_tex_sizes[i].mts==mr.edit.max_tex_size)return i; return S;}
    static void MaxTexSize(  MaterialRegion &mr, C Str &t) {int i=TextInt(t); if(InRange(i, max_tex_sizes)){mr.edit.max_tex_size=max_tex_sizes[i].mts; mr.edit.max_tex_size_time.now();}}*/
 
-   static void RGB(MaterialRegion &mr);
+   static void RGB1(MaterialRegion &mr);
+   static void RGB (MaterialRegion &mr);
+   static void Emissive(MaterialRegion &mr);
 
    static Str  Red  (C MaterialRegion &mr          );
    static void Red  (  MaterialRegion &mr, C Str &t);
@@ -144,37 +132,47 @@ public:
    static void Alpha(  MaterialRegion &mr, C Str &t);
 
    static const flt BumpScale;
-   static Str  Bump    (C MaterialRegion &mr          );
-   static void Bump    (  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  NrmScale(C MaterialRegion &mr          );
-   static void NrmScale(  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  FNY     (C MaterialRegion &mr          );
-   static void FNY     (  MaterialRegion &mr, C Str &t);
+   static Str  Bump      (C MaterialRegion &mr          );
+   static void Bump      (  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  NrmScale  (C MaterialRegion &mr          );
+   static void NrmScale  (  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  FNY       (C MaterialRegion &mr          );
+   static void FNY       (  MaterialRegion &mr, C Str &t);
+   static Str  RoughImage(C MaterialRegion &mr          );
+   static void RoughImage(  MaterialRegion &mr, C Str &t);
 
-   static Str  Smooth (C MaterialRegion &mr          );
-   static void Smooth (  MaterialRegion &mr, C Str &t);
-   static Str  Reflect(C MaterialRegion &mr          );
-   static void Reflect(  MaterialRegion &mr, C Str &t);
-   static Str  Glow   (C MaterialRegion &mr          );
-   static void Glow   (  MaterialRegion &mr, C Str &t);
+   static Str  Smooth    (C MaterialRegion &mr          );
+   static void Smooth    (  MaterialRegion &mr, C Str &t);
+   static Str  ReflectMin(C MaterialRegion &mr          );
+   static void ReflectMin(  MaterialRegion &mr, C Str &t);
+   static Str  ReflectMax(C MaterialRegion &mr          );
+   static void ReflectMax(  MaterialRegion &mr, C Str &t);
+   static Str  Glow      (C MaterialRegion &mr          );
+   static void Glow      (  MaterialRegion &mr, C Str &t);
 
-   static Str  DetScale(C MaterialRegion &mr          );
-   static void DetScale(  MaterialRegion &mr, C Str &t);
-   static Str  DetPower(C MaterialRegion &mr          );
-   static void DetPower(  MaterialRegion &mr, C Str &t);
+   static Str  DetUVScale(C MaterialRegion &mr          );
+   static void DetUVScale(  MaterialRegion &mr, C Str &t);
+   static Str  DetPower  (C MaterialRegion &mr          );
+   static void DetPower  (  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  DetLOD    (C MaterialRegion &mr          );
+   static void DetLOD    (  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
 
-   static Str  Cull    (C MaterialRegion &mr          );
-   static void Cull    (  MaterialRegion &mr, C Str &t);
- //static Str  SSS     (C MaterialRegion &mr          ) {return mr.edit.sss;}
- //static void SSS     (  MaterialRegion &mr, C Str &t) {mr.edit.sss=TextFlt(t); mr.edit.sss_time.getUTC();}
-   static Str  AmbR    (C MaterialRegion &mr          );
-   static void AmbR    (  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  AmbG    (C MaterialRegion &mr          );
-   static void AmbG    (  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  AmbB    (C MaterialRegion &mr          );
-   static void AmbB    (  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
-   static Str  TexScale(C MaterialRegion &mr          );
-   static void TexScale(  MaterialRegion &mr, C Str &t);
+   static Str  Cull(C MaterialRegion &mr          );
+   static void Cull(  MaterialRegion &mr, C Str &t);
+ //static Str  SSS (C MaterialRegion &mr          ) {return mr.edit.sss;}
+ //static void SSS (  MaterialRegion &mr, C Str &t) {       mr.edit.sss=TextFlt(t); mr.edit.sss_time.getUTC();}
+
+   static Str  EmissiveR(C MaterialRegion &mr          );   
+   static void EmissiveR(  MaterialRegion &mr, C Str &t);    // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  EmissiveG(C MaterialRegion &mr          );   
+   static void EmissiveG(  MaterialRegion &mr, C Str &t);    // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  EmissiveB(C MaterialRegion &mr          );   
+   static void EmissiveB(  MaterialRegion &mr, C Str &t);    // call 'setChanged' manually because it needs to be called before 'setShader'
+   static Str  EmissiveGlow(C MaterialRegion &mr          );
+   static void EmissiveGlow(  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
+
+   static Str  UVScale(C MaterialRegion &mr          );
+   static void UVScale(  MaterialRegion &mr, C Str &t);
 
    static void Undo  (MaterialRegion &editor);
    static void Redo  (MaterialRegion &editor);
@@ -294,20 +292,23 @@ public:
    static void BumpFromCol24(MaterialRegion &editor);
    static void BumpFromCol32(MaterialRegion &editor);
 
-   static void MulTexCol   (MaterialRegion &editor);
-   static void MulTexNormal(MaterialRegion &editor);
-   static void MulTexSmooth(MaterialRegion &editor);
+   static void MulTexCol     (MaterialRegion &editor);
+   static void MulTexNormal  (MaterialRegion &editor);
+   static void MulTexSmooth  (MaterialRegion &editor);
+   static void MulTexGlow    (MaterialRegion &editor);
+   static void MulTexEmissive(MaterialRegion &editor);
 
    bool bigVisible()C;
 
    void   setRGB         (C Vec                   &srgb              );
    void   setNormal      (flt                    normal              );
    void   setSmooth      (flt                    smooth              );
-   void   setReflect     (flt                   reflect              );
+   void   setReflect     (flt reflect_min, flt reflect_max           );
    void resetAlpha       (                                           );
    void cull             (bool                      on               );
    void flipNrmY         (bool                      on               ); // 'rebuildBase' already calls 'setChanged' and 'toGui'
- //void maxTexSize       (Edit.MAX_TEX_SIZE         mts              ) {if(edit.max_tex_size       !=mts    ){        undos.set("mts"       ); edit.max_tex_size       =mts    ; edit.       max_tex_size_time.getUTC(); setChanged(); toGui();}}
+   void smoothIsRough    (bool                      on               ); // 'rebuildBase' already calls 'setChanged' and 'toGui'
+ //void maxTexSize       (Edit.MAX_TEX_SIZE         mts              ) {if(edit.max_tex_size       !=mts                                 ){        undos.set("mts"       ); edit.max_tex_size       =mts                              ; edit.       max_tex_size_time.getUTC(); setChanged(); toGui();}}
    void downsizeTexMobile(byte                      ds               );  
    void texQuality       (Edit::Material::TEX_QUALITY q, bool undo=true); // 'rebuildBase' already calls 'setChanged' and 'toGui'
 
@@ -323,10 +324,11 @@ public:
    virtual C ImagePtr    & getBase2   (); 
    virtual C ImagePtr    & getDetail  (); 
    virtual C ImagePtr    & getMacro   (); 
-   virtual C ImagePtr    & getLight   (); 
+   virtual C ImagePtr    & getEmissive(); 
    virtual   bool          water      ()C;
 
    void setBottom(C Rect &prop_rect);
+   void setSmoothParam();
    void create();
 
    // operations
@@ -346,39 +348,55 @@ public:
    void set(C MaterialPtr &mtrl);    
    void set(Memt<MaterialPtr> mtrls);
    void drag(Memc<UID> &elms, GuiObj *focus_obj, C Vec2 &screen_pos);
+   enum TEX_CHANNEL_TYPE : byte
+   {
+      TC_COLOR ,
+      TC_ALPHA ,
+      TC_NORMAL,
+      TC_ROUGH ,
+      TC_SMOOTH,
+      TC_METAL ,
+      TC_SPEC  ,
+      TC_AO    ,
+      TC_BUMP  ,
+      TC_GLOW  ,
+      TC_NUM   ,
+   };
    class ImageSource : FileParams
    {
-      int i, order;
+      class TexChannel
+      {
+         TEX_CHANNEL_TYPE type;
+         int              pos;
+
+         TexChannel&set (TEX_CHANNEL_TYPE type);                                  
+         TexChannel&find(C Str &name, C Str &text, bool case_sensitive=false, WHOLE_WORD whole_word=WHOLE_WORD_NO);
+         void fix();                      
+
+         static int Compare(C TexChannel &a, C TexChannel &b);
+
+public:
+   TexChannel();
+      };
+
+      bool multi_channel, need_metal_channel;
+      int  index, order, detected_channels, channel[TC_NUM];
+
+      void set(C Str &name, int index);
+      
+      void process();
+      void process(TEX_TYPE tex_type, EditMaterial &mtrl, bool append=false, bool multi_images=false);
 
 public:
    ImageSource();
    };
    static int Compare(C ImageSource &a, C ImageSource &b);
-   enum TEX_CHANNEL_TYPE : byte
-   {
-      TC_ROUGH ,
-      TC_METAL ,
-      TC_AO    ,
-      TC_HEIGHT,
-      TC_NUM   ,
-   };
-   class TexChannel
-   {
-      TEX_CHANNEL_TYPE type;
-      int              pos;
-
-      TexChannel&set (TEX_CHANNEL_TYPE type);                              
-      TexChannel&find(C Str &name, C Str &text, bool case_sensitive=false);
-      void fix();                      
-
-      static int Compare(C TexChannel &a, C TexChannel &b);
-   };
    void drop(Memc<Str> &names, GuiObj *focus_obj, C Vec2 &screen_pos);
 
-   virtual void rebuildBase(uint old_base_tex, bool changed_flip_normal_y=false, bool adjust_params=true, bool always=false);
+   virtual void rebuildBase(TEX_FLAG old_textures, uint changed_in_mtrl=0, bool adjust_params=true, bool always=false);
    virtual void rebuildDetail();
    virtual void rebuildMacro();
-   virtual void rebuildLight(bool old_light_map, bool adjust_params=true);
+   virtual void rebuildEmissive(TEX_FLAG old_textures, bool adjust_params=true);
 
    virtual void elmChanged(C UID&mtrl_id);
    void erasing(C UID &elm_id);         

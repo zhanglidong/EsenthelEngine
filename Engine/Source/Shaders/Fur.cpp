@@ -9,13 +9,16 @@ VecH GetBoneFurVel(VecU bone, VecH weight) {return weight.x*FurVel[bone.x] + wei
 /******************************************************************************/
 // SKIN, SIZE, DIFFUSE
 /******************************************************************************/
-struct Base_VS_PS
+struct BaseData
 {
-   Vec2 tex:TEXCOORD;
-   VecH nrm:NORMAL  ; // !! not Normalized !!
+   Vec2 uv:UV;
+
+   centroid VecH nrm:NORMAL; // !! not Normalized !! have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
+
 #if USE_VEL
    Vec projected_prev_pos_xyw:PREV_POS;
 #endif
+
 #if SIZE
    Half len:LENGTH;
 #endif
@@ -24,14 +27,14 @@ void Base_VS
 (
    VtxInput vtx,
 
-   out Base_VS_PS O,
-   out Vec4 outVtx:POSITION,
+   out BaseData O,
+   out Vec4 vpos:POSITION,
 
    CLIP_DIST
 )
 {
    Vec view_pos, view_pos_prev;
-   O.tex=vtx.tex();
+   O.uv=vtx.uv();
 
    if(!SKIN)
    {
@@ -56,7 +59,7 @@ void Base_VS
 #if SIZE
    O.len=vtx.size();
 #endif
-   CLIP_PLANE(view_pos); outVtx=Project(view_pos);
+   vpos=Project(view_pos); CLIP_PLANE(view_pos);
 #if USE_VEL
    O.projected_prev_pos_xyw=ProjectPrevXYW(view_pos_prev);
 #endif
@@ -64,34 +67,34 @@ void Base_VS
 /******************************************************************************/
 void Base_PS
 (
-   Base_VS_PS I,
+   BaseData I,
 #if USE_VEL
    PIXEL,
 #endif
-   out DeferredSolidOutput output
+   out DeferredOutput output
 )
 {
-   Half fur=Tex(FurCol, I.tex*Material.det_scale).r;
+   Half fur=RTex(FurCol, I.uv*Material.det_uv_scale).r;
 #if SIZE
    VecH col=Sat(I.len*-fur+1); // I.len*-fur+step+1 : fur*FACTOR+step+1, here step=0
 #else
    VecH col=Sat(fur*FACTOR+1); // I.len*-fur+step+1 : fur*FACTOR+step+1, here step=0
 #endif
-   if(DIFFUSE)col*=Tex(Col, I.tex).rgb;
+   if(DIFFUSE)col*=RTex(Col, I.uv).rgb;
    col=col*Material.color.rgb+Highlight.rgb;
 
    I.nrm=Normalize(I.nrm);
 
-   output.color       (col);
-   output.glow        (0);
-   output.normal      (I.nrm);
-   output.translucent (0);
-   output.smooth      (Material.smooth);
-   output.reflect     (Material.reflect);
+   output.color      (col);
+   output.glow       (0);
+   output.normal     (I.nrm);
+   output.translucent(0);
+   output.rough      (Material.  rough_add);
+   output.reflect    (Material.reflect_add);
 #if USE_VEL
-   output.velocity    (I.projected_prev_pos_xyw, pixel);
+   output.motion     (I.projected_prev_pos_xyw, pixel);
 #else
-   output.velocityZero();
+   output.motionZero ();
 #endif
 }
 /******************************************************************************/
@@ -99,18 +102,18 @@ void Soft_VS
 (
    VtxInput vtx,
 
-   out Vec2 outTex    :TEXCOORD,
-   out Vec  outOrigPos:ORIG_POS,
+   out Vec2 uv      :UV,
+   out Vec  orig_pos:ORIG_POS,
 #if SIZE
-   out Half outLen    :LENGTH  ,
+   out Half length  :LENGTH,
 #endif
-   out Vec4 outVtx    :POSITION
+   out Vec4 pixel   :POSITION
 )
 {
    Vec  pos=vtx.pos();
    VecH nrm=vtx.nrm();
 
-   outTex=vtx.tex();
+   uv=vtx.uv();
 
    if(!SKIN)
    {
@@ -123,39 +126,39 @@ void Soft_VS
       nrm+=GetBoneFurVel(     bone, vtx.weight()); nrm=Normalize(nrm);
       nrm =TransformDir (nrm, bone, vtx.weight());
    }
-   outOrigPos=ProjectXYW(pos); // set in 'outOrigPos' the original position without expansion
+   orig_pos=ProjectXYW(pos); // set in 'orig_pos' the original position without expansion
 #if SIZE
-   outLen=vtx.size();
+   length=vtx.size();
 #endif
    pos+=nrm*(SIZE ? vtx.size()*Material.det_power*FurStep.x : Material.det_power*FurStep.x);
-   outVtx=Project(pos);
+   pixel=Project(pos);
 }
 /******************************************************************************/
 VecH4 Soft_PS
 (
-   Vec2 inTex    :TEXCOORD,
-   Vec  inOrigPos:ORIG_POS
+   Vec2 uv      :UV,
+   Vec  orig_pos:ORIG_POS
 #if SIZE
- , Half inLen    :LENGTH
+ , Half length  :LENGTH
 #endif
-, out Half outAlpha:TARGET2 // #RTOutput.Blend
+, out Half outAlpha:TARGET1 // #RTOutput.Blend
 ):TARGET
 {
-   Half fur=Tex(FurCol, inTex*Material.det_scale).r;
+   Half fur=RTex(FurCol, uv*Material.det_uv_scale).r;
 
    VecH4 color;
 #if SIZE
-   color.rgb=Sat(inLen*-fur+FurStep.y   ); // inLen*-fur+step+1 : fur*FACTOR+step+1
-   color.a  =Sat(inLen*(1-FurStep.x/fur)); // alternative: Sat(1-FurStep.x/(fur*inLen))
+   color.rgb=Sat(length*-fur+FurStep.y   ); // length*-fur+step+1 : fur*FACTOR+step+1
+   color.a  =Sat(length*(1-FurStep.x/fur)); // alternative: Sat(1-FurStep.x/(fur*length))
 #else
-   color.rgb=Sat(fur*FACTOR+FurStep.y); // inLen*-fur+step+1 : fur*FACTOR+step+1
-   color.a  =Sat(1-FurStep.x/fur     ); // alternative: Sat(1-FurStep.x/(fur*inLen))
+   color.rgb=Sat(fur*FACTOR+FurStep.y); // length*-fur+step+1 : fur*FACTOR+step+1
+   color.a  =Sat(1-FurStep.x/fur     ); // alternative: Sat(1-FurStep.x/(fur*length))
 #endif
 
    outAlpha=color.a;
    
-   if(DIFFUSE)color.rgb*=Tex(Col, inTex).rgb;
-              color.rgb =(color.rgb*Material.color.rgb+Highlight.rgb)*TexPoint(FurLight, ProjectedPosXYWToUV(inOrigPos)).rgb; // we need to access the un-expanded pixel and not current pixel
+   if(DIFFUSE)color.rgb*=RTex(Col, uv).rgb;
+              color.rgb =(color.rgb*Material.color.rgb+Highlight.rgb)*TexPoint(FurLight, ProjectedPosXYWToUV(orig_pos)).rgb; // we need to access the un-expanded pixel and not current pixel, 'TexPoint' is used in case it can offer faster performance
    return     color;
 }
 /******************************************************************************/

@@ -1,29 +1,24 @@
 /******************************************************************************/
 enum ALPHA_MODE : Byte // Alpha Blending Modes
 {
-   ALPHA_NONE     , // Color:set     , Alpha:set
-   ALPHA_BLEND    , // Color:blend   , Alpha:increase
-   ALPHA_BLEND_DEC, // Color:blend   , Alpha:decrease
-   ALPHA_ADD      , // Color:add     , Alpha:add
-   ALPHA_MUL      , // Color:multiply, Alpha:multiply
-
+   ALPHA_NONE         , // Color:set                      , Alpha:set
+   ALPHA_BLEND        , // Color:blend                    , Alpha:increase
    ALPHA_MERGE        , // Color:blend alpha premultiplied, Alpha:increase
+   ALPHA_ADD          , // Color:add                      , Alpha:add
+   ALPHA_MUL          , // Color:multiply                 , Alpha:multiply
    ALPHA_ADD_KEEP     , // Color:add                      , Alpha:keep
    ALPHA_ADDBLEND_KEEP, // Color:add blended              , Alpha:keep
-   ALPHA_BLEND_FACTOR , // Color:blend                    , Alpha:blend with factor
+
+   ALPHA_RENDER_BLEND       , // Color:blend, Alpha:decrease         ,   RT1: Color: increase,   RT2: Color:blend   #RTOutput.Blend
+   ALPHA_RENDER_BLEND_FACTOR, // Color:blend, Alpha:blend with factor,   RT1: Color: increase,   RT2: Color:blend   #RTOutput.Blend
 #if EE_PRIVATE
-   ALPHA_SETBLEND_SET  , // Color:set blended, Alpha:set
-   ALPHA_FACTOR        , // Color:factor     , Alpha:factor
-   ALPHA_FONT          , // Color:clear type , Alpha:increase
-   ALPHA_FONT_DEC      , // Color:clear type , Alpha:decrease
-   ALPHA_KEEP_SET      , // Color:keep       , Alpha:set
-   ALPHA_INVERT        , // invert destination
- //ALPHA_SET_KEEP      , // Color:set        , Alpha:keep
- //ALPHA_ADD_COVERAGE  , // Color:add   with Alpha To Coverage
- //ALPHA_ADD_FACTOR    , // Color:add                      , Alpha:add   with factor
- //ALPHA_NONE_ADD      , // Color:set        , Alpha:add
- //ALPHA_NONE_COVERAGE , // no blending with Alpha To Coverage
-   ALPHA_NUM           , // number of alpha blending modes
+   ALPHA_OVERLAY      , // Color:blend                    , Alpha:blend with factor !! #RTOutput WARNING: this uses factor for #0 RT Color glow, but also for #1 Nrm and #2 Ext (currently unused) !!
+   ALPHA_FACTOR       , // Color:factor                   , Alpha:factor
+   ALPHA_FONT         , // Color:clear type               , Alpha:increase
+   ALPHA_FONT_DEC     , // Color:clear type               , Alpha:decrease
+   ALPHA_KEEP_SET     , // Color:keep                     , Alpha:set
+   ALPHA_INVERT       , // invert destination
+   ALPHA_NUM          , // number of alpha blending modes
 #endif
 };
 /******************************************************************************/
@@ -101,7 +96,7 @@ struct DisplayState // Display States Control, this class methods can be called 
    #define COL_WRITE_RGB  (COL_WRITE_R|COL_WRITE_G|COL_WRITE_B            )
    #define COL_WRITE_RGBA (COL_WRITE_R|COL_WRITE_G|COL_WRITE_B|COL_WRITE_A)
 
-   #define MAX_SHADER_IMAGES  20  // keep this low because of 'texClear'
+   #define MAX_SHADER_IMAGES  20 // keep this low because of 'texClear'
    #define MAX_SHADER_BUFFERS 16
 
    void setDeviceSettings();
@@ -109,49 +104,51 @@ struct DisplayState // Display States Control, this class methods can be called 
    void del              ();
    void create           ();
 
-   static void depth        (Bool      on    );
-   static void depthAllow   (Bool      on    );
-   static void depthClip    (Bool      on    ); // !! not available on GL ES !!
-   static void depthFunc    (UInt      func  );
-   static void depthBias    (BIAS_MODE bias  );
-   static void    frontFace (Bool      ccw   );
-   static void setFrontFace (                );
-   static void wire         (Bool      on    );
-   static void cull         (Bool      on    );
-   static void alphaFactor  (C Color  &factor);
-   static void clipAllow    (C RectI  &rect  );
-   static void clipAllow    (Bool      on    );
-   static void clipPlane    (Bool      on    );
-   static void clipPlane    (C PlaneM &plane );
-   static void colWrite     (Byte      color_mask, Byte index=0);
-   static void colWriteAllow(Byte      color_mask);
-   static void sampleMask   (UInt      mask  );
-   static void viewport     (C RectI  &rect  );
-   static void vf           (GPU_API(ID3D11InputLayout, VtxFormatGL) *vf);
-   static void texVS        (Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex);
-   static void texHS        (Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex);
-   static void texDS        (Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex);
-   static void texPS        (Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex);
-   static void texClear     (           GPU_API(ID3D11ShaderResourceView*, UInt) tex);
-   static void texClearAll  (           GPU_API(ID3D11ShaderResourceView*, UInt) tex);
-   static void texBind      (UInt mode, UInt tex); // needs to be called on OpenGL instead of calling 'glBindTexture'
-   static void stencil      (STENCIL_MODE mode);
-   static void stencilRef   (Byte         ref );
-   static void stencil      (STENCIL_MODE mode, Byte ref);
-   static void depth2DOn    (UInt func=FUNC_FOREGROUND); // this enables processing pixels only in foreground or background (depending on depth buffer value)
-   static void depth2DOff   (                         ); //     disables processing pixels only in foreground or background
-   static void sampler2D    ();
-   static void sampler3D    ();
-   static void samplerShadow();
-   static void linearGamma  (Bool on);
-   static void primType     (UInt prim_type);
-   static void set2D        ();
-   static void set3D        ();
-   static void fbo          (UInt fbo);
+   static void depth           (Bool      on    );
+   static void depthAllow      (Bool      on    );
+   static void depthClip       (Bool      on    ); // !! not available on GL ES !!
+   static void depthFunc       (UInt      func  );
+   static void depthBias       (BIAS_MODE bias  );
+   static void depthOnWrite    (Bool      on, Bool write);
+   static void depthOnWriteFunc(Bool      on, Bool write, UInt func);
+   static void    frontFace    (Bool      ccw   );
+   static void setFrontFace    (                );
+   static void wire            (Bool      on    );
+   static void cull            (Bool      on    );
+   static void alphaFactor     (C Color  &factor);
+   static void clipAllow       (C RectI  &rect  );
+   static void clipAllow       (Bool      on    );
+   static void clipPlane       (Bool      on    );
+   static void clipPlane       (C PlaneM &plane );
+   static void colWrite        (Byte      color_mask, Byte index=0);
+   static void colWriteAllow   (Byte      color_mask);
+   static void sampleMask      (UInt      mask  );
+   static void viewport        (C RectI  &rect  );
+   static void vf              (GPU_API(ID3D11InputLayout, VtxFormatGL) *vf);
+   static void texVS           (Int index, GPU_API(ID3D11ShaderResourceView *, UInt) tex);
+   static void texHS           (Int index, GPU_API(ID3D11ShaderResourceView *, UInt) tex);
+   static void texDS           (Int index, GPU_API(ID3D11ShaderResourceView *, UInt) tex);
+   static void texPS           (Int index, GPU_API(ID3D11ShaderResourceView *, UInt) tex);
+   static void texCS           (Int index, GPU_API(ID3D11ShaderResourceView *, UInt) tex);
+   static void texClear        (           GPU_API(ID3D11ShaderResourceView *, UInt) tex);
+   static void texClearAll     (           GPU_API(ID3D11ShaderResourceView *, UInt) tex);
+   static void uavClear        (           GPU_API(ID3D11UnorderedAccessView*, UInt) tex);
+   static void  rtClear        (C ImageRT &image);
+   static void texBind         (UInt mode, UInt tex); // needs to be called on OpenGL instead of calling 'glBindTexture'
+   static void stencil         (STENCIL_MODE mode);
+   static void stencilRef      (Byte         ref );
+   static void stencil         (STENCIL_MODE mode, Byte ref);
+   static void depth2DOn       (UInt func=FUNC_FOREGROUND); // this enables processing pixels only in foreground or background (depending on depth buffer value)
+   static void depth2DOff      (                         ); //     disables processing pixels only in foreground or background
+   static void linearGamma     (Bool on);
+   static void primType        (UInt prim_type);
+   static void set2D           ();
+   static void set3D           ();
+   static void fbo             (UInt fbo);
    #if IOS
-          Bool mainFBO      ()C; // on iOS there's only one custom FBO used, so we have to check active targets manually
+          Bool mainFBO         ()C; // on iOS there's only one custom FBO used, so we have to check active targets manually
    #else
-          Bool mainFBO      ()C {return _fbo==0;}
+          Bool mainFBO         ()C {return _fbo==0;}
    #endif
 #endif
 
@@ -159,9 +156,9 @@ struct DisplayState // Display States Control, this class methods can be called 
 private:
 #endif
    ALPHA_MODE _alpha;
-   Bool       _depth_lock, _depth, _depth_write, _depth_clip, _cull, _line_smooth, _wire, _clip, _clip_allow, _clip_real, _clip_plane_allow, _front_face, _sampler2D, _linear_gamma;
+   Bool       _depth_lock, _depth, _depth_write, _depth_clip, _cull, _line_smooth, _wire, _clip, _clip_allow, _clip_real, _clip_plane_allow, _front_face, _linear_gamma;
    Byte       _depth_bias, _stencil, _stencil_ref, _col_write[4];
-   UInt       _depth_func, _sampler_filter[3], _sampler_address, _sample_mask, _fbo;
+   UInt       _depth_func, _sample_mask, _fbo;
    RectI      _viewport, _clip_recti;
    Rect       _clip_rect;
    Color      _alpha_factor;

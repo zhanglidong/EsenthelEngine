@@ -138,7 +138,7 @@ class StoreClass : ClosableWindow
          {
             if(temp.icon=="keep" || !temp.icon.is())
             {
-               if(icon_path)icon=IC.getImage(icon_path);
+               if(icon_path.is())icon=IC.getImage(icon_path);
             }else
             {
                if(temp.icon!="null")icon=IC.getImage(ItemRes(id, temp.icon, "icon_temp."));
@@ -477,7 +477,7 @@ class StoreClass : ClosableWindow
    {
       virtual void draw(C GuiPC &gpc)override
       {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             Rect  clip=gpc.clip; if(!columnsHidden())clip.max.y-=columnHeight();
             VecI2 visible_elms=visibleElmsOnScreen(&gpc);
@@ -1735,7 +1735,7 @@ class StoreClass : ClosableWindow
    virtual void update(C GuiPC &gpc)override
    {
       super.update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          if((Ms.tapped(1) && Gui.window()==this) || (Ms.bp(MS_BACK) && Gui.window()==this && !(Gui.kb() && Gui.kb().type()==GO_TEXTLINE)))back.push();
          REPA(MT)if(MT.tapped(i) && MT.guiObj(i)==&items_list)if(Item *item=items_list())openItem(item.id);
@@ -1985,13 +1985,13 @@ class StoreClass : ClosableWindow
    virtual void draw(C GuiPC &gpc)override
    {
       super.draw(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          if(image_preview && image_preview_step>EPS_COL)
          {
             D.clip();
             D.fxBegin();
-            ALPHA_MODE alpha=D.alpha(ALPHA_NONE); Rect(-D.w(), -D.h(), D.w(), D.h()).draw(ColorAlpha(BLACK, 0.7)); D.alpha(alpha);
+            ALPHA_MODE alpha=D.alpha(ALPHA_NONE); D.rect().draw(ColorAlpha(BLACK, 0.7)); D.alpha(alpha);
             Rect rect=image_preview->fit(Gui.desktop().rect())*0.9;
             D.drawShadow(128, rect, 0.07);
             image_preview->drawFilter(rect);

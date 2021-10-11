@@ -15,6 +15,7 @@ const_mem_addr struct Desktop : GuiObj // Gui Desktop !! must be stored in const
    void        zero();
    void    addChild(GuiObj &child);
    void removeChild(GuiObj &child);
+   void nearest(GuiObjNearest &gon);
 #endif
 
   ~Desktop() {del();}

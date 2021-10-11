@@ -9,8 +9,8 @@
 /******************************************************************************/
 
 /******************************************************************************/
-   bool LakeBase::equal(C LakeBase &src)C {return removed_time==src.removed_time && depth_time==src.depth_time && tex_scale_time==src.tex_scale_time && material_time==src.material_time && polys_time==src.polys_time;}
-   bool LakeBase::newer(C LakeBase &src)C {return removed_time> src.removed_time || depth_time> src.depth_time || tex_scale_time> src.tex_scale_time || material_time> src.material_time || polys_time> src.polys_time;}
+   bool LakeBase::equal(C LakeBase &src)C {return removed_time==src.removed_time && depth_time==src.depth_time && uv_scale_time==src.uv_scale_time && material_time==src.material_time && polys_time==src.polys_time;}
+   bool LakeBase::newer(C LakeBase &src)C {return removed_time> src.removed_time || depth_time> src.depth_time || uv_scale_time> src.uv_scale_time || material_time> src.material_time || polys_time> src.polys_time;}
    bool LakeBase::getRect(Rect &rect)C
    {
       bool   found=false; REPA(polys){C Memc<Vec> &poly=polys[i]; REPA(poly)Include(rect, found, poly[i].xz());}
@@ -25,21 +25,21 @@
    bool LakeBase::sync(C LakeBase &src)
    {
       bool changed=false;
-      changed|=Sync(  removed_time, src.  removed_time, removed  , src.removed  );
-      changed|=Sync(    depth_time, src.    depth_time, depth    , src.depth    );
-      changed|=Sync(tex_scale_time, src.tex_scale_time, tex_scale, src.tex_scale);
-      changed|=Sync( material_time, src. material_time, material , src.material );
-      changed|=Sync(    polys_time, src.    polys_time, polys    , src.polys    );
+      changed|=Sync( removed_time, src. removed_time, removed , src.removed );
+      changed|=Sync(   depth_time, src.   depth_time, depth   , src.depth   );
+      changed|=Sync(uv_scale_time, src.uv_scale_time, uv_scale, src.uv_scale);
+      changed|=Sync(material_time, src.material_time, material, src.material);
+      changed|=Sync(   polys_time, src.   polys_time, polys   , src.polys   );
       return changed;
    }
    bool LakeBase::undo(C LakeBase &src)
    {
       bool changed=false;
-      changed|=Undo      (  removed_time, src.  removed_time, removed  , src.removed  );
-      changed|=Undo      (    depth_time, src.    depth_time, depth    , src.depth    );
-      changed|=Undo      (tex_scale_time, src.tex_scale_time, tex_scale, src.tex_scale);
-      changed|=Undo      ( material_time, src. material_time, material , src.material );
-      changed|=UndoByTime(    polys_time, src.    polys_time, polys    , src.polys    );
+      changed|=Undo      ( removed_time, src. removed_time, removed , src.removed );
+      changed|=Undo      (   depth_time, src.   depth_time, depth   , src.depth   );
+      changed|=Undo      (uv_scale_time, src.uv_scale_time, uv_scale, src.uv_scale);
+      changed|=Undo      (material_time, src.material_time, material, src.material);
+      changed|=UndoByTime(   polys_time, src.   polys_time, polys   , src.polys   );
       return changed;
    }
    void LakeBase::draw(C Color &color, C Color &depth_color)C
@@ -84,9 +84,9 @@
    bool LakeBase::save(File &f)C
    {
       f.cmpUIntV(0);
-      f<<removed<<depth<<tex_scale<<material;
+      f<<removed<<depth<<uv_scale<<material;
       f.cmpUIntV(polys.elms()); FREPA(polys){C Memc<Vec> &poly=polys[i]; poly.saveRaw(f);}
-      f<<removed_time<<depth_time<<tex_scale_time<<material_time<<polys_time;
+      f<<removed_time<<depth_time<<uv_scale_time<<material_time<<polys_time;
       return f.ok();
    }
    bool LakeBase::load(File &f)
@@ -95,9 +95,9 @@
       {
          case 0:
          {
-            f>>removed>>depth>>tex_scale>>material;
+            f>>removed>>depth>>uv_scale>>material;
             polys.clear().setNum(f.decUIntV()); FREPA(polys){Memc<Vec> &poly=polys[i]; poly.loadRaw(f);}
-            f>>removed_time>>depth_time>>tex_scale_time>>material_time>>polys_time;
+            f>>removed_time>>depth_time>>uv_scale_time>>material_time>>polys_time;
             if(f.ok())return true;
          }break;
       }
@@ -109,8 +109,8 @@
       File f; if(f.readTry(name))return load(f); return false;
    }
       void RiverBase::Vtx::set(flt radius, C Vec &pos) {T.radius=radius; T.pos=pos;}
-   bool RiverBase::equal(C RiverBase &src)C {return removed_time==src.removed_time && smooth_time==src.smooth_time && depth_time==src.depth_time && tex_scale_time==src.tex_scale_time && material_time==src.material_time && vtx_edge_time==src.vtx_edge_time;}
-   bool RiverBase::newer(C RiverBase &src)C {return removed_time> src.removed_time || smooth_time> src.smooth_time || depth_time> src.depth_time || tex_scale_time> src.tex_scale_time || material_time> src.material_time || vtx_edge_time> src.vtx_edge_time;}
+   bool RiverBase::equal(C RiverBase &src)C {return removed_time==src.removed_time && smooth_time==src.smooth_time && depth_time==src.depth_time && uv_scale_time==src.uv_scale_time && material_time==src.material_time && vtx_edge_time==src.vtx_edge_time;}
+   bool RiverBase::newer(C RiverBase &src)C {return removed_time> src.removed_time || smooth_time> src.smooth_time || depth_time> src.depth_time || uv_scale_time> src.uv_scale_time || material_time> src.material_time || vtx_edge_time> src.vtx_edge_time;}
    bool RiverBase::getRect(Rect &rect)C
    {
       bool   found=false; REPA(vtxs){C Vtx &v=vtxs[i]; Include(rect, found, Rect_C(v.pos.xz(), v.radius));}
@@ -121,17 +121,17 @@
       uint   size=vtxs.memUsage()+edges.memUsage();
       return size;
    }
-   void RiverBase::setSmooth(byte    smooth   ) {T.smooth   =smooth   ; T.   smooth_time.getUTC();}
-   void RiverBase::setDepth(flt     depth    ) {T.depth    =depth    ; T.    depth_time.getUTC();}
-   void RiverBase::setTexScale(C Vec2 &tex_scale) {T.tex_scale=tex_scale; T.tex_scale_time.getUTC();}
+   void RiverBase::setSmooth(byte    smooth  ) {T.smooth  =smooth  ; T.  smooth_time.getUTC();}
+   void RiverBase::setDepth(flt     depth   ) {T.depth   =depth   ; T.   depth_time.getUTC();}
+   void RiverBase::setUVScale(C Vec2 &uv_scale) {T.uv_scale=uv_scale; T.uv_scale_time.getUTC();}
    bool RiverBase::sync(C RiverBase &src)
    {
       bool changed=false;
-      changed|=Sync(  removed_time, src.  removed_time, removed  , src.removed  );
-      changed|=Sync(   smooth_time, src.   smooth_time, smooth   , src.smooth   );
-      changed|=Sync(    depth_time, src.    depth_time, depth    , src.depth    );
-      changed|=Sync(tex_scale_time, src.tex_scale_time, tex_scale, src.tex_scale);
-      changed|=Sync( material_time, src. material_time, material , src.material );
+      changed|=Sync( removed_time, src. removed_time, removed , src.removed );
+      changed|=Sync(  smooth_time, src.  smooth_time, smooth  , src.smooth  );
+      changed|=Sync(   depth_time, src.   depth_time, depth   , src.depth   );
+      changed|=Sync(uv_scale_time, src.uv_scale_time, uv_scale, src.uv_scale);
+      changed|=Sync(material_time, src.material_time, material, src.material);
       if(Sync(vtx_edge_time, src.vtx_edge_time))
       {
          changed=true;
@@ -143,11 +143,11 @@
    bool RiverBase::undo(C RiverBase &src)
    {
       bool changed=false;
-      changed|=Undo(  removed_time, src.  removed_time, removed  , src.removed  );
-      changed|=Undo(   smooth_time, src.   smooth_time, smooth   , src.smooth   );
-      changed|=Undo(    depth_time, src.    depth_time, depth    , src.depth    );
-      changed|=Undo(tex_scale_time, src.tex_scale_time, tex_scale, src.tex_scale);
-      changed|=Undo( material_time, src. material_time, material , src.material );
+      changed|=Undo( removed_time, src. removed_time, removed , src.removed );
+      changed|=Undo(  smooth_time, src.  smooth_time, smooth  , src.smooth  );
+      changed|=Undo(   depth_time, src.   depth_time, depth   , src.depth   );
+      changed|=Undo(uv_scale_time, src.uv_scale_time, uv_scale, src.uv_scale);
+      changed|=Undo(material_time, src.material_time, material, src.material);
       if(Undo(vtx_edge_time, src.vtx_edge_time))
       {
          changed=true;
@@ -180,10 +180,10 @@
    bool RiverBase::save(File &f)C
    {
       f.cmpUIntV(0);
-      f<<smooth<<depth<<tex_scale<<material;
+      f<<smooth<<depth<<uv_scale<<material;
       vtxs .saveRaw(f);
       edges.saveRaw(f);
-      f<<removed_time<<depth_time<<tex_scale_time<<material_time<<vtx_edge_time;
+      f<<removed_time<<depth_time<<uv_scale_time<<material_time<<vtx_edge_time;
       return f.ok();
    }
    bool RiverBase::load(File &f)
@@ -192,10 +192,10 @@
       {
          case 0:
          {
-            f>>smooth>>depth>>tex_scale>>material;
+            f>>smooth>>depth>>uv_scale>>material;
             vtxs .loadRaw(f);
             edges.loadRaw(f);
-            f>>removed_time>>depth_time>>tex_scale_time>>material_time>>vtx_edge_time;
+            f>>removed_time>>depth_time>>uv_scale_time>>material_time>>vtx_edge_time;
             if(f.ok())return true;
          }break;
       }
@@ -257,8 +257,8 @@
       // convert mesh 2D to 3D
       REP(Min(8, smooth))mesh.subdivideEdge();
       mesh.inflateEdges();
-      mesh.quadToTri   (0.9993f     ); // convert quads to tris because not flat rivers can have quads built of 2 non-coplanar tris
-      mesh.texScale    (tex_scale  );
+      mesh.quadToTri   (0.9993f  ); // convert quads to tris because not flat rivers can have quads built of 2 non-coplanar tris
+      mesh.texScale    (uv_scale);
       REPA(mesh.vtx)Swap(mesh.vtx.pos(i).y, mesh.vtx.pos(i).z);
 
       // create water
@@ -273,9 +273,9 @@
    {
       water_mesh.draw();
    }
-LakeBase::LakeBase() : removed(false), depth(2), tex_scale(1), material(UIDZero) {}
+LakeBase::LakeBase() : removed(false), depth(2), uv_scale(1), material(UIDZero) {}
 
-RiverBase::RiverBase() : removed(false), smooth(0), depth(3), tex_scale(1), material(UIDZero) {}
+RiverBase::RiverBase() : removed(false), smooth(0), depth(3), uv_scale(1), material(UIDZero) {}
 
 RiverBase::Vtx::Vtx() : radius(2), pos(0) {}
 

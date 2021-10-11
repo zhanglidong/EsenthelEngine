@@ -2,9 +2,9 @@
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
-static void MenuPushed(C Str &path, ComboBox &cb)
+static void MenuPushed(C CMemPtr<MenuPush> &path, ComboBox &cb)
 {
-   cb.setPath(GetStart(path), GetBase(path));
+   if(path.elms())cb.setAbsText(path.first().abs, path.last().name);
 }
 static void ChangedButton(ComboBox &cb)
 {
@@ -138,21 +138,13 @@ ComboBox& ComboBox::setText(C Str &text, Bool force, SET_MODE mode)
    }
    return T;
 }
-ComboBox& ComboBox::setPath(C Str &start, C Str &end)
+ComboBox& ComboBox::setAbsText(Int abs, C Str &text)
 {
-   Int new_sel=-1;
-   if(ListColumn *lc=menu.listColumn())
+   if(menu.list.absToVis(abs)<0)abs=-1; // disable selecting hidden and out of range elements
+   if(abs!=_abs_sel || !Equal(T.text, text, true))
    {
-      REPA(menu.list)if(Equal(lc->md.asText(menu.list.visToData(i), lc->precision), start))
-      {
-         new_sel=menu.list.visToAbs(i);
-         break;
-      }
-   }
-   if(new_sel!=_abs_sel || !Equal(text, end, true))
-   {
-     _abs_sel=new_sel;
-      if(!(flag&COMBOBOX_CONST_TEXT))text=end;
+     _abs_sel=abs;
+      if(!(flag&COMBOBOX_CONST_TEXT))T.text=text;
       call();
    }
    return T;
@@ -222,12 +214,12 @@ static void Next(ComboBox &cb, Int delta)
 }
 void ComboBox::update(C GuiPC &gpc)
 {
-   GuiPC gpc2(gpc, visible(), enabled());
-   if(   gpc2.enabled)
+   GuiPC gpc_this(gpc, visible(), enabled());
+   if(   gpc_this.enabled)
    {
       Bool menu_active=Button::operator()(); // remember state before button update
-      super::update(gpc2);
-      if(gpc2.visible)
+      super::update(gpc_this);
+      if(gpc_this.visible)
       {
          if(Gui.kb()==this)
          {

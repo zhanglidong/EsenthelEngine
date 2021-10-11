@@ -617,7 +617,6 @@ static Bool MobileEnginePakFilter(C Str &full)
    Str name=SkipStartPath(full, EngineDataPath), base=GetBase(name), path=GetPath(name);
    if(!SUPPORT_MLAA && base=="MLAA Area.img")return false;
    if(EqualPath(name, "Shader/4")
-   || EqualPath(name, "Shader/4 AMD") // #ShaderAMD
    || base=="World Editor"
    )return false;
    return true;
@@ -767,8 +766,8 @@ void CompileEngineWindows32DX11            () {CompileVS(EnginePath+VSEngineProj
 void CompileEngineWindowsUniversal64DX11   () {CompileVS(EnginePath+VSEngineProject, "Release Universal DX11", "1) 64 bit", CopyEngineWindowsUniversal64DX11);}
 void CompileEngineWindowsUniversal32DX11   () {CompileVS(EnginePath+VSEngineProject, "Release Universal DX11", "2) 32 bit", CopyEngineWindowsUniversal32DX11);}
 void CompileEngineWindowsUniversalArm32DX11() {CompileVS(EnginePath+VSEngineProject, "Release Universal DX11", "3) ARM"   , CopyEngineWindowsUniversalArm32DX11);}
-void CompileEngineWeb                      () {CompileVS(EnginePath+VSEngineProject, "Release GL"            , "4) Web");}
 void CompileEngineNintendoSwitch           () {if(CheckNintendoSwitch())CompileVS(EnginePath+VSEngineProject, "Release DX11"          , "5) Nintendo Switch", CopyEngineNintendoSwitch);}
+void CompileEngineWeb                      () {CompileVS(EnginePath+VSEngineProject, "Release GL"            , "4) Web");}
 
 void CompileEngineDebugWindows64DX9             () {CompileVS(EnginePath+VSEngineProject, "Debug DX9"           , "1) 64 bit", CopyEngineDebugWindows64DX9);}
 void CompileEngineDebugWindows32DX9             () {CompileVS(EnginePath+VSEngineProject, "Debug DX9"           , "2) 32 bit", CopyEngineDebugWindows32DX9);}
@@ -919,10 +918,10 @@ TaskBase TaskBases[]=
    {"Compile Android"           , "Compile the Engine in Release mode for Android"                                     , CompileEngineAndroid       , ANDROID_DEFAULT},
    {"Make Android Libs"         , "Make the Engine Android Libs from the compilation result to the Editor Bin folder"  , AndroidLibs                , ANDROID_DEFAULT},
 #if WINDOWS
+   {"Compile Nintendo Switch"   , "Compile the Engine in Release mode for Nintendo Switch"                             , CompileEngineNintendoSwitch, false},
    {"Clean Web"                 , "Clean temporary files generated during Engine compilation for the Web"              ,   CleanEngineWeb           , false},
    {"Compile Web"               , "Compile the Engine for Web"                                                         , CompileEngineWeb           , WEB_DEFAULT},
    {"Make Web Libs"             , "Make the Engine Web Lib from the compilation result to the Editor Bin folder"       , WebLibs                    , WEB_DEFAULT},
-   {"Compile Nintendo Switch"   , "Compile the Engine in Release mode for Nintendo Switch"                             , CompileEngineNintendoSwitch, false},
 #endif
    {"Copy Headers"              , "Copy cleaned Engine Headers from the Engine folder to the Editor folder.\nCleaning removes all 'EE_PRIVATE' sections from the headers."                                                                    , Headers       , true },
    {"Create \"Code Editor.dat\"", "Create \"Code Editor.dat\" file needed for Code Editor in the Engine's Editor.\nThis data is generated from the Engine headers in the Editor Bin folder, which are generated in the \"Copy Headers\" step.", CodeEditorData, true },
@@ -1117,16 +1116,15 @@ Bool Update()
       {
          App.stayAwake(AWAKE_SYSTEM); // don't sleep when building
          done++; // start with small progress
-         WindowSetProgress(Flt(done)/(Todo.elms()+done));
+         App.stateProgress(Flt(done)/(Todo.elms()+done));
          if(TaskBase *t=Todo.lockedPopFirst())t->call();
       }
    }
    if(done && !build_threads.queued() && !Todo.elms()) // finished all tasks
    {
       done=0;
-      WindowSetNormal();
-      WindowFlash    ();
-      App.stayAwake  (AWAKE_OFF); // allow sleeping
+      App.stateNormal().flash();
+      App.stayAwake(AWAKE_OFF); // allow sleeping
    }
 
    if(data_new.elms())

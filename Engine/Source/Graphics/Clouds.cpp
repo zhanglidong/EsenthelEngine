@@ -122,7 +122,7 @@ void LayeredClouds::draw()
    {
       commit();
 
-      Renderer.set(Renderer._col, Renderer._sky_coverage, null, null, Renderer._ds, true, WANT_DEPTH_READ); // use DS for depth tests
+      Renderer.set(Renderer._col, Renderer._alpha, null, null, Renderer._ds, true, WANT_DEPTH_READ); // use DS for depth tests #RTOutput.Blend
       Flt from=D.viewRange()*frac(),
           to  =D.viewRange();
       MAX(from, Frustum.view_quad_max_dist/CLOUD_MESH_MIN_DIST); // make sure we don't intersect with the near plane
@@ -139,21 +139,16 @@ void LayeredClouds::draw()
       MIN(from, to*EPS_SKY_MIN_VIEW_RANGE);
    #endif
       SetOneMatrix(MatrixM(from, CamMatrix.pos));
-      if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_LESS_EQUAL); // to make sure we draw at the end of viewRange
-      D.alpha     (ALPHA_BLEND_DEC);
-      D.depthWrite(false);
-      D.depth     (true );
-      D.cull      (true );
-      D.sampler3D (     );
+      D.alpha           (ALPHA_RENDER_BLEND);
+      D.depthOnWriteFunc(true, false, FUNC_LESS_EQUAL); // to make sure we draw at the end of viewRange
+      D.cull            (true);
       Shader *shader=LC.get(_layers-1, blend);
       REPS(Renderer._eye, Renderer._eye_num)
       {
          Renderer.setEyeViewportCam();
          shader->begin(); _mshr.set().draw();
       }
-      D.sampler2D ();
-      D.depthWrite(true);
-      if(FUNC_DEFAULT!=FUNC_LESS_EQUAL)D.depthFunc(FUNC_DEFAULT);
+      D.depthOnWriteFunc(false, true, FUNC_DEFAULT);
    }
 }
 void LayeredClouds::shadowMap() // !! Warning: 'Frustum' is invalid here !!
@@ -641,19 +636,16 @@ void VolumetricClouds::draw()
       VolCloud.Cloud->set(c);
 
       cloud.checkBuild(); // check if there are any finished image builds
-      Sh.VolXY[0]->set(cloud._image); Sh.VolXY[0]->_sampler=&SamplerLinearCWW;
-                                      Sh.VolXY[1]->_sampler=&SamplerLinearWrap; // reserved for detail map
+      Sh.VolXY[0]->set(cloud._image);
 
       Rect ext_rect, *rect=null; // set rect, after setting render target
       if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(Renderer.pixelToScreenSize(1));} // when not rendering entire viewport, then extend the rectangle, add +1 because of texture filtering, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
 
       VolCloud.Clouds->draw(rect);
-      Sh.VolXY[0]->_sampler=null;
-      Sh.VolXY[1]->_sampler=null;
 
       Bool gamma=LINEAR_GAMMA, swap=(gamma && Renderer._col->canSwapRTV()); if(swap){gamma=false; Renderer._col->swapRTV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
-      Renderer.set(Renderer._col, Renderer._sky_coverage, null, null, null, true);
-      D.alpha(ALPHA_BLEND_DEC);
+      Renderer.set(Renderer._col, Renderer._alpha, null, null, null, true);// #RTOutput.Blend
+      D.alpha(ALPHA_RENDER_BLEND);
 
       Flt to=D.viewRange(), from=Min(to*Sky.frac(), to-0.01f);
       Vec2 mul_add; mul_add.x=1/(to-from); mul_add.y=-from*mul_add.x;
@@ -686,8 +678,7 @@ void VolumetricClouds::shadowMap() // !! Warning: 'Frustum' is invalid here !!
 
       cloud.checkBuild(); // check if there are any finished image builds
       Sh.VolXY[0]->set(cloud._image);
-      Sh.VolXY[0]->_sampler=&SamplerLinearCWW; VolCloud.CloudsMap->draw();
-      Sh.VolXY[0]->_sampler=null;
+      VolCloud.CloudsMap->draw();
    }
 }
 /******************************************************************************/
@@ -695,22 +686,8 @@ void AllClouds::drawAll()
 {
    if(draw)
    {
-      if(Renderer.canReadDepth())
-      {
-         volumetric.draw();
-      }
-
-      layered.draw();
-
-      if(Renderer.canReadDepth())
-      {
-         Sky.setFracMulAdd();
-
-         Renderer.set(Renderer._col, Renderer._sky_coverage, null, null, Renderer._ds, true, WANT_DEPTH_READ); Renderer.setDSLookup(); // we may use soft cloud, 'setDSLookup' after 'set'
-         D.alpha     (ALPHA_BLEND_DEC);
-         D.depthWrite(false); REPS(Renderer._eye, Renderer._eye_num){Renderer.setEyeViewportCam(); Renderer.mode(RM_CLOUD); Renderer._render();}
-         D.depthWrite(true );
-      }
+      if(Renderer.canReadDepth())volumetric.draw();
+                                    layered.draw();
    }
 }
 /******************************************************************************/

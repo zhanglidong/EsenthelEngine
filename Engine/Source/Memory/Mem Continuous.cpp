@@ -85,7 +85,7 @@ void _Memc::setNum(Int num, Int keep)
 {
    MAX(num, 0);
    Clamp(keep, 0, Min(elms(), num));
-   if(_del)for(Int i=keep; i<elms(); i++)_del(T[i]); // delete unkept elements
+   if(_del)for(Int i=elms(); --i>=keep; )_del(T[i]); // delete unkept elements
    if(Greater(num, maxElms())) // resize memory, num>maxElms()
    {
      _elms=keep; // set '_elms' before 'reserve' to copy only 'keep' elements
@@ -98,15 +98,39 @@ void _Memc::setNumZero(Int num, Int keep)
 {
    MAX(num, 0);
    Clamp(keep, 0, Min(elms(), num));
-   if(_del)for(Int i=keep; i<elms(); i++)_del(T[i]); // delete unkept elements
+   if(_del)for(Int i=elms(); --i>=keep; )_del(T[i]); // delete unkept elements
    if(Greater(num, maxElms())) // resize memory, num>maxElms()
    {
      _elms=keep; // set '_elms' before 'reserve' to copy only 'keep' elements
       reserve(num);
    }
   _elms=num; // set '_elms' before accessing new elements to avoid range assert
-   ZeroFast(_element(keep), elmSize()*UIntPtr(elms()-keep)); // zero   new elements, have to use '_element' to avoid out of range errors
+   ZeroFast(_element(keep), elmSize()*UIntPtr(elms()-keep)); // zero new elements, have to use '_element' to avoid out of range errors
    if(_new)for(Int i=keep; i<elms(); i++)_new(T[i]);  // create new elements
+}
+void _Memc::setNumDiscard(Int num)
+{
+   MAX(num, 0);
+   if( num!=elms())
+   {
+      if(Greater(num, maxElms())) // resize memory, num>maxElms()
+      {
+         clear(); // clear before 'reserve' to skip copying old elements
+         reserve(num);
+        _elms=num; // set '_elms' before accessing new elements to avoid range assert
+         if(_new)FREPA(T)_new(T[i]); // create new elements
+      }else
+      if(num>elms()) // add elements in existing memory
+      {
+         Int old_elms=elms(); _elms=num; // set '_elms' before accessing new elements to avoid range assert
+         if(_new)for(Int i=old_elms; i<elms(); i++)_new(T[i]);
+      }else
+    //if(num<elms()) // remove elements, "if" not needed because we already know that "num!=elms && !(num>elms())"
+      {
+         if(_del)for(Int i=elms(); --i>=num; )_del(T[i]);
+        _elms=num; // set '_elms' after accessing new elements to avoid range assert
+      }
+   }
 }
 /******************************************************************************/
 Int _Memc::addNum    (Int num) {Int index=elms(); Long new_elms=Long(index)+num; if(new_elms>INT_MAX)Exit("'Memc.addNum' size too big"    ); setNum    (new_elms); return index;}

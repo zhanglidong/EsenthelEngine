@@ -49,13 +49,14 @@ bool UpdateProjectList()
    Gui   .update();
    Server.update(null, false);
    Projs .update();
-   if(Ms.bp(MS_MAXIMIZE))WindowToggle();
+   if(Ms.bp(MS_MAXIMIZE))App.window().toggle();
    return true;
 }
 void DrawProjectList()
 {
    D.clear(BackgroundColorLight());
    Gui.draw();
+   Draw();
 }
 /******************************************************************************/
 
@@ -110,11 +111,11 @@ void DrawProjectList()
       lc[2].desc("If automatically synchronize a project with the Server after opening it.");
       Node<MenuElm> menu_menu;
       {
-         menu_menu.New().create("Help"          , MiscRegion::Help      , Misc).display(MLTC(null, PL, u"Pomoc", DE, u"Hilfe", RU, u"Помощь", PO, u"Ajuda")); //.desc(MLT("Show Esenthel Engine help documentation", PL,"Wyświetl pomoc Esenthel Engine", DE,"Zeige Esenthel Engine Hilfe Dokumentation", RU,"Показать документацию Esenthel Engine", PO,"Mostrar a documentaçăo de ajuda do Esenthel Engine"));
+         menu_menu.New().create("Help"          , MiscRegion::Help      , Misc).display(MLTC(null, PL, u"Pomoc", DE, u"Hilfe", RU, u"Помощь", PO, u"Ajuda")); //.desc(MLT("Show Esenthel Engine help documentation", PL,"Wyświetl pomoc Esenthel Engine", DE,"Zeige Esenthel Engine Hilfe Dokumentation", RU,"Показать документацию Esenthel Engine", PO,"Mostrar a documentação de ajuda do Esenthel Engine"));
          menu_menu.New().create("About"         , MiscRegion::About     , Misc);
-         menu_menu.New().create("Video Options"         , MiscRegion::VidOpt    , Misc).kbsc(KbSc(KB_F12                )).display(MLTC(null, PL, u"Opcje Grafiki", DE, u"Grafik Optionen", RU, u"Настройки видео", PO, u"Opçőes de Video")).desc(MLTC(u"Change video options", PL, u"Zmień opcje grafiki", DE, u"Ändert die Grafik Optionen", RU, u"Изменить видео настройки", PO, u"Mudar as opçőes de video")).flag(MENU_HIDDEN);
+         menu_menu.New().create("Video Options"         , MiscRegion::VidOpt    , Misc).kbsc(KbSc(KB_F12                )).display(MLTC(null, PL, u"Opcje Grafiki", DE, u"Grafik Optionen", RU, u"Настройки видео", PO, u"Opções de Video")).desc(MLTC(u"Change video options", PL, u"Zmień opcje grafiki", DE, u"Ändert die Grafik Optionen", RU, u"Изменить видео настройки", PO, u"Mudar as opções de video")).flag(MENU_HIDDEN);
          menu_menu.New().create("Video Options Advanced", MiscRegion::VidOptAdv , Misc).kbsc(KbSc(KB_F12, KBSC_CTRL_CMD )).flag(MENU_HIDDEN);
-         menu_menu.New().create("Fullscreen"    , MiscRegion::Fullscreen, Misc).kbsc(KbSc(KB_F11  )).display(MLTC(null, PL, u"Pełny Ekran"  , DE, u"Vollbild"       , RU, u"Полноэкранный"  , PO, u"Ecră inteiro"   )).desc(MLTC(u"Toggle fullscreen mode", PL, u"Zmień pełny ekran", DE, u"Wechseln zu Fullscreen Modus", RU, u"Переключить полноэкранный режим", PO, u"Accionar modo de ecră inteiro"));
+         menu_menu.New().create("Fullscreen"    , MiscRegion::Fullscreen, Misc).kbsc(KbSc(KB_F11  )).display(MLTC(null, PL, u"Pełny Ekran"  , DE, u"Vollbild"       , RU, u"Полноэкранный"  , PO, u"Ecrã inteiro"   )).desc(MLTC(u"Toggle fullscreen mode", PL, u"Zmień pełny ekran", DE, u"Wechseln zu Fullscreen Modus", RU, u"Переключить полноэкранный режим", PO, u"Accionar modo de ecrã inteiro"));
          menu_menu.New().create("Screenshot"    , MiscRegion::Screenshot, Misc).kbsc(KbSc(KB_PRINT)).display(MLTC(null, RU, u"Скриншот")).desc("Take a screenshot and save it on the Desktop"/*MLTC(u"Take a screenshot and save it to \"ScreenShot\" folder inside the Editor", PL, u"Pobierz ekran oraz zapisz go do katalogu \"ScreenShot\"", DE, u"Macht einen Screenshot und speichert ihn in \"ScreenShot\"", RU, u"Сделать скриншот и сохранить в \"ScreenShot\"", PO, u"Captar um screenshot e guardar em \"ScreenShot\"")*/);
          menu_menu.New().create("Calculator"    , MiscRegion::CalcShow  , Misc).kbsc(KbSc(KB_EQUAL, KBSC_CTRL_CMD));
        //menu_menu.New().create(STEAM ? "License Key / Steam Subscription" : "License Key", MiscRegion.SetLicense, Misc).desc("Set Your License Key");
@@ -122,7 +123,7 @@ void DrawProjectList()
          menu_menu.New().create("Esenthel Store", MiscRegion::AppStore  , Misc).desc("Open Esenthel Store where you can buy and sell items");
       #endif
          menu_menu++;
-         menu_menu.New().create("Exit"          , MiscRegion::Quit      , Misc).kbsc(KbSc(KB_F4, KBSC_ALT)).display(MLTC(null, PL, u"Wyjdź", DE, u"Beenden", RU, u"Выход", PO, u"Sair")).desc(MLTC(u"Exit application", PL, u"Wyjdź z programu", DE, u"Beendet die Anwendung", RU, u"Выйти и закрыть программу", PO, u"Sair da aplicaçăo"));
+         menu_menu.New().create("Exit"          , MiscRegion::Quit      , Misc).kbsc(KbSc(KB_F4, KBSC_ALT)).display(MLTC(null, PL, u"Wyjdź", DE, u"Beenden", RU, u"Выход", PO, u"Sair")).desc(MLTC(u"Exit application", PL, u"Wyjdź z programu", DE, u"Beendet die Anwendung", RU, u"Выйти и закрыть программу", PO, u"Sair da aplicação"));
       }
 
       ts_left.reset().align.set(1, 0);
@@ -155,7 +156,7 @@ void DrawProjectList()
       import_proj      .create(S+"Import *."+EsenthelProjectExt).func(ImportProj, T);
       import_proj_1_0  .create("Import 1.0 Project").func(ImportProj_1_0, T).desc("Import project data created with Esenthel Engine 1.0");
       menu             .create(menu_menu).skin(&NoComboBoxImage).focusable(false).desc("Menu"); menu.text="M"; menu.text_align=0; menu.flag|=COMBOBOX_CONST_TEXT;
-      vid_opt          .create().func(MiscRegion::VidOpt, Misc).focusable(false).desc(S+MLTC(u"Video Options", PL, u"Opcje Grafiki", DE, u"Grafik Optionen", RU, u"Настройки видео", PO, u"Opçőes de Video")+"\nKeyboard Shortcut: F12"); vid_opt.image="Gui/Misc/display.img"; vid_opt.mode=BUTTON_TOGGLE;
+      vid_opt          .create().func(MiscRegion::VidOpt, Misc).focusable(false).desc(S+MLTC(u"Video Options", PL, u"Opcje Grafiki", DE, u"Grafik Optionen", RU, u"Настройки видео", PO, u"Opções de Video")+"\nKeyboard Shortcut: F12"); vid_opt.image="Gui/Misc/display.img"; vid_opt.mode=BUTTON_TOGGLE;
 
       proj_path_io.create().io(SelectPath, SelectPath, T).modeDirSelect();
    }
@@ -323,7 +324,7 @@ void DrawProjectList()
    bool Projects::open(Elm &proj, bool ignore_lock)
    {
       Str path=ProjectsPath+EncodeFileName(proj.id);
-      if(!(FExistSystem(path) || FCreateDirs(path)))Gui.msgBox(S, S+"Can't write to \""+GetPath(path)+"\"");else
+      if(!FCreateDirs(path))Gui.msgBox(S, S+"Can't write to \""+GetPath(path)+"\"");else
       {
          Str error; LOAD_RESULT result=Proj.open(proj.id, proj.name, path, error, ignore_lock);
          if(result==LOAD_NEWER )Gui.msgBox(S,   "This project was created with a newer version of Esenthel Engine.\nPlease upgrade your Esenthel software and try again.");else

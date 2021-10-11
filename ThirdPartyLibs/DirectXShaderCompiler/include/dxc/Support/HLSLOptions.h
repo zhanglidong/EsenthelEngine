@@ -18,8 +18,9 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Option/ArgList.h"
 #include "dxc/dxcapi.h"
-#include "dxc/Support/HLSLOptimizationOptions.h"
 #include "dxc/Support/SPIRVOptions.h"
+#include <map>
+#include <set>
 
 namespace llvm {
 namespace opt {
@@ -96,6 +97,7 @@ struct RewriterOpts {
   bool ExtractEntryUniforms = false;        // OPT_rw_extract_entry_uniforms
   bool RemoveUnusedGlobals = false;         // OPT_rw_remove_unused_globals
   bool RemoveUnusedFunctions = false;         // OPT_rw_remove_unused_functions
+  bool WithLineDirective = false;       // OPT_rw_line_directive
 };
 
 /// Use this class to capture all options.
@@ -132,6 +134,7 @@ public:
   unsigned DefaultTextCodePage = DXC_CP_UTF8; // OPT_encoding
 
   bool AllResourcesBound = false; // OPT_all_resources_bound
+  bool IgnoreOptSemDefs = false; // OPT_ignore_opt_semdefs
   bool AstDump = false; // OPT_ast_dump
   bool ColorCodeAssembly = false; // OPT_Cc
   bool CodeGenHighLevel = false; // OPT_fcgl
@@ -140,6 +143,7 @@ public:
   bool DebugNameForBinary = false; // OPT_Zsb
   bool DebugNameForSource = false; // OPT_Zss
   bool DumpBin = false;        // OPT_dumpbin
+  bool Link = false;        // OPT_link
   bool WarningAsError = false; // OPT__SLASH_WX
   bool IEEEStrict = false;     // OPT_Gis
   bool IgnoreLineDirectives = false; // OPT_ignore_line_directives
@@ -164,7 +168,6 @@ public:
   bool UseHexLiterals = false; // OPT_Lx
   bool UseInstructionByteOffsets = false; // OPT_No
   bool UseInstructionNumbers = false; // OPT_Ni
-  bool StructurizeReturns = false;      // OPT_structurize_returns
   bool NotUseLegacyCBufLoad = false;  // OPT_no_legacy_cbuf_layout
   bool PackPrefixStable = false;  // OPT_pack_prefix_stable
   bool PackOptimized = false;  // OPT_pack_optimized
@@ -172,6 +175,9 @@ public:
   bool RecompileFromBinary = false; // OPT _Recompile (Recompiling the DXBC binary file not .hlsl file)
   bool StripDebug = false; // OPT Qstrip_debug
   bool EmbedDebug = false; // OPT Qembed_debug
+  bool SourceInDebugModule = false; // OPT Zs
+  bool SourceOnlyDebug = false; // OPT Qsource_only_debug
+  bool PdbInPrivate = false; // OPT Qpdb_in_private
   bool StripRootSignature = false; // OPT_Qstrip_rootsignature
   bool StripPrivate = false; // OPT_Qstrip_priv
   bool StripReflection = false; // OPT_Qstrip_reflect
@@ -189,7 +195,19 @@ public:
   bool ResMayAlias = false; // OPT_res_may_alias
   unsigned long ValVerMajor = UINT_MAX, ValVerMinor = UINT_MAX; // OPT_validator_version
   unsigned ScanLimit = 0; // OPT_memdep_block_scan_limit
-  hlsl::OptimizationOptions DxcOptimizationOptions; // OPT_opt_disable
+  bool ForceZeroStoreLifetimes = false; // OPT_force_zero_store_lifetimes
+  bool EnableLifetimeMarkers = false; // OPT_enable_lifetime_markers
+
+  // Optimization pass enables, disables and selects
+  std::map<std::string, bool> DxcOptimizationToggles; // OPT_opt_enable & OPT_opt_disable
+  std::map<std::string, std::string> DxcOptimizationSelects; // OPT_opt_select
+
+  std::set<std::string> IgnoreSemDefs; // OPT_ignore_semdef
+  std::map<std::string, std::string> OverrideSemDefs; // OPT_override_semdef
+
+  bool PrintAfterAll; // OPT_print_after_all
+  bool EnablePayloadQualifiers = false; // OPT_enable_payload_qualifiers
+  bool HandleExceptions = false; // OPT_disable_exception_handling
 
   // Rewriter Options
   RewriterOpts RWOpt;
@@ -200,7 +218,8 @@ public:
   bool IsLibraryProfile();
 
   // Helpers to clarify interpretation of flags for behavior in implementation
-  bool IsDebugInfoEnabled();    // Zi
+  bool GenerateFullDebugInfo(); // Zi
+  bool GeneratePDB();           // Zi or Zs
   bool EmbedDebugInfo();        // Qembed_debug
   bool EmbedPDBName();          // Zi or Fd
   bool DebugFileIsDirectory();  // Fd ends in '\\'

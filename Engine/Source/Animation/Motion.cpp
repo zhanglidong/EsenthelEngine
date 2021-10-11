@@ -34,6 +34,16 @@ Bool Motion::eventOccurred(Flt event_time  )C {return skel_anim ? EventOccurred(
 Bool Motion::eventBetween (Flt from, Flt to)C {return skel_anim ? EventBetween (from, to,   time_prev, time_delta) : false;}
 Flt  Motion::eventProgress(Flt from, Flt to)C {return skel_anim ?         LerpR(from, to,   time                 ) :     0;}
 /******************************************************************************/
+void Motion::getRootTransform(RevMatrix &transform)C
+{
+   if(skel_anim)if(C Animation *anim=skel_anim->animation())
+   {
+      anim->getRootTransform(transform, time_prev, time);
+      return;
+   }
+   transform.identity();
+}
+/******************************************************************************/
 Bool Motion::updateAuto(Flt blend_in_speed, Flt blend_out_speed, Flt time_speed)
 {
    if(!is())return false; // return false if the motion isn't valid and can be deleted

@@ -408,7 +408,7 @@ public class EsenthelActivity extends NativeActivity
 
       // detect showing nav bar by the user manually in order to hide it automatically
       if(system_bars<0)system_bars=systemBarsActual(); // when starting  , get what we have
-      else             systemBars(system_bars);        // when restarting, set what last requested (this can happen when opening app when it was closed using 'WindowMinimize')
+      else             systemBars(system_bars);        // when restarting, set what last requested (this can happen when opening app when it was closed using 'SysWindow.minimize')
       Window window=activity.getWindow(); if(window!=null)
       {
          View view=window.getDecorView(); if(view!=null)

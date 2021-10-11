@@ -2,7 +2,7 @@
 	<Core>
 		<Name>Application</Name>
 		<Is64BitInstruction>True</Is64BitInstruction>
-		<ApplicationId>0x01004b9000490000</ApplicationId>
+		<ApplicationId>0x0100000003488000</ApplicationId>
 		<ProgramIndex>0</ProgramIndex>
 		<MainThreadStackSize>0x00100000</MainThreadStackSize>
 		<ProcessAddressSpace>AddressSpace64Bit</ProcessAddressSpace>
@@ -11,14 +11,14 @@
 		<Title>
 			<Language>AmericanEnglish</Language>
 			<Name>Esenthel</Name>
-			<Publisher>Publisher</Publisher>
+			<Publisher></Publisher>
 		</Title>
 		<Icon>
 			<Language>AmericanEnglish</Language>
 			<IconPath>Icon.bmp</IconPath>
 		</Icon>
-		<ReleaseVersion>68</ReleaseVersion>
-		<DisplayVersion>68</DisplayVersion>
+		<ReleaseVersion>71</ReleaseVersion>
+		<DisplayVersion>71</DisplayVersion>
 		<StartupUserAccount>Required</StartupUserAccount>
 		<UserAccountSwitchLock>Disable</UserAccountSwitchLock>
 		<SupportedLanguage>AmericanEnglish</SupportedLanguage>
@@ -36,6 +36,8 @@
 		<CrashScreenshotForDev>Deny</CrashScreenshotForDev>
 		<PlayLogQueryCapability>None</PlayLogQueryCapability>
 		<PlayLogPolicy>Open</PlayLogPolicy>
+		<CacheStorageSize>0x0000000004000000</CacheStorageSize>
+		<CacheStorageJournalSize>0x0000000004000000</CacheStorageJournalSize>
 		<RuntimeParameterDelivery>Always</RuntimeParameterDelivery>
 	</Application>
 </NintendoSdkMeta>

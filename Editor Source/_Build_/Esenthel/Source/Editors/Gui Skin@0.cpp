@@ -167,7 +167,7 @@ GuiSkinEditor GuiSkinEdit;
       }
       void GuiSkinEditor::SkinRegion::update(C GuiPC &gpc)
 {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             GuiSkinPtr temp=Gui.skin; Gui.skin=GuiSkinEdit.game;
             super::update(gpc);
@@ -176,7 +176,7 @@ GuiSkinEditor GuiSkinEdit;
       }
       void GuiSkinEditor::SkinRegion::draw(C GuiPC &gpc)
 {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             GuiSkinPtr temp=Gui.skin; Gui.skin=GuiSkinEdit.game;
             super::draw(gpc);

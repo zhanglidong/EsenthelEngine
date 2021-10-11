@@ -72,7 +72,7 @@ void Resumed()
    && !(Projs.proj_list.contains(Gui.ms()) && Gui.ms()->type()==GO_CHECKBOX)) // if we're activating application by clicking on a project list checkbox, then don't refresh, because it would lose focus and don't get toggled, or worse (another project would be toggled due to refresh)
       Projs.refresh(); // refresh list of project when window gets focused in case we've copied some projects to the Editor
 }
-void ReceiveData(cptr data, int size, ptr hwnd_sender)
+void ReceiveData(cptr data, int size, C SysWindow &sender_window)
 {
    File f; f.readMem(data, size);
    Str s=f.getStr();
@@ -83,7 +83,7 @@ void SetTitle()
    Str title;
    if(Mode()==MODE_CODE)title=CodeEdit.title();
    if(title.is())title=S+AppName+" - "+title;else title=AppName;
-   WindowSetText(title);
+   App.name(title);
 }
 void SetKbExclusive()
 {
@@ -95,7 +95,7 @@ void SetProjectState()
 }
 Rect EditRect(bool modes)
 {
-   Rect r(-D.w(), -D.h(), D.w(), D.h());
+   Rect r=D.rect();
    if(modes && Mode.visibleTabs())MIN(r.max.y,          Mode.rect().min.y+D.pixelToScreenSize(Vec2(0, 0.5f)).y);
    if(         Proj.visible    ())MAX(r.min.x,          Proj.rect().max.x-D.pixelToScreenSize(Vec2(0.5f, 0)).x);
    if(     MtrlEdit.visible    ())MIN(r.max.x,      MtrlEdit.rect().min.x);
@@ -112,12 +112,12 @@ void InitPre()
       REPA(proc)if(proc[i]!=App.processID())
       {
          Str proc_name=GetBase(ProcName(proc[i]));
-         if(proc_name=="Esenthel.exe")
-            if(ptr hwnd=ProcWindow(proc[i]))
+         if( proc_name=="Esenthel.exe")
+            if(SysWindow window=ProcWindow(proc[i]))
          {
             File f; f.writeMem().putStr(App.cmd_line[0]).pos(0);
             Memt<byte> temp; temp.setNum(f.left()); f.get(temp.data(), temp.elms());
-            WindowSendData(temp.data(), temp.elms(), hwnd);
+            window.sendData(temp.data(), temp.elms());
             App.flag=APP_EXIT_IMMEDIATELY;
             return;
          }
@@ -169,6 +169,7 @@ void InitPre()
       App.resumed=Resumed;
       D.secondaryOpenGLContexts(Cpu.threads()*3); // worker threads + importer threads + manually called threads
       D.drawNullMaterials(true);
+      D.dofFocusMode(true);
       D.set_shader=SetShader;
       D.mode(App.desktopW()*0.8f, App.desktopH()*0.8f);
    #if !DEBUG

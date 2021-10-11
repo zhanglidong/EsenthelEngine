@@ -135,6 +135,11 @@ EditorServer EditServer;
                   File &f=connection.data.reset().putByte(Edit::EI_GET_DATA_PATH)<<Proj.game_path; f.pos(0); connection.send(f);
                }break;
 
+               case Edit::EI_GET_EDITOR_PATH:
+               {
+                  File &f=connection.data.reset().putByte(Edit::EI_GET_EDITOR_PATH)<<SDKPath(); f.pos(0); connection.send(f);
+               }break;
+
                // ELMS
                case Edit::EI_GET_ELMS:
                {
@@ -917,8 +922,8 @@ EditorServer EditServer;
                case Edit::EI_RLD_MTRL_TEX:
                {
                   File &f=connection.data; UID elm_id=f.getUID(); byte texs=f.getByte();
-                  bool base=FlagTest(texs, 1), detail=FlagTest(texs, 2), macro=FlagTest(texs, 4), light=FlagTest(texs, 8);
-                  bool ok=Proj.mtrlReloadTextures(elm_id, base, detail, macro, light);
+                  bool base=FlagTest(texs, 1), detail=FlagTest(texs, 2), macro=FlagTest(texs, 4), emissive=FlagTest(texs, 8);
+                  bool ok=Proj.mtrlReloadTextures(elm_id, base, detail, macro, emissive);
                   f.reset().putByte(Edit::EI_RLD_MTRL_TEX).putBool(ok); f.pos(0); connection.send(f);
                }break;
 

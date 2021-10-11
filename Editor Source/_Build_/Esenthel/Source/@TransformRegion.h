@@ -17,7 +17,7 @@ class TransformRegion : Region
    static cchar8 *AnchorName[]
 ;
 
-   bool           full;
+   bool           full, scale_normal, keep_uv;
    Property      *move_p[3];
    Memx<Property> props;
    TextWhite      ts;
@@ -25,7 +25,7 @@ class TransformRegion : Region
                   rot[3][2]; // [xyz][dec/inc]
    TextLine       rescale_width_value, rescale_height_value, rescale_depth_value;
    Pose           trans;
-   flt            trans_normal;
+   flt            move_along_normal;
    Vec            trans_scale, anchor_pos;
    Vec2           move_uv, scale_uv;
    Matrix         matrix;
@@ -73,6 +73,31 @@ class TransformRegion : Region
    void resetDo();
    void hideDo();
    void cancelDo();
+   class KeepUV
+   {
+      class Vtx
+      {
+         bool adjust;
+         Vec  pos;
+         Vec2 uv;
+         flt  weight;
+
+         void create(C Vec &pos);
+      };
+
+      class Part
+      {
+         Mems<Vtx> vtxs;
+
+         void create(C MeshPart &src);
+         void keepUV(MeshPart &part);
+      };
+
+      Mems<Part> parts;
+
+      void create(C MeshLod &src);
+      void keepUV(MeshLod &lod);
+   };
    void apply();
    virtual void update(C GuiPC &gpc)override;
 

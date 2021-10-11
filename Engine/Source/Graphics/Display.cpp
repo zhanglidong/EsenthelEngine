@@ -60,6 +60,10 @@ DisplayClass D;
    #elif IOS
       UInt FBO1;
    #endif
+   #if !WINDOWS && !SWITCH
+      void (*glTexStorage2D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height); // available on GL 4.2+, GL ES 3.0+
+      void (*glTextureView )(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers); // available on GL 4.3+, GL ES NO
+   #endif
    #if APPLE
       static CFBundleRef OpenGLBundle;
    #endif
@@ -190,6 +194,7 @@ void RequestDisplayMode(Int w, Int h, Int full)
 {
    if(full> 0)Windows::UI::ViewManagement::ApplicationView::GetForCurrentView()->TryEnterFullScreenMode();else
    if(full==0)Windows::UI::ViewManagement::ApplicationView::GetForCurrentView()->ExitFullScreenMode    ();
+
    if(w>0 || h>0)
    {
       if(w<=0)w=D.resW();
@@ -353,7 +358,7 @@ void GLContext::lock()
 #elif MAC
    if(CGLSetCurrentContext(context)==kCGLNoError)
 #elif LINUX
-   if(glXMakeCurrent(XDisplay, App.Hwnd(), context))
+   if(glXMakeCurrent(XDisplay, App.window(), context))
 #elif ANDROID || SWITCH
    if(eglMakeCurrent(GLDisplay, surface, surface, context)==EGL_TRUE)
 #elif IOS
@@ -493,6 +498,8 @@ Str8 DisplayClass::shaderModelName()C
       case SM_GL_ES_3_2: return "GL ES 3.2";
       case SM_GL_3     : return "GL 3";
       case SM_GL_4     : return "GL 4";
+      case SM_GL_4_2   : return "GL 4.2";
+      case SM_GL_4_3   : return "GL 4.3";
       case SM_4        : return "4";
       case SM_4_1      : return "4.1";
       case SM_5        : return "5";
@@ -549,7 +556,7 @@ VecI2 DisplayClass::glVer()
 {
    if(created())
    {
-      int major=0, minor=0;
+      GLint major=0, minor=0;
       glGetIntegerv(GL_MAJOR_VERSION, &major);
       glGetIntegerv(GL_MINOR_VERSION, &minor);
       return VecI2(major, minor);
@@ -597,6 +604,27 @@ Bool DisplayClass::gatherChannelAvailable()C
    return shaderModel()>=SM_GL_4; // 4.0+ GL required
 #endif
 }
+Bool DisplayClass::computeAvailable()C
+{
+#if DX11
+   return shaderModel()>=SM_5;
+#elif GL_ES
+   return shaderModel()>=SM_GL_ES_3_1; // 3.1+ GLES required
+#elif GL
+   return shaderModel()>=SM_GL_4_3; // 4.3+ GL required
+#endif
+}
+Bool DisplayClass::packHalf2x16Available()C
+{
+#if DX11
+   return true;
+#elif GL_ES
+   return true;
+#elif GL
+   return shaderModel()>=SM_GL_4_2; // 4.2+ GL required
+#endif
+}
+Bool DisplayClass::filterMinMaxAvailable()C {return SamplerMinimum.is();}
 Bool DisplayClass::independentBlendAvailable()C
 {
 #if DX11
@@ -614,6 +642,15 @@ Bool DisplayClass::SpirVAvailable()C
 #elif GL_ES
 #elif GL
  //return Compare(_gl_ver, VecB2(4, 6))>=0; // 4.6+ GL required, currently crashes on Nvidia, broken on Intel
+#endif
+   return false;
+}
+Bool DisplayClass::canSwapSRGB()C
+{
+#if DX11
+   return true;
+#elif GL
+   return glTexStorage2D && glTextureView;
 #endif
    return false;
 }
@@ -805,12 +842,12 @@ C DisplayClass::Monitor* DisplayClass::curMonitor()
    }
 #endif
 #if WINDOWS_OLD // try alternative method if above failed
-   if(App.hwnd())
+   if(App.window())
    {
    #if 1
-      if(HMONITOR hmonitor=(HMONITOR)WindowMonitor(App.Hwnd()))
+      if(HMONITOR hmonitor=App.hmonitor())
    #else
-      RectI win_rect=WindowRect(false); // watch out because 'WindowRect' can return weird position when the window is minimized
+      RectI win_rect=App.window().rect(false); // watch out because 'SysWindow.rect' can return weird position when the window is minimized
       POINT p; p.x=win_rect.centerXI(); p.y=win_rect.centerYI();
       if(HMONITOR hmonitor=MonitorFromPoint(p, MONITOR_DEFAULTTONEAREST))
    #endif
@@ -847,7 +884,8 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
    // there's only one 'DisplayClass' global 'D' and it doesn't need clearing members to zero
   _full            =MOBILE; // by default request fullscreen for MOBILE
   _sync            =true;
-  _exclusive       =true;
+//_exclusive       =false;
+//_hdr             =false;
   _color_space     =COLOR_SPACE_NONE;
 //_hp_col_rt       =false;
 //_hp_nrm_rt       =false;
@@ -855,13 +893,15 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _dither          =true;
   _mtrl_blend      =true;
   _device_mem      =-1;
-  _monitor_prec    =IMAGE_PRECISION_8;
+  _output_prec     =IMAGE_PRECISION_8;
   _lit_col_rt_prec =IMAGE_PRECISION_8;
   _aspect_mode     =(MOBILE ? ASPECT_SMALLER : ASPECT_Y);
   _tex_filter      =(MOBILE ? 4 : 16);
   _tex_mip_filter  =true;
   _tex_detail      =(MOBILE ? TEX_USE_DISABLE : TEX_USE_MULTI);
-  _density_filter  =(MOBILE ? FILTER_LINEAR : FILTER_CUBIC_FAST);
+  _half_supported  =-1; // unknown
+  _density_filter  =FILTER_EASU;
+//_sharpen         =false;
 //_tex_mip_min     =0;
   _tex_macro       =true;
 //_tex_detail_lod  =false;
@@ -871,7 +911,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _bend_leafs      =true;
   _particles_soft  =!MOBILE;
   _particles_smooth=!MOBILE;
-//_taa             =_taa_dual=false;
+//_temp_anti_alias =_temp_super_res=_temp_dual=false;
 //_shader_model    =SM_UNKNOWN;
 //_gl_ver          .zero();
 
@@ -882,7 +922,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _density=127;
   _samples=1;
   _scale=1;
-  _unscaled_size=_size=1; _size2=2; // init to 1 to avoid div by 0 at app startup which could cause crash on Web
+  _unscaled_size=1; _size2=2; _rect.set(-1, -1, 1, 1); // init to 1 to avoid div by 0 at app startup which could cause crash on Web
   _disp_aspect_ratio=_disp_aspect_ratio_want=0;
   _app_aspect_ratio=1;
   _pixel_aspect=1;
@@ -897,7 +937,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _amb_jitter  =true;
   _amb_normal  =true;
   _amb_res     =FltToByteScale(0.5f);
-  _amb_contrast=4.0f;
+  _amb_contrast=2.0f;
   _amb_min     =0.2f;
   _amb_range   =0.4f;
   _amb_color_l =SRGBToLinear(0.366f); // #DefaultAmbientValue
@@ -911,11 +951,12 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _vol_max  =1;
 
   _shd_mode           =(MOBILE ? SHADOW_NONE : SHADOW_MAP);
-//_shd_soft           =0;
-//_shd_jitter         =false;
+  _shd_soft           =1;
+  _shd_jitter         =true;
 //_shd_reduce         =false;
   _shd_frac           =1;
   _shd_fade           =1;
+//_shd_bias           =0;
   _shd_map_num        =6;
   _shd_map_size       =1024;
 //_shd_map_size_actual=0;
@@ -929,9 +970,9 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _bump_mode=(MOBILE ? BUMP_FLAT : BUMP_RELIEF);
 
   _mtn_mode  =MOTION_NONE;
-  _mtn_dilate=DILATE_ORTHO2;
   _mtn_scale =1;
-  _mtn_res   =FltToByteScale(1.0f/3);
+  _mtn_res   =FltToByteScale(1.0f/16);
+  _mtn_jitter=true;
 
 //_dof_mode     =DOF_NONE;
 //_dof_foc_mode =false;
@@ -947,18 +988,17 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _eye_adapt_speed     =6.5f;
   _eye_adapt_weight.set(0.9f, 1, 0.7f); // use smaller value for blue, to make blue skies have brighter multiplier, because human eye sees blue color as darker than others
 
+//_tone_map_mode=TONE_MAP_OFF;
+
   _grass_range  =50;
   _grass_density=(MOBILE ? 0.5f : 1);
 //_grass_shadow =false;
 //_grass_mirror =false;
 
+   // !! IF CHANGING THIS THEN ALSO CHANGE 'Environment.Bloom' !!
   _bloom_original=1.0f;
-  _bloom_scale   =0.4f;
-  _bloom_cut     =0.3f;
-  _bloom_blurs   =1;
-//_bloom_max     =false;
-  _bloom_half    =!MOBILE;
-  _bloom_samples =!MOBILE;
+  _bloom_glow    =1.0f;
+   bloomScaleCut (0.8f, 0.3f);
           _bloom_allow=!MOBILE;
            _glow_allow=!MOBILE;
   _color_palette_allow=!MOBILE;
@@ -989,10 +1029,21 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _view_main.range   =100;
   _view_main.full    =true; // needed for 'viewReset' which will always set full viewport if last was full too
 
+//_sharpen_intensity=0.0f;
+
   _smaa_threshold=0.1f;
 
 //_max_lights     =0;
   _max_lights_soft=true;
+
+  _color_prec    =IMAGE_PRECISION_8;
+  _white_lum     =1;
+  _screen_max_lum=1;
+//_screen_nits=0;
+  _tone_map_max_lum=1;
+  _tone_map_top_range=0.7f;
+  _tone_map_dark_range=0.123f;
+  _tone_map_dark_exp=1.3f;
 }
 void DisplayClass::init() // make this as a method because if we put this to Display constructor, then 'SecondaryContexts' may not have been initialized yet
 {
@@ -1107,7 +1158,7 @@ void DisplayClass::del()
            MainContext .del();
 
    #if WINDOWS
-      if(hDC){ReleaseDC(App.Hwnd(), hDC); hDC=null;}
+      if(hDC){ReleaseDC(App.window(), hDC); hDC=null;}
       SetDisplayMode(0); // switch back to the desktop
    #elif MAC
       [OpenGLContext release]; OpenGLContext=null;
@@ -1157,14 +1208,15 @@ void DisplayClass::createDevice()
    {
       IDXGIFactory1 *factory=null; CreateDXGIFactory1(__uuidof(IDXGIFactory1), (Ptr*)&factory); if(factory)
       {
-         for(Int i=0; OK(factory->EnumAdapters(i, &Adapter)); i++)
+         for(Int i=0; ; i++)
          {
-            if(!Adapter)break;
+            factory->EnumAdapters(i, &Adapter); if(!Adapter)break;
          #if DEBUG
-            IDXGIOutput *output=null; for(Int i=0; OK(Adapter->EnumOutputs(i, &output)); i++)
+            for(Int i=0; ; i++)
             {
+               IDXGIOutput *output=null; Adapter->EnumOutputs(i, &output); if(!output)break;
                DXGI_OUTPUT_DESC desc; output->GetDesc(&desc);
-               RELEASE(output);
+               output->Release();
             }
          #endif
             DXGI_ADAPTER_DESC desc; if(OK(Adapter->GetDesc(&desc)))
@@ -1174,7 +1226,7 @@ void DisplayClass::createDevice()
             }
             RELEASE(Adapter);
          }
-         RELEASE(factory); // release 'factory' because we need to obtain it from the D3D Device in case it will be different
+         factory->Release(); // release 'factory' because we need to obtain it from the D3D Device in case it will be different
       }
    }
 
@@ -1243,7 +1295,7 @@ void DisplayClass::createDevice()
    // init
    if(!findMode())Exit("Valid display mode not found.");
 #if WINDOWS_OLD
-   if(!exclusive() && full()){if(!SetDisplayMode(2))Exit("Can't set fullscreen mode."); adjustWindow();}
+   if(!exclusive() && full()){if(!SetDisplayMode(2))Exit("Can't set fullscreen mode."); App.windowAdjust();}
 again:
    Factory->CreateSwapChain(D3D, &SwapChainDesc, &SwapChain);
    if(!SwapChain)
@@ -1253,10 +1305,10 @@ again:
       if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM  ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with  8-bit
       if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R8G8B8A8_UNORM_SRGB){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // #SwapFlipSRGB may fail to create sRGB in that case create as linear and 'swapRTV' in 'ImageRT.map'
    }
-   Factory->MakeWindowAssociation(App.Hwnd(), DXGI_MWA_NO_ALT_ENTER|DXGI_MWA_NO_WINDOW_CHANGES|DXGI_MWA_NO_PRINT_SCREEN); // this needs to be called after 'CreateSwapChain'
+   Factory->MakeWindowAssociation(App.window(), DXGI_MWA_NO_ALT_ENTER|DXGI_MWA_NO_WINDOW_CHANGES|DXGI_MWA_NO_PRINT_SCREEN); // this needs to be called after 'CreateSwapChain'
 #else
 again:
-	Factory->CreateSwapChainForCoreWindow(D3D, (IUnknown*)App._hwnd, &SwapChainDesc, null, &SwapChain);
+	Factory->CreateSwapChainForCoreWindow(D3D, (IUnknown*)App.window()(), &SwapChainDesc, null, &SwapChain);
    if(!SwapChain)
    {
       if(SwapChainDesc.Format==DXGI_FORMAT_R32G32B32A32_FLOAT ){SwapChainDesc.Format=DXGI_FORMAT_R16G16B16A16_FLOAT ; goto again;} // if failed with 32-bit then try again with 16-bit
@@ -1271,7 +1323,7 @@ again:
    D3D11_QUERY_DESC query_desc={D3D11_QUERY_EVENT, 0};
    D3D->CreateQuery(&query_desc, &Query);
 #elif GL
-   const VecB2 ctx_vers[]={{3,2}, {4,0}, {4,2}, {4,6}}; // set highest at the end, 4.6 needed for SPIR-V, 4.2 needed for 'glGetInternalformativ', 4.0 needed for 'TexGather', 3.2 needed for 'glDrawElementsBaseVertex', 3.1 needed for instancing, 3.0 needed for 'glColorMaski', 'gl_ClipDistance', 'glClearBufferfv', 'glGenVertexArrays', 'glMapBufferRange'
+   const VecB2 ctx_vers[]={{3,2}, {4,0}, {4,2}, {4,3}, {4,6}}; // set highest at the end, 4.6 needed for SPIR-V, 4.3 needed for compute shaders, 4.2 needed for 'glGetInternalformativ', 4.0 needed for 'TexGather', 3.2 needed for 'glDrawElementsBaseVertex', 3.1 needed for instancing, 3.0 needed for 'glColorMaski', 'gl_ClipDistance', 'glClearBufferfv', 'glGenVertexArrays', 'glMapBufferRange'
 
    #if WINDOWS
       // setup dummy functions to prevent null exceptions when GL context failed to create, but we still want to continue
@@ -1302,7 +1354,7 @@ again:
       };
       Int PixelFormat;
 
-      if(!(hDC                =            GetDC(App.Hwnd()            )))Exit("Can't create an OpenGL Device Context.");
+      if(!(hDC                =            GetDC(App.window()          )))Exit("Can't create an OpenGL Device Context.");
       if(!(PixelFormat        =ChoosePixelFormat(hDC,              &pfd)))Exit("Can't find a suitable PixelFormat.");
       if(!(                       SetPixelFormat(hDC, PixelFormat, &pfd)))Exit("Can't set the PixelFormat.");
       if(!(MainContext.context= wglCreateContext(hDC                   )))Exit("Can't create an OpenGL Context.");
@@ -1386,7 +1438,7 @@ again:
       MainContext.lock();
       OpenGLContext=[[NSOpenGLContext alloc] initWithCGLContextObj:MainContext.context];
       [OpenGLContext setView:OpenGLView];
-      [App.Hwnd() makeKeyAndOrderFront:NSApp]; // show only after everything finished (including GL context to avoid any flickering)
+      [App.window() makeKeyAndOrderFront:NSApp]; // show only after everything finished (including GL context to avoid any flickering)
    #elif LINUX
       if(XDisplay)
       {
@@ -1404,6 +1456,7 @@ again:
                {
                   GLX_CONTEXT_MAJOR_VERSION_ARB, ctx_vers[i].x,
                   GLX_CONTEXT_MINOR_VERSION_ARB, ctx_vers[i].y,
+                //GLX_CONTEXT_PROFILE_MASK_ARB,  GLX_CONTEXT_CORE_PROFILE_BIT_ARB, not needed since core is default value
                   NULL // end of list
                };
                // create context
@@ -1520,11 +1573,13 @@ again:
       if(Compare(_gl_ver, VecB2(3, 2))>=0)_shader_model=SM_GL_ES_3_2;else
       if(Compare(_gl_ver, VecB2(3, 1))>=0)_shader_model=SM_GL_ES_3_1;else
       if(Compare(_gl_ver, VecB2(3, 0))>=0)_shader_model=SM_GL_ES_3  ;else
-                                          Exit("OpenGL ES 3.0 support not available.\nGraphics Driver not installed or better video card is required.");
+                                           Exit("OpenGL ES 3.0 support not available.\nGraphics Driver not installed or better video card is required.");
    #else
-      if(Compare(_gl_ver, VecB2(4, 0))>=0)_shader_model=SM_GL_4;else
-      if(Compare(_gl_ver, VecB2(3, 2))>=0)_shader_model=SM_GL_3;else
-                                          Exit("OpenGL 3.2 support not available.\nGraphics Driver not installed or better video card is required.");
+      if(Compare(_gl_ver, VecB2(4, 3))>=0)_shader_model=SM_GL_4_3;else
+      if(Compare(_gl_ver, VecB2(4, 2))>=0)_shader_model=SM_GL_4_2;else
+      if(Compare(_gl_ver, VecB2(4, 0))>=0)_shader_model=SM_GL_4  ;else
+      if(Compare(_gl_ver, VecB2(3, 2))>=0)_shader_model=SM_GL_3  ;else
+                                           Exit("OpenGL 3.2 support not available.\nGraphics Driver not installed or better video card is required.");
    #endif
 
    if(!deviceName().is())
@@ -1534,6 +1589,7 @@ again:
      _device_name.removeOuterWhiteChars(); // Linux may have unnecessary spaces at the end
    #endif
    }
+   shaderCache(S); // initialize after device got created
 
    if(LogInit)LogN("Secondary Contexts");
    if(SecondaryContexts.elms())
@@ -1553,16 +1609,24 @@ again:
 
    if(LogInit)
    {
-      LogN(S+"Device Name: "      +_device_name);
-      LogN(S+"Device Vendor: "    +(CChar8*)glGetString(GL_VENDOR    ));
-      LogN(S+"Device Version: "   +(CChar8*)glGetString(GL_VERSION   ));
-      LogN(S+"Device Extensions: "+(CChar8*)glGetString(GL_EXTENSIONS));
+      LogN(S+"Device Name: "   +_device_name);
+      LogN(S+"Device Vendor: " +(CChar8*)glGetString(GL_VENDOR));
+      LogN(S+"Device Version: "+(CChar8*)glGetString(GL_VERSION));
+
+      GLint exts=0; glGetIntegerv(GL_NUM_EXTENSIONS, &exts); // do not use "glGetString(GL_EXTENSIONS)" because it's obsolete
+      Str8  ext; FREP(exts){if(i)ext+=' '; ext+=(CChar8*)glGetStringi(GL_EXTENSIONS, i);}
+      LogN(S+"Device Extensions: "+ext);
+
+      GLint binary_formats=0; glGetIntegerv(GL_NUM_SHADER_BINARY_FORMATS , &binary_formats); LogN(S+"Device Shader Binary Formats: "+binary_formats);
+            binary_formats=0; glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &binary_formats); LogN(S+"Device Program Binary Formats: "+binary_formats);
    }
 
-   if(!findMode())Exit("Valid display mode not found.");
-   setSync();
+   // call these as soon as possible because they affect all images (including those created in the renderer)
+	glPixelStorei(GL_PACK_ALIGNMENT  , 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-   if(LogInit)LogN("FBO");
+   glGenFramebuffers(1, &FBO); if(!FBO)Exit("Couldn't create OpenGL Frame Buffer Object (FBO)");
+   glGenVertexArrays(1, &VAO); if(!VAO)Exit("Couldn't create OpenGL Vertex Arrays (VAO)");
 #if LINEAR_GAMMA
    #ifdef        GL_FRAMEBUFFER_SRGB
         glEnable(GL_FRAMEBUFFER_SRGB);
@@ -1570,23 +1634,25 @@ again:
         glEnable(GL_FRAMEBUFFER_SRGB_EXT);
    #endif
 #endif
-   glGenFramebuffers(1, &FBO); if(!FBO)Exit("Couldn't create OpenGL Frame Buffer Object (FBO)");
-   glGenVertexArrays(1, &VAO); if(!VAO)Exit("Couldn't create OpenGL Vertex Arrays (VAO)");
+
+#if !WINDOWS && !SWITCH
+   glTexStorage2D=(decltype(glTexStorage2D))D.glGetProcAddress("glTexStorage2D");
+   glTextureView =(decltype(glTextureView ))D.glGetProcAddress("glTextureView");
+#endif
+
+   if(!findMode())Exit("Valid display mode not found.");
+   setSync();
 
 	#if WINDOWS
-      if(full()){if(!SetDisplayMode(2))Exit("Can't set fullscreen mode."); adjustWindow();}
+      if(full()){if(!SetDisplayMode(2))Exit("Can't set fullscreen mode."); App.windowAdjust();}
    #elif MAC
       if(!SetDisplayMode(2))Exit("Can't set display mode.");
    #elif LINUX
-      if(full()){if(!SetDisplayMode(2))Exit("Can't set display mode."); adjustWindow();} // 'adjustWindow' because we need to set fullscreen state
+      if(full()){if(!SetDisplayMode(2))Exit("Can't set display mode."); App.windowAdjust();} // 'App.windowAdjust' because we need to set fullscreen state
    #elif IOS
       glGenFramebuffers(1, &FBO1); if(!FBO1)Exit("Couldn't create OpenGL Frame Buffer Object (FBO)");
       fbo(FBO); // set custom frame buffer, on iOS there's only one FBO and one FBO change, and it is here, this is because there's no default(0) FBO on this platform
    #endif
-
-   // call these as soon as possible because they affect all images (including those created in the renderer)
-	glPixelStorei(GL_PACK_ALIGNMENT  , 1);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 #endif
 
 #if MOBILE
@@ -1650,13 +1716,18 @@ _linear_gamma^=1; linearGamma(!_linear_gamma); // set after loading shaders
              Gui.create();
 
    // set default settings
-   {Byte v=texFilter   (); _tex_filter    ^=1               ; texFilter   (v);}
-   {Bool v=texMipFilter(); _tex_mip_filter^=1               ; texMipFilter(v);}
-   {Bool v=bloomMaximum(); _bloom_max      =false           ; bloomMaximum(v);} // resetting will load shaders
-   {auto v=edgeSoften  (); _edge_soften    =EDGE_SOFTEN_NONE; edgeSoften  (v);} // resetting will load shaders
-   {auto v=edgeDetect  (); _edge_detect    =EDGE_DETECT_NONE; edgeDetect  (v);} // resetting will load shaders
-   {auto v=tAA         (); _taa            =false           ; tAA         (v);} // resetting will load shaders
-   {Flt  v=grassRange  (); _grass_range    =-1              ; grassRange  (v);}
+   {auto v=texFilter        (); _tex_filter      ^=1               ; texFilter        (v);}
+   {auto v=texMipFilter     (); _tex_mip_filter  ^=1               ; texMipFilter     (v);}
+   {auto v=edgeSoften       (); _edge_soften      =EDGE_SOFTEN_NONE; edgeSoften       (v);} // resetting will load shaders
+   {auto v=edgeDetect       (); _edge_detect      =EDGE_DETECT_NONE; edgeDetect       (v);} // resetting will load shaders
+   {auto v=temporalAntiAlias(); _temp_anti_alias  =false           ; temporalAntiAlias(v);} // resetting will load shaders
+   {auto v=temporalSuperRes (); _temp_super_res   =false           ; temporalSuperRes (v);} // resetting will load shaders
+   {auto v=grassRange       (); _grass_range      =-1              ; grassRange       (v);}
+   {auto v=sharpenIntensity (); _sharpen_intensity=-1;             ; sharpenIntensity (v);}
+  _tone_map_max_lum=0; toneMapMonitorMaxLumAuto(); //SPSet("ToneMapMonitorMaxLum", D.toneMapMonitorMaxLum());
+   SPSet("ToneMapTopRange"     , D.toneMapTopRange     ());
+   SPSet("ToneMapDarkenRange"  , D.toneMapDarkenRange  ());
+   SPSet("ToneMapDarkenExp"    , D.toneMapDarkenExp    ());
    lod            (_lod_factor, _lod_factor_mirror);
    shadowJitterSet();
    shadowRangeSet ();
@@ -1737,23 +1808,23 @@ static DXGI_FORMAT SwapChainFormat()
 #endif
    {
    #if LINEAR_GAMMA
-      if(D.monitorPrecision()>IMAGE_PRECISION_16)return DXGI_FORMAT_R32G32B32A32_FLOAT;
-      if(D.monitorPrecision()>IMAGE_PRECISION_8 )return DXGI_FORMAT_R16G16B16A16_FLOAT;
+      if(D.outputPrecision()>IMAGE_PRECISION_16)return DXGI_FORMAT_R32G32B32A32_FLOAT;
+      if(D.outputPrecision()>IMAGE_PRECISION_8 )return DXGI_FORMAT_R16G16B16A16_FLOAT;
       // can't use DXGI_FORMAT_R10G10B10A2_UNORM because it's non-sRGB
    #else
       // can't use DXGI_FORMAT_R32G32B32A32_FLOAT DXGI_FORMAT_R16G16B16A16_FLOAT because on Windows it means linear gamma
-      if(D.monitorPrecision()>IMAGE_PRECISION_8 )return DXGI_FORMAT_R10G10B10A2_UNORM;
+      if(D.outputPrecision()>IMAGE_PRECISION_8 )return DXGI_FORMAT_R10G10B10A2_UNORM;
    #endif
    }
    return LINEAR_GAMMA ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
 }
 #endif
-Bool DisplayClass::findMode()
+Bool DisplayClass::findMode(Bool auto_full)
 {
    SyncLocker locker(_lock);
 
 #if WINDOWS_NEW // on WindowsNew we can't change mode here, we need to set according to what we've got, instead 'RequestDisplayMode' can be called
-  _res =WindowSize(true);
+  _res =App.window().size(true);
   _full=App.Fullscreen();
 #elif IOS
    // '_res' will be set in 'mapMain'
@@ -1763,7 +1834,7 @@ Bool DisplayClass::findMode()
 #else
    RectI full, work; VecI2 max_normal_win_client_size, maximized_win_client_size;
     getMonitor(full, work, max_normal_win_client_size, maximized_win_client_size);
-   if(resW()>=full.w() && resH()>=full.h())_full=true; // force fullscreen only if both dimensions are equal-bigger because on Windows it's perfectly fine to have a window as wide as the whole desktop
+   if(auto_full && resW()>=full.w() && resH()>=full.h())_full=true; // force fullscreen only if both dimensions are equal-bigger because on Windows it's perfectly fine to have a window as wide as the whole desktop
    if(D.full())
    {
       Int   nearest=-1; Int desired_area=res().mul(), area_error;
@@ -1793,7 +1864,7 @@ Bool DisplayClass::findMode()
    Zero(SwapChainDesc);
    Bool sync=ActualSync();
    #if WINDOWS_OLD
-      SwapChainDesc.OutputWindow      =App.Hwnd();
+      SwapChainDesc.OutputWindow      =App.window();
       SwapChainDesc.Windowed          =(!exclusive() || !T.full());
       SwapChainDesc.BufferCount       =(sync ? 3 : 2); // if we're rendering to VR display, then it has its own swap chain, and it handles the most intense rendering, so we don't need to have more buffers here, so keep it low to reduce memory usage
       SwapChainDesc.BufferDesc.Width  =resW();
@@ -1833,12 +1904,12 @@ Bool DisplayClass::findMode()
          IDXGIOutput *output=null;
          if(SwapChain)SwapChain->GetContainingOutput(&output); // if we already have a swap chain, then reuse its output
          if(!output && Adapter) // if still unknown, then find in Adapter
-            if(Ptr monitor=WindowMonitor(App.Hwnd()))
+            if(HMONITOR hmonitor=App.hmonitor())
                for(Int i=0; ; i++) // iterate all outputs
          {
             Adapter->EnumOutputs(i, &output); if(output)
             {
-               DXGI_OUTPUT_DESC desc; if(OK(output->GetDesc(&desc)) && desc.Monitor==monitor)break; // if found the monitor that we're going to use, then keep 'output' and stop looking
+               DXGI_OUTPUT_DESC desc; if(OK(output->GetDesc(&desc)) && desc.Monitor==hmonitor)break; // if found the monitor that we're going to use, then keep 'output' and stop looking
                output->Release(); output=null; // release, clear and continue looking
             }else break; // no more outputs available
          }
@@ -1996,7 +2067,7 @@ DisplayClass::RESET_RESULT DisplayClass::ResetTry(Bool set)
 
    getCaps();
    if(!Renderer.rtCreate())return RESET_ERROR_RENDER_TARGET_CREATE;
-   adjustWindow(set); // !! call before 'after' so current monitor can be detected properly based on window position which affects the aspect ratio in 'after' !!
+   App.windowAdjust(set); // !! call before 'after' so current monitor can be detected properly based on window position which affects the aspect ratio in 'after' !!
    after(true);
    resetEyeAdaptation(); // this potentially may use drawing
 
@@ -2012,7 +2083,7 @@ again:
       case RESET_OK: return;
 
       case RESET_ERROR_SET_FULLSCREEN_STATE: // this can fail if Alt-Tabbing during startup
-         if(WindowActive()!=App.hwnd()) // if reset failed and we're not focused then wait a little and try again
+         if(WindowActive()!=App.window()) // if reset failed and we're not focused then wait a little and try again
       {
          Time.wait(100);
          goto again;
@@ -2078,8 +2149,6 @@ void DisplayClass::getCaps()
    if(LogInit)LogN("Display.getCaps");
 #if DX11
    // values taken from - https://msdn.microsoft.com/en-us/library/windows/desktop/ff476876(v=vs.85).aspx
-   DXGI_SWAP_CHAIN_DESC desc;
-   SwapChain->GetDesc(&desc); _freq_got=(desc.BufferDesc.RefreshRate.Denominator ? RoundPos(Flt(desc.BufferDesc.RefreshRate.Numerator)/desc.BufferDesc.RefreshRate.Denominator) : 0);
   _max_rt        =((FeatureLevel>=D3D_FEATURE_LEVEL_10_0) ? 8 : (FeatureLevel>=D3D_FEATURE_LEVEL_9_3) ? 4 : 1);
   _max_tex_filter=((FeatureLevel>=D3D_FEATURE_LEVEL_9_2 ) ? 16 : 2);
   _max_tex_size  =((FeatureLevel>=D3D_FEATURE_LEVEL_11_0) ? 16384 : (FeatureLevel>=D3D_FEATURE_LEVEL_10_0) ? 8192 : (FeatureLevel>=D3D_FEATURE_LEVEL_9_3) ? 4096 : 2048);
@@ -2088,22 +2157,23 @@ void DisplayClass::getCaps()
    {
       UInt usage=0; UINT fs; if(OK(D3D->CheckFormatSupport(ImageTI[i].format, &fs)))
       {
-         if(fs&D3D11_FORMAT_SUPPORT_IA_VERTEX_BUFFER        )usage|=ImageTypeInfo::USAGE_VTX;
-         if(fs&D3D11_FORMAT_SUPPORT_TEXTURE2D               )usage|=ImageTypeInfo::USAGE_IMAGE_2D;
-         if(fs&D3D11_FORMAT_SUPPORT_TEXTURE3D               )usage|=ImageTypeInfo::USAGE_IMAGE_3D;
-         if(fs&D3D11_FORMAT_SUPPORT_TEXTURECUBE             )usage|=ImageTypeInfo::USAGE_IMAGE_CUBE;
-         if(fs&D3D11_FORMAT_SUPPORT_RENDER_TARGET           )usage|=ImageTypeInfo::USAGE_IMAGE_RT;
-         if(fs&D3D11_FORMAT_SUPPORT_DEPTH_STENCIL           )usage|=ImageTypeInfo::USAGE_IMAGE_DS;
-         if(fs&D3D11_FORMAT_SUPPORT_MULTISAMPLE_RENDERTARGET)usage|=ImageTypeInfo::USAGE_IMAGE_MS;
+         if(fs&D3D11_FORMAT_SUPPORT_IA_VERTEX_BUFFER           )usage|=ImageTypeInfo::USAGE_VTX;
+         if(fs&D3D11_FORMAT_SUPPORT_TEXTURE2D                  )usage|=ImageTypeInfo::USAGE_IMAGE_2D;
+         if(fs&D3D11_FORMAT_SUPPORT_TEXTURE3D                  )usage|=ImageTypeInfo::USAGE_IMAGE_3D;
+         if(fs&D3D11_FORMAT_SUPPORT_TEXTURECUBE                )usage|=ImageTypeInfo::USAGE_IMAGE_CUBE;
+         if(fs&D3D11_FORMAT_SUPPORT_RENDER_TARGET              )usage|=ImageTypeInfo::USAGE_IMAGE_RT;
+         if(fs&D3D11_FORMAT_SUPPORT_DEPTH_STENCIL              )usage|=ImageTypeInfo::USAGE_IMAGE_DS;
+         if(fs&D3D11_FORMAT_SUPPORT_MULTISAMPLE_RENDERTARGET   )usage|=ImageTypeInfo::USAGE_IMAGE_MS;
+         if(fs&D3D11_FORMAT_SUPPORT_TYPED_UNORDERED_ACCESS_VIEW)usage|=ImageTypeInfo::USAGE_IMAGE_UAV;
       }
       ImageTI[i]._usage=usage;
    }
    ImageTypeInfo::_usage_known=true;
 
- /*D3D11_FEATURE_DATA_SHADER_MIN_PRECISION_SUPPORT min_prec;
+   D3D11_FEATURE_DATA_SHADER_MIN_PRECISION_SUPPORT min_prec;
    if(OK(D3D->CheckFeatureSupport(D3D11_FEATURE_SHADER_MIN_PRECISION_SUPPORT, &min_prec, SIZE(min_prec)))) // check for hlsl half support
-   {
-   }*/
+        _half_supported=FlagTest(min_prec.PixelShaderMinPrecision, D3D11_SHADER_MIN_PRECISION_16_BIT);
+   else _half_supported=-1; // unknown
 
    /*IDXGISwapChain4 *swap_chain4=null; SwapChain->QueryInterface(__uuidof(IDXGISwapChain4), (Ptr*)&swap_chain4); if(swap_chain4)
    {
@@ -2111,19 +2181,6 @@ void DisplayClass::getCaps()
       swap_chain4->Release();
    }*/
    
-   /*IDXGIOutput *output=null; SwapChain->GetContainingOutput(&output); if(output)
-   {
-      IDXGIOutput6 *output6=null; output->QueryInterface(__uuidof(IDXGIOutput6), (Ptr*)&output6); if(output6)
-      {
-         DXGI_OUTPUT_DESC1 desc; if(OK(output6->GetDesc1(&desc)))
-         {
-            // get info about color space
-            // TODO: this could replace 'highMonitorPrecision', however on a computer that returns 8-bit, using 10-bit still gives better quality, so perhaps it's not yet ready
-         }
-         output6->Release();
-      }
-      output->Release();
-   }*/
    /*void SetCS(Int cs)
    {
       Clamp(cs, 0, DXGI_COLOR_SPACE_YCBCR_FULL_GHLG_TOPLEFT_P2020);
@@ -2156,11 +2213,11 @@ void DisplayClass::getCaps()
    }*/
 #elif GL
  //CChar8 *ext=(CChar8*)glGetString(GL_EXTENSIONS);
-      _max_tex_size    =2048; glGetIntegerv(GL_MAX_TEXTURE_SIZE          , &_max_tex_size    );
-   int aniso           =  16; glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY, & aniso           ); _max_tex_filter =Mid(aniso         , 1, 255);
- //int max_vtx_attrib  =   0; glGetIntegerv(GL_MAX_VERTEX_ATTRIBS        , & max_vtx_attrib  ); _max_vtx_attribs=Mid(max_vtx_attrib, 0, 255);
-   int max_draw_buffers=   1; glGetIntegerv(GL_MAX_DRAW_BUFFERS          , & max_draw_buffers);
-   int max_col_attach  =   1; glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS     , & max_col_attach  ); _max_rt=Mid(Min(max_draw_buffers, max_col_attach), 1, 255);
+        _max_tex_size    =2048; glGetIntegerv(GL_MAX_TEXTURE_SIZE          , &_max_tex_size    );
+   GLint aniso           =  16; glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY, & aniso           ); _max_tex_filter =Mid(aniso         , 1, 255);
+ //GLint max_vtx_attrib  =   0; glGetIntegerv(GL_MAX_VERTEX_ATTRIBS        , & max_vtx_attrib  ); _max_vtx_attribs=Mid(max_vtx_attrib, 0, 255);
+   GLint max_draw_buffers=   1; glGetIntegerv(GL_MAX_DRAW_BUFFERS          , & max_draw_buffers);
+   GLint max_col_attach  =   1; glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS     , & max_col_attach  ); _max_rt=Mid(Min(max_draw_buffers, max_col_attach), 1, 255);
    ImageTypeInfo::_usage_known=false;
 
    #if !GL_ES && (defined GL_INTERNALFORMAT_SUPPORTED || defined GL_COLOR_RENDERABLE || defined GL_DEPTH_RENDERABLE) // on GL_ES glGetInternalformativ works only for GL_RENDERBUFFER
@@ -2205,7 +2262,7 @@ void DisplayClass::getCaps()
       }
    }
 #endif
-  
+
    if(!Physics.precision())Physics.precision(0); // adjust physics precision when possibility of screen refresh rate change
    densityUpdate(); // max texture size affects max allowed density
   _samples=DisplaySamples(_samples);
@@ -2227,6 +2284,7 @@ void DisplayClass::after(Bool resize_callback)
    )App._window_size=res();
    if(_gamma)gammaSet(); // force reset gamma
    aspectRatioEx(true, !resize_callback);
+   getScreenInfo();
    setColorLUT();
 }
 /******************************************************************************/
@@ -2242,12 +2300,12 @@ void DisplayClass::flip()
          Int  res      =D._color_lut.w(); Sh.ImgSize->set(Vec2(Flt(res-1)/res, 0.5f/res)); // assumes all 3 dimensions are same size
          Bool hdr      =(src.highPrecision() && dest.highPrecision()), // need HDR only if both are high precision
               dither   =(D.dither() && !dest.highPrecision()),
-               in_gamma=LINEAR_GAMMA,  in_swap=( in_gamma && src .canSwapSRV() && !hdr); if( in_swap){ in_gamma=false; src .swapSRV();} // can't swap for 'hdr' because shader assumes that  input is Linear
-         Bool out_gamma=LINEAR_GAMMA, out_swap=(out_gamma && dest.canSwapRTV() && !hdr); if(out_swap){out_gamma=false; dest.swapRTV();} // can't swap for 'hdr' because shader assumes that output is Linear
-         Renderer.set(&dest, null, false);
+               in_gamma=LINEAR_GAMMA,  in_swap_srgb=( in_gamma && src .canSwapSRV() && !hdr); if( in_swap_srgb){ in_gamma=false; src .swapSRV();} // can't swap for 'hdr' because shader assumes that  input is Linear
+         Bool out_gamma=LINEAR_GAMMA, out_swap_srgb=(out_gamma && dest.canSwapRTV() && !hdr); if(out_swap_srgb){out_gamma=false; dest.swapRTV();} // can't swap for 'hdr' because shader assumes that output is Linear
+         dest.discard(); Renderer.set(&dest, null, false);
          Sh.ColorLUT[hdr][dither][in_gamma][out_gamma]->draw(src);
-         if( in_swap)src .swapSRV();
-         if(out_swap)dest.swapRTV();
+         if( in_swap_srgb)src .swapSRV();
+         if(out_swap_srgb)dest.swapRTV();
          D.alpha(alpha);
          Renderer.set(Renderer._cur_main, Renderer._cur_main_ds, false);
       }
@@ -2260,7 +2318,19 @@ void DisplayClass::flip()
          static Bool showed=false; if(!showed) // check if not yet showed, because this can be called on another thread, while the main thread already started 'DrawState', which would then call this again, and show the message box 2 times
          {
             showed=true;
-            WindowMsgBox("Error", "DirectX Device lost, please restart application.", true);
+            Str msg="DirectX Device Error: ";
+            if(present==DXGI_ERROR_DEVICE_REMOVED)present=D3D->GetDeviceRemovedReason();
+            switch(present)
+            {
+               case DXGI_ERROR_DEVICE_RESET         : msg+="DXGI_ERROR_DEVICE_RESET"              ; break;
+               case DXGI_ERROR_DEVICE_REMOVED       : msg+="DXGI_ERROR_DEVICE_REMOVED"            ; break;
+               case DXGI_ERROR_DEVICE_HUNG          : msg+="DXGI_ERROR_DEVICE_HUNG"               ; break; // this can happen for example if a shader entered an infinite loop
+               case DXGI_ERROR_DRIVER_INTERNAL_ERROR: msg+="DXGI_ERROR_DRIVER_INTERNAL_ERROR"     ; break;
+               case DXGI_ERROR_INVALID_CALL         : msg+="DXGI_ERROR_INVALID_CALL"              ; break;
+               default                              : msg+=TextHex(Unsigned(present), -1, 0, true); break;
+            }
+            msg+=", please restart application."; 
+            OSMsgBox("Error", msg, true);
             StateExit.set();
          }
       }
@@ -2272,7 +2342,7 @@ void DisplayClass::flip()
       #elif MAC
          CGLFlushDrawable(MainContext.context); // same as "[[OpenGLView openGLContext] flushBuffer];"
       #elif LINUX
-         glXSwapBuffers(XDisplay, App.Hwnd());
+         glXSwapBuffers(XDisplay, App.window());
       #elif ANDROID || SWITCH
          eglSwapBuffers(GLDisplay, MainContext.surface);
       #elif IOS
@@ -2321,95 +2391,7 @@ void DisplayClass::finish()
 /******************************************************************************/
 // SETTINGS
 /******************************************************************************/
-void DisplayClass::adjustWindow(Bool set)
-{
-   RectI full, work; VecI2 max_normal_win_client_size, maximized_win_client_size;
-    getMonitor(full, work, max_normal_win_client_size, maximized_win_client_size);
-
-#if DEBUG && 0
-   LogN(S+"full:"+full.asText()+", work:"+work.asText()+", App._window_pos:"+App._window_pos+", D.res:"+D.res());
-#endif
-
-#if WINDOWS_OLD
-   if(D.full()) // fullscreen
-   {
-      SetWindowLong(App.Hwnd(), GWL_STYLE, App._style_full);
-      SetWindowPos (App.Hwnd(), (App.backgroundFull() && !exclusiveFull()) ? HWND_NOTOPMOST : HWND_TOPMOST, full.min.x, full.min.y, resW(), resH(), 0);
-   }else
-   if(resW()>=maximized_win_client_size.x && resH()>=maximized_win_client_size.y) // maximized
-   {
-      SetWindowLong(App.Hwnd(), GWL_STYLE, App._style_window_maximized);
-   #if 0 // this doesn't work as expected
-      SetWindowPos (App.Hwnd(), HWND_TOP , work.min.x+App._bound_maximized.min.x, work.min.y-App._bound_maximized.max.y, resW()+App._bound_maximized.w(), resH()+App._bound_maximized.h(), SWP_NOACTIVATE); 
-   #else
-      SetWindowPos (App.Hwnd(), HWND_TOP , work.min.x+App._bound_maximized.min.x, work.min.y-App._bound_maximized.max.y, resW()+App._bound_maximized.max.x, resH()-App._bound_maximized.min.y, SWP_NOACTIVATE);
-   #endif
-   }else // normal window
-   {
-      Int w=resW()+App._bound.w(),
-          h=resH()+App._bound.h();
-
-      if(App._window_pos.x==INT_MAX){if(App.x<=-1)App._window_pos.x=work.min.x;else if(!App.x)App._window_pos.x=work.centerXI()-w/2;else App._window_pos.x=work.max.x-w+App._bound.max.x-1;}
-      if(App._window_pos.y==INT_MAX){if(App.y>= 1)App._window_pos.y=work.min.y;else if(!App.y)App._window_pos.y=work.centerYI()-h/2;else App._window_pos.y=work.max.y-h+App._bound.max.y-1;}
-
-      // make sure the window is not completely outside of working area
-      const Int b=32; Int r=b;
-      if(!(App.flag&APP_NO_TITLE_BAR)) // has bar
-      {
-         Int size=GetSystemMetrics(SM_CXSIZE); // TODO: this should be OK because we're DPI-Aware, however it doesn't work OK
-       /*if(HDC hdc=GetDC(App.Hwnd()))
-         {
-            size=DivCeil(size*GetDeviceCaps(hdc, LOGPIXELSX), 96);
-            ReleaseDC(App.Hwnd(), hdc);
-         }*/
-         if(!(App.flag& APP_NO_CLOSE                   ))r+=size  ; // has close                button
-         if(  App.flag&(APP_MINIMIZABLE|APP_MAXIMIZABLE))r+=size*2; // has minimize or maximize button (if any is enabled, then both will appear)
-      }
-
-      if(App._window_pos.x+b>work.max.x)App._window_pos.x=Max(work.min.x, work.max.x-b);else{Int p=App._window_pos.x+w; if(p-r<work.min.x)App._window_pos.x=Min(work.min.x+r, work.max.x)-w;}
-      if(App._window_pos.y+b>work.max.y)App._window_pos.y=Max(work.min.y, work.max.y-b);else{Int p=App._window_pos.y+h; if(p-b<work.min.y)App._window_pos.y=Min(work.min.y+b, work.max.y)-h;}
-
-      SetWindowLong(App.Hwnd(), GWL_STYLE     , App._style_window);
-      SetWindowPos (App.Hwnd(), HWND_NOTOPMOST, App._window_pos.x, App._window_pos.y, w, h, SWP_NOACTIVATE);
-   }
-#elif MAC
-   if(!D.full()) // on Mac don't adjust the window size/pos when in fullscreen because it's not needed, additionally it will cancel out original window position when later restoring
-   {
-      WindowSize(resW(), resH(), true);
-      RectI r=WindowRect(false); WindowPos(r.min.x, r.min.y); // reset position because if Application was created in fullscreen mode, and then we've toggled to windowed mode, then because system MenuBar was hidden for fullscreen, App's window position could've gone underneath the menu bar, for the windowed mode the bar is unhidden, however just applying new window size doesn't reposition it so it doesn't collide with the MenuBar, that's why we need to trigger repositioning it manually, avoid calling "WindowMove(0, 0)" because that internally does nothing if the delta is zero
-   }
-#elif LINUX
-   // set window fullscreen state
-   if(App.hwnd())
-   {
-      // setting fullscreen mode will fail if window is not resizable, so force it to be just for this operation
-      Bool set_resizable=(D.full() && !(App.flag&APP_RESIZABLE));
-      if(  set_resizable)App.setWindowFlags(true);
-
-      #define _NET_WM_STATE_REMOVE 0
-      #define _NET_WM_STATE_ADD    1
-      #define _NET_WM_STATE_TOGGLE 2
-      Atom FIND_ATOM(_NET_WM_STATE), FIND_ATOM(_NET_WM_STATE_FULLSCREEN);
-      XEvent e; Zero(e);
-      e.xclient.type        =ClientMessage;
-      e.xclient.window      =App.Hwnd();
-      e.xclient.message_type=_NET_WM_STATE;
-      e.xclient.format      =32;
-      e.xclient.data.l[0]   =(D.full() ? _NET_WM_STATE_ADD : _NET_WM_STATE_REMOVE);
-      e.xclient.data.l[1]   =_NET_WM_STATE_FULLSCREEN;
-      e.xclient.data.l[2]   =0;
-      e.xclient.data.l[3]   =1;
-      XSendEvent(XDisplay, DefaultRootWindow(XDisplay), false, SubstructureRedirectMask|SubstructureNotifyMask, &e);
-      XSync(XDisplay, false);
-
-      if(set_resizable)App.setWindowFlags();
-   }
-
-   // set window size
-   if(!D.full() && !set)WindowSize(resW(), resH(), true); // don't resize Window on Linux when changing mode due to 'set' (when window got resized due to OS/User input instead of calling 'D.mode', because there the window is already resized and calling this would cause window jumping)
-#endif
-}
-DisplayClass::RESET_RESULT DisplayClass::modeTry(Int w, Int h, Int full, Bool set)
+DisplayClass::RESET_RESULT DisplayClass::modeTry(Int w, Int h, Int full, Bool auto_full, Bool set)
 {
          if(w   <=0)w= T.resW();
          if(h   <=0)h= T.resH();
@@ -2427,7 +2409,7 @@ DisplayClass::RESET_RESULT DisplayClass::modeTry(Int w, Int h, Int full, Bool se
    #if SWITCH || WEB
       Renderer._main.forceInfo(w, h, 1, Renderer._main.type(), Renderer._main.mode(), Renderer._main.samples()); // '_main_ds' will be set in 'rtCreate'
    #endif
-      if(!findMode())return RESET_ERROR_NOT_CREATED;
+      if(!findMode(auto_full))return RESET_ERROR_NOT_CREATED;
       if(cur_x==T.resW() && cur_y==T.resH() && cur_full==T.full())return RESET_OK; // new mode matches the current one, need to check again since 'findMode' may have adjusted the T.resW T.resH T.full values
       RESET_RESULT result=ResetTry(set);      if(result!=RESET_OK)return result  ; // reset the device
 
@@ -2443,10 +2425,10 @@ DisplayClass::RESET_RESULT DisplayClass::modeTry(Int w, Int h, Int full, Bool se
 }
 void DisplayClass::modeSet(Int w, Int h, Int full)
 {
-   RESET_RESULT result=modeTry(w, h, full, true);
+   RESET_RESULT result=modeTry(w, h, full, false, true);
    if(result!=RESET_OK)ResetFailed(result, result);
 }
-DisplayClass& DisplayClass::mode(Int w, Int h, Int full)
+DisplayClass& DisplayClass::mode(Int w, Int h, Int full, Bool auto_full)
 {
 #if WINDOWS_NEW // on WindowsNew we can only request a change on the window
    if(created())
@@ -2493,10 +2475,10 @@ DisplayClass& DisplayClass::mode(Int w, Int h, Int full)
    Int cur_w   =T.resW(),
        cur_h   =T.resH(),
        cur_full=T.full();
-   RESET_RESULT result0=modeTry(w, h, full); // try to set new mode
+   RESET_RESULT result0=modeTry(w, h, full, auto_full); // try to set new mode
    if(result0!=RESET_OK)
    {
-      RESET_RESULT result1=modeTry(cur_w, cur_h, cur_full); // try to set old mode
+      RESET_RESULT result1=modeTry(cur_w, cur_h, cur_full, false); // try to set old mode
       if(result1!=RESET_OK)ResetFailed(result0, result1);
    }
    return T;
@@ -2505,12 +2487,12 @@ DisplayClass& DisplayClass::toggle(Bool window_size)
 {
    if(!created())_full^=1;else
    {
-      if(full()     )mode(App._window_size.x, App._window_size.y, false);else // if app was in fullscreen then set windowed mode based on last known window size
-      if(window_size)mode(App._window_size.x, App._window_size.y, true );else // if set        fullscreen using                           last known window size
+      if(full()     )mode(App._window_size.x, App._window_size.y, false, false);else // if app was in fullscreen then set windowed mode based on last known window size
+      if(window_size)mode(App._window_size.x, App._window_size.y, true , false);else // if set        fullscreen using                           last known window size
       {  // set full screen based on resolution of the monitor
          RectI full, work; VecI2 max_normal_win_client_size, maximized_win_client_size;
           getMonitor(full, work, max_normal_win_client_size, maximized_win_client_size);
-         mode(full.w(), full.h(), true);
+         mode(full.w(), full.h(), true, false);
       }
    }
    return T;
@@ -2521,11 +2503,11 @@ DisplayClass& DisplayClass::full(Bool full, Bool window_size)
    if(full!=T.full())toggle(window_size);
    return T;
 }
-DisplayClass& DisplayClass::monitorPrecision(IMAGE_PRECISION precision)
+DisplayClass& DisplayClass::outputPrecision(IMAGE_PRECISION precision)
 {
    Clamp(precision, IMAGE_PRECISION_8, IMAGE_PRECISION(IMAGE_PRECISION_NUM-1));
-   if(!created())_monitor_prec=precision;else
-   if(monitorPrecision()!=precision){_monitor_prec=precision; if(findMode())Reset();}
+   if(!created())_output_prec=precision;else
+   if(outputPrecision()!=precision){_output_prec=precision; if(findMode())Reset(); toneMapMonitorMaxLumAuto();}
    return T;
 }
 Bool DisplayClass::exclusiveFull()C
@@ -2553,6 +2535,65 @@ DisplayClass& DisplayClass::exclusive(Bool exclusive)
    #endif
    }
    return T;
+}
+void DisplayClass::getScreenInfo()
+{
+#if DX11
+   IDXGIOutput *output=null;
+   // according to https://docs.microsoft.com/en-us/windows/win32/direct3darticles/high-dynamic-range this should be obtained by using new factory/adapter, if using SwapChain output then values are outdated
+   if(HMONITOR hmonitor=App.hmonitor())
+   {
+      IDXGIFactory1 *factory=null; CreateDXGIFactory1(__uuidof(IDXGIFactory1), (Ptr*)&factory); if(factory)
+      {
+         IDXGIAdapter *adapter=null; factory->EnumAdapters(0, &adapter); if(adapter) // first adapter only
+         {
+            for(Int i=0; ; i++) // iterate all outputs
+            {
+               adapter->EnumOutputs(i, &output); if(output)
+               {
+                  DXGI_OUTPUT_DESC desc; if(OK(output->GetDesc(&desc)) && desc.Monitor==hmonitor)break; // if found the monitor that we're going to use, then keep 'output' and stop looking
+                  output->Release(); output=null; // release, clear and continue looking
+               }else break; // no more outputs available
+            }
+            adapter->Release();
+         }
+         factory->Release();
+      }
+   }
+   if(SwapChain)
+   {
+      if(!output)SwapChain->GetContainingOutput(&output); // if still didn't get an output, then use from SwapChain
+      DXGI_SWAP_CHAIN_DESC desc; SwapChain->GetDesc(&desc); _freq_got=(desc.BufferDesc.RefreshRate.Denominator ? RoundPos(Flt(desc.BufferDesc.RefreshRate.Numerator)/desc.BufferDesc.RefreshRate.Denominator) : 0);
+   }
+   if(output)
+   {
+      IDXGIOutput6 *output6=null; output->QueryInterface(__uuidof(IDXGIOutput6), (Ptr*)&output6); if(output6)
+      {
+         DXGI_OUTPUT_DESC1 desc; if(OK(output6->GetDesc1(&desc)))
+         {
+            // Warning: these might be reported wrong
+           _color_prec =BitsToPrecision(desc.BitsPerColor);
+           _screen_nits=desc.MaxLuminance;
+            if(_hdr=(desc.ColorSpace==DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020))
+            {
+              _screen_max_lum=desc.MaxLuminance/80.0f; // "color value of (1.0, 1.0, 1.0) corresponds to a luminance level of 80 nits" - https://www.khronos.org/registry/EGL/extensions/EXT/EGL_EXT_gl_colorspace_scrgb_linear.txt
+                   _white_lum=Min(3.5f, _screen_max_lum); // first set default value (this value was obtained when using "HDR/SDR brightness balance" at 50% in Windows Settings, on Samsung Odyssey G7 HDR Monitor)
+            #if WINDOWS_NEW // on UWP we can get a precise value
+               if(auto display_info=Windows::Graphics::Display::DisplayInformation::GetForCurrentView())
+                  if(auto color_info=display_info->GetAdvancedColorInfo())
+                    _white_lum=color_info->SdrWhiteLevelInNits/80.0f;
+            #endif
+            }else
+            {
+              _screen_max_lum=_white_lum=1;
+            }
+         }
+         output6->Release();
+      }
+      output->Release();
+   }
+#endif
+   toneMapMonitorMaxLumAuto();
 }
 static COLOR_SPACE LastSrcColorSpace;
 static Str         LastDestColorSpace;
@@ -2627,8 +2668,8 @@ void DisplayClass::validateCoords(Int eye)
 /******************************************************************************/
 void DisplayClass::sizeChanged()
 {
-   D._size =D._unscaled_size/D._scale;
-   D._size2=D._size         *2;
+   D._rect.min=-(D._rect.max=D._unscaled_size/D._scale);
+   D._size2=D.size()*2;
 
  C VecI2 &res=((VR.active() && D._allow_stereo) ? VR.guiRes() : D.res());
    D._pixel_size    .set( w2()/res.x,  h2()/res.y); D._pixel_size_2=D._pixel_size*0.5f;
@@ -2665,7 +2706,7 @@ DisplayClass& DisplayClass::scale(Flt scale)
 void DisplayClass::densityUpdate()
 {
 again:
-  _render_res=ByteScale2Res(res(), densityByte());
+  _render_res=ByteScale2Res(res(), densityFast());
    if(_render_res.max()>maxTexSize() && maxTexSize()>0 && densityUpsample()) // if calculated size exceeds possible max texture size, then we need to clamp the density, don't try to go below 1.0 density
    {
       Flt  max_density_f=Flt(maxTexSize())/res().max();
@@ -2673,10 +2714,11 @@ again:
       if(_density>max_density)_density=max_density;else _density--;
       goto again;
    }
+   if(Renderer.wantTemporal() && D.temporalSuperRes())_render_res.set(Max(1, _render_res.x>>1), Max(1, _render_res.y>>1));
 }
 Bool DisplayClass::densityFast(Byte density)
 {
-   if(density!=densityByte())
+   if(density!=densityFast())
    {
       T._density=density;
       densityUpdate();
@@ -2684,15 +2726,11 @@ Bool DisplayClass::densityFast(Byte density)
    }
    return false;
 }
-Flt           DisplayClass::density(           )C {return ByteScale2ToFlt(densityByte());}
-DisplayClass& DisplayClass::density(Flt density)
-{
-   Byte b=FltToByteScale2(density);
-   if(densityFast(b))Renderer.rtClean();
-   return T;
-}
-DisplayClass& DisplayClass::densityFilter(FILTER_TYPE filter) {_density_filter=filter; return T;}
-DisplayClass& DisplayClass::samples(Byte samples)
+Flt           DisplayClass::density      (                  )C {return ByteScale2ToFlt(densityFast());}
+DisplayClass& DisplayClass::density      (Flt        density)  {if(densityFast(FltToByteScale2(density)))Renderer.rtClean(); return T;}
+DisplayClass& DisplayClass::densityFilter(FILTER_TYPE filter)  {_density_filter=filter; return T;}
+DisplayClass& DisplayClass::sharpen      (Bool       sharpen)  {_sharpen=sharpen; return T;}
+DisplayClass& DisplayClass::samples      (Byte       samples)
 {
    samples=DisplaySamples(samples);
    if(T._samples!=samples){T._samples=samples; Renderer.rtClean();}
@@ -2723,7 +2761,7 @@ void DisplayClass::setSync()
       #elif MAC
          Int value=sync; CGLSetParameter(MainContext.context, kCGLCPSwapInterval, &value);
       #elif LINUX
-         if(glXSwapInterval)glXSwapInterval(XDisplay, App.Hwnd(), sync);
+         if(glXSwapInterval)glXSwapInterval(XDisplay, App.window(), sync);
       #elif ANDROID || SWITCH
          eglSwapInterval(GLDisplay, sync);
       #elif WEB
@@ -2754,7 +2792,7 @@ DisplayClass& DisplayClass::eyeDistance(Flt dist)
      _eye_dist=dist; _eye_dist_2=_eye_dist/2;
       SetEyeMatrix();
       Frustum.set();
-      tAAReset();
+      temporalReset();
    }
    return T;
 }
@@ -2819,28 +2857,61 @@ DisplayClass& DisplayClass::smaaThreshold(Flt threshold)
 {
    SAT(threshold); _smaa_threshold=threshold; Sh.SMAAThreshold->setConditional(_smaa_threshold); return T;
 }
-DisplayClass& DisplayClass::tAA(Bool on)
+static void ChangedTemporal()
 {
-   if(tAA()!=on)
+   if(D.created())
    {
-     _taa=on;
-      if(!Sh.TAA[0][0][0] && on && created())
-         REPD(clamp, 2)
-         REPD(alpha, 2)
-         REPD(dual , 2)
-            Sh.TAA[clamp][alpha][dual]=Sh.get(S+"TAA"+clamp+alpha+dual+D.gatherChannelAvailable());
-      tAAReset(); // clear RT's and make sure enabling will start from zero 'frame' index
+      if(!Sh.TemporalOffset && D.temporal())
+      {
+         ShaderFile &sf=*ShaderFiles("Temporal");
+         REPD(view_full, 2)
+         {
+            REPD(mode , 3)
+            REPD(alpha, 2)
+               Sh.Temporal[mode][view_full][alpha]=sf.get(S+"Temporal"+mode+view_full+alpha+D.gatherChannelAvailable());
+
+         #if TEMPORAL_SEPARATE_SUPER_RES_OLD_WEIGHT
+            Sh.TemporalOldWeight[view_full]=sf.get(S+"TemporalOldWeight"+view_full+D.gatherChannelAvailable());
+         #endif
+         }
+
+         Sh.TemporalOffset           =GetShaderParam   ("TemporalOffset");
+         Sh.TemporalOffsetGatherIndex=GetShaderParamInt("TemporalOffsetGatherIndex");
+         Sh.TemporalOffsetStart      =GetShaderParam   ("TemporalOffsetStart");
+         Sh.TemporalCurPixel         =GetShaderParamInt("TemporalCurPixel");
+      }
+      D.temporalReset();
+   }
+   D.texMipBias(D.temporalAntiAlias()*-0.5f + D.temporalSuperRes()*-1);
+}
+DisplayClass& DisplayClass::temporalAntiAlias(Bool on)
+{
+   if(temporalAntiAlias()!=on)
+   {
+     _temp_anti_alias=on;
+      ChangedTemporal();
    }
    return T;
 }
-DisplayClass& DisplayClass::tAAReset()
+DisplayClass& DisplayClass::temporalSuperRes(Bool on)
 {
-   DYNAMIC_ASSERT(Renderer._ctx    ==                    null, "'D.tAAReset' called during rendering"); // check in case this is called during rendering
-     DEBUG_ASSERT(Renderer._ctx_sub==&Renderer._ctx_sub_dummy, "'D.tAAReset' called during rendering"); // check in case this is called during rendering
+   if(temporalSuperRes()!=on)
+   {
+     _temp_super_res=on;
+      ChangedTemporal();
+      D.densityUpdate();
+      D.shadowJitterSet();
+   }
+   return T;
+}
+DisplayClass& DisplayClass::temporalReset()
+{
+   DYNAMIC_ASSERT(Renderer._ctx    ==                    null, "'D.temporalReset' called during rendering"); // check in case this is called during rendering
+     DEBUG_ASSERT(Renderer._ctx_sub==&Renderer._ctx_sub_dummy, "'D.temporalReset' called during rendering"); // check in case this is called during rendering
    Renderer._ctxs.clear();
    return T;
 }
-DisplayClass& DisplayClass::tAADualHistory(Bool dual) {dual=(dual!=false); if(_taa_dual!=dual){_taa_dual=dual; tAAReset();} return T;} // make sure this is bool because this is used as array index
+DisplayClass& DisplayClass::temporalDualHistory(Bool dual) {dual=(dual!=false); if(_temp_dual!=dual){_temp_dual=dual; temporalReset();} return T;} // make sure this is bool because this is used as array index
 
 Int           DisplayClass::secondaryOpenGLContexts(             )C {return GPU_API(0, SecondaryContexts.elms());}
 DisplayClass& DisplayClass::secondaryOpenGLContexts(Byte contexts)
@@ -2861,8 +2932,7 @@ Bool DisplayClass::canUseGPUDataOnSecondaryThread()C
 /******************************************************************************/
 DisplayClass& DisplayClass::aspectMode(ASPECT_MODE mode)
 {
-   Clamp(mode, ASPECT_MODE(0), ASPECT_MODE(ASPECT_NUM-1));
-   if(T._aspect_mode!=mode)
+   if(InRange(mode, ASPECT_NUM) && T._aspect_mode!=mode)
    {
       T._aspect_mode=mode;
       aspectRatioEx();
@@ -2900,6 +2970,7 @@ void DisplayClass::aspectRatioEx(Bool force, Bool quiet)
          Vec2     old_size=D.size();
 
          T._app_aspect_ratio=(vr ? vr_aspect : mono_aspect);
+         Sh.AspectRatio->set(T._app_aspect_ratio);
          switch(aspectMode())
          {
             default            : aspect_y: _unscaled_size.y=1; _unscaled_size.x=_unscaled_size.y*_app_aspect_ratio; break; // ASPECT_Y
@@ -2939,14 +3010,7 @@ DisplayClass& DisplayClass::texFilter(Byte filter)
    if(T._tex_filter!=filter)
    {
       T._tex_filter=filter;
-      if(created())
-      {
-         CreateAnisotropicSampler();
-      #if GL // #GLSampler
-         Images.lock  (); REPA(Images)Images.lockedData(i).setGLParams();
-         Images.unlock();
-      #endif
-      }
+      if(created())CreateRenderSampler();
    }
    return T;
 }
@@ -2955,14 +3019,7 @@ DisplayClass& DisplayClass::texMipFilter(Bool on)
    if(T._tex_mip_filter!=on)
    {
       T._tex_mip_filter=on;
-      if(created())
-      {
-         CreateAnisotropicSampler();
-      #if GL // #GLSampler
-         Images.lock  (); REPA(Images)Images.lockedData(i).setGLParams();
-         Images.unlock();
-      #endif
-      }
+      if(created())CreateRenderSampler();
    }
    return T;
 }
@@ -2972,21 +3029,24 @@ DisplayClass& DisplayClass::texMipMin(Byte min)
    if(T._tex_mip_min!=min)
    {
       T._tex_mip_min=min;
-      if(created())CreateAnisotropicSampler();
+      if(created())CreateRenderSampler();
    }
    return T;
 }
+#define MAX_MIP_BIAS 15.9f // 16 fails
 DisplayClass& DisplayClass::texMipBias(Flt bias)
 {
+   Clamp(bias, -MAX_MIP_BIAS, MAX_MIP_BIAS);
    if(T._tex_mip_bias!=bias)
    {
       T._tex_mip_bias=bias;
-      if(created())CreateAnisotropicSampler();
+      if(created())CreateRenderSampler();
    }
    return T;
 }
 DisplayClass& DisplayClass::imageMipBias(Flt bias)
 {
+   Clamp(bias, -MAX_MIP_BIAS, MAX_MIP_BIAS);
    if(T._image_mip_bias!=bias)
    {
       T._image_mip_bias=bias;
@@ -2996,17 +3056,11 @@ DisplayClass& DisplayClass::imageMipBias(Flt bias)
 }
 DisplayClass& DisplayClass::fontMipBias(Flt bias)
 {
+   Clamp(bias, -MAX_MIP_BIAS, MAX_MIP_BIAS);
    if(T._font_mip_bias!=bias)
    {
       T._font_mip_bias=bias;
-      if(created())
-      {
-         CreateFontSampler();
-      #if GL // #GLSampler
-         Fonts.  lock(); REPA(Fonts)Fonts.lockedData(i).setGLFont();
-         Fonts.unlock();
-      #endif
-      }
+      if(created())CreateFontSampler();
    }
    return T;
 }
@@ -3093,8 +3147,7 @@ void          DisplayClass::gammaSet()
 /******************************************************************************/
 DisplayClass& DisplayClass::diffuseMode(DIFFUSE_MODE mode)
 {
-   Clamp(mode, DIFFUSE_MODE(0), DIFFUSE_MODE(DIFFUSE_NUM-1));
-   if(_diffuse_mode!=mode){_diffuse_mode=mode; /*setShader();*/} // RT_FORWARD always uses lambert, so 'setShader' not needed
+   if(InRange(mode, DIFFUSE_NUM) && _diffuse_mode!=mode){_diffuse_mode=mode; /*setShader();*/} // RT_FORWARD always uses lambert, so 'setShader' not needed
    return T;
 }
 /******************************************************************************/
@@ -3105,16 +3158,21 @@ DisplayClass& DisplayClass::bumpMode(BUMP_MODE mode)
    return T;
 }
 /******************************************************************************/
-DisplayClass& DisplayClass:: glowAllow   (Bool allow   ) {if(_glow_allow!=allow){_glow_allow   =allow   ; tAAReset();} return T;} // 'glowAllow' affects type of TAA RT's #RTOutput
-DisplayClass& DisplayClass::bloomAllow   (Bool allow   ) {                      _bloom_allow   =allow   ;              return T;}
-DisplayClass& DisplayClass::bloomOriginal(Flt  original) {MAX  (original, 0);   _bloom_original=original;              return T;}
-DisplayClass& DisplayClass::bloomScale   (Flt  scale   ) {MAX  (scale   , 0);   _bloom_scale   =scale   ;              return T;}
-DisplayClass& DisplayClass::bloomCut     (Flt  cut     ) {MAX  (cut     , 0);   _bloom_cut     =cut     ;              return T;}
-DisplayClass& DisplayClass::bloomHalf    (Bool half    ) {                      _bloom_half    =half    ;              return T;}
-DisplayClass& DisplayClass::bloomBlurs   (Byte blurs   ) {Clamp(blurs, 0, 4);   _bloom_blurs   =blurs   ;              return T;}
-DisplayClass& DisplayClass::bloomSamples (Bool high    ) {                      _bloom_samples =high    ;              return T;}
-DisplayClass& DisplayClass::bloomMaximum (Bool on      ) {if(_bloom_max!=on){   _bloom_max     =on      ; if(!Sh.MaxX && on && created()){Sh.MaxX=Sh.get("MaxX"); Sh.MaxY=Sh.get("MaxY");}} return T;}
-Bool          DisplayClass::bloomUsed    (             )C{return bloomAllow() && (!Equal(bloomOriginal(), 1, EPS_COL) || !Equal(bloomScale(), 0, EPS_COL));}
+void DisplayClass::bloomScaleCut(Flt scale, Flt cut)
+{
+   MAX(scale, 0);
+   MAX(cut  , 0);
+  _bloom_mul= scale;
+  _bloom_add=-scale*SRGBToLinear(cut);
+  _bloom_cut= cut; // keep as copy, because we can't reconstruct from '_bloom_add' if '_bloom_mul' is zero
+}
+DisplayClass& DisplayClass:: glowAllow   (Bool allow   ) {if(_glow_allow!=allow){_glow_allow   =allow   ; temporalReset();} return T;} // 'glowAllow' affects type of Temporal RT's #RTOutput
+DisplayClass& DisplayClass::bloomAllow   (Bool allow   ) {                      _bloom_allow   =allow   ;                   return T;}
+DisplayClass& DisplayClass::bloomOriginal(Flt  original) {MAX(original, 0);     _bloom_original=original;                   return T;}
+DisplayClass& DisplayClass::bloomGlow    (Flt  glow    ) {MAX(glow    , 0);     _bloom_glow    =glow    ;                   return T;}
+DisplayClass& DisplayClass::bloomScale   (Flt  scale   ) {bloomScaleCut(scale, bloomCut()); return T;}
+DisplayClass& DisplayClass::bloomCut     (Flt  cut     ) {bloomScaleCut(bloomScale(), cut); return T;}
+Bool          DisplayClass::bloomUsed    (             )C{return bloomAllow() && (!Equal(bloomOriginal(), 1, EPS_COL8_1_NATIVE) || !Equal(bloomScale(), 0, EPS_COL8_NATIVE));}
 /******************************************************************************/
 DisplayClass& DisplayClass::volLight(Bool on ) {_vol_light=    on     ; return T;}
 DisplayClass& DisplayClass::volAdd  (Bool add) {_vol_add  =    add    ; return T;}
@@ -3152,10 +3210,9 @@ Bool DisplayClass::shadowSupported()C
 }
 void DisplayClass::shadowJitterSet()
 {
-   Vec4 j;
-   j.xy=Flt(shadowJitter())/Renderer._shd_map.hwSize(); // mul
-   j.zw=j.xy*-0.5f; // add
-   Sh.ShdJitter->set(j);
+   Bool jitter=(shadowJitter() && !D.temporalSuperRes()); // can't use shadow jitter in Super-Res because there we render 1 sub-pixel (out of 2x2=4 total) per frame, and in case when it doesn't get blurred due to D.shadowSoft (for example if depths are too different) then it will look very blocky. Can't set this to a constant offset for entire frame (and adjust every frame with 'TemporalCurPixel') because when zoomed in close the individual shadow texels are very large (spanning over many screen pixels), and because of that there would be no softing but only flickering.
+   Sh.ShdJitter->set(jitter ? 1.0f/Renderer._shd_map.hwSize() : Vec2Zero);
+  _shd_bias=(jitter ? 4.0f : 2.0f)/D.shadowMapSizeActual(); // #ShadowBias
 }
 void DisplayClass::shadowRangeSet()
 {
@@ -3182,7 +3239,6 @@ Bool DisplayClass::aoWant()C
       &&  ambientContrast()> EPS_COL8
       && (aoAll() || (ambientColorD()+nightShadeColorD()).max()>EPS_COL8_NATIVE); // no need to calculate AO if it's too small
 }
-Flt DisplayClass::ambientRes   ()C {return ByteScaleToFlt(_amb_res);}
 Flt DisplayClass::ambientPowerS()C {return LinearToSRGB(ambientPowerL());}
 Vec DisplayClass::ambientColorS()C {return LinearToSRGB(ambientColorL());}
 
@@ -3196,21 +3252,38 @@ void DisplayClass::ambientSet()C
 }
 void DisplayClass::ambientSetRange()C
 {
-   Sh.AmbientRange_2    ->set(         D.ambientRange()/2);
-   Sh.AmbientRangeInvSqr->set(Sqr(1.0f/D.ambientRange()) );
+   Sh.AmbientRange_2     ->set(          D.ambientRange()/2);
+   Sh.AmbientRangeInvSqr2->set(Sqr(SQRT2/D.ambientRange()) ); // Sqr(1.0f/D.ambientRange())*2
 }
 
-DisplayClass& DisplayClass::ambientRes     (  Flt          scale     ) {Byte res=FltToByteScale( scale  );    if(res!=_amb_res){_amb_res =res ; Renderer.rtClean();} return T;}
-DisplayClass& DisplayClass::ambientMode    (  AMBIENT_MODE mode      ) {Clamp(mode, AMBIENT_FLAT, AMBIENT_MODE(AMBIENT_NUM-1)); _amb_mode=mode;                      return T;}
-DisplayClass& DisplayClass::ambientSoft    (  Byte         soft      ) {MIN  (soft,                       AMBIENT_SOFT_NUM-1 ); _amb_soft=soft;                      return T;}
-DisplayClass& DisplayClass::ambientJitter  (  Bool         jitter    ) {_amb_jitter=jitter;                                                                          return T;}
-DisplayClass& DisplayClass::ambientNormal  (  Bool         normal    ) {_amb_normal=normal;                                                                          return T;}
+
+Flt  DisplayClass::ambientRes    (          )C {return ByteScaleToFlt(ambientResFast());}
+Bool DisplayClass::ambientResFast(Byte scale)
+{
+   if(scale!=ambientResFast())
+   {
+      T._amb_res=scale;
+      return true;
+   }
+   return false;
+}
+DisplayClass& DisplayClass::ambientRes(Flt scale)
+{
+   Byte res=FltToByteScale(scale);
+   if(ambientResFast(res))Renderer.rtClean();
+   return T;
+}
+
+DisplayClass& DisplayClass::ambientMode    (  AMBIENT_MODE mode      ) {Clamp(mode, AMBIENT_FLAT, AMBIENT_MODE(AMBIENT_NUM-1)); _amb_mode=mode; return T;}
+DisplayClass& DisplayClass::ambientSoft    (  Byte         soft      ) {MIN  (soft,                       AMBIENT_SOFT_NUM-1 ); _amb_soft=soft; return T;}
+DisplayClass& DisplayClass::ambientJitter  (  Bool         jitter    ) {_amb_jitter=jitter;                                                     return T;}
+DisplayClass& DisplayClass::ambientNormal  (  Bool         normal    ) {_amb_normal=normal;                                                     return T;}
 DisplayClass& DisplayClass::ambientPowerS  (  Flt          srgb_power) {return ambientPowerL(SRGBToLinear(srgb_power));}
 DisplayClass& DisplayClass::ambientColorS  (C Vec         &srgb_color) {return ambientColorL(SRGBToLinear(srgb_color));}
 DisplayClass& DisplayClass::ambientPowerL  (  Flt           lin_power) {MAX(lin_power, 0);                                                    if(_amb_color_l !=lin_power){_amb_color_l =lin_power; ambientSet();} return T;}
 DisplayClass& DisplayClass::ambientColorL  (C Vec         & lin_color) {Vec c(Max(lin_color.x, 0), Max(lin_color.y, 0), Max(lin_color.z, 0)); if(_amb_color_l !=c        ){_amb_color_l =c        ; ambientSet();} return T;}
-DisplayClass& DisplayClass::ambientContrast(  Flt          contrast  ) {MAX(contrast, 0);                                                     if(_amb_contrast!=contrast ){_amb_contrast=contrast ; Sh.AmbientContrast->set(ambientContrast());} return T;}
-DisplayClass& DisplayClass::ambientMin     (  Flt          min       ) {SAT(min        );                                                     if(_amb_min     !=min      ){_amb_min     =min      ; Sh.AmbientMin     ->set(ambientMin     ());} return T;}
+DisplayClass& DisplayClass::ambientContrast(  Flt          contrast  ) {MAX(contrast, 0);                                                     if(_amb_contrast!=contrast ){_amb_contrast=contrast ; Sh.AmbientContrast2->set(ambientContrast()*2);} return T;}
+DisplayClass& DisplayClass::ambientMin     (  Flt          min       ) {SAT(min        );                                                     if(_amb_min     !=min      ){_amb_min     =min      ; Sh.AmbientMin      ->set(ambientMin     ()  );} return T;}
 DisplayClass& DisplayClass::ambientRange   (  Flt          range     ) {MAX(range   , 0);                                                     if(_amb_range   !=range    ){_amb_range   =range    ; ambientSetRange();} return T;}
 /******************************************************************************/
 Vec           DisplayClass::nightShadeColorS(                 )C {return LinearToSRGB(nightShadeColorL());}
@@ -3220,11 +3293,11 @@ DisplayClass& DisplayClass::nightShadeColorL(C Vec & lin_color)  {Vec c(Max(lin_
 DisplayClass& DisplayClass::envColor(C Vec      &color) {if(_env_color!=color)                    Sh.EnvColor->set( _env_color=color  );                                                                                          return T;}
 DisplayClass& DisplayClass::envMap  (C ImagePtr &cube ) {if(_env_map  !=cube ){Bool was=_env_map; Sh.Env     ->set((_env_map  =cube)()); if(cube)Sh.EnvMipMaps->setConditional(cube->mipMaps()-1); if(was!=_env_map)setShader();} return T;} // if changed map presence then reset shader
 /******************************************************************************/
-Flt           DisplayClass::motionRes   (                  )C {return   ByteScaleToFlt(_mtn_res);}
-DisplayClass& DisplayClass::motionRes   (Flt         scale )  {Byte res=FltToByteScale(scale); if(res!=_mtn_res){_mtn_res=res; Renderer.rtClean();}               return T;}
-DisplayClass& DisplayClass::motionMode  (MOTION_MODE mode  )  {Clamp(mode , MOTION_NONE   , MOTION_MODE(MOTION_NUM-1));                       _mtn_mode  =mode ;  return T;}
-DisplayClass& DisplayClass::motionDilate(DILATE_MODE mode  )  {Clamp(mode , DILATE_MODE(0), DILATE_MODE(DILATE_NUM-1));                       _mtn_dilate=mode ;  return T;}
-DisplayClass& DisplayClass::motionScale (Flt         scale )  {MAX  (scale, 0                                        ); if(_mtn_scale!=scale){_mtn_scale =scale;} return T;}
+Flt           DisplayClass::motionRes   (                 )C {return   ByteScaleToFlt(_mtn_res);}
+DisplayClass& DisplayClass::motionRes   (Flt         scale)  {Byte res=FltToByteScale(scale); if(res!=_mtn_res){_mtn_res=res; Renderer.rtClean();}                                                         return T;}
+DisplayClass& DisplayClass::motionMode  (MOTION_MODE mode )  {Clamp(mode , MOTION_NONE, MOTION_MODE(MOTION_NUM-1));                       _mtn_mode =mode ;                                                return T;}
+DisplayClass& DisplayClass::motionScale (Flt         scale)  {MAX  (scale, 0                                     ); if(_mtn_scale!=scale){_mtn_scale=scale; Mtn.MotionScale_2->set(D.motionScale()*0.5f);} return T;}
+DisplayClass& DisplayClass::motionJitter(Bool        on   )  {_mtn_jitter=on;                                                                                                                              return T;}
 /******************************************************************************/
 DisplayClass& DisplayClass::dofMode     (DOF_MODE mode     ) {Clamp(mode, DOF_NONE, DOF_MODE(DOF_NUM-1)); _dof_mode     =mode             ; return T;}
 DisplayClass& DisplayClass::dofFocusMode(Bool     realistic) {                                            _dof_foc_mode =(realistic!=0)   ; return T;}
@@ -3249,6 +3322,13 @@ DisplayClass& DisplayClass::resetEyeAdaptation     (  Flt  brightness)
    }
    return T;
 }
+/******************************************************************************/
+DisplayClass& DisplayClass::toneMap             (TONE_MAP_MODE mode) {if(InRange(mode, TONE_MAP_NUM))_tone_map_mode=mode; return T;}
+DisplayClass& DisplayClass::toneMapMonitorMaxLum(Flt        max_lum) {MAX  (max_lum,           1); if(_tone_map_max_lum   !=max_lum){_tone_map_max_lum   =max_lum; SPSet("ToneMapMonitorMaxLum", max_lum);} return T;}
+DisplayClass& DisplayClass::toneMapTopRange     (Flt          range) {Clamp(range  , HALF_MIN, 1); if(_tone_map_top_range !=range  ){_tone_map_top_range =range  ; SPSet("ToneMapTopRange"     , range  );} return T;}
+DisplayClass& DisplayClass::toneMapDarkenRange  (Flt          range) {Clamp(range  , HALF_MIN, 1); if(_tone_map_dark_range!=range  ){_tone_map_dark_range=range  ; SPSet("ToneMapDarkenRange"  , range  );} return T;}
+DisplayClass& DisplayClass::toneMapDarkenExp    (Flt            exp) {Clamp(exp    ,        1, 2); if(_tone_map_dark_exp  !=exp    ){_tone_map_dark_exp  =exp    ; SPSet("ToneMapDarkenExp"    , exp    );} return T;}
+void          DisplayClass::toneMapMonitorMaxLumAuto() {D.toneMapMonitorMaxLum((D.outputPrecision()>IMAGE_PRECISION_8) ? D.screenMaxLum()/D.whiteLum() : 1);} // divide by 'whiteLum' because we're going to multiply entire screen by it later in #AutoHdrBoost
 /******************************************************************************/
 DisplayClass& DisplayClass::grassDensity(Flt  density) {_grass_density=Sat(density); return T;}
 DisplayClass& DisplayClass::grassShadow (Bool on     ) {_grass_shadow =    on      ; return T;}
@@ -3341,7 +3421,8 @@ void DisplayClass::setViewFovTan()
      _view_fov_tan_gui=_view_fov_tan_full;
    }
 
-   Sh.DepthWeightScale->set(_view_active.fov_tan.y*0.00714074011f);
+   Sh.DepthWeightScale->set(Vec2(_view_active.fov_tan.y* 0.0072f     , // x=linear depth range
+                                 _view_active.fov_tan.y*(0.0072f*2))); // y=linear depth range for point filtering (use 2x bigger tolerance because point filtering doesn't smoothen depth values)
 }
 void DisplayClass::viewUpdate()
 {
@@ -3443,16 +3524,6 @@ void DisplayClass::clearStencil(Byte s) {if(Renderer._cur_ds){if(D._clip_real)gl
 /******************************************************************************/
 // CONVERT COORDINATES
 /******************************************************************************/
-Rect ImgClamp(C Rect &screen, C VecI2 &size)
-{
-   Rect r((screen.min.x+D.w())*size.x/D.w2(), (D.h()-screen.max.y)*size.y/D.h2(),
-          (screen.max.x+D.w())*size.x/D.w2(), (D.h()-screen.min.y)*size.y/D.h2());
-   RectI ri=RoundGPU(r);
-   r.min=(ri.min+0.5f)/size; // yes +0.5 is needed
-   r.max=(ri.max-0.5f)/size; // yes -0.5 is needed
-   return r;
-}
-
 Vec2 DisplayClass::screenToUV(C Vec2 &screen)
 {
    return Vec2((screen.x+D.w())/D.w2(),
@@ -3469,6 +3540,10 @@ Vec2 DisplayClass::UVToScreen(C Vec2 &uv)
                D.h()-uv.y*D.h2());
 }
 
+Vec2 ScreenToPixel(C Vec2 &screen, C VecI2 &res)
+{
+   return Vec2((screen.x+D.w())*res.x/D.w2(), (D.h()-screen.y)*res.y/D.h2());
+}
 Rect ScreenToPixel(C Rect &screen, C VecI2 &res)
 {
    return Rect((screen.min.x+D.w())*res.x/D.w2(), (D.h()-screen.max.y)*res.y/D.h2(),
@@ -3515,20 +3590,36 @@ Vec2 DisplayClass::pixelToScreenSize(  Flt    pixel ) {return  pixel*D._pixel_si
 Vec2 DisplayClass::pixelToScreenSize(C Vec2  &pixel ) {return  pixel*D._pixel_size    ;}
 Vec2 DisplayClass::pixelToScreenSize(C VecI2 &pixel ) {return  pixel*D._pixel_size    ;}
 
-Vec2 DisplayClass::windowPixelToScreen(C Vec2 &pixel) // this is used by mouse/touch pointers
+// this is used by mouse/touch pointers
+Vec2 DisplayClass::windowPixelToScreen(C Vec2 &pixel)
 {
    return Vec2(pixel.x*D._window_pixel_to_screen_mul.x+D._window_pixel_to_screen_add.x,
                pixel.y*D._window_pixel_to_screen_mul.y+D._window_pixel_to_screen_add.y);
 }
-Vec2 DisplayClass::windowPixelToScreen(C VecI2 &pixel) // this is used by mouse/touch pointers
+Vec2 DisplayClass::windowPixelToScreen(C VecI2 &pixel)
 {
    return Vec2(pixel.x*D._window_pixel_to_screen_mul.x+D._window_pixel_to_screen_add.x,
                pixel.y*D._window_pixel_to_screen_mul.y+D._window_pixel_to_screen_add.y);
+}
+Vec2 DisplayClass::windowPixelToScreenSize(C Vec2 &pixel)
+{
+   return Vec2(pixel.x* D._window_pixel_to_screen_mul.x,
+               pixel.y*-D._window_pixel_to_screen_mul.y);
+}
+Vec2 DisplayClass::windowPixelToScreenSize(C VecI2 &pixel)
+{
+   return Vec2(pixel.x* D._window_pixel_to_screen_mul.x,
+               pixel.y*-D._window_pixel_to_screen_mul.y);
 }
 Vec2 DisplayClass::screenToWindowPixel(C Vec2 &screen)
 {
    return Vec2((screen.x-D._window_pixel_to_screen_add.x)/D._window_pixel_to_screen_mul.x,
                (screen.y-D._window_pixel_to_screen_add.y)/D._window_pixel_to_screen_mul.y);
+}
+Vec2 DisplayClass::screenToWindowPixelSize(C Vec2 &screen)
+{
+   return Vec2(screen.x/ D._window_pixel_to_screen_mul.x,
+               screen.y/-D._window_pixel_to_screen_mul.y);
 }
 VecI2 DisplayClass::screenToWindowPixelI(C Vec2 &screen)
 {
@@ -3579,11 +3670,34 @@ void DisplayClass::alignScreenYToPixel(Flt &screen_y)
    Int pixel=RoundGPU((D.h()-screen_y)*D._pixel_size_inv.y); // use 'RoundGPU' to match 'screenToPixelI'
     screen_y=D.h()-pixel*D._pixel_size.y;
 }
+
+#define IMG_CLAMP_EPS (0.5f + 1.0f/256) // yes +0.5 is needed due to texture filtering, also add 1/256 of a texel size to make sure we won't be reading neighbors at all in case they are huge or NaN/Inf
+// when pixel is at the border (then force full range, this is important for effects such as Temporal or Motion Blur which use 'UVInsideView' to avoid flickering
+static Flt ImgClampMin(Int pixel, Int res) {return pixel<=  0 ? 0 : (pixel+IMG_CLAMP_EPS)/res;}
+static Flt ImgClampMax(Int pixel, Int res) {return pixel>=res ? 1 : (pixel-IMG_CLAMP_EPS)/res;} // yes -0.5 is needed due to texture filtering, also add 1/256 of a texel size to make sure we won't be reading neighbors at all in case they are huge or NaN/Inf
+Rect ImgClamp(C RectI &pixel, C VecI2 &res)
+{
+#if 0
+   return Rect((pixel.min+IMG_CLAMP_EPS)/res,  // yes +0.5 is needed due to texture filtering, also add 1/256 of a texel size to make sure we won't be reading neighbors at all in case they are huge or NaN/Inf
+               (pixel.max-IMG_CLAMP_EPS)/res); // yes -0.5 is needed due to texture filtering, also add 1/256 of a texel size to make sure we won't be reading neighbors at all in case they are huge or NaN/Inf
+#else
+   return Rect(ImgClampMin(pixel.min.x, res.x),
+               ImgClampMin(pixel.min.y, res.y),
+               ImgClampMax(pixel.max.x, res.x),
+               ImgClampMax(pixel.max.y, res.y));
+#endif
+}
+Rect ImgClamp(C Rect &screen, C VecI2 &res)
+{
+   return ImgClamp(ScreenToPixelI(screen, res), res);
+}
 /******************************************************************************/
 // FADE
 /******************************************************************************/
+static inline Flt FadeSpeed(Flt seconds) {return (seconds<FLT_MAX) ? 1/seconds : 0;} // assumes "seconds>0", if FLT_MAX was specified, then force 0 speed, to make sure it won't be changed
+static inline ImageRTDesc FadeDesc() {return ImageRTDesc(Renderer._main.w(), Renderer._main.h(), Renderer._main.highPrecision() ? IMAGERT_SRGB_H : IMAGERT_SRGB);} // doesn't use Alpha
 Bool DisplayClass::fading()C {return Renderer._fade || _fade_get;}
-void DisplayClass::setFade(Flt seconds, Bool previous_frame)
+void DisplayClass::setFade(Flt seconds, Bool previous_frame, Bool auto_draw)
 {
    if(!VR.active()) // fading is currently not supported in VR mode, because fading operates on a static image that's not rotating when moving headset
    {
@@ -3597,20 +3711,21 @@ void DisplayClass::setFade(Flt seconds, Bool previous_frame)
          if(Renderer._main.is())
          {
             SyncLocker locker(_lock);
-            Renderer._fade.get(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha
+            Renderer._fade.get(FadeDesc());
             Renderer._ptr_main->copyHw(*Renderer._fade, true);
-           _fade_get =false  ;
-           _fade_step=0      ;
-           _fade_len =seconds;
+           _fade_get  =false;
+           _fade_alpha=1;
+           _fade_speed=FadeSpeed(seconds);
+           _fade_auto_draw=auto_draw;
          }
       #else // draw now
         _fade_get=false; // disable before calling 'fadeDraw'
          if(created() && StateActive && StateActive->draw)
          {
-            ImageRT *cur_main=Renderer._cur_main, *cur_main_ds=Renderer._cur_main_ds, *ui=Renderer._ui, *ui_ds=Renderer._ui_ds;
             SyncLocker locker(_lock);
+            ImageRTC *cur_main=Renderer._cur_main, *cur_main_ds=Renderer._cur_main_ds, *ui=Renderer._ui, *ui_ds=Renderer._ui_ds;
             {
-               ImageRTPtr temp(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha, use a temporary instead of 'Renderer._fade' because we might still need it
+               ImageRTPtr temp(FadeDesc()); // use a temporary instead of 'Renderer._fade' because we might still need it
                ImageRTPtr ds; ds.getDS(temp->w(), temp->h(), temp->samples()); // this will call 'discard', this is needed to hold ref count until DS is no longer needed
                Renderer._ui   =Renderer._cur_main   =temp;
                Renderer._ui_ds=Renderer._cur_main_ds=ds;
@@ -3618,7 +3733,7 @@ void DisplayClass::setFade(Flt seconds, Bool previous_frame)
                StateActive->draw();
                Renderer.cleanup1();
                fadeDraw(); // draw old fade if any
-              _fade_step=0; _fade_len=seconds; // set after calling 'fadeDraw'
+              _fade_alpha=1; _fade_speed=FadeSpeed(seconds); _fade_auto_draw=auto_draw; // set after calling 'fadeDraw'
                Swap(Renderer._fade, temp); // swap RT as new fade
             } // <- 'discard' will be called for 'temp' and 'ds'
             Renderer._cur_main   =cur_main   ; Renderer._ui   =ui   ;
@@ -3628,8 +3743,9 @@ void DisplayClass::setFade(Flt seconds, Bool previous_frame)
       #endif
       }else
       {
-        _fade_get=true;
-        _fade_len=seconds;
+        _fade_get  =true;
+        _fade_speed=FadeSpeed(seconds);
+        _fade_auto_draw=auto_draw;
       }
    }
 }
@@ -3637,24 +3753,37 @@ void DisplayClass::clearFade()
 {
    Renderer._fade.clear();
   _fade_get=false;
-  _fade_step=_fade_len=0;
+  _fade_alpha=0;
 }
 void DisplayClass::fadeUpdate()
 {
-   if(Renderer._fade && (_fade_step+=Time.ad()/_fade_len)>=1)clearFade();
+   if(Renderer._fade && (_fade_alpha-=Time.ad()*_fade_speed)<=0)clearFade();
 }
-void DisplayClass::fadeDraw()
+Bool DisplayClass::drawFade()C
 {
    if(Renderer._fade)
    {
-      Sh.Step->set(1-_fade_step);
-      Sh.DrawA->draw(Renderer._fade);
+      if(_fade_alpha>=1) // if have full Alpha
+      { // disable alpha blending, this is important in case the user expects fade to completely overwrite existing screen, so it can be unset before drawing fade
+         ALPHA_MODE alpha=D.alpha(ALPHA_NONE); Sh.Draw[false][false]->draw(Renderer._fade);
+                          D.alpha(alpha);
+      }else
+      {
+         Sh.Step->set(_fade_alpha);
+         Sh.DrawA->draw(Renderer._fade);
+      }
+      return true;
    }
+   return false;
+}
+void DisplayClass::fadeDraw()
+{
+   if(Renderer._fade && _fade_auto_draw)drawFade();
    if(_fade_get)
    {
-     _fade_get =false;
-     _fade_step=0    ;
-      Renderer._fade.get(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha
+     _fade_get  =false;
+     _fade_alpha=1    ;
+      Renderer._fade.get(FadeDesc());
       Renderer._ptr_main->copyHw(*Renderer._fade, true);
    }
 }
@@ -3672,6 +3801,7 @@ DisplayClass& DisplayClass::colorPalette1    (C ImagePtr &palette) {SetPalette(1
 DisplayClass& DisplayClass::colorPaletteAllow(  Bool      on     ) {D._color_palette_allow=on; return T;}
 /******************************************************************************/
 #if WINDOWS_NEW
+Flt DipsToPixels (Flt dips) {return       dips*ScreenScale ;}
 Int DipsToPixelsI(Flt dips) {return Round(dips*ScreenScale);}
 Flt PixelsToDips (Int pix ) {return       pix /ScreenScale ;}
 Flt PixelsToDips (Flt pix ) {return       pix /ScreenScale ;}

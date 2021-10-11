@@ -238,12 +238,16 @@ Flt TetraVolume(C Vec &a, C Vec &b, C Vec &c, C Vec &d);
 
 // distance
 Flt Dist(C Vec2 &point, C Tri2 &tri, DIST_TYPE *type=null); // distance between point and a triangle
+Flt Dist(C Vec  &point, C Tri  &tri, DIST_TYPE *type=null); // distance between point and a triangle
 Flt Dist(C Vec  &point, C TriN &tri, DIST_TYPE *type=null); // distance between point and a triangle
+Flt Dist(C Edge &edge , C Tri  &tri); // distance between edge     and a triangle
 Flt Dist(C Edge &edge , C TriN &tri); // distance between edge     and a triangle
 Flt Dist(C TriN &a    , C TriN &b  ); // distance between triangle and a triangle
 
 Flt Dist2(C Vec2 &point, C Tri2 &tri, DIST_TYPE *type=null); // squared distance between point and a triangle
+Flt Dist2(C Vec  &point, C Tri  &tri, DIST_TYPE *type=null); // squared distance between point and a triangle
 Flt Dist2(C Vec  &point, C TriN &tri, DIST_TYPE *type=null); // squared distance between point and a triangle
+Flt Dist2(C Edge &edge , C Tri  &tri); // squared distance between edge     and a triangle
 Flt Dist2(C Edge &edge , C TriN &tri); // squared distance between edge     and a triangle
 Flt Dist2(C TriN &a    , C TriN &b  ); // squared distance between triangle and a triangle
 

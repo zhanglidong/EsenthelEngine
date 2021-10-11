@@ -258,12 +258,12 @@ GuiObj* TextLine::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 }
 void TextLine::update(C GuiPC &gpc)
 {
-   GuiPC gpc2(gpc, visible() && showClear(), enabled());
-   if(   gpc2.enabled)
+   GuiPC gpc_this(gpc, visible() && showClear(), enabled());
+   if(   gpc_this.enabled)
    {
       DEBUG_BYTE_LOCK(_used);
 
-      reset.update(gpc2);
+      reset.update(gpc_this);
       if(Gui.kb()==this)
       {
       #if !ADJUST_OFFSET_ON_SEL
@@ -287,8 +287,8 @@ void TextLine::update(C GuiPC &gpc)
       #endif
          ){adjustOffset(); setTextInput();}
       }
-    C Vec2 *touch_pos  =null;
-      Byte  touch_state=0   ; if(Gui.ms()==this && (Ms._button[0]&(BS_ON|BS_PUSHED))){touch_pos=&Ms.pos(); touch_state=Ms._button[0];} if(!touch_pos)REPA(Touches)if(Touches[i].guiObj()==this && (Touches[i]._state&(BS_ON|BS_PUSHED))){touch_pos=&Touches[i].pos(); touch_state=Touches[i]._state;}
+    C Vec2   *touch_pos  =null;
+      BS_FLAG touch_state=BS_NONE; if(Gui.ms()==this && (Ms._button[0]&(BS_ON|BS_PUSHED))){touch_pos=&Ms.pos(); touch_state=Ms._button[0];} if(!touch_pos)REPA(Touches)if(Touches[i].guiObj()==this && (Touches[i]._state&(BS_ON|BS_PUSHED))){touch_pos=&Touches[i].pos(); touch_state=Touches[i]._state;}
       if(_text.is() && touch_pos)
       {
          if(GuiSkin *skin=getSkin())
@@ -341,7 +341,7 @@ void TextLine::update(C GuiPC &gpc)
 }
 void TextLine::draw(C GuiPC &gpc)
 {
-   if(visible() && gpc.visible)
+   if(/*gpc.visible &&*/ visible())
       if(GuiSkin *skin=getSkin())
    {
       Bool        enabled=(T.enabled() && gpc.enabled);

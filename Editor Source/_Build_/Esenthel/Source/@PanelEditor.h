@@ -38,9 +38,9 @@ public:
    static void    Changed(C Property &prop);
 
    static void ParamsCenterStretch(EditPanel &e, C Str &t);
-   static void ParamsSideStretch  (EditPanel &e, C Str &t);
 
    static void ParamsCenterColor(EditPanel &e, C Str &t);
+   static void ParamsBarColor   (EditPanel &e, C Str &t);
    static void ParamsBorderColor(EditPanel &e, C Str &t);
    static void ParamsSideColor  (EditPanel &e, C Str &t);
    static void ParamsBlurColor  (EditPanel &e, C Str &t);
@@ -50,8 +50,11 @@ public:
    static void ParamsShadowOffset (EditPanel &e, C Str &t);
    static void ParamsShadowCenter (EditPanel &e, C Str &t);
 
-   static void ParamsBorderSize        (EditPanel &e, C Str &t);
+   static void ParamsSideMode          (EditPanel &e, C Str &t);
    static void ParamsCenterScale       (EditPanel &e, C Str &t);
+   static void ParamsBarSize           (EditPanel &e, C Str &t);
+   static void ParamsBorderSize        (EditPanel &e, C Str &t);
+   static void ParamsSideMinScale      (EditPanel &e, C Str &t);
    static void ParamsTopSize           (EditPanel &e, C Str &t);
    static void ParamsTopOffset         (EditPanel &e, C Str &t);
    static void ParamsBottomSize        (EditPanel &e, C Str &t);
@@ -64,6 +67,7 @@ public:
    static void ParamsBottomCornerOffset(EditPanel &e, C Str &t);
 
    static Str ParamsCenterImage      (C EditPanel &e);
+   static Str ParamsBarImage         (C EditPanel &e);
    static Str ParamsBorderImage      (C EditPanel &e);
    static Str ParamsTopImage         (C EditPanel &e);
    static Str ParamsBottomImage      (C EditPanel &e);
@@ -73,6 +77,7 @@ public:
    static Str ParamsPanelImage       (C EditPanel &e);
 
    static void ParamsCenterImage      (EditPanel &e, C Str &t);
+   static void ParamsBarImage         (EditPanel &e, C Str &t);
    static void ParamsBorderImage      (EditPanel &e, C Str &t);
    static void ParamsTopImage         (EditPanel &e, C Str &t);
    static void ParamsBottomImage      (EditPanel &e, C Str &t);
@@ -89,6 +94,10 @@ public:
    static void Undo  (PanelEditor &editor);
    static void Redo  (PanelEditor &editor);
    static void Locate(PanelEditor &editor);
+
+   static cchar8 *SideMode[]
+;
+   ASSERT(Panel::SM_DEFAULT==0 && Panel::SM_STRETCH==1 && Panel::SM_WRAP==2 && Panel::SM_NUM==3);
 
    void create();
    void toGame();

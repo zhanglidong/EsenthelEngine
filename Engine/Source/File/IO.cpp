@@ -47,6 +47,10 @@ Str MakeFullPath(C Str &path, FILE_PATH type, Bool keep_empty)
    return path;
 }
 /******************************************************************************/
+#if !SWITCH
+Bool MountHost() {return DESKTOP;} // assume Desktop is already connected to itself
+#endif
+/******************************************************************************/
 // FILE INFO
 /******************************************************************************/
 FileInfo::FileInfo() {zero();}
@@ -186,7 +190,7 @@ Bool operator==(C FileInfo &f0, C FileInfo &f1)
       case FSTD_DIR  : return true;
 
       case FSTD_LINK:
-      case FSTD_FILE: return f0.size==f1.size && !Compare(f0.modify_time_utc, f1.modify_time_utc, 1);
+      case FSTD_FILE: return f0.size==f1.size && !CompareFile(f0.modify_time_utc, f1.modify_time_utc);
    }
    return false;
 }
@@ -532,7 +536,7 @@ Bool FCopy(Pak &src, C Str &dest, FILE_OVERWRITE_MODE overwrite, Cipher *dest_ci
 Bool FCopyDir(C Str &src, C Str &dest, FILE_OVERWRITE_MODE overwrite, Cipher *src_cipher, Cipher *dest_cipher)
 {
    Bool ok=true;
-   if(FExistSystem(dest) || FCreateDirs(dest))for(FileFind ff(src); ff(); )
+   if(FCreateDirs(dest))for(FileFind ff(src); ff(); )
    {
       Str name=dest; name.tailSlash(true)+=ff.name;
       switch(ff.type)
@@ -725,15 +729,24 @@ Bool FRename(C Str &src, C Str &dest)
    #if MAC
       if(FileInfoSystem(s).type!=FSTD_LINK) // links can't be processed by 'FSPathMoveObjectSync' because the target file will be moved instead of the link
       {
-         Str8   dest_base=UnixPathUTF8(GetBase(d));
-         CFStringRef name=(dest_base.is() ? CFStringCreateWithCString(kCFAllocatorDefault, dest_base, kCFStringEncodingUTF8) : null);
-         Bool          ok=(FSPathMoveObjectSync(UnixPathUTF8(s), UnixPathUTF8(GetPath(d)), name, null, kFSFileOperationOverwrite|kFSFileOperationSkipPreflight)==noErr);
-         if(name)CFRelease(name);
-         if(ok)return true; // return only on success, if failed, then try methods below (this can fail for current app's exe file)
+         if(FSPathMoveObjectSync(UnixPathUTF8(s), UnixPathUTF8(GetPath(d)), CFStringAuto(UnixPath(GetBase(d))), null, kFSFileOperationOverwrite|kFSFileOperationSkipPreflight)==noErr)return true; // return only on success, if failed, then try methods below (this can fail for current app's exe file)
       }
    #endif
-      if(!rename(UnixPathUTF8(s), UnixPathUTF8(d))){FlushIO(); return true;}
-      if(errno==EXDEV)if(FCopy(s, d))return FDel(s);
+      auto s_up=UnixPathUTF8(s), d_up=UnixPathUTF8(d);
+      if(!rename(s_up, d_up)){FlushIO(); return true;}
+      switch(errno)
+      {
+         case EXDEV: if(FCopy(s, d))return FDel(s); break; // located on another drive
+
+      #if SWITCH
+         case EPERM: // Nintendo Switch fails to replace existing files - https://developer.nintendo.com/html/online-docs/nx-en/g1kr9vj6-en/Packages/SDK/NintendoSDK/Documents/Package/contents/Pages/Page_106358756.html
+         {
+            if(!remove(      d_up) // 'remove' will delete both files/dirs
+            && !rename(s_up, d_up))
+               {FlushIO(); return true;}
+         }break;
+      #endif
+      }
       return false;
 #endif
 }
@@ -762,16 +775,39 @@ static inline Bool FDel(C FileFind &ff) {return FDel(ff.type, ff.pathName());}
 Bool FCreateDirs(C Str &name)
 {
    if(!name.is())return true;
-   Str   path=name; path.tailSlash(false);
-   Char  temp[MAX_LONG_PATH];
+   switch(FileInfoSystem(name).type) // check if it's already there
+   {
+      case FSTD_DIR  :
+      case FSTD_DRIVE:
+         return true; // already have dir or drive
+
+      case FSTD_FILE:
+      case FSTD_LINK:
+         return false; // can't create because there's a file/link there
+   }
+
+   Bool  last_create=false;
+   Char  temp[MAX_LONG_PATH], prev='\0';
    FREPA(temp)
    {
-      Char c=path[i];
-      if( !c)return FCreateDir(path);
-      if(IsSlash(c) && !(i && path[i-1]==':')){temp[i]=0; FCreateDir(temp);}
-      temp[i]=c;
+      Char c=name[i];
+      if(IsSlash(c)            // next dir
+      || !c && !IsSlash(prev)) // or reached the end and previous char wasn't a slash
+         if(prev!=':') // previous char wasn't drive end
+            {temp[i]=0; last_create=FCreateDir(temp);}
+      if(!c)break;
+      temp[i]=prev=c;
    }
-   return false;
+
+   if(last_create)return true; // if last create succeeded
+   switch(FileInfoSystem(name).type) // it could've been created on another thread or by another program
+   {
+      case FSTD_DIR  :
+      case FSTD_DRIVE:
+         return true; // have dir or drive
+      default:
+         return false; // failed
+   }
 }
 Bool FDelDirs(C Str &name)
 {

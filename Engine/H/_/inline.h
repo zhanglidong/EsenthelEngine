@@ -14,10 +14,12 @@ inline Bool Any(C Dbl &x, C Dbl &y                    ) {return FlagTest((U64&)x
 inline Bool Any(C Dbl &x, C Dbl &y, C Dbl &z          ) {return FlagTest((U64&)x | (U64&)y | (U64&)z          , (~0ull)>>1);} // faster version of "x!=0 || y!=0 || z!=0"
 inline Bool Any(C Dbl &x, C Dbl &y, C Dbl &z, C Dbl &w) {return FlagTest((U64&)x | (U64&)y | (U64&)z | (U64&)w, (~0ull)>>1);} // faster version of "x!=0 || y!=0 || z!=0 || w!=0"
 /******************************************************************************/
+inline Bool AtomicGet(C Bool &x        ) {return x;}
 inline Byte AtomicGet(C Byte &x        ) {return x;}
 inline Int  AtomicGet(C Int  &x        ) {return x;}
 inline UInt AtomicGet(C UInt &x        ) {return x;}
 inline Flt  AtomicGet(C Flt  &x        ) {return x;}
+inline void AtomicSet(  Bool &x, Bool y) {x=y     ;}
 inline void AtomicSet(  Byte &x, Byte y) {x=y     ;}
 inline void AtomicSet(  Int  &x, Int  y) {x=y     ;}
 inline void AtomicSet(  UInt &x, UInt y) {x=y     ;}
@@ -121,17 +123,13 @@ T1(TYPE) DISABLE_IF_ENUM(TYPE, Bool) InRange(ULong i, C TYPE &container) {return
 /******************************************************************************/
 T1(TYPE) struct ClassFunc // various basic functions used by many classes
 {
-   static void New      (Ptr elm                        ) {    new(        elm )         TYPE        ;}
-#if WINDOWS
-   static void Del      (Ptr elm                        ) {       ( (TYPE*)elm )->      ~TYPE(      );}
-#else
-   static void Del      (Ptr elm                        ) {       ( (TYPE*)elm )->TYPE::~TYPE(      );} // silence -Wdelete-non-abstract-non-virtual-dtor
-#endif
-   static void Copy     (Ptr dest,  CPtr  src           ) {       (*(TYPE*)dest)=*(C TYPE*)src       ;}
-   static Bool Load     (Ptr elm , C Str &file          ) {return ( (TYPE*)elm )->   load(file      );}
-   static Bool LoadUser (Ptr elm , C Str &file, Ptr user) {return ( (TYPE*)elm )->   load(file, user);}
-   static Bool LoadEmpty(Ptr elm                        ) {return ( (TYPE*)elm )->   load(          );}
-   static void Unload   (Ptr elm                        ) {return ( (TYPE*)elm )-> unload(          );}
+   static void New      (Ptr elm                        ) {    new(        elm )                     TYPE  ;}
+   static void Del      (Ptr elm                        ) {       ( (TYPE*)elm )->PLATFORM(, TYPE::)~TYPE();} // for non-Windows (Clang) directly call specified destructor (ignoring any virtual) because this function is always paired with 'New' above, so we always operate on the same type of class, this improves performance and silences -Wdelete-non-abstract-non-virtual-dtor. Unsupported on Windows compiler
+   static void Copy     (Ptr dest,  CPtr  src           ) {       (*(TYPE*)dest)=*(C TYPE*)src             ;}
+   static Bool Load     (Ptr elm , C Str &file          ) {return ( (TYPE*)elm )->  load(file      )       ;}
+   static Bool LoadUser (Ptr elm , C Str &file, Ptr user) {return ( (TYPE*)elm )->  load(file, user)       ;}
+   static Bool LoadEmpty(Ptr elm                        ) {return ( (TYPE*)elm )->  load(          )       ;}
+   static void Unload   (Ptr elm                        ) {return ( (TYPE*)elm )->unload(          )       ;}
 
    static inline Bool HasNew() {return !std::is_trivially_default_constructible<TYPE>::value && New!=ClassFunc<Int>::New;} // check also if the '<TYPE>.New' function address is different than '<Int>.New' because 'is_trivially_default_constructible' is not enough for cases when constructor exists but is empty
    static inline Bool HasDel() {return !std::is_trivially_destructible         <TYPE>::value && Del!=ClassFunc<Int>::Del;} // check also if the '<TYPE>.Del' function address is different than '<Int>.Del' because 'is_trivially_destructible'          is not enough for cases when  destructor exists but is empty
@@ -307,7 +305,7 @@ T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::setNum(Int num)
    }else
    if(num<elms()) // remove elements
    {
-      if(ClassFunc<TYPE>::HasDel())for(Int i=num; i<elms(); i++)T[i].~TYPE();
+      if(ClassFunc<TYPE>::HasDel())for(Int i=elms(); --i>=num; )T[i].~TYPE();
       TYPE *temp=Alloc<TYPE>(num);
       CopyFastN(temp, data(), num);
       Free(_data); _data=temp; _elms=num;
@@ -328,7 +326,7 @@ T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::setNumZero(Int num)
    }else
    if(num<elms()) // remove elements
    {
-      if(ClassFunc<TYPE>::HasDel())for(Int i=num; i<elms(); i++)T[i].~TYPE();
+      if(ClassFunc<TYPE>::HasDel())for(Int i=elms(); --i>=num; )T[i].~TYPE();
       TYPE *temp=Alloc<TYPE>(num);
       CopyFastN(temp, data(), num);
       Free(_data); _data=temp; _elms=num;
@@ -340,7 +338,7 @@ T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::setNum(Int num, Int keep)
 {
    MAX(num, 0);
    Clamp(keep, 0, Min(elms(), num));
-   if(ClassFunc<TYPE>::HasDel())for(Int i=keep; i<elms(); i++)T[i].~TYPE(); // delete unkept elements
+   if(ClassFunc<TYPE>::HasDel())for(Int i=elms(); --i>=keep; )T[i].~TYPE(); // delete unkept elements
    if(num!=elms()) // resize memory
    {
       TYPE *temp=Alloc<TYPE>(num);
@@ -354,7 +352,7 @@ T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::setNumZero(Int num, Int keep)
 {
    MAX(num, 0);
    Clamp(keep, 0, Min(elms(), num));
-   if(ClassFunc<TYPE>::HasDel())for(Int i=keep; i<elms(); i++)T[i].~TYPE(); // delete unkept elements
+   if(ClassFunc<TYPE>::HasDel())for(Int i=elms(); --i>=keep; )T[i].~TYPE(); // delete unkept elements
    if(num!=elms()) // resize memory
    {
       TYPE *temp=Alloc<TYPE>(num);
@@ -366,8 +364,7 @@ T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::setNumZero(Int num, Int keep)
    return T;
 }
 
-#if EE_PRIVATE
-T1(TYPE)  void  Mems<TYPE>::setNumDiscard(Int num)
+T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::setNumDiscard(Int num)
 {
    MAX(num, 0);
    if( num!=elms())
@@ -376,7 +373,9 @@ T1(TYPE)  void  Mems<TYPE>::setNumDiscard(Int num)
       Alloc(Free(_data), _elms=num);
       if(ClassFunc<TYPE>::HasNew())FREPA(T)new(&T[i])TYPE; // create new elements
    }
+   return T;
 }
+#if EE_PRIVATE
 T1(TYPE)  void  Mems<TYPE>::minNumDiscard(Int num)
 {
    if(Greater(num, elms())) // num>elms()
@@ -434,6 +433,8 @@ T1(TYPE)  Bool  Mems<TYPE>::saveRaw(File &f)C {       f.cmpUIntV(elms()) ; saveR
 T1(TYPE)  Bool  Mems<TYPE>::loadRaw(File &f)  {setNum(f.decUIntV(      )); loadRawData(f);     if(f.ok())return true; clear(); return false;}
 
 #if EE_PRIVATE
+T1(TYPE)  Int   Mems<TYPE>::saveRawSize()C {return CmpUIntVSize(elms())+elmsMem();}
+
 T1(TYPE)  Bool  Mems<TYPE>::_saveRaw(File &f)C {       f.putInt(elms()) ; saveRawData(f); return f.ok();}
 T1(TYPE)  Bool  Mems<TYPE>::_loadRaw(File &f)  {setNum(f.getInt(      )); loadRawData(f);     if(f.ok())return true; clear(); return false;}
 T1(TYPE)  Bool  Mems<TYPE>::_save   (File &f)C {       f.putInt(elms()) ; FREPA(T)if(!T[i].save(f))return false; return f.ok();}
@@ -442,7 +443,7 @@ T1(TYPE)  Bool  Mems<TYPE>::_load   (File &f)  {setNum(f.getInt(      )); FREPA(
 
 T1(TYPE)  Mems<TYPE>::~Mems(            )          {del();}
 T1(TYPE)  Mems<TYPE>:: Mems(            )          {_data=null; _elms=0;}
-T1(TYPE)  Mems<TYPE>:: Mems(  Int   elms)          {MAX(elms, 0); Alloc(_data, elms); _elms=elms;}
+T1(TYPE)  Mems<TYPE>:: Mems(  Int   elms)          {MAX(elms, 0); Alloc(_data, elms); _elms=elms; if(ClassFunc<TYPE>::HasNew())FREPA(T)new(&T[i])TYPE;} // create new elements
 T1(TYPE)  Mems<TYPE>:: Mems(C Mems  &src) : Mems() {T=src;}
 T1(TYPE)  Mems<TYPE>:: Mems(  Mems &&src) : Mems() {Swap(T, src);}
 /******************************************************************************/
@@ -454,6 +455,7 @@ T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::del  () {super::del  (); return T;}
 T1(TYPE)  Int      Memc<TYPE>::elms    ()C {return super::elms    ();}
 T1(TYPE)  UInt     Memc<TYPE>::elmSize ()C {return super::elmSize ();}
 T1(TYPE)  UIntPtr  Memc<TYPE>::memUsage()C {return super::memUsage();}
+T1(TYPE)  UIntPtr  Memc<TYPE>::elmsMem ()C {return super::elmsMem ();}
 
 T1(TYPE)  TYPE*  Memc<TYPE>::data      (     ) {DEBUG_ASSERT(elmSize()==SIZE(TYPE) || elms()<=1, "'Memc.data' Can't cast to C++ pointer after using 'replaceClass'."); return (TYPE*)super::data();}
 T1(TYPE)  TYPE*  Memc<TYPE>::addr      (Int i) {return  (TYPE*)super::addr      (i);}
@@ -486,11 +488,12 @@ T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::remove    (  Int   i  ,        Bool keep_orde
 T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::removeNum (  Int   i  , Int n, Bool keep_order) {super::removeNum (i, n, keep_order); return T;}
 T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::removeData(C TYPE *elm,        Bool keep_order) {super::removeData(elm,  keep_order); return T;}
 
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNum    (Int num          ) {       super::setNum    (num      ); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNum    (Int num, Int keep) {       super::setNum    (num, keep); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNumZero(Int num          ) {       super::setNumZero(num      ); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNumZero(Int num, Int keep) {       super::setNumZero(num, keep); return T;}
-T1(TYPE)  Int          Memc<TYPE>::addNum    (Int num          ) {return super::addNum    (num      );          }
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNum       (Int num          ) {       super::setNum       (num      ); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNum       (Int num, Int keep) {       super::setNum       (num, keep); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNumZero   (Int num          ) {       super::setNumZero   (num      ); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNumZero   (Int num, Int keep) {       super::setNumZero   (num, keep); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNumDiscard(Int num          ) {       super::setNumDiscard(num      ); return T;}
+T1(TYPE)  Int          Memc<TYPE>::addNum       (Int num          ) {return super::addNum       (num      );          }
 
 T1(TYPE) T1(VALUE)  Bool  Memc<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return super::binarySearch(&value, index, (Int(*)(CPtr, CPtr))compare);}
 
@@ -548,6 +551,7 @@ T1(TYPE)  MemcAbstract<TYPE>&  MemcAbstract<TYPE>::del  () {super::del  (); retu
 T1(TYPE)  Int      MemcAbstract<TYPE>::elms    ()C {return super::elms    ();}
 T1(TYPE)  UInt     MemcAbstract<TYPE>::elmSize ()C {return super::elmSize ();}
 T1(TYPE)  UIntPtr  MemcAbstract<TYPE>::memUsage()C {return super::memUsage();}
+T1(TYPE)  UIntPtr  MemcAbstract<TYPE>::elmsMem ()C {return super::elmsMem ();}
 
 T1(TYPE)  TYPE*  MemcAbstract<TYPE>::data      (     ) {DEBUG_ASSERT(elmSize()==SIZE(TYPE) || elms()<=1, "'MemcAbstract.data' Can't cast to C++ pointer after using 'replaceClass'."); return (TYPE*)super::data();}
 T1(TYPE)  TYPE*  MemcAbstract<TYPE>::addr      (Int i) {return  (TYPE*)super::addr      (i);}
@@ -589,6 +593,7 @@ T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::del  () {super::del  (); 
 T1(TYPE)  Int      MemcThreadSafe<TYPE>::elms    ()C {return super::elms    ();}
 T1(TYPE)  UInt     MemcThreadSafe<TYPE>::elmSize ()C {return super::elmSize ();}
 T1(TYPE)  UIntPtr  MemcThreadSafe<TYPE>::memUsage()C {return super::memUsage();}
+T1(TYPE)  UIntPtr  MemcThreadSafe<TYPE>::elmsMem ()C {return super::elmsMem ();}
 
 T1(TYPE)  TYPE*  MemcThreadSafe<TYPE>::lockedData (     ) {DEBUG_ASSERT(elmSize()==SIZE(TYPE) || elms()<=1, "'MemcThreadSafe.data' Can't cast to C++ pointer after using 'replaceClass'."); return (TYPE*)super::lockedData();}
 T1(TYPE)  TYPE*  MemcThreadSafe<TYPE>::lockedAddr (Int i) {return  (TYPE*)super::lockedAddr (i);}
@@ -759,7 +764,7 @@ template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::setNum(I
    }else
    if(num<elms()) // remove elements
    {
-      if(ClassFunc<TYPE>::HasDel())for(Int i=num; i<elms(); i++)T[i].~TYPE();
+      if(ClassFunc<TYPE>::HasDel())for(Int i=elms(); --i>=num; )T[i].~TYPE();
      _elms=num;
    }
    return T;
@@ -776,7 +781,7 @@ template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::setNumZe
    }else
    if(num<elms()) // remove elements
    {
-      if(ClassFunc<TYPE>::HasDel())for(Int i=num; i<elms(); i++)T[i].~TYPE();
+      if(ClassFunc<TYPE>::HasDel())for(Int i=elms(); --i>=num; )T[i].~TYPE();
      _elms=num;
    }
    return T;
@@ -786,7 +791,7 @@ template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::setNum(I
 {
    MAX(num, 0);
    Clamp(keep, 0, Min(elms(), num));
-   if(ClassFunc<TYPE>::HasDel())for(Int i=keep; i<elms(); i++)T[i].~TYPE(); // delete unkept elements
+   if(ClassFunc<TYPE>::HasDel())for(Int i=elms(); --i>=keep; )T[i].~TYPE(); // delete unkept elements
    if(Greater(num, maxElms())) // resize memory, num>maxElms()
    {
      _elms=keep; // set '_elms' before 'reserve' to copy only 'keep' elements
@@ -800,7 +805,7 @@ template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::setNumZe
 {
    MAX(num, 0);
    Clamp(keep, 0, Min(elms(), num));
-   if(ClassFunc<TYPE>::HasDel())for(Int i=keep; i<elms(); i++)T[i].~TYPE(); // delete unkept elements
+   if(ClassFunc<TYPE>::HasDel())for(Int i=elms(); --i>=keep; )T[i].~TYPE(); // delete unkept elements
    if(Greater(num, maxElms())) // resize memory, num>maxElms()
    {
      _elms=keep; // set '_elms' before 'reserve' to copy only 'keep' elements
@@ -812,46 +817,45 @@ template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::setNumZe
    return T;
 }
 
-#if EE_PRIVATE
-template<typename TYPE, Int size>  void  Memt<TYPE, size>::setNumDiscard(Int num)
+template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::setNumDiscard(Int num)
 {
    MAX(num, 0);
    if( num!=elms())
    {
       if(Greater(num, maxElms())) // resize memory, num>maxElms()
       {
-         if(ClassFunc<TYPE>::HasDel())REPA(T)T[i].~TYPE(); // delete all elements
-        _elms=0; // set '_elms' before 'reserve' to skip copying old elements
+         clear(); // clear before 'reserve' to skip copying old elements
          reserve(num);
         _elms=num; // set '_elms' before accessing new elements to avoid range assert
          if(ClassFunc<TYPE>::HasNew())FREPA(T)new(&T[i])TYPE; // create new elements
       }else
       if(num>elms()) // add elements in existing memory
       {
-         Int old_elms=elms(); _elms=num;
+         Int old_elms=elms(); _elms=num; // set '_elms' before accessing new elements to avoid range assert
          if(ClassFunc<TYPE>::HasNew())for(Int i=old_elms; i<elms(); i++)new(&T[i])TYPE;
       }else
     //if(num<elms()) // remove elements, "if" not needed because we already know that "num!=elms && !(num>elms())"
       {
-         if(ClassFunc<TYPE>::HasDel())for(Int i=num; i<elms(); i++)T[i].~TYPE();
+         if(ClassFunc<TYPE>::HasDel())for(Int i=elms(); --i>=num; )T[i].~TYPE();
         _elms=num;
       }
    }
+   return T;
 }
+#if EE_PRIVATE
 template<typename TYPE, Int size>  void  Memt<TYPE, size>::minNumDiscard(Int num)
 {
    if(Greater(num, elms())) // num>elms()
    {
       if(Greater(num, maxElms())) // resize memory, num>maxElms()
       {
-         if(ClassFunc<TYPE>::HasDel())REPA(T)T[i].~TYPE(); // delete all elements
-        _elms=0; // set '_elms' before 'reserve' to skip copying old elements
+         clear(); // clear before 'reserve' to skip copying old elements
          reserve(num);
         _elms=num; // set '_elms' before accessing new elements to avoid range assert
          if(ClassFunc<TYPE>::HasNew())FREPA(T)new(&T[i])TYPE; // create new elements
       }else // add elements in existing memory
       {
-         Int old_elms=elms(); _elms=num;
+         Int old_elms=elms(); _elms=num; // set '_elms' before accessing new elements to avoid range assert
          if(ClassFunc<TYPE>::HasNew())for(Int i=old_elms; i<elms(); i++)new(&T[i])TYPE;
       }
    }
@@ -1211,23 +1215,32 @@ T1(TYPE)  Meml<TYPE>::Meml(  Meml &&src) : _Meml(            0,                 
 /******************************************************************************/
 // CONST MEM PTR
 /******************************************************************************/
-template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(          null_t                              ) {_mode=     PTR ; _ptr =null     ; _elms=        0; return T;}
-template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C         TYPE             &src               ) {_mode=     PTR ; _ptr =&src     ; _elms=        1; return T;}
-template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C         TYPE             *src, Int src_elms ) {_mode=     PTR ; _ptr = src     ; _elms= src_elms; return T;}
-template<typename TYPE, Int Memt_size> template<Int src_elms>  CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C         TYPE            (&src)    [src_elms]) {_mode=     PTR ; _ptr = src     ; _elms= src_elms; return T;}
-template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C  Mems  <TYPE           > &src               ) {_mode=     MEMS; _mems=&src     ; _elms=        0; return T;}
-template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C  Memc  <TYPE           > &src               ) {_mode=     MEMC; _memc=&src     ; _elms=        0; return T;}
-template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C  Memt  <TYPE, Memt_size> &src               ) {_mode=     MEMT; _memt=&src     ; _elms=        0; return T;}
-template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C  Memb  <TYPE           > &src               ) {_mode=     MEMB; _memb=&src     ; _elms=        0; return T;}
-template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C  Memx  <TYPE           > &src               ) {_mode=     MEMX; _memx=&src     ; _elms=        0; return T;}
-template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C  Meml  <TYPE           > &src               ) {_mode=     MEML; _meml=&src     ; _elms=        0; return T;}
-template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C CMemPtr<TYPE, Memt_size> &src               ) {_mode=src._mode; _ptr = src._ptr; _elms=src._elms; return T;}
+template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(          null_t                              ) {_mode=       PTR        ; _ptr =null                      ; _ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C         TYPE             &src               ) {_mode=       PTR        ; _ptr =&src                      ; _ptr_elms=            1; return T;}
+template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C         TYPE             *src, Int src_elms ) {_mode=       PTR        ; _ptr = src                      ; _ptr_elms=     src_elms; return T;}
+template<typename TYPE, Int Memt_size> template<Int src_elms>  CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C         TYPE            (&src)    [src_elms]) {_mode=       PTR        ; _ptr = src                      ; _ptr_elms=     src_elms; return T;}
+template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C  Mems  <TYPE           > &src               ) {_mode=       MEMS       ; _mems=&src                      ; _ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C  Mems  <TYPE           > *src               ) {_mode=(src ? MEMS : PTR); _mems= src                      ; _ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C  Memc  <TYPE           > &src               ) {_mode=       MEMC       ; _memc=&src                      ; _ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C  Memc  <TYPE           > *src               ) {_mode=(src ? MEMC : PTR); _memc= src                      ; _ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size> T1(EXTENDED)            CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C  Memc  <EXTENDED       > *src               ) {_mode=(src ? MEMC : PTR); _memc=&SCAST(C Memc<TYPE>, *src); _ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C  Memt  <TYPE, Memt_size> &src               ) {_mode=       MEMT       ; _memt=&src                      ; _ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C  Memt  <TYPE, Memt_size> *src               ) {_mode=(src ? MEMT : PTR); _memt= src                      ; _ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C  Memb  <TYPE           > &src               ) {_mode=       MEMB       ; _memb=&src                      ; _ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C  Memb  <TYPE           > *src               ) {_mode=(src ? MEMB : PTR); _memb= src                      ; _ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size> T1(EXTENDED)            CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C  Memb  <EXTENDED       > *src               ) {_mode=(src ? MEMB : PTR); _memb=&SCAST(C Memb<TYPE>, *src); _ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C  Memx  <TYPE           > &src               ) {_mode=       MEMX       ; _memx=&src                      ; _ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C  Memx  <TYPE           > *src               ) {_mode=(src ? MEMX : PTR); _memx= src                      ; _ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size> T1(EXTENDED)            CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C  Memx  <EXTENDED       > *src               ) {_mode=(src ? MEMX : PTR); _memx=&SCAST(C Memx<TYPE>, *src); _ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C  Meml  <TYPE           > &src               ) {_mode=       MEML       ; _meml=&src                      ; _ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C  Meml  <TYPE           > *src               ) {_mode=(src ? MEML : PTR); _meml= src                      ; _ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         CMemPtr<TYPE, Memt_size>&  CMemPtr<TYPE, Memt_size>::point(C CMemPtr<TYPE, Memt_size> &src               ) {_mode=  src._mode       ; _ptr = src._ptr                 ; _ptr_elms=src._ptr_elms; return T;}
 
 template<typename TYPE, Int Memt_size>  Int  CMemPtr<TYPE, Memt_size>::elms()C
 {
    switch(_mode)
    {
-      default  : return _elms; // PTR
+      default  : return _ptr_elms; // PTR
       case MEMS: return _mems->elms();
       case MEMC: return _memc->elms();
       case MEMT: return _memt->elms();
@@ -1279,7 +1292,7 @@ template<typename TYPE, Int Memt_size>  C TYPE*  CMemPtr<TYPE, Memt_size>::addr(
 {
    switch(_mode)
    {
-      default  : return  InRange(i, _elms) ? &_ptr[i] : null; // PTR
+      default  : return  InRange(i, _ptr_elms) ? &_ptr[i] : null; // PTR
       case MEMS: return _mems->addr(i);
       case MEMC: return _memc->addr(i);
       case MEMT: return _memt->addr(i);
@@ -1292,7 +1305,7 @@ template<typename TYPE, Int Memt_size>  C TYPE&  CMemPtr<TYPE, Memt_size>::opera
 {
    switch(_mode)
    {
-      default  : DEBUG_RANGE_ASSERT(i, _elms); return _ptr[i]; // PTR
+      default  : DEBUG_RANGE_ASSERT(i, _ptr_elms); return _ptr[i]; // PTR
       case MEMS: return (*_mems)[i];
       case MEMC: return (*_memc)[i];
       case MEMT: return (*_memt)[i];
@@ -1308,7 +1321,7 @@ template<typename TYPE, Int Memt_size>  Int  CMemPtr<TYPE, Memt_size>::index(C T
 {
    switch(_mode)
    {
-      case PTR : {Int i=elm-_ptr; if(InRange(i, _elms))return i;} break;
+      case PTR : {Int i=elm-_ptr; if(InRange(i, _ptr_elms))return i;} break;
       case MEMS: return _mems->     index(elm);
       case MEMC: return _memc->     index(elm);
       case MEMT: return _memt->     index(elm);
@@ -1324,13 +1337,13 @@ template<typename TYPE, Int Memt_size> T1(VALUE)  Bool  CMemPtr<TYPE, Memt_size>
 {
    switch(_mode)
    {
-      default  : return        BinarySearch(_ptr, _elms, value, index, compare); // PTR
-      case MEMS: return _mems->binarySearch(             value, index, compare);
-      case MEMC: return _memc->binarySearch(             value, index, compare);
-      case MEMT: return _memt->binarySearch(             value, index, compare);
-      case MEMB: return _memb->binarySearch(             value, index, compare);
-      case MEMX: return _memx->binarySearch(             value, index, compare);
-      case MEML: return _meml->binarySearch(             value, index, compare);
+      default  : return        BinarySearch(_ptr, _ptr_elms, value, index, compare); // PTR
+      case MEMS: return _mems->binarySearch(                 value, index, compare);
+      case MEMC: return _memc->binarySearch(                 value, index, compare);
+      case MEMT: return _memt->binarySearch(                 value, index, compare);
+      case MEMB: return _memb->binarySearch(                 value, index, compare);
+      case MEMX: return _memx->binarySearch(                 value, index, compare);
+      case MEML: return _meml->binarySearch(                 value, index, compare);
    }
 }
 
@@ -1339,7 +1352,7 @@ template<typename TYPE, Int Memt_size>  void  CMemPtr<TYPE, Memt_size>::copyTo(T
 {
    switch(_mode)
    {
-      case PTR :  if(dest)CopyFastN(dest, _ptr, _elms); break;
+      case PTR :  if(dest)CopyFastN(dest, _ptr, _ptr_elms); break;
       case MEMS: _mems->copyTo(dest); break;
       case MEMC: _memc->copyTo(dest); break;
       case MEMT: _memt->copyTo(dest); break;
@@ -1382,23 +1395,32 @@ template<typename TYPE, Int Memt_size>  Bool  CMemPtr<TYPE, Memt_size>::saveRaw(
 /******************************************************************************/
 // MEM PTR
 /******************************************************************************/
-template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(       null_t                              ) {T._mode=super::PTR ; T._ptr =null     ; T._elms=        0; return T;}
-template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(       TYPE             &src               ) {T._mode=super::PTR ; T._ptr =&src     ; T._elms=        1; return T;}
-template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(       TYPE             *src, Int src_elms ) {T._mode=super::PTR ; T._ptr = src     ; T._elms= src_elms; return T;}
-template<typename TYPE, Int Memt_size> template<Int src_elms>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(       TYPE            (&src)    [src_elms]) {T._mode=super::PTR ; T._ptr = src     ; T._elms= src_elms; return T;}
-template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(Mems  <TYPE           > &src               ) {T._mode=super::MEMS; T._mems=&src     ; T._elms=        0; return T;}
-template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(Memc  <TYPE           > &src               ) {T._mode=super::MEMC; T._memc=&src     ; T._elms=        0; return T;}
-template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(Memt  <TYPE, Memt_size> &src               ) {T._mode=super::MEMT; T._memt=&src     ; T._elms=        0; return T;}
-template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(Memb  <TYPE           > &src               ) {T._mode=super::MEMB; T._memb=&src     ; T._elms=        0; return T;}
-template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(Memx  <TYPE           > &src               ) {T._mode=super::MEMX; T._memx=&src     ; T._elms=        0; return T;}
-template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(Meml  <TYPE           > &src               ) {T._mode=super::MEML; T._meml=&src     ; T._elms=        0; return T;}
-template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(MemPtr<TYPE, Memt_size> &src               ) {T._mode=src._mode  ; T._ptr = src._ptr; T._elms=src._elms; return T;}
+template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(       null_t                              ) {T._mode=       super::PTR               ; T._ptr =null                    ; T._ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(       TYPE             &src               ) {T._mode=       super::PTR               ; T._ptr =&src                    ; T._ptr_elms=            1; return T;}
+template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(       TYPE             *src, Int src_elms ) {T._mode=       super::PTR               ; T._ptr = src                    ; T._ptr_elms=     src_elms; return T;}
+template<typename TYPE, Int Memt_size> template<Int src_elms>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(       TYPE            (&src)    [src_elms]) {T._mode=       super::PTR               ; T._ptr = src                    ; T._ptr_elms=     src_elms; return T;}
+template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(Mems  <TYPE           > &src               ) {T._mode=       super::MEMS              ; T._mems=&src                    ; T._ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(Mems  <TYPE           > *src               ) {T._mode=(src ? super::MEMS : super::PTR); T._mems= src                    ; T._ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(Memc  <TYPE           > &src               ) {T._mode=       super::MEMC              ; T._memc=&src                    ; T._ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(Memc  <TYPE           > *src               ) {T._mode=(src ? super::MEMC : super::PTR); T._memc= src                    ; T._ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size> T1(EXTENDED)            MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(Memc  <EXTENDED       > *src               ) {T._mode=(src ? super::MEMC : super::PTR); T._memc=&SCAST(Memc<TYPE>, *src); T._ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(Memt  <TYPE, Memt_size> &src               ) {T._mode=       super::MEMT              ; T._memt=&src                    ; T._ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(Memt  <TYPE, Memt_size> *src               ) {T._mode=(src ? super::MEMT : super::PTR); T._memt= src                    ; T._ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(Memb  <TYPE           > &src               ) {T._mode=       super::MEMB              ; T._memb=&src                    ; T._ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(Memb  <TYPE           > *src               ) {T._mode=(src ? super::MEMB : super::PTR); T._memb= src                    ; T._ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size> T1(EXTENDED)            MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(Memb  <EXTENDED       > *src               ) {T._mode=(src ? super::MEMB : super::PTR); T._memb=&SCAST(Memb<TYPE>, *src); T._ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(Memx  <TYPE           > &src               ) {T._mode=       super::MEMX              ; T._memx=&src                    ; T._ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(Memx  <TYPE           > *src               ) {T._mode=(src ? super::MEMX : super::PTR); T._memx= src                    ; T._ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size> T1(EXTENDED)            MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(Memx  <EXTENDED       > *src               ) {T._mode=(src ? super::MEMX : super::PTR); T._memx=&SCAST(Memx<TYPE>, *src); T._ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(Meml  <TYPE           > &src               ) {T._mode=       super::MEML              ; T._meml=&src                    ; T._ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(Meml  <TYPE           > *src               ) {T._mode=(src ? super::MEML : super::PTR); T._meml= src                    ; T._ptr_elms=            0; return T;}
+template<typename TYPE, Int Memt_size>                         MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::point(MemPtr<TYPE, Memt_size> &src               ) {T._mode=       src._mode                ; T._ptr = src._ptr               ; T._ptr_elms=src._ptr_elms; return T;}
 
 template<typename TYPE, Int Memt_size>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::clear()
 {
    switch(T._mode)
    {
-      case super::PTR : if(T._elms)Exit("'MemPtr.clear' does not support PTR mode"); break;
+      case super::PTR : if(T._ptr_elms)Exit("'MemPtr.clear' does not support PTR mode"); break;
       case super::MEMS: ConstCast(T._mems)->clear(); break;
       case super::MEMC: ConstCast(T._memc)->clear(); break;
       case super::MEMT: ConstCast(T._memt)->clear(); break;
@@ -1412,7 +1434,7 @@ template<typename TYPE, Int Memt_size>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, M
 {
    switch(T._mode)
    {
-      case super::PTR : if(T._elms)Exit("'MemPtr.del' does not support PTR mode"); break;
+      case super::PTR : if(T._ptr_elms)Exit("'MemPtr.del' does not support PTR mode"); break;
       case super::MEMS: ConstCast(T._mems)->del(); break;
       case super::MEMC: ConstCast(T._memc)->del(); break;
       case super::MEMT: ConstCast(T._memt)->del(); break;
@@ -1436,7 +1458,7 @@ template<typename TYPE, Int Memt_size>  TYPE&  MemPtr<TYPE, Memt_size>::operator
 {
    switch(T._mode)
    {
-      default         : RANGE_ASSERT(i, T._elms); return ConstCast(T._ptr[i]); // PTR
+      default         : RANGE_ASSERT(i, T._ptr_elms); return ConstCast(T._ptr[i]); // PTR
       case super::MEMS: return ConstCast(*T._mems)(i);
       case super::MEMC: return ConstCast(*T._memc)(i);
       case super::MEMT: return ConstCast(*T._memt)(i);
@@ -1481,7 +1503,7 @@ template<typename TYPE, Int Memt_size>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, M
 {
    switch(T._mode)
    {
-      case super::PTR : if(T._elms)Exit("'MemPtr.removeLast' does not support PTR mode"); break;
+      case super::PTR : if(T._ptr_elms)Exit("'MemPtr.removeLast' does not support PTR mode"); break;
       case super::MEMS: ConstCast(T._mems)->removeLast(); break;
       case super::MEMC: ConstCast(T._memc)->removeLast(); break;
       case super::MEMT: ConstCast(T._memt)->removeLast(); break;
@@ -1495,7 +1517,7 @@ template<typename TYPE, Int Memt_size>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, M
 {
    switch(T._mode)
    {
-      case super::PTR : if(InRange(i, T._elms))Exit("'MemPtr.remove' does not support PTR mode"); break;
+      case super::PTR : if(InRange(i, T._ptr_elms))Exit("'MemPtr.remove' does not support PTR mode"); break;
       case super::MEMS: ConstCast(T._mems)->remove     (i, keep_order); break;
       case super::MEMC: ConstCast(T._memc)->remove     (i, keep_order); break;
       case super::MEMT: ConstCast(T._memt)->remove     (i, keep_order); break;
@@ -1509,7 +1531,7 @@ template<typename TYPE, Int Memt_size>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, M
 {
    switch(T._mode)
    {
-      case super::PTR : if(InRange(index(elm), T._elms))Exit("'MemPtr.removeData' does not support PTR mode"); break;
+      case super::PTR : if(InRange(index(elm), T._ptr_elms))Exit("'MemPtr.removeData' does not support PTR mode"); break;
       case super::MEMS: ConstCast(T._mems)->removeData(elm, keep_order); break;
       case super::MEMC: ConstCast(T._memc)->removeData(elm, keep_order); break;
       case super::MEMT: ConstCast(T._memt)->removeData(elm, keep_order); break;
@@ -1523,7 +1545,7 @@ template<typename TYPE, Int Memt_size>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, M
 {
    switch(T._mode)
    {
-      case super::PTR : if(T._elms!=num)Exit("'MemPtr.setNum' does not support PTR mode"); break;
+      case super::PTR : if(T._ptr_elms!=num)Exit("'MemPtr.setNum' does not support PTR mode"); break;
       case super::MEMS: ConstCast(T._mems)->setNum(num); break;
       case super::MEMC: ConstCast(T._memc)->setNum(num); break;
       case super::MEMT: ConstCast(T._memt)->setNum(num); break;
@@ -1537,7 +1559,7 @@ template<typename TYPE, Int Memt_size>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, M
 {
    switch(T._mode)
    {
-      case super::PTR : if(T._elms!=num)Exit("'MemPtr.setNumZero' does not support PTR mode"); break;
+      case super::PTR : if(T._ptr_elms!=num)Exit("'MemPtr.setNumZero' does not support PTR mode"); break;
       case super::MEMS: ConstCast(T._mems)->setNumZero(num); break;
       case super::MEMC: ConstCast(T._memc)->setNumZero(num); break;
       case super::MEMT: ConstCast(T._memt)->setNumZero(num); break;
@@ -1547,11 +1569,25 @@ template<typename TYPE, Int Memt_size>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, M
    }
    return T;
 }
+template<typename TYPE, Int Memt_size>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, Memt_size>::setNumDiscard(Int num)
+{
+   switch(T._mode)
+   {
+      case super::PTR : if(T._ptr_elms!=num)Exit("'MemPtr.setNumDiscard' does not support PTR mode"); break;
+      case super::MEMS: ConstCast(T._mems)->setNumDiscard(num); break;
+      case super::MEMC: ConstCast(T._memc)->setNumDiscard(num); break;
+      case super::MEMT: ConstCast(T._memt)->setNumDiscard(num); break;
+      case super::MEMB: ConstCast(T._memb)->setNum       (num); break;
+      case super::MEMX: ConstCast(T._memx)->setNum       (num); break;
+      case super::MEML: ConstCast(T._meml)->setNum       (num); break;
+   }
+   return T;
+}
 template<typename TYPE, Int Memt_size>  Int  MemPtr<TYPE, Memt_size>::addNum(Int num)
 {
    switch(T._mode)
    {
-      default         : if(num)Exit("'MemPtr.addNum' does not support PTR mode"); return T._elms; // PTR
+      default         : if(num)Exit("'MemPtr.addNum' does not support PTR mode"); return T._ptr_elms; // PTR
       case super::MEMS: return ConstCast(T._mems)->addNum(num);
       case super::MEMC: return ConstCast(T._memc)->addNum(num);
       case super::MEMT: return ConstCast(T._memt)->addNum(num);
@@ -1565,13 +1601,13 @@ template<typename TYPE, Int Memt_size>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, M
 {
    switch(T._mode)
    {
-      case super::PTR :                     Sort(ConstCast(T._ptr), T._elms, compare); break;
-      case super::MEMS: ConstCast(T._mems)->sort(                            compare); break;
-      case super::MEMC: ConstCast(T._memc)->sort(                            compare); break;
-      case super::MEMT: ConstCast(T._memt)->sort(                            compare); break;
-      case super::MEMB: ConstCast(T._memb)->sort(                            compare); break;
-      case super::MEMX: ConstCast(T._memx)->sort(                            compare); break;
-      case super::MEML: ConstCast(T._meml)->sort(                            compare); break;
+      case super::PTR :                     Sort(ConstCast(T._ptr), T._ptr_elms, compare); break;
+      case super::MEMS: ConstCast(T._mems)->sort(                                compare); break;
+      case super::MEMC: ConstCast(T._memc)->sort(                                compare); break;
+      case super::MEMT: ConstCast(T._memt)->sort(                                compare); break;
+      case super::MEMB: ConstCast(T._memb)->sort(                                compare); break;
+      case super::MEMX: ConstCast(T._memx)->sort(                                compare); break;
+      case super::MEML: ConstCast(T._meml)->sort(                                compare); break;
    }
    return T;
 }
@@ -1579,13 +1615,13 @@ template<typename TYPE, Int Memt_size>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, M
 {
    switch(T._mode)
    {
-      case super::PTR :                     Sort(ConstCast(T._ptr), T._elms, user, compare); break;
-      case super::MEMS: ConstCast(T._mems)->sort(                            user, compare); break;
-      case super::MEMC: ConstCast(T._memc)->sort(                            user, compare); break;
-      case super::MEMT: ConstCast(T._memt)->sort(                            user, compare); break;
-      case super::MEMB: ConstCast(T._memb)->sort(                            user, compare); break;
-      case super::MEMX: ConstCast(T._memx)->sort(                            user, compare); break;
-      case super::MEML: ConstCast(T._meml)->sort(                            user, compare); break;
+      case super::PTR :                     Sort(ConstCast(T._ptr), T._ptr_elms, user, compare); break;
+      case super::MEMS: ConstCast(T._mems)->sort(                                user, compare); break;
+      case super::MEMC: ConstCast(T._memc)->sort(                                user, compare); break;
+      case super::MEMT: ConstCast(T._memt)->sort(                                user, compare); break;
+      case super::MEMB: ConstCast(T._memb)->sort(                                user, compare); break;
+      case super::MEMX: ConstCast(T._memx)->sort(                                user, compare); break;
+      case super::MEML: ConstCast(T._meml)->sort(                                user, compare); break;
    }
    return T;
 }
@@ -1593,13 +1629,13 @@ template<typename TYPE, Int Memt_size>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, M
 {
    switch(T._mode)
    {
-      case super::PTR :                     ReverseOrder(ConstCast(T._ptr), T._elms); break;
-      case super::MEMS: ConstCast(T._mems)->reverseOrder(                          ); break;
-      case super::MEMC: ConstCast(T._memc)->reverseOrder(                          ); break;
-      case super::MEMT: ConstCast(T._memt)->reverseOrder(                          ); break;
-      case super::MEMB: ConstCast(T._memb)->reverseOrder(                          ); break;
-      case super::MEMX: ConstCast(T._memx)->reverseOrder(                          ); break;
-      case super::MEML: ConstCast(T._meml)->reverseOrder(                          ); break;
+      case super::PTR :                     ReverseOrder(ConstCast(T._ptr), T._ptr_elms); break;
+      case super::MEMS: ConstCast(T._mems)->reverseOrder(                              ); break;
+      case super::MEMC: ConstCast(T._memc)->reverseOrder(                              ); break;
+      case super::MEMT: ConstCast(T._memt)->reverseOrder(                              ); break;
+      case super::MEMB: ConstCast(T._memb)->reverseOrder(                              ); break;
+      case super::MEMX: ConstCast(T._memx)->reverseOrder(                              ); break;
+      case super::MEML: ConstCast(T._meml)->reverseOrder(                              ); break;
    }
    return T;
 }
@@ -1607,7 +1643,7 @@ template<typename TYPE, Int Memt_size>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, M
 {
    switch(T._mode)
    {
-      case super::PTR : if(InRange(i, T._elms) && InRange(j, T._elms))Swap(&T[i], &T[j], T.elmSize()); break;
+      case super::PTR : if(InRange(i, T._ptr_elms) && InRange(j, T._ptr_elms))Swap(&T[i], &T[j], T.elmSize()); break;
       case super::MEMS: ConstCast(T._mems)->swapOrder(i, j); break;
       case super::MEMC: ConstCast(T._memc)->swapOrder(i, j); break;
       case super::MEMT: ConstCast(T._memt)->swapOrder(i, j); break;
@@ -1645,7 +1681,7 @@ template<typename TYPE, Int Memt_size>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, M
 {
    switch(T._mode)
    {
-      case super::PTR : CopyN(ConstCast(T._ptr), src, T._elms); break; // use 'CopyN' in case 'src' is null
+      case super::PTR : CopyN(ConstCast(T._ptr), src, T._ptr_elms); break; // use 'CopyN' in case 'src' is null
       case super::MEMS: ConstCast(T._mems)->copyFrom(src); break;
       case super::MEMC: ConstCast(T._memc)->copyFrom(src); break;
       case super::MEMT: ConstCast(T._memt)->copyFrom(src); break;
@@ -1734,6 +1770,7 @@ T1(TYPE)  TYPE*  Cache<TYPE>::get       (C UID &id  , CChar *path) {return (TYPE
 T1(TYPE)  TYPE*  Cache<TYPE>::operator()(C Str &file, CChar *path) {return (TYPE*)super::require(file, path, false);}
 T1(TYPE)  TYPE*  Cache<TYPE>::operator()(C UID &id  , CChar *path) {return (TYPE*)super::require(id  , path, false);}
 
+T1(TYPE)  C Str&  Cache<TYPE>::name    (C TYPE *data             )C {return super::name    (data       );}
 T1(TYPE)  CChar*  Cache<TYPE>::name    (C TYPE *data, CChar *path)C {return super::name    (data,  path);}
 T1(TYPE)  UID     Cache<TYPE>::id      (C TYPE *data             )C {return super::id      (data       );}
 T1(TYPE)  Int     Cache<TYPE>::ptrCount(C TYPE *data             )C {return super::ptrCount(data       );}
@@ -1754,17 +1791,18 @@ T1(TYPE)  void  Cache<TYPE>::update() {return super::update();}
 
 T1(TYPE)  void  Cache<TYPE>::setLoadUser(Ptr user) {super::setLoadUser(ClassFunc<TYPE>::LoadUser, user);}
 
-T1(TYPE) T1(EXTENDED)  Cache<TYPE>&  Cache<TYPE>::replaceClass() {ASSERT_BASE_EXTENDED<TYPE, EXTENDED>(); lock(); del(); /*_data_offset=OFFSET(typename Cache<EXTENDED>::Elm, data);*/ _desc_offset=OFFSET(typename Cache<EXTENDED>::Elm, desc); _memx.replaceClass<typename Cache<EXTENDED>::Elm>(); unlock(); return T;}
+T1(TYPE) T1(EXTENDED)  Cache<TYPE>&  Cache<TYPE>::replaceClass() {ASSERT_BASE_EXTENDED<TYPE, EXTENDED>(); lock(); del(); /*_data_offset=OFFSET(typename Cache<EXTENDED>::Elm, data);*/ _desc_offset=OFFSET(typename Cache<EXTENDED>::Elm, desc); _memx.replaceClass<typename Cache<EXTENDED>::Elm>(); _load=ClassFunc<EXTENDED>::Load; unlock(); return T;}
 
 T1(TYPE)  Cache<TYPE>&  Cache<TYPE>::operator=(C Cache<TYPE> &src) {if(this!=&src){lock(); src.lock(); lockedFrom(src); FREPA(T)lockedData(i)=src.lockedData(i); src.unlock(); unlock();} return T;}
 
-T1(TYPE)  Cache<TYPE>::Cache(CChar8 *name, Int block_elms) : _Cache(name, block_elms, ClassFunc<TYPE>::Load) {replaceClass<TYPE>();}
+T1(TYPE)  Cache<TYPE>::Cache(CChar8 *name, Int block_elms) : _Cache(name, block_elms) {replaceClass<TYPE>();}
 
          inline Int Elms(C _Cache       &cache) {return cache.elms();}
 T1(TYPE) inline Int Elms(C  Cache<TYPE> &cache) {return cache.elms();}
 /******************************************************************************/
 // CACHE ELEMENT POINTER
 /******************************************************************************/
+template<typename TYPE, Cache<TYPE> &CACHE>  C Str&  CacheElmPtr<TYPE,CACHE>::name (            )C {return CACHE.name (_data       );}
 template<typename TYPE, Cache<TYPE> &CACHE>  CChar*  CacheElmPtr<TYPE,CACHE>::name (CChar *path )C {return CACHE.name (_data, path );}
 template<typename TYPE, Cache<TYPE> &CACHE>  UID     CacheElmPtr<TYPE,CACHE>::id   (            )C {return CACHE.id   (_data       );}
 template<typename TYPE, Cache<TYPE> &CACHE>  Bool    CacheElmPtr<TYPE,CACHE>::dummy(            )C {return CACHE.dummy(_data       );}
@@ -2070,6 +2108,17 @@ T1(TYPE)  void SplineInterpolator<TYPE>::add(C TYPE &value, C InterpolatorTemp &
 T1(TYPE)  void AngularInterpolator<TYPE>::update(C InterpolatorTemp &temp) {if(temp.op){              _prev=_cur; _cur=_next;} _value=Lerp (        _prev, _cur,                  temp.frac);}
 T1(TYPE)  void  LinearInterpolator<TYPE>::update(C InterpolatorTemp &temp) {if(temp.op){              _prev=_cur; _cur=_next;} _value=Lerp (        _prev, _cur,                  temp.frac);}
 T1(TYPE)  void  SplineInterpolator<TYPE>::update(C InterpolatorTemp &temp) {if(temp.op){_prev2=_prev; _prev=_cur; _cur=_next;} _value=Lerp4(_prev2, _prev, _cur, _cur-_prev+_cur, temp.frac);} // predict next instead of using '_next' because we may not know it in all cases
+/******************************************************************************/
+// INPUT
+/******************************************************************************/
+inline Bool Joypad::mini()C
+{
+#if SWITCH
+   return _mini;
+#else
+   return false;
+#endif
+}
 /******************************************************************************/
 // IO
 /******************************************************************************/

@@ -366,7 +366,7 @@ class BuyClass : Window
    }
    virtual GuiObj* test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override
    {
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          GuiObj *go=super.test(gpc, pos, mouse_wheel); if(!contains(go)){mouse_wheel=null; go=this;} 
          return  go;
@@ -376,7 +376,7 @@ class BuyClass : Window
    virtual void update(C GuiPC &gpc)override
    {
       super.update(gpc);
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          flt t=time-Time.appTime();
          if(t>=0){no.disabled(true ); no.text=S+"No ("+Ceil(t)+')';}
@@ -388,10 +388,10 @@ class BuyClass : Window
    }
    virtual void draw(C GuiPC &gpc)override
    {
-      if(visible() && gpc.visible)
+      if(gpc.visible && visible())
       {
          D.clip();
-         Rect(-D.w(), -D.h(), D.w(), D.h()).draw(ColorAlpha(BLACK, 0.4));
+         D.rect().draw(ColorAlpha(BLACK, 0.4));
          super.draw(gpc);
       }
    }

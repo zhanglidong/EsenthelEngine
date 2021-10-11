@@ -59,12 +59,14 @@ WaterMtrlRegion WaterMtrlEdit;
    void WaterMtrlRegion::Col(  WaterMtrlRegion &mr, C Str &t) {mr.edit.color_s.xyz=TextVec(t); mr.edit.color_time.getUTC();}
    Str  WaterMtrlRegion::Smooth(C WaterMtrlRegion &mr          ) {return mr.edit.smooth;}
    void WaterMtrlRegion::Smooth(  WaterMtrlRegion &mr, C Str &t) {mr.edit.smooth=TextFlt(t); mr.edit.smooth_time.getUTC();}
-   Str  WaterMtrlRegion::Reflect(C WaterMtrlRegion &mr          ) {return mr.edit.reflect;}
-   void WaterMtrlRegion::Reflect(  WaterMtrlRegion &mr, C Str &t) {mr.edit.reflect=TextFlt(t); mr.edit.reflect_time.getUTC();}
+   Str  WaterMtrlRegion::Reflect(C WaterMtrlRegion &mr          ) {return mr.edit.reflect_min;}
+   void WaterMtrlRegion::Reflect(  WaterMtrlRegion &mr, C Str &t) {mr.edit.reflect_min=TextFlt(t); mr.edit.reflect_time.getUTC();}
    Str  WaterMtrlRegion::NrmScale(C WaterMtrlRegion &mr          ) {return mr.edit.normal;}
    void WaterMtrlRegion::NrmScale(  WaterMtrlRegion &mr, C Str &t) {mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC();}
    Str  WaterMtrlRegion::FNY(C WaterMtrlRegion &mr          ) {return mr.edit.flip_normal_y;}
-   void WaterMtrlRegion::FNY(  WaterMtrlRegion &mr, C Str &t) {uint base_tex=mr.edit.baseTex(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(base_tex, true, false);}
+   void WaterMtrlRegion::FNY(  WaterMtrlRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(textures, EditMaterial::CHANGED_FLIP_NRM_Y, false);}
+   Str  WaterMtrlRegion::SmtIsRgh(C WaterMtrlRegion &mr          ) {return mr.edit.smooth_is_rough;}
+   void WaterMtrlRegion::SmtIsRgh(  WaterMtrlRegion &mr, C Str &t) {TEX_FLAG textures=mr.edit.textures(); mr.edit.smooth_is_rough=TextBool(t); mr.edit.smooth_is_rough_time.getUTC(); mr.rebuildBase(textures, EditMaterial::CHANGED_SMOOTH_IS_ROUGH, false);}
    Str  WaterMtrlRegion::WaveScale(C WaterMtrlRegion &mr          ) {return mr.edit.wave_scale;}
    void WaterMtrlRegion::WaveScale(  WaterMtrlRegion &mr, C Str &t) {mr.edit.wave_scale=TextFlt(t); mr.edit.wave_scale_time.getUTC();}
    Str  WaterMtrlRegion::ScaleColor(C WaterMtrlRegion &mr          ) {return 1/mr.edit.scale_color;}
@@ -85,17 +87,15 @@ WaterMtrlRegion WaterMtrlEdit;
    void WaterMtrlRegion::ColorUnderwater0(  WaterMtrlRegion &mr, C Str &t) {mr.edit.color_underwater0=TextVec(t); mr.edit.color_underwater_time.getUTC();}
    Str  WaterMtrlRegion::ColorUnderwater1(C WaterMtrlRegion &mr          ) {return mr.edit.color_underwater1;}
    void WaterMtrlRegion::ColorUnderwater1(  WaterMtrlRegion &mr, C Str &t) {mr.edit.color_underwater1=TextVec(t); mr.edit.color_underwater_time.getUTC();}
-   Str  WaterMtrlRegion::RefractUnderwater(C WaterMtrlRegion &mr          ) {return mr.edit.refract_underwater;}
-   void WaterMtrlRegion::RefractUnderwater(  WaterMtrlRegion &mr, C Str &t) {mr.edit.refract_underwater=TextFlt(t); mr.edit.refract_underwater_time.getUTC();}
    EditMaterial& WaterMtrlRegion::getEditMtrl(){return edit;}
-   C ImagePtr    & WaterMtrlRegion::getBase0(){return game->  colorMap();}
-   C ImagePtr    & WaterMtrlRegion::getBase1(){return game-> normalMap();}
-   C ImagePtr    & WaterMtrlRegion::getBase2(){return game->   bumpMap();}
+   C ImagePtr    & WaterMtrlRegion::getBase0(){return game->    colorMap();}
+   C ImagePtr    & WaterMtrlRegion::getBase1(){return game->   normalMap();}
+   C ImagePtr    & WaterMtrlRegion::getBase2(){return game->     bumpMap();}
    bool          WaterMtrlRegion::water()C {return true;}
    void WaterMtrlRegion::create()
    {
       undos.replaceClass<Change>();
-      super::create(); elm_type=ELM_WATER_MTRL; max_zoom=50; preview_cam.dist=15; preview_cam.pitch=-PI_6; preview_cam.setSpherical(); set_mtrl.del(); brightness.del(); preview_mode.del(); preview_big.range=preview.range=200;
+      super::create(); elm_type=ELM_WATER_MTRL; max_zoom=50; preview_cam.dist=15; preview_cam.pitch=-PI_6; preview_cam.setSpherical(); set_mtrl.del(); brightness.del(); rgb_1.del(); emissive.del(); preview_mode.del(); preview_big.range=preview.range=200;
 
       flt e=0.01f, prop_height=0.044f;
       props.clear();
@@ -118,8 +118,6 @@ WaterMtrlRegion WaterMtrlEdit;
 
       props.New().create("Underwater Surface Color", MemberDesc(DATA_VEC ).setFunc(ColorUnderwater0 , ColorUnderwater0 )).setColor();
       props.New().create("Underwater Depths Color" , MemberDesc(DATA_VEC ).setFunc(ColorUnderwater1 , ColorUnderwater1 )).setColor();
-
-      props.New().create("Refraction Underwater"   , MemberDesc(DATA_REAL).setFunc(RefractUnderwater, RefractUnderwater)).range(0, 0.04f).mouseEditSpeed(0.02f);
 
       Rect prop_rect=AddProperties(props, sub, 0, prop_height, 0.135f, &ts); REPAO(props).autoData(this).changed(Changed, PreChanged);
 
@@ -188,13 +186,13 @@ WaterMtrlRegion WaterMtrlEdit;
       VecI2 sizes[3]={size, size, size};
 
       if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
-         if(Proj.forceImageSize(edit.  color_map, 0, relative, edit.  color_map_time, time) // !! use '|' because all need to be processed !!
-         |  Proj.forceImageSize(edit.  alpha_map, 0, relative, edit.  alpha_map_time, time)
-         |  Proj.forceImageSize(edit.   bump_map, 0, relative, edit.   bump_map_time, time)
-         |  Proj.forceImageSize(edit. normal_map, 0, relative, edit. normal_map_time, time)
-         |  Proj.forceImageSize(edit. smooth_map, 0, relative, edit. smooth_map_time, time)
-         |  Proj.forceImageSize(edit.reflect_map, 0, relative, edit.reflect_map_time, time)
-         |  Proj.forceImageSize(edit.   glow_map, 0, relative, edit.   glow_map_time, time))
+         if(Proj.forceImageSize(edit. color_map, 0, relative, edit. color_map_time, time) // !! use '|' because all need to be processed !!
+         |  Proj.forceImageSize(edit. alpha_map, 0, relative, edit. alpha_map_time, time)
+         |  Proj.forceImageSize(edit.  bump_map, 0, relative, edit.  bump_map_time, time)
+         |  Proj.forceImageSize(edit.normal_map, 0, relative, edit.normal_map_time, time)
+         |  Proj.forceImageSize(edit.smooth_map, 0, relative, edit.smooth_map_time, time)
+         |  Proj.forceImageSize(edit. metal_map, 0, relative, edit. metal_map_time, time)
+         |  Proj.forceImageSize(edit.  glow_map, 0, relative, edit.  glow_map_time, time))
       {
          MtrlImages mi; mi.fromMaterial(edit, Proj); mi.waterBaseTextureSizes(&sizes[0], &sizes[1], &sizes[2]); // calculate actual sizes
          REPA(sizes)
@@ -202,28 +200,28 @@ WaterMtrlRegion WaterMtrlEdit;
             sizes[i].set(Max(1, Shl(sizes[i].x, size.x)), Max(1, Shl(sizes[i].y, size.y)));
             sizes[i].set(NearestPow2(sizes[i].x), NearestPow2(sizes[i].y)); // textures are gonna be resized to pow2 anyway, so force pow2 size, to avoid double resize
          }
-         // #WaterMaterialTextureLayout
+         // #MaterialTextureLayoutWater
          if(sizes[1]!=sizes[2])edit.separateNormalMap(time); // normal can be from bump
          relative=false; // we now have the sizes known, so disable relative mode
       }
 
-      // #WaterMaterialTextureLayout
-      if(Proj.forceImageSize(edit.  color_map,                                 sizes[0], relative, edit.  color_map_time, time) // !! use '|' because all need to be processed !!
-    //|  Proj.forceImageSize(edit.  alpha_map, edit.hasBase2Tex() ? sizes[2] : sizes[0], relative, edit.  alpha_map_time, time)
-      |  Proj.forceImageSize(edit.   bump_map,                                 sizes[2], relative, edit.   bump_map_time, time)
-      |  Proj.forceImageSize(edit. normal_map,                                 sizes[1], relative, edit. normal_map_time, time)
-    //|  Proj.forceImageSize(edit. smooth_map,                                 sizes[2], relative, edit. smooth_map_time, time)
-    //|  Proj.forceImageSize(edit.reflect_map,                                 sizes[2], relative, edit.reflect_map_time, time)
-    //|  Proj.forceImageSize(edit.   glow_map,                                 sizes[0], relative, edit.   glow_map_time, time)
+      // #MaterialTextureLayoutWater
+      if(Proj.forceImageSize(edit. color_map,                                 sizes[0], relative, edit. color_map_time, time) // !! use '|' because all need to be processed !!
+    //|  Proj.forceImageSize(edit. alpha_map, edit.hasBase2Tex() ? sizes[2] : sizes[0], relative, edit. alpha_map_time, time)
+      |  Proj.forceImageSize(edit.  bump_map,                                 sizes[2], relative, edit.  bump_map_time, time)
+      |  Proj.forceImageSize(edit.normal_map,                                 sizes[1], relative, edit.normal_map_time, time)
+    //|  Proj.forceImageSize(edit.smooth_map,                                 sizes[2], relative, edit.smooth_map_time, time)
+    //|  Proj.forceImageSize(edit. metal_map,                                 sizes[2], relative, edit. metal_map_time, time)
+    //|  Proj.forceImageSize(edit.  glow_map,                                 sizes[0], relative, edit.  glow_map_time, time)
       )
       {
          edit.cleanupMaps();
-         rebuildBase(edit.baseTex());
+         rebuildBase(edit.textures());
       }
    }
    void WaterMtrlRegion::resizeBase0(C VecI2 &size, bool relative)
 {
-      // #WaterMaterialTextureLayout
+      // #MaterialTextureLayoutWater
       undos.set("resizeBase");
       TimeStamp time; time.getUTC();
       VecI2 size0=size;
@@ -240,12 +238,12 @@ WaterMtrlRegion WaterMtrlEdit;
       if(Proj.forceImageSize(edit.color_map, size0, relative, edit.color_map_time, time))
       {
          edit.cleanupMaps();
-         rebuildBase(edit.baseTex());
+         rebuildBase(edit.textures());
       }
    }
    void WaterMtrlRegion::resizeBase1(C VecI2 &size, bool relative)
 {
-      // #WaterMaterialTextureLayout
+      // #MaterialTextureLayoutWater
       undos.set("resizeBase");
       TimeStamp time; time.getUTC();
       VecI2 size1=size;
@@ -264,12 +262,12 @@ WaterMtrlRegion WaterMtrlEdit;
       if(Proj.forceImageSize(edit.normal_map, size1, relative, edit.normal_map_time, time))
       {
          edit.cleanupMaps();
-         rebuildBase(edit.baseTex());
+         rebuildBase(edit.textures());
       }
    }
    void WaterMtrlRegion::resizeBase2(C VecI2 &size, bool relative)
 {
-      // #WaterMaterialTextureLayout
+      // #MaterialTextureLayoutWater
       undos.set("resizeBase");
       TimeStamp time; time.getUTC();
       VecI2 size2=size;
@@ -288,22 +286,22 @@ WaterMtrlRegion WaterMtrlEdit;
       if(Proj.forceImageSize(edit.bump_map, size2, relative, edit.bump_map_time, time))
       {
          edit.cleanupMaps();
-         rebuildBase(edit.baseTex());
+         rebuildBase(edit.textures());
       }
    }
-   void WaterMtrlRegion::rebuildBase(uint old_base_tex, bool changed_flip_normal_y, bool adjust_params, bool always)
+   void WaterMtrlRegion::rebuildBase(TEX_FLAG old_textures, uint changed_in_mtrl, bool adjust_params, bool always)
 {
       if(elm && game)
       {
-         uint new_base_tex;
+         TEX_FLAG has_textures=TEXF_NONE, known_textures=TEXF_NONE;
          if(auto_reload || always)
          {
-            new_base_tex=Proj.mtrlCreateBaseTextures(edit, changed_flip_normal_y); // set precise
+            known_textures|=TEXF_BASE; has_textures|=Proj.mtrlCreateBaseTextures(edit, changed_in_mtrl);
             Time.skipUpdate(); // compressing textures can be slow
-         }else new_base_tex=edit.baseTex(); // set approximate
+         }
+         if(adjust_params)edit.adjustParams(changed_in_mtrl, old_textures, has_textures, known_textures);
 
          setChanged();
-         if(adjust_params)AdjustMaterialParams(edit, *game, old_base_tex, new_base_tex, edit.hasLightMap());
          Proj.mtrlTexChanged();
 
          toGui();
@@ -315,7 +313,7 @@ WaterMtrlRegion WaterMtrlEdit;
    void WaterMtrlRegion::rebuildMacro()
 {
    }
-   void WaterMtrlRegion::rebuildLight(bool old_light_map, bool adjust_params)
+   void WaterMtrlRegion::rebuildEmissive(TEX_FLAG old_textures, bool adjust_params)
 {
    }
    void WaterMtrlRegion::elmChanged(C UID &mtrl_id)

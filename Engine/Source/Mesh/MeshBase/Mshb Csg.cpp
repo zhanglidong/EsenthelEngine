@@ -576,7 +576,7 @@ struct CSG // Constructive Solid Geometry
          }
       }
    }
-   void setSolid(MeshBase &mshb, C MeshBase &a, C MeshBase &b)
+   void setOpaque(MeshBase &mshb, C MeshBase &a, C MeshBase &b)
    {
       mshb.setVtxDup().setAdjacencies(true, false);
 
@@ -770,7 +770,7 @@ struct CSG // Constructive Solid Geometry
       Bool               id=FlagTest(a.flag()|b.flag(), FACE_ID);
       MeshBase           temp;
       build             (temp, ((a.flag()|b.flag())&VTX_ALL) | TRI_FLAG | (id ? FACE_ID : MESH_NONE));
-      setSolid          (temp, a, b);
+      setOpaque         (temp, a, b);
    #if DEBUG
       if(!Kb.b(KB_R))
    #endif
@@ -909,7 +909,7 @@ void ClipMesh(C MeshBase &src, C Matrix *matrix, MeshBase &dest, C Plane *clip_p
       ClipMeshSimple(src, matrix, dest, clip_plane, clip_planes, weld_pos_eps);
    }else
    {
-      MeshBase temp;
+      MeshBase temp_dest;
 
       // box test
       Vec  corner[8]; OBox(Box(src), matrix ? *matrix : MatrixIdentity).toCorners(corner);
@@ -929,8 +929,8 @@ void ClipMesh(C MeshBase &src, C Matrix *matrix, MeshBase &dest, C Plane *clip_p
       // create dest
       if(all_inside)
       {
-         temp.create(src, flag_and);
-         if(matrix)temp.transform(*matrix);
+         temp_dest.create(src, flag_and);
+         if(matrix)temp_dest.transform(*matrix);
       }else
       {
          Matrix3 matrix3; if(matrix){matrix3=*matrix; matrix3.normalize();}
@@ -979,17 +979,111 @@ void ClipMesh(C MeshBase &src, C Matrix *matrix, MeshBase &dest, C Plane *clip_p
          }
 
          // polys to dest
-         Triangulate(polys, temp, flag_and, weld_pos_eps, true, poly_flags.data());
+         Triangulate(polys, temp_dest, flag_and, weld_pos_eps, true, poly_flags.data());
       }
 
    finished:
-      Swap(dest, temp);
+      Swap(dest, temp_dest);
    }
+}
+/******************************************************************************/
+void ClipMesh(C MeshLod &src, C Matrix *matrix, MeshLod &dest, C Plane *clip_plane, Int clip_planes, MESH_FLAG flag_and, Flt weld_pos_eps)
+{
+   MeshLod temp_dest;
+
+   // box test
+   Box  box=src;
+   Vec  corner[8]; box.toCorners(corner); if(matrix)Transform(corner, *matrix, Elms(corner));
+   Bool all_inside=true;
+   REPD(p, clip_planes)
+   {
+      Bool  inside=false,
+           outside=false;
+      REPAD(c, corner)
+      {
+         if(Dist(corner[c], clip_plane[p])<=0)inside=true;else outside=true;
+      }
+      if(!inside)goto finished; // if no vertexes are inside the plane then cancel
+      if(outside)all_inside=false;
+   }
+
+   // create dest
+   if(all_inside)
+   {
+      temp_dest.create(src, flag_and);
+      if(matrix)temp_dest.transform(*matrix);
+   }else
+   {
+      Flt     scale=(matrix ? matrix->maxScale() : 1);
+      Matrix3 matrix3; if(matrix){matrix3=*matrix; matrix3.normalize();}
+
+      Memc< Byte          > poly_flags;
+      Memc< Memc<VtxFull> > polys;
+            Memc<VtxFull>   poly[2];
+            Bool            poly_cur=0;
+
+      FREPA(src)
+      {
+       C MeshPart &src_part = src     .parts[i]; MeshBase temp_src; if(!src_part.base.is() && src_part.render.is())temp_src.create(src_part.render);
+       C MeshBase &src      =(src_part.base.is() ? src_part.base : temp_src);
+         Bool      set_flags=FlagTest(src.flag()&flag_and, FACE_FLAG);
+
+         // triangles
+         REPA(src.tri)
+         {
+            VecI ind=src.tri.ind(i);
+            poly[poly_cur].New().from(src, ind.x);
+            poly[poly_cur].New().from(src, ind.y);
+            poly[poly_cur].New().from(src, ind.z);
+            if(matrix)REPAO(poly[poly_cur]).mul(*matrix, matrix3);
+            REP(clip_planes)
+            {
+               ClipPoly(poly[poly_cur], clip_plane[i], poly[poly_cur^1]);
+               poly_cur^=1; if(!poly[poly_cur].elms())goto no_tri;
+            }
+            Swap(polys.New(), poly[poly_cur]); if(set_flags)poly_flags.add(src.tri.flag() ? src.tri.flag(i) : 0);
+         no_tri:;
+            poly[poly_cur^1].clear();
+         }
+
+         // quads
+         REPA(src.quad)
+         {
+            VecI4 ind=src.quad.ind(i);
+            poly[poly_cur].New().from(src, ind.x);
+            poly[poly_cur].New().from(src, ind.y);
+            poly[poly_cur].New().from(src, ind.z);
+            poly[poly_cur].New().from(src, ind.w);
+            if(matrix)REPAO(poly[poly_cur]).mul(*matrix, matrix3);
+            REP(clip_planes)
+            {
+               ClipPoly(poly[poly_cur], clip_plane[i], poly[poly_cur^1]);
+               poly_cur^=1; if(!poly[poly_cur].elms())goto no_quad;
+            }
+            Swap(polys.New(), poly[poly_cur]); if(set_flags)poly_flags.add(src.quad.flag() ? src.quad.flag(i) : 0);
+         no_quad:;
+            poly[poly_cur^1].clear();
+         }
+
+         // polys to dest
+         if(polys.elms())
+         {
+            MeshPart &dest_part=temp_dest.parts.New(); dest_part.copyParams(src_part); dest_part.scaleParams(scale);
+            Triangulate(polys, dest_part.base, src.flag()&flag_and, weld_pos_eps, true, poly_flags.data());
+            polys.clear(); poly_flags.clear();
+         }
+      }
+      temp_dest. copyParams(src);
+      temp_dest.scaleParams(scale);
+   }
+
+finished:
+   Swap(dest, temp_dest);
 }
 /******************************************************************************/
 void ClipMesh(C Mesh &src, C Matrix *matrix, Mesh &dest, C Plane *clip_plane, Int clip_planes, MESH_FLAG flag_and, Flt weld_pos_eps)
 {
-   Mesh temp;
+   Mesh temp_dest;
 
    // box test
    Vec  corner[8]; src.ext.toCorners(corner); if(matrix)Transform(corner, *matrix, Elms(corner));
@@ -1009,11 +1103,11 @@ void ClipMesh(C Mesh &src, C Matrix *matrix, Mesh &dest, C Plane *clip_plane, In
    // create dest
    if(all_inside)
    {
-      temp.create(src, flag_and);
+      temp_dest.create(src, flag_and);
       if(matrix)
       {
-         temp.transform(*matrix).setBox();
-         temp.lod_center=src.lod_center*(*matrix); // set manual lod center after setting box
+         temp_dest.transform(*matrix).setBox();
+         temp_dest.lod_center=src.lod_center*(*matrix); // set manual lod center after setting box
       }
    }else
    {
@@ -1025,15 +1119,15 @@ void ClipMesh(C Mesh &src, C Matrix *matrix, Mesh &dest, C Plane *clip_plane, In
             Memc<VtxFull>   poly[2];
             Bool            poly_cur=0;
 
-      temp.setLods(src.lods()); temp.copyParams(src);
+      temp_dest.setLods(src.lods()); temp_dest.copyParams(src);
       REPD(l, src.lods()) // order is important
       {
-       C MeshLod & src_lod=src .lod(l);
-         MeshLod &dest_lod=temp.lod(l);
+       C MeshLod & src_lod=     src .lod(l);
+         MeshLod &dest_lod=temp_dest.lod(l);
          FREPA(src_lod)
          {
-          C MeshPart &src_part = src_lod .parts[i]; MeshBase temp; if(!src_part.base.is() && src_part.render.is())temp.create(src_part.render);
-          C MeshBase &src      =(src_part.base.is() ? src_part.base : temp);
+          C MeshPart &src_part = src_lod .parts[i]; MeshBase temp_src; if(!src_part.base.is() && src_part.render.is())temp_src.create(src_part.render);
+          C MeshBase &src      =(src_part.base.is() ? src_part.base : temp_src);
             Bool      set_flags=FlagTest(src.flag()&flag_and, FACE_FLAG);
 
             // triangles
@@ -1081,18 +1175,18 @@ void ClipMesh(C Mesh &src, C Matrix *matrix, Mesh &dest, C Plane *clip_plane, In
                polys.clear(); poly_flags.clear();
             }
          }
-         if(!dest_lod.parts.elms())temp.removeLod(l);else
+         if(!dest_lod.parts.elms())temp_dest.removeLod(l);else
          {
             dest_lod. copyParams(src_lod);
             dest_lod.scaleParams(scale);
          }
       }
-      temp.setBox();
-      temp.lod_center=src.lod_center; if(matrix)temp.lod_center*=*matrix; // set manual lod center after setting box
+      temp_dest.setBox();
+      temp_dest.lod_center=src.lod_center; if(matrix)temp_dest.lod_center*=*matrix; // set manual lod center after setting box
    }
 
 finished:
-   Swap(dest, temp);
+   Swap(dest, temp_dest);
 }
 /******************************************************************************/
 void SplitMesh(C Mesh &src, C Matrix *matrix, Mesh &dest_positive, Mesh &dest_negative, C Plane &clip_plane, MESH_FLAG flag_and, Flt weld_pos_eps)

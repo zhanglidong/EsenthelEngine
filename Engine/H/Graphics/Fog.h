@@ -26,7 +26,7 @@ struct FogClass
 }extern
    Fog; // Global Fog Control
 /******************************************************************************/
-void       FogDraw(C OBox &obox, Flt density, C Vec &color_l); // draw local 'obox' based        fog, with uniform  'density', this can be called only in RM_CLOUD or RM_BLEND rendering modes
-void       FogDraw(C Ball &ball, Flt density, C Vec &color_l); // draw local 'ball' based        fog, with uniform  'density', this can be called only in RM_CLOUD or RM_BLEND rendering modes
-void HeightFogDraw(C OBox &obox, Flt density, C Vec &color_l); // draw local 'obox' based height fog, with variable 'density', this can be called only in RM_CLOUD or RM_BLEND rendering modes
+void       FogDraw(C OBox &obox, Flt density, C Vec &color_l); // draw local 'obox' based        fog, with uniform  'density', this can be called only in RM_BLEND rendering mode
+void       FogDraw(C Ball &ball, Flt density, C Vec &color_l); // draw local 'ball' based        fog, with uniform  'density', this can be called only in RM_BLEND rendering mode
+void HeightFogDraw(C OBox &obox, Flt density, C Vec &color_l); // draw local 'obox' based height fog, with variable 'density', this can be called only in RM_BLEND rendering mode
 /******************************************************************************/

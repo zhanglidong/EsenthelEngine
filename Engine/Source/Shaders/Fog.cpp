@@ -4,30 +4,28 @@
 /******************************************************************************/
 // GLOBAL
 /******************************************************************************/
-VecH4 Fog_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-             NOPERSP Vec2 inPosXY:TEXCOORD1
-         #if MULTI_SAMPLE
-           , NOPERSP PIXEL                 
-         #endif
+VecH4 Fog_PS(NOPERSP Vec2 posXY:POS_XY,
+             NOPERSP PIXEL
          #if MULTI_SAMPLE==2
-           ,         UInt index  :SV_SampleIndex
+           ,         UInt index:SV_SampleIndex
          #endif
             ):TARGET
 {
+   VecI2 pix=pixel.xy;
 #if MULTI_SAMPLE!=1
    #if MULTI_SAMPLE==0 // 0: 1s->1s
-      Vec pos=GetPosPoint(inTex, inPosXY);
+      Vec pos=GetPosPix(pix, posXY);
    #else // 2: ms->ms
-      Vec pos=GetPosMS(pixel.xy, index, inPosXY);
+      Vec pos=GetPosMS(pix, index, posXY);
    #endif
    Half dns=AccumulatedDensity(FogDensity, Length(pos));
 #else // 1: ms->1s
    Half dns=0, valid=HALF_MIN;
    UNROLL for(Int i=0; i<MS_SAMPLES; i++)
    {
-      Flt depth=TexDepthMSRaw(pixel.xy, i); if(DEPTH_FOREGROUND(depth))
+      Flt depth=TexDepthRawMS(pix, i); if(DEPTH_FOREGROUND(depth))
       {
-         Vec pos =GetPos(LinearizeDepth(depth), inPosXY);
+         Vec pos =GetPos(LinearizeDepth(depth), posXY);
              dns+=AccumulatedDensity(FogDensity, Length(pos));
          valid++;
       }
@@ -41,41 +39,40 @@ VecH4 Fog_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 /******************************************************************************/
 // TODO: optimize fog shaders
 void FogBox_VS(VtxInput vtx,
-           out Vec4    outVtx :POSITION ,
-           out Vec     outPos :TEXCOORD0,
-           out Vec     outTex :TEXCOORD1,
-           out Vec4    outSize:TEXCOORD2,
-           out Matrix3 outMat :TEXCOORD3)
+           out Vec     outPos:TEXCOORD0,
+           out Vec     uvw   :TEXCOORD1,
+  NOINTERP out Vec4    size  :SIZE     ,
+  NOINTERP out Matrix3 mtrx  :MATRIX   ,
+           out Vec4    vpos  :POSITION )
 {
-   outMat[0]=ViewMatrixX(); outSize.x=Length(outMat[0]); outMat[0]/=outSize.x;
-   outMat[1]=ViewMatrixY(); outSize.y=Length(outMat[1]); outMat[1]/=outSize.y;
-   outMat[2]=ViewMatrixZ(); outSize.z=Length(outMat[2]); outMat[2]/=outSize.z;
-                            outSize.w=Max(outSize.xyz);
+   mtrx[0]=ViewMatrixX(); size.x=Length(mtrx[0]); mtrx[0]/=size.x;
+   mtrx[1]=ViewMatrixY(); size.y=Length(mtrx[1]); mtrx[1]/=size.y;
+   mtrx[2]=ViewMatrixZ(); size.z=Length(mtrx[2]); mtrx[2]/=size.z;
+                          size.w=Max(size.xyz);
 
    // convert to texture space (0..1)
-   outTex=vtx.pos()*0.5+0.5;
-   outVtx=Project(outPos=TransformPos(vtx.pos()));
+   uvw =vtx.pos()*0.5+0.5;
+   vpos=Project(outPos=TransformPos(vtx.pos()));
 }
 void FogBox_PS
 (
-   PIXEL,
-
-   Vec     inPos :TEXCOORD0,
-   Vec     inTex :TEXCOORD1,
-   Vec4    inSize:TEXCOORD2,
-   Matrix3 inMat :TEXCOORD3,
+         Vec     inPos:TEXCOORD0,
+         Vec     uvw  :TEXCOORD1,
+NOINTERP Vec4    size :SIZE     ,
+NOINTERP Matrix3 mtrx :MATRIX   ,
+         PIXEL,
 
    out VecH4 color:TARGET0,
-   out VecH4 mask :TARGET1
+   out Half  alpha:TARGET1 // #RTOutput.Blend
 )
 {
-   Flt z  =TexDepthPoint(PixelToUV(pixel));
-   Vec pos=inTex,
-       dir=Normalize(inPos); dir*=Min((SQRT3*2)*inSize.w, (z-inPos.z)/dir.z);
-       dir=TransformTP(dir, inMat); // convert to box space
+   Flt z  =TexDepthPix(pixel.xy);
+   Vec pos=uvw,
+       dir=Normalize(inPos); dir*=Min((SQRT3*2)*size.w, (z-inPos.z)/dir.z);
+       dir=TransformTP(dir, mtrx); // convert to box space
 
    // convert to texture space (0..1)
-   dir=dir/(2*inSize.xyz);
+   dir=dir/(2*size.xyz);
 
    Vec end=pos+dir;
 
@@ -87,8 +84,8 @@ void FogBox_PS
    if(end.z>1)end+=(1-end.z)/dir.z*dir;
 
        dir =end-pos;
-       dir*=inSize.xyz;
-   Flt len =Length(dir)/inSize.w;
+       dir*=size.xyz;
+   Flt len =Length(dir)/size.w;
 
    Flt dns=LocalFogDensity;
 #if HEIGHT
@@ -97,43 +94,41 @@ void FogBox_PS
 
    color.rgb=LocalFogColor;
    color.a  =AccumulatedDensity(dns, len);
-   mask.rgb=0; mask.a=color.a;
+   alpha=color.a;
 }
 /******************************************************************************/
 void FogBoxI_VS(VtxInput vtx,
-            out Vec2    outTex  :TEXCOORD0,
-            out Vec2    outPosXY:TEXCOORD1,
-            out Vec4    outSize :TEXCOORD2,
-            out Matrix3 outMat  :TEXCOORD3,
-            out Vec4    outVtx  :POSITION )
+   NOPERSP  out Vec2    posXY:POS_XY,
+   NOINTERP out Vec4    size :SIZE,
+   NOINTERP out Matrix3 mtrx :MATRIX,
+   NOPERSP  out Vec4    vpos :POSITION)
 {
-   outMat[0]=ViewMatrixX(); outSize.x=Length(outMat[0]); outMat[0]/=outSize.x;
-   outMat[1]=ViewMatrixY(); outSize.y=Length(outMat[1]); outMat[1]/=outSize.y;
-   outMat[2]=ViewMatrixZ(); outSize.z=Length(outMat[2]); outMat[2]/=outSize.z;
-                            outSize.w=Max(outSize.xyz);
+   mtrx[0]=ViewMatrixX(); size.x=Length(mtrx[0]); mtrx[0]/=size.x;
+   mtrx[1]=ViewMatrixY(); size.y=Length(mtrx[1]); mtrx[1]/=size.y;
+   mtrx[2]=ViewMatrixZ(); size.z=Length(mtrx[2]); mtrx[2]/=size.z;
+                          size.w=Max(size.xyz);
 
-   outVtx  =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
-   outTex  =vtx.tex();
-   outPosXY=UVToPosXY(outTex);
+   vpos =vtx.pos4();
+   posXY=UVToPosXY(vtx.uv());
 }
 void FogBoxI_PS
 (
-   NOPERSP Vec2    inTex  :TEXCOORD0,
-   NOPERSP Vec2    inPosXY:TEXCOORD1,
-   NOPERSP Vec4    inSize :TEXCOORD2,
-   NOPERSP Matrix3 inMat  :TEXCOORD3,
+   NOPERSP  Vec2    posXY:POS_XY,
+   NOINTERP Vec4    size :SIZE,
+   NOINTERP Matrix3 mtrx :MATRIX,
+   NOPERSP  PIXEL,
 
    out VecH4 color:TARGET0,
-   out VecH4 mask :TARGET1
+   out Half  alpha:TARGET1 // #RTOutput.Blend
 )
 {
-   Vec pos=GetPosPoint(inTex, inPosXY),
-       dir=Normalize(pos); dir*=Min((SQRT3*2)*inSize.w, (pos.z-Viewport.from)/dir.z);
-       dir=TransformTP(dir, inMat); // convert to box space
+   Vec pos=GetPosPix  (pixel.xy, posXY),
+       dir=Normalize  (pos); dir*=Min((SQRT3*2)*size.w, (pos.z-Viewport.from)/dir.z);
+       dir=TransformTP(dir, mtrx); // convert to box space
 
    // convert to texture space (0..1)
-   pos=LocalFogInside/(2*inSize.xyz)+0.5;
-   dir=dir           /(2*inSize.xyz);
+   pos=LocalFogInside/(2*size.xyz)+0.5;
+   dir=dir           /(2*size.xyz);
 
 #if INSIDE==0
    if(pos.x<0)pos+=(0-pos.x)/dir.x*dir;
@@ -154,8 +149,8 @@ void FogBoxI_PS
    if(end.z>1)end+=(1-end.z)/dir.z*dir;
 
        dir =end-pos;
-       dir*=inSize.xyz;
-   Flt len =Length(dir)/inSize.w;
+       dir*=size.xyz;
+   Flt len =Length(dir)/size.w;
 
    Flt dns=LocalFogDensity;
 #if HEIGHT
@@ -164,35 +159,34 @@ void FogBoxI_PS
 
    color.rgb=LocalFogColor;
    color.a  =AccumulatedDensity(dns, len);
-   mask.rgb=0; mask.a=color.a;
+   alpha=color.a;
 }
 /******************************************************************************/
 void FogBall_VS(VtxInput vtx,
-            out Vec4 outVtx :POSITION ,
-            out Vec  outPos :TEXCOORD0,
-            out Vec  outTex :TEXCOORD1,
-            out Flt  outSize:TEXCOORD2)
+            out Vec  outPos:TEXCOORD0,
+            out Vec  uvw   :TEXCOORD1,
+   NOINTERP out Flt  size  :SIZE     ,
+            out Vec4 vpos  :POSITION )
 {
-   outTex =vtx.pos();
-   outSize=Length(ViewMatrixX());
-   outVtx =Project(outPos=TransformPos(vtx.pos()));
+   uvw =vtx.pos();
+   size=Length(ViewMatrixX());
+   vpos=Project(outPos=TransformPos(vtx.pos()));
 }
 void FogBall_PS
 (
-   PIXEL,
-
-   Vec inPos :TEXCOORD0,
-   Vec inTex :TEXCOORD1,
-   Flt inSize:TEXCOORD2,
+            Vec inPos:TEXCOORD0,
+            Vec uvw  :TEXCOORD1,
+   NOINTERP Flt size :SIZE,
+            PIXEL,
 
    out VecH4 color:TARGET0,
-   out VecH4 mask :TARGET1
+   out Half  alpha:TARGET1 // #RTOutput.Blend
 )
 {
-   Flt z  =TexDepthPoint(PixelToUV(pixel));
-   Vec pos=Normalize    (inTex),
-       dir=Normalize    (inPos); Flt max_length=(z-inPos.z)/(dir.z*inSize);
-       dir=Transform3   (dir, CamMatrix); // convert to ball space
+   Flt z  =TexDepthPix(pixel.xy);
+   Vec pos=Normalize  (uvw),
+       dir=Normalize  (inPos); Flt max_length=(z-inPos.z)/(dir.z*size);
+       dir=Transform3 (dir, CamMatrix); // convert to ball space
 
    // collision detection
    Vec p  =PointOnPlane(pos, dir);
@@ -206,35 +200,33 @@ void FogBall_PS
 
    color.rgb=LocalFogColor;
    color.a  =AccumulatedDensity(dns, len);
-   mask.rgb=0; mask.a=color.a;
+   alpha=color.a;
 }
 /******************************************************************************/
 void FogBallI_VS(VtxInput vtx,
-             out Vec2 outTex  :TEXCOORD0,
-             out Vec2 outPosXY:TEXCOORD1,
-             out Flt  outSize :TEXCOORD2,
-             out Vec4 outVtx  :POSITION )
+    NOPERSP  out Vec2 posXY:POS_XY,
+    NOINTERP out Flt  size :SIZE,
+    NOPERSP  out Vec4 vpos :POSITION)
 {
-   outVtx  =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by processing only solid pixels (no sky/background)
-   outTex  =vtx.tex();
-   outPosXY=UVToPosXY(outTex);
-   outSize =Length(ViewMatrixX());
+   vpos =vtx.pos4();
+   posXY=UVToPosXY(vtx.uv());
+   size =Length(ViewMatrixX());
 }
 void FogBallI_PS
 (
-   NOPERSP Vec2 inTex  :TEXCOORD0,
-   NOPERSP Vec2 inPosXY:TEXCOORD1,
-   NOPERSP Flt  inSize :TEXCOORD2,
+   NOPERSP  Vec2 posXY:POS_XY,
+   NOINTERP Flt  size :SIZE,
+   NOPERSP  PIXEL,
 
    out VecH4 color:TARGET0,
-   out VecH4 mask :TARGET1
+   out Half  alpha:TARGET1 // #RTOutput.Blend
 )
 {
-   Vec pos=GetPosPoint(inTex, inPosXY),
-       dir=Normalize (pos); Flt max_length=(pos.z-Viewport.from)/(dir.z*inSize);
+   Vec pos=GetPosPix (pixel.xy, posXY),
+       dir=Normalize (pos); Flt max_length=(pos.z-Viewport.from)/(dir.z*size);
        dir=Transform3(dir, CamMatrix); // convert to ball space
 
-   pos=LocalFogInside/inSize;
+   pos=LocalFogInside/size;
 
    // collision detection
    Vec p  =PointOnPlane(pos, dir);
@@ -248,6 +240,6 @@ void FogBallI_PS
 
    color.rgb=LocalFogColor;
    color.a  =AccumulatedDensity(dns, len);
-   mask.rgb=0; mask.a=color.a;
+   alpha=color.a;
 }
 /******************************************************************************/

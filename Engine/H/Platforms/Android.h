@@ -126,7 +126,7 @@ extern JMethodID getLastKnownLocation, getLatitude, getLongitude, getAltitude, g
 
 extern android_app   *AndroidApp;
 extern Str8           AndroidPackageName;
-extern Str            AndroidAppPath, AndroidAppDataPath, AndroidAppDataPublicPath, AndroidPublicPath, AndroidSDCardPath;
+extern Str            AndroidAppPath, AndroidAppDataPath, AndroidAppDataPublicPath, AndroidAppCachePath, AndroidPublicPath, AndroidSDCardPath;
 extern Byte           KeySource;
 extern Int            AndroidSDK;
 extern AAssetManager *AssetManager;

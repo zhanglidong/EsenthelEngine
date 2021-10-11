@@ -139,7 +139,7 @@ class WorldView : Viewport4Region, WorldData
    Tabs                      water_op, water_mode;
    Region                    water_props_region;
    Memx<Property>            water_props; 
-   Property                 *water_mtrl_p, *water_tex_scale, *water_smooth;
+   Property                 *water_mtrl_p, *water_uv_scale, *water_smooth;
    ThreadSafeMap<UID, Lake>   lakes;
    ThreadSafeMap<UID, River> rivers;
    Memc<Lake *>              visible_lakes , changed_lakes ;

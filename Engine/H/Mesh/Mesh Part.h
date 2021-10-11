@@ -91,15 +91,15 @@ struct MeshPart // Mesh Base + Mesh Render
    Bool      heightmap()C {return FlagTest(part_flag, MSHP_HEIGHTMAP);} // if this is a heightmap
 
    // transform
-   MeshPart& move         (              C Vec &move         ); //           move
-   MeshPart& scale        (C Vec &scale                      ); // scale
-   MeshPart& scaleMove    (C Vec &scale, C Vec &move         ); // scale and move
-   MeshPart& scaleMoveBase(C Vec &scale, C Vec &move         ); // scale and move (including the 'MeshBase' but without 'MeshRender')
-   MeshPart& transform    (C Matrix3               &matrix   ); // transform by matrix
-   MeshPart& transform    (C Matrix                &matrix   ); // transform by matrix
-   MeshPart& animate      (C MemPtrN<Matrix , 256> &matrixes ); // animate   by matrixes
-   MeshPart& animate      (C MemPtrN<MatrixM, 256> &matrixes ); // animate   by matrixes
-   MeshPart& animate      (C AnimatedSkeleton      &anim_skel); // animate   by skeleton
+   MeshPart& move         (              C Vec &move                               ); //           move
+   MeshPart& scale        (C Vec &scale                                            ); // scale
+   MeshPart& scaleMove    (C Vec &scale, C Vec &move                               ); // scale and move
+   MeshPart& scaleMoveBase(C Vec &scale, C Vec &move                               ); // scale and move (including the 'MeshBase' but without 'MeshRender')
+   MeshPart& transform    (C Matrix3               &matrix, Bool scale_normals=true); // transform by matrix, 'scale_normals'=if scale normals (if false then normals are not scaled but only rotated)
+   MeshPart& transform    (C Matrix                &matrix, Bool scale_normals=true); // transform by matrix, 'scale_normals'=if scale normals (if false then normals are not scaled but only rotated)
+   MeshPart& animate      (C MemPtrN<Matrix , 256> &matrixes                       ); // animate   by matrixes
+   MeshPart& animate      (C MemPtrN<MatrixM, 256> &matrixes                       ); // animate   by matrixes
+   MeshPart& animate      (C AnimatedSkeleton      &anim_skel                      ); // animate   by skeleton
 
    // texture transform
    MeshPart& texMove  (C Vec2 &move , Byte tex_index=0); // move   texture UV's
@@ -124,10 +124,10 @@ struct MeshPart // Mesh Base + Mesh Render
 
    // draw
       // default drawing, doesn't use automatic Frustum Culling, this doesn't draw the mesh immediately, instead it adds the mesh to a draw list
-      void draw(C MatrixM          &matrix, C MatrixM &matrix_prev )C; // add mesh to draw list using 'matrix'    matrix          velocities based on 'matrix_prev' matrix from previous frame, this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed: RM_EARLY_Z RM_SOLID RM_SOLID_M RM_AMBIENT RM_BLEND
-      void draw(C MatrixM          &matrix                         )C; // add mesh to draw list using 'matrix'    matrix   and no velocities                                                  , this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed: RM_EARLY_Z RM_SOLID RM_SOLID_M RM_AMBIENT RM_BLEND
-      void draw(C AnimatedSkeleton &anim_skel                      )C; // add mesh to draw list using 'anim_skel' matrixes and    velocities                                                  , this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed:            RM_SOLID RM_SOLID_M RM_AMBIENT RM_BLEND, 'anim_skel' must point to constant memory address (the pointer is stored through which the object can be accessed later during frame rendering)
-      void draw(C AnimatedSkeleton &anim_skel, C Material &material)C; // add mesh to draw list using 'anim_skel' matrixes and    velocities                                                  , this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed:            RM_SOLID RM_SOLID_M RM_AMBIENT RM_BLEND, 'anim_skel' must point to constant memory address (the pointer is stored through which the object can be accessed later during frame rendering), 'material'=material used for rendering which overrides the default material, however for performance reasons, the default shader is used, which means that the 'material' should be similar to the default material, and if it's too different then some artifacts can occur
+      void draw(C MatrixM          &matrix, C MatrixM &matrix_prev )C; // add mesh to draw list using 'matrix'    matrix          velocities based on 'matrix_prev' matrix from previous frame, this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed: RM_EARLY_Z RM_OPAQUE RM_OPAQUE_M RM_AMBIENT RM_BLEND
+      void draw(C MatrixM          &matrix                         )C; // add mesh to draw list using 'matrix'    matrix   and no velocities                                                  , this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed: RM_EARLY_Z RM_OPAQUE RM_OPAQUE_M RM_AMBIENT RM_BLEND
+      void draw(C AnimatedSkeleton &anim_skel                      )C; // add mesh to draw list using 'anim_skel' matrixes and    velocities                                                  , this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed:            RM_OPAQUE RM_OPAQUE_M RM_AMBIENT RM_BLEND, 'anim_skel' must point to constant memory address (the pointer is stored through which the object can be accessed later during frame rendering)
+      void draw(C AnimatedSkeleton &anim_skel, C Material &material)C; // add mesh to draw list using 'anim_skel' matrixes and    velocities                                                  , this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed:            RM_OPAQUE RM_OPAQUE_M RM_AMBIENT RM_BLEND, 'anim_skel' must point to constant memory address (the pointer is stored through which the object can be accessed later during frame rendering), 'material'=material used for rendering which overrides the default material, however for performance reasons, the default shader is used, which means that the 'material' should be similar to the default material, and if it's too different then some artifacts can occur
 
       void drawShadow(C MatrixM          &matrix                         )C; // add mesh to shadow draw list using 'matrix'    matrix  , this should be called only in RM_SHADOW
       void drawShadow(C AnimatedSkeleton &anim_skel                      )C; // add mesh to shadow draw list using 'anim_skel' skeleton, this should be called only in RM_SHADOW, 'anim_skel' must point to constant memory address (the pointer is stored through which the object can be accessed later during frame rendering)
@@ -173,7 +173,7 @@ private:
 #endif
    struct Variation
    {
-      mutable Int last_solid_instance, last_shadow_instance; // keep 'last_solid_instance' as first member, because it's used most often, have to keep 2 separate, because in forward renderer we queue solid draw calls, but before we draw them, we process shadows first
+      mutable Int last_opaque_instance, last_shadow_instance; // keep 'last_opaque_instance' as first member, because it's used most often, have to keep 2 separate, because in forward renderer we queue opaque draw calls, but before we draw them, we process shadows first
       MaterialPtr material;
       Shader     *shader[RM_SHADER_NUM];
    #if !EE_PRIVATE
@@ -186,10 +186,10 @@ private:
       FRST *frst;
       BLST *blst;
 
-      void unlinkSolid ()C {last_solid_instance =-1;}
+      void unlinkOpaque()C {last_opaque_instance=-1;}
       void unlinkShadow()C {last_shadow_instance=-1;}
-      void unlink      ()C {unlinkSolid(); unlinkShadow();}
-      Bool drawn       ()C {return last_solid_instance>=0 || last_shadow_instance>=0;}
+      void unlink      ()C {unlinkOpaque(); unlinkShadow();}
+      Bool drawn       ()C {return last_opaque_instance>=0 || last_shadow_instance>=0;}
 
     C Material& getMaterial      (                  )C {return GetMaterial      (material());}
     C Material& getShadowMaterial(Bool reuse_default)C {return GetShadowMaterial(material(), reuse_default);}
@@ -212,7 +212,7 @@ private:
    void setShader     (Int lod_index, Variation &variation);
    void setShaderMulti(Int lod_index);
 
-   void unlinkSolid ()C;
+   void unlinkOpaque()C;
    void unlinkShadow()C;
    void unlink      ()C;
 #endif

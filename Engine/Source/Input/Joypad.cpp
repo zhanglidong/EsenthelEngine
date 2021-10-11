@@ -3,7 +3,7 @@
 namespace EE{
 /******************************************************************************/
 static Bool CalculateJoypadSensors;
-CChar* Joypad::_button_name[32];
+CChar8* Joypad::_button_name[32];
 MemtN<Joypad, 4> Joypads;
 /******************************************************************************/
 #if MAC
@@ -119,7 +119,12 @@ static void JoypadAction(void *inContext, IOReturn inResult, void *inSender, IOH
                if(InRange(val, elm->max))
                {
                   CosSin(jp.dir.x, jp.dir.y, val*elm->mul+elm->add);
-               }else jp.dir.zero();
+                  jp.diri.set(Round(jp.dir.x), Round(jp.dir.y));
+               }else
+               {
+                  jp.dir .zero();
+                  jp.diri.zero();
+               }
             }break;
 
             case MacJoypad::Elm::BUTTON:
@@ -163,11 +168,8 @@ Joypad::Joypad()
 
    zero();
 }
-Str Joypad::buttonName(Int b)C
-{
-   if(InRange(b, _button_name))return _button_name[b];
-   return S;
-}
+CChar8* Joypad::buttonName(Int b)C {return InRange(b, _button_name) ? _button_name[b] : null;}
+CChar8* Joypad::ButtonName(Int b)  {return InRange(b, _button_name) ? _button_name[b] : null;}
 /******************************************************************************/
 Bool Joypad::supportsVibrations()C
 {
@@ -226,7 +228,12 @@ Joypad& Joypad::vibration(C Vibration &left, C Vibration &right)
 void Joypad::zero()
 {
    Zero(_button);
-   REPAO(_last_t)=-FLT_MAX;
+   REPAO(_last_t )=-FLT_MAX;
+          _dir_t  =-FLT_MAX;
+   REPAO( _dir_at)=-FLT_MAX;
+   REPAO(diri_ar).zero();
+         diri_r  .zero();
+         diri    .zero();
          dir     .zero();
    REPAO(dir_a  ).zero();
    REPAO(trigger)=0;
@@ -236,6 +243,8 @@ void Joypad::zero()
 void Joypad::clear()
 {
    REPAO(_button)&=~BS_NOT_ON;
+         diri_r  .zero();
+   REPAO(diri_ar).zero();
 }
 void Joypad::update(C Byte *on, Int elms)
 {
@@ -245,6 +254,37 @@ void Joypad::update(C Byte *on, Int elms)
 #if WINDOWS_NEW
 static inline Bool FlagTest(Windows::Gaming::Input::GamepadButtons flags, Windows::Gaming::Input::GamepadButtons f) {return (flags&f)!=Windows::Gaming::Input::GamepadButtons::None;}
 #endif
+static void UpdateDirRep(VecSB2 &diri_r, C VecSB2 &diri, Flt &time)
+{
+   if(diri.any())
+   {
+      if(Time.appTime()>=time)
+      {
+         diri_r=diri;
+         time  =Time.appTime()+((time<0) ? FirstRepeatPressTime : RepeatPressTime); // if first press, then wait longer
+      }
+   }else
+   {
+      time=-FLT_MAX;
+   }
+}
+static VecSB2 DirToDirI(C Vec2 &d)
+{
+#if 0
+   const Flt tan=0.414213568f; // Tan(PI_4/2) correct value
+#else
+   const Flt tan=0.5f; // use higher value to minimize chance of moving diagonally by accident
+#endif
+   const Flt dead=0.333f;
+   Flt v=Abs(d).max(); if(v>dead)return SignEpsB(d/v, tan);
+   return 0;
+}
+inline void Joypad::updateOK()
+{
+   UpdateDirRep(diri_r    ,           diri     , _dir_t    );
+   UpdateDirRep(diri_ar[0], DirToDirI(dir_a[0]), _dir_at[0]);
+   UpdateDirRep(diri_ar[1], DirToDirI(dir_a[1]), _dir_at[1]);
+}
 void Joypad::update()
 {
 #if WINDOWS
@@ -271,8 +311,9 @@ void Joypad::update()
          update(button, Elms(button));
 
          // digital pad
-         dir.x=FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_RIGHT)-FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_LEFT);
-         dir.y=FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_UP   )-FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_DOWN);
+         diri.set(FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_RIGHT)-FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_LEFT),
+                  FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_UP   )-FlagTest(state.Gamepad.wButtons, XINPUT_GAMEPAD_DPAD_DOWN));
+         dir=diri;
          Flt l2=dir.length2(); if(l2>1)dir/=SqrtFast(l2); // dir.clipLength(1)
 
          // analog pad
@@ -285,7 +326,7 @@ void Joypad::update()
          trigger[0]=state.Gamepad. bLeftTrigger/255.0f;
          trigger[1]=state.Gamepad.bRightTrigger/255.0f;
 
-         return;
+         updateOK(); return;
       }
    }
 #elif JP_GAMEPAD_INPUT
@@ -315,8 +356,9 @@ void Joypad::update()
       update(button, Elms(button));
 
       // digital pad
-      dir.x=FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::DPadRight)-FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::DPadLeft);
-      dir.y=FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::DPadUp   )-FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::DPadDown);
+      diri.set(FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::DPadRight)-FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::DPadLeft),
+               FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::DPadUp   )-FlagTest(state.Buttons, Windows::Gaming::Input::GamepadButtons::DPadDown));
+      dir=diri;
       Flt l2=dir.length2(); if(l2>1)dir/=SqrtFast(l2); // dir.clipLength(1)
 
       // analog pad
@@ -327,7 +369,7 @@ void Joypad::update()
       trigger[0]=state. LeftTrigger;
       trigger[1]=state.RightTrigger;
 
-      return;
+      updateOK(); return;
    }
 #endif
 #if JP_DIRECT_INPUT
@@ -342,12 +384,12 @@ void Joypad::update()
          // digital pad
          switch(state.rgdwPOV[0])
          {
-            case UINT_MAX: dir.zero(); break;
-            case        0: dir.set( 0,  1); break;
-            case     9000: dir.set( 1,  0); break;
-            case    18000: dir.set( 0, -1); break;
-            case    27000: dir.set(-1,  0); break;
-            default      : CosSin(dir.x, dir.y, PI_2-DegToRad(state.rgdwPOV[0]/100.0f)); break;
+            case UINT_MAX: diri.zero(      ); dir.zero(      ); break;
+            case        0: diri.set ( 0,  1); dir.set ( 0,  1); break;
+            case     9000: diri.set ( 1,  0); dir.set ( 1,  0); break;
+            case    18000: diri.set ( 0, -1); dir.set ( 0, -1); break;
+            case    27000: diri.set (-1,  0); dir.set (-1,  0); break;
+            default      : CosSin(dir.x, dir.y, PI_2-DegToRad(state.rgdwPOV[0]/100.0f)); diri.set(Round(dir.x), Round(dir.y)); break;
          }
 
          // analog pad
@@ -365,7 +407,7 @@ void Joypad::update()
          trigger[0]=(state.rglSlider[0]-32768)*mul;
          trigger[1]=(state.rglSlider[1]-32768)*mul;
 
-         return;
+         updateOK(); return;
       }
       if(App.active())acquire(true); // if failed then try to re-acquire
    }
@@ -376,10 +418,10 @@ void Joypad::update()
     C MacJoypad &mjp=MacJoypads[index];
       ASSERT(ELMS(T._button)==ELMS(mjp.button));
       update(mjp.button, Elms(mjp.button));
-      return;
+      updateOK(); return;
    }
 #else
-   return; // updated externally
+   updateOK(); return; // updated externally
 #endif
    zero();
 }
@@ -407,6 +449,10 @@ void Joypad::release(Byte b)
      _button[b]|= BS_RELEASED;
    }
 }
+void Joypad::eat(Int b)
+{
+   if(InRange(b, _button))FlagDisable(_button[b], BS_NOT_ON);
+}
 /******************************************************************************/
 void Joypad::acquire(Bool on)
 {
@@ -416,9 +462,7 @@ void Joypad::acquire(Bool on)
    if(!on)zero();
 }
 #if !SWITCH
-void Joypad::sensors(Bool calculate)
-{
-}
+void Joypad::sensors(Bool calculate) {}
 #endif
 /******************************************************************************/
 Bool JoypadSensors() {return CalculateJoypadSensors;}
@@ -430,6 +474,10 @@ void JoypadSensors(Bool calculate)
       REPAO(Joypads).sensors(CalculateJoypadSensors);
    }
 }
+/******************************************************************************/
+#if !SWITCH
+void ConfigureJoypads(Int min_players, Int max_players, C CMemPtr<Str> &player_names, C CMemPtr<Color> &player_colors) {}
+#endif
 /******************************************************************************/
 Joypad* FindJoypad(UInt id)
 {
@@ -453,7 +501,7 @@ UInt NewJoypadID(UInt id)
 #if JP_DIRECT_INPUT
 static Bool IsXInputDevice(C GUID &pGuidProductFromDirectInput) // !! Warning: this might trigger calling 'WindowMsg' !!
 {
-   Bool xinput=false, cleanupCOM=OK(CoInitialize(null)); // CoInit if needed
+   Bool xinput=false;
 
    // Create WMI
    IWbemLocator *pIWbemLocator=null; CoCreateInstance(__uuidof(WbemLocator), null, CLSCTX_INPROC_SERVER, __uuidof(IWbemLocator), (Ptr*)&pIWbemLocator);
@@ -514,7 +562,6 @@ static Bool IsXInputDevice(C GUID &pGuidProductFromDirectInput) // !! Warning: t
       }
       pIWbemLocator->Release();
    }
-   if(cleanupCOM)CoUninitialize();
    return xinput;
 }
 static BOOL CALLBACK EnumAxes(const DIDEVICEOBJECTINSTANCE *pdidoi, VOID *user)
@@ -552,7 +599,7 @@ static BOOL CALLBACK EnumJoypads(const DIDEVICEINSTANCE *DIDevInst, void*)
          IDirectInputDevice8 *did=null;
          if(OK(InputDevices.DI->CreateDevice(DIDevInst->guidInstance, &did, null)))
          if(OK(did->SetDataFormat      (&c_dfDIJoystick)))
-         if(OK(did->SetCooperativeLevel(App.Hwnd(), DISCL_EXCLUSIVE|DISCL_FOREGROUND)))
+         if(OK(did->SetCooperativeLevel(App.window(), DISCL_EXCLUSIVE|DISCL_FOREGROUND)))
          {
             Swap(joypad._device, did);
             joypad._name=DIDevInst->tszProductName;
@@ -625,38 +672,75 @@ void ListJoypads()
 void InitJoypads()
 {
    if(LogInit)LogN("InitJoypads");
-   Joypad::_button_name[ 0]=u"Joypad1";
-   Joypad::_button_name[ 1]=u"Joypad2";
-   Joypad::_button_name[ 2]=u"Joypad3";
-   Joypad::_button_name[ 3]=u"Joypad4";
-   Joypad::_button_name[ 4]=u"Joypad5";
-   Joypad::_button_name[ 5]=u"Joypad6";
-   Joypad::_button_name[ 6]=u"Joypad7";
-   Joypad::_button_name[ 7]=u"Joypad8";
-   Joypad::_button_name[ 8]=u"Joypad9";
-   Joypad::_button_name[ 9]=u"Joypad10";
-   Joypad::_button_name[10]=u"Joypad11";
-   Joypad::_button_name[11]=u"Joypad12";
-   Joypad::_button_name[12]=u"Joypad13";
-   Joypad::_button_name[13]=u"Joypad14";
-   Joypad::_button_name[14]=u"Joypad15";
-   Joypad::_button_name[15]=u"Joypad16";
-   Joypad::_button_name[16]=u"Joypad17";
-   Joypad::_button_name[17]=u"Joypad18";
-   Joypad::_button_name[18]=u"Joypad19";
-   Joypad::_button_name[19]=u"Joypad20";
-   Joypad::_button_name[20]=u"Joypad21";
-   Joypad::_button_name[21]=u"Joypad22";
-   Joypad::_button_name[22]=u"Joypad23";
-   Joypad::_button_name[23]=u"Joypad24";
-   Joypad::_button_name[24]=u"Joypad25";
-   Joypad::_button_name[25]=u"Joypad26";
-   Joypad::_button_name[26]=u"Joypad27";
-   Joypad::_button_name[27]=u"Joypad28";
-   Joypad::_button_name[28]=u"Joypad29";
-   Joypad::_button_name[29]=u"Joypad30";
-   Joypad::_button_name[30]=u"Joypad31";
-   Joypad::_button_name[31]=u"Joypad32";
+
+   // set this first so other codes can overwrite it
+   Joypad::_button_name[ 0]="1";
+   Joypad::_button_name[ 1]="2";
+   Joypad::_button_name[ 2]="3";
+   Joypad::_button_name[ 3]="4";
+   Joypad::_button_name[ 4]="5";
+   Joypad::_button_name[ 5]="6";
+   Joypad::_button_name[ 6]="7";
+   Joypad::_button_name[ 7]="8";
+   Joypad::_button_name[ 8]="9";
+   Joypad::_button_name[ 9]="10";
+   Joypad::_button_name[10]="11";
+   Joypad::_button_name[11]="12";
+   Joypad::_button_name[12]="13";
+   Joypad::_button_name[13]="14";
+   Joypad::_button_name[14]="15";
+   Joypad::_button_name[15]="16";
+   Joypad::_button_name[16]="17";
+   Joypad::_button_name[17]="18";
+   Joypad::_button_name[18]="19";
+   Joypad::_button_name[19]="20";
+   Joypad::_button_name[20]="21";
+   Joypad::_button_name[21]="22";
+   Joypad::_button_name[22]="23";
+   Joypad::_button_name[23]="24";
+   Joypad::_button_name[24]="25";
+   Joypad::_button_name[25]="26";
+   Joypad::_button_name[26]="27";
+   Joypad::_button_name[27]="28";
+   Joypad::_button_name[28]="29";
+   Joypad::_button_name[29]="30";
+   Joypad::_button_name[30]="31";
+   Joypad::_button_name[31]="32";
+
+   // set universal first
+   Joypad::_button_name[JB_A]="A";
+   Joypad::_button_name[JB_B]="B";
+   Joypad::_button_name[JB_X]="X";
+   Joypad::_button_name[JB_Y]="Y";
+
+   Joypad::_button_name[JB_L1]="L1";
+   Joypad::_button_name[JB_R1]="R1";
+   Joypad::_button_name[JB_L2]="L2";
+   Joypad::_button_name[JB_R2]="R2";
+
+   Joypad::_button_name[JB_LTHUMB]="LThumb";
+   Joypad::_button_name[JB_RTHUMB]="RThumb";
+
+   Joypad::_button_name[JB_BACK ]="Back";
+   Joypad::_button_name[JB_START]="Start";
+
+   // set platform specific
+#if WINDOWS
+   Joypad::_button_name[JB_PADDLE1]="Paddle1";
+   Joypad::_button_name[JB_PADDLE2]="Paddle2";
+   Joypad::_button_name[JB_PADDLE3]="Paddle3";
+   Joypad::_button_name[JB_PADDLE4]="Paddle4";
+#endif
+
+#if SWITCH
+   Joypad::_button_name[JB_LSL]= "Left SL";
+   Joypad::_button_name[JB_LSR]= "Left SR";
+   Joypad::_button_name[JB_RSL]="Right SL";
+   Joypad::_button_name[JB_RSR]="Right SR";
+
+   Joypad::_button_name[JB_MINUS]="-",
+   Joypad::_button_name[JB_PLUS ]="+",
+#endif
 
    ListJoypads();
 }

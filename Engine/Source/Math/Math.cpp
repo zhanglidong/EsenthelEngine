@@ -20,12 +20,12 @@ namespace EE{
 const Half HalfZero=false, HalfOne=true;
 const Int PrimeNumbers[16]={2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53};
 /******************************************************************************/
-Bool Special(C Flt &r) {UInt *d=(UInt*)&r; return (d[0]&0x7F800000)==0x7F800000         ;} // all exponent bits are on
-Bool Special(C Dbl &r) {UInt *d=(UInt*)&r; return (d[1]&0x7FF00000)==0x7FF00000         ;} // all exponent bits are on
-Bool NaN    (C Flt &r) {UInt *d=(UInt*)&r; return Special(r) &&  (d[0]&0x7FFFFF        );} // significand!=0
-Bool Inf    (C Flt &r) {UInt *d=(UInt*)&r; return Special(r) && !(d[0]&0x7FFFFF        );} // significand==0
-Bool NaN    (C Dbl &r) {UInt *d=(UInt*)&r; return Special(r) &&  (d[1]&0x0FFFFF || d[0]);} // significand!=0
-Bool Inf    (C Dbl &r) {UInt *d=(UInt*)&r; return Special(r) && !(d[1]&0x0FFFFF || d[0]);} // significand==0
+Bool Special(C Flt &r) {UInt  *u=(UInt *)&r; return (u[0]&0x7F800000        )==0x7F800000        ;} // all exponent bits are on
+Bool Special(C Dbl &r) {UInt  *u=(UInt *)&r; return (u[1]&0x7FF00000        )==0x7FF00000        ;} // all exponent bits are on
+Bool NaN    (C Flt &r) {UInt  *u=(UInt *)&r; return (u[0]&0x7FFFFFFF        )> 0x7F800000        ;}
+Bool Inf    (C Flt &r) {UInt  *u=(UInt *)&r; return (u[0]&0x7FFFFFFF        )==0x7F800000        ;}
+Bool NaN    (C Dbl &r) {ULong *u=(ULong*)&r; return (u[0]&0x7FFFFFFFFFFFFFFF)> 0x7FF0000000000000;}
+Bool Inf    (C Dbl &r) {ULong *u=(ULong*)&r; return (u[0]&0x7FFFFFFFFFFFFFFF)==0x7FF0000000000000;}
 /******************************************************************************/
 Vec2  ScaleFactor(C Vec2  &vec) {return Vec2 (ScaleFactor(vec.x), ScaleFactor(vec.y));}
 VecD2 ScaleFactor(C VecD2 &vec) {return VecD2(ScaleFactor(vec.x), ScaleFactor(vec.y));}
@@ -90,6 +90,14 @@ void MinMaxI(C Dbl *f, Int elms, Int &min, Int &max)
    }
 }
 /******************************************************************************/
+Flt Sqrt(Int x) {return (x<=0) ? 0 : SqrtFast(x);}
+Flt Sqrt(Flt x) {return (x<=0) ? 0 : SqrtFast(x);}
+Dbl Sqrt(Dbl x) {return (x<=0) ? 0 : SqrtFast(x);}
+
+Flt SqrtS(Int x) {return (x>=0) ? SqrtFast(x) : -SqrtFast(-x);}
+Flt SqrtS(Flt x) {return (x>=0) ? SqrtFast(x) : -SqrtFast(-x);}
+Dbl SqrtS(Dbl x) {return (x>=0) ? SqrtFast(x) : -SqrtFast(-x);}
+
 UInt SqrtI(UInt x, Int max_steps)
 {
    if(x<=1)return x;
@@ -142,7 +150,25 @@ Int SqrtI(Long x) {return (x>0) ? SqrtI(ULong(x)) : 0;}
 Flt Log(Flt x, Flt base) {return logf(x)/logf(base);}
 Dbl Log(Dbl x, Dbl base) {return log (x)/log (base);}
 
-Flt Pinch(Flt x, Flt pinch) {return x*pinch/(1+x*(pinch-1));}
+Flt Pinch      (Flt x, Flt pinch) {return x*pinch/(1+x*(pinch-1));}
+Flt PinchFactor(Flt x, Flt pinch) {return Pinch(x, ScaleFactor(pinch));}
+/******************************************************************************/
+Flt Dist(Int x, Int y       ) {return SqrtFast(Dist2(x, y   ));}
+Flt Dist(Flt x, Flt y       ) {return SqrtFast(Dist2(x, y   ));}
+Dbl Dist(Dbl x, Dbl y       ) {return SqrtFast(Dist2(x, y   ));}
+Flt Dist(Int x, Int y, Int z) {return SqrtFast(Dist2(x, y, z));}
+Flt Dist(Flt x, Flt y, Flt z) {return SqrtFast(Dist2(x, y, z));}
+Dbl Dist(Dbl x, Dbl y, Dbl z) {return SqrtFast(Dist2(x, y, z));}
+/******************************************************************************/
+Flt DistDot(Flt dist2, Flt dist_plane) // calculate distance scaled by angle, 'dist2'=squared distance, 'dist_plane'=distance along the plane of interest
+{
+   if( dist2<=0)return 0; // check if dist2 is 0, in that case return 0, this covers the cases when objects are touching (distance is 0 and because of that dist_plane is 0 too, in that case we must return 0, and don't do any divisions by 0 resulting in infinity), after this we're sure that "dist_plane>0 && dist2>0"
+   Flt dist =SqrtFast(dist2),
+       cos  =dist_plane/dist,
+       angle=Acos(cos)   , // convert    0..1 -> PI_2..0
+       div  =1-angle/PI_2; // convert PI_2..0 ->    0..1
+   return (div>0) ? dist/div : FLT_MAX;
+}
 /******************************************************************************/
 // ROUNDING
 /******************************************************************************/
@@ -269,21 +295,74 @@ Dbl ACosSin(Dbl cos, Dbl sin) // assumes "sin>=0"
 
 Vec2 Atan(C Vec2 &tan) {return Vec2(Atan(tan.x), Atan(tan.y));}
 
+Flt Angle1Fast(Flt x, Flt y)
+{
+   Flt r=Abs(x)+Abs(y); return r ? ((y>=0) ? 1-x/r : x/r-1) : 0;
+}
 Flt AngleFast(Flt x, Flt y)
 {
-   Flt r=Abs(x)+Abs(y);
-   if(!r)return 0;
-   return (y>=0) ? (1-x/r)*PI_2 : (x/r-1)*PI_2;
+   Flt r=Abs(x)+Abs(y); return r ? ((y>=0) ? (1-x/r)*PI_2 : (x/r-1)*PI_2) : 0;
 }
 Flt AngleFast(C Vec2 &v)
 {
-   Flt r=Abs(v.x)+Abs(v.y);
-   if(!r)return 0;
-   return (v.y>=0) ? (1-v.x/r)*PI_2 : (v.x/r-1)*PI_2;
+   Flt r=Abs(v.x)+Abs(v.y); return r ? ((v.y>=0) ? (1-v.x/r)*PI_2 : (v.x/r-1)*PI_2) : 0;
 }
+Vec2 Angle1FastToPos(Flt angle_fast)
+{
+/* angle_fast=1-x/(Abs(x)+Abs(y))
+   af=1-x/(ax+ay)
+   x/(ax+ay)=1-af
+   x=(1-af)*(ax+ay)
+   x=(1-af)*ax + (1-af)*ay
+   x - (1-af)*ax = (1-af)*ay
+   x/y=(1-angle_fast)/angle_fast */
+   return (angle_fast>=0) ? (angle_fast<= 1) ? Vec2(1-angle_fast,    angle_fast)
+                                             : Vec2(1-angle_fast,  2-angle_fast)
+                          : (angle_fast>=-1) ? Vec2(1+angle_fast,    angle_fast)
+                                             : Vec2(1+angle_fast, -2-angle_fast);
+}
+Vec2 AngleFastToPos(Flt angle_fast)
+{
+   angle_fast/=PI_2;
+   return (angle_fast>=0) ? (angle_fast<= 1) ? Vec2(1-angle_fast,    angle_fast)
+                                             : Vec2(1-angle_fast,  2-angle_fast)
+                          : (angle_fast>=-1) ? Vec2(1+angle_fast,    angle_fast)
+                                             : Vec2(1+angle_fast, -2-angle_fast);
+}
+
+/* Alternative version:
+Flt AngleFast1(Flt x, Flt y)
+{
+   Flt ax=Abs(x), ay=Abs(y), r=Max(ax, ay);
+   if(!r)return 0;
+   return (ax>ay) ? (x>0) ?  y/r*PI_4      : -y/r*PI_4+PI
+                  : (y>0) ? -x/r*PI_4+PI_2 :  x/r*PI_4-PI_2;
+}
+However in test results it has similar precision, but slower
+   Dbl AD[3]; Flt MAD[3]; Zero(AD); Zero(MAD);
+   REP(65536)
+   {
+      Flt  a=i*(PI2/65536);
+      Vec2 p; CosSin(p.x, p.y, a);
+      Flt a0=Angle     (p       ); Flt a0d=Abs(AngleDelta(a, a0)); AD[0]+=a0d; MAX(MAD[0], a0d);
+      Flt a1=AngleFast (p       ); Flt a1d=Abs(AngleDelta(a, a1)); AD[1]+=a1d; MAX(MAD[1], a1d);
+      Flt a2=AngleFast1(p.x, p.y); Flt a2d=Abs(AngleDelta(a, a2)); AD[2]+=a2d; MAX(MAD[2], a2d);
+   }
+*/
 
 Flt AngleFast(C Vec &v, C Vec &x, C Vec &y) {return AngleFast(Dot(v, x), Dot(v, y));}
 Flt Angle    (C Vec &v, C Vec &x, C Vec &y) {return Angle    (Dot(v, x), Dot(v, y));}
+/******************************************************************************/
+// Polar coordinates
+Vec2 ToLen2Angle1Fast(C Vec2 &v) // 'v'=pos XY, returns (X=length2, Y=Angle1Fast)
+{
+   Flt r=Abs(v.x)+Abs(v.y); return r ? Vec2(v.length2(), (v.y>=0) ? 1-v.x/r : v.x/r-1) : Vec2Zero;
+}
+Vec2 FromLen2Angle1Fast(C Vec2 &v) // 'v'=(X=length2, Y=Angle1Fast), returns pos XY
+{
+   Vec2   p=Angle1FastToPos(v.y);
+   return p*SqrtFast(v.x/p.length2());
+}
 /******************************************************************************/
 Flt AngleNormalize(Flt angle) {angle=AngleFull(angle); return (angle>PI ) ? angle-PI2  : angle;}
 Dbl AngleNormalize(Dbl angle) {angle=AngleFull(angle); return (angle>PID) ? angle-PID2 : angle;}

@@ -193,5 +193,5 @@ void SlideMovement(Vec2 &move, C Vec2 *normal, Int normals);
 void SlideMovement(Vec  &move, C Vec  *normal, Int normals);
 
 // move 'object' along 'move' movement while sliding with geometry, this function returns object position after movement
-Vec2 SlideMovement(C Circle &object, C Vec2 &move, Int vtxs, C Vec2 *vtx_pos, Int edges, C VecI2 *edge_ind, C Vec2 *edge_nrm=null, Int circles=0, C Circle *circle=null); // 'edge_nrm'=optional edge normals (can be null, if specified then must be normalized)
+VecD2 SlideMovement(C CircleM &object, C VecD2 &move, Int vtxs, C Vec2 *vtx_pos, Int edges, C VecI2 *edge_ind, C Vec2 *edge_nrm=null, Int circles=0, C CircleM *circle=null, Bool slide=true); // 'edge_nrm'=optional edge normals (can be null, if specified then must be normalized), 'slide'=if perform sliding (if false then no sliding is performed and position returned at the first collision)
 /******************************************************************************/

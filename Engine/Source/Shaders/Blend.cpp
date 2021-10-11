@@ -2,35 +2,35 @@
 #include "!Header.h"
 #include "Sky.h"
 /******************************************************************************
-SKIN, COLORS, LAYOUT, BUMP_MODE, REFLECT
+SKIN, COLORS, LAYOUT, BUMP_MODE, REFLECT, EMISSIVE_MAP
 /******************************************************************************/
 #ifndef PER_PIXEL
 #define PER_PIXEL 1
 #endif
 #define HEIGHTMAP    0
 #define TESSELATE    0
-#define SET_TEX      (LAYOUT || BUMP_MODE>SBUMP_FLAT)
+#define SET_UV       (LAYOUT || BUMP_MODE>SBUMP_FLAT || EMISSIVE_MAP)
 #define VTX_REFLECT  (REFLECT && !PER_PIXEL && BUMP_MODE<=SBUMP_FLAT) // require !PER_PIXEL because even without normal maps (SBUMP_FLAT) the quality suffers
 #define SET_POS      (REFLECT || TESSELATE)
 #define PIXEL_NORMAL (REFLECT) // if calculate normal in the pixel shader
 /******************************************************************************/
-struct VS_PS
+struct Data
 {
 #if SET_POS
    Vec pos:POS;
 #endif
 
-#if SET_TEX
-   Vec2 tex:TEXCOORD;
+#if SET_UV
+   Vec2 uv:UV;
 #endif
 
    VecH4 color:COLOR;
 
 #if   BUMP_MODE> SBUMP_FLAT && PIXEL_NORMAL
-   MatrixH3 mtrx:MATRIX; // !! may not be Normalized !!
+   centroid MatrixH3 mtrx:MATRIX; // !! may not be Normalized !! have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
    VecH Nrm() {return mtrx[2];}
 #elif BUMP_MODE>=SBUMP_FLAT && (PIXEL_NORMAL || TESSELATE)
-   VecH nrm:NORMAL; // !! may not be Normalized !!
+   centroid VecH nrm:NORMAL; // !! may not be Normalized !! have to use 'centroid' to prevent values from getting outside of range, without centroid values can get MUCH different which might cause normals to be very big (very big vectors can't be normalized well, making them (0,0,0), which later causes NaN on normalization in other shaders)
    VecH Nrm() {return nrm;}
 #else
    VecH Nrm() {return 0;}
@@ -44,12 +44,12 @@ void VS
 (
    VtxInput vtx,
 
-   out VS_PS O,
-   out Vec4  O_vtx:POSITION
+   out Data O,
+   out Vec4 vpos:POSITION
 )
 {
-#if SET_TEX
-   O.tex=vtx.tex();
+#if SET_UV
+   O.uv=vtx.uv();
 #endif
              O.color =Material.color;
    if(COLORS)O.color*=vtx.colorFast();
@@ -114,27 +114,35 @@ void VS
 #if SET_POS
    O.pos=pos;
 #endif
-   O_vtx=Project(pos);
+   vpos=Project(pos);
 
    O.color.a*=Sat(Length(pos)*SkyFracMulAdd.x + SkyFracMulAdd.y);
 }
 /******************************************************************************/
 VecH4 PS
 (
-   VS_PS I,
+   Data I,
 /*#if PIXEL_NORMAL && FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
    IS_FRONT,
 #endif*/
-   out Half outAlpha:TARGET2 // #RTOutput.Blend
+   out Half outAlpha:TARGET1 // #RTOutput.Blend
 ):TARGET
 {
-   Half smooth      =Material.smooth,
-        reflectivity=Material.reflect;
+   Half rough, reflect;
 
    // #MaterialTextureLayout
-#if LAYOUT
-   if(LAYOUT==1) I.color*=Tex(Col, I.tex);else
-   if(LAYOUT==2){I.color*=Tex(Col, I.tex); VecH2 ext=Tex(Ext, I.tex).xy; smooth*=ext.x; reflectivity*=ext.y;}
+#if LAYOUT==0
+   rough  =Material.  rough_add;
+   reflect=Material.reflect_add;
+#elif LAYOUT==1
+   I.color*=RTex(Col, I.uv);
+   rough  =Material.  rough_add;
+   reflect=Material.reflect_add;
+#elif LAYOUT==2
+    I.color*=RTex(Col, I.uv);
+   VecH2 ext=RTex(Ext, I.uv).xy;
+   rough  =Sat(ext.BASE_CHANNEL_ROUGH*Material.  rough_mul+Material.  rough_add); // need to saturate to avoid invalid values
+   reflect=    ext.BASE_CHANNEL_METAL*Material.reflect_mul+Material.reflect_add ;
 #endif
 
    // normal
@@ -145,9 +153,15 @@ VecH4 PS
    #elif BUMP_MODE==SBUMP_FLAT
       nrmh=I.Nrm();
    #else
-      nrmh.xy=Tex(Nrm, I.tex).xy*Material.normal;
-      nrmh.z =CalcZ(nrmh.xy);
-      nrmh   =Transform(nrmh, I.mtrx);
+      #if 0
+         nrmh.xy=RTex(Nrm, I.uv).BASE_CHANNEL_NORMAL*Material.normal;
+         nrmh.z =CalcZ(nrmh.xy);
+      #else
+         nrmh.xy =RTex(Nrm, I.uv).BASE_CHANNEL_NORMAL;
+         nrmh.z  =CalcZ(nrmh.xy);
+         nrmh.xy*=Material.normal;
+      #endif
+         nrmh=Transform(nrmh, I.mtrx);
    #endif
 
  /*#if FX!=FX_GRASS_2D && FX!=FX_LEAF_2D && FX!=FX_LEAFS_2D
@@ -159,10 +173,11 @@ VecH4 PS
 
    I.color.rgb+=Highlight.rgb;
 
-   Half inv_metal  =ReflectToInvMetal(reflectivity);
-   VecH reflect_col=ReflectCol       (reflectivity, I.color.rgb, inv_metal); // calc 'reflect_col' from unlit color
+   Half inv_metal  =ReflectToInvMetal(reflect);
+   VecH reflect_col=ReflectCol       (reflect, I.color.rgb, inv_metal); // calc 'reflect_col' from unlit color
 
    I.color.rgb=I.color.rgb*Diffuse(inv_metal);
+
 #if REFLECT // reflection
    Vec eye_dir=Normalize(I.pos);
    #if VTX_REFLECT
@@ -170,7 +185,14 @@ VecH4 PS
    #else
       Vec reflect_dir=ReflectDir(eye_dir, nrm);
    #endif
-   I.color.rgb+=ReflectTex(reflect_dir, smooth)*EnvColor*ReflectEnv(smooth, reflectivity, reflect_col, -Dot(nrm, eye_dir), false);
+   I.color.rgb+=ReflectTex(reflect_dir, rough)*EnvColor*ReflectEnv(rough, reflect, reflect_col, -Dot(nrm, eye_dir), false);
+#endif
+
+#if EMISSIVE_MAP
+   VecH emissive=RTex(Lum, I.uv).rgb;
+   I.color.rgb+=Material.emissive*emissive;
+#else
+   I.color.rgb+=Material.emissive;
 #endif
 
    outAlpha=I.color.a;

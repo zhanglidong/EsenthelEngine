@@ -4,11 +4,11 @@ const_mem_addr struct Slider : GuiObj // Gui Slider !! must be stored in constan
    GuiSkinPtr skin; // skin override, default=null (if set to null then current value of 'Gui.skin' is used)
 
    // manage
-   Slider& del   (                         );                                            // delete
-   Slider& create(                         );                                            // create
-   Slider& create(C Rect   &rect           ) {create()           .rect(rect); return T;} // create and set initial values
-   Slider& create(C Rect   &rect, Flt value) {create().set(value).rect(rect); return T;} // create and set initial values
-   Slider& create(C Slider &src            );                                            // create from 'src'
+   virtual Slider& del   (                         )override;                                    // delete
+           Slider& create(                         );                                            // create
+           Slider& create(C Rect   &rect           ) {create()           .rect(rect); return T;} // create and set initial values
+           Slider& create(C Rect   &rect, Flt value) {create().set(value).rect(rect); return T;} // create and set initial values
+           Slider& create(C Slider &src            );                                            // create from 'src'
 
    // get / set
    Flt      operator()(                                    )C {return _value;} // get value (0..1)
@@ -29,12 +29,12 @@ const_mem_addr struct Slider : GuiObj // Gui Slider !! must be stored in constan
    Slider& focusable(Bool on);   Bool focusable()C {return _focusable;} // set/get if can catch keyboard focus, default=false
 
    // operations
-   virtual Slider& rect(C Rect &rect);   C Rect& rect()C {return super::rect();} // set/get rectangle
+   virtual Slider& rect(C Rect &rect)override;   C Rect& rect()C {return super::rect();} // set/get rectangle
 
    // main
-   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel); // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
-   virtual void    update(C GuiPC &gpc); // update object
-   virtual void    draw  (C GuiPC &gpc); // draw   object
+   virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override; // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
+   virtual void    update(C GuiPC &gpc)override; // update object
+   virtual void    draw  (C GuiPC &gpc)override; // draw   object
 
 #if EE_PRIVATE
    void zero();
@@ -53,7 +53,7 @@ private:
    void (*_func)(Ptr user);
 
 protected:
-   virtual Bool save(File &f, CChar *path=null)C;
-   virtual Bool load(File &f, CChar *path=null) ;
+   virtual Bool save(File &f, CChar *path=null)C override;
+   virtual Bool load(File &f, CChar *path=null)  override;
 };
 /******************************************************************************/

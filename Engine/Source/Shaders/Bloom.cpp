@@ -1,102 +1,183 @@
 /******************************************************************************/
+// GLOW, VIEW_FULL, HALF_RES, DITHER, PRECOMPUTED, EXPOSURE, TONE_MAP
 #include "!Header.h"
-
-#include "!Set Prec Struct.h"
-BUFFER(Bloom)
-   VecH BloomParams; // x=original, y=scale, z=cut
-BUFFER_END
-#include "!Set Prec Default.h"
+#include "Bloom.h"
+#include "Hdr.h"
 
 #ifndef GLOW
-   #define GLOW 0
+#define GLOW 0
 #endif
-#ifndef CLAMP
-   #define CLAMP 0
+
+#ifndef VIEW_FULL
+#define VIEW_FULL 1
 #endif
+
 #ifndef HALF_RES
-   #define HALF_RES 0
+#define HALF_RES 0
 #endif
-#ifndef SATURATE
-   #define SATURATE 0
-#endif
-#ifndef GAMMA
-   #define GAMMA 0
-#endif
+
 #ifndef DITHER
-   #define DITHER 0
+#define DITHER 0
 #endif
+
+#ifndef PRECOMPUTED
+#define PRECOMPUTED 0
+#endif
+
+#define BLOOM_GLOW_GAMMA_PER_PIXEL 0 // #BloomGlowGammaPerPixel can be disabled because it will be faster and visual difference is minimal
 /******************************************************************************/
 void BloomDS_VS(VtxInput vtx,
-    NOPERSP out Vec2 outTex:TEXCOORD,
-    NOPERSP out Vec4 outVtx:POSITION)
+#if EXPOSURE
+   NOINTERP out Half bloom_scale:BLOOM_SCALE,
+#endif
+   NOPERSP out Vec2 uv  :UV,
+   NOPERSP out Vec4 vpos:POSITION)
 {
-   outTex=vtx.tex (); if(GLOW)outTex-=ImgSize.xy*Vec2(HALF_RES ? 0.5 : 1.5, HALF_RES ? 0.5 : 1.5);
-   outVtx=vtx.pos4();
+#if EXPOSURE
+   bloom_scale=BloomScale()*ImgX1[VecI2(0, 0)];
+#endif
+   uv  =vtx.uv  (); if(GLOW)uv-=ImgSize.xy*Vec2(HALF_RES ? 0.5 : 1.5, HALF_RES ? 0.5 : 1.5);
+   vpos=vtx.pos4();
 }
-VecH BloomColor(VecH color, Bool gamma)
+/******************************************************************************/
+VecH BloomDS_PS
+(
+#if EXPOSURE
+   NOINTERP Half bloom_scale:BLOOM_SCALE,
+#endif
+   NOPERSP Vec2 uv:UV
+):TARGET // "Max(0, " of the result is not needed because we're rendering to 1 byte per channel RT
 {
-   if(gamma)color=LinearToSRGBFast(color);
-   if(SATURATE)
+#if !EXPOSURE
+   Half bloom_scale=BloomScale();
+#endif
+   if(GLOW) // this always has PRECOMPUTED=0
    {
-      return color*BloomParams.y+BloomParams.z;
-   }else
-   {
-      Half col_lum=Max(color), lum=col_lum*BloomParams.y+BloomParams.z;
-      return (lum>0) ? color*(lum/col_lum) : VecH(0, 0, 0);
-   }
-}
-VecH4 BloomDS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // "Max(0, " of the result is not needed because we're rendering to 1 byte per channel RT
-{
-   if(GLOW)
-   {
-      const Int  res=(HALF_RES ? 2 : 4);
-      const Bool gamma_per_pixel=false; // !! must be the same as in 'RendererClass::bloom' !!
+      const Int res=(HALF_RES ? 2 : 4);
 
       VecH  color=0;
       VecH4 glow =0;
       UNROLL for(Int y=0; y<res; y++)
       UNROLL for(Int x=0; x<res; x++)
       {
-         VecH4 c=TexLod(Img, UVClamp(inTex+ImgSize.xy*Vec2(x, y), CLAMP)); // can't use 'TexPoint' because 'Img' can be supersampled
-         if(GAMMA && gamma_per_pixel)c.rgb=LinearToSRGBFast(c.rgb);
+         VecH4 c=TexLod(Img, UVInView(uv+ImgSize.xy*Vec2(x, y), VIEW_FULL)); // can't use 'TexPoint' because 'Img' can be supersampled
+         if(BLOOM_GLOW_GAMMA_PER_PIXEL)c.a=SRGBToLinearFast(c.a); // have to convert to linear because small glow of 1/255 would give 12.7/255 sRGB (Glow was sampled from non-sRGB texture and stored in RT alpha channel without any gamma conversions)
          color   +=c.rgb;
          glow.rgb+=c.rgb*c.a;
-         glow.a   =Max(glow.a, c.a);
+         glow.a  +=c.a;
       }
-      if(GAMMA && !gamma_per_pixel)glow.rgb =(2*glow.a)*LinearToSRGBFast(glow.rgb/Max(Max(glow.rgb), HALF_MIN));
-      else                         glow.rgb*= 2*glow.a                           /Max(Max(glow.rgb), HALF_MIN) ; // NaN (increase by 2 because normally it's too small)
-      return VecH4(Max(BloomColor(color, GAMMA && !gamma_per_pixel), glow.rgb), 0);
+      if(!BLOOM_GLOW_GAMMA_PER_PIXEL)glow.a=SRGBToLinearFast(glow.a); // have to convert to linear because small glow of 1/255 would give 12.7/255 sRGB (Glow was sampled from non-sRGB texture and stored in RT alpha channel without any gamma conversions)
+      glow.rgb*=(glow.a*BloomGlow())/Max(Max(glow.rgb), HALF_MIN); // #Glow
+      color =BloomColor(color, bloom_scale);
+      color+=glow.rgb;
+      return color;
    }else
    {
       if(HALF_RES)
       {
-         return VecH4(BloomColor(TexLod(Img, UVClamp(inTex, CLAMP)).rgb, GAMMA), 0);
+         VecH col=TexLod(Img, UVInView(uv, VIEW_FULL)).rgb;
+         return PRECOMPUTED ? col : BloomColor(col, bloom_scale);
       }else
       {
-         Vec2 tex_min=UVClamp(inTex-ImgSize.xy, CLAMP),
-              tex_max=UVClamp(inTex+ImgSize.xy, CLAMP);
-         return VecH4(BloomColor(TexLod(Img, Vec2(tex_min.x, tex_min.y)).rgb
-                                +TexLod(Img, Vec2(tex_max.x, tex_min.y)).rgb
-                                +TexLod(Img, Vec2(tex_min.x, tex_max.y)).rgb
-                                +TexLod(Img, Vec2(tex_max.x, tex_max.y)).rgb, GAMMA), 0);
+         Vec2 uv_min=UVInView(uv-ImgSize.xy, VIEW_FULL),
+              uv_max=UVInView(uv+ImgSize.xy, VIEW_FULL);
+         VecH col=TexLod(Img, Vec2(uv_min.x, uv_min.y)).rgb
+                 +TexLod(Img, Vec2(uv_max.x, uv_min.y)).rgb
+                 +TexLod(Img, Vec2(uv_min.x, uv_max.y)).rgb
+                 +TexLod(Img, Vec2(uv_max.x, uv_max.y)).rgb;
+         return PRECOMPUTED ? col/4 : BloomColor(col, bloom_scale);
       }
    }
 }
 /******************************************************************************/
-VecH4 Bloom_PS(NOPERSP Vec2 inTex:TEXCOORD,
-               NOPERSP PIXEL              ):TARGET
+void Bloom_VS(VtxInput vtx,
+#if EXPOSURE
+   NOINTERP out Half bloom_orig:BLOOM_ORIG,
+#endif
+   NOPERSP out Vec2 uv  :UV,
+   NOPERSP out Vec4 vpos:POSITION)
+{
+#if EXPOSURE
+   bloom_orig=BloomOriginal()*ImgX1[VecI2(0, 0)];
+#endif
+   uv  =vtx.uv();
+   vpos=vtx.pos4();
+}
+/******************************************************************************/
+VecH4 Bloom_PS
+(
+#if EXPOSURE
+   NOINTERP Half bloom_orig:BLOOM_ORIG,
+#endif
+   NOPERSP Vec2 uv:UV
+#if DITHER
+ , NOPERSP PIXEL
+#endif
+):TARGET
 {
    // final=src*original + Sat((src-cut)*scale)
    VecH4 col;
-   col.rgb=TexLod(Img, inTex).rgb; // original, can't use 'TexPoint' because 'Img' can be supersampled
-   if(GAMMA)col.rgb=LinearToSRGBFast(col.rgb);
-   col.rgb=col.rgb*BloomParams.x + TexLod(Img1, inTex).rgb; // bloom, can't use 'TexPoint' because 'Img1' can be smaller
-   if(DITHER)ApplyDither(col.rgb, pixel.xy, false); // here we always have sRGB gamma
-   if(GAMMA)col.rgb=SRGBToLinearFast(col.rgb);
-#if ALPHA
-   col.a=TexLod(ImgX, inTex).r; // can't use 'TexPoint' because 'ImgX' can be supersampled
-#else
+
+#if ALPHA==2 // separate
+   col.rgb=TexLod(Img , uv).rgb; // original, can't use 'TexPoint' because 'Img'  can be supersampled
+   col.a  =TexLod(ImgX, uv)    ; //           can't use 'TexPoint' because 'ImgX' can be supersampled
+#elif ALPHA==1 // use alpha
+   col=TexLod(Img, uv); // original, can't use 'TexPoint' because 'Img' can be supersampled
+#else // no alpha
+   col.rgb=TexLod(Img, uv).rgb; // original, can't use 'TexPoint' because 'Img' can be supersampled
    col.a=1; // force full alpha so back buffer effects can work ok
+#endif
+
+#if !EXPOSURE
+   Half bloom_orig=BloomOriginal();
+#endif
+   col.rgb=col.rgb*bloom_orig + TexLod(Img1, uv).rgb; // bloom, can't use 'TexPoint' because 'Img1' can be smaller
+
+#if TONE_MAP
+   if(TONE_MAP==STONE_MAP_DEFAULT )col.rgb=TonemapEsenthel          (col.rgb);
+   if(TONE_MAP==STONE_MAP_ACES_LDR)col.rgb=TonemapACES_LDR_Narkowicz(col.rgb);
+   if(TONE_MAP==STONE_MAP_ACES_HDR)col.rgb=TonemapACES_HDR_Narkowicz(col.rgb);
+
+ /*if(TONE_MAP==1                                 )col.rgb=TonemapAMD_Cauldron(col.rgb);
+   if(TONE_MAP==2                                 )col.rgb=TonemapLog     (col.rgb);
+   if(TONE_MAP==3                                 )col.rgb=TonemapRcpSqr  (col.rgb);
+   if(TONE_MAP==4                                 )col.rgb=TonemapExp     (col.rgb);
+   if(TONE_MAP==5                                 )col.rgb=TonemapRcp     (col.rgb);
+   if(TONE_MAP==6                                 )col.rgb=TonemapEsenthel(col.rgb);
+   if(TONE_MAP==7                                 )col.rgb=TonemapLogML4  (col.rgb);
+   if(TONE_MAP==8                                 )col.rgb=TonemapLogML5  (col.rgb);
+   if(TONE_MAP==9                                 )col.rgb=TonemapLogML6  (col.rgb);
+
+   if(TONE_MAP==STONE_MAP_ACES_HILL               )col.rgb=TonemapACESHill         (col.rgb);
+   if(TONE_MAP==STONE_MAP_ACES_LOTTES             )col.rgb=TonemapACESLottes       (col.rgb);
+   if(TONE_MAP==STONE_MAP_HEJL_BURGESS_DAWSON     )col.rgb=ToneMapHejlBurgessDawson(col.rgb);*/
+
+   #if 0 // Debug Drawing
+      Vec2 pos=Vec2(uv.x*AspectRatio, 1-uv.y);
+   #if 1
+      Flt eps=1/(SRGBToLinear(pos.y+1.0/512)-SRGBToLinear(pos.y));
+      pos=SRGBToLinear(pos);
+   #else
+      Flt eps=256;
+   #endif
+      //Flt eps=1/pos.y*128;//pos.x;
+      pos*=16; eps/=16;
+      DrawLine(col.rgb, VecH(1,1,1), pos, eps, pos.x);
+    /*DrawLine(col.rgb, VecH(0.5,0,0), pos, eps, TonemapLog(pos.x));
+      DrawLine(col.rgb, VecH(0.5,0,0), pos, eps, TonemapLogML4(pos.x));
+      DrawLine(col.rgb, VecH(0.5,0,0), pos, eps, TonemapLogML5(pos.x));
+      DrawLine(col.rgb, VecH(0.5,0,0), pos, eps, TonemapLogML6(pos.x));
+      DrawLine(col.rgb, VecH(0,0.5,0), pos, eps, TonemapRcpSqr(pos.x));
+      DrawLine(col.rgb, VecH(0,0,0.5), pos, eps, TonemapExp(pos.x));
+      DrawLine(col.rgb, VecH(0.5,0.5,0), pos, eps, TonemapRcp(pos.x));*/
+      DrawLine(col.rgb, VecH(1,0,0), pos, eps, TonemapEsenthel(pos.x));
+      DrawLine(col.rgb, VecH(0,1,0), pos, eps, TonemapACES_LDR_Narkowicz(pos.x));
+      DrawLine(col.rgb, VecH(0,0,1), pos, eps, TonemapACES_HDR_Narkowicz(pos.x));
+   #endif
+#endif
+
+#if DITHER
+   ApplyDither(col.rgb, pixel.xy);
 #endif
    return col;
 }

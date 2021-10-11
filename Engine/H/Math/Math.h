@@ -49,25 +49,6 @@ inline void MinMax (  Dbl  a, Dbl  b   , Dbl  &min, Dbl  &max) {if(a<b){min=a; m
        void MinMaxI(C Dbl *f, Int  elms, Int  &min, Int  &max); // get min max index  : f[min]=Min(f[]); f[max]=Max(f[]);
 #endif
 
-// change sign
-inline void CHS(Int  &x) {x=-x;}
-inline void CHS(Long &x) {x=-x;}
-inline void CHS(Flt  &x) {((U32&) x)   ^=SIGN_BIT;} // works as "x=-x;" but faster
-inline void CHS(Dbl  &x) {((U32*)&x)[1]^=SIGN_BIT;} // works as "x=-x;" but faster
-#if EE_PRIVATE
-INLINE Bool NegativeSB(Flt  x) {return FlagTest   ((UInt&)x, SIGN_BIT);}
-INLINE void      CHSSB(Flt &x) {       FlagToggle ((UInt&)x, SIGN_BIT);}
-INLINE void      ABSSB(Flt &x) {       FlagDisable((UInt&)x, SIGN_BIT);}
-
-inline Flt Xor(Flt a, UInt b) {((U32&) a)   ^=b; return a;} // used for fast changing of the 'a' sign, 'b' should be either 0 or SIGN_BIT
-inline Dbl Xor(Dbl a, UInt b) {((U32*)&a)[1]^=b; return a;} // used for fast changing of the 'a' sign, 'b' should be either 0 or SIGN_BIT
-
-void DecRealByBit(Flt &r); // decrement real value by just 1 bit
-void DecRealByBit(Dbl &r); // decrement real value by just 1 bit
-void IncRealByBit(Flt &r); // increment real value by just 1 bit
-void IncRealByBit(Dbl &r); // increment real value by just 1 bit
-#endif
-
 // get absolute value
 constexpr Int   Abs(  Int    x) {return (x>=0) ? x : -x;}
 constexpr Long  Abs(  Long   x) {return (x>=0) ? x : -x;}
@@ -138,11 +119,14 @@ inline    VecI2 Sign(C Vec2  &v) {return VecI2(Sign(v.x), Sign(v.y)             
 inline    VecI  Sign(C Vec   &v) {return VecI (Sign(v.x), Sign(v.y), Sign(v.z)           );}
 inline    VecI4 Sign(C Vec4  &v) {return VecI4(Sign(v.x), Sign(v.y), Sign(v.z), Sign(v.w));}
 
-inline Int   SignEps(  Flt   x, Flt eps=EPS ) {return (x>eps) ? 1 : (x<-eps) ? -1 : 0;} // sign using epsilon
-inline Int   SignEps(  Dbl   x, Dbl eps=EPSD) {return (x>eps) ? 1 : (x<-eps) ? -1 : 0;} // sign using epsilon
-inline VecI2 SignEps(C Vec2 &v, Flt eps=EPS ) {return VecI2(SignEps(v.x, eps), SignEps(v.y, eps)                                      );}
-inline VecI  SignEps(C Vec  &v, Flt eps=EPS ) {return VecI (SignEps(v.x, eps), SignEps(v.y, eps), SignEps(v.z, eps)                   );}
-inline VecI4 SignEps(C Vec4 &v, Flt eps=EPS ) {return VecI4(SignEps(v.x, eps), SignEps(v.y, eps), SignEps(v.z, eps), SignEps(v.w, eps));}
+inline Int    SignEps (  Flt   x, Flt eps=EPS ) {return (x>eps) ? 1 : (x<-eps) ? -1 : 0;} // sign using epsilon
+inline Int    SignEps (  Dbl   x, Dbl eps=EPSD) {return (x>eps) ? 1 : (x<-eps) ? -1 : 0;} // sign using epsilon
+inline VecI2  SignEps (C Vec2 &v, Flt eps=EPS ) {return VecI2 (SignEps(v.x, eps), SignEps(v.y, eps)                                      );}
+inline VecI   SignEps (C Vec  &v, Flt eps=EPS ) {return VecI  (SignEps(v.x, eps), SignEps(v.y, eps), SignEps(v.z, eps)                   );}
+inline VecI4  SignEps (C Vec4 &v, Flt eps=EPS ) {return VecI4 (SignEps(v.x, eps), SignEps(v.y, eps), SignEps(v.z, eps), SignEps(v.w, eps));}
+inline VecSB2 SignEpsB(C Vec2 &v, Flt eps=EPS ) {return VecSB2(SignEps(v.x, eps), SignEps(v.y, eps)                                      );}
+inline VecSB  SignEpsB(C Vec  &v, Flt eps=EPS ) {return VecSB (SignEps(v.x, eps), SignEps(v.y, eps), SignEps(v.z, eps)                   );}
+inline VecSB4 SignEpsB(C Vec4 &v, Flt eps=EPS ) {return VecSB4(SignEps(v.x, eps), SignEps(v.y, eps), SignEps(v.z, eps), SignEps(v.w, eps));}
 
 inline Int CompareEps(C Flt &a, C Flt &b) {return SignEps(a-b);}
 inline Int CompareEps(C Dbl &a, C Dbl &b) {return SignEps(a-b);}
@@ -245,7 +229,8 @@ inline Dbl Log2(Dbl x) {return log2 (x);} // 2-base logarithm
        Flt Log (Flt x, Flt base);         //        logarithm
        Dbl Log (Dbl x, Dbl base);         //        logarithm
 
-Flt Pinch(Flt x, Flt pinch); // pinch, 'x'=0..1, 'pinch'=0..Inf (<1 makes the curve start slow and accelerate, 1 makes the curve linear, >1 makes the curve start fast and deccelerate)
+Flt Pinch      (Flt x, Flt pinch       ); // pinch, 'x'=0..1, 'pinch'       =   0..Inf (<1 makes the curve start slow and accelerate, 1 makes the curve linear, >1 makes the curve start fast and deccelerate)
+Flt PinchFactor(Flt x, Flt pinch_factor); // pinch, 'x'=0..1, 'pinch_factor'=-Inf..Inf (<0 makes the curve start slow and accelerate, 0 makes the curve linear, >0 makes the curve start fast and deccelerate)
 
 // calculate squared distance of coordinates from point zero
 inline Int Dist2(Int x, Int y              ) {return x*x + y*y            ;}
@@ -280,6 +265,7 @@ Flt SigmoidTanh   (Flt x);
 Flt SigmoidErf    (Flt x);
 
 #if EE_PRIVATE
+       Flt DistDot(Flt dist2, Flt dist_plane); // calculate distance scaled by angle, 'dist2'=squared distance, 'dist_plane'=distance along the plane of interest
 inline Flt LengthMul(C Vec &a, C Vec &b) {return SqrtFast(a.length2()*b.length2());} // return multiplication of vector lengths, faster version of "a.length()*b.length()"
 #endif
 /******************************************************************************/
@@ -327,6 +313,11 @@ inline Flt AngleXZ(C Vec   &v, C Matrix  &matrix                 ) {return Angle
 Flt AngleFast(Flt x, Flt y); // get point angle approximation (-PI..PI)
 Flt AngleFast(C Vec2 &v   ); // get point angle approximation (-PI..PI)
 #if EE_PRIVATE
+Flt Angle1Fast(Flt x, Flt y); // get point angle approximation (-1..1)
+
+Vec2 AngleFastToPos (Flt angle_fast); // convert angle approximation (-PI..PI) into a point position
+Vec2 Angle1FastToPos(Flt angle_fast); // convert angle approximation ( -1..1 ) into a point position
+
        Flt AngleFast  (C Vec  &v,                 C Vec &x, C Vec &y);                                                       // get point angle approximation according to given axes            (-PI..PI)
 inline Flt AngleFast  (C Vec  &v, C Vec     &pos, C Vec &x, C Vec &y) {return AngleFast(v-pos,                x,        y);} // get point angle approximation according to given axes and center (-PI..PI)
 inline Flt AngleFast  (C Vec  &v, C Matrix3 &matrix                 ) {return AngleFast(v            , matrix.x, matrix.y);} // get point angle approximation according to given matrix          (-PI..PI)
@@ -456,21 +447,22 @@ Vec  GetTangent   (C Vec  &prev, C Vec  &cur, C Vec  &next); // get tangent from
 Vec4 GetTangent   (C Vec4 &prev, C Vec4 &cur, C Vec4 &next); // get tangent from previous, current and next values
 
 // linear interpolation, 'step'=0..1
-inline Flt   Lerp(  Int    from,   Int    to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline Flt   Lerp(  Int    from,   Flt    to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline Flt   Lerp(  Flt    from,   Int    to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline Flt   Lerp(  Flt    from,   Flt    to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline Dbl   Lerp(  Dbl    from,   Dbl    to, Dbl step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline Vec2  Lerp(C VecI2 &from, C VecI2 &to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline Vec2  Lerp(C Vec2  &from, C Vec2  &to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline VecD2 Lerp(C VecD2 &from, C VecD2 &to, Dbl step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline Vec   Lerp(C VecI  &from, C VecI  &to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline Vec   Lerp(C Vec   &from, C Vec   &to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline VecD  Lerp(C VecD  &from, C VecD  &to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline VecD  Lerp(C VecD  &from, C VecD  &to, Dbl step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline Vec4  Lerp(C VecI4 &from, C VecI4 &to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline Vec4  Lerp(C Vec4  &from, C Vec4  &to, Flt step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
-inline VecD4 Lerp(C VecD4 &from, C VecD4 &to, Dbl step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Flt   Lerp(  Int    from,   Int    to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Flt   Lerp(  Int    from,   Flt    to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Flt   Lerp(  Flt    from,   Int    to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Flt   Lerp(  Flt    from,   Flt    to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Dbl   Lerp(  Dbl    from,   Dbl    to,   Dbl  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Vec2  Lerp(C VecI2 &from, C VecI2 &to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Vec2  Lerp(C Vec2  &from, C Vec2  &to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline VecD2 Lerp(C VecD2 &from, C VecD2 &to,   Dbl  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Vec   Lerp(C VecI  &from, C VecI  &to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Vec   Lerp(C Vec   &from, C Vec   &to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Vec   Lerp(C Vec   &from, C Vec   &to, C Vec &step) {return from+step*(to-from);}
+inline VecD  Lerp(C VecD  &from, C VecD  &to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline VecD  Lerp(C VecD  &from, C VecD  &to,   Dbl  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Vec4  Lerp(C VecI4 &from, C VecI4 &to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline Vec4  Lerp(C Vec4  &from, C Vec4  &to,   Flt  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
+inline VecD4 Lerp(C VecD4 &from, C VecD4 &to,   Dbl  step) {return from+step*(to-from);} // faster than "from*(1-step) + to*step"
 #if EE_PRIVATE
 VecB4 Lerp(C VecB4 &from, C VecB4 &to, Flt step);
 VecB4 Lerp(C VecB4 &a   , C VecB4 &b , C VecB4 &c, C Vec &blend); // linear interpolation between vectors, returns a*blend.x + b*blend.y + c*blend.z
@@ -479,6 +471,8 @@ VecB4 Lerp(C VecB4 &a   , C VecB4 &b , C VecB4 &c, C Vec &blend); // linear inte
 // linear interpolation reverse, get interpolation step from value, these functions return 0 if "value==from" and 1 if "value==to", in other cases returned value is interpolated between 0..1
 inline Flt LerpR(  Int    from,   Int    to,   Int    value) {return Flt(value-from)/(to-from);}
 inline Flt LerpR(  Int    from,   Int    to,   Flt    value) {return    (value-from)/(to-from);}
+inline Flt LerpR(  Int    from,   Flt    to,   Flt    value) {return    (value-from)/(to-from);}
+inline Flt LerpR(  Flt    from,   Int    to,   Flt    value) {return    (value-from)/(to-from);}
 inline Flt LerpR(  Flt    from,   Flt    to,   Flt    value) {return    (value-from)/(to-from);}
 inline Dbl LerpR(  Dbl    from,   Dbl    to,   Dbl    value) {return    (value-from)/(to-from);}
        Flt LerpR(C Vec2  &from, C Vec2  &to, C Vec2  &value);
@@ -491,6 +485,8 @@ inline Dbl LerpR(  Dbl    from,   Dbl    to,   Dbl    value) {return    (value-f
 // linear interpolation reverse saturated, get saturated interpolation step from value, these functions return 0 if "value==from" and 1 if "value==to", in other cases returned value is interpolated between 0..1 and clamped to 0..1 range
 inline Flt LerpRS(  Int    from,   Int    to,   Int    value) {return Sat(LerpR(from, to, value));}
 inline Flt LerpRS(  Int    from,   Int    to,   Flt    value) {return Sat(LerpR(from, to, value));}
+inline Flt LerpRS(  Int    from,   Flt    to,   Flt    value) {return Sat(LerpR(from, to, value));}
+inline Flt LerpRS(  Flt    from,   Int    to,   Flt    value) {return Sat(LerpR(from, to, value));}
 inline Flt LerpRS(  Flt    from,   Flt    to,   Flt    value) {return Sat(LerpR(from, to, value));}
 inline Dbl LerpRS(  Dbl    from,   Dbl    to,   Dbl    value) {return Sat(LerpR(from, to, value));}
 inline Flt LerpRS(C Vec2  &from, C Vec2  &to, C Vec2  &value) {return Sat(LerpR(from, to, value));}
@@ -599,7 +595,8 @@ inline Flt  U2ToFlt(Byte u) {return u/3.0f                  ;} // 0..3 -> 0..1
 inline UInt FltToU10(Flt  f) {return Mid(RoundPos(f*1023), 0, 1023);} // 0..1    -> 0..1023, it's okay to clamp after converting to int for small values
 inline Flt  U10ToFlt(UInt u) {return u/1023.0f                     ;} // 0..1023 -> 0..1
 
-inline Int SFltToShort(Flt f) {return RoundPos(Mid(f, -1.0f, 1.0f)*32767);} // -1..1 -> -32767..32767
+inline Flt  ShortToSFlt (Short s) {return         (s<=-32767) ? -1 : s/32767.0f;} // -32767..32767 -> -1..1
+inline Short SFltToShort(Flt   f) {return RoundPos(Mid(f, -1.0f, 1.0f)*32767)  ;} // -1..1 -> -32767..32767
 
 inline UInt FltToU16(Flt  f) {return RoundPos(Sat(f)*65535);} // 0..1     -> 0..65535
 inline Flt  U16ToFlt(UInt u) {return u/65535.0f            ;} // 0..65535 -> 0..1

@@ -11,18 +11,10 @@ class ImporterClass
    };
    class Import
    {
-      class MaterialEx : XMaterial
+      class MaterialEx : XMaterialEx
       {
-         Material mtrl;
-         Image    base_0, base_1, base_2, detail, macro, light;
-         UID      base_0_id, base_1_id, base_2_id, detail_id, macro_id, light_id;
-
-         void copyTo(EditMaterial &dest, C TimeStamp &time=TimeStamp().getUTC())C;
          void check(C Str &path, Str &tex);
          void process(C Str &path);
-
-public:
-   MaterialEx();
       };
       class ImageEx : Image
       {

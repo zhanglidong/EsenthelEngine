@@ -24,6 +24,9 @@ template<typename TYPE> bool Undo(TimeStamp &time, C TimeStamp &src_time, TYPE &
    return UndoByTime (time, src_time, data, src_data) // first check by time because it's faster
        || UndoByValue(time, src_time, data, src_data);
 }
+VecI2 TextVecI2Ex(cchar *t) {return TextVecI2(t);}
+Vec2  TextVec2Ex(cchar *t) {return TextVec2 (t);}
+Vec   TextVecEx(cchar *t) {return TextVec  (t);}
 bool NegativeSB(flt  x) {return FlagTest  ((uint&)x, SIGN_BIT);}
 void      CHSSB(flt &x) {       FlagToggle((uint&)x, SIGN_BIT);}
 template<typename TYPE      > bool Save(File &f, C Memc<TYPE> &m              ) {  f.putInt(m.elms()); FREPA(m)if(!m[i].save(f      ))return false; return f.ok();}

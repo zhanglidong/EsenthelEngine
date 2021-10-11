@@ -19,7 +19,7 @@ TextStyleEditor TextStyleEdit;
       }
       void TextStyleEditor::TextClip::draw(C GuiPC &gpc)
 {
-         if(visible() && gpc.visible)
+         if(gpc.visible && visible())
          {
             D.clip(gpc.clip);
             Rect r=rect()+gpc.offset;

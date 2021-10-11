@@ -43,12 +43,8 @@ class EnvEditor : ClosableWindow
    static Str  BloomScale   (C EditEnv &env             );
    static void BloomCut     (  EditEnv &env, C Str &text);
    static Str  BloomCut     (C EditEnv &env             );
-   static void BloomMaximum (  EditEnv &env, C Str &text);
-   static Str  BloomMaximum (C EditEnv &env             );
-   static void BloomHalf    (  EditEnv &env, C Str &text);
-   static Str  BloomHalf    (C EditEnv &env             );
-   static void BloomBlurs   (  EditEnv &env, C Str &text);
-   static Str  BloomBlurs   (C EditEnv &env             );
+   static void BloomGlow    (  EditEnv &env, C Str &text);
+   static Str  BloomGlow    (C EditEnv &env             );
 
    static void CloudsScaleY(  EditEnv &env, C Str &text);
    static Str  CloudsScaleY(C EditEnv &env             );

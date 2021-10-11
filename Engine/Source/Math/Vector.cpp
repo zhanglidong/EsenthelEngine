@@ -33,6 +33,7 @@ const Vec VecDir[DIR_NUM]=
 const Vec   VecOne   (1);
 const Vec4  Vec4Zero (0);
 const VecD4 VecD4Zero(0);
+const VecI4 VecI4Zero(0);
 /******************************************************************************/
 Int MinI(Int x, Int y              ) {return y<x;}
 Int MinI(Flt x, Flt y              ) {return y<x;}
@@ -488,24 +489,9 @@ Int Compare(C Color &c0, C Color &c1)
    return 0;
 }
 /******************************************************************************/
-Flt Sqrt(Int x) {return (x<=0) ? 0 : SqrtFast(x);}
-Flt Sqrt(Flt x) {return (x<=0) ? 0 : SqrtFast(x);}
-Dbl Sqrt(Dbl x) {return (x<=0) ? 0 : SqrtFast(x);}
-
-Flt SqrtS(Int x) {return (x>=0) ? SqrtFast(x) : -SqrtFast(-x);}
-Flt SqrtS(Flt x) {return (x>=0) ? SqrtFast(x) : -SqrtFast(-x);}
-Dbl SqrtS(Dbl x) {return (x>=0) ? SqrtFast(x) : -SqrtFast(-x);}
-
 Vec2 Sqrt(C Vec2 &x) {return Vec2(Sqrt(x.x), Sqrt(x.y));}
 Vec  Sqrt(C Vec  &x) {return Vec (Sqrt(x.x), Sqrt(x.y), Sqrt(x.z));}
 Vec4 Sqrt(C Vec4 &x) {return Vec4(Sqrt(x.x), Sqrt(x.y), Sqrt(x.z), Sqrt(x.w));}
-
-Flt Dist(Int x, Int y       ) {return SqrtFast(Dist2(x, y   ));}
-Flt Dist(Flt x, Flt y       ) {return SqrtFast(Dist2(x, y   ));}
-Dbl Dist(Dbl x, Dbl y       ) {return SqrtFast(Dist2(x, y   ));}
-Flt Dist(Int x, Int y, Int z) {return SqrtFast(Dist2(x, y, z));}
-Flt Dist(Flt x, Flt y, Flt z) {return SqrtFast(Dist2(x, y, z));}
-Dbl Dist(Dbl x, Dbl y, Dbl z) {return SqrtFast(Dist2(x, y, z));}
 /******************************************************************************/
 Flt Vec2 ::length()C {return SqrtFast(length2());}
 Flt VecI2::length()C {return SqrtFast(length2());}

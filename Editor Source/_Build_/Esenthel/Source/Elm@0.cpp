@@ -41,7 +41,96 @@ void  InitElmOrder()
    FREP(ELM_NUM)elms.include(ELM_TYPE(i)); // include elements that were not listed above (just in case)
    ElmOrderArray.setNum(elms.elms()); REPA(elms)ElmOrderArray(elms[i])=i;
 }
-/******************************************************************************/
+/******************************************************************************
+class TexInfoGetter
+{
+   Str       tex_path;
+   Memc<UID> tex_to_process;
+   Memb<UID> tex_to_process1; // need to use 'Memb' to have const_mem_addr, because these can be added on the fly
+   uintptr   thread_id=0;
+
+  ~TexInfoGetter() {stopAndWait();} // stop processing before deleting other memebers
+
+   void stop       () {BackgroundThreads.cancelFunc(CalcTexSharpness);}
+   void stopAndWait()
+   {
+      stop();
+      BackgroundThreads.waitFunc(CalcTexSharpness);
+      tex_path       .clear();
+      tex_to_process .clear();
+      tex_to_process1.clear();
+   }
+
+   static int ImageLoad(ImageHeader &header, C Str &name)
+   {
+      if(GetThreadId()==TIG.thread_id) // process only inside 'TIG'
+      {
+         header.mode=IMAGE_SOFT;
+       //if(ImageTI[header.type].compressed)header.type=ImageTypeUncompressed(header.type); no need to do that, because there are only one decompressions per mip-map (1. extracting 2nd mip map to RGBA, 2. comparing 1st mip map with upscaled), doing this would only increase memory usage
+         MIN(header.mip_maps, 2); // we need only 2 mip maps
+      }
+      return 0;
+   }
+   static flt ImageSharpness(C Image &image)
+   {
+      if(image.mipMaps()>=2)
+      {
+         Image mip; image.extractMipMap(mip, -1, 1); // get 2nd mip-map
+         mip.mustCopy(mip, image.w(), image.h(), image.d(), ImageTypeUncompressed(mip.type()), -1, 1, FILTER_LINEAR, IC_WRAP); // upscale smaller mip-map to full image size, use linear filtering because we simulate GPU filtering
+         ImageCompare ic; if(ic.compare(image, mip))return ic.avg_dif2;
+      }
+      return -1; // can't calculate
+   }
+   static void CalcTexSharpness(UID &tex_id, ptr user, int thread_index)
+   {
+      Image img;
+
+      // no need for 'ThreadMayUseGPUData' because we use only IMAGE_SOFT
+      Images.lock(); // lock because other threads may modify 'image_load_shrink' too
+      TIG.thread_id=GetThreadId();
+      int (*image_load_shrink)(ImageHeader &image_header, C Str &name)=D.image_load_shrink; // remember current
+      D.image_load_shrink=ImageLoad        ; bool ok=img.load(TIG.tex_path+EncodeFileName(tex_id));
+      D.image_load_shrink=image_load_shrink; // restore
+      Images.unlock();
+
+      flt sharpness =ImageSharpness(img);
+      if( sharpness>=0)
+      {
+         TexInfos(tex_id).sharpness=sharpness;
+         AtomicSet(Proj.texture_changed, true);
+      }
+   }
+
+   void getTexSharpnessFromProject()
+   {
+      if(Proj.list.tex_sharpness)
+      {
+         stopAndWait(); // stop first
+
+         tex_path=Proj.tex_path;
+
+         // get textures to process
+         Memc<UID> proj_texs; Proj.getTextures(proj_texs, true); // process only existing
+         FREPA(proj_texs)
+         {
+          C UID &tex_id=proj_texs[i];
+            if(C TextureInfo *tex_info=TexInfos.find(tex_id))if(tex_info.knownSharpness())continue; // no need to process
+            tex_to_process.add(tex_id);
+         }
+
+         // now when all array has been allocated and elements won't change their mem address, we can start processing
+         FREPA(tex_to_process)BackgroundThreads.queue(tex_to_process[i], CalcTexSharpness);
+      }else stop();
+   }
+   void savedTex(C UID &tex_id)
+   {
+      if(Proj.list.tex_sharpness)
+      {
+         UID &process=tex_to_process1.New(); process=tex_id;
+         BackgroundThreads.queue(process, CalcTexSharpness); // use 'process' and not 'tex_id' to have const_mem_addr
+      }
+   }
+}
 TexInfoGetter TIG;
 /******************************************************************************/
 
@@ -77,28 +166,12 @@ TexInfoGetter TIG;
       }
       return CompareIndex(a, b); // compare by index instead of returning 0, because only shared parents were checked, if 'a' is child of 'b' then we need to make sure that 'a' is listed after
    }
-   int ListElm::CompareTexSharp(C ListElm &a, C ListElm &b)
-   {
-      MemtN<C ListElm*, 128> as, bs;
-      for(C ListElm *p=&a; ; ){as.add(p); p=p->vis_parent; if(!p)break;}
-      for(C ListElm *p=&b; ; ){bs.add(p); p=p->vis_parent; if(!p)break;}
-      int  shared_parents=Min(as.elms(), bs.elms());
-      FREP(shared_parents)
-      {
-       C ListElm &a=*as[as.elms()-1-i],
-                 &b=*bs[bs.elms()-1-i];
-         if(int c=Compare     (a.texSharpness(), b.texSharpness()))return c;
-         if(int c=CompareIndex(a               , b               ))return c;
-      }
-      return CompareIndex(a, b); // compare by index instead of returning 0, because only shared parents were checked, if 'a' is child of 'b' then we need to make sure that 'a' is listed after
-   }
    Str ListElm::Size(C ListElm &data)
    {
       long size=data.fileSize(); if(!size)return S;
       Str    s=FileSize(size); if(!data.size_known)s+='+';
       return s;
    }
-   Str ListElm::TexSharp(C ListElm &data) {flt sharpness=data.texSharpness(); if(sharpness<2)return sharpness; return S;}
    void ListElm::IncludeTex(Memt<UID> &texs, C UID &tex_id) {if(tex_id.valid())texs.binaryInclude(tex_id);}
    void ListElm::IncludeTex(Memt<UID> &texs, C Elm &elm)
    {
@@ -149,17 +222,6 @@ TexInfoGetter TIG;
       }
    }
    long ListElm::fileSize()C {ConstCast(T).calcTexSize(); return size;}
-   flt ListElm::texSharpness()C
-   {
-      flt sharpness=3;
-      if(elm)if(C ElmMaterial *mtrl_data=elm->mtrlData())
-      {
-         if(mtrl_data->base_0_tex.valid())if(C TextureInfo *tex_info=TexInfos.find(mtrl_data->base_0_tex))MIN(sharpness, tex_info->sharpness);
-       //if(mtrl_data.base_1_tex.valid())if(C TextureInfo *tex_info=TexInfos.find(mtrl_data.base_1_tex))MIN(sharpness, tex_info.sharpness); ignore base1
-       //if(mtrl_data.base_2_tex.valid())if(C TextureInfo *tex_info=TexInfos.find(mtrl_data.base_2_tex))MIN(sharpness, tex_info.sharpness); ignore base2
-      }
-      return sharpness;
-   }
    void ListElm::resetColor() {color=color_temp;}
    void ListElm::highlight() {color.g=255;}
    bool ListElm::hasVisibleChildren()C {return opened_icon!=null;}
@@ -228,86 +290,6 @@ TexInfoGetter TIG;
       hasVisibleChildren(item.children.elms()>0, opened);
       return set(item.type, item.base_name, FlagTest(item.flag, ELM_EDITED), false, parent_removed, depth, -1);
    }
-  TexInfoGetter::~TexInfoGetter() {stopAndWait();}
-   void TexInfoGetter::stop() {BackgroundThreads.cancelFunc(CalcTexSharpness);}
-   void TexInfoGetter::stopAndWait()
-   {
-      stop();
-      BackgroundThreads.waitFunc(CalcTexSharpness);
-      tex_path       .clear();
-      tex_to_process .clear();
-      tex_to_process1.clear();
-   }
-   int TexInfoGetter::ImageLoad(ImageHeader &header, C Str &name)
-   {
-      if(GetThreadId()==TIG.thread_id) // process only inside 'TIG'
-      {
-         header.mode=IMAGE_SOFT;
-       //if(ImageTI[header.type].compressed)header.type=ImageTypeUncompressed(header.type); no need to do that, because there are only one decompressions per mip-map (1. extracting 2nd mip map to RGBA, 2. comparing 1st mip map with upscaled), doing this would only increase memory usage
-         MIN(header.mip_maps, 2); // we need only 2 mip maps
-      }
-      return 0;
-   }
-   flt TexInfoGetter::ImageSharpness(C Image &image)
-   {
-      if(image.mipMaps()>=2)
-      {
-         Image mip; image.extractMipMap(mip, -1, 1); // get 2nd mip-map
-         mip.copy(mip, image.w(), image.h(), image.d(), ImageTypeUncompressed(mip.type()), -1, 1, FILTER_LINEAR, IC_WRAP); // upscale smaller mip-map to full image size, use linear filtering because we simulate GPU filtering
-         ImageCompare ic; if(ic.compare(image, mip))return ic.avg_dif2;
-      }
-      return -1; // can't calculate
-   }
-   void TexInfoGetter::CalcTexSharpness(UID &tex_id, ptr user, int thread_index)
-   {
-      Image img;
-
-      // no need for 'ThreadMayUseGPUData' because we use only IMAGE_SOFT
-      Images.lock(); // lock because other threads may modify 'image_load_shrink' too
-      TIG.thread_id=GetThreadId();
-      int (*image_load_shrink)(ImageHeader &image_header, C Str &name)=D.image_load_shrink; // remember current
-      D.image_load_shrink=ImageLoad        ; bool ok=img.load(TIG.tex_path+EncodeFileName(tex_id));
-      D.image_load_shrink=image_load_shrink; // restore
-      Images.unlock();
-
-      flt sharpness =ImageSharpness(img);
-      if( sharpness>=0)
-      {
-         TexInfos(tex_id)->sharpness=sharpness;
-         AtomicSet(TIG.got_new_data, true);
-      }
-   }
-   void TexInfoGetter::getTexSharpnessFromProject()
-   {
-      if(Proj.list.tex_sharpness)
-      {
-         stopAndWait(); // stop first
-
-         tex_path=Proj.tex_path;
-
-         // get textures to process
-         Memc<UID> proj_texs; Proj.getTextures(proj_texs, true); // process only existing
-         FREPA(proj_texs)
-         {
-          C UID &tex_id=proj_texs[i];
-            if(C TextureInfo *tex_info=TexInfos.find(tex_id))if(tex_info->knownSharpness())continue; // no need to process
-            tex_to_process.add(tex_id);
-         }
-
-         // now when all array has been allocated and elements won't change their mem address, we can start processing
-         FREPA(tex_to_process)BackgroundThreads.queue(tex_to_process[i], CalcTexSharpness);
-      }else stop();
-   }
-   void TexInfoGetter::savedTex(C UID &tex_id)
-   {
-      if(Proj.list.tex_sharpness)
-      {
-         UID &process=tex_to_process1.New(); process=tex_id;
-         BackgroundThreads.queue(process, CalcTexSharpness); // use 'process' and not 'tex_id' to have const_mem_addr
-      }
-   }
 ListElm::ListElm() : size_known(true), tex_size_calculated(false), depth(0), offset(0), color(BLACK), color_temp(BLACK), elm(null), item(null), opened_icon(null), icon(null), size(0) {}
-
-TexInfoGetter::TexInfoGetter() : got_new_data(false), thread_id(0) {}
 
 /******************************************************************************/

@@ -127,8 +127,8 @@ struct MeshLod // Level of Detail, array of Mesh Part's
 
    MeshLod& explodeVtxs(); // separate vertexes so that each edge/face has its own unique vertexes
 
-   MeshLod& tesselate(); // smooth subdivide faces, preserving original vertexes
-   MeshLod& subdivide(); // smooth subdivide faces,  smoothing original vertexes
+   MeshLod& tesselate(Flt weld_pos_eps=EPS); // smooth subdivide faces, preserving original vertexes, 'weld_pos_eps'=epsilon used for final vertex position welding
+   MeshLod& subdivide(                    ); // smooth subdivide faces,  smoothing original vertexes
 
    MeshLod&    boneRemap(C CMemPtr<Byte, 256> &old_to_new); // remap vertex bone/matrix indexes according to bone 'old_to_new' remap
    void     setUsedBones(Bool (&bones)[256])C;
@@ -175,11 +175,11 @@ struct MeshLod // Level of Detail, array of Mesh Part's
       void drawNormals  (  Flt    length   , C Color &face_color, C Color &vtx_color=TRANSPARENT, C Color &tangent_color=TRANSPARENT, C Color &binormal_color=TRANSPARENT)C; // draw 3D normals
    #endif
       // default drawing, doesn't use automatic Frustum Culling, this doesn't draw the mesh immediately, instead it adds the mesh to a draw list
-      void draw(C MatrixM          &matrix, C MatrixM &matrix_prev )C; // add mesh to draw list using 'matrix'    matrix   and    velocities based on 'matrix_prev' matrix from previous frame, this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed: RM_EARLY_Z RM_SOLID RM_SOLID_M RM_AMBIENT RM_BLEND
-      void draw(C MatrixM          &matrix                         )C; // add mesh to draw list using 'matrix'    matrix   and no velocities                                                  , this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed: RM_EARLY_Z RM_SOLID RM_SOLID_M RM_AMBIENT RM_BLEND
-      void draw(                                                   )C; // add mesh to draw list using  identity   matrix   and no velocities                                                  , this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed: RM_EARLY_Z RM_SOLID RM_SOLID_M RM_AMBIENT RM_BLEND
-      void draw(C AnimatedSkeleton &anim_skel                      )C; // add mesh to draw list using 'anim_skel' matrixes and    velocities                                                  , this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed:            RM_SOLID RM_SOLID_M RM_AMBIENT RM_BLEND, 'anim_skel' must point to constant memory address (the pointer is stored through which the object can be accessed later during frame rendering)
-      void draw(C AnimatedSkeleton &anim_skel, C Material &material)C; // add mesh to draw list using 'anim_skel' matrixes and    velocities                                                  , this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed:            RM_SOLID RM_SOLID_M RM_AMBIENT RM_BLEND, 'anim_skel' must point to constant memory address (the pointer is stored through which the object can be accessed later during frame rendering), 'material'=material used for rendering which overrides the default material, however for performance reasons, the default shader is used, which means that the 'material' should be similar to the default material, and if it's too different then some artifacts can occur
+      void draw(C MatrixM          &matrix, C MatrixM &matrix_prev )C; // add mesh to draw list using 'matrix'    matrix   and    velocities based on 'matrix_prev' matrix from previous frame, this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed: RM_EARLY_Z RM_OPAQUE RM_OPAQUE_M RM_AMBIENT RM_BLEND
+      void draw(C MatrixM          &matrix                         )C; // add mesh to draw list using 'matrix'    matrix   and no velocities                                                  , this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed: RM_EARLY_Z RM_OPAQUE RM_OPAQUE_M RM_AMBIENT RM_BLEND
+      void draw(                                                   )C; // add mesh to draw list using  identity   matrix   and no velocities                                                  , this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed: RM_EARLY_Z RM_OPAQUE RM_OPAQUE_M RM_AMBIENT RM_BLEND
+      void draw(C AnimatedSkeleton &anim_skel                      )C; // add mesh to draw list using 'anim_skel' matrixes and    velocities                                                  , this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed:            RM_OPAQUE RM_OPAQUE_M RM_AMBIENT RM_BLEND, 'anim_skel' must point to constant memory address (the pointer is stored through which the object can be accessed later during frame rendering)
+      void draw(C AnimatedSkeleton &anim_skel, C Material &material)C; // add mesh to draw list using 'anim_skel' matrixes and    velocities                                                  , this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed:            RM_OPAQUE RM_OPAQUE_M RM_AMBIENT RM_BLEND, 'anim_skel' must point to constant memory address (the pointer is stored through which the object can be accessed later during frame rendering), 'material'=material used for rendering which overrides the default material, however for performance reasons, the default shader is used, which means that the 'material' should be similar to the default material, and if it's too different then some artifacts can occur
 
       void drawShadow(C MatrixM          &matrix                         )C; // add mesh to shadow draw list using 'matrix'    matrix  , this should be called only in RM_SHADOW
       void drawShadow(                                                   )C; // add mesh to shadow draw list using  identity   matrix  , this should be called only in RM_SHADOW
@@ -207,6 +207,10 @@ struct MeshLod // Level of Detail, array of Mesh Part's
 
    void operator*=(C Matrix3 &m) {transform(m);} // transform by matrix
    void operator*=(C Matrix  &m) {transform(m);} // transform by matrix
+
+   void operator+=(C MeshBase &mshb) {add(mshb);} // add MeshBase
+   void operator+=(C MeshPart &part) {add(part);} // add MeshPart
+   void operator+=(C MeshLod  &mesh) {add(mesh);} // add MeshLod
 
    MeshLod();
 };

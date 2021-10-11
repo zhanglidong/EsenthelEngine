@@ -1,5 +1,16 @@
 /******************************************************************************/
 #include "stdafx.h"
+
+#define SUPPORT_TONE_MAP_AMD_LPM 0 // doesn't handle saturation well for high values
+#if     SUPPORT_TONE_MAP_AMD_LPM
+   #define A_CPU 1
+   #include "../Shaders/FidelityFX/ffx_a.h"
+
+   AU1 AMD_LPT_constant[24*4]; // Upload this to a uint4[24] part of a constant buffer (for example 'constant.lpm[24]').
+   A_STATIC void LpmSetupOut(AU1 i,inAU4 v){AMD_LPT_constant[i*4+0]=v[0];AMD_LPT_constant[i*4+1]=v[1];AMD_LPT_constant[i*4+2]=v[2];AMD_LPT_constant[i*4+3]=v[3];}
+   #include "../Shaders/FidelityFX/ffx_lpm.h"
+#endif
+
 namespace EE{
 /******************************************************************************/
 MainShaderClass    Sh;
@@ -12,7 +23,7 @@ MotionBlur         Mtn;
 DepthOfField       Dof;
 WaterShader        WS;
 
-ShaderImage::Sampler SamplerPoint, SamplerLinearWrap, SamplerLinearWCC, SamplerLinearCWC, SamplerLinearCWW, SamplerLinearClamp, SamplerFont, SamplerAnisotropic, SamplerShadowMap;
+ShaderSampler SamplerPoint, SamplerLinearWrap, SamplerLinearWCC, SamplerLinearCWC, SamplerLinearCWW, SamplerLinearClamp, SamplerMinimum, SamplerMaximum, SamplerFont, SamplerRender, SamplerAnisotropicClamp, SamplerShadowMap;
 /******************************************************************************/
 // MAIN SHADER
 /******************************************************************************/
@@ -22,7 +33,7 @@ void Create2DSampler()
    D3D11_SAMPLER_DESC sd; Zero(sd);
    sd.MipLODBias    =D.imageMipBias();
    sd.MaxAnisotropy =1;
-   sd.MinLOD        =0;
+ //sd.MinLOD        =0;
    sd.MaxLOD        =FLT_MAX;
    sd.ComparisonFunc=D3D11_COMPARISON_NEVER;
    sd.Filter        =D3D11_FILTER_MIN_MAG_MIP_LINEAR;
@@ -36,16 +47,29 @@ void Create2DSampler()
    sd.AddressV=D3D11_TEXTURE_ADDRESS_CLAMP;
    sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
    SamplerLinearClamp.create(sd);
+
+   // always use best filtering instead of 'D.texFilter'
+   if(D.maxTexFilter()>1)sd.Filter=D3D11_FILTER_ANISOTROPIC;
+   else                  sd.Filter=D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+   sd.MaxAnisotropy=D.maxTexFilter();
+   sd.AddressU=D3D11_TEXTURE_ADDRESS_CLAMP;
+   sd.AddressV=D3D11_TEXTURE_ADDRESS_CLAMP;
+   sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
+   SamplerAnisotropicClamp.create(sd);
+
 #elif GL
-   if(SamplerLinearWrap.sampler)
-   {
-      glSamplerParameterf(SamplerLinearWrap.sampler, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
-   }
-   if(SamplerLinearClamp.sampler)
-   {
-      glSamplerParameterf(SamplerLinearClamp.sampler, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
-   }
+   if(SamplerLinearWrap      .sampler)glSamplerParameterf(SamplerLinearWrap      .sampler, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
+   if(SamplerLinearClamp     .sampler)glSamplerParameterf(SamplerLinearClamp     .sampler, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
+   if(SamplerAnisotropicClamp.sampler)glSamplerParameterf(SamplerAnisotropicClamp.sampler, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
+#if GL_ES
+   if(SamplerLinearWrap      .sampler_no_filter)glSamplerParameterf(SamplerLinearWrap      .sampler_no_filter, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
+   if(SamplerLinearClamp     .sampler_no_filter)glSamplerParameterf(SamplerLinearClamp     .sampler_no_filter, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
+   if(SamplerAnisotropicClamp.sampler_no_filter)glSamplerParameterf(SamplerAnisotropicClamp.sampler_no_filter, GL_TEXTURE_LOD_BIAS, D.imageMipBias());
 #endif
+#endif
+   SamplerLinearWrap      .set(SSI_LINEAR_WRAP);
+   SamplerLinearClamp     .set(SSI_LINEAR_CLAMP);
+ //SamplerAnisotropicClamp.set(SSI_ANISOTROPIC_CLAMP);
 }
 void CreateFontSampler()
 {
@@ -57,18 +81,19 @@ void CreateFontSampler()
    sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
    sd.MipLODBias    =D.fontMipBias();
    sd.MaxAnisotropy =1;
-   sd.MinLOD        =0;
+ //sd.MinLOD        =0;
    sd.MaxLOD        =FLT_MAX;
    sd.ComparisonFunc=D3D11_COMPARISON_NEVER;
    SamplerFont.create(sd);
 #elif GL
-   if(SamplerFont.sampler)
-   {
-      glSamplerParameterf(SamplerFont.sampler, GL_TEXTURE_LOD_BIAS, D.fontMipBias());
-   }
+   if(SamplerFont.sampler)glSamplerParameterf(SamplerFont.sampler, GL_TEXTURE_LOD_BIAS, D.fontMipBias());
+#if GL_ES
+   if(SamplerFont.sampler_no_filter)glSamplerParameterf(SamplerFont.sampler_no_filter, GL_TEXTURE_LOD_BIAS, D.fontMipBias());
 #endif
+#endif
+   SamplerFont.set(SSI_FONT);
 }
-void CreateAnisotropicSampler()
+void CreateRenderSampler()
 {
 #if DX11
    D3D11_SAMPLER_DESC  sd; Zero(sd);
@@ -83,17 +108,28 @@ void CreateAnisotropicSampler()
    sd.MinLOD        =    D.texMipMin ();
    sd.MaxLOD        =FLT_MAX;
    sd.ComparisonFunc=D3D11_COMPARISON_NEVER;
-   SamplerAnisotropic.create(sd);
+   SamplerRender.create(sd);
 #elif GL
-   if(SamplerAnisotropic.sampler)
+   if(SamplerRender.sampler)
    {
-      glSamplerParameteri(SamplerAnisotropic.sampler, GL_TEXTURE_MAX_ANISOTROPY, Max(D.texFilter   (), 1));
-      glSamplerParameteri(SamplerAnisotropic.sampler, GL_TEXTURE_MIN_FILTER    ,     D.texMipFilter() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_NEAREST);
-      glSamplerParameteri(SamplerAnisotropic.sampler, GL_TEXTURE_MAG_FILTER    ,     D.texFilter   () ? GL_LINEAR : GL_NEAREST);
-      glSamplerParameteri(SamplerAnisotropic.sampler, GL_TEXTURE_BASE_LEVEL    ,     D.texMipMin   ());
-      glSamplerParameterf(SamplerAnisotropic.sampler, GL_TEXTURE_LOD_BIAS      ,     D.texMipBias  ());
+      glSamplerParameteri(SamplerRender.sampler, GL_TEXTURE_MAX_ANISOTROPY, Max(D.texFilter   (), 1));
+      glSamplerParameteri(SamplerRender.sampler, GL_TEXTURE_MIN_FILTER    ,     D.texMipFilter() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_NEAREST);
+      glSamplerParameteri(SamplerRender.sampler, GL_TEXTURE_MAG_FILTER    ,     D.texFilter   () ? GL_LINEAR : GL_NEAREST);
+      glSamplerParameteri(SamplerRender.sampler, GL_TEXTURE_BASE_LEVEL    ,     D.texMipMin   ());
+      glSamplerParameterf(SamplerRender.sampler, GL_TEXTURE_LOD_BIAS      ,     D.texMipBias  ());
+   }
+#if GL_ES
+   if(SamplerRender.sampler_no_filter)
+   {
+      glSamplerParameteri(SamplerRender.sampler_no_filter, GL_TEXTURE_MAX_ANISOTROPY,        Max(D.texFilter   (), 1));
+      glSamplerParameteri(SamplerRender.sampler_no_filter, GL_TEXTURE_MIN_FILTER    , GLNoFilter(D.texMipFilter() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_NEAREST));
+      glSamplerParameteri(SamplerRender.sampler_no_filter, GL_TEXTURE_MAG_FILTER    , GLNoFilter(D.texFilter   () ? GL_LINEAR : GL_NEAREST));
+      glSamplerParameteri(SamplerRender.sampler_no_filter, GL_TEXTURE_BASE_LEVEL    ,            D.texMipMin   ());
+      glSamplerParameterf(SamplerRender.sampler_no_filter, GL_TEXTURE_LOD_BIAS      ,            D.texMipBias  ());
    }
 #endif
+#endif
+   SamplerRender.set(SSI_RENDER);
 }
 /******************************************************************************/
 static Vec4 DummyData[1]; ASSERT(SIZE(DummyData)==MIN_SHADER_PARAM_DATA_SIZE);
@@ -107,21 +143,25 @@ MainShaderClass::MainShaderClass()
 void MainShaderClass::del()
 {
    // delete all to detect GPU memory leaks when using D3D_DEBUG
-   shader        =null;
-   ShaderFiles  .del();
-   ShaderParams .del(); // params before buffers, because they point to them
-   ShaderBuffers.del();
-   ShaderImages .del();
+   shader         =null;
+   ShaderFiles   .del();
+   ShaderParams  .del(); // params before buffers, because they point to them
+   ShaderBuffers .del();
+   ShaderImages  .del();
+   ShaderRWImages.del();
 
-   SamplerPoint      .del();
-   SamplerLinearWrap .del();
-   SamplerLinearWCC  .del();
-   SamplerLinearCWC  .del();
-   SamplerLinearCWW  .del();
-   SamplerLinearClamp.del();
-   SamplerFont       .del();
-   SamplerAnisotropic.del();
-   SamplerShadowMap  .del();
+   SamplerPoint           .del();
+   SamplerLinearWrap      .del();
+   SamplerLinearWCC       .del();
+   SamplerLinearCWC       .del();
+   SamplerLinearCWW       .del();
+   SamplerLinearClamp     .del();
+   SamplerMinimum         .del();
+   SamplerMaximum         .del();
+   SamplerFont            .del();
+   SamplerRender          .del();
+   SamplerAnisotropicClamp.del();
+   SamplerShadowMap       .del();
 }
 void MainShaderClass::createSamplers()
 {
@@ -157,6 +197,20 @@ void MainShaderClass::createSamplers()
    sd.AddressW=D3D11_TEXTURE_ADDRESS_WRAP;
    SamplerLinearCWW.create(sd);
 
+   sd.Filter  =D3D11_FILTER_MINIMUM_MIN_MAG_MIP_LINEAR; // this must be LINEAR to take Min from multiple texels, POINT would work as 'SamplerPoint'
+   sd.AddressU=D3D11_TEXTURE_ADDRESS_CLAMP;
+   sd.AddressV=D3D11_TEXTURE_ADDRESS_CLAMP;
+   sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
+   if(SamplerMinimum.createTry(sd)) // optional because not supported everywhere - https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_filter
+   { // create 'SamplerMaximum' only if 'SamplerMinimum' succeeded
+      sd.Filter  =D3D11_FILTER_MAXIMUM_MIN_MAG_MIP_LINEAR; // this must be LINEAR to take Max from multiple texels, POINT would work as 'SamplerPoint'
+      sd.AddressU=D3D11_TEXTURE_ADDRESS_CLAMP;
+      sd.AddressV=D3D11_TEXTURE_ADDRESS_CLAMP;
+      sd.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
+      SamplerMaximum.createTry(sd); // optional because not supported everywhere - https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_filter
+   }
+
+   // !! THIS AT THE END BECAUSE IT MODIFIES 'ComparisonFunc' !!
    sd.Filter  =D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
    sd.AddressU=D3D11_TEXTURE_ADDRESS_CLAMP;
    sd.AddressV=D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -194,15 +248,54 @@ void MainShaderClass::createSamplers()
    REPAO(SamplerLinearClamp.address)=GL_CLAMP_TO_EDGE;
          SamplerLinearClamp.create();
 
+// these are optional because not supported everywhere - https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_texture_filter_minmax.txt
+#ifdef GL_TEXTURE_REDUCTION_MODE_EXT
+         SamplerMinimum.filter_min=GL_LINEAR; // this must be GL_LINEAR to take Min from multiple texels, GL_NEAREST would work as 'SamplerPoint'
+         SamplerMinimum.filter_mag=GL_LINEAR; // this must be GL_LINEAR to take Min from multiple texels, GL_NEAREST would work as 'SamplerPoint'
+   REPAO(SamplerMinimum.address)=GL_CLAMP_TO_EDGE;
+         SamplerMinimum.create();
+
+         SamplerMaximum.filter_min=GL_LINEAR; // this must be GL_LINEAR to take Max from multiple texels, GL_NEAREST would work as 'SamplerPoint'
+         SamplerMaximum.filter_mag=GL_LINEAR; // this must be GL_LINEAR to take Max from multiple texels, GL_NEAREST would work as 'SamplerPoint'
+   REPAO(SamplerMaximum.address)=GL_CLAMP_TO_EDGE;
+         SamplerMaximum.create();
+
+   if(SamplerMinimum.is())
+   {
+      glGetError(); // clear any previous errors
+      glSamplerParameteri(SamplerMinimum.sampler, GL_TEXTURE_REDUCTION_MODE_EXT, GL_MIN);
+      if(glGetError()!=GL_NO_ERROR)SamplerMinimum.del(); // delete on error
+   }
+   if(SamplerMaximum.is())
+   {
+      glGetError(); // clear any previous errors
+      glSamplerParameteri(SamplerMaximum.sampler, GL_TEXTURE_REDUCTION_MODE_EXT, GL_MAX);
+      if(glGetError()!=GL_NO_ERROR)SamplerMaximum.del(); // delete on error
+   }
+   #if GL_ES
+      if(SamplerMinimum.sampler_no_filter)glSamplerParameteri(SamplerMinimum.sampler_no_filter, GL_TEXTURE_REDUCTION_MODE_EXT, GL_MIN);
+      if(SamplerMaximum.sampler_no_filter)glSamplerParameteri(SamplerMaximum.sampler_no_filter, GL_TEXTURE_REDUCTION_MODE_EXT, GL_MAX);
+   #endif
+#endif
+
          SamplerFont.filter_min=GL_LINEAR_MIPMAP_LINEAR;
          SamplerFont.filter_mag=GL_LINEAR;
    REPAO(SamplerFont.address)=GL_CLAMP_TO_EDGE;
          SamplerFont.create();
 
-         SamplerAnisotropic.filter_min=GL_LINEAR_MIPMAP_LINEAR;
-         SamplerAnisotropic.filter_mag=GL_LINEAR;
-   REPAO(SamplerAnisotropic.address)=GL_REPEAT;
-         SamplerAnisotropic.create();
+         SamplerRender.filter_min=GL_LINEAR_MIPMAP_LINEAR;
+         SamplerRender.filter_mag=GL_LINEAR;
+   REPAO(SamplerRender.address)=GL_REPEAT;
+         SamplerRender.create();
+
+         SamplerAnisotropicClamp.filter_min=GL_LINEAR_MIPMAP_LINEAR;
+         SamplerAnisotropicClamp.filter_mag=GL_LINEAR;
+   REPAO(SamplerAnisotropicClamp.address)=GL_CLAMP_TO_EDGE;
+         SamplerAnisotropicClamp.create();
+      if(SamplerAnisotropicClamp.sampler          )glSamplerParameteri(SamplerAnisotropicClamp.sampler          , GL_TEXTURE_MAX_ANISOTROPY, D.maxTexFilter());
+   #if GL_ES
+      if(SamplerAnisotropicClamp.sampler_no_filter)glSamplerParameteri(SamplerAnisotropicClamp.sampler_no_filter, GL_TEXTURE_MAX_ANISOTROPY, D.maxTexFilter());
+   #endif
 
          SamplerShadowMap.filter_min=GL_LINEAR;
          SamplerShadowMap.filter_mag=GL_LINEAR;
@@ -213,20 +306,25 @@ void MainShaderClass::createSamplers()
          glSamplerParameteri(SamplerShadowMap.sampler, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
          glSamplerParameteri(SamplerShadowMap.sampler, GL_TEXTURE_COMPARE_FUNC, REVERSE_DEPTH ? GL_GEQUAL : GL_LEQUAL);
       }
+   #if GL_ES
+      if(SamplerShadowMap.sampler_no_filter)
+      {
+         glSamplerParameteri(SamplerShadowMap.sampler_no_filter, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+         glSamplerParameteri(SamplerShadowMap.sampler_no_filter, GL_TEXTURE_COMPARE_FUNC, REVERSE_DEPTH ? GL_GEQUAL : GL_LEQUAL);
+      }
+   #endif
 #endif
-   Create2DSampler         ();
-   CreateFontSampler       ();
-   CreateAnisotropicSampler();
+   Create2DSampler    ();
+   CreateFontSampler  ();
+   CreateRenderSampler();
 }
-Bool AMD; // #ShaderAMD !! WHEN REMOVING THEN ALSO REMOVE FROM "Esenthel Builder" !!
 void MainShaderClass::create()
 {
-   AMD=ContainsAll(D.deviceName(), "Radeon", true, WHOLE_WORD_ALPHA); // test only for "Radeon" instead of "AMD Radeon" as there might be some GPU cards without "AMD"
    if(LogInit)LogN("MainShaderClass.create");
    compile();
 
 #if DX11
-   path=(AMD ? "Shader\\4 AMD\\" : "Shader\\4\\");
+   path="Shader\\4\\";
 #elif GL
    path=(D.SpirVAvailable() ? "Shader\\GL SPIR-V\\" : "Shader\\GL\\");
 #else
@@ -247,30 +345,30 @@ void MainShaderClass::create()
    connectRT    ();
 }
 /******************************************************************************/
-void MainShaderClass::clear(                C   Vec4  &color,                       C Rect *rect) {Sh.Color[0]->set(color);                              Sh.SetCol->draw(       rect);}
-void MainShaderClass::draw (C Image &image                  ,                       C Rect *rect) {                                                      Sh.Draw  ->draw(image, rect);}
-void MainShaderClass::draw (C Image &image, C   Vec4  &color, C   Vec4  &color_add, C Rect *rect) {Sh.Color[0]->set(color); Sh.Color[1]->set(color_add); Sh.DrawC ->draw(image, rect);}
-void MainShaderClass::draw (C Image &image, C ::Color &color, C ::Color &color_add, C Rect *rect) {Sh.Color[0]->set(color); Sh.Color[1]->set(color_add); Sh.DrawC ->draw(image, rect);}
+void MainShaderClass::clear(                C   Vec4  &color,                       C Rect *rect) {Sh.Color[0]->set(color);                              Sh.SetCol           ->draw(       rect);}
+void MainShaderClass::draw (C Image &image                  ,                       C Rect *rect) {                                                      Sh.Draw[true][false]->draw(image, rect);}
+void MainShaderClass::draw (C Image &image, C   Vec4  &color, C   Vec4  &color_add, C Rect *rect) {Sh.Color[0]->set(color); Sh.Color[1]->set(color_add); Sh.DrawC            ->draw(image, rect);}
+void MainShaderClass::draw (C Image &image, C ::Color &color, C ::Color &color_add, C Rect *rect) {Sh.Color[0]->set(color); Sh.Color[1]->set(color_add); Sh.DrawC            ->draw(image, rect);}
 /******************************************************************************/
-Shader* MainShaderClass::getBloomDS(Bool glow, Bool uv_clamp, Bool half_res, Bool saturate, Bool gamma) {return get(S8+"BloomDS"+glow+uv_clamp+half_res+saturate+gamma);}
-Shader* MainShaderClass::getBloom  (Bool dither, Bool gamma, Bool alpha                               ) {return get(S8+"Bloom"  +dither+gamma+alpha);}
+Shader* MainShaderClass::getPrecomputedBloomDS(Bool view_full, Bool half_res               ) {return get(S8+"PrecomputedBloomDS"+view_full+half_res);}
+Shader* MainShaderClass::getBloomDS(Bool glow, Bool view_full, Bool half_res, Bool exposure) {return get(S8+"BloomDS"+glow+view_full+half_res+exposure);}
+Shader* MainShaderClass::getBloom  (Int tone_map, Int alpha, Bool dither    , Bool exposure) {return get(S8+"Bloom"  +tone_map+alpha+dither+exposure);}
 
 Shader* MainShaderClass::getShdDir  (Int map_num, Bool clouds, Bool multi_sample) {return get(S8+"ShdDir"  +multi_sample+map_num+clouds);}
 Shader* MainShaderClass::getShdPoint(                          Bool multi_sample) {return get(S8+"ShdPoint"+multi_sample);}
 Shader* MainShaderClass::getShdCone (                          Bool multi_sample) {return get(S8+"ShdCone" +multi_sample);}
 
-Shader* MainShaderClass::getDrawLightDir   (Int diffuse, Bool shadow, Bool multi_sample, Bool water            ) {return get(S8+"DrawLightDir"   +diffuse+shadow+multi_sample+water            );}
-Shader* MainShaderClass::getDrawLightPoint (Int diffuse, Bool shadow, Bool multi_sample, Bool water            ) {return get(S8+"DrawLightPoint" +diffuse+shadow+multi_sample+water      +GL_ES);}
-Shader* MainShaderClass::getDrawLightLinear(Int diffuse, Bool shadow, Bool multi_sample, Bool water            ) {return get(S8+"DrawLightLinear"+diffuse+shadow+multi_sample+water      +GL_ES);}
-Shader* MainShaderClass::getDrawLightCone  (Int diffuse, Bool shadow, Bool multi_sample, Bool water, Bool image) {return get(S8+"DrawLightCone"  +diffuse+shadow+multi_sample+water+image+GL_ES);}
+Shader* MainShaderClass::getDrawLightDir   (Int diffuse, Int multi_sample, Bool shadow, Bool water            ) {return get(S8+"DrawLightDir"   +diffuse+multi_sample+shadow+water            );}
+Shader* MainShaderClass::getDrawLightPoint (Int diffuse, Int multi_sample, Bool shadow, Bool water            ) {return get(S8+"DrawLightPoint" +diffuse+multi_sample+shadow+water      +GL_ES);}
+Shader* MainShaderClass::getDrawLightLinear(Int diffuse, Int multi_sample, Bool shadow, Bool water            ) {return get(S8+"DrawLightLinear"+diffuse+multi_sample+shadow+water      +GL_ES);}
+Shader* MainShaderClass::getDrawLightCone  (Int diffuse, Int multi_sample, Bool shadow, Bool water, Bool image) {return get(S8+"DrawLightCone"  +diffuse+multi_sample+shadow+water+image+GL_ES);}
 #if !DEPTH_CLIP_SUPPORTED
-Shader* MainShaderClass::getDrawLightConeFlat(Int diffuse, Bool shadow, Bool multi_sample, Bool water, Bool image) {return get(S8+"DrawLightConeFlat"+diffuse+shadow+multi_sample+water+image);}
+Shader* MainShaderClass::getDrawLightConeFlat(Int diffuse, Int multi_sample, Bool shadow, Bool water, Bool image) {return get(S8+"DrawLightConeFlat"+diffuse+multi_sample+shadow+water+image);}
 #endif
 
 Shader* MainShaderClass::getApplyLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade, Bool glow, Bool reflect) {return get(S8+"ApplyLight"+multi_sample+ao+cel_shade+night_shade+glow+reflect);}
 
-Shader* MainShaderClass::getSunRaysMask(Bool mask                                      ) {return get(S8+"SunRaysMask"+mask);}
-Shader* MainShaderClass::getSunRays    (Bool mask, Bool dither, Bool jitter, Bool gamma) {return get(S8+"SunRays"    +mask+dither+jitter+gamma);}
+Shader* MainShaderClass::getSunRays(Bool alpha, Bool dither, Bool jitter, Bool gamma) {return get(S8+"SunRays"+alpha+dither+jitter+gamma);}
 
 Shader* MainShaderClass::getSky(Int multi_sample, Bool flat, Bool density, Int textures, Bool stars, Bool dither, Bool per_vertex, Bool cloud) {return get(S8+"Sky"+multi_sample+flat+density+textures+stars+dither+per_vertex+cloud);}
 
@@ -281,14 +379,13 @@ Shader* MainShaderClass::getSkyA (Int multi_sample, Bool per_vertex, Bool densit
 
 void MainShaderClass::initCubicShaders()
 {
-   if(!DrawTexCubic[0]) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
+   if(!DrawTexCubicPlus[0]) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
    {
-      REPD(color , 2)DrawTexCubic[color]=get(S8+"DrawTexCubic"+color);
-      REPD(dither, 2)
-      {
-         DrawTexCubicF   [dither]=get(S8+"DrawTexCubicF"   +dither);
-         DrawTexCubicFRGB[dither]=get(S8+"DrawTexCubicFRGB"+dither);
-      }
+      REPD(color   , 2)DrawTexCubicPlus[color]=get(S8+"DrawTexCubicPlus"+color);
+      REPD(alpha   , 2)
+      REPD(dither  , 2)
+    //REPD(in_gamma, 2)REPD(out_gamma, 2)
+      REPD(   gamma, 2)DrawTexCubicPlusF[alpha][dither][gamma]=get(S8+"DrawTexCubicPlusF"+alpha+dither+gamma+gamma);
    }
 }
 void MainShaderClass::loadFogBoxShaders()
@@ -359,8 +456,13 @@ void MainShaderClass::getTechniques()
 
    Depth    =ShaderImages("Depth"  );
    DepthMS  =ShaderImages("DepthMS");
-   ShdMap[0]=ShaderImages("ShdMap" ); ShdMap[0]->_sampler=&SamplerLinearClamp;
-   ShdMap[1]=ShaderImages("ShdMap1"); ShdMap[1]->_sampler=&SamplerLinearClamp;
+   ShdMap[0]=ShaderImages("ShdMap" );
+   ShdMap[1]=ShaderImages("ShdMap1");
+
+   RWImg    =ShaderRWImages("RWImg");
+   RWImgX[0]=ShaderRWImages("RWImgX");
+   RWImgX[1]=ShaderRWImages("RWImgX1");
+   RWImgXY  =ShaderRWImages("RWImgXY");
 
    // material textures
    Col[0]=ShaderImages("Col" );
@@ -385,15 +487,13 @@ void MainShaderClass::getTechniques()
    Mac[3]=ShaderImages("Mac3");
    Lum   =ShaderImages("Lum" );
 
-   ImgSize           =GetShaderParam("ImgSize" );
-   ImgClamp          =GetShaderParam("ImgClamp");
-   RTSize            =GetShaderParam("RTSize"  );
-   Coords            =GetShaderParam("Coords"  );
-   Viewport          =GetShaderParam("Viewport");
-   TAAOffset         =GetShaderParam("TAAOffset");
-   TAAOffsetCurToPrev=GetShaderParam("TAAOffsetCurToPrev");
-   TAAAspectRatio    =GetShaderParam("TAAAspectRatio");
-   DepthWeightScale  =GetShaderParam("DepthWeightScale");
+   ImgSize         =GetShaderParam("ImgSize" );
+   ImgClamp        =GetShaderParam("ImgClamp");
+   RTSize          =GetShaderParam("RTSize"  );
+   Coords          =GetShaderParam("Coords"  );
+   Viewport        =GetShaderParam("Viewport");
+   AspectRatio     =GetShaderParam("AspectRatio");
+   DepthWeightScale=GetShaderParam("DepthWeightScale");
 
    ViewMatrix    =GetShaderParam("ViewMatrix"    );
    ViewMatrixPrev=GetShaderParam("ViewMatrixPrev");
@@ -430,16 +530,17 @@ void MainShaderClass::getTechniques()
    BendFactor      =GetShaderParam("BendFactor");
    BendFactorPrev  =GetShaderParam("BendFactorPrev");
 
-   EnvColor          =GetShaderParam    ("EnvColor"          ); EnvColor->set(D.envColor());
-   EnvMipMaps        =GetShaderParam    ("EnvMipMaps"        ); if(D.envMap())EnvMipMaps->set(D.envMap()->mipMaps()-1);
-   FirstPass         =GetShaderParamBool("FirstPass"         );
-   NightShadeColor   =GetShaderParam    ("NightShadeColor"   ); // set in 'D.ambientSet()'
-   AmbientColor_l    =GetShaderParam    ("AmbientColor"      ); // set in 'D.ambientSet()'
-   AmbientColorNS_l  =GetShaderParam    ("AmbientNSColor"    ); // set in 'D.ambientSet()'
-   AmbientContrast   =GetShaderParam    ("AmbientContrast"   ); AmbientContrast->set(D.ambientContrast());
-   AmbientMin        =GetShaderParam    ("AmbientMin"        ); AmbientMin     ->set(D.ambientMin     ());
-   AmbientRange_2    =GetShaderParam    ("AmbientRange_2"    );
-   AmbientRangeInvSqr=GetShaderParam    ("AmbientRangeInvSqr");
+   EnvColor           =GetShaderParam    ("EnvColor"           ); EnvColor->set(D.envColor());
+   EnvMipMaps         =GetShaderParam    ("EnvMipMaps"         ); if(D.envMap())EnvMipMaps->set(D.envMap()->mipMaps()-1);
+   FirstPass          =GetShaderParamBool("FirstPass"          );
+   NoiseOffset        =GetShaderParamInt ("NoiseOffset"        );
+   NightShadeColor    =GetShaderParam    ("NightShadeColor"    ); // set in 'D.ambientSet()'
+   AmbientColor_l     =GetShaderParam    ("AmbientColor"       ); // set in 'D.ambientSet()'
+   AmbientColorNS_l   =GetShaderParam    ("AmbientNSColor"     ); // set in 'D.ambientSet()'
+   AmbientContrast2   =GetShaderParam    ("AmbientContrast2"   ); AmbientContrast2->set(D.ambientContrast()*2);
+   AmbientMin         =GetShaderParam    ("AmbientMin"         ); AmbientMin      ->set(D.ambientMin     ()  );
+   AmbientRange_2     =GetShaderParam    ("AmbientRange_2"     );
+   AmbientRangeInvSqr2=GetShaderParam    ("AmbientRangeInvSqr2");
    D.ambientSet(); D.ambientSetRange();
 
    HdrBrightness=GetShaderParam("HdrBrightness"); HdrBrightness->set(D.eyeAdaptationBrightness());
@@ -480,28 +581,51 @@ void MainShaderClass::getTechniques()
  //DrawTexYG    =get("DrawTexYG"); used by Editor
  //DrawTexZG    =get("DrawTexZG"); used by Editor
  //DrawTexWG    =get("DrawTexWG"); used by Editor
+ //DrawTexXIG   =get("DrawTexXIG"); used by Editor
+ //DrawTexYIG   =get("DrawTexYIG"); used by Editor
+ //DrawTexZIG   =get("DrawTexZIG"); used by Editor
+ //DrawTexWIG   =get("DrawTexWIG"); used by Editor
  //DrawTexXSG   =get("DrawTexXSG"); used by Editor
  //DrawTexXYSG  =get("DrawTexXYSG"); used by Editor
  //DrawTexSG    =get("DrawTexSG"); used by Editor
  //DrawTexNrm   =get("DrawTexNrm"); used by Editor
  //DrawTexDetNrm=get("DrawTexDetNrm"); used by Editor
 
-   DrawMask=get("DrawMask");
+   // MASK
+   REPD(alpha, 2)
+   REPD(point, 2)DrawMask[alpha][point]=get(S8+"DrawMask"+alpha+point);
 
-   // POINT (these can be null if failed to load)
-   DrawTexPoint =find("DrawTexPoint");
-   DrawTexPointC=find("DrawTexPointC");
+   // POINT
+   DrawTexPoint =get("DrawTexPoint");
+   DrawTexPointC=get("DrawTexPointC");
 
-   // CUBIC (these can be null if failed to load)
+   // CUBIC
    REPD(color , 2)DrawTexCubicFast[color]=get(S8+"DrawTexCubicFast"+color);
-   REPD(dither, 2)
-   {
-      DrawTexCubicFastF   [dither]=find(S8+"DrawTexCubicFastF"   +dither);
-      DrawTexCubicFastFRGB[dither]=find(S8+"DrawTexCubicFastFRGB"+dither);
-   }
+   REPD(alpha , 2)
+   REPD(dither, 2)DrawTexCubicFastF[alpha][dither]=get(S8+"DrawTexCubicFastF"+alpha+dither);
 #if !SLOW_SHADER_LOAD
    initCubicShaders();
 #endif
+
+   // FidelityFX
+   {
+      Easu=GetShaderParam("Easu");
+      Rcas=GetShaderParam("Rcas");
+      Bool gather=(D.gatherChannelAvailable() && D.packHalf2x16Available()); // these shaders with gather version use 'packHalf2x16'
+      Bool half  =(D._half_supported!=0); // enable half if supported or unknown #NvidiaGeForceFidelityFXHalf
+   #if WINDOWS // workaround for NVIDIA GeForce with Half support having AMD Fidelity FX broken FIXME: TODO: check again in the future if this is still needed
+      if(D._half_supported==1 && ContainsAny(D.deviceName(), "NVIDIA GeForce", false, WHOLE_WORD_YES))half=false;
+   #endif
+      REPD(alpha   , 2)
+      REPD(dither  , 2)
+    //REPD(in_gamma, 2)REPD(out_gamma, 2)
+      REPD(   gamma, 2)
+      {
+         EASU[alpha][dither][gamma]=get(S8+"EASU"+alpha+dither+gamma+gamma+gather+half);
+         RCAS[alpha][dither][gamma]=get(S8+"RCAS"+alpha+dither+gamma+gamma+gather+half);
+      }
+      REPD(color, 2)EASUScreen[color]=get(S8+"EASUScreen"+color+gather+half);
+   }
 
    // FONT
    FontShadow  =GetShaderParam("FontShadow"  );
@@ -518,13 +642,13 @@ void MainShaderClass::getTechniques()
    }
 
    // BASIC 2D
-   Dither=get("Dither");
-   SetCol=get("SetCol");
-   Draw  =get("Draw"  );
-   DrawC =get("DrawC" );
-   DrawG =get("DrawG" );
-   DrawCG=get("DrawCG");
-   DrawA =get("DrawA" );
+   REPD(alpha , 2)
+   REPD(dither, 2)Draw[alpha][dither]=get(S8+"Draw"+alpha+dither);
+   SetCol=get("SetCol" );
+   DrawC =get("DrawC"  );
+   DrawG =get("DrawG"  );
+   DrawCG=get("DrawCG" );
+   DrawA =get("DrawA"  );
    if(D.shaderModel()>=SM_4)
    {
                                  DrawMs1=get("DrawMs1");
@@ -535,17 +659,21 @@ void MainShaderClass::getTechniques()
    // BLOOM
    BloomParams=GetShaderParam("BloomParams");
 #if !SLOW_SHADER_LOAD
-   REPD(glow, 2)
-   REPD(c, 2)
-   REPD(h, 2)
-   REPD(s, 2)
-   REPD(gamma, 2)
-      BloomDS[glow][c][h][s][gamma]=getBloomDS(glow, c, h, s, gamma);
+   REPD(view_full, 2)
+   REPD(half     , 2)
+      PrecomputedBloomDS[view_full][half]=getPrecomputedBloomDS(view_full, half);
+   REPD(adapt_eye, 2)
+   {
+      REPD(glow     , 2)
+      REPD(view_full, 2)
+      REPD(half     , 2)
+         BloomDS[glow][view_full][half][adapt_eye]=getBloomDS(glow, view_full, half, adapt_eye);
 
-   REPD(dither, 2)
-   REPD(gamma , 2)
-   REPD(alpha , 2)
-      Bloom[dither][gamma][alpha]=getBloom(dither, gamma, alpha);
+      REPD(tone_map, TONE_MAP_NUM)
+      REPD(alpha   , 3)
+      REPD(dither  , 2)
+         Bloom[tone_map][alpha][dither][adapt_eye]=getBloom(tone_map, alpha, dither, adapt_eye);
+   }
 #endif
 
    // BLUR
@@ -569,12 +697,15 @@ void MainShaderClass::getTechniques()
    }
 
 #if !SLOW_SHADER_LOAD
-                              SetAlphaFromDepth        =get("SetAlphaFromDepth");
-   if(D.shaderModel()>=SM_4_1)SetAlphaFromDepthMS      =get("SetAlphaFromDepthMS");
-                              SetAlphaFromDepthAndCol  =get("SetAlphaFromDepthAndCol");
-   if(D.shaderModel()>=SM_4_1)SetAlphaFromDepthAndColMS=get("SetAlphaFromDepthAndColMS");
-                              CombineAlpha             =get("CombineAlpha");
-                              ReplaceAlpha             =get("ReplaceAlpha");
+   REPD(sky, 2)
+   {
+                                 SetAlphaFromDepth        [sky]=get(S8+"SetAlphaFromDepth"        +sky);
+      if(D.shaderModel()>=SM_4_1)SetAlphaFromDepthMS      [sky]=get(S8+"SetAlphaFromDepthMS"      +sky);
+                                 SetAlphaFromDepthAndCol  [sky]=get(S8+"SetAlphaFromDepthAndCol"  +sky);
+      if(D.shaderModel()>=SM_4_1)SetAlphaFromDepthAndColMS[sky]=get(S8+"SetAlphaFromDepthAndColMS"+sky);
+   }
+   CombineAlpha=get("CombineAlpha");
+   ReplaceAlpha=get("ReplaceAlpha");
 #endif
 
    // SKY
@@ -612,13 +743,11 @@ void MainShaderClass::getTechniques()
       }
    }
 
-   REPD(m, 2)SunRaysMask[m]=getSunRaysMask(m);
-
-   REPD(m, 2)
-   REPD(d, 2)
-   REPD(j, 2)
-   REPD(g, 2)
-      SunRays[m][d][j][g]=getSunRays(m, d, j, g);
+   REPD(alpha , 2)
+   REPD(dither, 2)
+   REPD(jitter, 2)
+   REPD(gamma , 2)
+      SunRays[alpha][dither][jitter][gamma]=getSunRays(alpha, dither, jitter, gamma);
  //SunRaysSoft=get("SunRaysSoft");
 #endif
 
@@ -633,15 +762,17 @@ void MainShaderClass::getTechniques()
 
    // can be used for shadows in deferred and AO
    {
-      Byte gl_es=(GL_ES ? D.gatherAvailable() ? 2 : 1 : 0); // GL_ES can't filter depth textures, so have to use special shader based on gather, all other platforms just use depth filtering, so no need, also GL_ES doesn't support NOPERSP
-      REPD(geom, 2)
+      Bool gather=D.gatherAvailable(), gl_es=GL_ES;
+      REPD(geom        , 2)
+      REPD(linear_depth, 2)
       {
-         ShdBlur [geom][0]=get(S8+"ShdBlur" +geom+gl_es+4);
-         ShdBlur [geom][1]=get(S8+"ShdBlur" +geom+gl_es+6);
-         ShdBlur [geom][2]=get(S8+"ShdBlur" +geom+gl_es+8);
-         ShdBlur [geom][3]=get(S8+"ShdBlur" +geom+gl_es+12);
-         ShdBlurX[geom]   =get(S8+"ShdBlurX"+geom+gl_es+2);
-         ShdBlurY[geom]   =get(S8+"ShdBlurY"+geom+gl_es+2);
+         ShdBlur      [geom][linear_depth][0]=get(S8+"ShdBlur"      +geom+linear_depth+gather+gl_es+4);
+         ShdBlur      [geom][linear_depth][1]=get(S8+"ShdBlur"      +geom+linear_depth+gather+gl_es+6);
+         ShdBlur      [geom][linear_depth][2]=get(S8+"ShdBlur"      +geom+linear_depth+gather+gl_es+8);
+         ShdBlur      [geom][linear_depth][3]=get(S8+"ShdBlur"      +geom+linear_depth+gather+gl_es+12);
+         ShdBlurX     [geom][linear_depth]   =get(S8+"ShdBlurX"     +geom+linear_depth+gather+gl_es+2);
+         ShdBlurY     [geom][linear_depth]   =get(S8+"ShdBlurY"     +geom+linear_depth+gather+gl_es+2);
+         ShdBlurJitter[geom][linear_depth]   =get(S8+"ShdBlurJitter"+geom+linear_depth+gather+gl_es);
       }
    }
 
@@ -663,16 +794,16 @@ void MainShaderClass::getTechniques()
 
       // LIGHT
       REPD(diffuse     , DIFFUSE_NUM)
-      REPD(multi_sample, (D.shaderModel()>=SM_4_1) ? 2 : 1)
+      REPD(multi_sample, (D.shaderModel()>=SM_4_1) ? 3 : 1)
       REPD(shadow      , 2)
       REPD(water       , 2)
       {
-                        DrawLightDir   [diffuse][shadow][multi_sample][water]       =getDrawLightDir   (diffuse, shadow, multi_sample, water);
-                        DrawLightPoint [diffuse][shadow][multi_sample][water]       =getDrawLightPoint (diffuse, shadow, multi_sample, water);
-                        DrawLightLinear[diffuse][shadow][multi_sample][water]       =getDrawLightLinear(diffuse, shadow, multi_sample, water);
-         REPD(image, 2){DrawLightCone  [diffuse][shadow][multi_sample][water][image]=getDrawLightCone  (diffuse, shadow, multi_sample, water, image);
+                        DrawLightDir   [diffuse][multi_sample][shadow][water]       =getDrawLightDir   (diffuse, multi_sample, shadow, water);
+                        DrawLightPoint [diffuse][multi_sample][shadow][water]       =getDrawLightPoint (diffuse, multi_sample, shadow, water);
+                        DrawLightLinear[diffuse][multi_sample][shadow][water]       =getDrawLightLinear(diffuse, multi_sample, shadow, water);
+         REPD(image, 2){DrawLightCone  [diffuse][multi_sample][shadow][water][image]=getDrawLightCone  (diffuse, multi_sample, shadow, water, image);
                      #if !DEPTH_CLIP_SUPPORTED
-                        DrawLightConeFlat[diffuse][shadow][multi_sample][water][image]=getDrawLightConeFlat(diffuse, shadow, multi_sample, water, image);
+                        DrawLightConeFlat[diffuse][multi_sample][shadow][water][image]=getDrawLightConeFlat(diffuse, multi_sample, shadow, water, image);
                      #endif
                        }
       }
@@ -754,8 +885,22 @@ void HDR::load()
       HdrDS[0] =shader->get("HdrDS0"   );
       HdrDS[1] =shader->get("HdrDS1"   );
       HdrUpdate=shader->get("HdrUpdate");
-      Hdr[0]   =shader->get("Hdr0"     );
-      Hdr[1]   =shader->get("Hdr1"     );
+      REPD(dither, 2)AdaptEye[dither]=shader->get(S8+"AdaptEye"+dither);
+
+   #if SUPPORT_TONE_MAP_AMD_LPM
+      varAF3(saturation)=initAF3(-1.0/16, -1.0/16, -1.0/16);
+      varAF3(crosstalk)=initAF3(1.0, 1.0, 1.0);
+      LpmSetup(false,
+         LPM_CONFIG_709_709,
+         LPM_COLORS_709_709,
+         0.0, // softGap
+         256.0, // hdrMax
+         8.0, // exposure
+         1.0/16, // contrast
+         1.0, // shoulder contrast
+         saturation, crosstalk);
+      SPSet("AMD_LPT_constant", AMD_LPT_constant);
+   #endif
    }   
 }
 /******************************************************************************/
@@ -763,32 +908,24 @@ void MotionBlur::load()
 {
    if(!shader)if(shader=ShaderFiles("Motion Blur"))
    {
-      MotionScaleLimit=GetShaderParam("MotionScaleLimit");
-      MotionPixelSize =GetShaderParam("MotionPixelSize");
+      MotionScale_2=GetShaderParam("MotionScale_2"); {auto t=D._mtn_scale; D._mtn_scale=-1; D.motionScale(t);}
 
       //Explosion=shader->get("Explosion");
 
-      REPD(h, 2)
-      REPD(c, 2)Convert[h][c]=shader->get(S8+"Convert"+h+c);
-
-      Dilate=shader->get("Dilate");
-
-      REPD(c, 2)SetDirs[c]=shader->get(S8+"SetDirs"+c);
+      SetVel=shader->get("SetVel");
 
       // #MotionBlurDilateRanges
-      Dilates[ 0].pixels=1;
-      Dilates[ 1].pixels=2;
-      Dilates[ 2].pixels=4;
-      Dilates[ 3].pixels=6;
-      Dilates[ 4].pixels=8;
-      Dilates[ 5].pixels=12;
-      Dilates[ 6].pixels=16;
-      Dilates[ 7].pixels=20;
-      Dilates[ 8].pixels=24;
-      Dilates[ 9].pixels=32;
-      Dilates[10].pixels=40;
-      Dilates[11].pixels=48;
-      ASSERT(ELMS(Dilates)==12 && MAX_MOTION_BLUR_PIXEL_RANGE==48);
+      Dilates[0].range=1;
+      Dilates[1].range=2;
+      Dilates[2].range=3;
+      Dilates[3].range=4;
+      Dilates[4].range=6;
+      Dilates[5].range=8;
+      Dilates[6].range=10;
+      Dilates[7].range=12;
+      Dilates[8].range=16;
+      Dilates[9].range=20;
+      ASSERT(ELMS(Dilates)==10);
 
       // #MotionBlurSamples
       Blurs[0].samples=5;
@@ -798,35 +935,42 @@ void MotionBlur::load()
       ASSERT(ELMS(Blurs)==4);
    }
 }
-C MotionBlur::DilateRange* MotionBlur::getDilate(Int pixels, Bool diagonal)
+Shader* MotionBlur::getConvert(Int range)
 {
-   if(pixels<=0)return null;
-   DilateRange *p;
-   FREPA(Dilates) // start from the smallest to find exact match or bigger, order is important
-   {
-      p=&Dilates[i]; if(p->pixels>=pixels)break; // if this covers desired range of pixels to blur
-   }
-   if(!p->DilateX[diagonal])
-   {
-      p->DilateX[diagonal]=shader->get(S8+"DilateX"+diagonal+p->pixels);
-      p->DilateY[diagonal]=shader->get(S8+"DilateY"+diagonal+p->pixels);
-   }
-   return p;
+   MIN(range, Elms(Convert));
+   Bool view_full=D._view_main.full;
+   Shader* &shader=Convert[range][view_full];
+   if(!shader)shader=T.shader->get(S8+"Convert"+view_full+(1<<range));
+   return shader;
 }
-Shader* MotionBlur::getBlur(Int samples, Bool dither, Bool alpha)
+C MotionBlur::DilateRange& MotionBlur::getDilate(Int range)
 {
-   BlurRange *b;
-   FREPA(Blurs) // start from the smallest to find exact match or bigger, order is important
+   DilateRange *dr; FREPA(Dilates) // start from the smallest to find exact match or bigger, order is important
+   {
+      dr=&Dilates[i]; if(dr->range>=range)break; // if this covers desired samples
+   }
+   Shader* &shader=dr->Dilate;
+   if(!shader)shader=T.shader->get(S8+"Dilate"+dr->range);
+   return *dr;
+}
+Shader* MotionBlur::getBlur(Int samples, Int glow, Int dither, Bool alpha)
+{
+   BlurRange *b; FREPA(Blurs) // start from the smallest to find exact match or bigger, order is important
    {
       b=&Blurs[i]; if(b->samples>=samples)break; // if this covers desired samples
    }
-   Shader* &shader=b->Blur[dither][alpha];
-   if(!shader)shader=T.shader->get(S8+"Blur"+dither+alpha+b->samples);
+   Bool jitter=D.motionJitter(), temporal=Renderer.hasTemporal(), view_full=D._view_main.full; // this must check for 'hasTemporal' because '_temporal_use' could already got disabled
+   Shader* &shader=b->Blur[glow][dither][jitter][alpha][temporal][view_full];
+   if(!shader)
+   {
+      Bool gather=(temporal && D.gatherChannelAvailable()); // gather only needed for Temporal
+      shader=T.shader->get(S8+"Blur"+glow+dither+jitter+alpha+temporal+view_full+gather+b->samples);
+   }
    return shader;
 }
 /******************************************************************************/
-Shader* DepthOfField::getDS(Bool clamp , Bool realistic, Bool alpha, Bool half_res) {return shader->get(S8+"DofDS"+clamp+realistic+alpha+half_res+D.gatherAvailable());}
-Shader* DepthOfField::get  (Bool dither, Bool realistic, Bool alpha               ) {return shader->get(S8+"Dof"+dither+realistic+alpha);}
+Shader* DepthOfField::getDS(Bool view_full, Bool realistic, Bool alpha, Bool half_res) {return shader->get(S8+"DofDS"+view_full+realistic+alpha+half_res+(D.filterMinMaxAvailable() ? 2 : D.gatherAvailable() ? 1 : 0));}
+Shader* DepthOfField::get  (Bool dither   , Bool realistic, Bool alpha               ) {return shader->get(S8+"Dof"+dither+realistic+alpha);}
 
 void DepthOfField::load()
 {
@@ -835,11 +979,11 @@ void DepthOfField::load()
       DofParams=GetShaderParam("DofParams");
 
    #if !SLOW_SHADER_LOAD
-      REPD(clamp    , 2)
+      REPD(view_full, 2)
       REPD(realistic, 2)
       REPD(alpha    , 2)
       REPD(half_res , 2)
-         DofDS[clamp][realistic][alpha][half_res]=getDS(clamp, realistic, alpha, half_res);
+         DofDS[view_full][realistic][alpha][half_res]=getDS(view_full, realistic, alpha, half_res);
 
       REPD(dither   , 2)
       REPD(realistic, 2)
@@ -880,20 +1024,19 @@ void WaterShader::load()
 {
    if(!shader)if(shader=ShaderFiles("Water"))
    {
-      WaterMaterial           =GetShaderParam("WaterMaterial");
-      Water_color_underwater0 =GetShaderParam("Water_color_underwater0");
-      Water_color_underwater1 =GetShaderParam("Water_color_underwater1");
-      Water_refract_underwater=GetShaderParam("Water_refract_underwater");
-      WaterUnderStep          =GetShaderParam("WaterUnderStep");
-      WaterOfsCol             =GetShaderParam("WaterOfsCol");
-      WaterOfsNrm             =GetShaderParam("WaterOfsNrm");
-      WaterOfsBump            =GetShaderParam("WaterOfsBump");
-      WaterYMulAdd            =GetShaderParam("WaterYMulAdd");
-      WaterPlanePos           =GetShaderParam("WaterPlanePos");
-      WaterPlaneNrm           =GetShaderParam("WaterPlaneNrm");
-      WaterFlow               =GetShaderParam("WaterFlow");
-      WaterReflectMulAdd      =GetShaderParam("WaterReflectMulAdd");
-      WaterClamp              =GetShaderParam("WaterClamp");
+      WaterMaterial          =GetShaderParam("WaterMaterial");
+      Water_color_underwater0=GetShaderParam("Water_color_underwater0");
+      Water_color_underwater1=GetShaderParam("Water_color_underwater1");
+      WaterUnderStep         =GetShaderParam("WaterUnderStep");
+      WaterOfsCol            =GetShaderParam("WaterOfsCol");
+      WaterOfsNrm            =GetShaderParam("WaterOfsNrm");
+      WaterOfsBump           =GetShaderParam("WaterOfsBump");
+      WaterYMulAdd           =GetShaderParam("WaterYMulAdd");
+      WaterPlanePos          =GetShaderParam("WaterPlanePos");
+      WaterPlaneNrm          =GetShaderParam("WaterPlaneNrm");
+      WaterFlow              =GetShaderParam("WaterFlow");
+      WaterReflectMulAdd     =GetShaderParam("WaterReflectMulAdd");
+      WaterClamp             =GetShaderParam("WaterClamp");
 
       Bool gather=D.gatherAvailable();
       Lake =shader->get(S8+"Lake" +0+0+0+0+0+0);
@@ -913,8 +1056,8 @@ void WaterShader::load()
             }
             REPD(depth, 2)Apply[depth][reflect_env][reflect_mirror][refract]=shader->get(S8+"Apply"+depth+reflect_env+reflect_mirror+refract+gather);
          }
-         Under[refract]=shader->get(S8+"Under"+refract);
       }
+      Under=shader->get("Under");
    }
 }
 /******************************************************************************/

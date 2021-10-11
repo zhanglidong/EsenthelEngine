@@ -64,7 +64,8 @@ struct Str // Text String (16-bit per character)
    ASSERT(SIZE(wchar_t)==SIZE(Char));
    operator C wchar_t*()C {return (wchar_t*)T();} // cast to C wchar_t*
 #elif APPLE
-   Str(NSString *s);   Str& operator=(NSString *s);   Str& operator+=(NSString *s);   Str operator+(NSString *s)C;
+   Str(NSString   *s);   Str& operator=(NSString   *s);   Str& operator+=(NSString   *s);   Str operator+(NSString   *s)C;
+   Str(CFStringRef s);   Str& operator=(CFStringRef s);   Str& operator+=(CFStringRef s);   Str operator+(CFStringRef s)C;
 #endif
    void alwaysAppend(Char c);
    explicit Str(C Str8 &s, UInt extra_length);

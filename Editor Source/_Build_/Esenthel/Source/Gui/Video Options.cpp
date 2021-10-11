@@ -34,14 +34,16 @@ VideoOptions VidOpt;
          "None",
          "Linear",
          "Cubic",
-         "Cubic+ (slow)",
+         "EASU",
+       //"Cubic+ (slow)",
       };
       FILTER_TYPE VideoOptions::Advanced::DensityFilter_v[]=
       {
          FILTER_NONE,
          FILTER_LINEAR,
          FILTER_CUBIC_FAST,
-         FILTER_CUBIC_PLUS,
+         FILTER_EASU,
+       //FILTER_CUBIC_PLUS,
       };
       cchar8 *VideoOptions::Advanced::TexUse_t[]=
       {
@@ -69,15 +71,24 @@ VideoOptions VidOpt;
          "Smoothness"       , // 4
          "Reflectivity"     , // 5
          "Glow"             , // 6
-         "Velocity"         , // 7
-         "Light"            , // 8
-         "Light + AO"       , // 9
-         "Ambient Occlusion", // 10
-         "Color (Lit)"      , // 11
-         "Reflection"       , // 12
-         "Water Color"      , // 13
-         "Water Normal"     , // 14
-         "Water Light"      , // 15
+         "Emissive"         , // 7
+         "Motion"           , // 8
+         "Light"            , // 9
+         "Light + AO"       , // 10
+         "Ambient Occlusion", // 11
+         "Color (Lit)"      , // 12
+         "Alpha"            , // 13
+         "Reflection"       , // 14
+         "Water Color"      , // 15
+         "Water Normal"     , // 16
+         "Water Light"      , // 17
+      };
+      cchar8 *VideoOptions::Advanced::ToneMap_t[]=
+      {
+         "Off"     , // 0
+         "Default" , // 1
+         "ACES LDR", // 2
+         "ACES HDR", // 3
       };
       cchar8 *VideoOptions::Advanced::ShadowReduceFlicker_t[]=
       {
@@ -194,6 +205,8 @@ VideoOptions VidOpt;
       void VideoOptions::Advanced::EdgeDetect(  Advanced &adv, C Str &text) {       D.edgeDetect(EDGE_DETECT_MODE(TextInt(text)));}
       Str  VideoOptions::Advanced::Stage(C Advanced &adv             ) {return Renderer.stage;}
       void VideoOptions::Advanced::Stage(  Advanced &adv, C Str &text) {       Renderer.stage=(RENDER_STAGE)TextInt(text);}
+      Str  VideoOptions::Advanced::ToneMap(C Advanced &adv             ) {return D.toneMap();}
+      void VideoOptions::Advanced::ToneMap(  Advanced &adv, C Str &text) {       D.toneMap((TONE_MAP_MODE)TextInt(text));}
       Str  VideoOptions::Advanced::EyeAdaptBrigh(C Advanced &adv             ) {return D.eyeAdaptationBrightness();}
       void VideoOptions::Advanced::EyeAdaptBrigh(  Advanced &adv, C Str &text) {       D.eyeAdaptationBrightness(TextFlt(text));}
       Str  VideoOptions::Advanced::Exclusive(C Advanced &adv             ) {return D.exclusive();}
@@ -202,8 +215,10 @@ VideoOptions VidOpt;
       void VideoOptions::Advanced::ColorSpace(  Advanced &adv, C Str &text) {       D.colorSpace((COLOR_SPACE)TextInt(text));}
       Str  VideoOptions::Advanced::DiffuseMode(C Advanced &adv             ) {return D.diffuseMode();}
       void VideoOptions::Advanced::DiffuseMode(  Advanced &adv, C Str &text) {       D.diffuseMode((DIFFUSE_MODE)TextInt(text));}
-      Str  VideoOptions::Advanced::MonitorPrec(C Advanced &adv             ) {return D.monitorPrecision();}
-      void VideoOptions::Advanced::MonitorPrec(  Advanced &adv, C Str &text) {       D.monitorPrecision(IMAGE_PRECISION(TextInt(text)));}
+      Str  VideoOptions::Advanced::Hdr(C Advanced &adv             ) {return D.outputPrecision()>IMAGE_PRECISION_8;}
+      void VideoOptions::Advanced::Hdr(  Advanced &adv, C Str &text) {       D.outputPrecision(TextBool(text) ? IMAGE_PRECISION_16 : IMAGE_PRECISION_8);}
+      Str  VideoOptions::Advanced::Sharpen(C Advanced &adv             ) {return D.sharpen();}
+      void VideoOptions::Advanced::Sharpen(  Advanced &adv, C Str &text) {       D.sharpen(TextBool(text));}
       Str  VideoOptions::Advanced::Dither(C Advanced &adv             ) {return D.dither();}
       void VideoOptions::Advanced::Dither(  Advanced &adv, C Str &text) {       D.dither(TextBool(text));}
       Str  VideoOptions::Advanced::ColRTPrec(C Advanced &adv             ) {return D.highPrecColRT();}
@@ -222,6 +237,12 @@ VideoOptions VidOpt;
       void VideoOptions::Advanced::AOContrast(  Advanced &adv, C Str &text) {       D.ambientContrast(TextFlt(text));}
       Str  VideoOptions::Advanced::AORange(C Advanced &adv             ) {return D.ambientRange();}
       void VideoOptions::Advanced::AORange(  Advanced &adv, C Str &text) {       D.ambientRange(TextFlt(text));}
+      Str  VideoOptions::Advanced::AORes(C Advanced &adv             ) {return D.ambientRes()>=0.75f;}
+      void VideoOptions::Advanced::AORes(  Advanced &adv, C Str &text) {       D.ambientRes(TextBool(text) ? 1 : 0.5f);}
+      Str  VideoOptions::Advanced::DOF(C Advanced &adv             ) {return D.dofMode()!=DOF_NONE;}
+      void VideoOptions::Advanced::DOF(  Advanced &adv, C Str &text) {       D.dofMode(TextBool(text) ? DOF_GAUSSIAN : DOF_NONE);}
+      Str  VideoOptions::Advanced::DOFIntensity(C Advanced &adv             ) {return D.dofIntensity();}
+      void VideoOptions::Advanced::DOFIntensity(  Advanced &adv, C Str &text) {       D.dofIntensity(TextFlt(text));}
       Str  VideoOptions::Advanced::ShadowFlicker(C Advanced &adv             ) {return D.shadowReduceFlicker();}
       void VideoOptions::Advanced::ShadowFlicker(  Advanced &adv, C Str &text) {       D.shadowReduceFlicker(TextInt(text));}
       Str  VideoOptions::Advanced::ShadowFrac(C Advanced &adv             ) {return D.shadowFrac();}
@@ -314,6 +335,7 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
       #endif
          props.New().create("Pixel Density"        , MemberDesc(         ).setFunc(Density      , Density      )).setEnum(Density_t      , Elms(Density_t      )).desc("Set Rendering Pixel Density");
          props.New().create("Upscale Filtering"    , MemberDesc(         ).setFunc(DensityFilter, DensityFilter)).setEnum(DensityFilter_t, Elms(DensityFilter_t)).desc("Set Pixel Density Filtering when Upscaling");
+         props.New().create("Sharpen"              , MemberDesc(DATA_BOOL).setFunc(Sharpen      , Sharpen      ));
          props.New().create(MLTC(u"Grass Range", PL, u"Zasięg Trawy", DE, u"Gras Reichweite", RU, u"Диапазон травы", PO, u"Alcance da relva"), MemberDesc(DATA_INT ).setFunc(GrassRange  , GrassRange  )).range(0, 2000).desc("Set visible grass range\nvalue of 0 hides grass objects");
        //props.New().create("Grass Density"        , MemberDesc(DATA_REAL).setFunc(GrassDensity, GrassDensity)).range(0, 1).desc("Set visible grass density");
          props.New().create("Soft Particles"       , MemberDesc(DATA_BOOL).setFunc(SoftParticle, SoftParticle)).desc("Enable Soft Particles");
@@ -326,24 +348,27 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
          props.New().create("Shadow Range Fraction"      , MemberDesc(DATA_REAL).setFunc(ShadowFrac   , ShadowFrac   )).range(0, 1).desc("This option can limit directional lights shadowing range to a fraction of the viewport range.");
          props.New().create("Shadow Fade  Fraction"      , MemberDesc(DATA_REAL).setFunc(ShadowFade   , ShadowFade   )).range(0, 1).desc("This option specifies at which part of the shadowing range,\nshadow fading occurs for directional lights.");
          props.New().create("Edge Detect"                , MemberDesc(         ).setFunc(EdgeDetect   , EdgeDetect   )).setEnum(EdgeDetect_t, Elms(EdgeDetect_t)).desc("Detect Edges");
-         props.New().create("Rendering Stage"            , MemberDesc(         ).setFunc(Stage        , Stage        )).setEnum(Stage_t,  Elms(Stage_t)).desc("Display specified rendering stage.\nSome options are available only in Deferred Renderer.");
-         props.New().create("Eye Adaptation Brightness"  , MemberDesc(DATA_REAL).setFunc(EyeAdaptBrigh, EyeAdaptBrigh)).range(0, 2).desc("Total light scale for Eye Adaptation Effect");
+         props.New().create("Rendering Stage"            , MemberDesc(         ).setFunc(Stage        , Stage        )).setEnum(Stage_t, Elms(Stage_t)).desc("Display specified rendering stage.\nSome options are available only in Deferred Renderer.");
          props.New().create("Dither"                     , MemberDesc(DATA_BOOL).setFunc(Dither       , Dither       )).desc("If enable color dithering, which smoothens color gradients.");
-         props.New().create("Monitor Precision"          , MemberDesc(         ).setFunc(MonitorPrec  , MonitorPrec  )).setEnum(Precision_t, Elms(Precision_t)).desc("Specify the exact precision of your Monitor Screen.\n8 bit per channel = 24 bit total\n10 bit per channel = 30 bit total\nIf you're not sure what your monitor supports, leave this option at \"8 bit\"\n\nAvoid setting higher precision than what your screen can actually support,\nbecause instead of getting higher quality results you will get lower quality.");
+       //props.New().create("Monitor Precision"          , MemberDesc(         ).setFunc(MonitorPrec  , MonitorPrec  )).setEnum(Precision_t, Elms(Precision_t)).desc("Specify the exact precision of your Monitor Screen.\n8 bit per channel = 24 bit total\n10 bit per channel = 30 bit total\nIf you're not sure what your monitor supports, leave this option at \"8 bit\"\n\nAvoid setting higher precision than what your screen can actually support,\nbecause instead of getting higher quality results you will get lower quality.");
+         props.New().create("HDR"                        , MemberDesc(DATA_BOOL).setFunc(Hdr          , Hdr          ));
          props.New().create("High Precision Lit Color RT", MemberDesc(DATA_BOOL).setFunc(LitColRTPrec , LitColRTPrec )).desc("Enable high precision lit color render target\nThis increases precision of colors adjusted by lighting.");
          props.New().create("High Precision Color RT"    , MemberDesc(DATA_BOOL).setFunc(ColRTPrec    , ColRTPrec    )).desc("Enable high precision color render target\nThis increases precision of material color textures in Deferred Renderer.");
          props.New().create("High Precision Normal RT"   , MemberDesc(DATA_BOOL).setFunc(NrmRTPrec    , NrmRTPrec    )).desc("Enable high precision normal render target\nThis increases precision of specular lighting in Deferred Renderer.");
          props.New().create("High Precision Light RT"    , MemberDesc(DATA_BOOL).setFunc(LumRTPrec    , LumRTPrec    )).desc("Enable high precision light render target\nThis increases lighting precision in Deferred Renderer.");
+         props.New().create("Eye Adaptation Brightness"  , MemberDesc(DATA_REAL).setFunc(EyeAdaptBrigh, EyeAdaptBrigh)).range(0, 2).desc("Total light scale for Eye Adaptation Effect");
+         props.New().create("Tone Mapping"               , MemberDesc(         ).setFunc(ToneMap      , ToneMap      )).setEnum(ToneMap_t, Elms(ToneMap_t));
          props.New().create("Bloom Scale"                , MemberDesc(DATA_REAL).setFunc(BloomScale   , BloomScale   )).range(0, 2);
          props.New().create("Ambient Light"              , MemberDesc(DATA_REAL).setFunc(AmbLight     , AmbLight     )).range(0, 1);
          props.New().create("Ambient Occlusion Contrast" , MemberDesc(DATA_REAL).setFunc(AOContrast   , AOContrast   )).range(0, 8);
          props.New().create("Ambient Occlusion Range"    , MemberDesc(DATA_REAL).setFunc(AORange      , AORange      )).range(0, 2);
+         props.New().create("Ambient Occlusion Full Res" , MemberDesc(DATA_BOOL).setFunc(AORes        , AORes        ));
+         props.New().create("Depth of Field"             , MemberDesc(DATA_BOOL).setFunc(DOF          , DOF          ));
+         props.New().create("Depth of Field Intensity"   , MemberDesc(DATA_REAL).setFunc(DOFIntensity , DOFIntensity )).range(0, 1).setSlider();
          props.New().create("Allow Glow"                 , MemberDesc(DATA_BOOL).setFunc(AllowGlow    , AllowGlow    )).desc("If allow glow effect on the scene when detected.");
          props.New().create("Material Blend Per Pixel"   , MemberDesc(DATA_BOOL).setFunc(MaterialBlend, MaterialBlend)).desc("If Multiple Materials should be blended with per-pixel precision.\nFor this effect to work, your Materials should have a bump map.");
          props.New().create("Forward Renderer Per Pixel" , MemberDesc(DATA_BOOL).setFunc(ForwardPrec  , ForwardPrec  )).desc("If Forward renderer should use per-pixel precision,\nper-vertex precision is used otherwise.");
-      #if WINDOWS
          props.New().create("Min Tex Mip"                , MemberDesc(DATA_INT ).setFunc(TexMipMin    , TexMipMin    )).desc("Minimum Texture Mip usage").range(0, 14).mouseEditSpeed(1);
-      #endif
 sky_night_light=&props.New().create("Sky Night Light"            , MemberDesc(DATA_BOOL).setFunc(SkyNightLight         , SkyNightLight         )).desc("Manually Toggle Blue Light Filter for Sky");
                  props.New().create("Sky Night Light Intensity"  , MemberDesc(DATA_REAL).setFunc(SkyNightLightIntensity, SkyNightLightIntensity)).desc("Blue Light Filter Intensity for Sky").range(0, 1).setSlider();
                  props.New().create("Sky Night Light Schedule"   , MemberDesc(DATA_STR ).setFunc(SkyNightLightSchedule , SkyNightLightSchedule )).desc("Blue Light Filter Schedule for Sky.\nEnter time in HH:MM format when it should start, or set empty to disable.");
@@ -363,8 +388,10 @@ sky_night_light=&props.New().create("Sky Night Light"            , MemberDesc(DA
    void VideoOptions::Sync(  VideoOptions &vo, C Str &t) {       D.sync(TextBool(t));}
    Str  VideoOptions::Render(C VideoOptions &vo          ) {return Renderer.type();}
    void VideoOptions::Render(  VideoOptions &vo, C Str &t) {       Renderer.type(RENDER_TYPE(TextInt(t))); vo.setVis();}
-   Str  VideoOptions::TAA(C VideoOptions &vo          ) {return D.tAA();}
-   void VideoOptions::TAA(  VideoOptions &vo, C Str &t) {       vo.tAA(TextBool(t));}
+   Str  VideoOptions::TAA(C VideoOptions &vo          ) {return D.temporalAntiAlias();}
+   void VideoOptions::TAA(  VideoOptions &vo, C Str &t) {       D.temporalAntiAlias(TextBool(t));}
+   Str  VideoOptions::TempSuperRes(C VideoOptions &vo          ) {return D.temporalSuperRes();}
+   void VideoOptions::TempSuperRes(  VideoOptions &vo, C Str &t) {       D.temporalSuperRes(TextBool(t));}
    Str  VideoOptions::EdgeSoft(C VideoOptions &vo          ) {return D.edgeSoften();}
    void VideoOptions::EdgeSoft(  VideoOptions &vo, C Str &t) {       D.edgeSoften(EDGE_SOFTEN_MODE(TextInt(t)));}
    Str  VideoOptions::Shadow(C VideoOptions &vo          ) {return D.shadowMode()==SHADOW_MAP;}
@@ -395,9 +422,8 @@ sky_night_light=&props.New().create("Sky Night Light"            , MemberDesc(DA
    {
       D.scale(scale_win ? scale*D.screenH()/flt(D.resH())*(0.79f) : scale);
    }
-   void VideoOptions::setScale(flt  scale)  {T.scale    =scale; setScale();}
-   void VideoOptions::setScaleWin(bool scale)  {T.scale_win=scale; setScale();}
-   void VideoOptions::tAA(bool on   )C {D.tAA(on); D.texMipBias(D.tAA() ? -0.5f : 0);}
+   void VideoOptions::setScale(flt  scale) {T.scale    =scale; setScale();}
+   void VideoOptions::setScaleWin(bool scale) {T.scale_win=scale; setScale();}
    UID  VideoOptions::skinID(C Str &name)C {REPA(skins)if(skins[i].name==name)return skins[i].id; return UIDZero;}
    int  VideoOptions::skinIndex(C UID &id  )C {REPA(skins)if(skins[i].id  ==id  )return i; return -1;}
    Str  VideoOptions::skinName(           )C {return skin ? skin->combobox.text : S;}
@@ -423,23 +449,24 @@ sky_night_light=&props.New().create("Sky Night Light"            , MemberDesc(DA
 
    #if DESKTOP
       mode   =&props.New().create("Resolution"       , MemberDesc(         ).setTextToDataFunc(Mode        )).setEnum(); mode->combobox.setColumns(mode_list_column, Elms(mode_list_column)).setData(ConstCast(D.modes()));
-      full   =&props.New().create("Fullscreen"       , MemberDesc(DATA_BOOL).setFunc(Full      , Full      ))                                          .desc("Enable full screen mode");
-               props.New().create("Synchronization"  , MemberDesc(DATA_BOOL).setFunc(Sync      , Sync      ))                                          .desc("Enable screen synchronization\nLimits framerate to screen refresh rate to increase smoothness.");
+      full   =&props.New().create("Fullscreen"       , MemberDesc(DATA_BOOL).setFunc(Full        , Full        ))                                          .desc("Enable full screen mode");
+               props.New().create("Synchronization"  , MemberDesc(DATA_BOOL).setFunc(Sync        , Sync        ))                                          .desc("Enable screen synchronization\nLimits framerate to screen refresh rate to increase smoothness.");
    #endif
-               props.New().create("Renderer"         , MemberDesc(         ).setFunc(Render    , Render    )).setEnum(Render_t    , Elms(Render_t    )).desc("Renderer type\nForward renderer may work faster, but has limited number of special effects.");
-               props.New().create("Temporal AA"      , MemberDesc(DATA_BOOL).setFunc(TAA       , TAA       ))                                          .desc("Enable Temporal Anti-Aliasing");
-               props.New().create("Edge Softening"   , MemberDesc(         ).setFunc(EdgeSoft  , EdgeSoft  )).setEnum(EdgeSoften_t, Elms(EdgeSoften_t)).desc("Set edge softening");
-               props.New().create("Shadows"          , MemberDesc(DATA_BOOL).setFunc(Shadow    , Shadow    ))                                          .desc("Enable shadows");
-      shd_siz=&props.New().create("Shadowmap Size"   , MemberDesc(         ).setFunc(ShadowSize, ShadowSize)).setEnum(ShadowSize_t, Elms(ShadowSize_t)).desc("Shadow map resolution\nhigher resolutions reduce blockiness of shadows.");
-      shd_num=&props.New().create("Shadowmap Number" , MemberDesc(         ).setFunc(ShadowNum , ShadowNum )).setEnum(ShadowNum_t , Elms(ShadowNum_t )).desc("Shadow map number,\ndetermines the number of shadow maps used during rendering.");
-      shd_sft=&props.New().create("Shadows Softing"  , MemberDesc(         ).setFunc(ShadowSoft, ShadowSoft)).setEnum(ShadowSoft_t, Elms(ShadowSoft_t)).desc("Enable shadows softing");
-      shd_jit=&props.New().create("Shadows Jittering", MemberDesc(DATA_BOOL).setFunc(ShadowJit , ShadowJit ))                                          .desc("Enable jittering on shadows,\nworks best when enabled with shadow softing.");
-               props.New().create("Bump Mapping"     , MemberDesc(         ).setFunc(BumpMode  , BumpMode  )).setEnum(BumpMode_t  , Elms(BumpMode_t  )).desc("Simulate bumpy surfaces");
-               props.New().create("Motion Blur"      , MemberDesc(         ).setFunc(MotionMode, MotionMode)).setEnum(MotionMode_t, Elms(MotionMode_t)).desc("Blur fast moving objects");
-               props.New().create("Ambient Occlusion", MemberDesc(         ).setFunc(AO        , AO        )).setEnum(AO_t        , Elms(AO_t        )).desc("Darkens occluded areas");
-               props.New().create("Eye Adaptation"   , MemberDesc(DATA_BOOL).setFunc(EyeAdapt  , EyeAdapt  ))                                          .desc("Enables automatic screen brightness adjustment");
+               props.New().create("Renderer"         , MemberDesc(         ).setFunc(Render      , Render      )).setEnum(Render_t    , Elms(Render_t    )).desc("Renderer type\nForward renderer may work faster, but has limited number of special effects.");
+               props.New().create("Temporal AA"      , MemberDesc(DATA_BOOL).setFunc(TAA         , TAA         ))                                          .desc("Enable Temporal Anti-Aliasing");
+               props.New().create("Temporal SuperRes", MemberDesc(DATA_BOOL).setFunc(TempSuperRes, TempSuperRes))                                          .desc("Enable Temporal Super Resolution.\nThis option Lowers Quality but Increases Performance.\nIt works by rendering to a lower resolution and then upscaling back to original resolution.");
+               props.New().create("Edge Softening"   , MemberDesc(         ).setFunc(EdgeSoft    , EdgeSoft    )).setEnum(EdgeSoften_t, Elms(EdgeSoften_t)).desc("Set edge softening");
+               props.New().create("Shadows"          , MemberDesc(DATA_BOOL).setFunc(Shadow      , Shadow      ))                                          .desc("Enable shadows");
+      shd_siz=&props.New().create("Shadowmap Size"   , MemberDesc(         ).setFunc(ShadowSize  , ShadowSize  )).setEnum(ShadowSize_t, Elms(ShadowSize_t)).desc("Shadow map resolution\nhigher resolutions reduce blockiness of shadows.");
+      shd_num=&props.New().create("Shadowmap Number" , MemberDesc(         ).setFunc(ShadowNum   , ShadowNum   )).setEnum(ShadowNum_t , Elms(ShadowNum_t )).desc("Shadow map number,\ndetermines the number of shadow maps used during rendering.");
+      shd_sft=&props.New().create("Shadows Softing"  , MemberDesc(         ).setFunc(ShadowSoft  , ShadowSoft  )).setEnum(ShadowSoft_t, Elms(ShadowSoft_t)).desc("Enable shadows softing");
+      shd_jit=&props.New().create("Shadows Jittering", MemberDesc(DATA_BOOL).setFunc(ShadowJit   , ShadowJit   ))                                          .desc("Enable jittering on shadows,\nworks best when enabled with shadow softing.");
+               props.New().create("Bump Mapping"     , MemberDesc(         ).setFunc(BumpMode    , BumpMode    )).setEnum(BumpMode_t  , Elms(BumpMode_t  )).desc("Simulate bumpy surfaces");
+               props.New().create("Motion Blur"      , MemberDesc(         ).setFunc(MotionMode  , MotionMode  )).setEnum(MotionMode_t, Elms(MotionMode_t)).desc("Blur fast moving objects");
+               props.New().create("Ambient Occlusion", MemberDesc(         ).setFunc(AO          , AO          )).setEnum(AO_t        , Elms(AO_t        )).desc("Darkens occluded areas");
+               props.New().create("Eye Adaptation"   , MemberDesc(DATA_BOOL).setFunc(EyeAdapt    , EyeAdapt    ))                                          .desc("Enables automatic screen brightness adjustment");
 //if(D.shaderModel()>=SM_5)props.New().create("Tesselation", MemberDesc(DATA_BOOL).setFunc(Tesselation, Tesselation))                                  ;
-               props.New().create("Gui Scale"        , MemberDesc(DATA_REAL).setFunc(Scale     , Scale     )).mouseEditSpeed(0.5f)
+               props.New().create("Gui Scale"        , MemberDesc(DATA_REAL).setFunc(Scale       , Scale       )).mouseEditSpeed(0.5f)
                #if MOBILE
                   .range(0.9f, 3.0f);
                #else

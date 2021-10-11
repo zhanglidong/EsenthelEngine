@@ -1,8 +1,7 @@
 /******************************************************************************/
-Mesh       box ,
-           ball;
-ImageRT    rt  ; // Render Target Image (of IMAGE_RT mode), must be 'ImageRT' and not 'Image'
-ImageRTPtr rtp ; // Render Target pointer
+Mesh     box ,
+         ball;
+ImageRTC rt  ; // Render Target Image (of IMAGE_RT mode), must be 'ImageRTC' and not 'Image'
 /******************************************************************************/
 void InitPre()
 {
@@ -16,8 +15,7 @@ void InitPre()
 void InitRT()
 {
    int tex_size=256;
-   rt.create(VecI2(tex_size, tex_size), IMAGE_R8G8B8A8_SRGB);
-   rtp=&rt; // assign a pointer to make sure render target will always have a reference and will not be discarded
+   rt.mustCreate(VecI2(tex_size, tex_size), IMAGE_R8G8B8A8_SRGB);
 }
 bool Init()
 {

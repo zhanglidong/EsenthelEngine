@@ -72,6 +72,7 @@ mutable Byte         _d_lock;
    Int       validIndex(C Elm *elm )C {return _memx.validIndex(        elm  );} // this is NOT thread-safe
    Int         absIndex( CPtr  data)C {return         absIndex(dataElm(data));} // this is NOT thread-safe, assumes that '_data_offset' is zero
    Int       validIndex( CPtr  data)C {return       validIndex(dataElm(data));} // this is NOT thread-safe, assumes that '_data_offset' is zero
+   void      removeData( CPtr  data, Bool counted);
 #endif
    Ptr    find      (CChar *file, CChar *path, Bool counted);
    Ptr    find      (C UID &id  , CChar *path, Bool counted);
@@ -83,6 +84,7 @@ mutable Byte         _d_lock;
    Int    ptrCount  (CPtr   data                           )C;
    Bool   dummy     (CPtr   data                           )C;
    void   dummy     (CPtr   data, Bool   dummy             );
+   C Str& name      (CPtr   data                           )C;
    CChar* name      (CPtr   data, CChar *path              )C;
    UID    id        (CPtr   data                           )C;
    void   removeData(CPtr   data                           );
@@ -95,7 +97,7 @@ mutable Byte         _d_lock;
  C Desc& lockedDesc(Int i)C;
    CPtr  lockedData(Int i)C;
 
-   explicit _Cache(CChar8 *name, Int block_elms, Bool (*load)(Ptr data, C Str &file));
+   explicit _Cache(CChar8 *name, Int block_elms);
 
    NO_COPY_CONSTRUCTOR(_Cache);
 
